@@ -19,7 +19,8 @@ class CameraNode(object):
         self.framerate = self.setupParam("~framerate",60.0)
         self.res_w = self.setupParam("~res_w",320)
         self.res_h = self.setupParam("~res_h",200)
-
+        self.uncompress = False
+        
         # self.img_low_framerate = self.setupParam("~img_low_framerate",30.0)
         # self.img_high_framerate = self.setupParam("~img_high_framerate",5.0)
         # self.img_low_res_w = self.setupParam("~img_low_res_w",320)
@@ -51,7 +52,7 @@ class CameraNode(object):
         # TODO setup other parameters of the camera such as exposure and white balance etc
 
         # Setup timer
-        self.camera_capture = self.camera.capture_continuous(self.stream,'jpeg',use_video_port=True)
+        self.camera_capture = self.camera.capture_continuous(self.stream,'bgr',use_video_port=True)
         self.timer_img_low = rospy.Timer(rospy.Duration.from_sec(1.0/self.framerate),self.cbTimer)
         rospy.loginfo("[%s] Initialized." %(self.node_name))
 

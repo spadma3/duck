@@ -53,7 +53,7 @@ class CameraNode(object):
 
     def startCapturing(self):
         rospy.loginfo("[%s] Start capturing." %(self.node_name))
-        self.camera.capture_sequence(self.gen,'bgr',use_video_port=True,splitter_port=0)
+        self.camera.capture_sequence(self.gen,'rgb',use_video_port=True,splitter_port=0)
         self.camera.close()
         rospy.sleep(rospy.Duration.from_sec(2.0))
         rospy.loginfo("[%s] Capture Ended." %(self.node_name))
@@ -74,11 +74,15 @@ class CameraNode(object):
             
             # Turn strings into numpy array and image_msg
             #t1 = time.time()
-            cv_image = np.fromstring(stream_data, dtype=np.uint8).reshape((480,640,3))
+            cv_image = np.fromstring(stream_data, dtype=np.uint8)
+            cv_image = cv_image.reshape((480,640,3))
             #t2 = time.time()
             #print 'string to numpy array%.6f'%(t2-t1)
             image_msg = self.bridge.cv2_to_imgmsg(cv_image, "bgr8")
-            #print 'numpy to message %.6f'%(time.time() - t2)
+            #t3 = time.time()
+            #print 'numpy to message %.6f'%(t3 - t2)
+            #cv_tmp = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+            #print 'message to numpy %.6f'%(time.time() - t3)
 
             image_msg.header.stamp = stamp
             image_msg.header.frame_id = self.frame_id
