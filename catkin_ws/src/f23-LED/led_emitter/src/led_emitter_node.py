@@ -5,6 +5,7 @@ import sys
 import time
 from std_msgs.msg import Float32, Int8, String
 from rgb_led import RGB_LED
+from duckietown_msgs.msg import BoolStamped
 
 
 class LEDEmitter(object):
@@ -13,9 +14,11 @@ class LEDEmitter(object):
         self.node_name = rospy.get_name()
         self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
         self.sub_pattern = rospy.Subscriber("~change_color_pattern", String, self.changePattern)
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
         self.cycle = None
         
         self.is_on = False
+        self.active = True
 
         self.protocol = rospy.get_param("~LED_protocol") #should be a list of tuples
 
@@ -30,7 +33,13 @@ class LEDEmitter(object):
         self.current_pattern_name = None
         self.changePattern_('CAR_SIGNAL_A')
 
+    def cbSwitch(self, switch_msg): # active/inactive switch from FSM
+        self.active = switch_msg.data
+
+
     def cycleTimer(self,event):
+        if not self.active:
+            return
         if self.is_on:
             for i in range(5):
                 self.led.setRGB(i, [0, 0, 0])
