@@ -73,18 +73,18 @@ class CameraNode(object):
             stream_data = stream.getvalue()
             
             # Turn strings into numpy array and image_msg
-            t1 = time.time()
+            #t1 = time.time()
             #cv_image = np.fromstring(stream_data, dtype=np.uint8)
-            cv_image = self.yuv_bytes_to_rgb(stream_data)
+            #cv_image = self.yuv_bytes_to_rgb(stream_data)
+            cv_image = cv2.cvtColor(np.fromstring(stream_data, dtype=np.uint8).reshape((self.res_h/2*3, self.res_w)),cv2.COLOR_YUV2BGR_YV12)
             #cv_image = bytes_to_yuv(stream_data, (640, 480)) 
-            t2 = time.time()
-            print 'string to numpy array%.6f'%(t2-t1)
-            image_msg = self.bridge.cv2_to_imgmsg(cv_image, "rgb8")
+            #t2 = time.time()
+            #print 'string to numpy array%.6f'%(t2-t1)
+            image_msg = self.bridge.cv2_to_imgmsg(cv_image, "bgr8")
             #t3 = time.time()
             #print 'numpy to message %.6f'%(t3 - t2)
             #cv_tmp = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
             #print 'message to numpy %.6f'%(time.time() - t3)
-
 
             #image_msg = Image()
             #image_msg.data = stream_data
@@ -104,41 +104,42 @@ class CameraNode(object):
             rospy.sleep(rospy.Duration.from_sec(0.001))
 
     def yuv_bytes_to_rgb(self, data):
-        t1 = time.time()
-        y_len = self.res_w * self.res_h
-        uv_len = (self.res_w // 2) * (self.res_h // 2)
+        #t1 = time.time()
+        #y_len = self.res_w * self.res_h
+        #uv_len = (self.res_w // 2) * (self.res_h // 2)
         
         # Separate out the Y, U, and V values from the array
-        a = np.fromstring(data, dtype=np.uint8)
-        Y = a[:y_len]
-        U = a[y_len:-uv_len]
-        V = a[-uv_len:]
+        a = np.fromstring(data, dtype=np.uint8).reshape()
+        #Y = a[:y_len]
+        #U = a[y_len:-uv_len]
+        #V = a[-uv_len:]
         
         # Reshape the values into two dimensions, and double the size of the
         # U and V values (which only have quarter resolution in YUV4:2:0)
-        Y = Y.reshape((self.res_h, self.res_w))
-        U = U.reshape((self.res_h // 2, self.res_w // 2)).repeat(2, axis=0).repeat(2, axis=1)
-        V = V.reshape((self.res_h // 2, self.res_w // 2)).repeat(2, axis=0).repeat(2, axis=1)
+        #Y = Y.reshape((self.res_h, self.res_w))
+        #U = U.reshape((self.res_h // 2, self.res_w // 2)).repeat(2, axis=0).repeat(2, axis=1)
+        #V = V.reshape((self.res_h // 2, self.res_w // 2)).repeat(2, axis=0).repeat(2, axis=1)
         
-        t2 = time.time()
-        print 'Bytes to YUV: %.6f'%(t2-t1)
+        #t2 = time.time()
+        #print 'Bytes to YUV: %.6f'%(t2-t1)
         # Stack the channels together and crop to the actual resolution
-        YUV = np.dstack((Y, U, V))[:self.res_h, :self.res_w, :].astype(np.float)
-        YUV[:, :, 0]  = YUV[:, :, 0]  - 16   # Offset Y by 16
-        YUV[:, :, 1:] = YUV[:, :, 1:] - 128  # Offset UV by 128
+        #YUV = np.dstack((Y, U, V))[:self.res_h, :self.res_w, :]
+        #YUV[:, :, 0]  = YUV[:, :, 0]  - 16   # Offset Y by 16
+        #YUV[:, :, 1:] = YUV[:, :, 1:] - 128  # Offset UV by 128
         
         # YUV conversion matrix from ITU-R BT.601 version (SDTV)
         #              Y       U       V
-        M = np.array([[1.164,  0.000,  1.596],    # R
-              [1.164, -0.392, -0.813],    # G
-              [1.164,  2.017,  0.000]])   # B
+        #M = np.array([[1.164,  0.000,  1.596],    # R
+        #      [1.164, -0.392, -0.813],    # G
+        #      [1.164,  2.017,  0.000]])   # B
         
-        t3 = time.time()
+        #t3 = time.time()
         # Take the dot product with the matrix to produce RGB output, clamp the
         # results to byte range and convert to bytes
-        RGB = YUV.dot(M.T).astype(np.uint8)
-        print 'YUV to RGB: %.6f'%(time.time()-t3)
-        return RGB
+        #RGB = YUV.dot(M.T).astype(np.uint8)
+        #BGR=cv2.cvtColor(a.reshape((720, 640)),cv2.COLOR_YUV2RGB_YV12)
+        #print 'YUV to RGB: %.6f'%(time.time()-t3)
+        #return BGR
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
