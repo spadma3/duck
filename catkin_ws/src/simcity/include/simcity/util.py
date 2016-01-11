@@ -6,6 +6,7 @@ import yaml
 import numpy as np
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
+from duckietown_msgs.msg import MapTile
 from geometry_msgs.msg import Point
 
 # Implement modules
@@ -34,7 +35,7 @@ class TileProduction(object):
 
     def get_certain_tile_message(self, array_index):
         '''
-        Gets tile_index tile from the map, puts it into markerArray message format.
+        Gets tile_index tile from the map, puts it into duckietown_msgs/MapFile.
         Arg array_index MUST be within the bounds of map_list 
          when get_certain_tile_message is called.
         '''
@@ -42,34 +43,39 @@ class TileProduction(object):
         tile_name = next_tile_info['tile_type']
         tile_center_position = next_tile_info['tile_center']
         
-        return self.get_tile_message(tile_name, tile_center_position, array_index)
+        return self.get_tile_message(tile_name, tile_center_position, 
+                                     array_index)
 
     def get_next_tile_message(self):
         '''
-        Gets next tile from the map.
+v        Gets next tile from the map.
         '''
         next_tile_info = self.map_list[self.next_map_index]
         if self.next_map_index >= len(next_tile_info):
-            return MarkerArray() # should be empty marker? end stream? what to do?
+            return MarkerArray() 
         tile_name = next_tile_info['tile_type']
         tile_center_position = next_tile_info['tile_center']
         
         self.next_map_index += 1
-        array_index = 0; # causes only one markerarray to be drawn?
+        array_index = 0; # causes only one markerarray to be drawn
         return self.get_tile_message(tile_name, tile_center_position, array_index)
 
     def get_tile_message(self, tile_name, tile_center_position, array_index):
-        # according to args, construct and return the appropriate tile message (for now, a simple marker array message)
+        # according to args, construct and return the appropriate tile message
 
-        tile_info = self.tile_dict[tile_name] #for now, will include the east_west//north_south and number of lanes at the end. might switch to id # later?
+        tile_info = self.tile_dict[tile_name] #for now, includes east_west//north_south 
+        #and number of lanes at the end. might switch to id # later?
 
-        tile_length = 1.0 # TODO rmata pull info from yaml? some config file? leave it as 1 for now
+        tile_length = 1.0 # TODO rmata pull info from yaml? some config file?
         tile_origin_position = (np.array(tile_center_position) 
-                                - np.array([tile_length/2, tile_length/2])).tolist() 
-        # lower leftmost corner of tile is the origin (convention)
+                                - np.array([tile_length/2, tile_length/2])).tolist()
+        # lower leftmost corner of tile is the origin of the tile (convention)
         
-        # construct the tile message
-        tilemsg = MarkerArray()
+        # construct the MapTile message
+        tilemsg = MapTile()
+        
+        # construct the traffic MarkerArray
+        traffic = MarkerArray()
         arrow_ids = range(len(tile_info['connectivity']))
         i = 0
         for lane in tile_info['connectivity']:
@@ -97,8 +103,45 @@ class TileProduction(object):
             arrow.color.b = 1.0
             arrow.color.g = 0.0
             arrow.color.a = 1.0
-            tilemsg.markers.append(arrow)
-       
+            traffic.markers.append(arrow)
+        tilemsg.traffic_arrows = traffic
+        
+        # construct the lane edges MarkerArray
+        lane_edges = MarkerArray()
+        i = 0
+        outside_lines = Marker() # line list
+        center_lines = Marker() # line list
+        # pull out lane edges for each tile: white is on the right, yellow on left
+        for lane in tile_info['road_edges']:
+            white_line_start = (np.array(tile_info['nodes_positions'][lane[0]])*tile_length 
+                           + np.array(tile_origin_position)).tolist()
+            white_line_end = (np.array(tile_info['nodes_positions'][lane[1]])*tile_length 
+                         + np.array(tile_origin_position)).tolist()
+            outside_lines.color.r = 1.0
+            outside_lines.color.g = 1.0
+            outside_lines.color.b = 1.0
+            outside_lines.color.a = 1.0
+            outside_lines.points.append(Point(white_line_start[0], white_line_start[1]))
+            outside_lines.points.append(Point(white_line_end[0], white_line_end[1]))
+        
+        for lane in tile_info['road_center']:
+            yellow_line_start = (np.array(tile_info['nodes_positions'][lane[0]])*tile_length 
+                           + np.array(tile_origin_position)).tolist()
+            yellow_line_end = (np.array(tile_info['nodes_positions'][lane[1]])*tile_length 
+                         + np.array(tile_origin_position)).tolist()
+            center_lines.color.r = 1.0
+            center_lines.color.g = 1.0
+            center_lines.color.b = 0.0
+            center_lines.color.a = 1.0
+            center_lines.points.append(Point(yellow_line_start[0], yellow_line_start[1]))
+            center_lines.points.append(Point(yellow_list_end[0], yellow_line_end[1]))
+
+        lane_edges.markers.append(outside_lines)
+        lane_edges.markers.append(center_lines)
+
+        # construct stop lines MarkerArray...TODO rmata
+        
+        tilemsg.lane_edges = lane_edges
         return tilemsg
 
 if __name__ == '__main__':

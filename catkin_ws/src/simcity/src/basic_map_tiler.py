@@ -4,7 +4,8 @@ from simcity.util import TileProduction # For producing tile messages.
 from std_msgs.msg import String #Imports msg
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
-#from duckietown_msgs.msg import MapTile
+import rospkg
+from duckietown_msgs.msg import MapTile
 
 class BasicMapTiler(object):
     def __init__(self):
@@ -22,11 +23,13 @@ class BasicMapTiler(object):
         #                                          self.cbTopic)
         # Read parameters
         self.pub_timestep = self.setupParameter("~pub_timestep",1.0)
-        # TODO rmata: parameter for map: map.yam
-        self.mapfile = self.setupParameter("~map_file", \
-                            "/home/guest/duckietown/Software/catkin_ws/src/simcity/maps/map.yaml") 
-        self.tilesfile = self.setupParameter("~tiles_file", \
-                            "/home/guest/duckietown/Software/catkin_ws/src/simcity/tiles/tiles.yaml")
+
+        # === Load tiles and maps === #
+        rospack = rospkg.RosPack()
+        self.pkg_path = rospack.get_path('simcity')
+        self.mapfile = self.setupParameter("~map_file", self.pkg_path+"/maps/map.yaml") 
+        self.tilesfile = self.setupParameter("~tiles_file", self.pkg_path+"/tiles/tiles.yaml")
+
         # Create a timer that calls the cbTimer function every 1.0 second
         self.tile_factory = TileProduction(self.mapfile, self.tilesfile)
         self.timer = rospy.Timer(rospy.Duration.from_sec(self.pub_timestep),self.cbTimer)
@@ -57,9 +60,11 @@ class BasicMapTiler(object):
         #continue through the list of tiles in the map
         if self.pub_marker_arrays.get_num_connections() >= 1:
             if self.tile_index >= self.tile_factory.get_num_tiles_in_map():
-                return
+                return # finished sending all tiles
             fullmsg = self.tile_factory.get_certain_tile_message(self.tile_index)
-            self.pub_marker_arrays.publish(fullmsg)
+            self.pub_marker_arrays.publish(fullmsg.traffic_arrows)
+            self.pub_marker_arrays.publish(fullmsg.lane_edges) # ignore stop lines for now
+            # also ignore id numbers?
             self.tile_index += 1 
 
     def on_shutdown(self):

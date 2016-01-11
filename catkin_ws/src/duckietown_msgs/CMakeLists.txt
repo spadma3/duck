@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   tf_conversions
   tf
+  visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -59,6 +60,7 @@ add_message_files(
   Pixel.msg
   Segment.msg
   SegmentList.msg
+  MapTile.msg
 )
 
 ## Generate services in the 'srv' folder
