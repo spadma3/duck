@@ -45,17 +45,11 @@ road_east_west2:
   bitmap: "road_east_west2.png" # TODO rmata: make the bitmap
   connectivity: [[5,18], [21,2]]
   nodes_positions: *DEFAULT_NODES_POSITIONS
-  		   4: [0, 0.5]
-		   19: [1, 0.5]
-  road_edges: [[6,17], [22,1]]
-  road_center: [[4,19]]
 
 road_north_south3: # TODO unfinished node...
   bitmap: "road_north_south3.png"
   connectivity: [[10,29]]
   nodes_positions: *DEFAULT_NODES_POSITIONS
-  road_edges: []
-  road_center: []
 
 road_north_south2:
   bitmap: "road_north_south2.png" # TODO rmata
@@ -65,13 +59,13 @@ road_north_south2:
 road_south_east2:
   bitmap: "road_south_east2.png" # TODO rmata
   connectivity: [[13,18], [21, 10]]
-  nodes_positions: *DEFAULT_NODES_POSITIONS
-
+  nodes_positions:  *DEFAULT_NODES_POSITIONS
+    
 road_west_south2:
   bitmap: "road_west_south2.png" # TODO rmata
   connectivity: [[5,10], [13,2]]
   nodes_positions: *DEFAULT_NODES_POSITIONS
-
+   
 road_north_west2:
   bitmap: "road_north_west2"
   connectivity: [[5,26], [29,2]]

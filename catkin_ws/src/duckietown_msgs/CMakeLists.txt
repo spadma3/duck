@@ -61,6 +61,7 @@ add_message_files(
   Segment.msg
   SegmentList.msg
   MapTile.msg
+  GraphInfo.msg
 )
 
 ## Generate services in the 'srv' folder

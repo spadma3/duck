@@ -7,7 +7,10 @@ import numpy as np
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 from duckietown_msgs.msg import MapTile
+from duckietown_msgs.msg import GraphInfo
 from geometry_msgs.msg import Point
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Quaternion
 
 # Implement modules
 class TileProduction(object):
@@ -35,7 +38,7 @@ class TileProduction(object):
 
     def get_certain_tile_message(self, array_index):
         '''
-        Gets tile_index tile from the map, puts it into duckietown_msgs/MapFile.
+        Gets tile_index tile from the map.
         Arg array_index MUST be within the bounds of map_list 
          when get_certain_tile_message is called.
         '''
@@ -61,19 +64,20 @@ v        Gets next tile from the map.
         return self.get_tile_message(tile_name, tile_center_position, array_index)
 
     def get_tile_message(self, tile_name, tile_center_position, array_index):
-        # according to args, construct and return the appropriate tile message
-
-        tile_info = self.tile_dict[tile_name] #for now, includes east_west//north_south 
+        '''
+        According to args, construct and return MarkerArray of arrows, graphinfo message
+        '''
+        tile_info = self.tile_dict[tile_name] # name of tile 
         #and number of lanes at the end. might switch to id # later?
 
-        tile_length = 1.0 # TODO rmata pull info from yaml? some config file?
+        tile_length = 1.0 # TODO rmata pull from some config file?
         tile_origin_position = (np.array(tile_center_position) 
                                 - np.array([tile_length/2, tile_length/2])).tolist()
         # lower leftmost corner of tile is the origin of the tile (convention)
         
-        # construct the MapTile message
-        tilemsg = MapTile()
-        
+        # construct the MapTile message and the info nec. for graph
+        # tilemsg = MapTile()
+        graphinfo = GraphInfo()
         # construct the traffic MarkerArray
         traffic = MarkerArray()
         arrow_ids = range(len(tile_info['connectivity']))
@@ -86,31 +90,53 @@ v        Gets next tile from the map.
                          + np.array(tile_origin_position)).tolist()
             # add the appropriate marker
             arrow = Marker()
-            arrow.type = 0 # arrow
+            arrow.type = Marker.ARROW # arrow
             arrow.action = 0 # add
             arrow.header.frame_id  = "/map"
-            arrow.id = arrow_ids[i]+8*array_index; i+=1
+            arrow.id = i
+            i += 1
 
             # scales of arrow
             arrow.scale.x = 0.025
             arrow.scale.y = 0.1
             arrow.scale.z = 0.1
             # start, end?
-            arrow.points.append(Point(arrow_start[0], arrow_start[1], 0))
-            arrow.points.append(Point(arrow_end[0], arrow_end[1], 0))
+            arrow_start = Point(arrow_start[0], arrow_start[1], 0)
+            arrow_end = Point(arrow_end[0], arrow_end[1], 0)
+            arrow.points.append(arrow_start)
+            arrow.points.append(arrow_end)
             # color
             arrow.color.r = 1.0
             arrow.color.b = 1.0
             arrow.color.g = 0.0
             arrow.color.a = 1.0
             traffic.markers.append(arrow)
-        tilemsg.traffic_arrows = traffic
-        
+
+            # extend current points list
+            if arrow_start not in graphinfo.vertices:
+                graphinfo.vertices.append(arrow_start)
+            if arrow_end not in graphinfo.vertices:
+                graphinfo.vertices.append(arrow_end)
+            graphinfo.edges.extend(arrow.points)
+        '''
+        tilemsg = traffic
         # construct the lane edges MarkerArray
         lane_edges = MarkerArray()
-        i = 0
+        i += 1
         outside_lines = Marker() # line list
+        outside_lines.header.frame_id = "/map"
+        outside_lines.type = Marker.LINE_LIST # 5
+        outside_lines.action = Marker.ADD # 0
+        outside_lines.id = i
+        i += 1        
+        
         center_lines = Marker() # line list
+        center_lines.header.frame_id = "/map"
+        center_lines.type = Marker.LINE_LIST # 5
+        center_lines.action = Marker.ADD # 0
+        center_lines.id = i
+        i += 1
+        
         # pull out lane edges for each tile: white is on the right, yellow on left
         for lane in tile_info['road_edges']:
             white_line_start = (np.array(tile_info['nodes_positions'][lane[0]])*tile_length 
@@ -121,8 +147,10 @@ v        Gets next tile from the map.
             outside_lines.color.g = 1.0
             outside_lines.color.b = 1.0
             outside_lines.color.a = 1.0
-            outside_lines.points.append(Point(white_line_start[0], white_line_start[1]))
-            outside_lines.points.append(Point(white_line_end[0], white_line_end[1]))
+            outside_lines.scale.x = 0.05 #? correct scale to use?
+            outside_lines.pose = Pose(Point(0, 0, 0), Quaternion(0, 0, 0, 1)) # correct?
+            outside_lines.points.append(Point(white_line_start[0], white_line_start[1], 0))
+            outside_lines.points.append(Point(white_line_end[0], white_line_end[1], 0))
         
         for lane in tile_info['road_center']:
             yellow_line_start = (np.array(tile_info['nodes_positions'][lane[0]])*tile_length 
@@ -133,16 +161,19 @@ v        Gets next tile from the map.
             center_lines.color.g = 1.0
             center_lines.color.b = 0.0
             center_lines.color.a = 1.0
-            center_lines.points.append(Point(yellow_line_start[0], yellow_line_start[1]))
-            center_lines.points.append(Point(yellow_list_end[0], yellow_line_end[1]))
+            center_lines.scale.x = 0.05
+            center_lines.pose = Pose(Point(0, 0, 0), Quaternion(0, 0, 0, 1)) # correct?
+            center_lines.points.append(Point(yellow_line_start[0], yellow_line_start[1], 0))
+            center_lines.points.append(Point(yellow_line_end[0], yellow_line_end[1], 0))
 
         lane_edges.markers.append(outside_lines)
         lane_edges.markers.append(center_lines)
-
+        
         # construct stop lines MarkerArray...TODO rmata
         
         tilemsg.lane_edges = lane_edges
-        return tilemsg
+        '''
+        return traffic, graphinfo
 
 if __name__ == '__main__':
     # Test code for ModuleNames
