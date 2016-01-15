@@ -6,12 +6,11 @@ from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 import rospkg
 #from duckietown_msgs.msg import MapTile
-from duckietown_msgs.msg import GraphInfo
-
 class BasicMapTiler(object):
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
+
         
         rospy.loginfo("[%s] Initializing." %(self.node_name))
 
@@ -29,6 +28,7 @@ class BasicMapTiler(object):
         
         # == Setup Parameters == #
         self.pub_timestep = self.setupParameter("~pub_timestep",1.0)
+        # TODO rmata: parameter for map: map.yam
 
         # === Load tiles and maps === #
         rospack = rospkg.RosPack()
