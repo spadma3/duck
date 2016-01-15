@@ -12,7 +12,7 @@
 - tile_type: blank #dummy tile...
   tile_center: [0, 0]
 
-- tile_type: road_east_west2
+- tile_type: road_4way_intersection2
   tile_center: [0.5, 1.5]
 
 
