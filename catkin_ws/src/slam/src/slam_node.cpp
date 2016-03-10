@@ -67,6 +67,8 @@ moving_average_count_(0){
 	// subscribe to the number stream topic
   odometryTopic_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::odometryMeasurementCallback, this);
 	landmarkTopic_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
+
+  //gtsam::nonlinearFactorGraph graph;
   
 	// advertise that we'll publish on the corresponding topic
 	estimatedPoses_ = nh_.advertise<geometry_msgs::Pose2D>("odometricPose", 1);
