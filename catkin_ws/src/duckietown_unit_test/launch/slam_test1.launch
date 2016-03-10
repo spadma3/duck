@@ -6,7 +6,7 @@
 	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
     <arg name="verbose" default="false" />	
 
-	<include file="$(find duckietown)/launch/line_detector.launch">
+	<include file="$(find duckietown)/launch/slam.launch">
 		 <arg name="veh" value="$(arg veh)"/>
 		 <arg name="local" value="true" />
 		 <arg name="config" value="$(arg config)"/>

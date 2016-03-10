@@ -21,11 +21,11 @@
 	</include>
 
 	<!-- April tag detector -->
-	<include if="$(arg apriltags)" file="$(find apriltags)/launch/apriltags_node.launch">
-		<arg name="veh"/>
-		<arg name="config" default="baseline"/>
-	    	<arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
-		<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
+	<include file="$(find apriltags)/launch/apriltags_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="local" value="$(arg local)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
 		<group ns="$(arg veh)">
 			<node pkg="apriltags" type="april_tag_detector" name="apriltags" output="screen">
 			<!-- should load a param file in here. It should contain tag family and size -->
@@ -33,19 +33,7 @@
 		</group>
 	</include>	
 
-<launch>
-
-</launch>
-
-<!-- Line Detector 
-	<remap from="line_detector_node/image" to="camera_node/image/compressed"/>
-	<include file="$(find line_detector)/launch/line_detector_node.launch">
-	    <arg name="veh" value="$(arg veh)"/>
-	    <arg name="local" value="$(arg local)"/>
-	    <arg name="config" value="$(arg config)"/>
-	    <arg name="param_file_name" value="$(arg param_file_name)"/>
-        <arg name="white_balance" value="$(arg white_balance)" />
-        <arg name="verbose" value="$(arg verbose)" />
+	<!-- April tag detector -->
+	<include file="$(find slam)/launch/slam.launch">
 	</include>	
-	-->
 </launch>
