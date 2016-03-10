@@ -8,11 +8,18 @@
 #include <boost/filesystem.hpp>
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Pose2D.h"
-#include "duckietown_msgs/Pixel.h"
+//#include "duckietown_msgs/Pixel.h"
 #include "duckietown_msgs/WheelsCmd.h"
 #include "duckietown_msgs/Vector2D.h"
 #include <std_srvs/Empty.h>
 #include <cmath> // needed for nan
+#include <stdint.h>
+
+// GTSAM includes
+#include <gtsam/slam/BetweenFactor.h>
+// #include <gtsam/slam/PriorFactor.h>
+// #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
+#include <fstream>
 
 // TODO: WheelsCmd should be WheelsCmdStamped (otherwise how do you integrate odometry?)
 // simple class to contain the node's variables and code

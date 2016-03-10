@@ -11,8 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-# find_package(gtsam_shared REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(GTSAM REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -103,7 +103,9 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES slam
 #  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+#  DEPENDS 
+#  	system_lib
+#    GTSAM
 )
 
 ###########
@@ -115,7 +117,9 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${GTSAM_INCLUDE_DIR}
 )
+message(STATUS "Found GTSAM")
 
 ## Declare a C++ library
 # add_library(slam
