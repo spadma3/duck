@@ -7,14 +7,14 @@
 #include <yaml-cpp/yaml.h>
 #include <boost/filesystem.hpp>
 #include "geometry_msgs/Point.h"
+#include "geometry_msgs/Pose2D.h"
 #include "duckietown_msgs/Pixel.h"
 #include "duckietown_msgs/WheelsCmd.h"
 #include "duckietown_msgs/Vector2D.h"
 #include <std_srvs/Empty.h>
+#include <cmath> // needed for nan
 
 // TODO: WheelsCmd should be WheelsCmdStamped (otherwise how do you integrate odometry?)
-
-#include <cmath> // needed for nan
 // simple class to contain the node's variables and code
 class slam_node
 {
@@ -33,6 +33,7 @@ private:
   double radius_l_; // radius of the left wheel
   double radius_r_; // radius of the right wheel
   double baseline_lr_; //distance between the center of the two wheels
+  geometry_msgs::Pose2D odometricPose_; // 2D pose obtained by integrating odometry over time
 
 	ros::Timer timer_; // the timer object
 	double running_sum_; // the running sum since start
@@ -64,11 +65,11 @@ running_sum_(0), moving_average_period_(30), moving_average_sum_(0),
 moving_average_count_(0){
 
 	// subscribe to the number stream topic
-	landmarkTopic_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
   odometryTopic_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::odometryMeasurementCallback, this);
-
-	// advertise that we'll publish on the sum and moving_average topics
-	estimatedPoses_ = nh_.advertise<std_msgs::Float32>("vel_lr", 1);
+	landmarkTopic_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
+  
+	// advertise that we'll publish on the corresponding topic
+	estimatedPoses_ = nh_.advertise<geometry_msgs::Pose2D>("odometricPose", 1);
 	estimatedLandmarks_ = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
 	// get moving average period from parameter server (or use default value if not present)
@@ -78,8 +79,7 @@ moving_average_count_(0){
 	moving_average_period_ = 0.5;
 
 	// create the Timer with period moving_average_period_
-	timer_ = nh_.createTimer(ros::Duration(moving_average_period_),
-	&slam_node::timerCallback, this);
+	timer_ = nh_.createTimer(ros::Duration(moving_average_period_), &slam_node::timerCallback, this);
 	ROS_INFO("Created timer with period of %f seconds", moving_average_period_);
 }
 
@@ -89,10 +89,33 @@ void slam_node::odometryMeasurementCallback(duckietown_msgs::WheelsCmd::ConstPtr
   double linVel = (radius_r_* msg->vel_right + radius_l_* msg->vel_left) / 2;
   double omega = (radius_r_* msg->vel_right - radius_l_* msg->vel_left) / baseline_lr_; 
 
-  // // create a message containing the running total
-  std_msgs::Float32 linVel_msg;
-  linVel_msg.data = linVel;
-  estimatedPoses_.publish(linVel_msg);           
+  // DEBUG 
+  //std_msgs::Float32 linVel_msg;
+  //linVel_msg.data = linVel;
+  //estimatedPoses_.publish(linVel_msg);  
+
+  // TODO: this should be an actual deltaT
+  double deltaT = 1;   
+
+  // odometricPose_
+  double theta_tm1 = odometricPose_.theta;
+  double theta_t = theta_tm1 + omega * deltaT;
+  
+  if (fabs(omega) <= 0.0001){ 
+    // straight line
+    odometricPose_.x = odometricPose_.x + sin(theta_tm1) * linVel;
+    odometricPose_.y = odometricPose_.y + cos(theta_tm1) * linVel;
+  }else{
+    double v_w_ratio = linVel / omega;
+    odometricPose_.x = odometricPose_.x - v_w_ratio * sin(theta_tm1) + v_w_ratio * sin(theta_t);
+    odometricPose_.y = odometricPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * sin(theta_t);
+  }
+  odometricPose_.theta = theta_t;
+  geometry_msgs::Pose2D odometricPose_msg;   
+  odometricPose_msg.x = odometricPose_.x; 
+  odometricPose_msg.y = odometricPose_.y; 
+  odometricPose_msg.theta = odometricPose_.theta; 
+  estimatedPoses_.publish(odometricPose_msg);   
 }
 
 // the callback function for the number stream topic subscription
@@ -106,7 +129,7 @@ void slam_node::landmarkMeasurementCallback(std_msgs::Float32::ConstPtr const& m
 	std_msgs::Float32 sum_msg;
 	sum_msg.data = running_sum_;
 	// publish the running sum message
-	estimatedPoses_.publish(sum_msg);						
+	estimatedLandmarks_.publish(sum_msg);						
 }
 
 // the callback function for the timer event
