@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 // GTSAM includes
-// #include <gtsam/slam/BetweenFactor.h>
+//#include <gtsam/slam/BetweenFactor.h>
 // #include <gtsam/slam/PriorFactor.h>
 // #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <fstream>
