@@ -16,9 +16,9 @@
 #include <stdint.h>
 
 // GTSAM includes
-//#include <gtsam/slam/BetweenFactor.h>
-// #include <gtsam/slam/PriorFactor.h>
-// #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
+#include <gtsam/slam/BetweenFactor.h>
+#include <gtsam/slam/PriorFactor.h>
+#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <fstream>
 
 // TODO: WheelsCmd should be WheelsCmdStamped (otherwise how do you integrate odometry?)
@@ -75,7 +75,7 @@ moving_average_count_(0){
   odometryTopic_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::odometryMeasurementCallback, this);
 	landmarkTopic_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
 
-  //gtsam::nonlinearFactorGraph graph;
+  gtsam::NonlinearFactorGraph::shared_ptr graph;
   
 	// advertise that we'll publish on the corresponding topic
 	estimatedPoses_ = nh_.advertise<geometry_msgs::Pose2D>("odometricPose", 1);
