@@ -36,10 +36,11 @@ slam_node(); // constructor
 private:
 	ros::NodeHandle nh_; // interface to this node
   ros::Subscriber sub_motionModel_;
-  ros::Subscriber sub_odometryOdometryCB_;
+  ros::Subscriber sub_odometryMeasurementCB_;
   ros::Subscriber sub_landmarkMeasurementCB_;
 
 	ros::Publisher pub_motionModel_;
+  ros::Publisher pub_odometry_; 
 	ros::Publisher pub_numbers_; 
 
   // TODO: these three variables should be computed/given by calibration
@@ -83,12 +84,13 @@ moving_average_count_(0){
 
 	// subscribe to the number stream topic
   sub_motionModel_           = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::motionModelCallback, this);
-  sub_odometryOdometryCB_    = nh_.subscribe("odomPose", 1, &slam_node::odometryMeasurementCallback, this);
+  sub_odometryMeasurementCB_    = nh_.subscribe("odomPose", 1, &slam_node::odometryMeasurementCallback, this);
 	sub_landmarkMeasurementCB_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
   
 	// advertise that we'll publish on the corresponding topic
-	pub_motionModel_ =     nh_.advertise<geometry_msgs::Pose2D>("odomPose", 1);
-	pub_numbers_ = nh_.advertise<std_msgs::Float32>("moving_average", 1);
+	pub_motionModel_ = nh_.advertise<geometry_msgs::Pose2D>("odomPose", 1);
+  pub_odometry_    = nh_.advertise<geometry_msgs::Pose2D>("relativePose", 1);
+	pub_numbers_     = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
   // gtsam::NonlinearFactorGraph graph;
   gtsam::NonlinearFactorGraph::shared_ptr graph;
@@ -155,17 +157,19 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
   gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y));
   gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t);
 
+  // debug
+  geometry_msgs::Pose2D relativePose_msg;   
+  relativePose_msg.x = odomPose_tm1_t.x(); 
+  relativePose_msg.y = odomPose_tm1_t.y(); 
+  relativePose_msg.theta = odomPose_tm1_t.theta();
+  pub_odometry_.publish(relativePose_msg);
+
   // create between factor
 
   // add factor to nonlinear factor graph
 
-    // odomPose_.theta = theta_t;
-  // geometry_msgs::Pose2D odomPose_msg;   
-  // odomPose_msg.x = odomPose_.x; 
-  // odomPose_msg.y = odomPose_.y; 
-  // odomPose_msg.theta = odomPose_.theta; 
-  // estimatedPoses_.publish(odomPose_msg); 
-
+  // update state
+  odomPose_tm1_ = odomPose_t;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
