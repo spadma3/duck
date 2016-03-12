@@ -8,6 +8,7 @@
 #include <boost/filesystem.hpp>
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Pose2D.h"
+#include "geometry_msgs/PoseStamped.h"
 //#include "duckietown_msgs/Pixel.h"
 #include "duckietown_msgs/WheelsCmd.h"
 #include "duckietown_msgs/Vector2D.h"
@@ -26,6 +27,12 @@
 // #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <fstream>
 
+// TODO LIST:
+// 1) visualize pose estimate from vicon and from motor duty
+// 2) do rough calibration of the parameters 
+// 3) add optimization
+// 4) add priors from VICON
+
 // TODO: WheelsCmd should be WheelsCmdStamped (otherwise how do you integrate odometry?)
 // simple class to contain the node's variables and code
 class slam_node
@@ -42,7 +49,8 @@ private:
 
 	ros::Publisher pub_motionModel_;
   ros::Publisher pub_odometry_; 
-	ros::Publisher pub_numbers_; 
+  ros::Publisher pub_landmark_; 
+	ros::Publisher pub_numbers_; // TODO: delete this
 
   // TODO: these three variables should be computed/given by calibration
   double radius_l_; // radius of the left wheel
@@ -57,17 +65,18 @@ private:
   gtsam::NonlinearFactorGraph graph_;
   gtsam::Values initialGuess_;
 
-	ros::Timer timer_; // the timer object
-	double running_sum_; // the running sum since start
-	double moving_average_period_; // how often to sample the moving average
-	double moving_average_sum_; // sum since the last moving average update
-	int moving_average_count_; // number of samples since the last update
+	ros::Timer timer_; // TODO: delete this
+	double running_sum_; //TODO: delete this
+	double moving_average_period_; // TODO: delete this
+	double moving_average_sum_; // TODO: delete this
+	int moving_average_count_; // TODO: delete this
 
 	// callback function declarations
   // TODO: move motion model to suitable node
   void motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
 	void odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr const& msg);
-  void landmarkMeasurementCallback(std_msgs::Float32::ConstPtr const& msg);
+  void landmarkMeasurementCallback(geometry_msgs::PoseStamped::ConstPtr const& msg);
+
 	void timerCallback(ros::TimerEvent const& event);
 };
 
@@ -81,6 +90,8 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+// using namespace gtsam;
+
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
 radius_l_(1), radius_r_(1), baseline_lr_(1),
@@ -90,11 +101,14 @@ moving_average_count_(0){
 	// subscribe to the number stream topic
   sub_motionModel_           = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::motionModelCallback, this);
   sub_odometryMeasurementCB_    = nh_.subscribe("odomPose", 1, &slam_node::odometryMeasurementCallback, this);
-	sub_landmarkMeasurementCB_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
+	sub_landmarkMeasurementCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkMeasurementCallback, this);
   
 	// advertise that we'll publish on the corresponding topic
 	pub_motionModel_ = nh_.advertise<geometry_msgs::Pose2D>("odomPose", 1);
   pub_odometry_    = nh_.advertise<geometry_msgs::Pose2D>("relativePose", 1);
+  pub_landmark_    = nh_.advertise<geometry_msgs::PoseStamped>("viconPose", 1);
+
+  // TODO: delete
 	pub_numbers_     = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
   // add prior on first node: this will be the reference frame for us
@@ -170,6 +184,8 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
 
   // add factor to nonlinear factor graph
   graph_.add(odometryFactor);
+
+  // add initial guess for the new pose
   gtsam::Pose2 slamPose_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
   initialGuess_.insert(poseId_,slamPose_t);
 
@@ -186,17 +202,11 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // the callback function for the number stream topic subscription
-void slam_node::landmarkMeasurementCallback(std_msgs::Float32::ConstPtr const& msg){
+void slam_node::landmarkMeasurementCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
+  // compensate for body-camera relative pose (extrinsic calibration)
+  Pose2 pose;
 	// add the data to the running sums
-	running_sum_ = running_sum_ + msg->data;
-	moving_average_sum_ = moving_average_sum_ + msg->data;
-	// increment the moving average counter
-	moving_average_count_++;
-	// create a message containing the running total
-	std_msgs::Float32 sum_msg;
-	sum_msg.data = running_sum_;
-	// publish the running sum message
-	pub_numbers_.publish(sum_msg);						
+  pub_landmark_.publish(msg);	
 }
 
 // the callback function for the timer event
