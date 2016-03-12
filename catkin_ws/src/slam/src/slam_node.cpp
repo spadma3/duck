@@ -1,5 +1,6 @@
 #include "ros/ros.h" // main ROS include
 #include "std_msgs/Float32.h" // number message datatype
+#include <ros/console.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
@@ -12,6 +13,7 @@
 //#include "duckietown_msgs/Pixel.h"
 #include "duckietown_msgs/WheelsCmd.h"
 #include "duckietown_msgs/Vector2D.h"
+#include <visualization_msgs/Marker.h>
 #include <std_srvs/Empty.h>
 #include <cmath> // needed for nan
 #include <stdint.h>
@@ -52,6 +54,7 @@ private:
   ros::Publisher pub_odometry_; 
   ros::Publisher pub_landmark_; 
 	ros::Publisher pub_numbers_; // TODO: delete this
+  ros::Publisher pub_gtTrajectory;
 
   // TODO: these three variables should be computed/given by calibration
   double radius_l_; // radius of the left wheel
@@ -65,6 +68,11 @@ private:
   gtsam::Key poseId_;
   gtsam::NonlinearFactorGraph graph_;
   gtsam::Values initialGuess_;
+
+  // visualization
+  visualization_msgs::Marker gtTrajectory_;
+  int gtSubsampleStep_;
+  int gtSubsampleCount_;
 
 	ros::Timer timer_; // TODO: delete this
 	double running_sum_; //TODO: delete this
@@ -94,7 +102,7 @@ int main(int argc, char *argv[])
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
 radius_l_(1), radius_r_(1), baseline_lr_(1),
-running_sum_(0), moving_average_period_(30), moving_average_sum_(0), poseId_(0),
+running_sum_(0), moving_average_period_(30), moving_average_sum_(0), poseId_(0), gtSubsampleStep_(50),
 moving_average_count_(0){
 
 	// subscribe to the number stream topic
@@ -106,6 +114,7 @@ moving_average_count_(0){
 	pub_motionModel_ = nh_.advertise<geometry_msgs::Pose2D>("odomPose", 1);
   pub_odometry_    = nh_.advertise<geometry_msgs::Pose2D>("relativePose", 1);
   pub_landmark_    = nh_.advertise<geometry_msgs::PoseStamped>("viconPose", 1);
+  pub_gtTrajectory = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 10);
 
   // TODO: delete
 	pub_numbers_     = nh_.advertise<std_msgs::Float32>("moving_average", 1);
@@ -113,6 +122,17 @@ moving_average_count_(0){
   // add prior on first node: this will be the reference frame for us
   graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
   initialGuess_.insert(0, gtsam::Pose2());
+
+  gtTrajectory_.header.frame_id = "/odom";
+  gtTrajectory_.ns = "groundTruthTrajectory";
+  gtTrajectory_.action = visualization_msgs::Marker::ADD;
+  gtTrajectory_.pose.orientation.w = 1.0;
+  gtTrajectory_.id = 1;
+  gtTrajectory_.type = visualization_msgs::Marker::LINE_STRIP;
+  gtTrajectory_.scale.x = 0.1;
+  gtTrajectory_.color.g = 1.0f;
+  gtTrajectory_.color.a = 1.0;
+  gtSubsampleCount_ = gtSubsampleStep_;
 
 	// get moving average period from parameter server (or use default value if not present)
 	ros::NodeHandle private_nh("~");
@@ -204,7 +224,21 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
 void slam_node::landmarkMeasurementCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   // compensate for body-camera relative pose (extrinsic calibration)
 	// add the data to the running sums
-  pub_landmark_.publish(msg);	
+  // points.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "/my_frame";
+  gtSubsampleCount_ -= 1;
+
+  if(gtSubsampleCount_ <= 0){
+    geometry_msgs::Point p;
+    p = msg->pose.position;
+    gtTrajectory_.points.push_back(p);
+    pub_gtTrajectory.publish(gtTrajectory_);
+    pub_landmark_.publish(msg);	
+    gtSubsampleCount_ = gtSubsampleStep_; // reset counter
+    // printf("nr points in gtTrajectory_: % \n", gtTrajectory_.points.size());
+    std::cout << "size of myints: " << gtTrajectory_.points.size() << std::endl;
+    int s = gtTrajectory_.points.size();
+    ROS_ERROR("nr points in gtTrajectory: %d", s);
+  }
 }
 
 // the callback function for the timer event
