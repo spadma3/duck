@@ -55,6 +55,7 @@ private:
   ros::Publisher pub_landmark_; 
 	ros::Publisher pub_numbers_; // TODO: delete this
   ros::Publisher pub_gtTrajectory;
+  ros::Publisher pub_odomTrajectory;
 
   // TODO: these three variables should be computed/given by calibration
   double radius_l_; // radius of the left wheel
@@ -73,6 +74,9 @@ private:
   visualization_msgs::Marker gtTrajectory_;
   int gtSubsampleStep_;
   int gtSubsampleCount_;
+  visualization_msgs::Marker odomTrajectory_;
+  int odomSubsampleStep_;
+  int odomSubsampleCount_;
 
 	ros::Timer timer_; // TODO: delete this
 	double running_sum_; //TODO: delete this
@@ -101,13 +105,13 @@ int main(int argc, char *argv[])
 
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
-radius_l_(1), radius_r_(1), baseline_lr_(1),
+radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1),
 running_sum_(0), moving_average_period_(30), moving_average_sum_(0), poseId_(0), gtSubsampleStep_(50),
 moving_average_count_(0){
 
 	// subscribe to the number stream topic
   sub_motionModel_           = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::motionModelCallback, this);
-  sub_odometryMeasurementCB_    = nh_.subscribe("odomPose", 1, &slam_node::odometryMeasurementCallback, this);
+  sub_odometryMeasurementCB_ = nh_.subscribe("odomPose", 1, &slam_node::odometryMeasurementCallback, this);
 	sub_landmarkMeasurementCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkMeasurementCallback, this);
   
 	// advertise that we'll publish on the corresponding topic
@@ -115,7 +119,8 @@ moving_average_count_(0){
   pub_odometry_    = nh_.advertise<geometry_msgs::Pose2D>("relativePose", 1);
   pub_landmark_    = nh_.advertise<geometry_msgs::PoseStamped>("viconPose", 1);
   pub_gtTrajectory = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 10);
-
+  pub_odomTrajectory = nh_.advertise<visualization_msgs::Marker>("odomTrajectory", 10);
+  
   // TODO: delete
 	pub_numbers_     = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
@@ -123,6 +128,7 @@ moving_average_count_(0){
   graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
   initialGuess_.insert(0, gtsam::Pose2());
 
+  // http://wiki.ros.org/rviz/Tutorials/Markers%3A%20Points%20and%20Lines
   gtTrajectory_.header.frame_id = "/odom";
   gtTrajectory_.ns = "groundTruthTrajectory";
   gtTrajectory_.action = visualization_msgs::Marker::ADD;
@@ -133,6 +139,18 @@ moving_average_count_(0){
   gtTrajectory_.color.g = 1.0f;
   gtTrajectory_.color.a = 1.0;
   gtSubsampleCount_ = gtSubsampleStep_;
+
+  odomTrajectory_.header.frame_id = "/odom";
+  odomTrajectory_.ns = "odometricTrajectory";
+  odomTrajectory_.action = visualization_msgs::Marker::ADD;
+  odomTrajectory_.pose.orientation.w = 1.0;
+  odomTrajectory_.id = 1;
+  odomTrajectory_.type = visualization_msgs::Marker::LINE_STRIP;
+  odomTrajectory_.scale.x = 0.1;
+  odomTrajectory_.color.r = 1.0;
+  odomTrajectory_.color.a = 1.0;
+  odomSubsampleCount_ = odomSubsampleStep_;
+  
 
 	// get moving average period from parameter server (or use default value if not present)
 	ros::NodeHandle private_nh("~");
@@ -151,8 +169,8 @@ void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& 
 
   // TODO: Convertion from motor duty to motor rotation rate (currently a naive multiplication)
   // TODO: these must be computed automatically from calibration
-  double k_d_r = 1; 
-  double k_d_l = 1; 
+  double k_d_r = 0.1; 
+  double k_d_l = 0.1; 
 
   // Convertion from motor duty to motor rotation rate (currently a naive multiplication)
   double w_r =  k_d_r * msg->vel_right;
@@ -185,6 +203,14 @@ void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& 
   odomPose_msg.y = odomPose_.y; 
   odomPose_msg.theta = odomPose_.theta; 
   pub_motionModel_.publish(odomPose_msg);   
+
+  
+  geometry_msgs::Point p;
+  p.x = odomPose_.x;
+  p.y = odomPose_.y;
+  p.z = 0.0;
+  odomTrajectory_.points.push_back(p);
+  pub_odomTrajectory.publish(odomTrajectory_);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
