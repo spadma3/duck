@@ -27,6 +27,7 @@
 // #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <fstream>
 
+// using namespace gtsam;
 // TODO LIST:
 // 1) visualize pose estimate from vicon and from motor duty
 // 2) do rough calibration of the parameters 
@@ -89,8 +90,6 @@ int main(int argc, char *argv[])
 	ros::spin(); // enter the ROS main loop
 	return 0;
 }
-
-// using namespace gtsam;
 
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
@@ -173,10 +172,10 @@ void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& 
 void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr const& msg){
 
   // compute relative pose from wheel odometry
-  gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y));
-  gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t);
+  gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y)); // odometric pose at time t
+  gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t); // relative pose between t-1 and t
 
-  // key of the newly inserted pose
+  // key of the new pose to be inserted in the factor graph
   poseId_ += 1;
 
   // create between factor
@@ -186,8 +185,8 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
   graph_.add(odometryFactor);
 
   // add initial guess for the new pose
-  gtsam::Pose2 slamPose_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
-  initialGuess_.insert(poseId_,slamPose_t);
+  gtsam::Pose2 initialGuess_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
+  initialGuess_.insert(poseId_,initialGuess_t);
 
   // update state
   odomPose_tm1_ = odomPose_t;
@@ -204,7 +203,6 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
 // the callback function for the number stream topic subscription
 void slam_node::landmarkMeasurementCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   // compensate for body-camera relative pose (extrinsic calibration)
-  Pose2 pose;
 	// add the data to the running sums
   pub_landmark_.publish(msg);	
 }
