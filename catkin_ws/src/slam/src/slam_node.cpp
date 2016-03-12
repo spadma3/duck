@@ -16,6 +16,9 @@
 #include <stdint.h>
 
 // GTSAM includes
+#include <gtsam/geometry/Pose2.h>
+#include <gtsam/geometry/Point2.h>
+#include <gtsam/geometry/Rot2.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
@@ -31,16 +34,20 @@ slam_node(); // constructor
 // class variables_
 private:
 	ros::NodeHandle nh_; // interface to this node
-	ros::Subscriber odometryTopic_; // interface to wheel odometry
-  ros::Subscriber landmarkTopic_; // interface to landmark measurements
-	ros::Publisher estimatedPoses_; // interface to the trajectory topic publication
-	ros::Publisher estimatedLandmarks_; // interface to the landmarks topic pub
+  ros::Subscriber sub_motionModel_;
+  ros::Subscriber sub_odometryOdometryCB_;
+  ros::Subscriber sub_landmarkMeasurementCB_;
 
-// TODO: these three variables should be computed/given by calibration
+	ros::Publisher pub_motionModel_;
+	ros::Publisher pub_numbers_; 
+
+  // TODO: these three variables should be computed/given by calibration
   double radius_l_; // radius of the left wheel
   double radius_r_; // radius of the right wheel
   double baseline_lr_; //distance between the center of the two wheels
-  geometry_msgs::Pose2D odometricPose_; // 2D pose obtained by integrating odometry over time
+  geometry_msgs::Pose2D odometricPose_; // 2D pose obtained by integrating odometry till time t
+  gtsam::Pose2 odometricPose_tm1_; // 2D pose obtained by integrating odometry till time t-1
+  noiseModel::Diagonal::shared_ptr odomNoise_ = noiseModel::Diagonal::Sigmas(Vector3(0.3, 0.3, 0.1));
 
 	ros::Timer timer_; // the timer object
 	double running_sum_; // the running sum since start
@@ -49,7 +56,9 @@ private:
 	int moving_average_count_; // number of samples since the last update
 
 	// callback function declarations
-	void odometryMeasurementCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
+  // TODO: move motion model to suitable node
+  void motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
+	void odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr const& msg);
   void landmarkMeasurementCallback(std_msgs::Float32::ConstPtr const& msg);
 	void timerCallback(ros::TimerEvent const& event);
 };
@@ -60,8 +69,7 @@ int main(int argc, char *argv[])
 	// initialize the ROS client API, giving the default node name
 	ros::init(argc, argv, "slam_node");
 	slam_node node;
-	// enter the ROS main loop
-	ros::spin();
+	ros::spin(); // enter the ROS main loop
 	return 0;
 }
 
@@ -72,14 +80,15 @@ running_sum_(0), moving_average_period_(30), moving_average_sum_(0),
 moving_average_count_(0){
 
 	// subscribe to the number stream topic
-  odometryTopic_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::odometryMeasurementCallback, this);
-	landmarkTopic_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
-
-  gtsam::NonlinearFactorGraph::shared_ptr graph;
+  sub_motionModel_           = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::motionModelCallback, this);
+  sub_odometryOdometryCB_    = nh_.subscribe("odometricPose", 1, &slam_node::odometryMeasurementCallback, this);
+	sub_landmarkMeasurementCB_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
   
 	// advertise that we'll publish on the corresponding topic
-	estimatedPoses_ = nh_.advertise<geometry_msgs::Pose2D>("odometricPose", 1);
-	estimatedLandmarks_ = nh_.advertise<std_msgs::Float32>("moving_average", 1);
+	pub_motionModel_ =     nh_.advertise<geometry_msgs::Pose2D>("odometricPose", 1);
+	pub_numbers_ = nh_.advertise<std_msgs::Float32>("moving_average", 1);
+
+  gtsam::NonlinearFactorGraph::shared_ptr graph;
 
 	// get moving average period from parameter server (or use default value if not present)
 	ros::NodeHandle private_nh("~");
@@ -92,30 +101,37 @@ moving_average_count_(0){
 	ROS_INFO("Created timer with period of %f seconds", moving_average_period_);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
 // this callback is executed every time an odometry measurement is received
-void slam_node::odometryMeasurementCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg){
+void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg){
 
-  double linVel = (radius_r_* msg->vel_right + radius_l_* msg->vel_left) / 2;
-  double omega = (radius_r_* msg->vel_right - radius_l_* msg->vel_left) / baseline_lr_; 
+  // TODO: Convertion from motor duty to motor rotation rate (currently a naive multiplication)
+  // TODO: these must be computed automatically from calibration
+  double k_d_r = 1; 
+  double k_d_l = 1; 
 
-  // DEBUG 
-  //std_msgs::Float32 linVel_msg;
-  //linVel_msg.data = linVel;
-  //estimatedPoses_.publish(linVel_msg);  
+  // Convertion from motor duty to motor rotation rate (currently a naive multiplication)
+  double w_r =  k_d_r * msg->vel_right;
+  double w_l =  k_d_l * msg->vel_left;
 
+  // compute linear and angular velocity of the platform
+  double v = (radius_r_ * w_r + radius_l_* w_l) / 2;
+  double omega =  (radius_r_ * w_r - radius_l_* w_l) / baseline_lr_; 
+ 
   // TODO: this should be an actual deltaT
   double deltaT = 1;   
 
   // odometricPose_
-  double theta_tm1 = odometricPose_.theta;
-  double theta_t = theta_tm1 + omega * deltaT;
+  double theta_tm1 = odometricPose_.theta; // orientation at time t
+  double theta_t = theta_tm1 + omega * deltaT; // orientation at time t+1
   
-  if (fabs(omega) <= 0.0001){ 
+  if (fabs(omega) <= 0.0001){
     // straight line
-    odometricPose_.x = odometricPose_.x + sin(theta_tm1) * linVel;
-    odometricPose_.y = odometricPose_.y + cos(theta_tm1) * linVel;
+    odometricPose_.x = odometricPose_.x + sin(theta_tm1) * v;
+    odometricPose_.y = odometricPose_.y + cos(theta_tm1) * v;
   }else{
-    double v_w_ratio = linVel / omega;
+    // arc of circle, see "Probabilitic robotics"
+    double v_w_ratio = v / omega;
     odometricPose_.x = odometricPose_.x - v_w_ratio * sin(theta_tm1) + v_w_ratio * sin(theta_t);
     odometricPose_.y = odometricPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * sin(theta_t);
   }
@@ -124,9 +140,31 @@ void slam_node::odometryMeasurementCallback(duckietown_msgs::WheelsCmd::ConstPtr
   odometricPose_msg.x = odometricPose_.x; 
   odometricPose_msg.y = odometricPose_.y; 
   odometricPose_msg.theta = odometricPose_.theta; 
-  estimatedPoses_.publish(odometricPose_msg);   
+  pub_motionModel_.publish(odometricPose_msg);   
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// this callback is executed every time an odometry measurement is received
+void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr const& msg){
+
+  // compute relative pose from wheel odometry
+  gtsam::Pose2 odometricPose_t(msg->theta, gtsam::Point2(msg->x, msg->y));
+  gtsam::Pose2 odometricPose_tm1_t = odometricPose_tm1_.between(odometricPose_t);
+
+  // create between factor
+
+  // add factor to nonlinear factor graph
+
+    // odometricPose_.theta = theta_t;
+  // geometry_msgs::Pose2D odometricPose_msg;   
+  // odometricPose_msg.x = odometricPose_.x; 
+  // odometricPose_msg.y = odometricPose_.y; 
+  // odometricPose_msg.theta = odometricPose_.theta; 
+  // estimatedPoses_.publish(odometricPose_msg); 
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 // the callback function for the number stream topic subscription
 void slam_node::landmarkMeasurementCallback(std_msgs::Float32::ConstPtr const& msg){
 	// add the data to the running sums
@@ -138,7 +176,7 @@ void slam_node::landmarkMeasurementCallback(std_msgs::Float32::ConstPtr const& m
 	std_msgs::Float32 sum_msg;
 	sum_msg.data = running_sum_;
 	// publish the running sum message
-	estimatedLandmarks_.publish(sum_msg);						
+	pub_numbers_.publish(sum_msg);						
 }
 
 // the callback function for the timer event
@@ -150,7 +188,7 @@ void slam_node::timerCallback(ros::TimerEvent const& event){
 	else
 	moving_average_msg.data = nan("");
 	// publish the moving average
-	estimatedLandmarks_.publish(moving_average_msg);
+	pub_numbers_.publish(moving_average_msg);
 	// reset the moving average
 	moving_average_sum_ = 0;
 	moving_average_count_ = 0;
