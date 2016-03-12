@@ -53,7 +53,9 @@ private:
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
 
+  gtsam::Key poseId_;
   gtsam::NonlinearFactorGraph graph_;
+  gtsam::Values initialGuess_;
 
 	ros::Timer timer_; // the timer object
 	double running_sum_; // the running sum since start
@@ -82,7 +84,7 @@ int main(int argc, char *argv[])
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
 radius_l_(1), radius_r_(1), baseline_lr_(1),
-running_sum_(0), moving_average_period_(30), moving_average_sum_(0),
+running_sum_(0), moving_average_period_(30), moving_average_sum_(0), poseId_(0),
 moving_average_count_(0){
 
 	// subscribe to the number stream topic
@@ -96,7 +98,8 @@ moving_average_count_(0){
 	pub_numbers_     = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
   // add prior on first node: this will be the reference frame for us
-  graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(0, 0, 0), priorNoise_));
+  graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
+  initialGuess_.insert(0, gtsam::Pose2());
 
 	// get moving average period from parameter server (or use default value if not present)
 	ros::NodeHandle private_nh("~");
@@ -159,20 +162,26 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
   gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y));
   gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t);
 
-  // debug
+  // key of the newly inserted pose
+  poseId_ += 1;
+
+  // create between factor
+  gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(poseId_-1, poseId_, odomPose_tm1_t, odomNoise_);
+
+  // add factor to nonlinear factor graph
+  graph_.add(odometryFactor);
+  gtsam::Pose2 slamPose_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
+  initialGuess_.insert(poseId_,slamPose_t);
+
+  // update state
+  odomPose_tm1_ = odomPose_t;
+
+  // debug: visualize odometric pose change
   geometry_msgs::Pose2D relativePose_msg;   
   relativePose_msg.x = odomPose_tm1_t.x(); 
   relativePose_msg.y = odomPose_tm1_t.y(); 
   relativePose_msg.theta = odomPose_tm1_t.theta();
   pub_odometry_.publish(relativePose_msg);
-
-  // create between factor
-
-  // add factor to nonlinear factor graph
-  graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(0, 0, 0), priorNoise_));
-
-  // update state
-  odomPose_tm1_ = odomPose_t;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
