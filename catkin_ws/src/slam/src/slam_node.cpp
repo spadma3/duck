@@ -19,6 +19,7 @@
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/geometry/Point2.h>
 #include <gtsam/geometry/Rot2.h>
+#include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
@@ -45,9 +46,10 @@ private:
   double radius_l_; // radius of the left wheel
   double radius_r_; // radius of the right wheel
   double baseline_lr_; //distance between the center of the two wheels
-  geometry_msgs::Pose2D odometricPose_; // 2D pose obtained by integrating odometry till time t
-  gtsam::Pose2 odometricPose_tm1_; // 2D pose obtained by integrating odometry till time t-1
-  noiseModel::Diagonal::shared_ptr odomNoise_ = noiseModel::Diagonal::Sigmas(Vector3(0.3, 0.3, 0.1));
+  geometry_msgs::Pose2D odomPose_; // 2D pose obtained by integrating odometry till time t
+  gtsam::Pose2 odomPose_tm1_; // 2D pose obtained by integrating odometry till time t-1
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
 
 	ros::Timer timer_; // the timer object
 	double running_sum_; // the running sum since start
@@ -81,14 +83,16 @@ moving_average_count_(0){
 
 	// subscribe to the number stream topic
   sub_motionModel_           = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::motionModelCallback, this);
-  sub_odometryOdometryCB_    = nh_.subscribe("odometricPose", 1, &slam_node::odometryMeasurementCallback, this);
+  sub_odometryOdometryCB_    = nh_.subscribe("odomPose", 1, &slam_node::odometryMeasurementCallback, this);
 	sub_landmarkMeasurementCB_ = nh_.subscribe("number_stream", 1, &slam_node::landmarkMeasurementCallback, this);
   
 	// advertise that we'll publish on the corresponding topic
-	pub_motionModel_ =     nh_.advertise<geometry_msgs::Pose2D>("odometricPose", 1);
+	pub_motionModel_ =     nh_.advertise<geometry_msgs::Pose2D>("odomPose", 1);
 	pub_numbers_ = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
+  // gtsam::NonlinearFactorGraph graph;
   gtsam::NonlinearFactorGraph::shared_ptr graph;
+  //graph->add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(0, 0, 0), priorNoise_));
 
 	// get moving average period from parameter server (or use default value if not present)
 	ros::NodeHandle private_nh("~");
@@ -121,26 +125,26 @@ void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& 
   // TODO: this should be an actual deltaT
   double deltaT = 1;   
 
-  // odometricPose_
-  double theta_tm1 = odometricPose_.theta; // orientation at time t
+  // odomPose_
+  double theta_tm1 = odomPose_.theta; // orientation at time t
   double theta_t = theta_tm1 + omega * deltaT; // orientation at time t+1
   
   if (fabs(omega) <= 0.0001){
     // straight line
-    odometricPose_.x = odometricPose_.x + sin(theta_tm1) * v;
-    odometricPose_.y = odometricPose_.y + cos(theta_tm1) * v;
+    odomPose_.x = odomPose_.x + sin(theta_tm1) * v;
+    odomPose_.y = odomPose_.y + cos(theta_tm1) * v;
   }else{
     // arc of circle, see "Probabilitic robotics"
     double v_w_ratio = v / omega;
-    odometricPose_.x = odometricPose_.x - v_w_ratio * sin(theta_tm1) + v_w_ratio * sin(theta_t);
-    odometricPose_.y = odometricPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * sin(theta_t);
+    odomPose_.x = odomPose_.x - v_w_ratio * sin(theta_tm1) + v_w_ratio * sin(theta_t);
+    odomPose_.y = odomPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * sin(theta_t);
   }
-  odometricPose_.theta = theta_t;
-  geometry_msgs::Pose2D odometricPose_msg;   
-  odometricPose_msg.x = odometricPose_.x; 
-  odometricPose_msg.y = odometricPose_.y; 
-  odometricPose_msg.theta = odometricPose_.theta; 
-  pub_motionModel_.publish(odometricPose_msg);   
+  odomPose_.theta = theta_t;
+  geometry_msgs::Pose2D odomPose_msg;   
+  odomPose_msg.x = odomPose_.x; 
+  odomPose_msg.y = odomPose_.y; 
+  odomPose_msg.theta = odomPose_.theta; 
+  pub_motionModel_.publish(odomPose_msg);   
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -148,19 +152,19 @@ void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& 
 void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr const& msg){
 
   // compute relative pose from wheel odometry
-  gtsam::Pose2 odometricPose_t(msg->theta, gtsam::Point2(msg->x, msg->y));
-  gtsam::Pose2 odometricPose_tm1_t = odometricPose_tm1_.between(odometricPose_t);
+  gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y));
+  gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t);
 
   // create between factor
 
   // add factor to nonlinear factor graph
 
-    // odometricPose_.theta = theta_t;
-  // geometry_msgs::Pose2D odometricPose_msg;   
-  // odometricPose_msg.x = odometricPose_.x; 
-  // odometricPose_msg.y = odometricPose_.y; 
-  // odometricPose_msg.theta = odometricPose_.theta; 
-  // estimatedPoses_.publish(odometricPose_msg); 
+    // odomPose_.theta = theta_t;
+  // geometry_msgs::Pose2D odomPose_msg;   
+  // odomPose_msg.x = odomPose_.x; 
+  // odomPose_msg.y = odomPose_.y; 
+  // odomPose_msg.theta = odomPose_.theta; 
+  // estimatedPoses_.publish(odomPose_msg); 
 
 }
 
