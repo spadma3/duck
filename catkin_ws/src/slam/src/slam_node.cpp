@@ -198,6 +198,8 @@ void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& 
     odomPose_.y = odomPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * sin(theta_t);
   }
   odomPose_.theta = theta_t;
+
+  ros::Time currentTime = ros::Time::now();
   geometry_msgs::Pose2D odomPose_msg;   
   odomPose_msg.x = odomPose_.x; 
   odomPose_msg.y = odomPose_.y; 
@@ -236,6 +238,9 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
 
   // update state
   odomPose_tm1_ = odomPose_t;
+
+
+
 
   // debug: visualize odometric pose change
   geometry_msgs::Pose2D relativePose_msg;   
