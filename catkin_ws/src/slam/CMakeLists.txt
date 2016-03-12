@@ -17,6 +17,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 include_directories(/usr/include/eigen3) # manually include eigen header path
+# include_directories(/usr/include/tbb) 
 
 catkin_package(
 #   INCLUDE_DIRS include

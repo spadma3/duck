@@ -53,6 +53,8 @@ private:
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
 
+  gtsam::NonlinearFactorGraph graph_;
+
 	ros::Timer timer_; // the timer object
 	double running_sum_; // the running sum since start
 	double moving_average_period_; // how often to sample the moving average
@@ -93,9 +95,8 @@ moving_average_count_(0){
   pub_odometry_    = nh_.advertise<geometry_msgs::Pose2D>("relativePose", 1);
 	pub_numbers_     = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
-  //gtsam::NonlinearFactorGraph graph;
-  //gtsam::NonlinearFactorGraph::shared_ptr graph;
-  //graph->add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(0, 0, 0), priorNoise_));
+  // add prior on first node: this will be the reference frame for us
+  graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(0, 0, 0), priorNoise_));
 
 	// get moving average period from parameter server (or use default value if not present)
 	ros::NodeHandle private_nh("~");
@@ -168,6 +169,7 @@ void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr cons
   // create between factor
 
   // add factor to nonlinear factor graph
+  graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(0, 0, 0), priorNoise_));
 
   // update state
   odomPose_tm1_ = odomPose_t;
