@@ -10,6 +10,7 @@
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "duckietown_msgs/Pose2DStamped.h"
 //#include "duckietown_msgs/Pixel.h"
 #include "duckietown_msgs/WheelsCmd.h"
 #include "duckietown_msgs/Vector2D.h"
@@ -46,11 +47,11 @@ slam_node(); // constructor
 // class variables_
 private:
 	ros::NodeHandle nh_; // interface to this node
-  ros::Subscriber sub_motionModel_;
+  ros::Subscriber sub_forward_kinematics_;
   ros::Subscriber sub_odometryMeasurementCB_;
   ros::Subscriber sub_landmarkMeasurementCB_;
 
-	ros::Publisher pub_motionModel_;
+	ros::Publisher pub_forward_kinematics_;
   ros::Publisher pub_odometry_; 
   ros::Publisher pub_landmark_; 
 	ros::Publisher pub_numbers_; // TODO: delete this
@@ -110,12 +111,14 @@ running_sum_(0), moving_average_period_(30), moving_average_sum_(0), poseId_(0),
 moving_average_count_(0){
 
 	// subscribe to the number stream topic
-  sub_motionModel_           = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::motionModelCallback, this);
+  sub_forward_kinematics_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::motionModelCallback, this);
+  pub_forward_kinematics_ = nh_.advertise<geometry_msgs::Pose2D>("odomPose", 1);
+
   sub_odometryMeasurementCB_ = nh_.subscribe("odomPose", 1, &slam_node::odometryMeasurementCallback, this);
 	sub_landmarkMeasurementCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkMeasurementCallback, this);
   
 	// advertise that we'll publish on the corresponding topic
-	pub_motionModel_ = nh_.advertise<geometry_msgs::Pose2D>("odomPose", 1);
+	
   pub_odometry_    = nh_.advertise<geometry_msgs::Pose2D>("relativePose", 1);
   pub_landmark_    = nh_.advertise<geometry_msgs::PoseStamped>("viconPose", 1);
   pub_gtTrajectory = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 10);
@@ -200,11 +203,13 @@ void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& 
   odomPose_.theta = theta_t;
 
   ros::Time currentTime = ros::Time::now();
-  geometry_msgs::Pose2D odomPose_msg;   
+
+  duckietown_msgs::Pose2DStamped odomPose_msg;   
+  // odomPose_msg.header.stamp.sec = currentTime;
   odomPose_msg.x = odomPose_.x; 
   odomPose_msg.y = odomPose_.y; 
   odomPose_msg.theta = odomPose_.theta; 
-  pub_motionModel_.publish(odomPose_msg);   
+  pub_forward_kinematics_.publish(odomPose_msg);   
 
   
   geometry_msgs::Point p;
