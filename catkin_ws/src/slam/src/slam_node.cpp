@@ -16,13 +16,14 @@
 #include <stdint.h>
 
 // GTSAM includes
-#include <gtsam/geometry/Pose2.h>
-#include <gtsam/geometry/Point2.h>
-#include <gtsam/geometry/Rot2.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/PriorFactor.h>
-#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
+#include <gtsam/geometry/Pose2.h>
+#include <gtsam/geometry/Point2.h>
+#include <gtsam/geometry/Rot2.h>
+
+// #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <fstream>
 
 // TODO: WheelsCmd should be WheelsCmdStamped (otherwise how do you integrate odometry?)
@@ -92,8 +93,8 @@ moving_average_count_(0){
   pub_odometry_    = nh_.advertise<geometry_msgs::Pose2D>("relativePose", 1);
 	pub_numbers_     = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
-  // gtsam::NonlinearFactorGraph graph;
-  gtsam::NonlinearFactorGraph::shared_ptr graph;
+  //gtsam::NonlinearFactorGraph graph;
+  //gtsam::NonlinearFactorGraph::shared_ptr graph;
   //graph->add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(0, 0, 0), priorNoise_));
 
 	// get moving average period from parameter server (or use default value if not present)

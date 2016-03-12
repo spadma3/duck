@@ -8,14 +8,15 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   duckietown_msgs
   std_msgs
+  tf
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-include_directories(/usr/include/eigen3) # manually include eigen header path
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
+include_directories(/usr/include/eigen3) # manually include eigen header path
 
 catkin_package(
 #   INCLUDE_DIRS include
