@@ -11,8 +11,9 @@
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "duckietown_msgs/Pose2DStamped.h"
-//#include "duckietown_msgs/Pixel.h"
+#include "duckietown_msgs/Pixel.h"
 #include "duckietown_msgs/WheelsCmd.h"
+#include "duckietown_msgs/WheelsCmdStamped.h"
 #include "duckietown_msgs/Vector2D.h"
 #include <visualization_msgs/Marker.h>
 #include <std_srvs/Empty.h>
@@ -26,19 +27,18 @@
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/geometry/Point2.h>
 #include <gtsam/geometry/Rot2.h>
-
-// #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
+#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <fstream>
 
 // using namespace gtsam;
 // TODO LIST:
-// 1) visualize pose estimate from vicon and from motor duty
+// 1) X visualize pose estimate from vicon and from motor duty
+// 1b) visualize trajectory from odometry
+// 1c) visualize trajectory from iSAM2
 // 2) do rough calibration of the parameters 
 // 3) add optimization
 // 4) add priors from VICON
 
-// TODO: WheelsCmd should be WheelsCmdStamped (otherwise how do you integrate odometry?)
-// simple class to contain the node's variables and code
 class slam_node
 {
 public:
@@ -47,26 +47,41 @@ slam_node(); // constructor
 // class variables_
 private:
 	ros::NodeHandle nh_; // interface to this node
-  ros::Subscriber sub_forward_kinematics_;
-  ros::Subscriber sub_odometryMeasurementCB_;
-  ros::Subscriber sub_landmarkMeasurementCB_;
 
+
+  ros::Subscriber sub_republishWheelCmd_; 
+  ros::Subscriber sub_forward_kinematics_;
+  ros::Subscriber sub_odometryCB_;
+  ros::Subscriber sub_landmarkCB_;
+  ros::Subscriber sub_imuCB_;
+  ros::Subscriber sub_viconCB_;
+
+  ros::Publisher pub_republishWheelCmd_;
 	ros::Publisher pub_forward_kinematics_;
-  ros::Publisher pub_odometry_; 
-  ros::Publisher pub_landmark_; 
-	ros::Publisher pub_numbers_; // TODO: delete this
-  ros::Publisher pub_gtTrajectory;
+  ros::Publisher pub_odometryCB_; 
+  ros::Publisher pub_landmarkCB_; 
+  ros::Publisher pub_imuCB_; 
+  ros::Publisher pub_viconCB_;   
+  ros::Publisher pub_viconCB_gtTrajectory_;
+
   ros::Publisher pub_odomTrajectory;
 
   // TODO: these three variables should be computed/given by calibration
   double radius_l_; // radius of the left wheel
   double radius_r_; // radius of the right wheel
   double baseline_lr_; //distance between the center of the two wheels
+  double K_r_;
+  double K_l_;
+
+  bool initializedForwardKinematic;
+  bool initializedOdometry;
+
   geometry_msgs::Pose2D odomPose_; // 2D pose obtained by integrating odometry till time t
+  double tm1_; // time stamp at time t-1
   gtsam::Pose2 odomPose_tm1_; // 2D pose obtained by integrating odometry till time t-1
+
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
-
   gtsam::Key poseId_;
   gtsam::NonlinearFactorGraph graph_;
   gtsam::Values initialGuess_;
@@ -75,26 +90,24 @@ private:
   visualization_msgs::Marker gtTrajectory_;
   int gtSubsampleStep_;
   int gtSubsampleCount_;
+
   visualization_msgs::Marker odomTrajectory_;
   int odomSubsampleStep_;
   int odomSubsampleCount_;
 
-	ros::Timer timer_; // TODO: delete this
-	double running_sum_; //TODO: delete this
-	double moving_average_period_; // TODO: delete this
-	double moving_average_sum_; // TODO: delete this
-	int moving_average_count_; // TODO: delete this
+  visualization_msgs::Marker slamTrajectory_;
 
 	// callback function declarations
   // TODO: move motion model to suitable node
-  void motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
-	void odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr const& msg);
-  void landmarkMeasurementCallback(geometry_msgs::PoseStamped::ConstPtr const& msg);
-
-	void timerCallback(ros::TimerEvent const& event);
+  void republishWheelsCmdCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
+  void forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg);
+	void odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg);
+  void landmarkCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg);
+  void imuCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg);
+  void viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg);
 };
 
-// program entry point
+///////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
 	// initialize the ROS client API, giving the default node name
@@ -104,32 +117,32 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
-radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1),
-running_sum_(0), moving_average_period_(30), moving_average_sum_(0), poseId_(0), gtSubsampleStep_(50),
-moving_average_count_(0){
+radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(0.1), K_l_(0.1),
+poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), initializedForwardKinematic(false), initializedOdometry(false) {
 
-	// subscribe to the number stream topic
-  sub_forward_kinematics_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::motionModelCallback, this);
-  pub_forward_kinematics_ = nh_.advertise<geometry_msgs::Pose2D>("odomPose", 1);
+  sub_republishWheelCmd_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
+  pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
 
-  sub_odometryMeasurementCB_ = nh_.subscribe("odomPose", 1, &slam_node::odometryMeasurementCallback, this);
-	sub_landmarkMeasurementCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkMeasurementCallback, this);
-  
-	// advertise that we'll publish on the corresponding topic
-	
-  pub_odometry_    = nh_.advertise<geometry_msgs::Pose2D>("relativePose", 1);
-  pub_landmark_    = nh_.advertise<geometry_msgs::PoseStamped>("viconPose", 1);
-  pub_gtTrajectory = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 10);
+  sub_forward_kinematics_ = nh_.subscribe("wheelsCmdStamped", 1, &slam_node::forwardKinematicCallback, this);
+  pub_forward_kinematics_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("odomPose", 1);
   pub_odomTrajectory = nh_.advertise<visualization_msgs::Marker>("odomTrajectory", 10);
-  
-  // TODO: delete
-	pub_numbers_     = nh_.advertise<std_msgs::Float32>("moving_average", 1);
 
-  // add prior on first node: this will be the reference frame for us
-  graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
-  initialGuess_.insert(0, gtsam::Pose2());
+ //  sub_odometryCB_ = nh_.subscribe("odomPose", 1, &slam_node::odometryCallback, this);
+ //  pub_odometryCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativePose", 1);  
+
+ //  sub_landmarkCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkCallback, this);
+ //  pub_landmarkCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
+
+  sub_viconCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::viconCallback, this);
+  pub_viconCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
+  pub_viconCB_gtTrajectory_ = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 1);
+
+ //  // add prior on first node: this will be the reference frame for us
+ //  graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
+ //  initialGuess_.insert(0, gtsam::Pose2());
 
   // http://wiki.ros.org/rviz/Tutorials/Markers%3A%20Points%20and%20Lines
   gtTrajectory_.header.frame_id = "/odom";
@@ -154,112 +167,117 @@ moving_average_count_(0){
   odomTrajectory_.color.a = 1.0;
   odomSubsampleCount_ = odomSubsampleStep_;
   
-
-	// get moving average period from parameter server (or use default value if not present)
 	ros::NodeHandle private_nh("~");
-	private_nh.param("moving_average_period", moving_average_period_,	moving_average_period_);
-	if (moving_average_period_ < 0.5)
-	moving_average_period_ = 0.5;
-
-	// create the Timer with period moving_average_period_
-	timer_ = nh_.createTimer(ros::Duration(moving_average_period_), &slam_node::timerCallback, this);
-	ROS_INFO("Created timer with period of %f seconds", moving_average_period_);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// this callback is executed every time an odometry measurement is received
-void slam_node::motionModelCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg){
+// TODO: get rid of this callback: move to suitable node
+void slam_node::republishWheelsCmdCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg){
 
-  // TODO: Convertion from motor duty to motor rotation rate (currently a naive multiplication)
-  // TODO: these must be computed automatically from calibration
-  double k_d_r = 0.1; 
-  double k_d_l = 0.1; 
-
-  // Convertion from motor duty to motor rotation rate (currently a naive multiplication)
-  double w_r =  k_d_r * msg->vel_right;
-  double w_l =  k_d_l * msg->vel_left;
-
-  // compute linear and angular velocity of the platform
-  double v = (radius_r_ * w_r + radius_l_* w_l) / 2;
-  double omega =  (radius_r_ * w_r - radius_l_* w_l) / baseline_lr_; 
- 
-  // TODO: this should be an actual deltaT
-  double deltaT = 1;   
-
-  // odomPose_
-  double theta_tm1 = odomPose_.theta; // orientation at time t
-  double theta_t = theta_tm1 + omega * deltaT; // orientation at time t+1
-  
-  if (fabs(omega) <= 0.0001){
-    // straight line
-    odomPose_.x = odomPose_.x + sin(theta_tm1) * v;
-    odomPose_.y = odomPose_.y + cos(theta_tm1) * v;
-  }else{
-    // arc of circle, see "Probabilitic robotics"
-    double v_w_ratio = v / omega;
-    odomPose_.x = odomPose_.x - v_w_ratio * sin(theta_tm1) + v_w_ratio * sin(theta_t);
-    odomPose_.y = odomPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * sin(theta_t);
-  }
-  odomPose_.theta = theta_t;
-
+  duckietown_msgs::WheelsCmdStamped wheelsCmdStamped_msg;
   ros::Time currentTime = ros::Time::now();
-
-  duckietown_msgs::Pose2DStamped odomPose_msg;   
-  // odomPose_msg.header.stamp.sec = currentTime;
-  odomPose_msg.x = odomPose_.x; 
-  odomPose_msg.y = odomPose_.y; 
-  odomPose_msg.theta = odomPose_.theta; 
-  pub_forward_kinematics_.publish(odomPose_msg);   
-
-  
-  geometry_msgs::Point p;
-  p.x = odomPose_.x;
-  p.y = odomPose_.y;
-  p.z = 0.0;
-  odomTrajectory_.points.push_back(p);
-  pub_odomTrajectory.publish(odomTrajectory_);
+  wheelsCmdStamped_msg.header.stamp = currentTime;
+  wheelsCmdStamped_msg.vel_right = msg->vel_right;
+  wheelsCmdStamped_msg.vel_left = msg->vel_left;
+  pub_republishWheelCmd_.publish(wheelsCmdStamped_msg);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// this callback is executed every time an odometry measurement is received
-void slam_node::odometryMeasurementCallback(geometry_msgs::Pose2D::ConstPtr const& msg){
+// TODO: get rid of this callback: move to suitable node
+void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg){
 
-  // compute relative pose from wheel odometry
-  gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y)); // odometric pose at time t
-  gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t); // relative pose between t-1 and t
+  if(initializedForwardKinematic == false){
+    // initialize: since we do integration, we need initial conditions
+    tm1_ = msg->header.stamp.toSec(); 
+    initializedForwardKinematic = true;
+  }else{
+    // Convertion from motor duty to motor rotation rate (currently a naive multiplication)
+    double w_r =  K_r_ * msg->vel_right;
+    double w_l =  K_l_ * msg->vel_left;
 
-  // key of the new pose to be inserted in the factor graph
-  poseId_ += 1;
+    // compute linear and angular velocity of the platform
+    double v = (radius_r_ * w_r + radius_l_* w_l) / 2;
+    double omega =  (radius_r_ * w_r - radius_l_* w_l) / baseline_lr_; 
+   
+    // TODO: this should be an actual deltaT
+    double t = msg->header.stamp.toSec(); 
+    double deltaT = t - tm1_;   
 
-  // create between factor
-  gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(poseId_-1, poseId_, odomPose_tm1_t, odomNoise_);
+    ROS_ERROR("deltaT: %g", deltaT);
 
-  // add factor to nonlinear factor graph
-  graph_.add(odometryFactor);
+    // odomPose_
+    double theta_tm1 = odomPose_.theta; // orientation at time t
+    double theta_t = theta_tm1 + omega * deltaT; // orientation at time t+1
+    
+    if (fabs(omega) <= 0.0001){
+      // straight line
+      odomPose_.x = odomPose_.x + cos(theta_tm1) * v * deltaT;
+      odomPose_.y = odomPose_.y + sin(theta_tm1) * v * deltaT;
+    }else{
+      // arc of circle, see "Probabilitic robotics"
+      double v_w_ratio = v / omega;
+      odomPose_.x = odomPose_.x - v_w_ratio * sin(theta_tm1) + v_w_ratio * sin(theta_t);
+      odomPose_.y = odomPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * sin(theta_t);
+    }
+    odomPose_.theta = theta_t;
+    tm1_ = t;
 
-  // add initial guess for the new pose
-  gtsam::Pose2 initialGuess_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
-  initialGuess_.insert(poseId_,initialGuess_t);
+    duckietown_msgs::Pose2DStamped odomPose_msg;   
+    odomPose_msg.header = msg->header; // TODO: this looks weird to me
+    odomPose_msg.x = odomPose_.x; 
+    odomPose_msg.y = odomPose_.y; 
+    odomPose_msg.theta = odomPose_.theta; 
+    pub_forward_kinematics_.publish(odomPose_msg);   
 
-  // update state
-  odomPose_tm1_ = odomPose_t;
-
-
-
-
-  // debug: visualize odometric pose change
-  geometry_msgs::Pose2D relativePose_msg;   
-  relativePose_msg.x = odomPose_tm1_t.x(); 
-  relativePose_msg.y = odomPose_tm1_t.y(); 
-  relativePose_msg.theta = odomPose_tm1_t.theta();
-  pub_odometry_.publish(relativePose_msg);
+    // for trajectory visualization
+    geometry_msgs::Point p;
+    p.x = odomPose_.x; p.y = odomPose_.y; p.z = 0.0;
+    odomTrajectory_.points.push_back(p);
+    pub_odomTrajectory.publish(odomTrajectory_);
+  }
 }
 
+// ///////////////////////////////////////////////////////////////////////////////////////////
+// // this callback is executed every time an odometry measurement is received
+// void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
+
+//   // compute relative pose from wheel odometry
+//   gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y)); // odometric pose at time t
+//   gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t); // relative pose between t-1 and t
+
+//   // key of the new pose to be inserted in the factor graph
+//   poseId_ += 1;
+
+//   // create between factor
+//   gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(poseId_-1, poseId_, odomPose_tm1_t, odomNoise_);
+
+//   // add factor to nonlinear factor graph
+//   graph_.add(odometryFactor);
+
+//   // add initial guess for the new pose
+//   gtsam::Pose2 initialGuess_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
+//   initialGuess_.insert(poseId_,initialGuess_t);
+
+//   // update state
+//   odomPose_tm1_ = odomPose_t;
+
+//   // debug: visualize odometric pose change
+//   geometry_msgs::Pose2D relativePose_msg;   
+//   relativePose_msg.x = odomPose_tm1_t.x(); 
+//   relativePose_msg.y = odomPose_tm1_t.y(); 
+//   relativePose_msg.theta = odomPose_tm1_t.theta();
+//   pub_odometryCB_.publish(relativePose_msg);
+// }
+
+// ///////////////////////////////////////////////////////////////////////////////////////////
+// void slam_node::landmarkCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
+
+// }
+
 ///////////////////////////////////////////////////////////////////////////////////////////
-// the callback function for the number stream topic subscription
-void slam_node::landmarkMeasurementCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
+void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   // compensate for body-camera relative pose (extrinsic calibration)
-	// add the data to the running sums
+  // add the data to the running sums
   // points.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "/my_frame";
   gtSubsampleCount_ -= 1;
 
@@ -267,27 +285,15 @@ void slam_node::landmarkMeasurementCallback(geometry_msgs::PoseStamped::ConstPtr
     geometry_msgs::Point p;
     p = msg->pose.position;
     gtTrajectory_.points.push_back(p);
-    pub_gtTrajectory.publish(gtTrajectory_);
-    pub_landmark_.publish(msg);	
+    pub_viconCB_gtTrajectory_.publish(gtTrajectory_);
     gtSubsampleCount_ = gtSubsampleStep_; // reset counter
-    // printf("nr points in gtTrajectory_: % \n", gtTrajectory_.points.size());
-    std::cout << "size of myints: " << gtTrajectory_.points.size() << std::endl;
     int s = gtTrajectory_.points.size();
     ROS_ERROR("nr points in gtTrajectory: %d", s);
   }
-}
-
-// the callback function for the timer event
-void slam_node::timerCallback(ros::TimerEvent const& event){
-	// create the message containing the moving average
-	std_msgs::Float32 moving_average_msg;
-	if (moving_average_count_ > 0)
-	moving_average_msg.data = moving_average_sum_ / moving_average_count_;
-	else
-	moving_average_msg.data = nan("");
-	// publish the moving average
-	pub_numbers_.publish(moving_average_msg);
-	// reset the moving average
-	moving_average_sum_ = 0;
-	moving_average_count_ = 0;
+  duckietown_msgs::Pose2DStamped viconPose2D;
+  viconPose2D.header = msg->header; // TODO: this looks weird to me
+  viconPose2D.x = msg->pose.position.x;
+  viconPose2D.x = msg->pose.position.y;
+  viconPose2D.theta = 0; // TODO: add quaternion convertion here
+  pub_viconCB_.publish(viconPose2D); 
 }
