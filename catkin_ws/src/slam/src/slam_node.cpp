@@ -75,6 +75,7 @@ private:
 
   bool initializedForwardKinematic;
   bool initializedOdometry;
+  bool insertedAnchor_;
 
   geometry_msgs::Pose2D odomPose_; // 2D pose obtained by integrating odometry till time t
   double tm1_; // time stamp at time t-1
@@ -120,8 +121,9 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
-radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(0.1), K_l_(0.1),
-poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), initializedForwardKinematic(false), initializedOdometry(false) {
+radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(20), K_l_(20),
+poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
+initializedForwardKinematic(false), initializedOdometry(false), insertedAnchor_(false) {
 
   sub_republishWheelCmd_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
   pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
@@ -130,8 +132,8 @@ poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), initializedForwardKinem
   pub_forward_kinematics_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("odomPose", 1);
   pub_odomTrajectory = nh_.advertise<visualization_msgs::Marker>("odomTrajectory", 10);
 
- //  sub_odometryCB_ = nh_.subscribe("odomPose", 1, &slam_node::odometryCallback, this);
- //  pub_odometryCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativePose", 1);  
+  sub_odometryCB_ = nh_.subscribe("odomPose", 1, &slam_node::odometryCallback, this);
+  pub_odometryCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativePose", 1);  
 
  //  sub_landmarkCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkCallback, this);
  //  pub_landmarkCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
@@ -139,10 +141,6 @@ poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), initializedForwardKinem
   sub_viconCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::viconCallback, this);
   pub_viconCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
   pub_viconCB_gtTrajectory_ = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 1);
-
- //  // add prior on first node: this will be the reference frame for us
- //  graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
- //  initialGuess_.insert(0, gtsam::Pose2());
 
   // http://wiki.ros.org/rviz/Tutorials/Markers%3A%20Points%20and%20Lines
   gtTrajectory_.header.frame_id = "/odom";
@@ -217,7 +215,7 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
       // arc of circle, see "Probabilitic robotics"
       double v_w_ratio = v / omega;
       odomPose_.x = odomPose_.x - v_w_ratio * sin(theta_tm1) + v_w_ratio * sin(theta_t);
-      odomPose_.y = odomPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * sin(theta_t);
+      odomPose_.y = odomPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * cos(theta_t);
     }
     odomPose_.theta = theta_t;
     tm1_ = t;
@@ -237,37 +235,47 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
   }
 }
 
-// ///////////////////////////////////////////////////////////////////////////////////////////
-// // this callback is executed every time an odometry measurement is received
-// void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
+///////////////////////////////////////////////////////////////////////////////////////////
+// this callback is executed every time an odometry measurement is received
+void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
 
-//   // compute relative pose from wheel odometry
-//   gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y)); // odometric pose at time t
-//   gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t); // relative pose between t-1 and t
+  if(insertedAnchor_ == false){
+    // add prior on first node: this will be the reference frame for us
+    graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
+    initialGuess_.insert(0, gtsam::Pose2());
+    insertedAnchor_ = true;
+  }
 
-//   // key of the new pose to be inserted in the factor graph
-//   poseId_ += 1;
+  // compute relative pose from wheel odometry
+  gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y)); // odometric pose at time t
+  gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t); // relative pose between t-1 and t
 
-//   // create between factor
-//   gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(poseId_-1, poseId_, odomPose_tm1_t, odomNoise_);
+  // TODO: add condition that there is enough displacement
 
-//   // add factor to nonlinear factor graph
-//   graph_.add(odometryFactor);
+  // key of the new pose to be inserted in the factor graph
+  poseId_ += 1;
 
-//   // add initial guess for the new pose
-//   gtsam::Pose2 initialGuess_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
-//   initialGuess_.insert(poseId_,initialGuess_t);
+  // create between factor
+  gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(poseId_-1, poseId_, odomPose_tm1_t, odomNoise_);
 
-//   // update state
-//   odomPose_tm1_ = odomPose_t;
+  // add factor to nonlinear factor graph
+  graph_.add(odometryFactor);
 
-//   // debug: visualize odometric pose change
-//   geometry_msgs::Pose2D relativePose_msg;   
-//   relativePose_msg.x = odomPose_tm1_t.x(); 
-//   relativePose_msg.y = odomPose_tm1_t.y(); 
-//   relativePose_msg.theta = odomPose_tm1_t.theta();
-//   pub_odometryCB_.publish(relativePose_msg);
-// }
+  // add initial guess for the new pose
+  gtsam::Pose2 initialGuess_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
+  initialGuess_.insert(poseId_,initialGuess_t);
+
+  // update state
+  odomPose_tm1_ = odomPose_t;
+
+  // debug: visualize odometric pose change
+  duckietown_msgs::Pose2DStamped relativePose_msg;   
+  relativePose_msg.header = msg->header; 
+  relativePose_msg.x = odomPose_tm1_t.x(); 
+  relativePose_msg.y = odomPose_tm1_t.y(); 
+  relativePose_msg.theta = odomPose_tm1_t.theta();
+  pub_odometryCB_.publish(relativePose_msg);
+}
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
 // void slam_node::landmarkCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
@@ -276,11 +284,8 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
-  // compensate for body-camera relative pose (extrinsic calibration)
-  // add the data to the running sums
-  // points.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "/my_frame";
-  gtSubsampleCount_ -= 1;
 
+  gtSubsampleCount_ -= 1;
   if(gtSubsampleCount_ <= 0){
     geometry_msgs::Point p;
     p = msg->pose.position;
@@ -290,10 +295,21 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
     int s = gtTrajectory_.points.size();
     ROS_ERROR("nr points in gtTrajectory: %d", s);
   }
-  duckietown_msgs::Pose2DStamped viconPose2D;
-  viconPose2D.header = msg->header; // TODO: this looks weird to me
-  viconPose2D.x = msg->pose.position.x;
-  viconPose2D.x = msg->pose.position.y;
-  viconPose2D.theta = 0; // TODO: add quaternion convertion here
-  pub_viconCB_.publish(viconPose2D); 
+  double x = msg->pose.position.x;
+  double y = msg->pose.position.y;
+  double theta = 0; // TODO: add quaternion convertion here
+  duckietown_msgs::Pose2DStamped viconPose2D_msg;
+  viconPose2D_msg.header = msg->header; // TODO: this looks weird to me
+  viconPose2D_msg.x = x;
+  viconPose2D_msg.y = y;
+  viconPose2D_msg.theta = theta; 
+  pub_viconCB_.publish(viconPose2D_msg); 
+
+  if(insertedAnchor_ == false){
+    // add prior on first node: this will be the reference frame for us
+    gtsam::Pose2 posePrior(theta, gtsam::Point2(x,y));
+    graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, posePrior, priorNoise_));
+    initialGuess_.insert(0, gtsam::Pose2());
+    insertedAnchor_ = true;
+  }
 }
