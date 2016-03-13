@@ -1,15 +1,22 @@
 #include "ros/ros.h" // main ROS include
 #include "std_msgs/Float32.h" // number message datatype
 #include <ros/console.h>
+#include <cmath> // needed for nan
+#include <stdint.h>
+#include <fstream>
+#include <yaml-cpp/yaml.h>
+#include <boost/filesystem.hpp>
+
+// MESSAGES - sensor_msgs
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
-#include <image_geometry/pinhole_camera_model.h>
-#include <yaml-cpp/yaml.h>
-#include <boost/filesystem.hpp>
+#include <sensor_msgs/Imu.h>
+// MESSAGES - geometry_msgs
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/PoseStamped.h"
+// MESSAGES - duckietown_msgs
 #include "duckietown_msgs/Pose2DStamped.h"
 #include "duckietown_msgs/Pixel.h"
 #include "duckietown_msgs/WheelsCmd.h"
@@ -17,9 +24,6 @@
 #include "duckietown_msgs/Vector2D.h"
 #include <visualization_msgs/Marker.h>
 #include <std_srvs/Empty.h>
-#include <cmath> // needed for nan
-#include <stdint.h>
-#include <fstream>
 
 // GTSAM includes
 #include <gtsam/nonlinear/ISAM2.h>
@@ -75,16 +79,23 @@ private:
   double K_r_;
   double K_l_;
 
-  bool initializedForwardKinematic;
-  bool initializedOdometry;
+  bool initializedForwardKinematic_;
+  bool initializedOdometry_;
+  bool initializedIMU_;
   bool insertedAnchor_;
 
+  bool isam2useIMU_;
+  bool isam2useVicon_;
+
   geometry_msgs::Pose2D odomPose_; // 2D pose obtained by integrating odometry till time t
-  double tm1_; // time stamp at time t-1
+  geometry_msgs::Pose2D imuPose_; // 2D pose (actually rotation only) obtained by integrating odometry till time t
+  double tm1_odom_; // last time we acquired an odometry measurement
+  double tm1_imu_; // last time we acquired an imu measurement
   gtsam::Pose2 odomPose_tm1_; // 2D pose obtained by integrating odometry till time t-1
 
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
-  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.2, 1, 1));
+  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.0, 0.0));
   gtsam::Key poseId_;
 
   gtsam::ISAM2 isam;
@@ -106,11 +117,12 @@ private:
 	// callback function declarations
   // TODO: move motion model to suitable node
   void optimizeFactorGraph();
+  void includeIMUfactor();
   void republishWheelsCmdCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
   void forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg);
 	void odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg);
+  void imuCallback(sensor_msgs::Imu::ConstPtr const& msg);
   void landmarkCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg);
-  void imuCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg);
   void viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg);
 };
 
@@ -129,7 +141,8 @@ int main(int argc, char *argv[])
 slam_node::slam_node() :
 radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(20), K_l_(20),
 poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
-initializedForwardKinematic(false), initializedOdometry(false), insertedAnchor_(false) {
+initializedForwardKinematic_(false), initializedOdometry_(false), insertedAnchor_(false), initializedIMU_(false),
+isam2useIMU_(true), isam2useVicon_(true) {
 
   sub_republishWheelCmd_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
   pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
@@ -141,6 +154,9 @@ initializedForwardKinematic(false), initializedOdometry(false), insertedAnchor_(
   sub_odometryCB_ = nh_.subscribe("odomPose", 1, &slam_node::odometryCallback, this);
   pub_odometryCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativePose", 1);  
 
+  sub_imuCB_ = nh_.subscribe("/ferrari/imu/data_raw", 1, &slam_node::imuCallback, this);
+  pub_imuCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativeAngle", 1);  
+  
  //  sub_landmarkCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkCallback, this);
  //  pub_landmarkCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
 
@@ -229,10 +245,10 @@ void slam_node::republishWheelsCmdCallback(duckietown_msgs::WheelsCmd::ConstPtr 
 // TODO: get rid of this callback: move to suitable node
 void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg){
 
-  if(initializedForwardKinematic == false){
+  if(initializedForwardKinematic_ == false){
     // initialize: since we do integration, we need initial conditions
-    tm1_ = msg->header.stamp.toSec(); 
-    initializedForwardKinematic = true;
+    tm1_odom_ = msg->header.stamp.toSec(); 
+    initializedForwardKinematic_ = true;
   }else{
     // Convertion from motor duty to motor rotation rate (currently a naive multiplication)
     double w_r =  K_r_ * msg->vel_right;
@@ -244,7 +260,7 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
    
     // TODO: this should be an actual deltaT
     double t = msg->header.stamp.toSec(); 
-    double deltaT = t - tm1_;   
+    double deltaT = t - tm1_odom_;   
 
     ROS_ERROR("deltaT: %g", deltaT);
 
@@ -263,7 +279,7 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
       odomPose_.y = odomPose_.y + v_w_ratio * cos(theta_tm1) - v_w_ratio * cos(theta_t);
     }
     odomPose_.theta = theta_t;
-    tm1_ = t;
+    tm1_odom_ = t;
 
     duckietown_msgs::Pose2DStamped odomPose_msg;   
     odomPose_msg.header = msg->header; // TODO: this looks weird to me
@@ -278,6 +294,21 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
     odomTrajectory_.points.push_back(p);
     pub_odomTrajectory.publish(odomTrajectory_);
   }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::includeIMUfactor(){
+
+  gtsam::Pose2 imuPose_tm1_t(imuPose_.theta, gtsam::Point2(0.0, 0.0));
+
+  // create between factor
+  gtsam::BetweenFactor<gtsam::Pose2> imuFactor(poseId_-1, poseId_, imuPose_tm1_t, imuNoise_);
+
+  // add factor to nonlinear factor graph
+  newFactors_.add(imuFactor);
+
+  // reset imu integration
+  imuPose_.theta = 0.0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -322,13 +353,29 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
   relativePose_msg.theta = odomPose_tm1_t.theta();
   pub_odometryCB_.publish(relativePose_msg);
 
+  includeIMUfactor();
   optimizeFactorGraph();
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
-// void slam_node::landmarkCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
+void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
 
-// }
+  if(isam2useIMU_ == true){
+
+    if(initializedIMU_ == false){
+      initializedIMU_ = true;
+      tm1_imu_ = msg->header.stamp.toSec(); 
+      imuPose_.x = 0.0; imuPose_.y = 0.0; imuPose_.theta = 0.0;
+    }else{
+      double t_imu = msg->header.stamp.toSec();
+      double deltaT_imu = t_imu - tm1_imu_;
+      double omega_imu = msg->angular_velocity.z; 
+      imuPose_.theta = imuPose_.theta + omega_imu * deltaT_imu;
+      tm1_imu_ = t_imu;
+    }
+    
+  } // end "isam2useIMU_"
+}
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
 // void slam_node::landmarkCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
@@ -358,7 +405,7 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   viconPose2D_msg.theta = theta; 
   pub_viconCB_.publish(viconPose2D_msg); 
 
-  if(insertedAnchor_ == false){
+  if(isam2useVicon_ == true && insertedAnchor_ == false){
     // add prior on first node: this will be the reference frame for us
     gtsam::Pose2 posePrior(theta, gtsam::Point2(x,y));
     newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(0, posePrior, priorNoise_));
