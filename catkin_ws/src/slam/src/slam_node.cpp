@@ -19,16 +19,17 @@
 #include <std_srvs/Empty.h>
 #include <cmath> // needed for nan
 #include <stdint.h>
+#include <fstream>
 
 // GTSAM includes
+#include <gtsam/nonlinear/ISAM2.h>
+#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/geometry/Point2.h>
 #include <gtsam/geometry/Rot2.h>
-#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
-#include <fstream>
 
 // using namespace gtsam;
 // TODO LIST:
@@ -48,7 +49,6 @@ slam_node(); // constructor
 private:
 	ros::NodeHandle nh_; // interface to this node
 
-
   ros::Subscriber sub_republishWheelCmd_; 
   ros::Subscriber sub_forward_kinematics_;
   ros::Subscriber sub_odometryCB_;
@@ -63,6 +63,7 @@ private:
   ros::Publisher pub_imuCB_; 
   ros::Publisher pub_viconCB_;   
   ros::Publisher pub_viconCB_gtTrajectory_;
+  ros::Publisher pub_slamTrajectory_;
 
   ros::Publisher pub_odomTrajectory;
 
@@ -84,8 +85,11 @@ private:
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
   gtsam::Key poseId_;
-  gtsam::NonlinearFactorGraph graph_;
-  gtsam::Values initialGuess_;
+
+  gtsam::ISAM2 isam;
+  gtsam::NonlinearFactorGraph newFactors_;
+  gtsam::Values newInitials_;
+  gtsam::Values slamEstimate_;
 
   // visualization
   visualization_msgs::Marker gtTrajectory_;
@@ -100,6 +104,7 @@ private:
 
 	// callback function declarations
   // TODO: move motion model to suitable node
+  void optimizeFactorGraph();
   void republishWheelsCmdCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
   void forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg);
 	void odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg);
@@ -138,6 +143,8 @@ initializedForwardKinematic(false), initializedOdometry(false), insertedAnchor_(
  //  sub_landmarkCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkCallback, this);
  //  pub_landmarkCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
 
+  pub_slamTrajectory_ = nh_.advertise<visualization_msgs::Marker>("slamTrajectory", 1);
+
   sub_viconCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::viconCallback, this);
   pub_viconCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
   pub_viconCB_gtTrajectory_ = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 1);
@@ -166,6 +173,43 @@ initializedForwardKinematic(false), initializedOdometry(false), insertedAnchor_(
   odomSubsampleCount_ = odomSubsampleStep_;
   
 	ros::NodeHandle private_nh("~");
+}
+
+// ///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::optimizeFactorGraph(){
+  // Update iSAM with the new factors
+  isam.update(newFactors_, newInitials_);
+  ROS_ERROR("optimization1");
+  // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
+  isam.update();
+  ROS_ERROR("optimization2");
+  slamEstimate_ = isam.calculateEstimate();
+
+  // Clear the factor graph and values for the next iteration
+  newFactors_.resize(0);
+  newInitials_.clear();
+  ROS_ERROR("optimization3");
+
+  // create slam trajectory to publish
+  visualization_msgs::Marker slamTrajectory;
+  slamTrajectory.header.frame_id = "/odom";
+  slamTrajectory.ns = "slamTrajectory";
+  slamTrajectory.action = visualization_msgs::Marker::ADD;
+  slamTrajectory.pose.orientation.w = 1.0;
+  slamTrajectory.id = 1;
+  slamTrajectory.type = visualization_msgs::Marker::LINE_STRIP;
+  slamTrajectory.scale.x = 0.1;
+  slamTrajectory.color.b = 1.0;
+  slamTrajectory.color.a = 1.0;
+
+  gtsam::Values poseEstimates = slamEstimate_.filter<gtsam::Pose2>();
+  geometry_msgs::Point p;
+  for(size_t i = 0; i < poseEstimates.size(); i++){
+    gtsam::Pose2 pose_i = poseEstimates.at<gtsam::Pose2>(i);
+    p.x = pose_i.x(); p.y = pose_i.y(); p.z = 0.0;
+    slamTrajectory.points.push_back(p);
+  }
+  pub_slamTrajectory_.publish(slamTrajectory);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -241,8 +285,9 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
 
   if(insertedAnchor_ == false){
     // add prior on first node: this will be the reference frame for us
-    graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
-    initialGuess_.insert(0, gtsam::Pose2());
+    newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
+    newInitials_.insert(0, gtsam::Pose2());
+    slamEstimate_.insert(0, gtsam::Pose2());
     insertedAnchor_ = true;
   }
 
@@ -259,11 +304,11 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
   gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(poseId_-1, poseId_, odomPose_tm1_t, odomNoise_);
 
   // add factor to nonlinear factor graph
-  graph_.add(odometryFactor);
+  newFactors_.add(odometryFactor);
 
   // add initial guess for the new pose
-  gtsam::Pose2 initialGuess_t = initialGuess_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
-  initialGuess_.insert(poseId_,initialGuess_t);
+  gtsam::Pose2 newInitials_t = slamEstimate_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
+  newInitials_.insert(poseId_,newInitials_t);
 
   // update state
   odomPose_tm1_ = odomPose_t;
@@ -275,6 +320,8 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
   relativePose_msg.y = odomPose_tm1_t.y(); 
   relativePose_msg.theta = odomPose_tm1_t.theta();
   pub_odometryCB_.publish(relativePose_msg);
+
+  optimizeFactorGraph();
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
@@ -308,8 +355,9 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   if(insertedAnchor_ == false){
     // add prior on first node: this will be the reference frame for us
     gtsam::Pose2 posePrior(theta, gtsam::Point2(x,y));
-    graph_.add(gtsam::PriorFactor<gtsam::Pose2>(0, posePrior, priorNoise_));
-    initialGuess_.insert(0, gtsam::Pose2());
+    newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(0, posePrior, priorNoise_));
+    newInitials_.insert(0, gtsam::Pose2());
+    slamEstimate_.insert(0, gtsam::Pose2());
     insertedAnchor_ = true;
   }
 }
