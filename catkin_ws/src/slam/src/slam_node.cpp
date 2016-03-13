@@ -31,6 +31,7 @@
 #include <gtsam/geometry/Point2.h>
 #include <gtsam/geometry/Rot2.h>
 
+#define PI 3.14159265
 // using namespace gtsam;
 // TODO LIST:
 // 1) X visualize pose estimate from vicon and from motor duty
@@ -329,6 +330,11 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
 
 // }
 
+// ///////////////////////////////////////////////////////////////////////////////////////////
+// void slam_node::landmarkCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
+
+// }
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
 
@@ -344,7 +350,7 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   }
   double x = msg->pose.position.x;
   double y = msg->pose.position.y;
-  double theta = 0; // TODO: add quaternion convertion here
+  double theta = atan2(msg->pose.orientation.w, msg->pose.orientation.z) * 2 + PI/2; // TODO: check this PI/2 
   duckietown_msgs::Pose2DStamped viconPose2D_msg;
   viconPose2D_msg.header = msg->header; // TODO: this looks weird to me
   viconPose2D_msg.x = x;
