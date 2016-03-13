@@ -59,6 +59,7 @@ private:
   ros::Subscriber sub_odometryCB_;
   ros::Subscriber sub_landmarkCB_;
   ros::Subscriber sub_imuCB_;
+  ros::Subscriber sub_estimateIMUbiasCB;
   ros::Subscriber sub_viconCB_;
 
   ros::Publisher pub_republishWheelCmd_;
@@ -82,6 +83,8 @@ private:
   bool initializedForwardKinematic_;
   bool initializedOdometry_;
   bool initializedIMU_;
+  bool initializedCheckIfStill_;
+  bool estimateIMUbias_;
   bool insertedAnchor_;
 
   bool isam2useIMU_;
@@ -93,8 +96,13 @@ private:
   double tm1_imu_; // last time we acquired an imu measurement
   gtsam::Pose2 odomPose_tm1_; // 2D pose obtained by integrating odometry till time t-1
 
+  double initialTimeStill_;
+  double timeStillThreshold_;
+  double gyroOmegaBias_;
+  double movingAverageOmega_z_;
+
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
-  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.2, 1, 1));
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.0, 1, 1));
   gtsam::noiseModel::Diagonal::shared_ptr imuNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.0, 0.0));
   gtsam::Key poseId_;
 
@@ -117,6 +125,7 @@ private:
 	// callback function declarations
   // TODO: move motion model to suitable node
   void optimizeFactorGraph();
+  void checkIfStillCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg);
   void includeIMUfactor();
   void republishWheelsCmdCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
   void forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg);
@@ -139,10 +148,10 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
-radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(20), K_l_(20),
+radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
 poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
-initializedForwardKinematic_(false), initializedOdometry_(false), insertedAnchor_(false), initializedIMU_(false),
-isam2useIMU_(true), isam2useVicon_(true) {
+initializedForwardKinematic_(false), initializedOdometry_(false), estimateIMUbias_(true), initializedCheckIfStill_(false),
+timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializedIMU_(false), isam2useIMU_(true), isam2useVicon_(true) {
 
   sub_republishWheelCmd_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
   pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
@@ -155,7 +164,8 @@ isam2useIMU_(true), isam2useVicon_(true) {
   pub_odometryCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativePose", 1);  
 
   sub_imuCB_ = nh_.subscribe("/ferrari/imu/data_raw", 1, &slam_node::imuCallback, this);
-  pub_imuCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativeAngle", 1);  
+  pub_imuCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativeAngle", 1); 
+  sub_estimateIMUbiasCB = nh_.subscribe("wheelsCmdStamped", 1, &slam_node::checkIfStillCallback, this);
   
  //  sub_landmarkCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::landmarkCallback, this);
  //  pub_landmarkCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
@@ -196,16 +206,13 @@ isam2useIMU_(true), isam2useVicon_(true) {
 void slam_node::optimizeFactorGraph(){
   // Update iSAM with the new factors
   isam.update(newFactors_, newInitials_);
-  ROS_ERROR("optimization1");
   // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
   isam.update();
-  ROS_ERROR("optimization2");
   slamEstimate_ = isam.calculateEstimate();
 
   // Clear the factor graph and values for the next iteration
   newFactors_.resize(0);
   newInitials_.clear();
-  ROS_ERROR("optimization3");
 
   // create slam trajectory to publish
   visualization_msgs::Marker slamTrajectory;
@@ -262,7 +269,7 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
     double t = msg->header.stamp.toSec(); 
     double deltaT = t - tm1_odom_;   
 
-    ROS_ERROR("deltaT: %g", deltaT);
+    // ROS_ERROR("deltaT: %g", deltaT);
 
     // odomPose_
     double theta_tm1 = odomPose_.theta; // orientation at time t
@@ -300,15 +307,28 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
 void slam_node::includeIMUfactor(){
 
   gtsam::Pose2 imuPose_tm1_t(imuPose_.theta, gtsam::Point2(0.0, 0.0));
-
   // create between factor
   gtsam::BetweenFactor<gtsam::Pose2> imuFactor(poseId_-1, poseId_, imuPose_tm1_t, imuNoise_);
-
   // add factor to nonlinear factor graph
   newFactors_.add(imuFactor);
-
   // reset imu integration
   imuPose_.theta = 0.0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::checkIfStillCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg){
+
+  if(initializedCheckIfStill_ == false){
+    initialTimeStill_ = msg->header.stamp.toSec(); 
+    initializedCheckIfStill_ = true;
+  }else{
+     double t = msg->header.stamp.toSec(); 
+    // check if vehicle is not moving
+    if(fabs(msg->vel_left)>0.0 || fabs(msg->vel_left)>0.0){
+      // vehicle is not still any more
+      initialTimeStill_ = t;
+    }     
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -322,7 +342,6 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     slamEstimate_.insert(0, gtsam::Pose2());
     insertedAnchor_ = true;
   }
-
   // compute relative pose from wheel odometry
   gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y)); // odometric pose at time t
   gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t); // relative pose between t-1 and t
@@ -331,20 +350,15 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
 
   // key of the new pose to be inserted in the factor graph
   poseId_ += 1;
-
   // create between factor
   gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(poseId_-1, poseId_, odomPose_tm1_t, odomNoise_);
-
   // add factor to nonlinear factor graph
   newFactors_.add(odometryFactor);
-
   // add initial guess for the new pose
   gtsam::Pose2 newInitials_t = slamEstimate_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
   newInitials_.insert(poseId_,newInitials_t);
-
   // update state
   odomPose_tm1_ = odomPose_t;
-
   // debug: visualize odometric pose change
   duckietown_msgs::Pose2DStamped relativePose_msg;   
   relativePose_msg.header = msg->header; 
@@ -352,7 +366,7 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
   relativePose_msg.y = odomPose_tm1_t.y(); 
   relativePose_msg.theta = odomPose_tm1_t.theta();
   pub_odometryCB_.publish(relativePose_msg);
-
+  // include IMU factors and optimize
   includeIMUfactor();
   optimizeFactorGraph();
 }
@@ -361,15 +375,31 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
 void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
 
   if(isam2useIMU_ == true){
-
     if(initializedIMU_ == false){
       initializedIMU_ = true;
       tm1_imu_ = msg->header.stamp.toSec(); 
+      movingAverageOmega_z_ = msg->angular_velocity.z;
       imuPose_.x = 0.0; imuPose_.y = 0.0; imuPose_.theta = 0.0;
     }else{
       double t_imu = msg->header.stamp.toSec();
       double deltaT_imu = t_imu - tm1_imu_;
-      double omega_imu = msg->angular_velocity.z; 
+      double omega_z = msg->angular_velocity.z;
+
+      if(estimateIMUbias_ = true){
+        // compute moving average of biases
+        double alpha = 0.1; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
+        movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
+        
+        // if vehicle has been still for long enough, we estimate biases
+        double deltaTstill = t_imu - initialTimeStill_;
+        if(deltaTstill > timeStillThreshold_){
+          gyroOmegaBias_ = movingAverageOmega_z_;
+          ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
+        }
+      }
+
+      double omega_imu = omega_z - gyroOmegaBias_; // we correct with our bias estimate 
+      ROS_ERROR("omega_imu: %f", omega_imu);
       imuPose_.theta = imuPose_.theta + omega_imu * deltaT_imu;
       tm1_imu_ = t_imu;
     }
@@ -393,7 +423,7 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
     pub_viconCB_gtTrajectory_.publish(gtTrajectory_);
     gtSubsampleCount_ = gtSubsampleStep_; // reset counter
     int s = gtTrajectory_.points.size();
-    ROS_ERROR("nr points in gtTrajectory: %d", s);
+    ROS_WARN("nr points in gtTrajectory: %d", s);
   }
   double x = msg->pose.position.x;
   double y = msg->pose.position.y;
