@@ -387,7 +387,7 @@ void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
 
       if(estimateIMUbias_ = true){
         // compute moving average of biases
-        double alpha = 0.1; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
+        double alpha = 0.05; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
         movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
         
         // if vehicle has been still for long enough, we estimate biases
@@ -402,8 +402,7 @@ void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
       ROS_ERROR("omega_imu: %f", omega_imu);
       imuPose_.theta = imuPose_.theta + omega_imu * deltaT_imu;
       tm1_imu_ = t_imu;
-    }
-    
+    } 
   } // end "isam2useIMU_"
 }
 
