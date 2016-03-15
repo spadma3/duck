@@ -420,14 +420,13 @@ void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
       double deltaT_imu = t_imu - tm1_imu_;
       double omega_z = msg->angular_velocity.z;
 
-      if(estimateIMUbias_ = true){
-        // compute moving average of biases
-        double alpha = 0.05; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
-        movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
-        
+      if(estimateIMUbias_ = true){        
         // if vehicle has been still for long enough, we estimate biases
         double deltaTstill = t_imu - initialTimeStill_;
         if(deltaTstill > timeStillThreshold_){
+          // compute moving average of biases
+          double alpha = 0.05; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
+          movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
           gyroOmegaBias_ = movingAverageOmega_z_;
           ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
         }
