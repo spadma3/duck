@@ -1,4 +1,4 @@
 <launch>
-	<node pkg="slam" type="slam_node" name="slam_node">
+	<node pkg="slam" type="slam_node" name="slam_node" output="screen">
 	</node>
 </launch>
