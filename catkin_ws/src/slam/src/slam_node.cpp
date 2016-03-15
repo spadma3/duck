@@ -64,7 +64,7 @@ private:
   ros::Publisher pub_viconCB_;   
   ros::Publisher pub_viconCB_gtTrajectory_;
   ros::Publisher pub_slamTrajectory_;
-
+  ros::Publisher pub_slamLandmarks_;
   ros::Publisher pub_odomTrajectory;
 
   // TODO: these three variables should be computed/given by calibration
@@ -116,6 +116,7 @@ private:
   int odomSubsampleCount_;
 
   visualization_msgs::Marker slamTrajectory_;
+  visualization_msgs::Marker slamLandmarks_;
 
 	// callback function declarations
   // TODO: move motion model to suitable node
@@ -166,18 +167,21 @@ timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializ
   sub_landmarkCB_ = nh_.subscribe("/ferrari/apriltags/apriltags", 1, &slam_node::landmarkCallback, this);
   pub_landmarkCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("landmarkPose", 1);
 
-  pub_slamTrajectory_ = nh_.advertise<visualization_msgs::Marker>("slamTrajectory", 1);
+  pub_slamTrajectory_ = nh_.advertise<visualization_msgs::Marker>("slamTrajectory_", 1);
+  pub_slamLandmarks_ = nh_.advertise<visualization_msgs::Marker>("slamLandmarks_", 1);
 
   sub_viconCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::viconCallback, this);
   pub_viconCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
   pub_viconCB_gtTrajectory_ = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 1);
 
   // http://wiki.ros.org/rviz/Tutorials/Markers%3A%20Points%20and%20Lines
+  // TODO: add time stamps to all following?
+  // points.header.stamp = line_strip.header.stamp = line_list.header.stamp = ros::Time::now();
   gtTrajectory_.header.frame_id = "/odom";
   gtTrajectory_.ns = "groundTruthTrajectory";
   gtTrajectory_.action = visualization_msgs::Marker::ADD;
   gtTrajectory_.pose.orientation.w = 1.0;
-  gtTrajectory_.id = 1;
+  gtTrajectory_.id = 0;
   gtTrajectory_.type = visualization_msgs::Marker::LINE_STRIP;
   gtTrajectory_.scale.x = 0.1;
   gtTrajectory_.color.g = 1.0f;
@@ -195,51 +199,26 @@ timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializ
   odomTrajectory_.color.a = 1.0;
   odomSubsampleCount_ = odomSubsampleStep_;
 
+  slamTrajectory_.header.frame_id = "/odom";
+  slamTrajectory_.ns = "slamTrajectory_";
+  slamTrajectory_.action = visualization_msgs::Marker::ADD;
+  slamTrajectory_.pose.orientation.w = 1.0;
+  slamTrajectory_.id = 2;
+  slamTrajectory_.type = visualization_msgs::Marker::LINE_STRIP;
+  slamTrajectory_.scale.x = 0.1;
+  slamTrajectory_.color.b = 1.0;
+  slamTrajectory_.color.a = 1.0;
 
+  slamLandmarks_.header.frame_id = "/odom";
+  slamLandmarks_.ns = "slamLandmarks_";
+  slamLandmarks_.action = visualization_msgs::Marker::ADD;
+  slamLandmarks_.pose.orientation.w = 1.0;
+  slamLandmarks_.id = 3;
+  slamLandmarks_.type = visualization_msgs::Marker::POINTS;
+  slamLandmarks_.scale.x = 0.5;
+  slamLandmarks_.color.b = 1.0;
+  slamLandmarks_.color.a = 1.0;
 
-  // visualization_msgs::Marker points, line_strip, line_list;
-  //   points.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "/my_frame";
-  //   points.header.stamp = line_strip.header.stamp = line_list.header.stamp = ros::Time::now();
-  //   points.ns = line_strip.ns = line_list.ns = "points_and_lines";
-  //   points.action = line_strip.action = line_list.action = visualization_msgs::Marker::ADD;
-  //   points.pose.orientation.w = line_strip.pose.orientation.w = line_list.pose.orientation.w = 1.0;
-
-
-
-  //   points.id = 0;
-  //   line_strip.id = 1;
-  //   line_list.id = 2;
-
-
-
-  //   points.type = visualization_msgs::Marker::POINTS;
-  //   line_strip.type = visualization_msgs::Marker::LINE_STRIP;
-  //   line_list.type = visualization_msgs::Marker::LINE_LIST;
-
-
-
-  //   // POINTS markers use x and y scale for width/height respectively
-  //   points.scale.x = 0.2;
-  //   points.scale.y = 0.2;
-
-  //   // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
-  //   line_strip.scale.x = 0.1;
-  //   line_list.scale.x = 0.1;
-
-
-
-  //   // Points are green
-  //   points.color.g = 1.0f;
-  //   points.color.a = 1.0;
-
-  //   // Line strip is blue
-  //   line_strip.color.b = 1.0;
-  //   line_strip.color.a = 1.0;
-
-  //   // Line list is red
-  //   line_list.color.r = 1.0;
-  //   line_list.color.a = 1.0;
-  
 	ros::NodeHandle private_nh("~");
 }
 
@@ -258,34 +237,31 @@ void slam_node::optimizeFactorGraph(){
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::visualizeSLAMestimate(){
-    // create slam trajectory to publish
-  visualization_msgs::Marker slamTrajectory;
-  slamTrajectory.header.frame_id = "/odom";
-  slamTrajectory.ns = "slamTrajectory";
-  slamTrajectory.action = visualization_msgs::Marker::ADD;
-  slamTrajectory.pose.orientation.w = 1.0;
-  slamTrajectory.id = 1;
-  slamTrajectory.type = visualization_msgs::Marker::LINE_STRIP;
-  slamTrajectory.scale.x = 0.1;
-  slamTrajectory.color.b = 1.0;
-  slamTrajectory.color.a = 1.0;
 
+  // reset trajectory
+  slamTrajectory_.points.resize(0);
+  slamLandmarks_.points.resize(0);
+  // push back new values
   gtsam::Values poseEstimates = slamEstimate_.filter<gtsam::Pose2>();
   geometry_msgs::Point p;
-  for(size_t i = 0; i < poseEstimates.size(); i++){
-    gtsam::Pose2 pose_i = poseEstimates.at<gtsam::Pose2>(i);
+
+  BOOST_FOREACH(const gtsam::Values::KeyValuePair& key_value, poseEstimates) {
+    gtsam::Key key_i = key_value.key;
+    gtsam::Pose2 pose_i = key_value.value.cast<gtsam::Pose2>();
     p.x = pose_i.x(); p.y = pose_i.y(); p.z = 0.0;
-    slamTrajectory.points.push_back(p);
+    if(gtsam::symbolChr(key_i)=='L'){
+      slamLandmarks_.points.push_back(p);
+    }else{
+      slamTrajectory_.points.push_back(p);
+    }
   }
-  pub_slamTrajectory_.publish(slamTrajectory);
+  pub_slamTrajectory_.publish(slamTrajectory_);
+  int s = slamTrajectory_.points.size();
+  ROS_ERROR("poses in slamTrajectory_: %d", s);
 
-int s = slamTrajectory.points.size();
- ROS_ERROR("points before: %d", s);
-
- slamTrajectory.points.resize(0);
-
- s = slamTrajectory.points.size();
- ROS_ERROR("points before: %d", s);
+  pub_slamLandmarks_.publish(slamLandmarks_);
+  s = slamLandmarks_.points.size();
+  ROS_ERROR("landmarks in slamLandmarks_: %d", s);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -360,7 +336,9 @@ void slam_node::includeIMUfactor(){
 
   gtsam::Pose2 imuPose_tm1_t(imuPose_.theta, gtsam::Point2(0.0, 0.0));
   // create between factor
-  gtsam::BetweenFactor<gtsam::Pose2> imuFactor(poseId_-1, poseId_, imuPose_tm1_t, imuNoise_);
+  gtsam::Key keyPose_tm1 = gtsam::Symbol('X', poseId_-1); 
+  gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
+  gtsam::BetweenFactor<gtsam::Pose2> imuFactor(keyPose_tm1, keyPose_t, imuPose_tm1_t, imuNoise_);
   // add factor to nonlinear factor graph
   newFactors_.add(imuFactor);
   // reset imu integration
@@ -389,9 +367,10 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
 
   if(insertedAnchor_ == false){
     // add prior on first node: this will be the reference frame for us
-    newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(0, gtsam::Pose2(), priorNoise_));
-    newInitials_.insert(0, gtsam::Pose2());
-    slamEstimate_.insert(0, gtsam::Pose2());
+    gtsam::Key keyPose_0 = gtsam::Symbol('X', 0); 
+    newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(keyPose_0, gtsam::Pose2(), priorNoise_));
+    newInitials_.insert(keyPose_0, gtsam::Pose2());
+    slamEstimate_.insert(keyPose_0, gtsam::Pose2());
     insertedAnchor_ = true;
   }
   // compute relative pose from wheel odometry
@@ -402,13 +381,15 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
 
   // key of the new pose to be inserted in the factor graph
   poseId_ += 1;
+  gtsam::Key keyPose_tm1 = gtsam::Symbol('X', poseId_-1); 
+  gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
   // create between factor
-  gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(poseId_-1, poseId_, odomPose_tm1_t, odomNoise_);
+  gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(keyPose_tm1, keyPose_t, odomPose_tm1_t, odomNoise_);
   // add factor to nonlinear factor graph
   newFactors_.add(odometryFactor);
   // add initial guess for the new pose
-  gtsam::Pose2 newInitials_t = slamEstimate_.at<gtsam::Pose2>(poseId_-1).compose(odomPose_tm1_t); // improved pose estimate
-  newInitials_.insert(poseId_,newInitials_t);
+  gtsam::Pose2 newInitials_t = slamEstimate_.at<gtsam::Pose2>(keyPose_tm1).compose(odomPose_tm1_t); // improved pose estimate
+  newInitials_.insert(keyPose_t,newInitials_t);
   // update state
   odomPose_tm1_ = odomPose_t;
   // debug: visualize odometric pose change
@@ -482,14 +463,15 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
 
     // TODO: if last pose is far from current one, add a new pose
     // create between factor
-    gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(poseId_, key_l, localLandmarkPose, landmarkNoise_);
+    gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
+    gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, landmarkNoise_);
     
     // add factor to nonlinear factor graph
     newFactors_.add(landmarkFactor);
 
     if(!isam.valueExists(key_l)){
     // add initial guess for the new landmark pose
-    gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(poseId_).compose(localLandmarkPose);
+    gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
     newInitials_.insert(key_l,newInitials_l);
     }
   } 
@@ -521,9 +503,10 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   if(isam2useVicon_ == true && insertedAnchor_ == false){
     // add prior on first node: this will be the reference frame for us
     gtsam::Pose2 posePrior(theta, gtsam::Point2(x,y));
-    newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(0, posePrior, priorNoise_));
-    newInitials_.insert(0, gtsam::Pose2());
-    slamEstimate_.insert(0, gtsam::Pose2());
+    gtsam::Key keyPose_0 = gtsam::Symbol('X', 0); 
+    newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(keyPose_0, posePrior, priorNoise_));
+    newInitials_.insert(keyPose_0, gtsam::Pose2());
+    slamEstimate_.insert(keyPose_0, gtsam::Pose2());
     insertedAnchor_ = true;
   }
 }
