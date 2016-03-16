@@ -21,19 +21,16 @@
 	</include>
 
 	<!-- April tag detector -->
+	<remap from="apriltags/image_raw" to="camera_node/image/raw"/>
+	<remap from="apriltags/camera_info" to="camera_node/camera_info"/>
 	<include file="$(find apriltags)/launch/apriltags_node.launch">
-		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
-		<arg name="local" value="$(arg local)"/>
-		<arg name="param_file_name" value="$(arg param_file_name)"/>
-		<group ns="$(arg veh)">
-			<node pkg="apriltags" type="april_tag_detector" name="apriltags" output="screen">
-			<!-- should load a param file in here. It should contain tag family and size -->
-			</node>
-		</group>
-	</include>	
+	    <arg name="veh" value="$(arg veh)"/>
+	    <arg name="local" value="$(arg local)"/>
+	    <arg name="config" value="$(arg config)"/>
+	    <arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
 
-	<!-- April tag detector -->
+	<!-- Slam -->
 	<include file="$(find slam)/launch/slam.launch">
 	</include>	
 </launch>
