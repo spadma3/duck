@@ -1,13 +1,11 @@
 <launch>
-	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
-	<arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
-	<arg name="config" default="baseline" doc="Specify a config."/>
-	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
-	<arg name="raw" default="false" doc="If set to true, also publish raw image using decoder."/> 
-	<arg name="live" default="true" doc="if set to true, run the camera and do live detection. "/>
-	<arg name="camera" default="true" doc="If set to false, won't launch the camera. This is for easier relaunching of the line_detector_node only "/>
-    <arg name="white_balance" default="false" />
-    <arg name="verbose" default="false" />
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+    <arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
+    <arg name="config" default="baseline" doc="Specify a config."/>
+    <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
+    <arg name="raw" default="true" doc="If set to true, also publish raw image using decoder."/> 
+    <arg name="camera" default="true" doc="If set to false, won't launch the camera. This is for easier relaunching of the line_detector_node only "/>
+    <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
 
 	<!-- Camera -->
 	<include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">
@@ -20,7 +18,6 @@
 		<arg name="live" value="$(arg live)"/>
 	</include>
 
-	<!-- April tag detector -->
 	<remap from="apriltags/image_raw" to="camera_node/image/raw"/>
 	<remap from="apriltags/camera_info" to="camera_node/camera_info"/>
 	<include file="$(find apriltags)/launch/apriltags_node.launch">
