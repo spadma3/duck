@@ -1,4 +1,8 @@
 <launch>
-	<node pkg="slam" type="slam_node" name="slam_node" output="screen">
-	</node>
+  <arg name="veh"/>
+
+  <group ns="$(arg veh)">
+	 <node pkg="slam" type="slam_node" name="slam_node" output="screen">
+	 </node>
+  </group>
 </launch>

@@ -150,7 +150,7 @@ poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1),
 initializedForwardKinematic_(false), initializedOdometry_(false), estimateIMUbias_(true), initializedCheckIfStill_(false),
 timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializedIMU_(false), isam2useIMU_(true), isam2useVicon_(true) {
 
-  sub_republishWheelCmd_ = nh_.subscribe("/ferrari/wheels_driver/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
+  sub_republishWheelCmd_ = nh_.subscribe("wheels_driver/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
   pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
 
   sub_forward_kinematics_ = nh_.subscribe("wheelsCmdStamped", 1, &slam_node::forwardKinematicCallback, this);
@@ -160,15 +160,15 @@ timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializ
   sub_odometryCB_ = nh_.subscribe("odomPose", 1, &slam_node::odometryCallback, this);
   pub_odometryCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativePose", 1);  
 
-  sub_imuCB_ = nh_.subscribe("/ferrari/imu/data_raw", 1, &slam_node::imuCallback, this);
+  sub_imuCB_ = nh_.subscribe("imu/data_raw", 1, &slam_node::imuCallback, this);
   pub_imuCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("relativeAngle", 1); 
   sub_estimateIMUbiasCB = nh_.subscribe("wheelsCmdStamped", 1, &slam_node::checkIfStillCallback, this);
   
-  sub_landmarkCB_ = nh_.subscribe("/ferrari/apriltags/apriltags", 1, &slam_node::landmarkCallback, this);
+  sub_landmarkCB_ = nh_.subscribe("apriltags/apriltags", 1, &slam_node::landmarkCallback, this);
   pub_landmarkCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("landmarkPose", 1);
 
-  pub_slamTrajectory_ = nh_.advertise<visualization_msgs::Marker>("slamTrajectory_", 1);
-  pub_slamLandmarks_ = nh_.advertise<visualization_msgs::Marker>("slamLandmarks_", 1);
+  pub_slamTrajectory_ = nh_.advertise<visualization_msgs::Marker>("slamTrajectory", 1);
+  pub_slamLandmarks_ = nh_.advertise<visualization_msgs::Marker>("slamLandmarks", 1);
 
   sub_viconCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::viconCallback, this);
   pub_viconCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);

@@ -32,5 +32,6 @@
 
 	<!-- Slam -->
 	<include file="$(find slam)/launch/slam.launch">
+		<arg name="veh" value="$(arg veh)"/>
 	</include>	
 </launch>
