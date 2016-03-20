@@ -200,7 +200,7 @@ timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializ
   odomSubsampleCount_ = odomSubsampleStep_;
 
   slamTrajectory_.header.frame_id = "/odom";
-  slamTrajectory_.ns = "slamTrajectory_";
+  slamTrajectory_.ns = "slamTrajectory";
   slamTrajectory_.action = visualization_msgs::Marker::ADD;
   slamTrajectory_.pose.orientation.w = 1.0;
   slamTrajectory_.id = 2;
@@ -210,12 +210,13 @@ timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializ
   slamTrajectory_.color.a = 1.0;
 
   slamLandmarks_.header.frame_id = "/odom";
-  slamLandmarks_.ns = "slamLandmarks_";
+  slamLandmarks_.ns = "slamLandmarks";
   slamLandmarks_.action = visualization_msgs::Marker::ADD;
   slamLandmarks_.pose.orientation.w = 1.0;
   slamLandmarks_.id = 3;
   slamLandmarks_.type = visualization_msgs::Marker::POINTS;
-  slamLandmarks_.scale.x = 0.5;
+  slamLandmarks_.scale.x = 0.1;
+  slamLandmarks_.scale.y = 0.1;
   slamLandmarks_.color.b = 1.0;
   slamLandmarks_.color.a = 1.0;
 
@@ -428,12 +429,12 @@ void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
           double alpha = 0.05; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
           movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
           gyroOmegaBias_ = movingAverageOmega_z_;
-          ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
+          //ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
         }
       }
 
       double omega_imu = omega_z - gyroOmegaBias_; // we correct with our bias estimate 
-      ROS_ERROR("omega_imu: %f", omega_imu);
+      //ROS_ERROR("omega_imu: %f", omega_imu);
       imuPose_.theta = imuPose_.theta + omega_imu * deltaT_imu;
       tm1_imu_ = t_imu;
     } 
