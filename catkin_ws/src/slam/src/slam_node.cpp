@@ -83,6 +83,7 @@ private:
 
   bool isam2useIMU_;
   bool isam2useVicon_;
+  bool isam2useLandmarks_;
 
   geometry_msgs::Pose2D odomPose_; // 2D pose obtained by integrating odometry till time t
   geometry_msgs::Pose2D imuPose_; // 2D pose (actually rotation only) obtained by integrating odometry till time t
@@ -95,10 +96,10 @@ private:
   double gyroOmegaBias_;
   double movingAverageOmega_z_;
 
-  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.0, 1, 1));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.1, 0.1));
-  gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.2, 0.2));
-  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.0, 0.0));
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.01, 0.01));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 0.0));
+  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.002));
+  gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(1, 1, 0.5));
   gtsam::Key poseId_;
 
   gtsam::ISAM2 isam;
@@ -145,10 +146,11 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
-radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(50), K_l_(50),
+radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
 poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), estimateIMUbias_(true), initializedCheckIfStill_(false),
-timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializedIMU_(false), isam2useIMU_(true), isam2useVicon_(true) {
+timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializedIMU_(false), 
+isam2useIMU_(true), isam2useLandmarks_(true), isam2useVicon_(true) {
 
   sub_republishWheelCmd_ = nh_.subscribe("wheels_driver/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
   pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
@@ -228,7 +230,10 @@ void slam_node::optimizeFactorGraph(){
   // Update iSAM with the new factors
   isam.update(newFactors_, newInitials_);
   // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
-  isam.update();
+  for (size_t iter=0;iter<5;iter++){
+    isam.update();
+  }
+
   slamEstimate_ = isam.calculateEstimate();
 
   // Clear the factor graph and values for the next iteration
@@ -444,37 +449,42 @@ void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
 // ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg){
 
-  ROS_WARN("LANDMARK CALLBACK!!!!");
-  for (int l=0; l < msg->detections.size(); l++) // for each tag detection
-  {
-    duckietown_msgs::TagDetection detection_l = msg->detections[l];
-    int id_l = detection_l.id;
-    // ROS_INFO_STREAM("using landmark with ID: " << detection_k.id);
-    ROS_WARN("using landmark with ID: %d", id_l);
+  
+  if(isam2useLandmarks_ == true){
+    ROS_WARN("LANDMARK CALLBACK!!!!");
+    for (int l=0; l < msg->detections.size(); l++) // for each tag detection
+    {
+      duckietown_msgs::TagDetection detection_l = msg->detections[l];
+      int id_l = detection_l.id;
+      // ROS_INFO_STREAM("using landmark with ID: " << detection_k.id);
+      ROS_WARN("using landmark with ID: %d", id_l);
 
-    // parse landmark measurement
-    double x_l = detection_l.transform.translation.x;
-    double y_l = detection_l.transform.translation.y;
-    // we project on the XY plane, hence z = 0;
-    double theta_l = atan2(detection_l.transform.rotation.w, detection_l.transform.rotation.z) * 2 + PI/2; // TODO: check this PI/2, make this into function 
+      // parse landmark measurement
+      double x_l = detection_l.transform.translation.x;
+      double y_l = detection_l.transform.translation.y;
+      // we project on the XY plane, hence z = 0;
+      double theta_l = atan2(detection_l.transform.rotation.w, detection_l.transform.rotation.z) * 2; // TODO: check this PI/2, make this into function 
 
-    gtsam::Key key_l = gtsam::Symbol('L', id_l); 
-    gtsam::Pose2 localLandmarkPose(theta_l, gtsam::Point2(x_l,y_l)); 
+      gtsam::Key key_l = gtsam::Symbol('L', id_l); 
+      gtsam::Pose2 localLandmarkPose(theta_l, gtsam::Point2(x_l,y_l)); 
 
-    // TODO: if last pose is far from current one, add a new pose
-    // create between factor
-    gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
-    gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, landmarkNoise_);
-    
-    // add factor to nonlinear factor graph
-    newFactors_.add(landmarkFactor);
+      // TODO: if last pose is far from current one, add a new pose
+      // create between factor
+      gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
+      gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, landmarkNoise_);
+      
+      // add factor to nonlinear factor graph
+      newFactors_.add(landmarkFactor);
 
-    if(!isam.valueExists(key_l)){
-    // add initial guess for the new landmark pose
-    gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
-    newInitials_.insert(key_l,newInitials_l);
-    }
-  } 
+      if(!isam.valueExists(key_l)){
+      // add initial guess for the new landmark pose
+      gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
+      newInitials_.insert(key_l,newInitials_l);
+      }
+    } 
+  }else{
+    ROS_WARN("LANDMARK CALLBACK DISABLED :-(");
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
