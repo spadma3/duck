@@ -145,12 +145,12 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
-radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
+radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(50), K_l_(50),
 poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), estimateIMUbias_(true), initializedCheckIfStill_(false),
 timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializedIMU_(false), isam2useIMU_(true), isam2useVicon_(true) {
 
-  sub_republishWheelCmd_ = nh_.subscribe("/ferrari/joy_mapper/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
+  sub_republishWheelCmd_ = nh_.subscribe("/ferrari/wheels_driver/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
   pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
 
   sub_forward_kinematics_ = nh_.subscribe("wheelsCmdStamped", 1, &slam_node::forwardKinematicCallback, this);
