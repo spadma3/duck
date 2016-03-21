@@ -7,6 +7,7 @@
 #include <yaml-cpp/yaml.h>
 #include <boost/filesystem.hpp>
 #include <std_srvs/Empty.h>
+#include <map>
 // MESSAGES - sensor_msgs
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/CameraInfo.h>
@@ -38,6 +39,11 @@
 // PARAMETERS
 #define PI 3.14159265
 
+// KNOWN ISSUES:
+// 1) landmarks are initialized on the back of the car
+// 2) camera-body transformation is not considered
+// 3) angles are not normalized in [-pi,pi]
+
 // SLAM CLASS
 class slam_node
 {
@@ -63,6 +69,7 @@ private:
   ros::Publisher pub_imuCB_; 
   ros::Publisher pub_viconCB_;   
   ros::Publisher pub_viconCB_gtTrajectory_;
+  ros::Publisher pub_viconCB_gtLandmarks_;
   ros::Publisher pub_slamTrajectory_;
   ros::Publisher pub_slamLandmarks_;
   ros::Publisher pub_odomTrajectory;
@@ -90,6 +97,7 @@ private:
   double tm1_odom_; // last time we acquired an odometry measurement
   double tm1_imu_; // last time we acquired an imu measurement
   gtsam::Pose2 odomPose_tm1_; // 2D pose obtained by integrating odometry till time t-1
+  gtsam::Pose2 gtPose_t_;
 
   double initialTimeStill_;
   double timeStillThreshold_;
@@ -111,6 +119,7 @@ private:
   visualization_msgs::Marker gtTrajectory_;
   int gtSubsampleStep_;
   int gtSubsampleCount_;
+  visualization_msgs::Marker gtLandmarks_;
 
   visualization_msgs::Marker odomTrajectory_;
   int odomSubsampleStep_;
@@ -118,7 +127,7 @@ private:
 
   visualization_msgs::Marker slamTrajectory_;
   visualization_msgs::Marker slamLandmarks_;
-
+  std::map<int,std_msgs::ColorRGBA> colorMap_;
 	// callback function declarations
   // TODO: move motion model to suitable node
   void optimizeFactorGraph();
@@ -175,6 +184,7 @@ isam2useIMU_(true), isam2useLandmarks_(true), isam2useVicon_(true) {
   sub_viconCB_ = nh_.subscribe("/duckiecar/pose", 1, &slam_node::viconCallback, this);
   pub_viconCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
   pub_viconCB_gtTrajectory_ = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 1);
+  pub_viconCB_gtLandmarks_ = nh_.advertise<visualization_msgs::Marker>("gtLandmarks", 1);
 
   // http://wiki.ros.org/rviz/Tutorials/Markers%3A%20Points%20and%20Lines
   // TODO: add time stamps to all following?
@@ -191,7 +201,7 @@ isam2useIMU_(true), isam2useLandmarks_(true), isam2useVicon_(true) {
   gtSubsampleCount_ = gtSubsampleStep_;
 
   odomTrajectory_.header.frame_id = "/odom";
-  odomTrajectory_.ns = "odometricTrajectory";
+  odomTrajectory_.ns = "odomTrajectory";
   odomTrajectory_.action = visualization_msgs::Marker::ADD;
   odomTrajectory_.pose.orientation.w = 1.0;
   odomTrajectory_.id = 1;
@@ -221,6 +231,17 @@ isam2useIMU_(true), isam2useLandmarks_(true), isam2useVicon_(true) {
   slamLandmarks_.scale.y = 0.1;
   slamLandmarks_.color.b = 1.0;
   slamLandmarks_.color.a = 1.0;
+
+  gtLandmarks_.header.frame_id = "/odom";
+  gtLandmarks_.ns = "gtLandmarks";
+  gtLandmarks_.action = visualization_msgs::Marker::ADD;
+  gtLandmarks_.pose.orientation.w = 1.0;
+  gtLandmarks_.id = 4;
+  gtLandmarks_.type = visualization_msgs::Marker::POINTS;
+  gtLandmarks_.scale.x = 0.1;
+  gtLandmarks_.scale.y = 0.1;
+  gtLandmarks_.color.a = 1.0;
+  // gtLandmarks_.color.g = 1.0;
 
 	ros::NodeHandle private_nh("~");
 }
@@ -468,6 +489,8 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       gtsam::Key key_l = gtsam::Symbol('L', id_l); 
       gtsam::Pose2 localLandmarkPose(theta_l, gtsam::Point2(x_l,y_l)); 
 
+      ROS_WARN("landmarks measurement: id %d, (%f %f %f)", id_l, x_l,y_l,theta_l);
+
       // TODO: if last pose is far from current one, add a new pose
       // create between factor
       gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
@@ -481,6 +504,33 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
       newInitials_.insert(key_l,newInitials_l);
       }
+
+      // visualize landmark position using vicon pose
+      gtsam::Pose2 gtInitials_l = gtPose_t_.compose(localLandmarkPose);
+      geometry_msgs::Point p;
+      p.x = gtInitials_l.x(); p.y = gtInitials_l.y(); p.z = 0.0;
+      gtLandmarks_.points.push_back(p);
+      std_msgs::ColorRGBA color_l;
+      auto search = colorMap_.find(id_l);
+      if(search != colorMap_.end()) {
+        // we found the key
+        color_l = search->second;
+        ROS_ERROR("found");
+      }
+      else{
+        double cr = (double)rand()/ (double)RAND_MAX; // random number in [0,1]
+        double cg = (double)rand()/ (double)RAND_MAX; // random number in [0,1]
+        double cb = (double)rand()/ (double)RAND_MAX; // random number in [0,1]
+        color_l.a = 1.0;
+        color_l.r = cr;
+        color_l.g = cg;
+        color_l.b = cb;
+        colorMap_.insert( std::pair<int,std_msgs::ColorRGBA>(id_l,color_l) );
+      }
+      gtLandmarks_.colors.push_back(color_l);
+      pub_viconCB_gtLandmarks_.publish(gtLandmarks_);
+      int s = gtLandmarks_.points.size();
+      ROS_ERROR("landmarks in gtLandmarks_: %d", s);
     } 
   }else{
     ROS_WARN("LANDMARK CALLBACK DISABLED :-(");
@@ -510,11 +560,12 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   viconPose2D_msg.theta = theta; 
   pub_viconCB_.publish(viconPose2D_msg); 
 
+  gtPose_t_ = gtsam::Pose2(theta, gtsam::Point2(x,y));
+
   if(isam2useVicon_ == true && insertedAnchor_ == false){
     // add prior on first node: this will be the reference frame for us
-    gtsam::Pose2 posePrior(theta, gtsam::Point2(x,y));
     gtsam::Key keyPose_0 = gtsam::Symbol('X', 0); 
-    newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(keyPose_0, posePrior, priorNoise_));
+    newFactors_.add(gtsam::PriorFactor<gtsam::Pose2>(keyPose_0, gtPose_t_, priorNoise_));
     newInitials_.insert(keyPose_0, gtsam::Pose2());
     slamEstimate_.insert(keyPose_0, gtsam::Pose2());
     insertedAnchor_ = true;
