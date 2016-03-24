@@ -12,6 +12,7 @@ import time
 NUM_COLORS = 3
 
 CENTERS = np.array([[50, 60, 60], [20, 240, 240], [240, 240, 240]])
+# CENTERS = np.array([[10, 20, 20], [50, 100, 100], [60, 100, 100]])
 # print CENTERS 
 
 np.random.seed(5)
@@ -34,9 +35,10 @@ def getimgdatapts(cv2img):
 
 #priors
 def runKMeans(cv_img):
-	imgdata = getimgdatapts(cv_img[-100:,:,:])
+	# imgdata = getimgdatapts(cv_img)
 	kmc = KMeans(n_clusters = NUM_COLORS, max_iter = 100, n_init = 10, init = CENTERS)
-	kmc.fit_predict(imgdata)
+	# kmc = KMeans(n_clusters = NUM_COLORS, max_iter = 100, n_init = 10)
+	kmc.fit_predict(cv_img)
 	trained_centers = kmc.cluster_centers_
 	# print trained_centers
 	# print CENTERS

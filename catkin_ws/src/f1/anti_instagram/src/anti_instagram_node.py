@@ -28,6 +28,7 @@ class AntiInstagramNode():
 		self.bridge = CvBridge()
 
 		self.numFramesSeen = 0
+		self.apply = False
 
 
 	def cbNewImage(self,msg):
@@ -39,24 +40,28 @@ class AntiInstagramNode():
 		and publishes the corrected image and the health state. Health somehow corresponds
 		to how good of a transformation it is.
 		'''
-
 		rospy.loginfo('New image received')
 		cv_image = self.bridge.imgmsg_to_cv2(msg,"bgr8")
-		if self.numFramesSeen < 5:
+		
+		
+		if self.numFramesSeen < 1:
 			# only calculate transform for the first few frames
 			# then apply the same transform indefintely
+			cv_image_slice = self.ai.sampleAndSlice(cv_image)
 			rospy.loginfo('Calculating new transform...')
-			self.ai.calculateTransform(cv_image)
+			trained = self.ai.calculateTransform(cv_image_slice)
+			print trained
+			self.ai.plotRGB(cv_image_slice,centers=trained)
 			print (self.ai.scale,self.ai.shift)
-		rospy.loginfo('Applying transform')
-		corrected_image_cv2 = self.ai.applyTransform(cv_image)
-		corrected_image_cv2 = np.clip(corrected_image_cv2,0,255).astype(np.uint8)
-		self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2,"bgr8")
 
-		# self.pub_health.publish(self.health)
-		self.pub_image.publish(self.corrected_image)
-		self.numFramesSeen += 1
-		return
+			rospy.loginfo('Applying transform')
+			corrected_image_cv2 = self.ai.applyTransform(cv_image)
+			corrected_image_cv2 = np.clip(corrected_image_cv2,0,255).astype(np.uint8)
+			self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2,"bgr8")
+
+			# self.pub_health.publish(self.health)
+			self.pub_image.publish(self.corrected_image)
+			self.numFramesSeen += 1
 
 	
 

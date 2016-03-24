@@ -1,4 +1,8 @@
 import kmeans
+import plot_rgb
+import cv2
+import random
+import numpy as np
 
 class AntiInstagram(object):
 	def __init__(self):
@@ -23,7 +27,7 @@ class AntiInstagram(object):
 		self.scale = [r[0][0][0],g[0][0][0],b[0][0][0]]
 		self.shift = [r[1][0], g[1][0],b[1][0]]
 
-		return 1
+		return trained
 
 	def calculateHealth(self):
 		'''one way is to keep one img every 1 sec and compare the diff http://stackoverflow.com/questions/189943/how-can-i-quantify-difference-between-two-images'''
@@ -42,10 +46,18 @@ class AntiInstagram(object):
 
 		return self.calibration_parameters
 
-	def getSample(self, img):
+	def sampleAndSlice(self, img, numSamples=100):
 		'''code to sample from entire img a part that contains lanes and floor'''
-
-		return sample 
+		img = img[-100:,:,:]
+		# cv2.imshow('image',img)
+		# cv2.waitKey(0)
+		# cv2.destroyAllWindows()
+		iList = [random.randint(0,len(img)-1) for i in range(numSamples)]
+		jList = [random.randint(0,len(img[0])-1) for i in range(numSamples)]
+		# print iList,jList
+		sampled = np.asarray([img[i,j,:] for i in iList for j in jList])
+		# print sampled
+		return sampled
 
 	def histEqual(self, img):
 		'''https://en.wikipedia.org/wiki/Normalization_(image_processing)'''
@@ -55,3 +67,6 @@ class AntiInstagram(object):
 	def kMeans(self, img):
 
 		return kMeansParam
+
+	def plotRGB(self,img,centers=None):
+		plot_rgb.all(img,60,c=centers)

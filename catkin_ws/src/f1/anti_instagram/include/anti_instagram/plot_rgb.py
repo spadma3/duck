@@ -9,44 +9,65 @@ import numpy as np
 
 import random
 
+def plot(r,g,b,centers=None):
+	# cv2.imshow('image',img)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
-image_dir = '/home/mfe/'
-image_name = 'test.png'
+	# numSamples = 20
+	# r_rand,g_rand,b_rand = sample(img,numSamples)	
 
-# Open image and split into 3 channels
-img = cv2.imread( image_dir+image_name )
+	# Plot rgb as xyz
+	fig = plt.figure()
+	ax = fig.add_subplot(111, projection='3d')
+	ax.scatter(r, g, b)
+	if centers is not None:
+		ax.scatter(centers[0][0],centers[0][1],centers[0][2],s=200,c='red')
+		ax.scatter(centers[1][0],centers[1][1],centers[1][2],s=200,c='green')
+		ax.scatter(centers[2][0],centers[2][1],centers[2][2],s=200,c='brown')
+	ax.set_xlabel('R')
+	ax.set_ylabel('G')
+	ax.set_zlabel('B')
+	plt.show()
 
-# cv2.imshow('image',img)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-r,g,b = cv2.split(img)
+def split(img):
+	r = [img[i][0] for i in range(len(img))]
+	g = [img[i][1] for i in range(len(img))]
+	b = [img[i][2] for i in range(len(img))]
 
-# crop image and only keep bottom third
-img_height = len(r)
-img_width = len(r[0])
+	return r,g,b
 
-print img_width,img_height
-bottom_third_top_index = int(img_height*2/3.0)
-# r_bottom = r[bottom_third_top_index:]
-# b_bottom = b[bottom_third_top_index:]
-# g_bottom = g[bottom_third_top_index:]
+def splitAndSample(img,numSamples):
+	r,g,b = cv2.split(img)
+	img_height = len(r)
+	img_width = len(r[0])
+	# top_index = int(img_height*2/3.0)
+	top_index = 0
 
-# Randomly sample numSampes^2 pixels from the image (uniformly distributed in x,y)
-numSamples = 100
-iList = [random.randint(bottom_third_top_index,len(r)-1) for i in range(numSamples)]
-jList = [random.randint(0,img_width) for i in range(numSamples)]
-r_rand = [r[i][j] for i in iList for j in jList]
-b_rand = [b[i][j] for i in iList for j in jList]
-g_rand = [g[i][j] for i in iList for j in jList]
+	# Randomly sample numSampes^2 pixels from the image (uniformly distributed in x,y)
+	iList = [random.randint(top_index,len(r)-1) for i in range(numSamples)]
+	jList = [random.randint(0,img_width) for i in range(numSamples)]
+	r_rand = [r[i][j] for i in iList for j in jList]
+	b_rand = [b[i][j] for i in iList for j in jList]
+	g_rand = [g[i][j] for i in iList for j in jList]
+	return r_rand,g_rand,b_rand
 
-# Plot rgb as xyz
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(r_rand, g_rand, b_rand)
-ax.set_xlabel('R')
-ax.set_ylabel('G')
-ax.set_zlabel('B')
-plt.show()
+def all(img,numSamples,c=None):
+	numSamples = 20
+	# r,g,b = splitAndSample(img,numSamples)
+	# plot(r,g,b,centers=c)
+	r,g,b = split(img)
+	plot(r,g,b,centers=c)
+
+
+if __name__=='__main__':
+	image_dir = '/home/mfe/'
+	image_name = 'test2.jpg'
+
+	# Open image and split into 3 channels
+	img = cv2.imread( image_dir+image_name )
+	
+	all(img,20)
 
 
 # #for topic, msg, t in bag.read_messages(topics=['/ferrari/camera_node/img_low/compressed']):
