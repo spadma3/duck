@@ -57,7 +57,7 @@ class LineDetectorNode(object):
             self.toc_pre = rospy.get_time()   
 
         # Subscribers
-        self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cbImage, queue_size=1)
+        self.sub_image = rospy.Subscriber("~image", Image, self.cbImage, queue_size=1)
         rospy.loginfo("[%s] Initialized." %(self.node_name))
 
     def cbImage(self,image_msg):
@@ -83,19 +83,20 @@ class LineDetectorNode(object):
 
         # Decode from compressed image
         # with OpenCV
-        image_cv = cv2.imdecode(np.fromstring(image_msg.data, np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
+        # image_cv = cv2.imdecode(np.fromstring(image_msg.data, np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
         
         # with PIL Image
         # image_cv = jpeg.JPEG(np.fromstring(image_msg.data, np.uint8)).decode()
         
         # with libjpeg-turbo
+        
         # Convert from uncompressed image message
-        # image_cv = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        image_cv = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         
         # Verbose
         if self.verbose:
             self.tic = rospy.get_time()   
-            rospy.loginfo("[%s] Latency image decompressed = %.3f ms" %(self.node_name, (self.tic-image_msg.header.stamp.to_sec()) * 1000.0))
+            rospy.loginfo("[%s] Latency image converted/decompressed = %.3f ms" %(self.node_name, (self.tic-image_msg.header.stamp.to_sec()) * 1000.0))
         
         # White balancing: set reference image to estimate parameters
         if self.flag_wb and (not self.flag_wb_ref):

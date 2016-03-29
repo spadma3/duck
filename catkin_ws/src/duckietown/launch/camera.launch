@@ -6,6 +6,7 @@
     <arg name="raw" default="true" doc="If set to true, also publish raw image using decoder."/> 
     <arg name="cam_info" default="true" doc="If set to true, use cam_info_reader_node to pusblish CameraInfo."/>
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
+    <arg name="verbose" default="false" />
 
     <!-- camera_node -->
     <group if="$(arg live)">
@@ -25,6 +26,7 @@
             <arg name="local" value="$(arg local)"/>
             <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
+            <arg name="verbose" value="$(arg verbose)" />
         </include>
     </group>
     
