@@ -1,0 +1,7 @@
+<launch>
+    <arg name="robot_name" default="robot1"/>
+
+    <group ns="$(arg robot_name)">        
+        <node name="fake_behavior_node" pkg="fake_behavior" type="fake_behavior.py" output="screen" args="$(arg robot_name)" />
+    </group>
+</launch>

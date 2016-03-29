@@ -1,0 +1,27 @@
+<launch>
+
+  <arg name="veh" default="robot1"/>
+  <arg name="x" default="0.0" />
+  <arg name="y" default="1.0" />
+  <arg name="local" default="true" />
+ 
+
+  <!-- Spawning a duckibot at the coordinates indicated-->
+  <include file="$(find duckietown_gazebo)/launch/include/duckietown.launch.xml" >
+  	<arg name="robot_name" value="$(arg veh)"/>
+    <arg name="x" value="$(arg x)" />
+    <arg name="y" value="$(arg y)" />
+  </include>
+
+  <!-- launch the vehicle coordinator -->
+  <include file="$(find veh_coordinator)/launch/veh_coordinator_node.launch" >
+  	<arg name="veh" value="$(arg veh)"/>
+    <arg name="local" value="$(arg local)" />
+  </include>
+  
+  <!-- launch the fake_behavior -->
+  <include file="$(find fake_behavior)/launch/start.launch" >
+  	<arg name="robot_name" value="$(arg veh)"/>
+  </include>
+
+</launch>
