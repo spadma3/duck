@@ -10,14 +10,14 @@
 
     <!-- camera_node -->
     <group if="$(arg live)">
-        <include  file="$(find pi_camera)/launch/camera_node.launch">
+        <include  file="$(find pi_camera)/launch/camera_node_raw.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
     </group>
 
-    <!-- decoder_node -->
+    <!-- decoder_node 
     <group if="$(arg raw)">
         <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
         <remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
@@ -29,11 +29,12 @@
             <arg name="verbose" value="$(arg verbose)" />
         </include>
     </group>
-    
-    <!-- cam_info_reader_node -->
+   -->
+ 
+    <!-- cam_info_reader_node 
     <group if="$(arg cam_info)">
         <remap from="cam_info_reader_node/camera_info" to="camera_node/camera_info"/>
-        <remap from="cam_info_reader_node/compressed_image" to="camera_node/image/compressed"/>
+        <remap from="cam_info_reader_node/image" to="camera_node/image/compressed"/>
         <include file="$(find pi_camera)/launch/cam_info_reader_node.launch"> 
             <arg name="veh" value="$(arg veh)"/>
             <arg name="local" value="$(arg local)"/>
@@ -41,5 +42,5 @@
             <arg name="param_file_name" value="$(arg param_file_name)"/>            
         </include>
     </group>
-
+    -->
 </launch>

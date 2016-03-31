@@ -21,7 +21,9 @@ class CameraNode(object):
         rospy.loginfo("[%s] Initializing......" %(self.node_name))
         print "initializing"
 
-        self.framerate = self.setupParam("~framerate",30.0)
+        self.bridge = CvBridge()
+
+        self.framerate = self.setupParam("~framerate",15.0)
         self.res_w = self.setupParam("~res_w",640)
         self.res_h = self.setupParam("~res_h",480)
 
@@ -33,7 +35,7 @@ class CameraNode(object):
         self.frame_id = rospy.get_namespace().strip('/') + "/camera_optical_frame"
 
         self.has_published = False
-        self.pub_img= rospy.Publisher("~image/rgb", Image,queue_size=1)
+        self.pub_img= rospy.Publisher("~image/raw", Image,queue_size=1)
 
         # Create service (for camera_calibration)
         self.srv_set_camera_info = rospy.Service("~set_camera_info",SetCameraInfo,self.cbSrvSetCameraInfo)
@@ -51,7 +53,7 @@ class CameraNode(object):
 
     def startCapturing(self):
         rospy.loginfo("[%s] Start capturing." %(self.node_name))
-        self.camera.capture_sequence(self.gen,'rgb',use_video_port=True,splitter_port=0)
+        self.camera.capture_sequence(self.gen,'bgr',use_video_port=True,splitter_port=0)
         self.camera.close()
         rospy.sleep(rospy.Duration.from_sec(2.0))
         rospy.loginfo("[%s] Capture Ended." %(self.node_name))
@@ -64,21 +66,19 @@ class CameraNode(object):
                 return
 
             yield stream
-            # Construct image_msg
 
             # Grab image from stream
             stamp = rospy.Time.now()
             stream.seek(0)
             stream_data = stream.getvalue()
-            # Generate compressed image
-            image_msg = Image()
-            image_msg.data = stream_data
-
-            # Generate raw image
-            # image_msg = Image()
-            # data = np.fromstring(stream_data, dtype=np.uint8)  #320 by 240 90Hz
-            # image = cv2.imdecode(data, cv2.CV_LOAD_IMAGE_COLOR) # drop to about 60Hz
-            # image_msg = self.bridge.cv2_to_imgmsg(image) # drop to about 30hz..
+            
+            # Turn strings into numpy array and image_msg
+            #t1 = time.time()
+            cv_image = np.fromstring(stream_data, dtype=np.uint8).reshape((480,640,3))
+            #t2 = time.time()
+            #print 'string to numpy array%.6f'%(t2-t1)
+            image_msg = self.bridge.cv2_to_imgmsg(cv_image, "bgr8")
+            #print 'numpy to message %.6f'%(time.time() - t2)
 
             image_msg.header.stamp = stamp
             image_msg.header.frame_id = self.frame_id
