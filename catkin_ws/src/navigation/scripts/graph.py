@@ -72,7 +72,7 @@ class Graph(object):
             raise NodeNotInGraph(node)
         return self._edges.get(node, set())        
 
-    def draw(self, highlight_edges=None, show_weights=None):
+    def draw(self, highlight_edges=None, show_weights=None, map_name = 'duckietown'):
         g = graphviz.Digraph(name="duckietown", engine="neato")
         g.edge_attr.update(fontsize = '8', arrowsize = '0.4', arrowhead = 'open')
         g.node_attr.update(shape="circle", fontsize='8',margin="0", height='0')
@@ -100,6 +100,6 @@ class Graph(object):
         script_dir = os.path.dirname(__file__)
         map_path = script_dir + '/maps/'
         g.format = 'png'
-        g.render(filename='duckietown', directory=map_path, view=True)
+        g.render(filename=map_name, directory=map_path, view=False)
         
       
