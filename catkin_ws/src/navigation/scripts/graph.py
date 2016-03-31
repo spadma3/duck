@@ -100,6 +100,6 @@ class Graph(object):
         script_dir = os.path.dirname(__file__)
         map_path = script_dir + '/maps/'
         g.format = 'png'
-        g.render(filename=map_name, directory=map_path, view=False)
+        g.render(filename=map_name, directory=map_path, view=False, cleanup=True)
         
       

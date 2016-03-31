@@ -1,8 +1,8 @@
 <launch>
-    <arg name="map_name" default="duckietown_map.pkl" />
-    <arg name="draw_solution" default="False" />
+    <arg name="map_name" default="duckietown_map" />
+    <arg name="publish_solution" default="True" />
 	<param name="map_name" value="$(arg map_name)" />
-	<param name="draw_solution" value="$(arg draw_solution)" />
+	<param name="publish_solution" value="$(arg publish_solution)" />
     <arg name="veh" doc="Name of vehicle. ex: megaman"/>
     <arg name="local" default="false" doc="true for running on laptop. false for running on vehicle."/>
     <arg name="config" default="baseline" doc="Specify a config."/>
@@ -11,7 +11,7 @@
     <remap from="~mode" to="fsm_node/mode"/>
     <include file="$(find navigation)/launch/graph_search_server.launch">
       <arg name="map_name" value="$(arg map_name)"/>        
-      <arg name="draw_solution" value="$(arg draw_solution)"/>   
+      <arg name="publish_solution" value="$(arg publish_solution)"/>   
       <arg name="veh" value="$(arg veh)"/>   
     </include>
     

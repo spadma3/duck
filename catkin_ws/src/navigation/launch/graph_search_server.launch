@@ -1,9 +1,9 @@
 <launch>
     <arg name="veh" doc="Name of vehicle. ex: megaman"/>
-    <arg name="map_name" default="duckietown_map.pkl" />
-    <arg name="draw_solution" default="False" />
+    <arg name="map_name" default="duckietown_map" />
+    <arg name="publish_solution" default="True" />
 	<param name="map_name" value="$(arg map_name)" />
-	<param name="draw_solution" value="$(arg draw_solution)" />
+	<param name="publish_solution" value="$(arg publish_solution)" />
 
 	<node
                 ns="$(arg veh)"
