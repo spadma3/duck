@@ -6,7 +6,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Float32
 from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped
 from scipy.stats import multivariate_normal, entropy
-from scipy.ndimage.filters import gaussian filter
+#from scipy.ndimage.filters import gaussian filter
 from math import floor, atan2, pi, cos, sin
 import time
 
@@ -36,7 +36,7 @@ class LaneFilterNode(object):
         self.min_max = self.setupParam("~min_max", 0.3) # nats
         self.min_segs = self.setupParam("~min_segs", 10)
 
-        self.cov_mask = [self.setupParam("~sigma_d_mask",0.01) , self.setupParam("~sigma_phi_mask",0.01)]
+        #self.cov_mask = [self.setupParam("~sigma_d_mask",0.01) , self.setupParam("~sigma_phi_mask",0.01)]
         #self.prop_mask_size = self.setupParam("~prop_mask_size",9)
 
         self.t_last_update = rospy.get_time()
@@ -55,12 +55,10 @@ class LaneFilterNode(object):
         self.lanePose.phi=self.mean_0[1]
 
         self.sub_velocity = rospy.Subscriber("~velocity", Twist2DStamped, self.updateVelocity)
-
-        # self.sub = rospy.Subscriber("~velocity",
+        self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments)
         self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
-        self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments)
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
@@ -80,7 +78,7 @@ class LaneFilterNode(object):
 
     def processSegments(self,segment_list_msg):
         t_start = rospy.get_time()
-        self.propagateBelief()
+        #self.propagateBelief()
         # initialize measurement likelihood
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segment_list_msg.segments:
@@ -95,11 +93,11 @@ class LaneFilterNode(object):
             i = floor((d_i - self.d_min)/self.delta_d)
             j = floor((phi_i - self.phi_min)/self.delta_phi)
             measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1/(l_i)
-#        if np.linalg.norm(measurement_likelihood) == 0:
-#            return
+        if np.linalg.norm(measurement_likelihood) == 0:
+            return
         measurement_likelihood = measurement_likelihood/np.linalg.norm(measurement_likelihood)
-        self.updateBelief(measurement_likelihood)
-        #self.beliefRV = measurement_likelihood
+        #self.updateBelief(measurement_likelihood)
+        self.beliefRV = measurement_likelihood
         # TODO entropy test:
         #print self.beliefRV.argmax()
         
@@ -113,15 +111,12 @@ class LaneFilterNode(object):
         bridge = CvBridge()
         belief_img = bridge.cv2_to_imgmsg((255*self.beliefRV).astype('uint8'), "mono8")
         belief_img.header.stamp = segment_list_msg.header.stamp
-        
-
-
-        max_val = self.beliefRV.max()
-        self.lanePose.in_lane = max_val > self.min_max and len(segment_list_msg.segments) > self.min_segs and np.linalg.norm(self.beliefRV) != 0
         self.pub_lane_pose.publish(self.lanePose)
         self.pub_belief_img.publish(belief_img)
         # print "time to process segments:"
         # print rospy.get_time() - t_start
+        
+#        self.lanePose.in_lane = max_val > self.min_max and len(segment_list_msg.segments) > self.min_segs and np.linalg.norm(self.beliefRV) != 0
 
         max_val = self.beliefRV.max()
         #print max_val
