@@ -10,7 +10,7 @@ from graph import Graph
 from graph_search import GraphSearchProblem
 
 duckietown_graph = 0
-draw_solution = False
+draw_solution = True
 
 def handle_graph_search(req):
     global duckietown_graph	
@@ -28,7 +28,7 @@ def handle_graph_search(req):
     # Draw solution
     # TODO: drawing does not work for more than 1 client request
     if path and draw_solution:
-        duckietown_graph.draw(highlight_edges=path.edges(), save_draw=True, map_name='solution')
+        duckietown_graph.draw(highlight_edges=path.edges())
     return GraphSearchResponse(path.actions)
 
 def graph_search_server():
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 	
 	# Inputs
 	map_name = rospy.get_param('map_name', 'duckietown_map.pkl')
-	draw_solution = rospy.get_param('draw_solution', False)
+	draw_solution = rospy.get_param('draw_solution', True)
 
 	# Loading map
 	script_dir = os.path.dirname(__file__)

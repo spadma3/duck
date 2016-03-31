@@ -41,6 +41,7 @@ def dispatcher(data):
         firstUpdate = False
 
 def graph_search(data):
+    print 'Requesting map for src: ', data.source_node, ' and target: ', data.target_node
     global actions
     rospy.wait_for_service('graph_search')
     try:
