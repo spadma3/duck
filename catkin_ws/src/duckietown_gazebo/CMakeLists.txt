@@ -42,7 +42,7 @@ link_directories(
   ${Boost_LIBRARY_DIRS}
 )
 
-
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 # Create libraries and executables
 
