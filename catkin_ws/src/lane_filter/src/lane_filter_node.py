@@ -50,7 +50,7 @@ class LaneFilterNode(object):
         self.max_segment_dist = self.setupParam("~max_segment_dist",1.0)
         self.min_segs = self.setupParam("~min_segs", 10)
 
-        self.cov_mask = [self.setupParam("~sigma_d_mask",1) , self.setupParam("~sigma_phi_mask",1)]
+        self.cov_mask = [self.setupParam("~sigma_d_mask",0.05) , self.setupParam("~sigma_phi_mask",0.05)]
         #self.prop_mask_size = self.setupParam("~prop_mask_size",9)
 
         self.t_last_update = rospy.get_time()
@@ -72,6 +72,7 @@ class LaneFilterNode(object):
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments)
         self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
+	#self.pub_prop_img = rospy.Publisher("~prop_img", Image, queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
 
     def setupParam(self,param_name,default_value):
@@ -92,7 +93,10 @@ class LaneFilterNode(object):
 
     def processSegments(self,segment_list_msg):
         t_start = rospy.get_time()
-        #self.propagateBelief()
+
+        self.propagateBelief()
+        self.t_last_update = rospy.get_time()
+
         # initialize measurement likelihood
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segment_list_msg.segments:
@@ -116,12 +120,14 @@ class LaneFilterNode(object):
                 continue
             measurement_likelihood[i,j] = measurement_likelihood[i,j] + dist_weight
 
+	#s_measurement_likelihood = np.empty(measurement_likelihood.shape)
+        #gaussian_filter(measurement_likelihood, self.cov_mask, output=s_measurement_likelihood, mode='constant')
         if np.sum(measurement_likelihood) == 0: #np.linalg.norm(measurement_likelihood) == 0:
             return
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
 
-        #self.updateBelief(measurement_likelihood)
-        self.beliefRV = measurement_likelihood
+        self.updateBelief(measurement_likelihood)
+        #self.beliefRV = measurement_likelihood
         # TODO entropy test:
         #print self.beliefRV.argmax()
 
@@ -149,7 +155,6 @@ class LaneFilterNode(object):
         #else:
         #    self.pub_in_lane.publish(False)
 
-        self.t_last_update = rospy.get_time()
 
 #        ent = entropy(self.beliefRV)
 #        print ent
@@ -186,16 +191,20 @@ class LaneFilterNode(object):
                     p_beliefRV[i_new,j_new] += self.beliefRV[i,j]
 
         s_beliefRV = np.zeros(self.beliefRV.shape)
-        gaussian_filter(p_beliefRV, self.cov_mask, output=s_beliefRV, mode='constant')
+        gaussian_filter(100*p_beliefRV, self.cov_mask, output=s_beliefRV, mode='constant')
 
         if np.sum(s_beliefRV) == 0:
             return
         self.beliefRV = s_beliefRV/np.sum(s_beliefRV)
+
+	#bridge = CvBridge()
+        #prop_img = bridge.cv2_to_imgmsg((255*self.beliefRV).astype('uint8'), "mono8")
+        #self.pub_prop_img.publish(prop_img)
                 
         return
 
     def updateBelief(self,measurement_likelihood):
-        self.beliefRV=np.add(self.beliefRV*0.1,measurement_likelihood)
+        self.beliefRV=np.multiply(self.beliefRV+1,measurement_likelihood+1)-1
         self.beliefRV=self.beliefRV/np.sum(self.beliefRV)#np.linalg.norm(self.beliefRV)
 
     def generateVote(self,segment):
