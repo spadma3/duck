@@ -30,10 +30,10 @@ class LaneFilterNode(object):
         self.phi_max     = self.setupParam("~phi_max",pi/2)
 
         #For distance weighting (dw) function
-        self.zero_val    = self.setupParam("~zero_val",1)
-        self.l_peak      = self.setupParam("~l_peak",1)
+        self.zero_val    = self.setupParam("~zero_val",2)
+        self.l_peak      = self.setupParam("~l_peak",.1)
         self.peak_val    = self.setupParam("~peak_val",10)
-        self.l_max       = self.setupParam("~l_max",2)
+        self.l_max       = self.setupParam("~l_max",.35)
         self.dwa = -(self.zero_val*self.l_peak**2 + self.zero_val*self.l_max**2 - self.l_max**2*self.peak_val - 2*self.zero_val*self.l_peak*self.l_max + 2*self.l_peak*self.l_max*self.peak_val)/(self.l_peak**2*self.l_max*(self.l_peak - self.l_max)**2)
         self.dwb = (2*self.zero_val*self.l_peak**3 + self.zero_val*self.l_max**3 - self.l_max**3*self.peak_val - 3*self.zero_val*self.l_peak**2*self.l_max + 3*self.l_peak**2*self.l_max*self.peak_val)/(self.l_peak**2*self.l_max*(self.l_peak - self.l_max)**2)
         self.dwc = -(self.zero_val*self.l_peak**3 + 2*self.zero_val*self.l_max**3 - 2*self.l_max**3*self.peak_val - 3*self.zero_val*self.l_peak*self.l_max**2 + 3*self.l_peak*self.l_max**2*self.peak_val)/(self.l_peak*self.l_max*(self.l_peak - self.l_max)**2)
@@ -99,6 +99,7 @@ class LaneFilterNode(object):
 
         # initialize measurement likelihood
         measurement_likelihood = np.zeros(self.d.shape)
+        seg_count = 0;
         for segment in segment_list_msg.segments:
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
                 continue
@@ -113,7 +114,8 @@ class LaneFilterNode(object):
                 continue
             i = floor((d_i - self.d_min)/self.delta_d)
             j = floor((phi_i - self.phi_min)/self.delta_phi)
-           
+            seg_count += 1;   
+	
             # measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1/(l_i)
             dist_weight = self.dwa*l_i**3+self.dwb*l_i**2+self.dwc*l_i+self.zero_val
             if dist_weight < 0:
@@ -122,7 +124,7 @@ class LaneFilterNode(object):
 
 	#s_measurement_likelihood = np.empty(measurement_likelihood.shape)
         #gaussian_filter(measurement_likelihood, self.cov_mask, output=s_measurement_likelihood, mode='constant')
-        if np.sum(measurement_likelihood) == 0: #np.linalg.norm(measurement_likelihood) == 0:
+        if np.sum(measurement_likelihood) == 0 or seg_count < 2: #self.min_segs: #np.linalg.norm(measurement_likelihood) == 0:
             return
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
 
