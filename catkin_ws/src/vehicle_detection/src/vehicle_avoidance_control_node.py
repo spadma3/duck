@@ -11,6 +11,8 @@ class VehicleAvoidanceControlNode(object):
 
 	def __init__(self):
 		self.node_name = rospy.get_name()
+		self.ticker = 0
+		self.pause_num_frames = 10
 		self.config	= self.setupParam("~config", "baseline")
 		self.cali_file_name = self.setupParam("~cali_file_name", "default")
 		rospack = rospkg.RosPack()
@@ -45,13 +47,15 @@ class VehicleAvoidanceControlNode(object):
 				self.distance_threshold)
 
 	def callback(self, data):
+		self.ticker = self.ticker + 1
 		if not data.detection.data:
 			vehicle_too_close = False
 		else:
 			distance = data.rho.data
 			min_distance = self.distance_threshold
 			vehicle_too_close = False
-			if distance < min_distance:
+			if distance < min_distance and self.ticker > self.pause_num_frames:
+				self.ticker = 0
 				vehicle_too_close = True
 		self.publishCmd()
 		self.vehicle_detected_pub.publish(vehicle_too_close)
