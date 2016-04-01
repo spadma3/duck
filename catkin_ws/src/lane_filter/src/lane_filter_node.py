@@ -4,9 +4,9 @@ import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32
-from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped
+from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
 from scipy.stats import multivariate_normal, entropy
-#from scipy.ndimage.filters import gaussian filter
+from scipy.ndimage.filters import gaussian_filter
 from math import floor, atan2, pi, cos, sin
 import time
 
@@ -36,7 +36,7 @@ class LaneFilterNode(object):
         self.min_max = self.setupParam("~min_max", 0.3) # nats
         self.min_segs = self.setupParam("~min_segs", 10)
 
-        #self.cov_mask = [self.setupParam("~sigma_d_mask",0.01) , self.setupParam("~sigma_phi_mask",0.01)]
+        self.cov_mask = [self.setupParam("~sigma_d_mask",1) , self.setupParam("~sigma_phi_mask",1)]
         #self.prop_mask_size = self.setupParam("~prop_mask_size",9)
 
         self.t_last_update = rospy.get_time()
@@ -93,9 +93,9 @@ class LaneFilterNode(object):
             i = floor((d_i - self.d_min)/self.delta_d)
             j = floor((phi_i - self.phi_min)/self.delta_phi)
             measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1/(l_i)
-        if np.linalg.norm(measurement_likelihood) == 0:
+        if np.sum(measurement_likelihood) == 0: #np.linalg.norm(measurement_likelihood) == 0:
             return
-        measurement_likelihood = measurement_likelihood/np.linalg.norm(measurement_likelihood)
+        measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
         #self.updateBelief(measurement_likelihood)
         self.beliefRV = measurement_likelihood
         # TODO entropy test:
@@ -145,7 +145,7 @@ class LaneFilterNode(object):
 
 
     def propagateBelief(self):
-        delta_t = rospy.get_time() - t_last_update
+        delta_t = rospy.get_time() - self.t_last_update
 
         d_t = self.d + self.v_current*delta_t*np.sin(self.phi)
         phi_t = self.phi + self.w_current*delta_t
@@ -161,8 +161,8 @@ class LaneFilterNode(object):
                     j_new = floor((phi_t[i,j] - self.phi_min)/self.delta_phi)
                     p_beliefRV[i_new,j_new] += self.beliefRV[i,j]
 
-        s_beliefRV = np.zeros(beliefRV.shape)
-        guassian_filter(p_beliefRV, cov_mask, output=s_beliefRV, mode='constant')
+        s_beliefRV = np.zeros(self.beliefRV.shape)
+        gaussian_filter(p_beliefRV, self.cov_mask, output=s_beliefRV, mode='constant')
 
         if np.sum(s_beliefRV) == 0:
             return
@@ -171,8 +171,8 @@ class LaneFilterNode(object):
         return
 
     def updateBelief(self,measurement_likelihood):
-        self.beliefRV=np.multiply(self.beliefRV,measurement_likelihood)
-        self.beliefRV=self.beliefRV/np.linalg.norm(self.beliefRV)
+        self.beliefRV=np.add(self.beliefRV*0.1,measurement_likelihood)
+        self.beliefRV=self.beliefRV/np.sum(self.beliefRV)#np.linalg.norm(self.beliefRV)
 
     def generateVote(self,segment):
         p1 = np.array([segment.points[0].x, segment.points[0].y]) 
@@ -216,4 +216,3 @@ if __name__ == '__main__':
     lane_filter_node = LaneFilterNode()
     rospy.on_shutdown(lane_filter_node.onShutdown)
     rospy.spin()
-
