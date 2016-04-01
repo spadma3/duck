@@ -1,2 +1,5 @@
-CATKIN_IGNORE
-/CMakeLists.txt
+*~
+*.bag
+*.pyc
+.DS_Store
+catkin_ws/src/duckietown/machines
