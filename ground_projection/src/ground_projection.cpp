@@ -64,7 +64,7 @@ public:
     {
       ROS_WARN_STREAM("Can't find homography file: " << h_file_ << " Using default calibration instead.");
       h_file_ = ros::package::getPath("duckietown") + "/config/" + config_name_ + "/calibration/camera_extrinsic/default.yaml";
-      // h_file_ = get_package_filename("package://ground_projection/homography/default.yaml");
+      // h_file_ = get_package_filename("model://ground_projection/homography/default.yaml");
     }
     ROS_INFO("load from homography yaml file [%s].", h_file_.c_str());
 
@@ -381,9 +381,9 @@ private:
   {
     ROS_DEBUG_STREAM("homography URL: " << url);
 
-    // Scan URL from after "package://" until next '/' and extract
+    // Scan URL from after "model://" until next '/' and extract
     // package name.
-    size_t prefix_len = std::string("package://").length();
+    size_t prefix_len = std::string("model://").length();
     size_t rest = url.find('/', prefix_len);
     std::string package(url.substr(prefix_len, rest - prefix_len));
 
