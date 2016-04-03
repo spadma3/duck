@@ -75,6 +75,8 @@ add_message_files(
   VehicleDetection.msg
   FSMState.msg
   Trajectory.msg
+  Pose2DStamped.msg
+  Twist2DStamped.msg
 )
 
 ## Generate services in the 'srv' folder
