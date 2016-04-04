@@ -13,7 +13,7 @@ class AntiInstagramNode():
 		self.node_name = rospy.get_name()
 
 		# Initialize publishers and subscribers
-		self.pub_image = rospy.Publisher("~corrected_image",Image,queue_size=1)
+		self.pub_image = rospy.Publisher("~corrected_image",CompressedImage,queue_size=1)
 		self.pub_health = rospy.Publisher("~health",AntiInstagramHealth,queue_size=1)
 		self.sub_image = rospy.Subscriber("~uncorrected_image",Image,self.cbNewImage)
 
@@ -24,7 +24,7 @@ class AntiInstagramNode():
 		self.health = AntiInstagramHealth()
 
 		self.ai = AntiInstagram()
-		self.corrected_image = Image()
+		# self.corrected_image = Image()
 		self.bridge = CvBridge()
 
 		self.numFramesSeen = 0
@@ -54,10 +54,16 @@ class AntiInstagramNode():
 		corrected_image_cv2 = self.ai.applyTransform(cv_image)
 		# corrected_image_cv2 = cv_image
 		corrected_image_cv2 = np.clip(corrected_image_cv2,0,255).astype(np.uint8)
-		self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2,"bgr8")
+		# self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2,"bgr8")
 
 		# self.pub_health.publish(self.health)
-		self.pub_image.publish(self.corrected_image)
+
+		self.imgmsg = CompressedImage()
+		self.imgmsg.header.stamp = rospy.Time.now()
+		self.imgmsg.format = "jpeg"
+		self.imgmsg.data = corrected_image_cv2
+		self.pub_image.publish(corrected_image_cv2)
+		# self.pub_image.publish(self.corrected_image)
 		self.numFramesSeen += 1
 		return
 
