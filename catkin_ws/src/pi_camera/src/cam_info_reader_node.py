@@ -35,9 +35,9 @@ class CamInfoReader(object):
         self.camera_info_msg.header.frame_id = rospy.get_namespace() + "camera_optical_frame"
         rospy.loginfo("[%s] CameraInfo: %s" %(self.node_name,self.camera_info_msg))
         # self.timer_pub = rospy.Timer(rospy.Duration.from_sec(1.0/self.pub_freq),self.cbTimer)
-        self.sub_img_compressed = rospy.Subscriber("~image", Image,self.cbCompressedImage,queue_size=1)
+        self.sub_img = rospy.Subscriber("~image", Image,self.cbImage,queue_size=1)
     
-    def cbCompressedImage(self,msg):
+    def cbImage(self,msg):
         if self.camera_info_msg is not None:
             self.camera_info_msg.header.stamp = msg.header.stamp
             self.pub_camera_info.publish(self.camera_info_msg)
