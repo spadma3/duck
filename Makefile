@@ -30,7 +30,10 @@ test-camera:
 test-led:	
 	bash -c "source environment.sh; rosrun rgb_led blink test_all_1"
 
+# SW testing 
 
+test-led-detection:
+	bash -c "source environment.sh; rosrun led_detection unittests.py  '*' baseline"
 
 
 # Basic demos
