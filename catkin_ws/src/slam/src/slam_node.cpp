@@ -107,7 +107,7 @@ private:
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.01, 0.01));
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 0.0));
   gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.002));
-  gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(1, 1, 0.5));
+  gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1, 1, 0));
   gtsam::Key poseId_;
 
   gtsam::ISAM2 isam;
@@ -481,8 +481,9 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       ROS_WARN("using landmark with ID: %d", id_l);
 
       // parse landmark measurement
-      double x_l = detection_l.transform.translation.x;
-      double y_l = detection_l.transform.translation.y;
+      double scale = 4.2;
+      double x_l = detection_l.transform.translation.x / scale;
+      double y_l = detection_l.transform.translation.y / scale;
       // we project on the XY plane, hence z = 0;
       double theta_l = atan2(detection_l.transform.rotation.w, detection_l.transform.rotation.z) * 2; // TODO: check this PI/2, make this into function 
 
@@ -494,8 +495,8 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       // TODO: if last pose is far from current one, add a new pose
       // create between factor
       gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
-      gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, landmarkNoise_);
-      
+      gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, 
+        gtsam::noiseModel::Robust::Create(gtsam::noiseModel::mEstimator::Huber::Create(1.345), landmarkNoise_));
       // add factor to nonlinear factor graph
       newFactors_.add(landmarkFactor);
 
@@ -503,6 +504,11 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       // add initial guess for the new landmark pose
       gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
       newInitials_.insert(key_l,newInitials_l);
+
+      // TODO: try to use landmark rotations later on
+      gtsam::noiseModel::Diagonal::shared_ptr landmarkPriorNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0, 0, 10));
+      gtsam::PriorFactor<gtsam::Pose2> landmarkPriorFactor(key_l, newInitials_l, landmarkPriorNoise_);
+      newFactors_.add(landmarkPriorFactor);
       }
 
       // visualize landmark position using vicon pose
