@@ -14,7 +14,6 @@ class graph_search_server():
         # Inputs
         self.map_name = rospy.get_param('/map_name')
         self.publish_solution = rospy.get_param('/publish_solution')
-        print self.publish_solution 
 
         # Loading map
         self.script_dir = os.path.dirname(__file__)
