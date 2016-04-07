@@ -1,0 +1,39 @@
+<launch>
+
+  <arg name="gui" default="false"/>
+  <arg name="paused" default="true"/>
+
+  <!-- Launching the Duckietown world -->
+  <include file="$(find duckietown_gazebo)/launch/main.launch">
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+  
+  <!-- Spawning some robots in the simulation.
+       Each robot spawning includes the fake_navigation, fake_behavior system and coordination system -->
+       
+  <include file="$(find duckietown_gazebo)/launch/spawn_duckiebot.launch">
+    <arg name="veh" value="robot1"/>
+  	<arg name="x" value="0.0" />
+	<arg name="y" value="2.0" />
+  	<arg name="local" value="true" />
+  </include>
+  
+<!--
+  <include file="$(find duckietown_gazebo)/launch/spawn_duckiebot.launch">
+    <arg name="veh" value="robot2"/>
+  	<arg name="x" value="-10.0" />
+	<arg name="y" value="2.0" />
+  	<arg name="local" value="true" />
+  </include>
+  
+  <include file="$(find duckietown_gazebo)/launch/spawn_duckiebot.launch">
+    <arg name="veh" value="robot3"/>
+  	<arg name="x" value="-20.0" />
+	<arg name="y" value="2.0" />
+  	<arg name="local" value="true" />
+  </include>
+
+	-->
+
+</launch>
