@@ -21,6 +21,7 @@
 #include "duckietown_msgs/Pose2DStamped.h"
 #include "duckietown_msgs/Pixel.h"
 #include "duckietown_msgs/WheelsCmd.h"
+#include "duckietown_msgs/SegmentList.h"
 #include "duckietown_msgs/AprilTags.h"
 #include "duckietown_msgs/TagDetection.h"
 #include "duckietown_msgs/WheelsCmdStamped.h"
@@ -58,6 +59,7 @@ private:
   ros::Subscriber sub_forward_kinematics_;
   ros::Subscriber sub_odometryCB_;
   ros::Subscriber sub_landmarkCB_;
+  ros::Subscriber sub_lineSegmentsCB_;
   ros::Subscriber sub_imuCB_;
   ros::Subscriber sub_estimateIMUbiasCB;
   ros::Subscriber sub_viconCB_;
@@ -66,6 +68,7 @@ private:
 	ros::Publisher pub_forward_kinematics_;
   ros::Publisher pub_odometryCB_; 
   ros::Publisher pub_landmarkCB_; 
+  ros::Publisher pub_lineSegmentsCB_;
   ros::Publisher pub_imuCB_; 
   ros::Publisher pub_viconCB_;   
   ros::Publisher pub_viconCB_gtTrajectory_;
@@ -128,6 +131,9 @@ private:
   visualization_msgs::Marker slamTrajectory_;
   visualization_msgs::Marker slamLandmarks_;
   std::map<int,std_msgs::ColorRGBA> colorMap_;
+
+  visualization_msgs::Marker laneSegments_;
+
 	// callback function declarations
   // TODO: move motion model to suitable node
   void optimizeFactorGraph();
@@ -136,6 +142,7 @@ private:
   void includeIMUfactor();
   void republishWheelsCmdCallback(duckietown_msgs::WheelsCmd::ConstPtr const& msg);
   void forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr const& msg);
+  void lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr const& msg);
 	void odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg);
   void imuCallback(sensor_msgs::Imu::ConstPtr const& msg);
   void landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg);
@@ -185,6 +192,9 @@ isam2useIMU_(true), isam2useLandmarks_(true), isam2useVicon_(true) {
   pub_viconCB_ = nh_.advertise<duckietown_msgs::Pose2DStamped>("viconPose", 1);
   pub_viconCB_gtTrajectory_ = nh_.advertise<visualization_msgs::Marker>("gtTrajectory", 1);
   pub_viconCB_gtLandmarks_ = nh_.advertise<visualization_msgs::Marker>("gtLandmarks", 1);
+
+  sub_lineSegmentsCB_ = nh_.subscribe("ground_projection/lineseglist_out", 1, &slam_node::lineSegmentsCallback, this);
+  pub_lineSegmentsCB_ = nh_.advertise<visualization_msgs::Marker>("laneSegments", 1);
 
   // http://wiki.ros.org/rviz/Tutorials/Markers%3A%20Points%20and%20Lines
   // TODO: add time stamps to all following?
@@ -242,6 +252,17 @@ isam2useIMU_(true), isam2useLandmarks_(true), isam2useVicon_(true) {
   gtLandmarks_.scale.y = 0.1;
   gtLandmarks_.color.a = 1.0;
   // gtLandmarks_.color.g = 1.0;
+
+  laneSegments_.header.frame_id = "/odom";
+  laneSegments_.ns = "laneSegments";
+  laneSegments_.action = visualization_msgs::Marker::ADD;
+  laneSegments_.pose.orientation.w = 1.0;
+  laneSegments_.id = 5;
+  laneSegments_.type = visualization_msgs::Marker::LINE_LIST;
+  laneSegments_.scale.x = 0.1;
+  laneSegments_.scale.y = 0.1;
+  laneSegments_.color.a = 1.0;
+  laneSegments_.color.g = 1.0;
 
 	ros::NodeHandle private_nh("~");
 }
@@ -576,4 +597,45 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
     slamEstimate_.insert(keyPose_0, gtsam::Pose2());
     insertedAnchor_ = true;
   }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr const& msg){
+  // laneSegments_.points.resize(0);
+  for (int s=0; s < msg->segments.size(); s++){ // for each segment
+    duckietown_msgs::Segment segment_s = msg->segments[s];
+
+    double len = sqrt( pow(segment_s.points[0].x - segment_s.points[1].x , 2) + pow(segment_s.points[0].y - segment_s.points[1].y , 2) );
+    ROS_ERROR("len_: %f", len);
+    if( len > 0.2 && len < 0.4 ){ // add only segments of reasonable length
+      for (int i=0; i < 2; i++){ // for both points
+        double x_l = segment_s.points[i].x;  
+        double y_l = segment_s.points[i].y;
+        gtsam::Point2 p_l(x_l,y_l); 
+        gtsam::Point2 p_g = gtPose_t_.transform_from(p_l); // transform to global frame
+        geometry_msgs::Point p;
+        p.x = p_g.x();
+        p.y = p_g.y();
+        p.z = 0.0; 
+        laneSegments_.points.push_back(p);
+        std_msgs::ColorRGBA color_l;
+        if (segment_s.color == 0){
+          color_l.a = 1.0;
+          color_l.r = 1.0;
+          color_l.g = 1.0;
+          color_l.b = 1.0;
+          laneSegments_.colors.push_back(color_l);
+        }
+      }
+    }
+  }
+  pub_lineSegmentsCB_.publish(laneSegments_);
+// uint8 WHITE=0
+// uint8 YELLOW=1  
+// uint8 RED=2
+// uint8 color
+// duckietown_msgs/Vector2D[2] pixels_normalized
+// duckietown_msgs/Vector2D normal
+// geometry_msgs/Point[2] points
+
 }
