@@ -61,7 +61,7 @@ class graph_search_server():
 
         # Publish graph solution
         if path and self.publish_solution:
-            self.duckietown_graph.draw(highlight_edges=path.edges(), map_name = self.map_name)
+            self.duckietown_graph.draw(highlight_edges=path.edges(), map_name = self.map_name, highlight_nodes = [req.source_node, req.target_node])
             cv_image = cv2.imread(self.map_path + '.png', cv2.CV_LOAD_IMAGE_COLOR)
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
 

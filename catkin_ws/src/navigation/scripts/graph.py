@@ -72,16 +72,27 @@ class Graph(object):
             raise NodeNotInGraph(node)
         return self._edges.get(node, set())        
 
-    def draw(self, highlight_edges=None, show_weights=None, map_name = 'duckietown'):
+    def draw(self, highlight_edges=None, show_weights=None, map_name = 'duckietown', highlight_nodes = None):
+        if highlight_nodes:        
+            start_node = highlight_nodes[0]
+            target_node = highlight_nodes[1]        
+
         g = graphviz.Digraph(name="duckietown", engine="neato")
         g.edge_attr.update(fontsize = '8', arrowsize = '0.4', arrowhead = 'open')
-        g.node_attr.update(shape="circle", fontsize='8',margin="0", height='0')
+        g.node_attr.update(shape="circle", fontsize='10',margin="0", height='0')
         #g.graph_attr.update(ratio = '0.7', inputscale = '1.3')
-             
+
         for node in self._nodes:
             node_name = self.node_label_fn(node)
             node_pos = "%f,%f!" % (self.node_positions[node][0], self.node_positions[node][1])
-            g.node(name=node_name, pos=node_pos)
+            if highlight_nodes and node == target_node:
+                g.node(name=node_name, pos=node_pos, color='green')
+            elif highlight_nodes and node == start_node:
+                g.node(name=node_name, pos=node_pos, color='blue')
+            elif len(node_name) == 2:
+                g.node(name=node_name, pos=node_pos)
+            elif len(node_name) == 3:
+                g.node(name=node_name, pos=node_pos, fixedsize='true', width='0', height='0', style='invis', label="")
         for src_node, edges in self._edges.items():
             for e in edges:
                 if show_weights:
