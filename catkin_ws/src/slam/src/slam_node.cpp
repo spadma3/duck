@@ -166,7 +166,7 @@ radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
 poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), estimateIMUbias_(true), initializedCheckIfStill_(false),
 timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), initializedIMU_(false), 
-isam2useIMU_(true), isam2useLandmarks_(true), isam2useVicon_(true) {
+isam2useIMU_(true), isam2useLandmarks_(false), isam2useVicon_(true) {
 
   sub_republishWheelCmd_ = nh_.subscribe("wheels_driver/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
   pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
@@ -601,12 +601,12 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr const& msg){
-  // laneSegments_.points.resize(0);
+  laneSegments_.points.resize(0);
   for (int s=0; s < msg->segments.size(); s++){ // for each segment
     duckietown_msgs::Segment segment_s = msg->segments[s];
 
     double len = sqrt( pow(segment_s.points[0].x - segment_s.points[1].x , 2) + pow(segment_s.points[0].y - segment_s.points[1].y , 2) );
-    ROS_ERROR("len_: %f", len);
+    // ROS_ERROR("len_: %f", len);
     if( len > 0.2 && len < 0.4 ){ // add only segments of reasonable length
       for (int i=0; i < 2; i++){ // for both points
         double x_l = segment_s.points[i].x;  
