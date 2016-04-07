@@ -112,7 +112,7 @@ private:
   // MEASUREMENT NOISE COVARIANCES
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.1, 0.01));
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.25, 1/0.25, 0.0));
-  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
+  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.01));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1, 1, 0));
   
   // FACTOR GRAPH & VALUES
@@ -176,7 +176,7 @@ radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
 poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 estimateIMUbias_(true),timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), 
-isam2useIMU_(true), isam2useLandmarks_(false), isam2useVicon_(true) {
+isam2useIMU_(true), isam2useLandmarks_(true), isam2useVicon_(true) {
 
   iSAM2Params_ = gtsam::ISAM2Params();
   iSAM2Params_.relinearizeThreshold = 0.0;
@@ -456,7 +456,6 @@ void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
           //ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
         }
       }
-
       double omega_z_bias_corrected = omega_z - gyroOmegaBias_; // we correct with our bias estimate 
       //ROS_ERROR("omega_z_bias_corrected: %f", omega_z_bias_corrected);
       imuDeltaPose_tm1_t_ = gtsam::Pose2( imuDeltaPose_tm1_t_.theta() + omega_z_bias_corrected * deltaT_imu , gtsam::Point2());
@@ -470,15 +469,14 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
 
   
   if(isam2useLandmarks_ == true){
-    ROS_WARN("LANDMARK CALLBACK!!!!");
+    // ROS_WARN("LANDMARK CALLBACK!!!!");
     for (int l=0; l < msg->detections.size(); l++) // for each tag detection
     {
       duckietown_msgs::TagDetection detection_l = msg->detections[l];
       int id_l = detection_l.id;
       // ROS_INFO_STREAM("using landmark with ID: " << detection_k.id);
-      ROS_WARN("using landmark with ID: %d", id_l);
 
-      // parse landmark measurement
+      // TODO: use new node for april tags.. parse landmark measurement
       double scale = 4.2;
       double x_l = detection_l.transform.translation.x / scale;
       double y_l = detection_l.transform.translation.y / scale;
@@ -488,25 +486,25 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       gtsam::Key key_l = gtsam::Symbol('L', id_l); 
       gtsam::Pose2 localLandmarkPose(theta_l, gtsam::Point2(x_l,y_l)); 
 
-      ROS_WARN("landmarks measurement: id %d, (%f %f %f)", id_l, x_l,y_l,theta_l);
+      ROS_WARN("landmarks measurement: id %d, (%f %f %f)", id_l, x_l, y_l, theta_l);
 
       // TODO: if last pose is far from current one, add a new pose
       // create between factor
       gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
-      gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, 
-        gtsam::noiseModel::Robust::Create(gtsam::noiseModel::mEstimator::Huber::Create(1.345), landmarkNoise_));
+      gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, landmarkNoise_);
+      //   gtsam::noiseModel::Robust::Create(gtsam::noiseModel::mEstimator::Huber::Create(1.345), landmarkNoise_));
       // add factor to nonlinear factor graph
       newFactors_.add(landmarkFactor);
 
       if(!isam2_.valueExists(key_l)){
-      // add initial guess for the new landmark pose
-      gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
-      newInitials_.insert(key_l,newInitials_l);
+        // add initial guess for the new landmark pose
+        gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
+        newInitials_.insert(key_l,newInitials_l);
 
-      // TODO: try to use landmark rotations later on
-      gtsam::noiseModel::Diagonal::shared_ptr landmarkPriorNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0, 0, 10));
-      gtsam::PriorFactor<gtsam::Pose2> landmarkPriorFactor(key_l, newInitials_l, landmarkPriorNoise_);
-      newFactors_.add(landmarkPriorFactor);
+        // TODO: try to use landmark rotations later on
+        gtsam::noiseModel::Diagonal::shared_ptr landmarkPriorNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0, 0, 10));
+        gtsam::PriorFactor<gtsam::Pose2> landmarkPriorFactor(key_l, newInitials_l, landmarkPriorNoise_);
+        newFactors_.add(landmarkPriorFactor);
       }
 
       // visualize landmark position using vicon pose
@@ -519,7 +517,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       if(search != colorMap_.end()) {
         // we found the key
         color_l = search->second;
-        ROS_ERROR("found");
+        // ROS_ERROR("found");
       }
       else{
         double cr = (double)rand()/ (double)RAND_MAX; // random number in [0,1]
@@ -537,7 +535,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       ROS_ERROR("landmarks in gtLandmarks_: %d", s);
     } 
   }else{
-    ROS_WARN("LANDMARK CALLBACK DISABLED :-(");
+    ROS_ERROR("LANDMARK CALLBACK DISABLED :-(");
   }
 }
 
@@ -545,13 +543,13 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
 void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
 
   gtSubsampleCount_ -= 1;
-  if(gtSubsampleCount_ <= 0){
+  if(gtSubsampleCount_ <= 0){ // subsample poses to visualize
     geometry_msgs::Point p;
     p = msg->pose.position;
     gtTrajectory_.points.push_back(p);
     pub_viconCB_gtTrajectory_.publish(gtTrajectory_);
     gtSubsampleCount_ = gtSubsampleStep_; // reset counter
-    int s = gtTrajectory_.points.size();
+    // int s = gtTrajectory_.points.size();
     // ROS_WARN("nr points in gtTrajectory: %d", s);
   }
   double x = msg->pose.position.x;
@@ -577,6 +575,7 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+// TODOLC: review this
 void slam_node::lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr const& msg){
   laneSegments_.points.resize(0);
   for (int s=0; s < msg->segments.size(); s++){ // for each segment
@@ -653,10 +652,8 @@ void slam_node::visualizeSLAMestimate(){
     }
   }
   pub_slamTrajectory_.publish(slamTrajectory_);
-  int s = slamTrajectory_.points.size();
-  ROS_ERROR("poses in slamTrajectory_: %d", s);
-
+  int s_p = slamTrajectory_.points.size();
   pub_slamLandmarks_.publish(slamLandmarks_);
-  s = slamLandmarks_.points.size();
-  ROS_ERROR("landmarks in slamLandmarks_: %d", s);
+  int s_l = slamLandmarks_.points.size();
+  ROS_WARN("slam estimate includes: %d poses, %d landmarks", s_p, s_l);
 }
