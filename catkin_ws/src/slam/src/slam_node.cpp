@@ -1,3 +1,5 @@
+// https://www.youtube.com/watch?v=3sndqSG-h_E&index=24&list=RDu1auBKmIkVo&nohtml5=False
+
 #include "ros/ros.h" 
 #include "std_msgs/Float32.h" 
 #include <ros/console.h>
@@ -98,6 +100,7 @@ private:
   bool isam2useVicon_;
   bool isam2useLandmarks_;
   bool isam2useGTLandmarks_;
+  bool isam2useGTOdometry_; 
 
   geometry_msgs::Pose2D odomPose_; // 2D pose obtained by integrating odometry till time t
   double tm1_odom_; // last time we acquired an odometry measurement
@@ -116,7 +119,7 @@ private:
 
   // MEASUREMENT NOISE COVARIANCES
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.1, 0.01));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.25, 1/0.25, 0.0));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.25, 1/0.25, 1.0));
   gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.01));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.25, 1/0.25, 1/0.01));
   
@@ -182,7 +185,7 @@ radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
 poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 estimateIMUbias_(true),timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), 
-isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useVicon_(true) {
+isam2useIMU_(false), isam2useLandmarks_(false), isam2useGTLandmarks_(true), isam2useGTOdometry_(true), isam2useVicon_(true) {
 
   iSAM2Params_ = gtsam::ISAM2Params();
   iSAM2Params_.relinearizeThreshold = 0.0;
@@ -365,8 +368,7 @@ void slam_node::forwardKinematicCallback(duckietown_msgs::WheelsCmdStamped::Cons
 ///////////////////////////////////////////////////////////////////////////////////////////
 // this callback is executed every time an odometry measurement is received
 void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const& msg){
-
-  gtPose_t_ = gtPose_latest_;
+  
   if(insertedAnchor_ == false){
     ROS_WARN("WAITING FOR VICON POSE - ");
     // add prior on first node: this will be the reference frame for us
@@ -380,6 +382,11 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     // compute relative pose from wheel odometry
     gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y)); // odometric pose at time t
     gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t); // relative pose between t-1 and t
+
+    if(isam2useGTOdometry_ == true){
+      odomPose_tm1_t = gtPose_t_.between(gtPose_latest_);
+    }
+    gtPose_t_ = gtPose_latest_;
 
     // TODO: add condition that there is enough displacement
 
@@ -405,7 +412,9 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     pub_odometryCB_.publish(relativePose_msg);
 
     // include IMU factors and optimize
-    includeIMUfactor();
+    if(isam2useIMU_ == true){
+      includeIMUfactor();
+    }
     optimizeFactorGraph();
     visualizeSLAMestimate();
   }
@@ -601,6 +610,7 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
     newInitials_.insert(keyPose_0, gtsam::Pose2());
     slamEstimate_.insert(keyPose_0, gtsam::Pose2());
     insertedAnchor_ = true;
+    gtPose_t_ = gtPose_latest_;
   }
 }
 
