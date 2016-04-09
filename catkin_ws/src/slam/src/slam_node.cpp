@@ -189,7 +189,7 @@ poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1),
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), 
-isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(true), isam2useVicon_(true) {
+isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), isam2useVicon_(true) {
 
   // gtsam::ISAM2GaussNewtonParams isam2Params_GN;
   // isam2Params_GN.setWildfireThreshold(0.0);
