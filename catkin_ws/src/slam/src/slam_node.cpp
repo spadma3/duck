@@ -32,6 +32,7 @@
 // GTSAM includes
 #include <gtsam/nonlinear/ISAM2.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
+#include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/PriorFactor.h>
@@ -119,9 +120,9 @@ private:
 
   // MEASUREMENT NOISE COVARIANCES
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.1, 0.01));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.25, 1/0.25, 1.0));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 0.0));
   gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.01));
-  gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.25, 1/0.25, 1/0.01));
+  gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
   
   // FACTOR GRAPH & VALUES
   gtsam::ISAM2 isam2_;
@@ -163,6 +164,8 @@ private:
 
   // other auxiliary functions
   void optimizeFactorGraph();
+  void optimizeFactorGraph_GN();
+  void optimizeFactorGraph_LM();
   void setVisualizationParameters();
   void visualizeSLAMestimate();
   void includeIMUfactor();
@@ -184,10 +187,13 @@ slam_node::slam_node() :
 radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
 poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
-estimateIMUbias_(true),timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), 
-isam2useIMU_(false), isam2useLandmarks_(false), isam2useGTLandmarks_(true), isam2useGTOdometry_(true), isam2useVicon_(true) {
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), 
+isam2useIMU_(true), isam2useLandmarks_(false), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), isam2useVicon_(true) {
 
-  iSAM2Params_ = gtsam::ISAM2Params();
+  gtsam::ISAM2GaussNewtonParams isam2Params_GN;
+  isam2Params_GN.setWildfireThreshold(0.0);
+  iSAM2Params_ = gtsam::ISAM2Params(isam2Params_GN);
   iSAM2Params_.relinearizeThreshold = 0.0;
   iSAM2Params_.relinearizeSkip = 1;
   // iSAM2Params_.setWildfireThreshold (0.0;
@@ -415,7 +421,9 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     if(isam2useIMU_ == true){
       includeIMUfactor();
     }
-    optimizeFactorGraph();
+    // optimizeFactorGraph();
+    // optimizeFactorGraph_GN();
+    optimizeFactorGraph_LM();
     visualizeSLAMestimate();
   }
 }
@@ -452,34 +460,32 @@ void slam_node::checkIfStillCallback(duckietown_msgs::WheelsCmdStamped::ConstPtr
 // ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
 
-  if(isam2useIMU_ == true){
-    if(initializedIMU_ == false){
-      initializedIMU_ = true;
-      tm1_imu_ = msg->header.stamp.toSec(); 
-      movingAverageOmega_z_ = msg->angular_velocity.z;
-      imuDeltaPose_tm1_t_ = gtsam::Pose2();
-    }else{
-      double t_imu = msg->header.stamp.toSec();
-      double deltaT_imu = t_imu - tm1_imu_;
-      double omega_z = msg->angular_velocity.z;
+  if(initializedIMU_ == false){
+    initializedIMU_ = true;
+    tm1_imu_ = msg->header.stamp.toSec(); 
+    movingAverageOmega_z_ = msg->angular_velocity.z;
+    imuDeltaPose_tm1_t_ = gtsam::Pose2();
+  }else{
+    double t_imu = msg->header.stamp.toSec();
+    double deltaT_imu = t_imu - tm1_imu_;
+    double omega_z = msg->angular_velocity.z;
 
-      if(estimateIMUbias_ = true){        
-        // if vehicle has been still for long enough, we estimate biases
-        double deltaTstill = t_imu - initialTimeStill_;
-        if(deltaTstill > timeStillThreshold_){
-          // compute moving average of biases
-          double alpha = 0.05; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
-          movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
-          gyroOmegaBias_ = movingAverageOmega_z_;
-          //ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
-        }
+    if(estimateIMUbias_ = true){        
+      // if vehicle has been still for long enough, we estimate biases
+      double deltaTstill = t_imu - initialTimeStill_;
+      if(deltaTstill > timeStillThreshold_){
+        // compute moving average of biases
+        double alpha = 0.05; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
+        movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
+        gyroOmegaBias_ = movingAverageOmega_z_;
+        //ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
       }
-      double omega_z_bias_corrected = omega_z - gyroOmegaBias_; // we correct with our bias estimate 
-      //ROS_ERROR("omega_z_bias_corrected: %f", omega_z_bias_corrected);
-      imuDeltaPose_tm1_t_ = gtsam::Pose2( imuDeltaPose_tm1_t_.theta() + omega_z_bias_corrected * deltaT_imu , gtsam::Point2());
-      tm1_imu_ = t_imu;
-    } 
-  } // end "isam2useIMU_"
+    }
+    double omega_z_bias_corrected = omega_z - gyroOmegaBias_; // we correct with our bias estimate 
+    //ROS_ERROR("omega_z_bias_corrected: %f", omega_z_bias_corrected);
+    imuDeltaPose_tm1_t_ = gtsam::Pose2( imuDeltaPose_tm1_t_.theta() + omega_z_bias_corrected * deltaT_imu , gtsam::Point2());
+    tm1_imu_ = t_imu;
+  } 
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
@@ -532,7 +538,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       // add factor to nonlinear factor graph
       newFactors_.add(landmarkFactor);
 
-      if(!isam2_.valueExists(key_l)){
+      if(!isam2_.valueExists(key_l) && !newInitials_.exists(key_l)){
         // add initial guess for the new landmark pose
         gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
         newInitials_.insert(key_l,newInitials_l);
@@ -669,9 +675,26 @@ void slam_node::optimizeFactorGraph(){
 
   slamEstimate_ = isam2_.calculateEstimate();
 
+  gtsam::NonlinearFactorGraph nfg = isam2_.getFactorsUnsafe();
+  ROS_WARN("slam error: %f", nfg.error(slamEstimate_));
+  
   // Clear the factor graph and values for the next iteration
   newFactors_.resize(0);
   newInitials_.clear();
+}
+
+// ///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::optimizeFactorGraph_GN(){
+  slamEstimate_= gtsam::GaussNewtonOptimizer(newFactors_, newInitials_).optimize();
+  newInitials_ = slamEstimate_;
+  ROS_WARN("slam error (GN): %f", newFactors_.error(slamEstimate_));
+}
+
+// ///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::optimizeFactorGraph_LM(){
+  slamEstimate_= gtsam::LevenbergMarquardtOptimizer(newFactors_, newInitials_).optimize();
+  newInitials_ = slamEstimate_;
+  ROS_WARN("slam error (LM): %f", newFactors_.error(slamEstimate_));
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
