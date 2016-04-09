@@ -4,6 +4,7 @@
     <arg name="publish_solution" default="True" />
 	<param name="map_name" value="$(arg map_name)" />
 	<param name="publish_solution" value="$(arg publish_solution)" />
+    <param name="veh" value="$(arg veh)"/>
 
 	<node
                 ns="$(arg veh)"
