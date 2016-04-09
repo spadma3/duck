@@ -120,7 +120,7 @@ private:
 
   // MEASUREMENT NOISE COVARIANCES
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.1, 0.01));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 0.0));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 1/0.001));
   gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.01));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
   
@@ -189,7 +189,7 @@ poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1),
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), 
-isam2useIMU_(true), isam2useLandmarks_(false), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), isam2useVicon_(true) {
+isam2useIMU_(false), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(true), isam2useVicon_(true) {
 
   gtsam::ISAM2GaussNewtonParams isam2Params_GN;
   isam2Params_GN.setWildfireThreshold(0.0);
@@ -422,8 +422,8 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
       includeIMUfactor();
     }
     // optimizeFactorGraph();
-    // optimizeFactorGraph_GN();
-    optimizeFactorGraph_LM();
+    optimizeFactorGraph_GN();
+    // optimizeFactorGraph_LM();
     visualizeSLAMestimate();
   }
 }
