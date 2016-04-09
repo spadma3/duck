@@ -163,7 +163,7 @@ private:
   void lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr const& msg);
 
   // other auxiliary functions
-  void optimizeFactorGraph();
+  void optimizeFactorGraph_iSAM2();
   void optimizeFactorGraph_GN();
   void optimizeFactorGraph_LM();
   void setVisualizationParameters();
@@ -189,17 +189,26 @@ poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1),
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), 
-isam2useIMU_(false), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(true), isam2useVicon_(true) {
+isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(true), isam2useVicon_(true) {
 
-  gtsam::ISAM2GaussNewtonParams isam2Params_GN;
-  isam2Params_GN.setWildfireThreshold(0.0);
-  iSAM2Params_ = gtsam::ISAM2Params(isam2Params_GN);
+  // gtsam::ISAM2GaussNewtonParams isam2Params_GN;
+  // isam2Params_GN.setWildfireThreshold(0.0);
+  // iSAM2Params_ = gtsam::ISAM2Params(isam2Params_GN);
+  // iSAM2Params_.relinearizeThreshold = 0.0;
+  // iSAM2Params_.relinearizeSkip = 1;
+
+  gtsam::ISAM2DoglegParams dogleg_params;
+  dogleg_params.setWildfireThreshold(0.0);
+  dogleg_params.setVerbose(false); // only for debugging.
+  gtsam::ISAM2Params iSAM2Params_;
+  iSAM2Params_.optimizationParams = dogleg_params; //gauss_newton_params;
   iSAM2Params_.relinearizeThreshold = 0.0;
   iSAM2Params_.relinearizeSkip = 1;
-  // iSAM2Params_.setWildfireThreshold (0.0;
-  // iSAM2Params_.opt
+  //isam_param.enableDetailedResults = true;   // only for debugging.
+  iSAM2Params_.factorization = gtsam::ISAM2Params::QR;
+  //isam_param.evaluateNonlinearError = true;  // only for debugging.
   isam2_ = gtsam::ISAM2(iSAM2Params_);
-  isam2_.print();
+  // isam2_.print();
 
   sub_republishWheelCmd_ = nh_.subscribe("wheels_driver/wheels_cmd", 1, &slam_node::republishWheelsCmdCallback, this);
   pub_republishWheelCmd_ = nh_.advertise<duckietown_msgs::WheelsCmdStamped>("wheelsCmdStamped", 1);
@@ -421,8 +430,8 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     if(isam2useIMU_ == true){
       includeIMUfactor();
     }
-    // optimizeFactorGraph();
-    optimizeFactorGraph_GN();
+    optimizeFactorGraph_iSAM2();
+    // optimizeFactorGraph_GN();
     // optimizeFactorGraph_LM();
     visualizeSLAMestimate();
   }
@@ -665,7 +674,7 @@ void slam_node::lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr cons
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
-void slam_node::optimizeFactorGraph(){
+void slam_node::optimizeFactorGraph_iSAM2(){
   // Update iSAM with the new factors
   isam2_.update(newFactors_, newInitials_);
   // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
