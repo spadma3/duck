@@ -13,7 +13,6 @@ class graph_search_server():
 
         # Inputs
         self.map_name = rospy.get_param('/map_name')
-        self.publish_solution = rospy.get_param('/publish_solution')
 
         # Loading map
         self.script_dir = os.path.dirname(__file__)
@@ -21,7 +20,7 @@ class graph_search_server():
         try:
 	        file2 = open(self.map_path + '.pkl', 'r')
         except IOError:
-	        print "Couldn't find your map:", map_path, ". Closing program..."
+	        print "Couldn't find your map:", self.map_path, ". Closing program..."
 	        sys.exit(0)
 	
         map_data = pickle.load(file2)
@@ -43,10 +42,9 @@ class graph_search_server():
         self.bridge = CvBridge()
 
         # Send graph through publisher
-        if self.publish_solution:
-            self.duckietown_graph.draw(highlight_edges=None, map_name = self.map_name)
-            cv_image = cv2.imread(self.map_path + '.png', cv2.CV_LOAD_IMAGE_COLOR)
-            self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
+        self.duckietown_graph.draw(highlight_edges=None, map_name = self.map_name)
+        cv_image = cv2.imread(self.map_path + '.png', cv2.CV_LOAD_IMAGE_COLOR)
+        self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
 
     def handle_graph_search(self,req):
 	    # Checking if nodes exists
@@ -60,7 +58,7 @@ class graph_search_server():
         path = self.duckietown_problem.astar_search()
 
         # Publish graph solution
-        if path and self.publish_solution:
+        if path:
             self.duckietown_graph.draw(highlight_edges=path.edges(), map_name = self.map_name, highlight_nodes = [req.source_node, req.target_node])
             cv_image = cv2.imread(self.map_path + '.png', cv2.CV_LOAD_IMAGE_COLOR)
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
