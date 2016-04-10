@@ -121,8 +121,13 @@ private:
   double movingAverageOmega_z_;
 
   // MEASUREMENT NOISE COVARIANCES
-  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.1, 0.01));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.001, 1/1.0001));
+  // gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.1, 0.01));
+  // gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.001, 1/1.0001));
+  // gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
+  // gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
+
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.001, 0.001, 0.0001));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.00001, 0.0));
   gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
   
