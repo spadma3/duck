@@ -122,7 +122,7 @@ private:
 
   // MEASUREMENT NOISE COVARIANCES
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.1, 0.01));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 1/1.001));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.001, 1/1.0001));
   gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
   
@@ -426,13 +426,6 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     newInitials_.insert(keyPose_t,newInitials_t);
     // update state
     odomPose_tm1_ = odomPose_t;
-    // debug: visualize odometric pose change
-    duckietown_msgs::Pose2DStamped relativePose_msg;   
-    relativePose_msg.header = msg->header; 
-    relativePose_msg.x = odomPose_tm1_t.x(); 
-    relativePose_msg.y = odomPose_tm1_t.y(); 
-    relativePose_msg.theta = odomPose_tm1_t.theta();
-    pub_odometryCB_.publish(relativePose_msg);
 
     // include IMU factors and optimize
     if(isam2useIMU_ == true){
@@ -442,6 +435,14 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     // optimizeFactorGraph_GN();
     // optimizeFactorGraph_LM();
     visualizeSLAMestimate();
+
+    // debug: visualize odometric pose change
+    duckietown_msgs::Pose2DStamped relativePose_msg;   
+    relativePose_msg.header = msg->header; 
+    relativePose_msg.x = odomPose_tm1_t.x(); 
+    relativePose_msg.y = odomPose_tm1_t.y(); 
+    relativePose_msg.theta = odomPose_tm1_t.theta();
+    pub_odometryCB_.publish(relativePose_msg);
   }
 }
 
