@@ -11,7 +11,7 @@ function varargout = road_annotation(varargin)
 
 % Edit the above text to modify the response to help road_annotation
 
-% Last Modified by GUIDE v2.5 08-Apr-2016 17:01:30
+% Last Modified by GUIDE v2.5 10-Apr-2016 15:18:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -178,6 +178,11 @@ function pushbutton_save_Callback(hObject, eventdata, handles)
 ud=guidata(hObject);
 [FileName,PathName] = uiputfile('*.mat','Select save file name');
 save([PathName,FileName],'ud');
+%fn_save = strsplit(ud.filename, '/');
+%fn_save = ['annotations/' fn_save{end} '.mat'];
+%map = ud.annotations_map;
+%save(fn_save, 'map');
+
 
 % --- Executes on button press in pushbutton_clear.
 function pushbutton_clear_Callback(hObject, eventdata, handles)
@@ -188,3 +193,10 @@ ud=guidata(hObject);
 ud.annotations_map(ud.files_list{ud.file_idx})={};
 ud=update_image(ud);
 guidata(hObject,ud);
+
+
+% --- Executes during object creation, after setting all properties.
+function filename_text_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to filename_text (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
