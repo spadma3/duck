@@ -130,8 +130,13 @@ private:
   gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.00001, 0.0));
   gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
+
+  enum optimizerType {
+    ISAM2, GN, LM
+  };
   
   // FACTOR GRAPH & VALUES
+  optimizerType slamSolver_;
   gtsam::ISAM2 isam2_;
   gtsam::ISAM2Params iSAM2Params_; 
   gtsam::NonlinearFactorGraph newFactors_;
@@ -197,7 +202,7 @@ initializedForwardKinematic_(false), initializedOdometry_(false), initializedChe
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), isam2useVicon_(true),
 isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), 
- isam2useGTInitialLandmarks_(false), isam2useGTInitialOdometry_(true) {
+ isam2useGTInitialLandmarks_(false), isam2useGTInitialOdometry_(true), slamSolver_(ISAM2) {
 
   // gtsam::ISAM2GaussNewtonParams isam2Params_GN;
   // isam2Params_GN.setWildfireThreshold(0.0);
@@ -205,11 +210,12 @@ isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2u
   // iSAM2Params_.relinearizeThreshold = 0.0;
   // iSAM2Params_.relinearizeSkip = 1;
 
-  gtsam::ISAM2DoglegParams dogleg_params;
-  dogleg_params.setWildfireThreshold(0.0);
-  dogleg_params.setVerbose(false); // only for debugging.
+  gtsam::ISAM2DoglegParams params;
+  params.setVerbose(false); // only for debugging.
+  // gtsam::ISAM2GaussNewtonParams params;
+  params.setWildfireThreshold(0.0);
   gtsam::ISAM2Params iSAM2Params_;
-  iSAM2Params_.optimizationParams = dogleg_params; //gauss_newton_params;
+  iSAM2Params_.optimizationParams = params; //gauss_newton_params;
   iSAM2Params_.relinearizeThreshold = 0.0;
   iSAM2Params_.relinearizeSkip = 1;
   //isam_param.enableDetailedResults = true;   // only for debugging.
@@ -439,9 +445,21 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     if(isam2useIMU_ == true){
       includeIMUfactor();
     }
-    optimizeFactorGraph_iSAM2();
-    // optimizeFactorGraph_GN();
-    // optimizeFactorGraph_LM();
+
+    switch(slamSolver_){
+      case ISAM2 : 
+        ROS_WARN("running ISAM2");
+        optimizeFactorGraph_iSAM2();
+        break;
+      case GN : 
+        ROS_WARN("running GN"); 
+        optimizeFactorGraph_GN();
+        break;
+      case LM :  
+        ROS_WARN("running LM");
+        optimizeFactorGraph_LM();
+        break;
+    }
     visualizeSLAMestimate();
 
     // debug: visualize odometric pose change
@@ -704,7 +722,7 @@ void slam_node::optimizeFactorGraph_iSAM2(){
   ROS_WARN("slam error (before n updates): %f", nfg.error(slamEstimate_));
 
   // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
-  for (size_t iter=0;iter<10;iter++){
+  for (size_t iter=0;iter<20;iter++){
     isam2_.update();
   }
   slamEstimate_ = isam2_.calculateEstimate();
