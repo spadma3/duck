@@ -582,7 +582,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       // add factor to nonlinear factor graph
       newFactors_.add(landmarkFactor);
 
-      if(!isam2_.valueExists(key_l)){ // && !newInitials_.exists(key_l)){
+      if( (slamSolver_ == ISAM2 && !isam2_.valueExists(key_l) ) || (!newInitials_.exists(key_l)) ){ 
         // add initial guess for the new landmark pose
         gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
 
@@ -736,16 +736,18 @@ void slam_node::optimizeFactorGraph_iSAM2(){
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::optimizeFactorGraph_GN(){
+  ROS_WARN("slam error (before GN): %f", newFactors_.error(newInitials_));
   slamEstimate_= gtsam::GaussNewtonOptimizer(newFactors_, newInitials_).optimize();
   newInitials_ = slamEstimate_;
-  ROS_WARN("slam error (GN): %f", newFactors_.error(slamEstimate_));
+  ROS_WARN("slam error (after GN): %f", newFactors_.error(slamEstimate_));
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::optimizeFactorGraph_LM(){
+  ROS_WARN("slam error (before LM): %f", newFactors_.error(newInitials_));
   slamEstimate_= gtsam::LevenbergMarquardtOptimizer(newFactors_, newInitials_).optimize();
   newInitials_ = slamEstimate_;
-  ROS_WARN("slam error (LM): %f", newFactors_.error(slamEstimate_));
+  ROS_WARN("slam error (after LM): %f", newFactors_.error(slamEstimate_));
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
