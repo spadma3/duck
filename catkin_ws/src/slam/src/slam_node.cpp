@@ -127,8 +127,8 @@ private:
   // gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
 
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.001, 0.001, 0.0001));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.00001, 0.0));
-  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.00001, 0.0));
+  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.0001));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
 
   enum optimizerType {
@@ -202,7 +202,7 @@ initializedForwardKinematic_(false), initializedOdometry_(false), initializedChe
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), isam2useVicon_(true),
 isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), 
- isam2useGTInitialLandmarks_(false), isam2useGTInitialOdometry_(true), slamSolver_(ISAM2) {
+ isam2useGTInitialLandmarks_(false), isam2useGTInitialOdometry_(false), slamSolver_(ISAM2) {
 
   // gtsam::ISAM2GaussNewtonParams isam2Params_GN;
   // isam2Params_GN.setWildfireThreshold(0.0);
@@ -582,7 +582,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       // add factor to nonlinear factor graph
       newFactors_.add(landmarkFactor);
 
-      if( (slamSolver_ == ISAM2 && !isam2_.valueExists(key_l) ) || (!newInitials_.exists(key_l)) ){ 
+      if( (slamSolver_ == ISAM2 && !isam2_.valueExists(key_l) ) || (slamSolver_ != ISAM2 && !newInitials_.exists(key_l)) ){ 
         // add initial guess for the new landmark pose
         gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
 
