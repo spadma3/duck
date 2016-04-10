@@ -30,7 +30,7 @@ class FSMNode(object):
         self.pub_dict = dict()
         nodes = rospy.get_param("~nodes")
 
-        self.active_nodes = list()
+        self.active_nodes = None
         for node_name, topic_name in nodes.items():
             self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
 
@@ -97,11 +97,15 @@ class FSMNode(object):
         msg.header.stamp = self.state_msg.header.stamp
         active_nodes = self._getActiveNodesOfState(self.state_msg.state)
         for node_name, node_pub in self.pub_dict.items():
-            if (node_name in active_nodes) != (node_name in self.active_nodes):
-                msg.data = bool(node_name in active_nodes)
-                node_state = "ON" if msg.data else "OFF"
-                node_pub.publish(msg)
-                rospy.loginfo("[%s] Node %s set to %s." %(self.node_name, node_name, node_state))
+            if self.active_nodes is not None:
+                if (node_name in active_nodes) == (node_name in self.active_nodes):
+                    continue
+
+            msg.data = bool(node_name in active_nodes)
+            node_state = "ON" if msg.data else "OFF"
+            node_pub.publish(msg)
+            rospy.loginfo("[%s] Node %s set to %s." %(self.node_name, node_name, node_state))
+
         self.active_nodes = copy.deepcopy(active_nodes)
 
     def cbEvent(self,msg,event_name):
