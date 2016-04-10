@@ -192,12 +192,12 @@ int main(int argc, char *argv[])
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
 radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
-poseId_(0), gtSubsampleStep_(25), odomSubsampleStep_(1), 
+poseId_(0), gtSubsampleStep_(10), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), isam2useVicon_(true),
 isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), 
- isam2useGTInitialLandmarks_(true), isam2useGTInitialOdometry_(true) {
+ isam2useGTInitialLandmarks_(false), isam2useGTInitialOdometry_(true) {
 
   // gtsam::ISAM2GaussNewtonParams isam2Params_GN;
   // isam2Params_GN.setWildfireThreshold(0.0);
@@ -420,15 +420,18 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(keyPose_tm1, keyPose_t, odomPose_tm1_t, odomNoise_);
     // add factor to nonlinear factor graph
     newFactors_.add(odometryFactor);
-    // add initial guess for the new pose
-    gtsam::Pose2 newInitials_t = slamEstimate_.at<gtsam::Pose2>(keyPose_tm1).compose(odomPose_tm1_t); // improved pose estimate
 
+    // add initial guess for the new pose
+    if(isam2useIMU_ == true){
+      odomPose_tm1_t = gtsam::Pose2( imuDeltaPose_tm1_t_.theta(), odomPose_tm1_t.t() ); // take rotation from IMU
+    }
+    gtsam::Pose2 newInitials_t = slamEstimate_.at<gtsam::Pose2>(keyPose_tm1).compose(odomPose_tm1_t); // improved pose estimate
     if(isam2useGTInitialOdometry_ == true){
       newInitials_t = gtPose_t_;
       ROS_WARN("using GT initial guess for poses");
     }
-
     newInitials_.insert(keyPose_t,newInitials_t);
+
     // update state
     odomPose_tm1_ = odomPose_t;
 
@@ -556,12 +559,12 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       // TODO: if last pose is far from current one, add a new pose
       // create between factor
       gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
-      gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, // landmarkNoise_);
-        gtsam::noiseModel::Robust::Create(gtsam::noiseModel::mEstimator::Huber::Create(1.345), landmarkNoise_));
+      gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, landmarkNoise_);
+      //  gtsam::noiseModel::Robust::Create(gtsam::noiseModel::mEstimator::Huber::Create(1.345), landmarkNoise_));
       // add factor to nonlinear factor graph
       newFactors_.add(landmarkFactor);
 
-      if(!isam2_.valueExists(key_l) && !newInitials_.exists(key_l)){
+      if(!isam2_.valueExists(key_l)){ // && !newInitials_.exists(key_l)){
         // add initial guess for the new landmark pose
         gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
 
@@ -602,7 +605,8 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
     gtLandmarks_.colors.push_back(color_l);
     pub_viconCB_gtLandmarks_.publish(gtLandmarks_);
     int s = gtLandmarks_.points.size();
-    ROS_WARN("landmarks in gtLandmarks_: %d", s);
+    ROS_WARN("total landmarks observations (in gtLandmarks_): %d", s);
+    ROS_WARN("landmarks count: %d", int(colorMap_.size()));
   } 
 
   if(isam2useLandmarks_ == false){
@@ -692,17 +696,20 @@ void slam_node::lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr cons
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::optimizeFactorGraph_iSAM2(){
+
   // Update iSAM with the new factors
   isam2_.update(newFactors_, newInitials_);
+  slamEstimate_ = isam2_.calculateEstimate();
+  gtsam::NonlinearFactorGraph nfg = isam2_.getFactorsUnsafe();
+  ROS_WARN("slam error (before n updates): %f", nfg.error(slamEstimate_));
+
   // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
   for (size_t iter=0;iter<10;iter++){
     isam2_.update();
   }
-
   slamEstimate_ = isam2_.calculateEstimate();
 
-  gtsam::NonlinearFactorGraph nfg = isam2_.getFactorsUnsafe();
-  ROS_WARN("slam error: %f", nfg.error(slamEstimate_));
+  ROS_WARN("slam error (after n updates): %f", nfg.error(slamEstimate_));
   
   // Clear the factor graph and values for the next iteration
   newFactors_.resize(0);
