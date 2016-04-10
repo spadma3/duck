@@ -102,6 +102,8 @@ private:
   bool isam2useLandmarks_;
   bool isam2useGTLandmarks_;
   bool isam2useGTOdometry_; 
+  bool isam2useGTInitialLandmarks_;
+  bool isam2useGTInitialOdometry_;
 
   geometry_msgs::Pose2D odomPose_; // 2D pose obtained by integrating odometry till time t
   double tm1_odom_; // last time we acquired an odometry measurement
@@ -120,8 +122,8 @@ private:
 
   // MEASUREMENT NOISE COVARIANCES
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.1, 0.1, 0.01));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 1/0.001));
-  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.01));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 1/1.001));
+  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
   
   // FACTOR GRAPH & VALUES
@@ -185,11 +187,12 @@ int main(int argc, char *argv[])
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
 radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
-poseId_(0), gtSubsampleStep_(50), odomSubsampleStep_(1), 
+poseId_(0), gtSubsampleStep_(25), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), 
-isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), isam2useVicon_(true) {
+estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), isam2useVicon_(true),
+isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), 
+ isam2useGTInitialLandmarks_(true), isam2useGTInitialOdometry_(true) {
 
   // gtsam::ISAM2GaussNewtonParams isam2Params_GN;
   // isam2Params_GN.setWildfireThreshold(0.0);
@@ -394,6 +397,8 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     // insertedAnchor_ = true;
     gtsam::Pose2 odomPose_tm1_t(msg->theta, gtsam::Point2(msg->x, msg->y));  
   }else{
+    // insert new pose
+    poseId_ += 1;
     // compute relative pose from wheel odometry
     gtsam::Pose2 odomPose_t(msg->theta, gtsam::Point2(msg->x, msg->y)); // odometric pose at time t
     gtsam::Pose2 odomPose_tm1_t = odomPose_tm1_.between(odomPose_t); // relative pose between t-1 and t
@@ -404,9 +409,6 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     gtPose_t_ = gtPose_latest_;
 
     // TODO: add condition that there is enough displacement
-
-    // key of the new pose to be inserted in the factor graph
-    poseId_ += 1;
     gtsam::Key keyPose_tm1 = gtsam::Symbol('X', poseId_-1); 
     gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
     // create between factor
@@ -415,6 +417,12 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     newFactors_.add(odometryFactor);
     // add initial guess for the new pose
     gtsam::Pose2 newInitials_t = slamEstimate_.at<gtsam::Pose2>(keyPose_tm1).compose(odomPose_tm1_t); // improved pose estimate
+
+    if(isam2useGTInitialOdometry_ == true){
+      newInitials_t = gtPose_t_;
+      ROS_WARN("using GT initial guess for poses");
+    }
+
     newInitials_.insert(keyPose_t,newInitials_t);
     // update state
     odomPose_tm1_ = odomPose_t;
@@ -528,7 +536,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       if(!gtLandmarkPoses_.exists(key_l)){ // first time we observe that landmark
         gtsam::Pose2 gtPoseLandmark_l = gtPose_t_.compose(localLandmarkPose);
         gtLandmarkPoses_.insert(key_l, gtPoseLandmark_l);
-        ROS_WARN("inserted gt landmark");
+        // ROS_WARN("inserted gt landmark");
       }else{
         gtsam::Pose2 gtPoseLandmark_l = gtLandmarkPoses_.at<gtsam::Pose2>(key_l);
         // compute relative pose and set that to be the measurement
@@ -550,6 +558,11 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       if(!isam2_.valueExists(key_l) && !newInitials_.exists(key_l)){
         // add initial guess for the new landmark pose
         gtsam::Pose2 newInitials_l = slamEstimate_.at<gtsam::Pose2>(keyPose_t).compose(localLandmarkPose);
+
+        if(isam2useGTInitialLandmarks_ == true){
+          newInitials_l = gtLandmarkPoses_.at<gtsam::Pose2>(key_l);
+          ROS_WARN("using GT initial guess for landmarks");
+        }
         newInitials_.insert(key_l,newInitials_l);
         // TODO: try to use landmark rotations later on
         // gtsam::noiseModel::Diagonal::shared_ptr landmarkPriorNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0, 0, 10));
@@ -558,7 +571,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       }else{
         ROS_ERROR("landmarks error: id %d, error=%f",  id_l, landmarkFactor.error(slamEstimate_));
       }
-    } // end if isam2useLandmarks_
+    } // end if isam2useLandmarks_ 
 
     // visualize landmark position using vicon pose
     gtsam::Pose2 gtInitials_l = gtPose_t_.compose(localLandmarkPose);
@@ -568,9 +581,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
     std_msgs::ColorRGBA color_l;
     auto search = colorMap_.find(id_l);
     if(search != colorMap_.end()) {
-      // we found the key
-      color_l = search->second;
-      // ROS_ERROR("found");
+      color_l = search->second; // we found the key
     }
     else{
       double cr = (double)rand()/ (double)RAND_MAX; // random number in [0,1]
@@ -678,7 +689,7 @@ void slam_node::optimizeFactorGraph_iSAM2(){
   // Update iSAM with the new factors
   isam2_.update(newFactors_, newInitials_);
   // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
-  for (size_t iter=0;iter<5;iter++){
+  for (size_t iter=0;iter<10;iter++){
     isam2_.update();
   }
 
