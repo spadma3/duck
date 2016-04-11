@@ -84,7 +84,7 @@ void DuckieRosDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     gazebo_ros_->getParameter<std::string> ( odometry_topic_, "odometryTopic", "odom" );
     gazebo_ros_->getParameter<std::string> ( odometry_frame_, "odometryFrame", "odom" );
     gazebo_ros_->getParameter<std::string> ( robot_base_frame_, "robotBaseFrame", "base_footprint" );
-    gazebo_ros_->getParameter<std::string> ( robot_light_frame_, "lightFrame", "user_spot_light_1" );
+    //gazebo_ros_->getParameter<std::string> ( robot_light_frame_, "lightFrame", "user_spot_light_1" );
 
     gazebo_ros_->getParameterBoolean ( publishWheelTF_, "publishWheelTF", false );
     gazebo_ros_->getParameterBoolean ( publishWheelJointState_, "publishWheelJointState", false );
@@ -177,7 +177,7 @@ void DuckieRosDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     node = transport::NodePtr(new gazebo::transport::Node());
     node->Init();
     
-    light_publisher_ = node->Advertise<msgs::Light>("/gazebo/default/light");
+    //light_publisher_ = node->Advertise<msgs::Light>("/gazebo/default/light");
     //light_publisher_->WaitForConnection();
 }
 
@@ -439,6 +439,7 @@ void DuckieRosDiffDrive::publishOdometry ( double step_time )
 
     odometry_publisher_.publish ( odom_ );
 
+    /** publishes the new position of the light that is attached to the robot 
     math::Pose pose; 
     pose.rot.x =qt.x(); pose.rot.y =qt.y(); pose.rot.z =qt.z(); pose.rot.w =qt.w();
     pose.pos.x =vt.x(); pose.pos.y =vt.y(); pose.pos.y =vt.z();
@@ -447,7 +448,7 @@ void DuckieRosDiffDrive::publishOdometry ( double step_time )
     msg.set_name(robot_light_frame_);
     msgs::Set(msg.mutable_pose(), pose);
 
-    light_publisher_->Publish(msg);
+    light_publisher_->Publish(msg); **/
 }
 
 GZ_REGISTER_MODEL_PLUGIN ( DuckieRosDiffDrive )

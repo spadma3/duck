@@ -23,5 +23,10 @@
   <include file="$(find fake_behavior)/launch/start.launch" >
   	<arg name="robot_name" value="$(arg veh)"/>
   </include>
+  
+  <!-- launch the fake_navigation -->
+  <include file="$(find fake_navigation)/launch/start.launch" >
+  	<arg name="robot_name" value="$(arg veh)"/>
+  </include>
 
 </launch>
