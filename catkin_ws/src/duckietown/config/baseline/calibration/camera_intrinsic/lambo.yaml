@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [323.6115398724151, 0.0, 316.1627318840013, 0.0, 325.6138866367888, 226.9323472514002,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: lambo/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.2838693070705171, 0.05697280924186802, 0.0006425439029982242, 0.002815413192674664,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [223.7901611328125, 0.0, 318.9408256750903, 0.0, 0.0, 259.4793395996094, 219.07717734567268,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
