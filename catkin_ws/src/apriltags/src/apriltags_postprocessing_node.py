@@ -93,6 +93,7 @@ class AprilPostPros(object):
             camera_z     = 0.1   # height of camera from ground
             camera_theta = 15    # degree of rotation arround y axis
             """
+            scale        = rospy.get_param("~scale")
             camera_x     = rospy.get_param("~camera_x")
             camera_y     = rospy.get_param("~camera_y")
             camera_z     = rospy.get_param("~camera_z")
@@ -105,6 +106,9 @@ class AprilPostPros(object):
             z = detection.transform.translation.z
             
             t_tc_Fc = k.Vector( x , y , z ) # translation tags(t) w/ camera(c) expressed in camera frame (Fc)
+            
+            # Scale for april tag size
+            t_tc_Fc = t_tc_Fc * scale
             
             #Load rotation
             x = detection.transform.rotation.x
