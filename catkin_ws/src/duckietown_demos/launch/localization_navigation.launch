@@ -1,0 +1,25 @@
+<launch>
+    <arg name="local" value="false"/>
+    <arg name="veh" value="amadobot" />
+
+    <!-- duckietown_description -->
+    <include file="$(find duckietown_description)/launch/duckietown_description_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="map_name" value="map_4E" />
+    </include>
+
+    <!-- apriltags -->
+    <include file="$(find duckietown)/launch/apriltags.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
+
+    <!-- joystick -->
+    <include file="$(find duckietown)/launch/joystick.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
+
+    <!-- localization -->
+    <include file="$(find localization)/launch/localization_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
+</launch>

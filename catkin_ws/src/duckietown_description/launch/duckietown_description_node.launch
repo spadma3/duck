@@ -7,7 +7,7 @@
     <group ns="$(arg veh)">
         <param name="robot_description" command="$(find xacro)/xacro '$(find duckietown_description)/urdf/$(arg map_name).urdf.xacro'" />
         <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
-        <node if="$(arg gui)" name="rviz" pkg="rviz" type="rviz" args="-d $(find duckietown_description)/rviz/map.rviz" />
+        <node if="$(arg gui)" name="rviz" pkg="rviz" type="rviz" args="-d $(find duckietown_description)/rviz/map_tmp.rviz" />
 
         <param name="duckiebot_description" command="$(find xacro)/xacro '$(find duckietown_description)/urdf/duckiebot.urdf.xacro'" />
         <node name="duckiebot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />

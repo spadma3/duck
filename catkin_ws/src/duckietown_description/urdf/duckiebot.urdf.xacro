@@ -2,8 +2,9 @@
 <robot name="duckiebot" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <link name="duckiebot">
         <visual>
+            <origin xyz="0 0 0.04" />
             <geometry>
-                <box size="0.3 0.3 0.3" />
+                <mesh filename="package://duckietown_description/urdf/meshes/duckiebot.dae" />
             </geometry>
         </visual>
     </link>
