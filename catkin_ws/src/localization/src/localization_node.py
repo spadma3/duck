@@ -41,7 +41,7 @@ class LocalizationNode(object):
                     Mt_w=self.transform_to_matrix(Tt_w.transform)
                     Mt_r=self.transform_to_matrix(tag.transform)
                     Mr_t=np.linalg.inv(Mt_r)
-                    Mr_w=np.dot(Mt_w,Mr_t)
+                    Mr_w=np.dot(Mr_t,Mt_w)
                     Tr_w = self.matrix_to_transform(Mr_w)
                     avg.add_pose(Tr_w)
                 except(tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
@@ -49,12 +49,13 @@ class LocalizationNode(object):
 
         Tr_w =  avg.get_average() # Average of the opinions
         # Broadcast the robot transform
-        T = TransformStamped()
-        T.transform = Tr_w
-        T.header.frame_id = "world"
-        T.header.stamp = rospy.Time.now()
-        T.child_frame_id = "duckiebot"
-        self.pub_tf.publish(TFMessage([T]))
+        if Tr_w is not None:
+            T = TransformStamped()
+            T.transform = Tr_w
+            T.header.frame_id = "world"
+            T.header.stamp = rospy.Time.now()
+            T.child_frame_id = "duckiebot"
+            self.pub_tf.publish(TFMessage([T]))
 
     def transform_to_matrix(self, T):
         # Return the 4x4 homogeneous matrix for a TransformStamped.msg T from the geometry_msgs

@@ -16,7 +16,7 @@ class PoseAverage(object):
         translation_in = transform_in.translation
         self.translation = [(self.translation[0]*(self.n - 1) + translation_in.x)/self.n,\
                             (self.translation[1]*(self.n - 1) + translation_in.y)/self.n,\
-                            (self.translation[2]*(self.n - 1) + translation_in.z)/self.n]
+                            0]#(self.translation[2]*(self.n - 1) + translation_in.z)/self.n]
         rotation_in = transform_in.rotation
         quaternion = (rotation_in.x, rotation_in.y, rotation_in.z, rotation_in.w)
         theta_in = tr.euler_from_quaternion(quaternion)[2]
