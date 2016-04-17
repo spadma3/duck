@@ -15,7 +15,7 @@
         <arg name="live" value="$(arg live)"/>
     </include>
 
-	<remap from="static_object_detector_node/image_compressed" to="camera_node/image/compressed"/>
+	<remap from="~image_raw" to="camera_node/image/compressed"/>
 	<include file="$(find mdoap)/launch/static_object_detector_node.launch">
 	    <arg name="veh" value="$(arg veh)"/>
 	    <arg name="local" value="$(arg local)"/>

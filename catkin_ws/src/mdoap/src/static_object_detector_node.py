@@ -2,12 +2,13 @@
 import cv2
 import numpy as np
 import rospy
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image,CompressedImage
 from std_msgs.msg import Float32
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import ObstacleImageDetection, ObstacleImageDetectionList, ObstacleType, Rect, BoolStamped
 import sys
 import threading
+from duckietown_utils.jpg import image_cv_from_jpg
 
 
 class Matcher:
@@ -128,7 +129,7 @@ class StaticObjectDetectorNode:
         self.tm = Matcher()
         self.active = True
         self.thread_lock = threading.Lock()
-        self.sub_image = rospy.Subscriber("~image_raw", Image, self.cbImage, queue_size=1)
+        self.sub_image = rospy.Subscriber("~image_raw", CompressedImage, self.cbImage, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         self.pub_image = rospy.Publisher("~cone_detection_image", Image, queue_size=1)
         self.pub_detections_list = rospy.Publisher("~detection_list", ObstacleImageDetectionList, queue_size=1)
@@ -150,8 +151,9 @@ class StaticObjectDetectorNode:
         if not self.thread_lock.acquire(False):
             return
         try:
-            image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
-        except CvBridgeErrer as e:
+            image_cv = image_cv_from_jpg(image_msg.data)
+            #image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
+        except CvBridgeError as e:
             print e
         img, detections = self.tm.contour_match(image_cv)
         detections.header.stamp = image_msg.header.stamp
