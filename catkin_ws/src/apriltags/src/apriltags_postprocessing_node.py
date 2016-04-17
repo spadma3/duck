@@ -93,6 +93,8 @@ class AprilPostPros(object):
             camera_z     = 0.1   # height of camera from ground
             camera_theta = 15    # degree of rotation arround y axis
             """
+
+            # THIS SHOULD COME FROM EXTRINSIC CAMERA PARAMS
             camera_x     = rospy.get_param("~camera_x")
             camera_y     = rospy.get_param("~camera_y")
             camera_z     = rospy.get_param("~camera_z")
