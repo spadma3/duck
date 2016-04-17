@@ -2,12 +2,13 @@
 import cv2
 import numpy as np
 import rospy
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image,CompressedImage
 from std_msgs.msg import Float32
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import ObstacleImageDetection, ObstacleImageDetectionList, ObstacleType, Rect, BoolStamped
 import sys
 import threading
+from duckietown_utils.jpg import image_cv_from_jpg
 
 
 class Matcher:
@@ -15,10 +16,11 @@ class Matcher:
     DUCK = [np.array(x, np.uint8) for x in [[25,100,150], [35, 255, 255]] ]
     terms = {ObstacleType.CONE :"cone", ObstacleType.DUCKIE:"duck"}
     def __init__(self):
-        self.cone_color_low = self.setupParam("~cone_low", [0,80,80])
+        self.cone_color_low = self.setupParam("~cone_low", [7,120,120])
         self.cone_color_high = self.setupParam("~cone_high", [22, 255,255])
         self.duckie_color_low = self.setupParam("~duckie_low", [25, 100, 150])
         self.duckie_color_high = self.setupParam("~duckie_high", [35, 255,255])
+        self.cone_color_low = [12,120,120]
         self.CONE = [np.array(x, np.uint8) for x in [self.cone_color_low, self.cone_color_high] ]
         self.DUCK = [np.array(x, np.uint8) for x in [self.duckie_color_low, self.duckie_color_high] ]
 
@@ -58,9 +60,14 @@ class Matcher:
             x,y,w,h = cv2.boundingRect(cnt)
             box = (x,y,w,h)
             d =  0.5*(x-width/2)**2 + (y-height)**2 
-            if not(h>15 and w >15 and d  < 120000):
+            if not(h>15 and w >10 and h<200 and w< 200 and d< 120000):
                     continue
             if contour_type =="DUCK_COLOR": # extra filtering to remove lines
+                if not(h>25 and w>25):
+                    continue
+                if d>90000:
+                    if not(h>40 and w>40):
+                        continue
                 if cv2.contourArea(cnt)==0:
                     continue
                 val = cv2.arcLength(cnt,True)**2/ cv2.contourArea(cnt)
@@ -128,7 +135,7 @@ class StaticObjectDetectorNode:
         self.tm = Matcher()
         self.active = True
         self.thread_lock = threading.Lock()
-        self.sub_image = rospy.Subscriber("~image_raw", Image, self.cbImage, queue_size=1)
+        self.sub_image = rospy.Subscriber("~image_raw", CompressedImage, self.cbImage, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         self.pub_image = rospy.Publisher("~cone_detection_image", Image, queue_size=1)
         self.pub_detections_list = rospy.Publisher("~detection_list", ObstacleImageDetectionList, queue_size=1)
@@ -150,8 +157,9 @@ class StaticObjectDetectorNode:
         if not self.thread_lock.acquire(False):
             return
         try:
-            image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
-        except CvBridgeErrer as e:
+            image_cv = image_cv_from_jpg(image_msg.data)
+            #image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
+        except CvBridgeError as e:
             print e
         img, detections = self.tm.contour_match(image_cv)
         detections.header.stamp = image_msg.header.stamp
