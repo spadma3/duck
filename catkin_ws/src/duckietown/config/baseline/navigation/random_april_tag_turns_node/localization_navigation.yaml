@@ -1,0 +1,4 @@
+# default parameters for navigation/random_april_tag_turns_node
+
+run_without_dispatcher: False
+trigger_mode: DECIDE_TURN_RANDOM

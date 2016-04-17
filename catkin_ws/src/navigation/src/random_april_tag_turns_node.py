@@ -23,6 +23,8 @@ class RandomAprilTagTurnsNode(object):
        
 
         # Read parameters
+        self.trigger_mode = self.setupParameter("~trigger_mode","INTERSECTION_CONTROL")
+        self.run_without_dispatcher = self.setupParameter("~run_without_dispatcher", True)
         self.pub_timestep = self.setupParameter("~pub_timestep",1.0)
         # Create a timer that calls the cbTimer function every 1.0 second
         #self.timer = rospy.Timer(rospy.Duration.from_sec(self.pub_timestep),self.cbTimer)
@@ -34,13 +36,13 @@ class RandomAprilTagTurnsNode(object):
     def cbMode(self, mode_msg):
         #print mode_msg
         self.fsm_mode = mode_msg.state
-        if(self.fsm_mode != mode_msg.INTERSECTION_CONTROL):
+        if((self.fsm_mode != self.trigger_mode) and self.run_without_dispatcher):
             self.turn_type = -1
             self.pub_turn_type.publish(self.turn_type)
             rospy.loginfo("Turn type now: %i" %(self.turn_type))
             
     def cbTag(self, tag_msgs):
-        if(self.fsm_mode == FSMState.INTERSECTION_CONTROL):
+        if(self.fsm_mode == self.trigger_mode):
             #loop through list of april tags
             for taginfo in tag_msgs.infos:
                 print taginfo
