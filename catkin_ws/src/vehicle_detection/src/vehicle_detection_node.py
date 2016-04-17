@@ -97,24 +97,14 @@ class VehicleDetectionNode(object):
 					blobDetector=simple_blob_detector)
 			elapsed_time = (rospy.Time.now() - start).to_sec()
 			self.pub_time_elapsed.publish(elapsed_time)
-			cv2.drawChessboardCorners(image_cv, 
-					self.circlepattern_dims, corners, detection)
-			image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
-			self.pub_circlepattern_image.publish(image_msg_out)
-			if not detection:
-				corners_msg_out.detection.data = False
-				self.pub_corners.publish(corners_msg_out)
-				elapsed_time = (rospy.Time.now() - start).to_sec()
-				self.pub_time_elapsed.publish(elapsed_time)
-				self.lock.unlock()
-				return
-			corners_msg_out.detection.data = True
-			(corners_msg_out.H, corners_msg_out.W) = self.circlepattern_dims
-			for i in np.arange(corners.shape[0]):
-				p = Point32()
-				p.x, p.y = corners[i][0]
-				corners_msg_out.corners.append(deepcopy(p))
+			#cv2.drawChessboardCorners(image_cv, 
+			#		self.circlepattern_dims, corners, detection)
+			#image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
+			#self.pub_circlepattern_image.publish(image_msg_out)
+			corners_msg_out.detection.data = detection
 			self.pub_corners.publish(corners_msg_out)
+			elapsed_time = (rospy.Time.now() - start).to_sec()
+			self.pub_time_elapsed.publish(elapsed_time)
 			self.lock.unlock()
 
 if __name__ == '__main__': 
