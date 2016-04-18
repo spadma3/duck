@@ -9,6 +9,8 @@ from navigation.srv import *
 
 class graph_search_server():
     def __init__(self):
+        self.node_name = "graph_search_server_node"
+
         print 'Graph Search Service Started'
 
         # Inputs

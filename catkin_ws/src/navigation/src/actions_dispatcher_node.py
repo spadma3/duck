@@ -2,81 +2,86 @@
 
 import sys
 import rospy
-from navigation.srv import *
-from duckietown_msgs.msg import FSMState, SourceTargetNodes
+from duckietown_msgs.msg import FSMState, BoolStamped
 from std_msgs.msg import Int16, String
 
 class ActionsDispatcherNode():
     def __init__(self):
+        self.node_name = "actions_dispatcher_node"
 
         #adding logic because FSM publishes our state at a high rate
         #not just everytime the mode changes but multiple times in each mode
         self.first_update = True
 
-        self.actions = []
-        self.mode = 'JOYSTICK_CONTROL'
+        self.next_turn = -1
+        self.random_turn = -2
+        self.path_turn = -2
+        self.fsm_mode = 'JOYSTICK_CONTROL'
+
+        # Parameters:
+        self.random_trigger_mode = self.setupParameter("~random_trigger_mode","DECIDE_TURN_RANDOM")
+        self.mission_trigger_mode = self.setupParameter("~mission_trigger_mode","DECIDE_TURN_PATH_PLAN")
+        self.self_trigger_mode = self.setupParameter("~self_trigger_mode","INTERSECTION_CONTROL")
 
         # Subscribers:
-        self.sub_mode = rospy.Subscriber("~mode", FSMState, self.updateMode, queue_size = 1)
-        self.sub_plan_request = rospy.Subscriber("~plan_request", SourceTargetNodes, self.graph_search)
+        self.sub_mode = rospy.Subscriber("~fsm_mode", FSMState, self.updateMode, queue_size = 1)
+        self.sub_random_turn_type = rospy.Subscriber("~random_turn_type", Int16, self.updateTurnTypeRandom)
+        self.sub_plan_turn_type = rospy.Subscriber("~plan_turn_type", Int16, self.updateTurnTypePlan)
 
         # Publishers:
         self.pub = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
-        self.pubList = rospy.Publisher("~turn_plan", String, queue_size=1, latch=True)
+        self.pub_turn_decided = rospy.Publisher("~turn_decided", BoolStamped, queue_size=1, latch=True)
+
+    def setupParameter(self,param_name,default_value):
+        value = rospy.get_param(param_name,default_value)
+        rospy.set_param(param_name,value) #Write to parameter server for transparancy
+        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
+        return value
 
     def updateMode(self, data):
-        self.mode = data.state
+        self.fsm_mode = data.state
+        self.updateNextTurn()
         self.dispatcher()
 
+    def updateTurnTypeRandom(self, msg):
+        self.random_turn = msg.data
+        self.updateNextTurn()
+
+    def updateTurnTypePlan(self, msg):
+        self.path_turn = msg.data
+        self.updateNextTurn()
+
+    def updateNextTurn(self):
+        if self.fsm_mode == self.random_trigger_mode and self.random_turn != -2:
+            self.next_turn = self.random_turn
+            self.dispatcher()
+            self.pubTurnDecided()
+        elif self.fsm_mode == self.mission_trigger_mode and self.path_turn != -2:
+            self.next_turn = self.path_turn
+            self.dispatcher()
+            self.pubTurnDecided()
+
+    def pubTurnDecided(self):
+        msg = BoolStamped()
+        msg.data = True
+        self.pub_turn_decided.publish(msg)
+
     def dispatcher(self):
-        if self.first_update == False and self.mode != 'INTERSECTION_CONTROL':
+        if self.first_update == False and self.fsm_mode != self.self_trigger_mode:
             self.first_update = True
 
-        if self.first_update == True and self.mode == 'INTERSECTION_CONTROL' and self.actions:
+        if self.first_update == True and self.fsm_mode == self.self_trigger_mode:
             # Allow time for open loop controller to update state and allow duckiebot to stop at redline:
             rospy.sleep(2)
         
             # Proceed with action dispatching:
-            action = self.actions.pop(0)
-            print 'Dispatched:', action
-            if action == 's':
-                self.pub.publish(Int16(1))
-            elif action == 'r':
-                self.pub.publish(Int16(2))
-            elif action == 'l':
-                self.pub.publish(Int16(0))
-            elif action == 'w':
-                self.pub.publish(Int16(-1))    
-    
-            action_str = ''
-            for letter in actions:
-                action_str += letter
-
-            self.pubList.publish(action_str)
+            print 'Dispatched:', self.next_turn
+            self.pub.publish(Int16(self.next_turn))
             self.firstUpdate = False
-
-    def graph_search(self, data):
-        print 'Requesting map for src: ', data.source_node, ' and target: ', data.target_node
-        rospy.wait_for_service('graph_search')
-        try:
-            graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
-            resp = graph_search(data.source_node, data.target_node)
-            self.actions = resp.actions
-            if self.actions:
-                # remove 'f' (follow line) from actions and add wait action in the end of queue
-                self.actions = [x for x in self.actions if x != 'f']
-                self.actions.append('w')
-                print 'Actions to be executed:', self.actions
-                action_str = ''
-                for letter in self.actions:
-                    action_str += letter
-                self.pubList.publish(action_str)
-                self.dispatcher()
-            else:
-                print 'Actions to be executed:', self.actions
-
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+            self.random_turn = -2
+            self.path_turn = -2
+        elif self.fsm_mode != self.self_trigger_mode:
+            self.pub.publish(Int16(-1))
 
     def onShutdown(self):
         rospy.loginfo("[ActionsDispatcherNode] Shutdown.")

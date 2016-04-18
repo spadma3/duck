@@ -1,0 +1,4 @@
+
+random_trigger_mode: DECIDE_TURN_RANDOM
+mission_trigger_mode: DECIDE_TURN_PATH_PLAN
+self_trigger_mode: INTERSECTION_CONTROL

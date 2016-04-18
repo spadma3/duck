@@ -500,29 +500,38 @@
 			<remap from="open_loop_intersection_control_node/mode" to="fsm_node/mode"/>
 			<remap from="open_loop_intersection_control_node/lane_pose" to="lane_filter_node/lane_pose"/>
 			<remap from="open_loop_intersection_control_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading"/>
+            <remap from="open_loop_intersection_control_node/turn_type" to="actions_dispatcher_node/turn_type"/>
+            <remap from="actions_dispatcher_node/fsm_mode" to="fsm_node/mode"/>
+            <remap from="actions_dispatcher_node/random_turn_type" to="random_april_tag_turns_node/turn_type"/>
+            <remap from="actions_dispatcher_node/plan_turn_type" to="mission_planner_node/turn_type"/>
+
 			<include file="$(find intersection_control)/launch/open_loop_intersection_controller_node.launch">
 				<arg name="veh" value="$(arg veh)"/>        
 				<arg name="config" value="$(arg config)"/>        
 				<arg name="param_file_name" value="$(arg param_file_name)"/>        
 			</include>
+
+	        <include file="$(find navigation)/launch/actions_dispatcher_node.launch">
+ 				<arg name="veh" value="$(arg veh)"/>        
+				<arg name="config" value="$(arg config)"/>        
+				<arg name="param_file_name" value="$(arg fsm_file_name)"/>        
+        	</include>
 		</group>
 
 		<group if="$(arg /navigation/apriltags_random)">
 			<!-- random april tags -->
 			<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
 			<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_global_node/apriltags_out"/>
-			<remap from="random_april_tag_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/> <!-- remapping outputs since there are two different possible turn types -->
 
 			<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
 				<arg name="veh" value="$(arg veh)"/>        
 				<arg name="config" value="$(arg config)"/>        
-				<arg name="param_file_name" value="$(arg param_file_name)"/>        
+				<arg name="param_file_name" value="$(arg fsm_file_name)"/>
 			</include>
 		</group>
 
 		<group if="$(arg /navigation/graph_planner)">
-			<remap from="actions_dispatcher_node/mode" to="fsm_node/mode" />
-			<remap from="actions_dispatcher_node/turn_type" to="open_loop_intersection_control_node/turn_type" /> <!-- remapping outputs since there are two different possible turn types -->
+            <remap from="mission_planner_node/fsm_mode" to="fsm_node/mode">
 
 			<include file="$(find navigation)/launch/graph_search_server_node.launch">
 				<arg name="map_name" value="$(arg map_name)"/>        
@@ -531,11 +540,12 @@
 				<arg name="param_file_name" value="$(arg param_file_name)"/>        
 			</include>
 
-	        	<include file="$(find navigation)/launch/actions_dispatcher_node.launch">
- 				<arg name="veh" value="$(arg veh)"/>        
+            <include file="$(find navigation)/launch/mission_planner_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>        
-				<arg name="param_file_name" value="$(arg param_file_name)"/>        
-        		</include>
+				<arg name="param_file_name" value="$(arg fsm_file_name)"/>        
+            </include>
+
 		</group>
 		
 	</group>

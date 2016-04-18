@@ -1,0 +1,3 @@
+
+trigger_mode: DECIDE_TURN_PATH_PLAN
+use_localization: False

@@ -1,0 +1,4 @@
+
+random_trigger_mode: INTERSECTION_CONTROL
+mission_trigger_mode: None
+self_trigger_mode: INTERSECTION_CONTROL

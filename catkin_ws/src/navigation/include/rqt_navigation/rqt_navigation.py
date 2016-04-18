@@ -31,7 +31,7 @@ class RQTNavigation(Plugin):
 
         # ROS stuff
         self.veh = rospy.get_param('/veh')
-        self.topic_name = '/' + self.veh + '/actions_dispatcher_node/plan_request'
+        self.topic_name = '/' + self.veh + '/mission_planner_node/plan_request'
         self.pub = rospy.Publisher(self.topic_name,SourceTargetNodes, queue_size = 1, latch=True)
         self._widget.buttonFindPlan.clicked.connect(self.requestPlan)
 
