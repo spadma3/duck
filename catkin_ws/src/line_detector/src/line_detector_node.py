@@ -102,14 +102,22 @@ class LineDetectorNode(object):
         if not self.active:
             return
 
-        if False:
+        use_thread = False
+        if use_thread:
             # Start a daemon thread to process the image
             thread = threading.Thread(target=self.processImage, args=(image_msg,))
             thread.setDaemon(True)
             thread.start()
             # Returns right away
         else:
-            self.processImage_(image_msg)
+            t_acquisition = image_msg.header.stamp.to_sec()
+            age = time.time() - t_acquisition
+            # do not process if image older than 100ms
+            age_limit = 0.1
+            if age > age_limit:
+                self.stats.skipped()
+            else:
+                self.processImage_(image_msg)
 
     def processImage(self, image_msg):
         if not self.thread_lock.acquire(False):
