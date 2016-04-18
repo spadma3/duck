@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from duckietown_msgs.msg import Twist2DStamped, VehiclePose, BoolStamped
+from duckietown_msgs.msg import Twist2DStamped, VehiclePose, BoolStamped, VehicleCorners
 
 import os
 import rospkg
@@ -25,8 +25,8 @@ class VehicleAvoidanceControlNode(object):
 				Twist2DStamped, queue_size = 1)
 		self.vehicle_detected_pub = rospy.Publisher("~vehicle_detected",
 				BoolStamped, queue_size=1)
-		self.subscriber = rospy.Subscriber("~vehicle_pose",
-				VehiclePose, self.callback,  queue_size = 1)
+		self.subscriber = rospy.Subscriber("~vehicle_circles",
+				VehicleCorners, self.callback,  queue_size = 1)
 
 	def setupParam(self, param_name, default_value):
 		value = rospy.get_param(param_name, default_value)
