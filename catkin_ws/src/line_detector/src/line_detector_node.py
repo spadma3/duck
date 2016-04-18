@@ -206,33 +206,33 @@ class LineDetectorNode(object):
 
         # Publish segmentList
         self.pub_lines.publish(segmentList)
-        tk.completed('--pub_lines--')
+        tk.completed('pub_lines')
 
         # VISUALIZATION only below
-        
-        # Draw lines and normals
-        image_with_lines = np.copy(image_cv_corr)
-        drawLines(image_with_lines, white.lines, (0, 0, 0))
-        drawLines(image_with_lines, yellow.lines, (255, 0, 0))
-        drawLines(image_with_lines, red.lines, (0, 255, 0))
-
-        tk.completed('drawn')
-
-        # Publish the frame with lines
-        image_msg_out = self.bridge.cv2_to_imgmsg(image_with_lines, "bgr8")
-        image_msg_out.header.stamp = image_msg.header.stamp
-        self.pub_image.publish(image_msg_out)
-
-        tk.completed('pub_image')
-
         if self.verbose:
-            colorSegment = color_segment(white.area, red.area, yellow.area) 
+
+            # Draw lines and normals
+            image_with_lines = np.copy(image_cv_corr)
+            drawLines(image_with_lines, white.lines, (0, 0, 0))
+            drawLines(image_with_lines, yellow.lines, (255, 0, 0))
+            drawLines(image_with_lines, red.lines, (0, 255, 0))
+
+            tk.completed('*drawn')
+
+            # Publish the frame with lines
+            image_msg_out = self.bridge.cv2_to_imgmsg(image_with_lines, "bgr8")
+            image_msg_out.header.stamp = image_msg.header.stamp
+            self.pub_image.publish(image_msg_out)
+
+            tk.completed('*pub_image')
+
+            colorSegment = color_segment(white.area, red.area, yellow.area)
             edge_msg_out = self.bridge.cv2_to_imgmsg(self.detector.edges, "mono8")
             colorSegment_msg_out = self.bridge.cv2_to_imgmsg(colorSegment, "bgr8")
             self.pub_edge.publish(edge_msg_out)
             self.pub_colorSegment.publish(colorSegment_msg_out)
 
-        tk.completed('pub_edge/pub_segment')
+            tk.completed('*pub_edge/pub_segment')
 
 
         self.intermittent_log(tk.getall())
