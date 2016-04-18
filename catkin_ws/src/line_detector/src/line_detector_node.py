@@ -112,7 +112,7 @@ class LineDetectorNode(object):
         else:
             t_acquisition = image_msg.header.stamp.to_sec()
             age = time.time() - t_acquisition
-            # do not process if image older than 100ms
+            # do not process if image older than age limit
             age_limit = 0.04
             if age > age_limit:
                 self.stats.skipped()
