@@ -83,28 +83,28 @@ demo-led-fancy2: unittests-environment
 demo-led-blink-%: unittests-environment
 	bash -c "source environment.sh; rosrun rgb_led blink $*"
 
-# make demo-line_detector-verbose-default
-# make demo-line_detector-verbose--guy
-# make demo-line_detector-verbose--universal
-# make demo-line_detector-verbose--default_ld2
-# make demo-line_detector-quiet-default
-# make demo-line_detector-quiet-guy
-# make demo-line_detector-quiet-universal
-# make demo-line_detector-quiet-default_ld2
+demo-line_detector-verbose-default: _demo-line_detector-verbose-default
+demo-line_detector-verbose-guy: _demo-line_detector-verbose-guy
+demo-line_detector-verbose-universal: _demo-line_detector-verbose-universal
+demo-line_detector-verbose-default_ld2: _demo-line_detector-verbose-default_ld2
+demo-line_detector-quiet-default: _demo-line_detector-quiet-default
+demo-line_detector-quiet-guy: _demo-line_detector-quiet-guy
+demo-line_detector-quiet-universal: _demo-line_detector-quiet-universal
+demo-line_detector-quiet-default_ld2: _demo-line_detector-quiet-default_ld2
 
-demo-line_detector-verbose-%: unittests-environment
+_demo-line_detector-verbose-%: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name) line_detector_param_file_name:=$* verbose:=true"
 
-demo-line_detector-quiet-%: unittests-environment
+_demo-line_detector-quiet-%: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name) line_detector_param_file_name:=$* verbose:=false"
 
-# make openhouse-dp3-default
-# make openhouse-dp3-guy
-# make openhouse-dp3-default_ld2
-# make openhouse-dp3-universal
+openhouse-dp3-default: _openhouse-dp3-default
+openhouse-dp3-guy: _openhouse-dp3-guy
+openhouse-dp3-default_ld2: _openhouse-dp3-default_ld2
+openhouse-dp3-universal: _openhouse-dp3-universal
 
-openhouse-dp3-%-verbose: unittests-environment
+_openhouse-dp3-verbose-%: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos indefinite_navigation.launch  line_detector_param_file_name:=$* verbose:=true"
 
-openhouse-dp3-%-notverbose: unittests-environment
+_openhouse-dp3-quiet-%: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos indefinite_navigation.launch  line_detector_param_file_name:=$* verbose:=false"
