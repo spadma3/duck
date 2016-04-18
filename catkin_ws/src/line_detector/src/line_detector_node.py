@@ -62,17 +62,16 @@ class LineDetectorNode(object):
         rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
 
     def updateParams(self, _event):
-        self.verbose = rospy.get_param('~verbose',True)
-
+        self.verbose = rospy.get_param('~verbose', True)
         self.image_size = rospy.get_param('~img_size')
         self.top_cutoff = rospy.get_param('~top_cutoff')
 
         c = rospy.get_param('~detector')
         assert isinstance(c, list) and len(c) == 2, c
-        
         klassname = c[0]
         detector_params = c[1]
         self.detector = instantiate(klassname, detector_params)
+
         rospy.loginfo('detector_params: %r' % detector_params)
 
     def cbSwitch(self, switch_msg):
@@ -102,7 +101,7 @@ class LineDetectorNode(object):
         if not self.active:
             return
 
-        use_thread = False
+        use_thread = True
         if use_thread:
             # Start a daemon thread to process the image
             thread = threading.Thread(target=self.processImage, args=(image_msg,))
