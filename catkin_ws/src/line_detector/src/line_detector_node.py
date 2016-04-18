@@ -78,20 +78,6 @@ class LineDetectorNode(object):
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
-    def cbImage(self, image_msg):
-        if self.stats.nreceived == 0:
-            rospy.loginfo('line_detector_node received first image.')
-
-        self.stats.received()
-
-        if not self.active:
-            return 
-        # Start a daemon thread to process the image
-        thread = threading.Thread(target=self.processImage,args=(image_msg,))
-        thread.setDaemon(True)
-        thread.start()
-        # Returns rightaway
-
     def cbTransform(self, transform_msg):
         self.ai.shift = transform_msg.s[0:3]
         self.ai.scale = transform_msg.s[3:6]
@@ -107,6 +93,24 @@ class LineDetectorNode(object):
         n = self.node_name
         rospy.loginfo('[%s]%3d:%s' % (n, self.intermittent_counter, s))
 
+    def cbImage(self, image_msg):
+        # if self.stats.nreceived == 0:
+        #    rospy.loginfo('line_detector_node received first image.')
+
+        self.stats.received()
+
+        if not self.active:
+            return
+
+        if False:
+            # Start a daemon thread to process the image
+            thread = threading.Thread(target=self.processImage, args=(image_msg,))
+            thread.setDaemon(True)
+            thread.start()
+            # Returns right away
+        else:
+            self.processImage_(image_msg)
+
     def processImage(self, image_msg):
         if not self.thread_lock.acquire(False):
             self.stats.skipped()
@@ -120,8 +124,8 @@ class LineDetectorNode(object):
             self.thread_lock.release()
 
     def processImage_(self, image_msg):
-        if self.stats.nprocessed == 0:
-            rospy.loginfo('line_detector_node processing first image.')
+        # if self.stats.nprocessed == 0:
+        #    rospy.loginfo('line_detector_node processing first image.')
 
         self.stats.processed()
 
