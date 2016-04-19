@@ -531,7 +531,7 @@
 		</group>
 
 		<group if="$(arg /navigation/graph_planner)">
-            <remap from="mission_planner_node/fsm_mode" to="fsm_node/mode">
+            <remap from="mission_planner_node/fsm_mode" to="fsm_node/mode"/>
 
 			<include file="$(find navigation)/launch/graph_search_server_node.launch">
 				<arg name="map_name" value="$(arg map_name)"/>        
