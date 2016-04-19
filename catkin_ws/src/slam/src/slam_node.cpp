@@ -126,10 +126,17 @@ private:
   // gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
   // gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
 
-  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.001, 0.001, 0.0001));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.00001, 0.0));
-  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.0001));
-  gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.04, 1/0.01));
+    // LATEST
+  // gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.001, 0.001, 0.0001));
+  // gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.04, 1/0.001, 0.0));
+  // gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
+  // gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 1/0.001));
+
+  // NO IMU
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.01, 0.001));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.001, 0.0));
+  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.01));
+  gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/1, 1/1, 1/0.1));
 
   enum optimizerType {
     ISAM2, GN, LM
@@ -196,11 +203,11 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////
 // class constructor; subscribe to topics and advertise intent to publish
 slam_node::slam_node() :
-radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(30), K_l_(30),
+radius_l_(0.02), radius_r_(0.02), baseline_lr_(0.1), K_r_(27), K_l_(27),
 poseId_(0), gtSubsampleStep_(10), odomSubsampleStep_(1), 
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-estimateIMUbias_(true), timeStillThreshold_(2.0), gyroOmegaBias_(0.0), insertedAnchor_(false), isam2useVicon_(true),
+estimateIMUbias_(true), timeStillThreshold_(3.0), gyroOmegaBias_(0.0), insertedAnchor_(false), isam2useVicon_(true),
 isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(false), 
  isam2useGTInitialLandmarks_(false), isam2useGTInitialOdometry_(false), slamSolver_(ISAM2) {
 
@@ -213,7 +220,7 @@ isam2useIMU_(true), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2u
   gtsam::ISAM2DoglegParams params;
   params.setVerbose(false); // only for debugging.
   // gtsam::ISAM2GaussNewtonParams params;
-  params.setWildfireThreshold(0.0);
+  params.setWildfireThreshold(1e-5);
   gtsam::ISAM2Params iSAM2Params_;
   iSAM2Params_.optimizationParams = params; //gauss_newton_params;
   iSAM2Params_.relinearizeThreshold = 0.0;
@@ -519,12 +526,13 @@ void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
       double deltaTstill = t_imu - initialTimeStill_;
       if(deltaTstill > timeStillThreshold_){
         // compute moving average of biases
-        double alpha = 0.05; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
+        double alpha = 0.01; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
         movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
         gyroOmegaBias_ = movingAverageOmega_z_;
         //ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
       }
     }
+    gyroOmegaBias_ = 0.0017; // 0.001527, 0.002527
     double omega_z_bias_corrected = omega_z - gyroOmegaBias_; // we correct with our bias estimate 
     //ROS_ERROR("omega_z_bias_corrected: %f", omega_z_bias_corrected);
     imuDeltaPose_tm1_t_ = gtsam::Pose2( imuDeltaPose_tm1_t_.theta() + omega_z_bias_corrected * deltaT_imu , gtsam::Point2());
@@ -578,7 +586,7 @@ void slam_node::landmarkCallback(duckietown_msgs::AprilTags::ConstPtr const& msg
       // create between factor
       gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
       gtsam::BetweenFactor<gtsam::Pose2> landmarkFactor(keyPose_t, key_l, localLandmarkPose, landmarkNoise_);
-      //  gtsam::noiseModel::Robust::Create(gtsam::noiseModel::mEstimator::Huber::Create(1.345), landmarkNoise_));
+      // gtsam::noiseModel::Robust::Create(gtsam::noiseModel::mEstimator::Huber::Create(1.345), landmarkNoise_));
       // add factor to nonlinear factor graph
       newFactors_.add(landmarkFactor);
 
@@ -668,6 +676,76 @@ void slam_node::viconCallback(geometry_msgs::PoseStamped::ConstPtr const& msg){
   }
 }
 
+// ///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::optimizeFactorGraph_iSAM2(){
+
+  // Update iSAM with the new factors
+  isam2_.update(newFactors_, newInitials_);
+  slamEstimate_ = isam2_.calculateEstimate();
+  gtsam::NonlinearFactorGraph nfg = isam2_.getFactorsUnsafe();
+  ROS_WARN("slam error (before n updates): %f", nfg.error(slamEstimate_));
+
+  // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
+  for (size_t iter=0;iter<20;iter++){
+    isam2_.update();
+  }
+  slamEstimate_ = isam2_.calculateEstimate();
+
+  ROS_WARN("slam error (after n updates): %f", nfg.error(slamEstimate_));
+  
+  // Clear the factor graph and values for the next iteration
+  newFactors_.resize(0);
+  newInitials_.clear();
+}
+
+// ///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::optimizeFactorGraph_GN(){
+  ROS_WARN("slam error (before GN): %f", newFactors_.error(newInitials_));
+  gtsam::GaussNewtonParams parameters;
+  // Stop iterating once the change in error between steps is less than this value
+  parameters.relativeErrorTol = 1e-5;
+  // Do not perform more than N iteration steps
+  parameters.maxIterations = 30;
+  slamEstimate_= gtsam::GaussNewtonOptimizer(newFactors_, newInitials_,parameters).optimize();
+  newInitials_ = slamEstimate_;
+  ROS_WARN("slam error (after GN): %f", newFactors_.error(slamEstimate_));
+}
+
+// ///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::optimizeFactorGraph_LM(){
+  ROS_WARN("slam error (before LM): %f", newFactors_.error(newInitials_));
+  slamEstimate_= gtsam::LevenbergMarquardtOptimizer(newFactors_, newInitials_).optimize();
+  newInitials_ = slamEstimate_;
+  ROS_WARN("slam error (after LM): %f", newFactors_.error(slamEstimate_));
+}
+
+// ///////////////////////////////////////////////////////////////////////////////////////////
+void slam_node::visualizeSLAMestimate(){
+
+  // reset trajectory
+  slamTrajectory_.points.resize(0);
+  slamLandmarks_.points.resize(0);
+  // push back new values
+  gtsam::Values poseEstimates = slamEstimate_.filter<gtsam::Pose2>();
+  geometry_msgs::Point p;
+
+  BOOST_FOREACH(const gtsam::Values::KeyValuePair& key_value, poseEstimates) {
+    gtsam::Key key_i = key_value.key;
+    gtsam::Pose2 pose_i = key_value.value.cast<gtsam::Pose2>();
+    p.x = pose_i.x(); p.y = pose_i.y(); p.z = 0.0;
+    if(gtsam::symbolChr(key_i)=='L'){
+      slamLandmarks_.points.push_back(p);
+    }else{
+      slamTrajectory_.points.push_back(p);
+    }
+  }
+  pub_slamTrajectory_.publish(slamTrajectory_);
+  int s_p = slamTrajectory_.points.size();
+  pub_slamLandmarks_.publish(slamLandmarks_);
+  int s_l = slamLandmarks_.points.size();
+  ROS_WARN("slam estimate includes: %d poses, %d landmarks", s_p, s_l);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // TODOLC: review this
 void slam_node::lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr const& msg){
@@ -710,69 +788,4 @@ void slam_node::lineSegmentsCallback(duckietown_msgs::SegmentList::ConstPtr cons
 // duckietown_msgs/Vector2D[2] pixels_normalized
 // duckietown_msgs/Vector2D normal
 // geometry_msgs/Point[2] points
-}
-
-// ///////////////////////////////////////////////////////////////////////////////////////////
-void slam_node::optimizeFactorGraph_iSAM2(){
-
-  // Update iSAM with the new factors
-  isam2_.update(newFactors_, newInitials_);
-  slamEstimate_ = isam2_.calculateEstimate();
-  gtsam::NonlinearFactorGraph nfg = isam2_.getFactorsUnsafe();
-  ROS_WARN("slam error (before n updates): %f", nfg.error(slamEstimate_));
-
-  // Each call to iSAM2 update(*) performs one iteration of the iterative nonlinear solver.
-  for (size_t iter=0;iter<20;iter++){
-    isam2_.update();
-  }
-  slamEstimate_ = isam2_.calculateEstimate();
-
-  ROS_WARN("slam error (after n updates): %f", nfg.error(slamEstimate_));
-  
-  // Clear the factor graph and values for the next iteration
-  newFactors_.resize(0);
-  newInitials_.clear();
-}
-
-// ///////////////////////////////////////////////////////////////////////////////////////////
-void slam_node::optimizeFactorGraph_GN(){
-  ROS_WARN("slam error (before GN): %f", newFactors_.error(newInitials_));
-  slamEstimate_= gtsam::GaussNewtonOptimizer(newFactors_, newInitials_).optimize();
-  newInitials_ = slamEstimate_;
-  ROS_WARN("slam error (after GN): %f", newFactors_.error(slamEstimate_));
-}
-
-// ///////////////////////////////////////////////////////////////////////////////////////////
-void slam_node::optimizeFactorGraph_LM(){
-  ROS_WARN("slam error (before LM): %f", newFactors_.error(newInitials_));
-  slamEstimate_= gtsam::LevenbergMarquardtOptimizer(newFactors_, newInitials_).optimize();
-  newInitials_ = slamEstimate_;
-  ROS_WARN("slam error (after LM): %f", newFactors_.error(slamEstimate_));
-}
-
-// ///////////////////////////////////////////////////////////////////////////////////////////
-void slam_node::visualizeSLAMestimate(){
-
-  // reset trajectory
-  slamTrajectory_.points.resize(0);
-  slamLandmarks_.points.resize(0);
-  // push back new values
-  gtsam::Values poseEstimates = slamEstimate_.filter<gtsam::Pose2>();
-  geometry_msgs::Point p;
-
-  BOOST_FOREACH(const gtsam::Values::KeyValuePair& key_value, poseEstimates) {
-    gtsam::Key key_i = key_value.key;
-    gtsam::Pose2 pose_i = key_value.value.cast<gtsam::Pose2>();
-    p.x = pose_i.x(); p.y = pose_i.y(); p.z = 0.0;
-    if(gtsam::symbolChr(key_i)=='L'){
-      slamLandmarks_.points.push_back(p);
-    }else{
-      slamTrajectory_.points.push_back(p);
-    }
-  }
-  pub_slamTrajectory_.publish(slamTrajectory_);
-  int s_p = slamTrajectory_.points.size();
-  pub_slamLandmarks_.publish(slamLandmarks_);
-  int s_l = slamLandmarks_.points.size();
-  ROS_WARN("slam estimate includes: %d poses, %d landmarks", s_p, s_l);
 }
