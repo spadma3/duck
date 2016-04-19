@@ -36,10 +36,10 @@ class RandomAprilTagTurnsNode(object):
     def cbMode(self, mode_msg):
         #print mode_msg
         self.fsm_mode = mode_msg.state
-        if((self.fsm_mode != self.trigger_mode) and self.run_without_dispatcher):
-            self.turn_type = -1
-            self.pub_turn_type.publish(self.turn_type)
-            rospy.loginfo("Turn type now: %i" %(self.turn_type))
+        #if self.fsm_mode != self.trigger_mode:
+        #    self.turn_type = -1
+        #    self.pub_turn_type.publish(self.turn_type)
+        #    rospy.loginfo("Turn type now: %i" %(self.turn_type))
             
     def cbTag(self, tag_msgs):
         if(self.fsm_mode == self.trigger_mode):
