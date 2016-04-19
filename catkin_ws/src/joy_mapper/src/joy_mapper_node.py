@@ -20,7 +20,7 @@ class JoyMapper(object):
         self.v_gain = self.setupParam("~speed_gain", 0.41)
         self.omega_gain = self.setupParam("~steer_gain", 8.3)
         self.bicycle_kinematics = self.setupParam("~bicycle_kinematics", 0)
-        self.steer_angle_gain = self.setupParam("~steer_angle_gain", 1)
+        self.steer_angle_gain = self.setupParam("~steer_angle_gain", False)
         self.simulated_vehicle_length = self.setupParam("~simulated_vehicle_length", 0.18)
 
         # Publications
