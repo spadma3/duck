@@ -82,7 +82,7 @@ class MissionPlannerNode():
                 self.pub.publish(Int16(0))
             elif action == 'w':
                 self.path_in_progress = False
-                self.pub.publish(Int16(-1))    
+                #self.pub.publish(Int16(-1))    
     
             action_str = ''
             for letter in self.actions:
