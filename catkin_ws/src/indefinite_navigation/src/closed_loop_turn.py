@@ -32,7 +32,7 @@ class ClosedLoopTurn(object):
         
         
         # Params
-        self.delay = 0.1
+        self.delay = 0.2
         
         
         rospy.loginfo("[%s] Initialized.", self.node_name)
@@ -66,12 +66,12 @@ class ClosedLoopTurn(object):
         """ """
         
         # Localization
-        x = self.localization( msg )
+        [x,y] = self.localization( msg )
         
         if not x == None:
         
             # Compute error
-            target = 0.3
+            target = 0.30
             error  = target - x
             
             print target, x, error
@@ -84,11 +84,22 @@ class ClosedLoopTurn(object):
                 
             else: 
                 
-                self.go_fwd()
-                rospy.loginfo("[%s] Going forward", self.node_name)
+                #self.go_fwd()
+                #rospy.loginfo("[%s] Going forward", self.node_name)
+                
+                if y > 0:
+                    
+                    self.go_left()
+                    rospy.loginfo("[%s] Going left", self.node_name)
+                    
+                else:
+                    
+                    self.go_right()
+                    rospy.loginfo("[%s] Going right", self.node_name)
                 
         else:
             
+            self.stop()
             rospy.loginfo("[%s] No Detections", self.node_name)
         
         
@@ -96,46 +107,48 @@ class ClosedLoopTurn(object):
         """ """
         
         x = None
+        y = None
         
         for detection in msg.detections:
             
             x = detection.transform.translation.x
+            y = detection.transform.translation.y
             
-        return x
+        return [x,y]
 
         
         
     def go_fwd(self):
         """ """
         
-        self.cmd = [ 0.5 , 0.5 ]
+        self.cmd = [ 0.2 , 0.2 ]
         self.pub_cmd()
-        time.sleep( self.delay )
-        self.stop()
+        #time.sleep( self.delay )
+        #self.stop()
         
     def go_bck(self):
         """ """
         
-        self.cmd = [-0.5 ,-0.5 ]
+        self.cmd = [-0.2 ,-0.2 ]
         self.pub_cmd()
-        time.sleep( self.delay )
-        self.stop()
+        #time.sleep( self.delay )
+        #self.stop()
         
     def go_right(self):
         """ """
         
-        self.cmd = [ 0.1 , 0.5 ]
+        self.cmd = [ 0.1 , 0.2 ]
         self.pub_cmd()
-        time.sleep( self.delay )
-        self.stop()
+        #time.sleep( self.delay )
+        #self.stop()
         
     def go_left(self):
         """ """
         
-        self.cmd = [ 0.5 , 0.1 ]
+        self.cmd = [ 0.6 , 0.1 ]
         self.pub_cmd()
-        time.sleep( self.delay )
-        self.stop()
+        #time.sleep( self.delay )
+        #self.stop()
         
     def pub_cmd(self):
         """ """   
