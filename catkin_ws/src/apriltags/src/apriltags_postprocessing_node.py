@@ -149,11 +149,11 @@ class AprilPostPros(object):
             detection.transform.rotation.w    = Q_Ft_Fv.n
             
             # Debug Print
-            #A_read       = Q_Ftag_Fold.toAngleAxis()
-            #A_Ft_Fv      = Q_Ft_Fv.toAngleAxis()
-            #print 'Rotation Read'
-            #A_read()
-            #print 'Rotation in Vehicle Frame'
+            A_read       = Q_Ftag_Fold.toAngleAxis()
+            A_Ft_Fv      = Q_Ft_Fv.toAngleAxis()
+            print 'Rotation Read'
+            A_read()
+            print 'Rotation in Vehicle Frame'
             A_Ft_Fv()
 
             tag_infos.append(new_info)
