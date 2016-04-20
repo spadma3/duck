@@ -127,7 +127,7 @@ class AprilPrePros(object):
                 #rospy.loginfo("[%s] Global Detection Processed " %(self.node_name))
                 
             else:
-                
+                pass
                 #rospy.loginfo("[%s] Global Detection: No camera image to process " %(self.node_name))
             
         
@@ -167,7 +167,7 @@ class AprilPrePros(object):
                 #rospy.loginfo("[%s] Fast Detection Published " %(self.node_name))
                 
             else:
-                
+                pass
                 #rospy.loginfo("[%s] Fast Detection: No camera image to process " %(self.node_name))
             
         
