@@ -43,6 +43,8 @@
     </include>
 
     <!-- Open Loop Controller -->
+    <remap from="open_loop_intersection_control_node/lane_pose" to="lane_filter_node/lane_pose"/>
+    <remap from="open_loop_intersection_control_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading" />
     <include file="$(find duckietown)/launch/open_loop_intersection_controller.launch">
          <arg name="veh" value="$(arg veh)"/>
     </include>
