@@ -154,7 +154,7 @@ class AprilPostPros(object):
             #print 'Rotation Read'
             #A_read()
             #print 'Rotation in Vehicle Frame'
-            #A_Ft_Fv()
+            A_Ft_Fv()
 
             tag_infos.append(new_info)
         
