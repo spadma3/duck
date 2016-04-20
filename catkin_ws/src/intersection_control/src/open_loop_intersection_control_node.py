@@ -118,7 +118,7 @@ class OpenLoopIntersectionNode(object):
             cmd.header.stamp = rospy.Time.now()
             self.pub_cmd.publish(cmd)
             return
-
+        old_maneuver = self.maneuvers[turn_type]
         if (self.trajectory_reparam):
             self.update_trajectory(turn_type)
 
@@ -141,6 +141,7 @@ class OpenLoopIntersectionNode(object):
                         self.publishDoneMsg()
                         return
                 self.rate.sleep()
+        self.maneuvers[turn_type] = old_maneuver
         # Done with the sequence
         if not published_already:
             self.publishDoneMsg()
