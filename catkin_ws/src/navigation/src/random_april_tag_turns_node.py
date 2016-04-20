@@ -35,8 +35,6 @@ class RandomAprilTagTurnsNode(object):
         if(self.fsm_mode == "INTERSECTION_CONTROL"):
             #loop through list of april tags
             for taginfo in tag_msgs.infos:
-                print taginfo
-                rospy.loginfo("[%s] taginfo." %(taginfo))
                 if(taginfo.tag_type == taginfo.SIGN):
                     availableTurns = []
                     #go through possible intersection types

@@ -18,4 +18,4 @@ turn_forward:
 #   - [0.2, 0.0, 0.0]
 
 #do we want to update the values based on where/what angle we stop at.
-trajectory_reparam: 0
+trajectory_reparam: 1
