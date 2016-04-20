@@ -61,7 +61,7 @@ class AprilPrePros(object):
         self.fast_x_down     = rospy.get_param("~fast_x_down")
         self.global_x_down   = rospy.get_param("~global_x_down")
         
-        rospy.loginfo("[%s] Parameters Loaded " %(self.node_name))
+        #rospy.loginfo("[%s] Parameters Loaded " %(self.node_name))
         
         
     def init_timers(self):
@@ -124,11 +124,11 @@ class AprilPrePros(object):
                 img_msg.header.frame_id = self.camera_msg.header.frame_id
                 self.pub_ToApril_global.publish(img_msg)
                 
-                rospy.loginfo("[%s] Global Detection Processed " %(self.node_name))
+                #rospy.loginfo("[%s] Global Detection Processed " %(self.node_name))
                 
             else:
                 
-                rospy.loginfo("[%s] Global Detection: No camera image to process " %(self.node_name))
+                #rospy.loginfo("[%s] Global Detection: No camera image to process " %(self.node_name))
             
         
             
@@ -164,11 +164,11 @@ class AprilPrePros(object):
                 img_msg.header.frame_id = self.camera_msg.header.frame_id
                 self.pub_ToApril_fast.publish(img_msg)
                 
-                rospy.loginfo("[%s] Fast Detection Published " %(self.node_name))
+                #rospy.loginfo("[%s] Fast Detection Published " %(self.node_name))
                 
             else:
                 
-                rospy.loginfo("[%s] Fast Detection: No camera image to process " %(self.node_name))
+                #rospy.loginfo("[%s] Fast Detection: No camera image to process " %(self.node_name))
             
         
 
