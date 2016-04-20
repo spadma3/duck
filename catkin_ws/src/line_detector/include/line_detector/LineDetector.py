@@ -13,7 +13,7 @@ class LineDetector(object):
         # Color value range in HSV space: default
         self.hsv_white1 = np.array([0, 0, 150])
         self.hsv_white2 = np.array([180, 60, 255]) 
-        self.hsv_yellow1 = np.array([25, 140, 100])
+        self.hsv_yellow1 = np.array([20, 140, 100])
         self.hsv_yellow2 = np.array([45, 255, 255]) 
         self.hsv_red1 = np.array([0, 140, 100])
         self.hsv_red2 = np.array([15, 255, 255]) 

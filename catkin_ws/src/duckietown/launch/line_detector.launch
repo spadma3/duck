@@ -26,7 +26,7 @@
 	    <arg name="veh" value="$(arg veh)"/>
 	    <arg name="local" value="$(arg local)"/>
 	    <arg name="config" value="$(arg config)"/>
-	    <arg name="param_file_name" value="$(arg param_file_name)"/>
+	    <arg name="param_file_name" value="myrtle"/>
         <arg name="white_balance" value="$(arg white_balance)" />
         <arg name="verbose" value="$(arg verbose)" />
 	</include>	
