@@ -37,6 +37,7 @@ class ClosedLoopTurn(object):
         self.speed = 0.5
         self.omega = 0.3
         
+        self.target = np.array([ 0 , 0.2  ])
         
         rospy.loginfo("[%s] Initialized.", self.node_name)
         
@@ -46,23 +47,6 @@ class ClosedLoopTurn(object):
         
         pass
         
-        """
-        self.go_fwd()
-        
-        time.sleep( 2  )
-        
-        self.go_bck()
-        
-        time.sleep( 2  )
-        
-        self.go_right()
-        
-        time.sleep( 2  )
-        
-        self.go_left()
-        
-        time.sleep( 2  )
-        """
         
         
     def callback(self, msg):
@@ -71,16 +55,20 @@ class ClosedLoopTurn(object):
         # Localization
         [x,y] = self.localization( msg )
         
+        tag   = np.array( [x,y] )
+        
         if not x == None:
         
             # Compute error
-            target = 0.50
-            error  = target - x
+            error  = self.target - tag
             
-            print target, x, error
+            print self.target, x, error
             
+
+            # Bang bang            
+            """
             # Select Action        
-            if error > 0:
+            if error[0] > 0:
                 
                 self.go_bck()
                 rospy.loginfo("[%s] Going backward", self.node_name)
@@ -99,6 +87,19 @@ class ClosedLoopTurn(object):
                     
                     self.go_right()
                     rospy.loginfo("[%s] Going right", self.node_name)
+                    
+            """
+            
+            # Prop control
+            
+            vel = error[0] * 1.0
+            omg = error[1] * 0.1
+            
+            self.cmd = [  vel , omg ]
+            
+            self.go_cmd()
+            
+            
                 
         else:
             
@@ -152,6 +153,15 @@ class ClosedLoopTurn(object):
         self.pub_cmd()
         time.sleep( self.delay )
         self.stop()
+        
+    def go_cmd(self):
+        """ """
+        
+        self.pub_cmd()
+        time.sleep( self.delay )
+        self.stop()
+        
+        
         
     def pub_cmd(self):
         """ """   
