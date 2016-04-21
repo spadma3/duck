@@ -37,7 +37,7 @@ class ClosedLoopTurn(object):
         self.speed = 0.5
         self.omega = 0.3
         
-        self.target = np.array([ 0 , 0.2  ])
+        self.target = np.array([ 0.0 , 0.0  ])
         
         rospy.loginfo("[%s] Initialized.", self.node_name)
         
