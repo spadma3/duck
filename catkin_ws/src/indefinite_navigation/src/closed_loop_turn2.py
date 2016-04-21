@@ -23,7 +23,7 @@ class ClosedLoopTurn(object):
         
         # Publisher
         self.pub_wheels_cmd = rospy.Publisher("/neptunus/wheels_driver_node/wheels_cmd", WheelsCmdStamped, queue_size=1)
-        self.pub_car_cmd    = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+        self.pub_car_cmd    = rospy.Publisher("/neptunus/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
         
         # Timers
         self.loop_timer     = rospy.Timer( rospy.Duration.from_sec(10.0) , self.timedloop  )
