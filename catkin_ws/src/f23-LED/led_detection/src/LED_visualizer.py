@@ -93,12 +93,14 @@ class LEDWindow(QWidget):
         if msg.state == 1:
             self.triggerBtn.setVisible(False)
             self.stateLabel.setText("Capture: ")
-            self.unfiltered_leds = None
+            #self.unfiltered_leds = None
         elif msg.state == 2:
             self.triggerBtn.setVisible(False)
             self.stateLabel.setText("Processing...")
         elif msg.state == 0:
             self.triggerBtn.setVisible(True)
+            if not len(msg.led_all_unfiltered.detections):
+                self.unfiltered_leds = None
             if self.unfiltered_leds is not None:
                 self.stateLabel.setText("Click on the squares for details or on image to toggle camera/variance map...")
             else:
@@ -208,6 +210,7 @@ class LEDWindow(QWidget):
     def mousePressEvent(self, event):
         click_img_coord = event.pos()-QPoint(self.frametl[0], self.frametl[1])
         click_img_coord = 1.0*click_img_coord/self.imagescale
+        print('Clicked point: %s'%click_img_coord)
         mindist = float("inf")
         closest = None
         W = self.camera_image.width()
@@ -238,7 +241,8 @@ class LEDWindow(QWidget):
         #print("Timestamps: {0}".format(closest.signal_ts))
         ax.plot(closest.signal_ts, closest.signal)
         ax.set_title('Signal @ ('+str(closest.pixels_normalized.x*W)+\
-                      ', ' + str(closest.pixels_normalized.y*H) + ')', fontsize=12)#, fontweight='bold')
+                      ', ' + str(closest
+                      .pixels_normalized.y*H) + ')', fontsize=12)#, fontweight='bold')
         ax2 = figure.add_subplot(212)
         ax2.plot(closest.fft_fs,closest.fft)
         ax2.set_title('FFT @ ('+str(closest.pixels_normalized.x*W)+\
@@ -283,7 +287,7 @@ class LEDVisualizerNode(object):
         win.updateResults(msg)
 
     def cam_callback(self, msg):
-        #print('Received camera image')
+        #print('Received camera image)
         npimg = numpy_from_ros_compressed(msg)
         win.camera_image = toQImage(npimg)
         win.update()

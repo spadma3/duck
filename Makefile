@@ -102,8 +102,8 @@ demo-line_detector-guy:         demo-line_detector-quiet-guy
 demo-line_detector-universal:   demo-line_detector-quiet-universal
 demo-line_detector-default_ld2: demo-line_detector-quiet-default_ld2
 
-demo-line_detector-quiet-%: unittests-environment
-	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name) line_detector_param_file_name:=$* verbose:=false"
+openhouse-dp5: unittests-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos stop_sign_coordination.launch"
 
 # ==========
 # openhouse demos

@@ -60,6 +60,7 @@
 	<arg name="/apriltags/postprocessing" default="true" />
 
 	<arg name="LED" default="false" />
+	<arg name="/LED/pattern_switch" default="true" />
 	<arg name="/LED/detector" default="true" />
 	<arg name="/LED/joystick" default="true" />
 	<arg name="/LED/emitter"  default="true" />
@@ -403,8 +404,9 @@
 	<!-- Start LEDs Detection -->
 	<group if="$(arg LED)">
 		
+
 		<!-- Detection -->
-		<group if="$(arg /LED/detection)">
+		<group if="$(arg /LED/detector)">
 			<include file="$(find led_detection)/launch/LED_detection.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -412,6 +414,7 @@
 			</include>
 		</group>
 
+        <!--remap from="led_joy_mapper_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 		<group if="$(arg /LED/joystick)">
 			<include file="$(find led_joy_mapper)/launch/led_joy_mapper_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
@@ -419,7 +422,16 @@
 				<arg name="param_file_name" value="$(arg param_file_name)"/>
 			</include>
 		</group>
-
+		
+		<remap from="led_pattern_switch_node/change_color_pattern" to="led_emitter_node/change_color_pattern" />    
+		<group if="$(arg /LED/pattern_switch)">
+			<include file="$(find led_emitter)/launch/led_pattern_switch_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>    
+		</group>
+        
 		<group if="$(arg /LED/emitter)">
 			<include file="$(find led_emitter)/launch/led_emitter_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
@@ -479,6 +491,8 @@
 	<group if="$(arg coordination)">
 		<!-- Vehicle Coordinator-->
 		<remap from="simple_coordinator_node/mode" to="fsm_node/mode" />
+		<!--the following remap is done through led_patter_switch_node -->
+        <!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 		<include file="$(find veh_coordinator)/launch/simple_coordinator_node.launch">
 			<arg name="veh" value="$(arg veh)"/>        
 			<arg name="config" value="$(arg config)"/>        
