@@ -34,6 +34,9 @@ class ClosedLoopTurn(object):
         # Params
         self.delay = 0.2
         
+        self.speed = 0.2
+        self.omega = 0.1
+        
         
         rospy.loginfo("[%s] Initialized.", self.node_name)
         
@@ -121,7 +124,7 @@ class ClosedLoopTurn(object):
     def go_fwd(self):
         """ """
         
-        self.cmd = [  1 , 0 ]
+        self.cmd = [  self.speed , 0 ]
         self.pub_cmd()
         #time.sleep( self.delay )
         #self.stop()
@@ -129,7 +132,7 @@ class ClosedLoopTurn(object):
     def go_bck(self):
         """ """
         
-        self.cmd = [ -1 , 0 ]
+        self.cmd = [ -self.speed , 0 ]
         self.pub_cmd()
         #time.sleep( self.delay )
         #self.stop()
@@ -137,7 +140,7 @@ class ClosedLoopTurn(object):
     def go_right(self):
         """ """
         
-        self.cmd = [ 1.0 , -0.5 ]
+        self.cmd = [ self.speed , -self.omega ]
         self.pub_cmd()
         #time.sleep( self.delay )
         #self.stop()
@@ -145,7 +148,7 @@ class ClosedLoopTurn(object):
     def go_left(self):
         """ """
         
-        self.cmd = [ 1.0 , 0.5 ]
+        self.cmd = [ self.speed , self.omega ]
         self.pub_cmd()
         #time.sleep( self.delay )
         #self.stop()
