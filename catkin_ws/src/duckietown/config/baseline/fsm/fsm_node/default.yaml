@@ -144,7 +144,7 @@ states:
     lights: ["coordination"]
   INTERSECTION_CONTROL:
     transitions:
-      intersection_done: "LANE_FOLLOWING"
+      intersection_done: "LANE_FOLLOWING_AVOID"
 #      intersection_complete_no_lane: "INTERSECTION_RECOVERY"
     active_nodes:
       - line_detector_node
