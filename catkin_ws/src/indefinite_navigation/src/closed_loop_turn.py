@@ -32,7 +32,7 @@ class ClosedLoopTurn(object):
         self.sub_april      = rospy.Subscriber("apriltags_postprocessing_global_node/apriltags_out", AprilTags, self.callback, queue_size=1)
         
         # Params
-        self.delay = 0.2
+        self.delay = 0.5
         
         self.speed = 0.5
         self.omega = 0.3
@@ -126,32 +126,32 @@ class ClosedLoopTurn(object):
         
         self.cmd = [  self.speed , 0 ]
         self.pub_cmd()
-        #time.sleep( self.delay )
-        #self.stop()
+        time.sleep( self.delay )
+        self.stop()
         
     def go_bck(self):
         """ """
         
         self.cmd = [ -self.speed , 0 ]
         self.pub_cmd()
-        #time.sleep( self.delay )
-        #self.stop()
+        time.sleep( self.delay )
+        self.stop()
         
     def go_right(self):
         """ """
         
         self.cmd = [ self.speed , -self.omega ]
         self.pub_cmd()
-        #time.sleep( self.delay )
-        #self.stop()
+        time.sleep( self.delay )
+        self.stop()
         
     def go_left(self):
         """ """
         
         self.cmd = [ self.speed , self.omega ]
         self.pub_cmd()
-        #time.sleep( self.delay )
-        #self.stop()
+        time.sleep( self.delay )
+        self.stop()
         
     def pub_cmd(self):
         """ """   
@@ -172,11 +172,18 @@ class ClosedLoopTurn(object):
         
     def stop(self):
         """ """   
-        
+        """
         msg_wheels_cmd = WheelsCmdStamped()
         msg_wheels_cmd.vel_right = 0
         msg_wheels_cmd.vel_left  = 0
         self.pub_wheels_cmd.publish( msg_wheels_cmd )
+        """
+        
+        # to inverse kinematic node
+        car_cmd_msg = Twist2DStamped()
+        car_cmd_msg.v       = 0
+        car_cmd_msg.omega   = 0
+        self.pub_car_cmd.publish(car_cmd_msg)
         
         
         
