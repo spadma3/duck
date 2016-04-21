@@ -60,10 +60,7 @@ class ClosedLoopTurn(object):
         if not x == None:
         
             # Compute error
-            error  = self.target - tag
-            
-            print self.target, x, error
-            
+            error  = self.target - tag            
 
             # Bang bang            
             """
@@ -93,11 +90,13 @@ class ClosedLoopTurn(object):
             # Prop control
             
             vel = -error[0] * 1.0
-            omg = error[1] * 0.1
+            omg = error[1] * 0.3
             
             self.cmd = [  vel , omg ]
             
             self.go_cmd()
+            
+            print self.target, x, error , self.cmd
             
             
                 
