@@ -32,7 +32,7 @@ class ClosedLoopTurn(object):
         self.sub_april      = rospy.Subscriber("apriltags_postprocessing_global_node/apriltags_out", AprilTags, self.callback, queue_size=1)
         
         # Params
-        self.delay = 0.5
+        self.delay = 0.3
         
         self.speed = 0.5
         self.omega = 0.3
@@ -90,7 +90,7 @@ class ClosedLoopTurn(object):
             # Prop control
             
             vel = -error[0] * 1.0
-            omg = error[1] * 0.3
+            omg = error[1] * 1.0
             
             self.cmd = [  vel , omg ]
             
