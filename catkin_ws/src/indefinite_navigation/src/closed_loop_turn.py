@@ -74,7 +74,7 @@ class ClosedLoopTurn(object):
         if not x == None:
         
             # Compute error
-            target = 0.30
+            target = 0.50
             error  = target - x
             
             print target, x, error
