@@ -34,8 +34,8 @@ class ClosedLoopTurn(object):
         # Params
         self.delay = 0.2
         
-        self.speed = 0.2
-        self.omega = 0.1
+        self.speed = 0.5
+        self.omega = 0.3
         
         
         rospy.loginfo("[%s] Initialized.", self.node_name)
