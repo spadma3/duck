@@ -6,7 +6,7 @@
     <!-- <arg name="testing" default="false" doc="using for test purposes." /> -->
 
     <arg name="pkg_name" value="indefinite_navigation"/>
-    <arg name="node_name" default="closed_loop_turn2"/>
+    <arg name="node_name" default="closed_loop_turn"/>
 
     <group ns="$(arg veh)">        
         <!-- run local -->
