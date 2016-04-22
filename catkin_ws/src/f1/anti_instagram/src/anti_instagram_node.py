@@ -44,8 +44,9 @@ class AntiInstagramNode():
 
 		# fixme: if file transform exists:
 		self.calib_transform = rospy.get_param('~calib_transform')
+		print(self.calib_transform)
 		if self.calib_transform != None:
-			self.updateNodeTransform(self.calib_transform.s)
+			self.updateNodeTransform(self.calib_transform['s'])
 
 		self.image_msg = None
 		self.click_on = False
