@@ -33,7 +33,7 @@ class ClosedLoopTurn(object):
         
         # Params
         self.delay = 0.3
-        self.stop_pause  = True
+        self.stop_pause  = False
         
         self.speed = 0.5
         self.omega = 0.3
