@@ -61,7 +61,12 @@ class ClosedLoopTurn(object):
         if not x == None:
         
             # Compute error
-            error  = self.target - tag            
+            error  = self.target - tag
+            
+            d = np.linalg.norm( error )
+            theta = np.arctan( error[1] / error[0] )
+            
+            error_d_theta = np.array( [d , theta ] )
 
             # Bang bang            
             """
@@ -97,7 +102,7 @@ class ClosedLoopTurn(object):
             
             self.go_cmd()
             
-            print self.target, tag, error , self.cmd
+            print self.target, tag, error , error_d_theta , self.cmd
             
             
                 
