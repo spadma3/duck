@@ -99,7 +99,7 @@ class ClosedLoopTurn(object):
             #omg = -error[1] * 20.0
             
             vel = -error[0] * 1.5
-            omg = -error_d_theta[1] * 2.0
+            omg = error_d_theta[1] * 2.0
             
             self.cmd = [  vel , omg ]
             
