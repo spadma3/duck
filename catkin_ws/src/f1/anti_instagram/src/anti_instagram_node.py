@@ -51,6 +51,8 @@ class AntiInstagramNode():
 		self.image_msg = None
 		self.click_on = False
 
+		self.pub_transform.publish(self.transform)
+
 	def updateNodeTransform(self,s):
 		self.ai.shift = s[0:3]
 		self.ai.scale = s[3:6]
