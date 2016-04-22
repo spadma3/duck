@@ -43,7 +43,7 @@ class AntiInstagramNode():
 		self.bridge = CvBridge()
 
 		# fixme: if file transform exists:
-		self.calib_transform = rospy.setupParam('~calib_transform',{s: [0.0,0.0,0.0,1.0,1.0,1.0]})
+		self.calib_transform = self.setupParam('~calib_transform',{s: [0.0,0.0,0.0,1.0,1.0,1.0]})
 		if self.calib_transform != None:
 			rospy.loginfo("[AntiInstagramNode] calibration file read: " + str(self.calib_transform))
 			self.updateNodeTransform(self.calib_transform['s'])
@@ -52,6 +52,7 @@ class AntiInstagramNode():
 		self.click_on = False
 
 		self.pub_transform.publish(self.transform)
+
 
 	def setupParam(self,param_name,default_value):
 		value = rospy.get_param(param_name,default_value)
