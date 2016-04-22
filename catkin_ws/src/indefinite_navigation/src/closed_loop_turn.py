@@ -64,7 +64,9 @@ class ClosedLoopTurn(object):
             error  = self.target - tag
             
             d = np.linalg.norm( error )
-            theta = np.arctan( error[1] / error[0] )
+            theta = np.arctan( error[1] / np.abs( error[0] ) )
+            
+            
             
             error_d_theta = np.array( [d , theta ] )
 
