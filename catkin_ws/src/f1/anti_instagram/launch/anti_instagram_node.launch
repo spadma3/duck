@@ -2,7 +2,7 @@
 	<arg name="veh"/>
 
 	<arg name="config" default="baseline" doc="Specify a config."/>
-    <arg name="param_file_name" default="universal" doc="Specify a param file. ex:megaman." />
+    <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
 
     <arg name="pkg_name" value="anti_instagram"/>
     <arg name="node_name" default="anti_instagram_node"/>
@@ -12,5 +12,4 @@
         	<rosparam command="load" file="$(find duckietown)/config/$(arg config)/calibration/anti_instagram/$(arg param_file_name).yaml"/>
         </node>
     </group>
-
 </launch>
