@@ -64,7 +64,7 @@ class ClosedLoopTurn(object):
             error  = self.target - tag
             
             d = np.linalg.norm( error )
-            theta = np.arctan( error[1] / np.abs( error[0] ) )
+            theta = np.arctan( error[1] /  error[0]  )
             
             
             
@@ -97,11 +97,11 @@ class ClosedLoopTurn(object):
             
             # Prop control
             
-            vel = -error[0] * 0.8
+            vel = -error[0] * 1.2
             #omg = -error[1] * 5.0
             
             #vel = -error[0] * 1.5
-            omg = error_d_theta[1] * 0.8
+            omg = np.sign( -error[1] ) * np.abs( error_d_theta[1] ) * 1.2
             
             self.cmd = [  vel , omg ]
             
