@@ -91,7 +91,7 @@ class ClosedLoopTurn(object):
             # Prop control
             
             vel = -error[0] * 1.5
-            omg = -error[1] * 10.0
+            omg = -error[1] * 100.0
             
             self.cmd = [  vel , omg ]
             
