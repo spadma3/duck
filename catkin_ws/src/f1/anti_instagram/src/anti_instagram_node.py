@@ -45,7 +45,7 @@ class AntiInstagramNode():
 		# fixme: if file transform exists:
 		self.calib_transform = rospy.get_param('~calib_transform')
 		if self.calib_transform != None:
-			rospy.loginfo("calibration file read: " + str(self.calib_transform))
+			rospy.loginfo("[AntiInstagramNode] calibration file read: " + str(self.calib_transform))
 			self.updateNodeTransform(self.calib_transform['s'])
 
 		self.image_msg = None

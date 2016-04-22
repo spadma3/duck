@@ -582,7 +582,7 @@
       <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<arg name="param_file_name" value="$(arg veh)"/>
       </include>
 	</group>
 	<!-- End anti-instagram -->
