@@ -32,13 +32,14 @@ class ClosedLoopTurn(object):
         self.sub_april      = rospy.Subscriber("apriltags_postprocessing_fast_node/apriltags_out", AprilTags, self.callback, queue_size=1)
         
         # Params
-        self.delay = 0.2
+        self.delay_go    = 0.2
+        self.delay_pause = 0.2
         self.stop_pause  = True
         
         self.speed = 0.5
         self.omega = 0.3
         
-        self.target = np.array([ 0.4 , 0.15  ])
+        self.target = np.array([ 0.4 , 0.0  ])
         
         rospy.loginfo("[%s] Initialized.", self.node_name)
         
@@ -138,8 +139,9 @@ class ClosedLoopTurn(object):
         self.cmd = [  self.speed , 0 ]
         self.pub_cmd()
         if self.stop_pause :
-            time.sleep( self.delay )
+            time.sleep( self.delay_go )
             self.stop()
+            time.sleep( self.delay_pause )
         
     def go_bck(self):
         """ """
@@ -147,8 +149,9 @@ class ClosedLoopTurn(object):
         self.cmd = [ -self.speed , 0 ]
         self.pub_cmd()
         if self.stop_pause :
-            time.sleep( self.delay )
+            time.sleep( self.delay_go )
             self.stop()
+            time.sleep( self.delay_pause )
         
     def go_right(self):
         """ """
@@ -156,8 +159,9 @@ class ClosedLoopTurn(object):
         self.cmd = [ self.speed , -self.omega ]
         self.pub_cmd()
         if self.stop_pause :
-            time.sleep( self.delay )
+            time.sleep( self.delay_go )
             self.stop()
+            time.sleep( self.delay_pause )
         
     def go_left(self):
         """ """
@@ -165,16 +169,18 @@ class ClosedLoopTurn(object):
         self.cmd = [ self.speed , self.omega ]
         self.pub_cmd()
         if self.stop_pause :
-            time.sleep( self.delay )
+            time.sleep( self.delay_go )
             self.stop()
+            time.sleep( self.delay_pause )
         
     def go_cmd(self):
         """ """
         
         self.pub_cmd()
         if self.stop_pause :
-            time.sleep( self.delay )
+            time.sleep( self.delay_go )
             self.stop()
+            time.sleep( self.delay_pause )
         
         
         
