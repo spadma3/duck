@@ -11,14 +11,41 @@ import numpy as np
 import os
 import scipy.io
 import yaml
-import IPython
 import shelve
+import operator
+import copy
+from duckietown_utils.ipython_utils import ipython_if_guy
+        
+        
+
 
 def merge_comparison_results(comparison_results,overall_results):
     if (comparison_results):
         if (not overall_results):
-            overall_results={'total_pixels':0.,'total_error':0.,'total_regions':0.}
-        # IPython.embed()
+            r_vals={};
+            # ipython_if_guy()
+            for t in comparison_results['r_vals'].keys():
+                r_vals[t]=np.array([],'float32')
+
+            g_vals=copy.deepcopy(r_vals);
+            b_vals=copy.deepcopy(r_vals);
+            h_vals=copy.deepcopy(r_vals);
+            s_vals=copy.deepcopy(r_vals);
+            v_vals=copy.deepcopy(r_vals);
+
+            overall_results={'average_abs_err':[],'total_pixels':0,'total_error':0,'total_regions':0,'r_vals':r_vals,'g_vals':g_vals,'b_vals':b_vals,'h_vals':h_vals,'s_vals':s_vals,'v_vals':v_vals}
+            
+        # ipython_if_guy()
+        # max_idx,max_type=max(enumerate(comparison_results['r_vals'].keys()), key=operator.itemgetter(1))
+        for t in comparison_results['r_vals'].keys():
+            overall_results['r_vals'][t]=np.concatenate((overall_results['r_vals'][t],comparison_results['r_vals'][t]),0)
+            overall_results['g_vals'][t]=np.concatenate((overall_results['g_vals'][t],comparison_results['g_vals'][t]),0)
+            overall_results['b_vals'][t]=np.concatenate((overall_results['b_vals'][t],comparison_results['b_vals'][t]),0)
+            overall_results['h_vals'][t]=np.concatenate((overall_results['h_vals'][t],comparison_results['h_vals'][t]),0)
+            overall_results['s_vals'][t]=np.concatenate((overall_results['s_vals'][t],comparison_results['s_vals'][t]),0)
+            overall_results['v_vals'][t]=np.concatenate((overall_results['v_vals'][t],comparison_results['v_vals'][t]),0)
+
+        
         overall_results['total_error']=overall_results['total_error']+comparison_results['total_error']
         overall_results['total_pixels']=overall_results['total_pixels']+comparison_results['total_pixels']
         overall_results['total_regions']=overall_results['total_regions']+comparison_results['total_regions']
@@ -61,51 +88,54 @@ def examine_dataset(dirname, out):
     
     transform = ScaleAndShift(**parameters)
     
+    config_dir = '${DUCKIETOWN_ROOT}/catkin_ws/src/duckietown/config/baseline/line_detector/line_detector_node/'
+    config_dir = expand_environment(config_dir)
+    configurations = locate_files(config_dir, '*.yaml')
+    #logger.info('configurations: %r' % configurations)
+
     for j in jpgs:
         summaries =[]
         
         shape = (200, 160)
         interpolation = cv2.INTER_NEAREST
         
-        config_dir = '${DUCKIETOWN_ROOT}/catkin_ws/src/duckietown/config/baseline/line_detector/line_detector_node/'
-        config_dir = expand_environment(config_dir)
-        configurations = locate_files(config_dir, '*.yaml')
-        logger.info('configurations: %r' % configurations)
         
-        for c in configurations:
-            logger.info('Trying %r' % c)
-            name = os.path.splitext(os.path.basename(c))[0]
-            if name in ['oreo', 'myrtle', 'bad_lighting', '226-night']:
-                continue
-#
-            with open(c) as f:
-                stuff = yaml.load(f)
-
-            if not 'detector' in stuff:
-                msg = 'Cannot find "detector" section in %r' % c
-                raise ValueError(msg)
-
-            detector = stuff['detector']
-            logger.info(detector)
-            if not isinstance(detector, list) and len(detector) == 2:
-                raise ValueError(detector)
-            
-            from duckietown_utils.instantiate_utils import instantiate
-            
-            def LineDetectorClass():
-                return instantiate(detector[0], detector[1])
-    
-            s = run_detection(transform, j, out, shape=shape,
-                              interpolation=interpolation, name=name,
-                              LineDetectorClass=LineDetectorClass)
-            summaries.append(s)
-        
-        
-        together = make_images_grid(summaries, cols=1, pad=10, bgcolor=[.5, .5, .5])
         bn = os.path.splitext(os.path.basename(j))[0]
         fn = os.path.join(out, '%s.all.png' % (bn))
-        cv2.imwrite(fn, zoom_image(together, 4))
-    # IPython.embed()
+        
+        if os.path.exists(fn):
+            logger.debug('Skipping because file exists: %r' % fn)
+        else:
+            for c in configurations:
+                logger.info('Trying %r' % c)
+                name = os.path.splitext(os.path.basename(c))[0]
+                if name in ['oreo', 'myrtle', 'bad_lighting', '226-night']:
+                    continue
+                with open(c) as f:
+                    stuff = yaml.load(f)
+    
+                if not 'detector' in stuff:
+                    msg = 'Cannot find "detector" section in %r' % c
+                    raise ValueError(msg)
+    
+                detector = stuff['detector']
+                logger.info(detector)
+                if not isinstance(detector, list) and len(detector) == 2:
+                    raise ValueError(detector)
+                
+                from duckietown_utils.instantiate_utils import instantiate
+                
+                def LineDetectorClass():
+                    return instantiate(detector[0], detector[1])
+        
+                s = run_detection(transform, j, out, shape=shape,
+                                  interpolation=interpolation, name=name,
+                                  LineDetectorClass=LineDetectorClass)
+                summaries.append(s)
+            
+            together = make_images_grid(summaries, cols=1, pad=10, bgcolor=[.5, .5, .5])
+            cv2.imwrite(fn, zoom_image(together, 4))
+    # ipython_if_guy()
     overall_results=[]
     comparison_results={}
     for m in mats:
@@ -119,7 +149,7 @@ def examine_dataset(dirname, out):
             comparison_results[m]=frame_results
             overall_results=merge_comparison_results(comparison_results[m],overall_results)
             print "comparison_results[m]=frame_results"
-            # IPython.embed()
+            # ipython_if_guy()
     print "finished mats: "+dirname
     return overall_results
         
@@ -168,7 +198,6 @@ def run_detection(transform, jpg, out, shape, interpolation,
     # write the string "name" in the upper left of image together
     cv2.putText(together, name, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
 
-    #write('together', together)
     return together
 
 def merge_masks_res(res):
@@ -215,7 +244,21 @@ def test_pair(transform, jpg, mat, out):
 
     data = scipy.io.loadmat(mat)
     regions = data['regions'].flatten()
-    result_stats={'average_abs_err':[],'total_pixels':0,'total_error':0,'total_regions':0}
+    max_type=0;
+    for r in regions:
+        max_type=max(max_type,r['type'][0][0][0][0])
+    r_vals={};
+
+    for t in np.arange(max_type):
+        r_vals[t+1]=np.array([],'float32')
+
+    g_vals=copy.deepcopy(r_vals);
+    b_vals=copy.deepcopy(r_vals);
+    h_vals=copy.deepcopy(r_vals);
+    s_vals=copy.deepcopy(r_vals);
+    v_vals=copy.deepcopy(r_vals);
+
+    result_stats={'average_abs_err':[],'total_pixels':0,'total_error':0,'total_regions':0,'r_vals':r_vals,'g_vals':g_vals,'b_vals':b_vals,'h_vals':h_vals,'s_vals':s_vals,'v_vals':v_vals}
     for r in regions:
         logger.info('region')
         x = r['x'][0][0].flatten()
@@ -227,6 +270,7 @@ def test_pair(transform, jpg, mat, out):
         print 'mask shape', mask.shape
         print 'type', r['type'][0][0][0][0] # type in 1- based / matlab-based indices from the list of region types (i.e road, white, yellow, red, or what ever types were annotated) 
         print 'color', r['color'][0] # color in [r,g,b] where [r,g,b]are between 0 and 1
+        t=r['type'][0][0][0][0];
         # print 'guy look here'
         region_color=r['color'][0];region_color=region_color[0][0]
         rval=region_color[0]*255.;
@@ -234,6 +278,18 @@ def test_pair(transform, jpg, mat, out):
         bval=region_color[2]*255.;
         image = image_cv_from_jpg_fn(jpg)
         transformed = transform(image)
+        [b2,g2,r2]=cv2.split(transformed)
+        thsv=cv2.cvtColor(transformed,cv2.cv.CV_BGR2HSV)
+        [h2,s2,v2]=cv2.split(thsv)
+        r2_=r2[mask.nonzero()];g2_=g2[mask.nonzero()];b2_=b2[mask.nonzero()]
+        h2_=h2[mask.nonzero()];s2_=s2[mask.nonzero()];v2_=v2[mask.nonzero()]
+        # ipython_if_guy()
+        result_stats['r_vals'][t]=np.concatenate((result_stats['r_vals'][t],r2_),0)
+        result_stats['g_vals'][t]=np.concatenate((result_stats['g_vals'][t],g2_),0)
+        result_stats['b_vals'][t]=np.concatenate((result_stats['b_vals'][t],b2_),0)
+        result_stats['h_vals'][t]=np.concatenate((result_stats['h_vals'][t],h2_),0)
+        result_stats['s_vals'][t]=np.concatenate((result_stats['s_vals'][t],s2_),0)
+        result_stats['v_vals'][t]=np.concatenate((result_stats['v_vals'][t],v2_),0)
         absdiff_img=cv2.absdiff(transformed,np.array([bval,gval,rval,0.]))
         masked_diff=cv2.multiply(np.array(absdiff_img,'float32'),np.array(mask3,'float32'))
         num_pixels=cv2.sumElems(mask)[0];
@@ -334,7 +390,10 @@ def anti_instagram_annotations_test():
 
     print("overall average error: %f"%(overall_results['total_error']/overall_results['total_pixels']))
     print("overall regions checked: %f"%(overall_results['total_regions']))
-    IPython.embed()
+    for t in overall_results['v_vals'].keys():
+        print("region %f: RGB %f,%f,%f, HSV %f,%f,%f" %(t,np.mean(overall_results['r_vals'][t]),np.mean(overall_results['g_vals'][t]),np.mean(overall_results['b_vals'][t]),np.mean(overall_results['h_vals'][t]),np.mean(overall_results['s_vals'][t]),np.mean(overall_results['v_vals'][t])))
+        
+    ipython_if_guy()
 
 if __name__ == '__main__':
     wrap_test_main(anti_instagram_annotations_test) 

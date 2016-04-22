@@ -1,11 +1,11 @@
-import numpy as np
-import cv2
 from duckietown_utils.parameters import Configurable
-from line_detector.line_detector_interface import LineDetectorInterface, \
-    Detections
+from line_detector.line_detector_interface import (Detections,
+    LineDetectorInterface)
+import cv2
+import numpy as np
 
 
-class LineDetector(Configurable, LineDetectorInterface):
+class LineDetectorHSV(Configurable, LineDetectorInterface):
     """ LineDetectorHSV """
 
     def __init__(self, configuration):
