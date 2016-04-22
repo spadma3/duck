@@ -90,14 +90,14 @@ class ClosedLoopTurn(object):
             
             # Prop control
             
-            vel = -error[0] * 1.0
+            vel = -error[0] * 0.5
             omg = error[1] * 1.0
             
             self.cmd = [  vel , omg ]
             
             self.go_cmd()
             
-            print self.target, x, error , self.cmd
+            print self.target, tag, error , self.cmd
             
             
                 
