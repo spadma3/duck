@@ -127,8 +127,12 @@ class AntiInstagramNode():
 
 		else:
 			self.health.J1 = self.ai.health
-			self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
-			self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
+
+			# load calculated transform into node
+			s = [0.0,0.0,0.0,1.0,1.0,1.0]
+			s[0],s[1],s[2] = self.ai.shift
+			s[3],s[4],s[5] = self.ai.scale
+			self.updateNodeTransform(s)
 
 			self.pub_health.publish(self.health)
 			self.pub_transform.publish(self.transform)
