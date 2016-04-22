@@ -95,11 +95,11 @@ class AntiInstagramNode():
 		tk.completed('calculateTransform')
 
 
-		# FIXME !!!
-		if False:
+		# loose threshold set based on failures in ice rink
+		if self.ai.health <= 0.001:
 			# health is not good
 
-			rospy.loginfo("Health is not good")
+			rospy.loginfo("Health is not good, using defaults")
 
 		else:
 			self.health.J1 = self.ai.health
