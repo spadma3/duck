@@ -36,14 +36,25 @@ class AntiInstagramNode():
 
 		# Initialize transform message
 		self.transform = AntiInstagramTransform()
-		# FIXME: read default from configuration and publish it
 
+		# Initialize anti-instagram objects
 		self.ai = AntiInstagram()
 		self.corrected_image = Image()
 		self.bridge = CvBridge()
 
+		# fixme: if file transform exists:
+		self.calib_transform = rospy.get_param('~calib_transform')
+		if self.calib_transform != None:
+			self.updateNodeTransform(self.calib_transform.s)
+
 		self.image_msg = None
 		self.click_on = False
+
+	def updateNodeTransform(self,s):
+		self.ai.shift = s[0:3]
+		self.ai.scale = s[3:6]
+		self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
+		self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
 
 	def cbNewImage(self,image_msg):
 		# memorize image
@@ -75,7 +86,7 @@ class AntiInstagramNode():
 			if self.click_on:
 				self.processImage(self.image_msg)
 			else:
-				self.transform.s = [0,0,0,1,1,1]
+				self.updateNodeTransform([0,0,0,1,1,1])
 				self.pub_transform.publish(self.transform)
 				rospy.loginfo('ai: Color transform is turned OFF!')
 		else:
