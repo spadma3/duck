@@ -130,9 +130,15 @@ private:
   // gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.01, 1/0.01, 1/0.001));
 
   // NO IMU
+  // gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.01, 0.001));
+  // gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.001, 1/0.001));
+  // gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 0.0));
+  // gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/1, 1/1, 1/0.1));
+
+  // GT + IMU
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise_ = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.01, 0.01, 0.001));
-  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.001, 1/0.001));
-  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 0.0));
+  gtsam::noiseModel::Diagonal::shared_ptr odomNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/0.001, 1/0.001, 0.0));
+  gtsam::noiseModel::Diagonal::shared_ptr imuNoise_  = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(0.0, 0.0, 1/0.001));
   gtsam::noiseModel::Diagonal::shared_ptr landmarkNoise_ = gtsam::noiseModel::Diagonal::Precisions(gtsam::Vector3(1/1, 1/1, 1/0.1));
 
   enum optimizerType {
@@ -205,7 +211,7 @@ poseId_(0), gtSubsampleStep_(10), odomSubsampleStep_(1),
 initializedForwardKinematic_(false), initializedOdometry_(false), initializedCheckIfStill_(false), initializedIMU_(false), 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 estimateIMUbias_(true), timeStillThreshold_(3.0), gyroOmegaBias_(0.0), insertedAnchor_(false), isam2useVicon_(true),
-isam2useIMU_(false), isam2useLandmarks_(true), isam2useGTLandmarks_(true), isam2useGTOdometry_(true), 
+isam2useIMU_(true), isam2useLandmarks_(false), isam2useGTLandmarks_(true), isam2useGTOdometry_(true), 
  isam2useGTInitialLandmarks_(false), isam2useGTInitialOdometry_(false), slamSolver_(ISAM2) {
 
   // gtsam::ISAM2GaussNewtonParams isam2Params_GN;
@@ -430,6 +436,7 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     gtsam::BetweenFactor<gtsam::Pose2> odometryFactor(keyPose_tm1, keyPose_t, odomPose_tm1_t, odomNoise_);
     // add factor to nonlinear factor graph
     newFactors_.add(odometryFactor);
+    ROS_WARN("adding Odometry factor between X%d and X%d",int(poseId_-1),int(poseId_));
 
     // add initial guess for the new pose
     if(isam2useIMU_ == true){
@@ -448,6 +455,7 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
     // include IMU factors and optimize
     if(isam2useIMU_ == true){
       includeIMUfactor();
+      ROS_ERROR("movingAverageOmega_z_: %f - gyroOmegaBias_: %f", movingAverageOmega_z_, gyroOmegaBias_);
     }
 
     switch(slamSolver_){
@@ -479,6 +487,7 @@ void slam_node::odometryCallback(duckietown_msgs::Pose2DStamped::ConstPtr const&
 ///////////////////////////////////////////////////////////////////////////////////////////
 void slam_node::includeIMUfactor(){
 
+  ROS_WARN("adding IMU factor between X%d and X%d",int(poseId_-1),int(poseId_));
   // create between factor
   gtsam::Key keyPose_tm1 = gtsam::Symbol('X', poseId_-1); 
   gtsam::Key keyPose_t = gtsam::Symbol('X', poseId_); 
@@ -526,10 +535,9 @@ void slam_node::imuCallback(sensor_msgs::Imu::ConstPtr const& msg){
         double alpha = 0.01; // coefficient in the moving average . TODO: relate this to the stillTimeTreshold
         movingAverageOmega_z_ = (1-alpha) * movingAverageOmega_z_ + (alpha) * omega_z; 
         gyroOmegaBias_ = movingAverageOmega_z_;
-        //ROS_ERROR("gyroOmegaBias_: %f", gyroOmegaBias_);
       }
     }
-    gyroOmegaBias_ = 0.0017; // 0.001527, 0.002527
+    gyroOmegaBias_ = 0.01; // 0.001527, 0.002527
     double omega_z_bias_corrected = omega_z - gyroOmegaBias_; // we correct with our bias estimate 
     //ROS_ERROR("omega_z_bias_corrected: %f", omega_z_bias_corrected);
     imuDeltaPose_tm1_t_ = gtsam::Pose2( imuDeltaPose_tm1_t_.theta() + omega_z_bias_corrected * deltaT_imu , gtsam::Point2());
