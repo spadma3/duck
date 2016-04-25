@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 
 import rospy
-import roslib; roslib.load_manifest('fake_navigation')
+import roslib
 from gazebo_msgs.srv import GetModelState
 from std_msgs.msg import String
-from duckietown_msgs.msg import  WheelsCmdStamped
+from duckietown_msgs.msg import  WheelsCmdStamped, StopLineReading, BoolStamped, StopLineReading, LanePose
 import std_msgs.msg
 
 from ros import rostopic, rosgraph
 import tf
 import sys
 import math
+
+# config values
+dist_THRESHOLD = 0.25
 
 # calculates the distance between two points
 def distBetween (a,b):
@@ -26,11 +29,22 @@ class speed_publisher (object):
 	def __init__ (self, robot_name, town):
 		self.this_robot = robot_name
 		# defining the publishers
-		self.pub_wheels_cmd = rospy.Publisher("/" + str(robot_name) + "/wheels_driver_node/wheels_cmd",WheelsCmdStamped,queue_size=1)
+		self.pub_wheels_cmd = rospy.Publisher("/" + str(robot_name) + "/wheels_driver_node/wheels_cmd_lane",WheelsCmdStamped,queue_size=1)
+		
+		# publishers that emulate the functioning of other systems
+			# publishers required for fake intersection_control
+		self.int_pub_wheels_cmd = rospy.Publisher("~wheels_cmd_inter",WheelsCmdStamped, queue_size=1)
+        self.pub_wheels_done = rospy.Publisher("~intersection_done",BoolStamped, queue_size=1)
+        self.pub_lane_reading = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
+        	#publishers required for fake stop_line_filter
+        self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1)
 		
 		# defines the trajectory points that the robot will follow. The trajectory depends on the town loaded
 		if town == "small_duckietown":
 			self.trajectory =[ (3.61,1.54), (8.43,3.69), (8.39,8.89), (-1.62,10.27), (-5.80,16.21), (-13.03,16.21), (-24.84,16.21), (-30.08, 13.99), (-30.08, 6.73), (-29.31,2.4), (-20.56,1.50), (-15.16, 3.19), (-15.16, 11.09), (-14.19, 13.66), (-8.35,13.66), (-4.98,8.38), (3.27, 7.3), (5.94, 5.97), (3.90,4.32), (-13.02, 4.32), (-24.69, 4.32), (-26.78, 5.94), (-26.78,11.33), (-25.30, 13.62), (-20.41,13.62), (-18.09, 12.43), (-18.09, 6.80), (-16.92, 1.13)]
+			self.end_of_intersections = []
+			self.stop_lines = []
+			self.intersections = []
 		else:
 			sys.exit("ERROR: Town [" + str(town) + "] not available for fake navigation")
 		
@@ -70,6 +84,53 @@ class speed_publisher (object):
 		print "Closer trajectory point to duckiebot " + str(self.this_robot) +" is "+str(point)+" which is the trajectory point number "+str(ntraj)
 		return point, ntraj
 	
+	#publishes True when reached the end of the intersection. False otherwise
+	def fake_IntersectionControl (self, x, y):
+		
+		boolstamped = BoolStamped()
+		boolstamped.header.stamp = rospy.Time.now()
+		
+		boolstamped.data = False
+		for tpoint in self.end_of_intersections:
+				dist = distBetween ((x,y), tpoint)
+				# if the robot is very close to one of the end of intersection points, we publish True
+				if dist < dist_THRESHOLD:
+					boolstamped.data = True
+					break
+				
+		self.pub_wheels_done.publish(boolstamped)
+	
+	# publishes whether it is close or not to a stop line
+	def fakeStopLineFilter (self, x, y):
+		
+		stop_line_reading_msg = StopLineReading()
+		stop_line_reading_msg.header.stamp = rospy.Time.now()
+		stop_line_reading_msg.stop_line_detected = False
+		stop_line_reading_msg.at_stop_line = False
+		
+		for tpoint in self.stop_lines:
+				dist = distBetween ((x,y), tpoint)
+				# if the robot is close to one of the stop line, we publish the red line coord
+				if dist < dist_THRESHOLD:
+					stop_line_point = Point()
+					stop_line_point.x = tpoint[0]
+					stop_line_point.y = tpoint[1]
+					stop_line_reading_msg.stop_line_point = stop_line_point
+					stop_line_reading_msg.stop_line_detected = True
+					# if it is VERY CLOSE we publish 'at the stop line'
+					stop_line_reading_msg.at_stop_line = dist < dist_THRESHOLD/2
+					break
+				
+		self.pub_stop_line_reading.publish(stop_line_reading_msg)    
+	
+	# publishes the lane_pose (fake)
+	def fakeViconForLaneNode(self, dist, angle):
+		
+		lane_pose = LanePose()
+        lane_pose.d = dist
+        lane_pose.phi = angle
+        lane_pose.header.stamp = rospy.Time.now()
+        self.pub_lane_reading.publish(lane_pose)
 	
 	def getNextOrientation(self):
 		#rosservice call /gazebo/get_model_state obj1 obj2
@@ -87,7 +148,7 @@ class speed_publisher (object):
 			
 			# if the robot location is very close to the traj point, then we change to the next traj point
 			dist = distBetween ((xpos,ypos), self.NextTrajPoint)
-			if dist < 0.25:
+			if dist < dist_THRESHOLD:
 				self.ntraj = self.ntraj + 1
 				# if we reached the end of the trajectory we go back to the first element
 				if self.ntraj == len(self.trajectory):
@@ -107,6 +168,10 @@ class speed_publisher (object):
 				angle = angle - 2*math.pi
 			while angle < -math.pi:
 				angle = angle + 2*math.pi
+
+			fakeViconForLaneNode (dist, angle)
+			fake_IntersectionControl(xpos, ypos)
+			fakeStopLineFilter (xpos, ypos)
 
 			#print "Calculated next position increment for robot ["+ str(self.this_robot) + "] is (" + str(incx) + "," + str(incy) + ")"
 		except rospy.ServiceException as exc:
@@ -133,7 +198,7 @@ class speed_publisher (object):
 		#print "New Velocities: " + str(twist.vel_left) + "," + str(twist.vel_right)
 		# and send it to the wheels
 		self.pub_wheels_cmd.publish(twist)
-
+		self.int_pub_wheels_cmd.publish(twist) # both are the same msg because we are faking the intersection nav commands
 		
 	def start(self):
 		r = rospy.Rate(2) # 2hz
