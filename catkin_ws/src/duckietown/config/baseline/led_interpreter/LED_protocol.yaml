@@ -10,6 +10,10 @@ LED_protocol:
     cyan: [0,1,1]
     black: [0,0,0]
 
+  # WARNING: the LED_detector is heavily optimized 
+  # for these three frequencies, changes here will
+  # require changes in the LED_detector confiurations 
+  # for the detection to work properly
   frequencies:
     f1: &f1 7.8
     f2: &f2 4
