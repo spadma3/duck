@@ -12,10 +12,7 @@ class LEDEmitter(object):
     def __init__(self):
         self.led = RGB_LED()
         self.node_name = rospy.get_name()
-        self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
-        self.sub_pattern = rospy.Subscriber("~change_color_pattern", String, self.changePattern)
-        self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
-        self.cycle = None
+        self.cycle = 0.0
         
         self.is_on = False
         self.active = True
@@ -23,6 +20,7 @@ class LEDEmitter(object):
         self.protocol = rospy.get_param("~LED_protocol") #should be a list of tuples
 
         self.pattern_off = [[0,0,0]] * 5
+        self.pattern = self.pattern_off
 
         scale = 0.5
         for _, c in self.protocol['colors'].items():
@@ -31,6 +29,11 @@ class LEDEmitter(object):
 
         self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(.1), self.cycleTimer)
         self.current_pattern_name = None
+
+        self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
+        self.sub_pattern = rospy.Subscriber("~change_color_pattern", String, self.changePattern)
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
+        
         self.changePattern_('CAR_SIGNAL_A')
 
     def cbSwitch(self, switch_msg): # active/inactive switch from FSM
@@ -90,7 +93,7 @@ class LEDEmitter(object):
                 self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(d), self.cycleTimer)
 
         except ValueError as e:
-            self.cycle = None
+            self.cycle = 0.0
             self.current_pattern_name = None
     	self.pub_state.publish(float(self.cycle))
 
