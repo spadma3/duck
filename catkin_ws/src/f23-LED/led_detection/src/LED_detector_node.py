@@ -59,7 +59,6 @@ class LEDDetectorNode(object):
             rospy.loginfo('[%s] Unsubscribing camera' %self.node_name)
             self.sub_cam.unregister()
 
-
     def camera_callback(self, msg):
         if not self.active:
             return
