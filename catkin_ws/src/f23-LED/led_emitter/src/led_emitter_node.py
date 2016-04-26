@@ -34,23 +34,25 @@ class LEDEmitter(object):
         self.changePattern_('CAR_SIGNAL_A')
 
     def cbSwitch(self, switch_msg): # active/inactive switch from FSM
+        rospy.loginfo('[%s] received switch signal %s'%(self.node_name, switch_msg.data))
         self.active = switch_msg.data
+        if(not self.active):
+            self.changePattern_('light_off') 
 
-
+        self.changeFrequency()
+    
     def cycleTimer(self,event):
-        if not self.active:
-            return
-        if self.is_on:
-            for i in range(5):
-                self.led.setRGB(i, [0, 0, 0])
-                self.is_on = False
-        else:
-            for i in range(5):
-                self.led.setRGB(i, self.pattern[i])
-                self.is_on = True
+        #rospy.loginfo('[%s] Timer running, %s' % (self.node_name, self.is_on))
+        for i in range(5):
+            pt = [0, 0, 0] if self.is_on else self.pattern[i]
+            self.led.setRGB(i, pt)
+            self.is_on = not self.is_on
 
     def changePattern(self, msg):
-        self.changePattern_(msg.data)
+        if(self.active):
+            self.changePattern_(msg.data)
+        else:
+            rospy.loginfo('[%s] WARNING: message received, but node is not active!', self.node_name)
 
     def changePattern_(self, pattern_name):
         if pattern_name:
@@ -59,10 +61,10 @@ class LEDEmitter(object):
             else:
                 self.current_pattern_name = pattern_name
 
-            rospy.loginfo('changePattern(%r)' % pattern_name)
+            rospy.loginfo('[%s] changePattern(%r)' % (self.node_name, pattern_name))
             color = self.protocol['signals'][pattern_name]['color']
             self.cycle = self.protocol['signals'][pattern_name]['frequency']
-            print("color: %s, freq (Hz): %s "%(color, self.cycle))
+            rospy.loginfo("[%s] color: %s, freq (Hz): %s "%(self.node_name, color, self.cycle))
 
             self.pattern = [[0,0,0]] * 5
             self.pattern[2] = self.protocol['colors'][color]
@@ -75,11 +77,18 @@ class LEDEmitter(object):
 
     def changeFrequency(self): 
         try:
-            #self.cycle = msg.data
             self.cycle_timer.shutdown()
-            #below, convert to hz
-            d = 1.0/(2.0*self.cycle)
-            self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(d), self.cycleTimer)
+            # initially set color (covers the case when frequency is 0.0)
+            for i in range(5):
+                self.led.setRGB(i, self.pattern[i])
+                self.is_on = True
+                
+            # if frequency is 0.0, timer is not initialized at all
+            if(self.cycle):
+                #below, convert to hz
+                d = 1.0/(2.0*self.cycle)
+                self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(d), self.cycleTimer)
+
         except ValueError as e:
             self.cycle = None
             self.current_pattern_name = None
