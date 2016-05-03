@@ -1,0 +1,6 @@
+[submodule "catkin_ws/src/DVS/rpg_dvs_ros"]
+	path = catkin_ws/src/DVS/rpg_dvs_ros
+	url = git@github.com:valeriovarricchio/rpg_dvs_ros.git
+[submodule "catkin_ws/src/DVS/catkin_simple"]
+	path = catkin_ws/src/DVS/catkin_simple
+	url = git@github.com:catkin/catkin_simple.git
