@@ -3,26 +3,26 @@ import rospy
 import numpy as np
 import math
 from std_msgs.msg import Bool
-from duckietown_msgs.msg import Twist2DStamped, Pose2DPolarStamped
+from duckietown_msgs.msg import Twist2DStamped, VehiclePose
 from sensor_msgs.msg import Joy
 
 
 class VehicleFollow(object):
     def __init__(self):
         self.node_name = rospy.get_name()
-        self.pose_2d_polar = Pose2DPolarStamped()
+        self.vehicle_pose_last = VehiclePose()
 
         self.car_cmd_msg = Twist2DStamped()
 
         self.pub_counter = 1
 
         # Setup parameters
-        self.reference_distance = self.setup_parameter("~reference_distance", 0.15)
-        self.reference_angle = self.setup_parameter("~reference_angle", 0.0)
+        self.dist_ref = self.setup_parameter("~dist_ref", 0.15)
+        self.head_ref = self.setup_parameter("~head_ref", 0.0)
         self.k_follow = self.setup_parameter("~k_follow", 1.0)  # Linear velocity
-        self.k_heading = self.setup_parameter("~k_heading", 1.0)  # P gain for theta
+        self.k_head = self.setup_parameter("~k_head", 1.0)  # P gain for theta
 
-        self.heading_thres = self.setup_parameter("~heading_thres", math.pi/4)  # Maximum desired heading
+        self.head_thres = self.setup_parameter("~head_thres", math.pi / 4)  # Maximum desired heading
         self.max_speed = self.setup_parameter("~max_speed", 0.4)
         self.max_heading = self.setup_parameter("~max_heading", 0.2)
 
@@ -30,7 +30,7 @@ class VehicleFollow(object):
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_pose = rospy.Subscriber("~pose", Pose2DPolarStamped, self.cb_pose, queue_size=1)
+        self.sub_pose = rospy.Subscriber("~pose", VehiclePose, self.cb_pose, queue_size=1)
 
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params)
 
@@ -38,7 +38,7 @@ class VehicleFollow(object):
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.get_gains_event)
+        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params_event)
         rospy.loginfo("[%s] Initialized " % (rospy.get_name()))
 
     def setup_parameter(self, param_name, default_value):
@@ -48,37 +48,42 @@ class VehicleFollow(object):
         return value
 
     def update_params(self, event):
-        self.reference_distance = rospy.get_param("~reference_distance")
-        self.reference_angle = rospy.get_param("~reference_angle")
+        self.dist_ref = rospy.get_param("~dist_ref")
+        self.head_ref = rospy.get_param("~head_ref")
         self.max_speed = rospy.get_param("~max_speed")
-        self.max_steer = rospy.get_param("~max_steer")
+        self.max_heading = rospy.get_param("~max_heading")
 
-    def get_gains_event(self, event):
-        params_old = (self.reference_distance, self.reference_angle, self.k_follow, self.k_heading, self.heading_thres, self.max_speed, self.max_heading)
+    def update_params_event(self, event):
+        params_old = (self.dist_ref, self.head_ref, self.k_follow, self.k_head, self.head_thres, self.max_speed, self.max_heading)
 
-        reference_distance = rospy.get_param("~reference_distance")
-        reference_angle = rospy.get_param("~reference_angle")
+        dist_ref = rospy.get_param("~dist_ref")
+        head_ref = rospy.get_param("~head_ref")
         k_follow = rospy.get_param("~k_follow")
-        k_heading = rospy.get_param("~k_heading")
-        heading_thres = rospy.get_param("~heading_thres")
+        k_heading = rospy.get_param("~k_head")
+        head_thres = rospy.get_param("~head_thres")
         max_speed = rospy.get_param("~max_speed")
         max_heading = rospy.get_param("~max_heading")
 
-        params_new = (reference_distance, reference_angle, k_follow, k_heading, heading_thres, max_speed, max_heading)
+        params_new = (dist_ref, head_ref, k_follow, k_heading, head_thres, max_speed, max_heading)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." % self.node_name)
             rospy.loginfo(
-                "old gains, reference_distance %f, reference_angle %f, k_follow %f, k_heading %f, heading_thres %f, max_speed %f, max_heading %f" % params_old)
+                "old: dist_ref %f, head_ref %f, k_follow %f, k_head %f, head_thres %f, max_speed %f, max_heading %f" % params_old)
             rospy.loginfo(
-                "new gains, reference_distance %f, reference_angle %f, k_follow %f, k_heading %f, heading_thres %f, max_speed %f, max_heading %f" % params_new)
-            self.reference_distance = reference_distance
-            self.reference_angle = reference_angle
+                "new: dist_ref %f, head_ref %f, k_follow %f, k_head %f, head_thres %f, max_speed %f, max_heading %f" % params_new)
+            self.dist_ref = dist_ref
+            self.head_ref = head_ref
             self.k_follow = k_follow
-            self.k_heading = k_heading
-            self.heading_thres = heading_thres
+            self.k_head = k_heading
+            self.head_thres = head_thres
             self.max_speed = max_speed
             self.max_heading = max_heading
+
+    def stop_vehicle(self):
+        self.car_cmd_msg.v = 0.0
+        self.car_cmd_msg.omega = 0.0
+        self.pub_car_cmd.publish(self.car_cmd_msg)
 
     def custom_shutdown(self):
         rospy.loginfo("[%s] Shutting down..." % self.node_name)
@@ -87,39 +92,40 @@ class VehicleFollow(object):
         self.sub_pose.unregister()
 
         # Send stop command to car command switch
-        car_control_msg = Twist2DStamped()
-        car_control_msg.v = 0.0
-        car_control_msg.omega = 0.0
-        self.pub_car_cmd.publish(car_control_msg)
+        self.stop_vehicle()
+
         rospy.sleep(0.5)  # To make sure that it gets published.
         rospy.loginfo("[%s] Shutdown" % self.node_name)
 
-    def cb_pose(self, pose_2d_polar_msg):
-        self.pose_2d_polar = pose_2d_polar_msg
+    def cb_pose(self, vehicle_pose_msg):
 
         # copy message header over:
-        self.car_cmd_msg.header = pose_2d_polar_msg.header
+        self.car_cmd_msg.header = vehicle_pose_msg.header
 
-        # Following Error Calculation
-        following_error = self.pose_2d_polar.rho - self.reference_distance
+        if not self.vehicle_pose.detection:
+            self.stop_vehicle()
+        else:
+            # Following Error Calculation
+            following_error = vehicle_pose_msg.rho - self.dist_ref
+            self.car_cmd_msg.v = self.k_follow * following_error
 
-        self.car_cmd_msg.v = self.k_follow * following_error
+            # Heading Error Calculation
+            heading_error = vehicle_pose_msg.theta - self.head_ref
+            self.car_cmd_msg.omega = self.k_head * heading_error
 
-        # Heading Error Calculation
-        heading_error = self.pose_2d_polar.psi - self.reference_angle
-        self.car_cmd_msg.omega = self.k_heading * heading_error
+            # ToDo: what does vehicle_pose_msg.psi contain?
 
-        # controller mapping issue
-        # car_control_msg.steering = -car_control_msg.steering
-        # print "controls: speed %f, steering %f" % (car_control_msg.speed, car_control_msg.steering)
-        self.pub_car_cmd.publish(self.car_cmd_msg)
+            # Publish control message
+            self.pub_car_cmd.publish(self.car_cmd_msg)
 
-        # debugging
-        self.pub_counter += 1
-        if self.pub_counter % 50 == 0:
-            self.pub_counter = 1
-            print "vehicle_follow publish"
-            print car_cmd_msg
+        self.vehicle_pose_last = vehicle_pose_msg
+
+        # # debugging
+        # self.pub_counter += 1
+        # if self.pub_counter % 50 == 0:
+        #     self.pub_counter = 1
+        #     print "vehicle_follow publish"
+        #     print self.car_cmd_msg
 
 
 if __name__ == "__main__":
