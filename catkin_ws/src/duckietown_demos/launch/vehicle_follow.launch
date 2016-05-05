@@ -3,7 +3,7 @@
 	<!-- start basic args -->
 	<include file="$(find duckietown_demos)/launch/master.launch">
 	    <arg name="veh" value="$(arg veh)"/>
-	    <arg name="joystick" default="false"/>
+	    <arg name="joystick" default="true"/>
 	    <arg name="fsm" default="true"/>
 		<arg name="visualization" value="false" />
 	    <arg name="verbose" value="false" />
@@ -22,13 +22,14 @@
 	    <arg name="/vehicle_avoidance/control" value="false"/>
 	    <arg name="vehicle_follow" value="true"/>
 		<arg name="apriltags" value="false"/>
-        <arg name="LED" value="true" />
+        <arg name="LED" value="false" />
 	    <arg name="/LED/detector" value="false" />
 	    <arg name="/LED/joystick" value="false" />
-	    <arg name="/LED/emitter"  value="true" />
+	    <arg name="/LED/emitter"  value="false" />
 	    <arg name="/LED/interpreter" value="false" />
         <arg name="odometry_learning" value="false"/>
         <arg name="coordination" value="false"/>
+
         <arg name="navigation" value="false"/>
     	<arg name="parallel_autonomy" value="false"/>
         <arg name="global_localizer" value="false"/>
