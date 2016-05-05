@@ -67,6 +67,7 @@ class VehicleDetectionNode(object):
 		self.simple_blob_detector = cv2.SimpleBlobDetector(params)
 		self.distance_between_centers = data['distance_between_centers']
 		self.bottom_crop = data['bottom_crop']
+		self.top_crop = data['top_crop']
 		# print configuration
 		rospy.loginfo('[%s] distance_between_centers dim : %s' % (self.node_name, 
 				self.distance_between_centers))
@@ -121,13 +122,16 @@ class VehicleDetectionNode(object):
 			pose_msg_out = VehiclePose()
 			try:
 				image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
-				crop_img = image_cv[:-self.bottom_crop, :, :]
+				crop_img = image_cv[self.top_crop:-self.bottom_crop, :, :]
 			except CvBridgeError as e:
 				print e
 			(detection, corners) = cv2.findCirclesGrid(crop_img,
 					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
 					blobDetector=self.simple_blob_detector)
 			pose_msg_out.detection.data = detection
+			if detection:
+				for i in np.arange(len(corners)):
+					corners[i][0][1] += self.top_crop
 			if self.publish_circles:
 				cv2.drawChessboardCorners(image_cv, 
 						self.circlepattern_dims, corners, detection)
