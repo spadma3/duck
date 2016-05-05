@@ -47,7 +47,7 @@ class VehicleFollow(object):
         return value
 
     def update_params_event(self, event):
-        params_old = (self.dist_ref, self.head_ref, self.k_follow, self.k_head, self.head_thres, self.max_speed, self.max_heading)
+        params_old = (self.dist_ref, self.head_ref, self.k_follow, self.k_heading, self.head_thres, self.max_speed, self.max_heading)
 
         dist_ref = rospy.get_param("~dist_ref")
         head_ref = rospy.get_param("~head_ref")
