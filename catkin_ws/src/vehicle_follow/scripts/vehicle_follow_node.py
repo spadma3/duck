@@ -101,11 +101,11 @@ class VehicleFollow(object):
             # keep following last command?
         else:
             # Following Error Calculation
-            following_error = vehicle_pose_msg.rho - self.dist_ref
+            following_error = vehicle_pose_msg.rho.data - self.dist_ref
             self.car_cmd_msg.v = self.k_follow * following_error
 
             # Heading Error Calculation
-            heading_error = vehicle_pose_msg.theta - self.head_ref
+            heading_error = vehicle_pose_msg.theta.data - self.head_ref
             self.car_cmd_msg.omega = self.k_heading * heading_error
             #deadspace? integrator?
 
