@@ -5,3 +5,5 @@ k_heading: 1.0
 head_thres: 0.85
 max_speed: 0.3
 max_heading: 1.0
+deadspace_speed: 0.05
+deadspace_heading: 0.2

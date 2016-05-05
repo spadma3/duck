@@ -25,6 +25,8 @@ class VehicleFollow(object):
         self.head_thres = self.setup_parameter("~head_thres", math.pi / 4)  # Maximum desired heading
         self.max_speed = self.setup_parameter("~max_speed", 0.4)
         self.max_heading = self.setup_parameter("~max_heading", 0.2)
+        self.deadspace_speed = self.setup_parameter("~deadspace_speed", 0.05)
+        self.deadspace_heading = self.setup_parameter("~deadspace_heading", 0.2)
 
         # Publication
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
@@ -56,15 +58,19 @@ class VehicleFollow(object):
         head_thres = rospy.get_param("~head_thres")
         max_speed = rospy.get_param("~max_speed")
         max_heading = rospy.get_param("~max_heading")
+        deadspace_speed = rospy.get_param("~deadspace_speed")
+        deadspace_heading = rospy.get_param("~deadspace_heading")
 
-        params_new = (dist_ref, head_ref, k_follow, k_heading, head_thres, max_speed, max_heading)
+        params_new = (dist_ref, head_ref, k_follow, k_heading, head_thres, max_speed, max_heading, deadspace_speed, deadspace_heading)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." % self.node_name)
             rospy.loginfo(
-                "old: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f" % params_old)
+                "old: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f,"
+                " max_heading %f, deadspace_speed %f , deadspace_heading %f " % params_old)
             rospy.loginfo(
-                "new: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f" % params_new)
+                "new: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, "
+                " max_heading %f, deadspace_speed %f , deadspace_heading %f" % params_new)
             self.dist_ref = dist_ref
             self.head_ref = head_ref
             self.k_follow = k_follow
@@ -72,6 +78,8 @@ class VehicleFollow(object):
             self.head_thres = head_thres
             self.max_speed = max_speed
             self.max_heading = max_heading
+            self.deadspace_speed = deadspace_speed
+            self.deadspace_heading = deadspace_heading
 
     def stop_vehicle(self):
         self.car_cmd_msg.v = 0.0
@@ -104,12 +112,26 @@ class VehicleFollow(object):
             following_error = vehicle_pose_msg.rho.data - self.dist_ref
             self.car_cmd_msg.v = self.k_follow * following_error
 
-            # Heading Error Calculation
-            heading_error = vehicle_pose_msg.theta.data - self.head_ref
-            self.car_cmd_msg.omega = self.k_heading * heading_error
-            #deadspace? integrator?
+            if self.car_cmd_msg.v > self.max_speed:
+                self.car_cmd_msg.v = self.car_cmd_msg.v
+            if self.car_cmd_msg.v < - self.max_speed:
+                self.car_cmd_msg.v = - self.max_speed
+            elif abs(self.car_cmd_msg.v) < self.deadspace_speed:
+                self.car_cmd_msg.v = 0.0
 
-            # ToDo: what does vehicle_pose_msg.psi contain?
+            # Heading Error Calculation
+            # ToDo try an integrator
+            heading_error = vehicle_pose_msg.theta.data - self.head_ref
+
+            self.car_cmd_msg.omega = self.k_heading * heading_error
+
+            if self.car_cmd_msg.omega > self.max_heading:
+                self.car_cmd_msg.omega = self.max_heading
+            elif self.car_cmd_msg.omega < -self.max_heading:
+                self.car_cmd_msg.omega = -self.max_heading
+            elif abs(self.car_cmd_msg.omega) < self.deadspace_heading:
+                self.car_cmd_msg.omega = 0.0
+            # ToDo: what to do with vehicle_pose_msg.psi.data?
 
             # Publish control message
             self.pub_car_cmd.publish(self.car_cmd_msg)
