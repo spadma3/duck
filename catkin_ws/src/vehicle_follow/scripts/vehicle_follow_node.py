@@ -95,7 +95,7 @@ class VehicleFollow(object):
         # copy message header over:
         self.car_cmd_msg.header = vehicle_pose_msg.header
 
-        if not vehicle_pose_msg.detection:
+        if not vehicle_pose_msg.detection.data:
             # it stops if it doesnt see
             self.stop_vehicle()
             # keep following last command?
