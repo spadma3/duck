@@ -95,7 +95,7 @@ class VehicleFollow(object):
         # copy message header over:
         self.car_cmd_msg.header = vehicle_pose_msg.header
 
-        if not self.vehicle_pose.detection:
+        if not self.vehicle_pose_msg.detection:
             self.stop_vehicle()
         else:
             # Following Error Calculation
