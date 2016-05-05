@@ -66,11 +66,9 @@ class VehicleFollow(object):
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." % self.node_name)
             rospy.loginfo(
-                "old: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f,"
-                " max_heading %f, deadspace_speed %f , deadspace_heading %f " % params_old)
+                "old: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f, deadspace_speed %f , deadspace_heading %f " % params_old)
             rospy.loginfo(
-                "new: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, "
-                " max_heading %f, deadspace_speed %f , deadspace_heading %f" % params_new)
+                "new: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f, deadspace_speed %f , deadspace_heading %f" % params_new)
             self.dist_ref = dist_ref
             self.head_ref = head_ref
             self.k_follow = k_follow
