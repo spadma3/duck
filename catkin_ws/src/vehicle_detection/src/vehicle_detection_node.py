@@ -71,7 +71,7 @@ class VehicleDetectionNode(object):
 		# print configuration
 		rospy.loginfo('[%s] distance_between_centers dim : %s' % (self.node_name, 
 				self.distance_between_centers))
-		rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name, 
+		rospy.loginfo('[%s] circlepattern_dims : %s' % (self.node_name, 
    			self.circlepattern_dims,))
 		rospy.loginfo('[%s] blobdetector_min_area: %.2f' % (self.node_name, 
 				self.blobdetector_min_area))
@@ -143,6 +143,8 @@ class VehicleDetectionNode(object):
 				return
 			retval, rvecs, tvecs = cv2.solvePnP(self.objp, corners, 
 					self.K, self.distCoeff)
+			tvecs[0] += np.floor(self.circlepattern_dims[0] / 2) * self.distance_between_centers
+			tvecs[2] += np.floor(self.circlepattern_dims[1] / 2) * self.distance_between_centers
 			pose_msg_out.rho.data = np.linalg.norm(tvecs)
 			pose_msg_out.theta.data = np.arctan2(tvecs[0], tvecs[2])
 			pose_msg_out.psi.data 	= rvecs[1]
