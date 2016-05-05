@@ -30,7 +30,7 @@ class VehicleFollow(object):
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_pose = rospy.Subscriber("~pose", VehiclePose, self.cb_pose, queue_size=1)
+        self.sub_target_pose = rospy.Subscriber("~target_pose", VehiclePose, self.cb_pose, queue_size=1)
 
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params_event)
 
@@ -82,7 +82,7 @@ class VehicleFollow(object):
         rospy.loginfo("[%s] Shutting down..." % self.node_name)
 
         # Stop listening
-        self.sub_pose.unregister()
+        self.sub_target_pose.unregister()
 
         # Send stop command to car command switch
         self.stop_vehicle()
