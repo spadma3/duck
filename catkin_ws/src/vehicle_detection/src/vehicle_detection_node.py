@@ -37,16 +37,13 @@ class VehicleDetectionNode(object):
 				self.cbImage, queue_size=1)
 		self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
 				self.cbSwitch, queue_size=1)
-		self.pub_detection = rospy.Publisher("~detection", 
-				BoolStamped, queue_size=1)
 		self.pub_circlepattern_image = rospy.Publisher("~circlepattern_image", 
 				Image, queue_size=1)
 		self.sub_info = rospy.Subscriber("~camera_info", CameraInfo,
 				self.cbCameraInfo, queue_size=1)
 		self.pcm = PinholeCameraModel()
-		self.pub_time_elapsed = rospy.Publisher("~detection_time",
-			Float32, queue_size=1)
 		self.pub_pose = rospy.Publisher("~target_pose", VehiclePose, queue_size=1)
+		self.camera_configured = False
 		self.lock = mutex()
 		rospy.loginfo("[%s] Initialization completed" % (self.node_name))
 	
@@ -60,7 +57,7 @@ class VehicleDetectionNode(object):
 		stream = file(filename, 'r')
 		data = yaml.load(stream)
 		stream.close()
-                self.circlepattern_dims = tuple(data['circlepattern_dims']['data'])
+		self.circlepattern_dims = tuple(data['circlepattern_dims']['data'])
 		self.blobdetector_min_area = data['blobdetector_min_area']
 		self.blobdetector_min_dist_between_blobs = data['blobdetector_min_dist_between_blobs']
 		self.publish_circles = data['publish_circles']
@@ -69,6 +66,9 @@ class VehicleDetectionNode(object):
 		params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs
 		self.simple_blob_detector = cv2.SimpleBlobDetector(params)
 		self.distance_between_centers = data['distance_between_centers']
+		self.bottom_crop = data['bottom_crop']
+		self.top_crop = data['top_crop']
+		# print configuration
 		rospy.loginfo('[%s] distance_between_centers dim : %s' % (self.node_name, 
 				self.distance_between_centers))
 		rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name, 
@@ -79,17 +79,23 @@ class VehicleDetectionNode(object):
 				self.blobdetector_min_dist_between_blobs))
 		rospy.loginfo('[%s] publish_circles: %r' % (self.node_name, 
 				self.publish_circles))
+		rospy.loginfo('[%s] bottom_crop: %r' % (self.node_name, 
+				self.bottom_crop))
 
 	def cbSwitch(self, switch_msg):
 		self.active = switch_msg.data
 
 	def cbCameraInfo(self, camera_info_msg):
+		if not self.active:
+			return
 		thread = threading.Thread(target=self.processCameraInfo,
 				args=(camera_info_msg,))
 		thread.setDaemon(True)
 		thread.start()
 	
 	def processCameraInfo(self, camera_info_msg):
+		if self.camera_configured:
+			return
 		if self.lock.testandset():
 			self.pcm.fromCameraInfo(camera_info_msg)
 			height, width = self.circlepattern_dims
@@ -99,6 +105,7 @@ class VehicleDetectionNode(object):
 			self.objp = np.zeros((height * width, 3), np.float32)
 			self.objp[:, :2] = np.mgrid[0:height, 0:width].T.reshape(-1, 2)
 			self.objp = self.objp * unit_length
+			self.camera_configured = True
 			self.lock.unlock()
 
 	def cbImage(self, image_msg):
@@ -115,15 +122,16 @@ class VehicleDetectionNode(object):
 			pose_msg_out = VehiclePose()
 			try:
 				image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
+				crop_img = image_cv[self.top_crop:-self.bottom_crop, :, :]
 			except CvBridgeError as e:
 				print e
-			start = rospy.Time.now()
-			(detection, corners) = cv2.findCirclesGrid(image_cv,
+			(detection, corners) = cv2.findCirclesGrid(crop_img,
 					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
 					blobDetector=self.simple_blob_detector)
-			elapsed_time = (rospy.Time.now() - start).to_sec()
-			self.pub_time_elapsed.publish(elapsed_time)
 			pose_msg_out.detection.data = detection
+			if detection:
+				for i in np.arange(len(corners)):
+					corners[i][0][1] += self.top_crop
 			if self.publish_circles:
 				cv2.drawChessboardCorners(image_cv, 
 						self.circlepattern_dims, corners, detection)
