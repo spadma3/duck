@@ -51,7 +51,7 @@
 
 	<arg name="vehicle_avoidance" default="false"/>
 	<arg name="/vehicle_avoidance/detection" default="true" />
-	<arg name="/vehicle_avoidance/control" default="true"/>
+	<arg name="/vehicle_avoidance/control" default="false"/>
 
 	<arg name="apriltags" default="false"/>
 	<arg name="/apriltags/preprocessing" default="true"/>
@@ -316,6 +316,7 @@
 
 		<!-- Vehicle Detection Node -->
 		<remap from="vehicle_detection_node/image" to="camera_node/image/raw" />
+		<remap from="vehicle_detection_node/camera_info" to="camera_node/camera_info"/>
 		<group if="$(arg /vehicle_avoidance/detection)">
 			<include file="$(find vehicle_detection)/launch/vehicle_detection_node.launch">
 				<arg name="veh" value="$(arg veh)"/>

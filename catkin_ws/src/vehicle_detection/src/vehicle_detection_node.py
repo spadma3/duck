@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 from copy import deepcopy
 from cv_bridge import CvBridge, CvBridgeError
-from duckietown_msgs.msg import BoolStamped
+from duckietown_msgs.msg import BoolStamped, VehiclePose
 from geometry_msgs.msg import Point32
+from image_geometry import PinholeCameraModel
 from mutex import mutex
-from sensor_msgs.msg import CompressedImage, Image
+from sensor_msgs.msg import CompressedImage, Image, CameraInfo
 from std_msgs.msg import Float32
 import cv2
 import numpy as np
@@ -40,8 +41,12 @@ class VehicleDetectionNode(object):
 				BoolStamped, queue_size=1)
 		self.pub_circlepattern_image = rospy.Publisher("~circlepattern_image", 
 				Image, queue_size=1)
+		self.sub_info = rospy.Subscriber("~camera_info", CameraInfo,
+				self.cbCameraInfo, queue_size=1)
+		self.pcm = PinholeCameraModel()
 		self.pub_time_elapsed = rospy.Publisher("~detection_time",
 			Float32, queue_size=1)
+		self.pub_pose = rospy.Publisher("~target_pose", VehiclePose, queue_size=1)
 		self.lock = mutex()
 		rospy.loginfo("[%s] Initialization completed" % (self.node_name))
 	
@@ -59,8 +64,15 @@ class VehicleDetectionNode(object):
 		self.blobdetector_min_area = data['blobdetector_min_area']
 		self.blobdetector_min_dist_between_blobs = data['blobdetector_min_dist_between_blobs']
 		self.publish_circles = data['publish_circles']
-                rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name, 
-                               	self.circlepattern_dims,))
+		params = cv2.SimpleBlobDetector_Params()
+		params.minArea = self.blobdetector_min_area
+		params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs
+		self.simple_blob_detector = cv2.SimpleBlobDetector(params)
+		self.distance_between_centers = data['distance_between_centers']
+		rospy.loginfo('[%s] distance_between_centers dim : %s' % (self.node_name, 
+				self.distance_between_centers))
+		rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name, 
+   			self.circlepattern_dims,))
 		rospy.loginfo('[%s] blobdetector_min_area: %.2f' % (self.node_name, 
 				self.blobdetector_min_area))
 		rospy.loginfo('[%s] blobdetector_min_dist_between_blobs: %.2f' % (self.node_name, 
@@ -70,6 +82,24 @@ class VehicleDetectionNode(object):
 
 	def cbSwitch(self, switch_msg):
 		self.active = switch_msg.data
+
+	def cbCameraInfo(self, camera_info_msg):
+		thread = threading.Thread(target=self.processCameraInfo,
+				args=(camera_info_msg,))
+		thread.setDaemon(True)
+		thread.start()
+	
+	def processCameraInfo(self, camera_info_msg):
+		if self.lock.testandset():
+			self.pcm.fromCameraInfo(camera_info_msg)
+			height, width = self.circlepattern_dims
+			unit_length = self.distance_between_centers
+			self.distCoeff = np.float32(self.pcm.distortionCoeffs())
+			self.K = np.float32(self.pcm.fullIntrinsicMatrix())
+			self.objp = np.zeros((height * width, 3), np.float32)
+			self.objp[:, :2] = np.mgrid[0:height, 0:width].T.reshape(-1, 2)
+			self.objp = self.objp * unit_length
+			self.lock.unlock()
 
 	def cbImage(self, image_msg):
 		if not self.active:
@@ -82,28 +112,33 @@ class VehicleDetectionNode(object):
 	
 	def processImage(self, image_msg):
 		if self.lock.testandset():
-			vehicle_detected_msg_out = BoolStamped()
+			pose_msg_out = VehiclePose()
 			try:
 				image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
 			except CvBridgeError as e:
 				print e
 			start = rospy.Time.now()
-			params = cv2.SimpleBlobDetector_Params()
-			params.minArea = self.blobdetector_min_area
-			params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs
-			simple_blob_detector = cv2.SimpleBlobDetector(params)
 			(detection, corners) = cv2.findCirclesGrid(image_cv,
 					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
-					blobDetector=simple_blob_detector)
+					blobDetector=self.simple_blob_detector)
 			elapsed_time = (rospy.Time.now() - start).to_sec()
 			self.pub_time_elapsed.publish(elapsed_time)
-			vehicle_detected_msg_out.data = detection
-			self.pub_detection.publish(vehicle_detected_msg_out)
+			pose_msg_out.detection.data = detection
 			if self.publish_circles:
 				cv2.drawChessboardCorners(image_cv, 
 						self.circlepattern_dims, corners, detection)
 				image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
-				self.pub_circlepattern_image.publish(image_msg_out)
+				self.pub_circlepattern_image.publish(image_msg_out)	
+			if not detection:
+				self.pub_pose.publish(pose_msg_out)
+				self.lock.unlock()
+				return
+			retval, rvecs, tvecs = cv2.solvePnP(self.objp, corners, 
+					self.K, self.distCoeff)
+			pose_msg_out.rho.data = np.linalg.norm(tvecs)
+			pose_msg_out.theta.data = np.arctan2(tvecs[0], tvecs[2])
+			pose_msg_out.psi.data 	= rvecs[1]
+			self.pub_pose.publish(pose_msg_out)
 			self.lock.unlock()
 
 if __name__ == '__main__': 
