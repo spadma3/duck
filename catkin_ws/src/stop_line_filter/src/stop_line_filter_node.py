@@ -1,30 +1,33 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose
+from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Point
 import time
 import math
 
-
 class StopLineFilterNode(object):
     def __init__(self):
         self.node_name = "Stop Line Filter"
-
+        self.active = True
         ## state vars
         self.lane_pose = LanePose()
 
         ## params
-        self.stop_distance = self.setupParam("~stop_distance", 0.02) # distance from the stop line that we should stop 
+        self.stop_distance = self.setupParam("~stop_distance", 0.2) # distance from the stop line that we should stop 
         self.min_segs      = self.setupParam("~min_segs", 2) # minimum number of red segments that we should detect to estimate a stop
+        self.off_time      = self.setupParam("~off_time", 2)
         self.lanewidth = 0 # updated continuously below
 
-
+        self.state = "JOYSTICK_CONTROL"
+        self.sleep = False
         ## publishers and subscribers
         self.sub_segs      = rospy.Subscriber("~segment_list", SegmentList, self.processSegments)
         self.sub_lane      = rospy.Subscriber("~lane_pose",LanePose, self.processLanePose)
+        self.sub_mode      = rospy.Subscriber("fsm_node/mode",FSMState, self.processStateChange)
         self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1)
+        self.pub_at_stop_line = rospy.Publisher("~at_stop_line", BoolStamped, queue_size=1)
 
 
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -39,11 +42,26 @@ class StopLineFilterNode(object):
         self.lanewidth = rospy.get_param("~lanewidth")
         self.stop_distance = rospy.get_param("~stop_distance")
         self.min_segs      = rospy.get_param("~min_segs")
+        self.off_time      = rospy.get_param("~off_time")
+
+    def processStateChange(self,msg):
+        if self.state == "INTERSECTION_CONTROL" and msg.state == "LANE_FOLLOWING":
+            rospy.loginfo("stop line sleep start")
+            self.sleep = True
+            rospy.sleep(self.off_time)
+            self.sleep = False
+            rospy.loginfo("stop line sleep end")
+        self.state=msg.state
+
+    def cbSwitch(self, switch_msg):
+        self.active = switch_msg.data
 
     def processLanePose(self, lane_pose_msg):
         self.lane_pose = lane_pose_msg
 
     def processSegments(self, segment_list_msg):
+        if not self.active or self.sleep:
+            return
         good_seg_count=0
         stop_line_x_accumulator=0.0
         stop_line_y_accumulator=0.0
@@ -74,8 +92,13 @@ class StopLineFilterNode(object):
         stop_line_point.x = stop_line_x_accumulator/good_seg_count
         stop_line_point.y = stop_line_y_accumulator/good_seg_count
         stop_line_reading_msg.stop_line_point = stop_line_point
-        stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < self.lanewidth/4 and self.lane_pose.in_lane
+        stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < self.lanewidth/4 
         self.pub_stop_line_reading.publish(stop_line_reading_msg)    
+        if stop_line_reading_msg.at_stop_line:
+            msg = BoolStamped()
+            msg.header.stamp = stop_line_reading_msg.header.stamp
+            msg.data = True
+            self.pub_at_stop_line.publish(msg)
    
     def to_lane_frame(self, point):
         p_homo = np.array([point.x,point.y,1])
