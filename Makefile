@@ -111,6 +111,13 @@ demo-line_detector-default_ld2: demo-line_detector-quiet-default_ld2
 demo-line_detector-quiet-%: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name) line_detector_param_file_name:=$* verbose:=false"
 
+demo-vehicle-follow: unittests-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos vehicle_follow.launch"
+
+demo-vehicle-follow-no-wheels: unittests-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos vehicle_follow_nowheels.launch"
+
+
 # ==========
 # openhouse demos
  

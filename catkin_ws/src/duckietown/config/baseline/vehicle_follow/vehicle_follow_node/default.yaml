@@ -1,0 +1,7 @@
+dist_ref: 0.15
+head_ref: 0.0
+k_follow: 1.0
+k_heading: 1.0
+head_thres: 0.85
+max_speed: 0.4
+max_heading: 0.2

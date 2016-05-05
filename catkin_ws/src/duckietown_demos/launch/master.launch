@@ -53,6 +53,8 @@
 	<arg name="/vehicle_avoidance/detection" default="true" />
 	<arg name="/vehicle_avoidance/control" default="false"/>
 
+	<arg name="vehicle_follow" default="false"/>
+
 	<arg name="apriltags" default="false"/>
 	<arg name="/apriltags/preprocessing" default="true"/>
 	<arg name="/apriltags/global" default="true"/>
@@ -205,8 +207,6 @@
 	<!-- Start Lane Following -->
 	<group if="$(arg lane_following)">
 
-
-
 		<!-- Line Detector -->
 		<group if="$(arg /lane_following/line_detection)">
 			<remap from="line_detector_node/image" to="camera_node/image/compressed"/>
@@ -331,7 +331,22 @@
 		</group>
 	</group>
 	<!-- End Vehicle Avoidance -->
-	
+
+
+	<!-- Start Vehicle Follow -->
+	<group if="$(arg vehicle_follow)">
+
+		<!-- Vehicle Follow Node -->
+		<remap from="vehicle_follow_node/vehicle_pose" to="vehicle_detection_node/target_pose" />
+		<include file="$(find vehicle_follow)/launch/vehicle_follow_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+		</include>
+
+	</group>
+	<!-- End Vehicle Follow -->
+
 	<!-- Start April Tags -->
 	<group if="$(arg apriltags)">
 

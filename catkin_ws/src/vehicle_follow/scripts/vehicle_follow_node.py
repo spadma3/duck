@@ -20,7 +20,7 @@ class VehicleFollow(object):
         self.dist_ref = self.setup_parameter("~dist_ref", 0.15)
         self.head_ref = self.setup_parameter("~head_ref", 0.0)
         self.k_follow = self.setup_parameter("~k_follow", 1.0)  # Linear velocity
-        self.k_head = self.setup_parameter("~k_head", 1.0)  # P gain for theta
+        self.k_heading = self.setup_parameter("~k_heading", 1.0)  # P gain for theta
 
         self.head_thres = self.setup_parameter("~head_thres", math.pi / 4)  # Maximum desired heading
         self.max_speed = self.setup_parameter("~max_speed", 0.4)
@@ -32,13 +32,12 @@ class VehicleFollow(object):
         # Subscriptions
         self.sub_pose = rospy.Subscriber("~pose", VehiclePose, self.cb_pose, queue_size=1)
 
-        self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params)
+        self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params_event)
 
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params_event)
         rospy.loginfo("[%s] Initialized " % (rospy.get_name()))
 
     def setup_parameter(self, param_name, default_value):
@@ -47,19 +46,13 @@ class VehicleFollow(object):
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def update_params(self, event):
-        self.dist_ref = rospy.get_param("~dist_ref")
-        self.head_ref = rospy.get_param("~head_ref")
-        self.max_speed = rospy.get_param("~max_speed")
-        self.max_heading = rospy.get_param("~max_heading")
-
     def update_params_event(self, event):
         params_old = (self.dist_ref, self.head_ref, self.k_follow, self.k_head, self.head_thres, self.max_speed, self.max_heading)
 
         dist_ref = rospy.get_param("~dist_ref")
         head_ref = rospy.get_param("~head_ref")
         k_follow = rospy.get_param("~k_follow")
-        k_heading = rospy.get_param("~k_head")
+        k_heading = rospy.get_param("~k_heading")
         head_thres = rospy.get_param("~head_thres")
         max_speed = rospy.get_param("~max_speed")
         max_heading = rospy.get_param("~max_heading")
@@ -69,13 +62,13 @@ class VehicleFollow(object):
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." % self.node_name)
             rospy.loginfo(
-                "old: dist_ref %f, head_ref %f, k_follow %f, k_head %f, head_thres %f, max_speed %f, max_heading %f" % params_old)
+                "old: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f" % params_old)
             rospy.loginfo(
-                "new: dist_ref %f, head_ref %f, k_follow %f, k_head %f, head_thres %f, max_speed %f, max_heading %f" % params_new)
+                "new: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f" % params_new)
             self.dist_ref = dist_ref
             self.head_ref = head_ref
             self.k_follow = k_follow
-            self.k_head = k_heading
+            self.k_heading = k_heading
             self.head_thres = head_thres
             self.max_speed = max_speed
             self.max_heading = max_heading
@@ -111,7 +104,7 @@ class VehicleFollow(object):
 
             # Heading Error Calculation
             heading_error = vehicle_pose_msg.theta - self.head_ref
-            self.car_cmd_msg.omega = self.k_head * heading_error
+            self.car_cmd_msg.omega = self.k_heading * heading_error
 
             # ToDo: what does vehicle_pose_msg.psi contain?
 
