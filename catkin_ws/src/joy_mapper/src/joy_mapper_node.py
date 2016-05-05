@@ -20,8 +20,8 @@ class JoyMapper(object):
         # Setup Parameters
         self.v_gain = self.setupParam("~speed_gain", 0.41)
         self.omega_gain = self.setupParam("~steer_gain", 8.3)
-        self.bicycle_kinematics = self.setupParam("~bicycle_kinematics", 0)
-        self.steer_angle_gain = self.setupParam("~steer_angle_gain", 1)
+        self.bicycle_kinematics = self.setupParam("~bicycle_kinematics", 0.0)
+        self.steer_angle_gain = self.setupParam("~steer_angle_gain", 1.0)
         self.simulated_vehicle_length = self.setupParam("~simulated_vehicle_length", 0.18)
 
         # Publications
@@ -48,9 +48,8 @@ class JoyMapper(object):
         self.v_gain = rospy.get_param("~speed_gain", 1.0)
         self.omega_gain = rospy.get_param("~steer_gain", 10)
 
-    def setupParam(self,param_name, default_value):
+    def setupParam(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
-        # Write to parameter server for transparancy
         rospy.set_param(param_name, value)
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
