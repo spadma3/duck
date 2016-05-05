@@ -95,8 +95,10 @@ class VehicleFollow(object):
         # copy message header over:
         self.car_cmd_msg.header = vehicle_pose_msg.header
 
-        if not self.vehicle_pose_msg.detection:
+        if not vehicle_pose_msg.detection:
+            # it stops if it doesnt see
             self.stop_vehicle()
+            # keep following last command?
         else:
             # Following Error Calculation
             following_error = vehicle_pose_msg.rho - self.dist_ref
@@ -105,6 +107,7 @@ class VehicleFollow(object):
             # Heading Error Calculation
             heading_error = vehicle_pose_msg.theta - self.head_ref
             self.car_cmd_msg.omega = self.k_heading * heading_error
+            #deadspace? integrator?
 
             # ToDo: what does vehicle_pose_msg.psi contain?
 
