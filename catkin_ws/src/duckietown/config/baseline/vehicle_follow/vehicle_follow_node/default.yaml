@@ -1,9 +1,9 @@
-dist_ref: 0.15
+dist_ref: 0.14
 head_ref: 0.0
 k_follow: 1.0
-k_heading: 1.0
+k_heading: -2.0
 head_thres: 0.85
-max_speed: 0.3
-max_heading: 1.0
+max_speed: 0.4
+max_heading: 8.0
 deadspace_speed: 0.05
-deadspace_heading: 0.2
+deadspace_heading: 0.01
