@@ -3,6 +3,8 @@
 	<!-- start basic args -->
 	<include file="$(find duckietown_demos)/launch/master.launch">
 	    <arg name="veh" value="$(arg veh)"/>
+	    <arg name="joystick" default="false"/>
+	    <arg name="fsm" default="false"/>
 		<arg name="visualization" value="false" />
 	    <arg name="verbose" value="false" />
 	    <arg name="statistics" value="false"/>
