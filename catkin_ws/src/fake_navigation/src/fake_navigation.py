@@ -24,6 +24,9 @@ class speed_publisher (object):
 	
 	RobotDistService = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
 	trajectory = []
+	end_of_intersections = []
+	stop_lines = []
+	intersections = []
 	ntraj = -1
 	
 	def __init__ (self, robot_name, town):
@@ -34,17 +37,17 @@ class speed_publisher (object):
 		# publishers that emulate the functioning of other systems
 			# publishers required for fake intersection_control
 		self.int_pub_wheels_cmd = rospy.Publisher("~wheels_cmd_inter",WheelsCmdStamped, queue_size=1)
-        self.pub_wheels_done = rospy.Publisher("~intersection_done",BoolStamped, queue_size=1)
-        self.pub_lane_reading = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
+		self.pub_wheels_done = rospy.Publisher("~intersection_done",BoolStamped, queue_size=1)
+		self.pub_lane_reading = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         	#publishers required for fake stop_line_filter
-        self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1)
+		self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1)
 		
 		# defines the trajectory points that the robot will follow. The trajectory depends on the town loaded
 		if town == "small_duckietown":
 			self.trajectory =[ (3.61,1.54), (8.43,3.69), (8.39,8.89), (-1.62,10.27), (-5.80,16.21), (-13.03,16.21), (-24.84,16.21), (-30.08, 13.99), (-30.08, 6.73), (-29.31,2.4), (-20.56,1.50), (-15.16, 3.19), (-15.16, 11.09), (-14.19, 13.66), (-8.35,13.66), (-4.98,8.38), (3.27, 7.3), (5.94, 5.97), (3.90,4.32), (-13.02, 4.32), (-24.69, 4.32), (-26.78, 5.94), (-26.78,11.33), (-25.30, 13.62), (-20.41,13.62), (-18.09, 12.43), (-18.09, 6.80), (-16.92, 1.13)]
-			self.end_of_intersections = []
-			self.stop_lines = []
-			self.intersections = []
+			self.end_of_intersections = [ (-13.3,1.31), (-20.3, 2.05), (-15.16, 6.07), (-17.95, 11.87), (-13.57, 13.37), (-19.53, 16.25) ]
+			self.stop_lines = [(3.61,1.54), (-1.62,10.27), (-5.80,16.21), (-13.03,16.21), (-30.08, 13.99), (-29.31,2.4), (-15.16, 3.19), (-14.19, 13.66), (-4.98,8.38), (3.90,4.32), (-13.02, 4.32), (-26.78, 5.94), (-25.30, 13.62), (-18.09, 12.43)]
+			self.intersections = [(-5.80,16.21), (-29.31,2.4), (-15.16, 3.19), (3.90,4.32), (-25.30, 13.62), (-18.09, 12.43)]
 		else:
 			sys.exit("ERROR: Town [" + str(town) + "] not available for fake navigation")
 		
@@ -127,10 +130,10 @@ class speed_publisher (object):
 	def fakeViconForLaneNode(self, dist, angle):
 		
 		lane_pose = LanePose()
-        lane_pose.d = dist
-        lane_pose.phi = angle
-        lane_pose.header.stamp = rospy.Time.now()
-        self.pub_lane_reading.publish(lane_pose)
+		lane_pose.d = dist
+		lane_pose.phi = angle
+		lane_pose.header.stamp = rospy.Time.now()
+		self.pub_lane_reading.publish(lane_pose)
 	
 	def getNextOrientation(self):
 		#rosservice call /gazebo/get_model_state obj1 obj2
@@ -169,9 +172,9 @@ class speed_publisher (object):
 			while angle < -math.pi:
 				angle = angle + 2*math.pi
 
-			fakeViconForLaneNode (dist, angle)
-			fake_IntersectionControl(xpos, ypos)
-			fakeStopLineFilter (xpos, ypos)
+			self.fakeViconForLaneNode (dist, angle)
+			self.fake_IntersectionControl(xpos, ypos)
+			self.fakeStopLineFilter (xpos, ypos)
 
 			#print "Calculated next position increment for robot ["+ str(self.this_robot) + "] is (" + str(incx) + "," + str(incy) + ")"
 		except rospy.ServiceException as exc:
