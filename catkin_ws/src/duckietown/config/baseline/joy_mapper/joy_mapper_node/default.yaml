@@ -7,9 +7,9 @@ bicycle_kinematics: 0.0
 steer_angle_gain: 1.04
 simulated_vehicle_length: 0.18
 vehicule_dynamics: 1.0
-mass: 3.0
+mass: 1.0
 b: 1.0
-I: 1.0
-b_ang: 1.0
+I: 0.1
+b_ang: 0.1
 u_gain: 0.85
 t_gain: 1.0
