@@ -78,8 +78,9 @@ class JoyMapper(object):
         if self.vehicule_dynamics:
             
             # Filtering 
-            t_now              = rospy.Time.now()
-            dt                 = t_now - self.last_pub_time
+            now              = rospy.Time.now()
+            t_now            = now.to_sec()
+            dt               = t_now - self.last_pub_time.to_sec()
             
             # Longitudinal dynamic
             u    = self.joy.axes[1] * self.u_gain
