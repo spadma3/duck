@@ -123,6 +123,7 @@ class VehicleDetectionNode(object):
 			try:
 #				image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
 				np_arr = np.fromstring(image_msg.data, np.uint8)
+				pose_msg_out.header.stamp = image_msg.header.stamp
 				image_cv = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
 				crop_img = image_cv[self.top_crop:-self.bottom_crop, :, :]
 			except CvBridgeError as e:
@@ -130,7 +131,7 @@ class VehicleDetectionNode(object):
 			(detection, corners) = cv2.findCirclesGrid(crop_img,
 					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
 					blobDetector=self.simple_blob_detector)
-			pose_msg_out.detection.data = detection
+			pose_msg_out.detection = detection
 			if detection:
 				for i in np.arange(len(corners)):
 					corners[i][0][1] += self.top_crop
@@ -147,9 +148,11 @@ class VehicleDetectionNode(object):
 					self.K, self.distCoeff)
 			tvecs[0] += np.floor(self.circlepattern_dims[0] / 2) * self.distance_between_centers
 			tvecs[2] += np.floor(self.circlepattern_dims[1] / 2) * self.distance_between_centers
-			pose_msg_out.rho.data = np.linalg.norm(tvecs)
-			pose_msg_out.theta.data = np.arctan2(tvecs[0], tvecs[2])
-			pose_msg_out.psi.data 	= rvecs[1]
+			pose_msg_out.rho = np.linalg.norm(tvecs)
+			pose_msg_out.theta = np.arctan2(tvecs[0], tvecs[2])
+			pose_msg_out.psi = rvecs[1]
+			pose_msg_out.x = tvecs[0]
+			pose_msg_out.y = tvecs[2]
 			self.pub_pose.publish(pose_msg_out)
 			self.lock.unlock()
 
