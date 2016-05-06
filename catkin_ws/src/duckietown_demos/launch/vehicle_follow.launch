@@ -10,7 +10,7 @@
 	    <arg name="statistics" value="false"/>
 	    <arg name="anti_instagram" value="false"/>
 		<arg name="camera" value="true"/>
-        <arg name="/camera/raw" value="true"/>
+        <arg name="/camera/raw" value="false"/>
 	    <arg name="/camera/cam_info" value="true"/>
 	    <arg name="odometry" value="false"/>
 	    <arg name="/odometry/forward_kinematics" value="false"/>

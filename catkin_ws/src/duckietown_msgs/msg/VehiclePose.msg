@@ -1,6 +1,7 @@
 Header header
-std_msgs/Float32 rho
-std_msgs/Float32 theta
-std_msgs/Float32 psi
-std_msgs/Bool detection
-
+float32 rho
+float32 theta
+float32 psi
+float32 x
+float32 y
+bool detection
