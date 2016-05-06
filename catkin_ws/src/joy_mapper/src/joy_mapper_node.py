@@ -74,44 +74,73 @@ class JoyMapper(object):
         car_cmd_msg = Twist2DStamped()
         car_cmd_msg.header.stamp = self.joy.header.stamp
         
+        self.bicycle_kinematics = self.setupParam("~bicycle_kinematics", 0.0)
+        self.vehicule_dynamics = self.setupParam("~vehicule_dynamics", 1.0)
+
+        if self.bicycle_kinematics:
+            
+            if self.vehicule_dynamics:
         
-        if self.vehicule_dynamics:
+                # Filtering 
+                now              = rospy.Time.now()
+                t_now            = now.to_sec()
+                dt               = t_now - self.last_pub_time.to_sec()
+                
+                # Longitudinal dynamic
+                u    = self.joy.axes[1] * self.u_gain
+                acc  = 1. / self.mass * ( u - self.b * self.v )
+                v    = self.v + acc * dt
+                
+                car_cmd_msg.v = v
+                self.v        = v
+                
+                # Direct steering cmd
+                steering_angle = self.joy.axes[3] * self.steer_angle_gain
+                car_cmd_msg.omega = car_cmd_msg.v / self.simulated_vehicle_length * math.tan(steering_angle)
             
-            # Filtering 
-            now              = rospy.Time.now()
-            t_now            = now.to_sec()
-            dt               = t_now - self.last_pub_time.to_sec()
             
-            # Longitudinal dynamic
-            u    = self.joy.axes[1] * self.u_gain
-            acc  = 1. / self.mass * ( u - self.b * self.v )
-            v    = self.v + acc * dt
-            
-            car_cmd_msg.v = v
-            self.v        = v
-            
-            # Angular dynamic
-            torque    = self.joy.axes[3] * self.t_gain
-            dw        = 1. / self.I * ( torque - self.b_ang * self.w )
-            w         = self.w + dw * dt
-            
-            car_cmd_msg.omega  = w
-            self.w             = w
-            
-            print 'Speeds commanded:',v,w
-            
-        else:
-        
-            car_cmd_msg.v = self.joy.axes[1] * self.v_gain #Left stick V-axis. Up is positive            
-            
-            if self.bicycle_kinematics:
+            else:
+                
+                # direct velocity cmd
+                car_cmd_msg.v     = self.joy.axes[1] * self.v_gain #Left stick V-axis. Up is positive  
                 # Implements Bicycle Kinematics - Nonholonomic Kinematics
                 # see https://inst.eecs.berkeley.edu/~ee192/sp13/pdf/steer-control.pdf
                 steering_angle = self.joy.axes[3] * self.steer_angle_gain
                 car_cmd_msg.omega = car_cmd_msg.v / self.simulated_vehicle_length * math.tan(steering_angle)
+            
+        else:
+            
+            
+            if self.vehicule_dynamics:
+        
+                # Filtering 
+                now              = rospy.Time.now()
+                t_now            = now.to_sec()
+                dt               = t_now - self.last_pub_time.to_sec()
+                
+                # Longitudinal dynamic
+                u    = self.joy.axes[1] * self.u_gain
+                acc  = 1. / self.mass * ( u - self.b * self.v )
+                v    = self.v + acc * dt
+                
+                car_cmd_msg.v = v
+                self.v        = v
+                
+                # Angular dynamic
+                torque    = self.joy.axes[3] * self.t_gain
+                dw        = 1. / self.I * ( torque - self.b_ang * self.w )
+                w         = self.w + dw * dt
+                
+                car_cmd_msg.omega  = w
+                self.w             = w
+                
+                #print 'Speeds commanded:',v,w
+                
+                
             else:
                 # Holonomic Kinematics for Normal Driving
                 car_cmd_msg.omega = self.joy.axes[3] * self.omega_gain
+                car_cmd_msg.v     = self.joy.axes[1] * self.v_gain #Left stick V-axis. Up is positive  
                 
         self.pub_car_cmd.publish(car_cmd_msg)
         self.last_pub_time = now
