@@ -126,10 +126,12 @@ class VehicleFollow(object):
             following_error = actual_rho - self.dist_ref
             self.car_cmd_msg.v = self.k_follow * following_error
 
+            # Clipping of velocity control effort:
             if self.car_cmd_msg.v > self.max_speed:
                 self.car_cmd_msg.v = self.car_cmd_msg.v
             if self.car_cmd_msg.v < - self.max_speed:
                 self.car_cmd_msg.v = - self.max_speed
+            # Dead space of velocity control effort:
             elif abs(self.car_cmd_msg.v) < self.deadspace_speed:
                 self.car_cmd_msg.v = 0.0
 
