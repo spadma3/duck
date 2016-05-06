@@ -109,7 +109,7 @@ class VehicleDetectionNode(object):
 			self.lock.unlock()
 
 	def cbImage(self, image_msg):
-		if not self.active:
+		if not self.active or not self.camera_configured:
 			return
 		# Start a daemon thread to process the image
 		thread = threading.Thread(target=self.processImage,args=(image_msg,))
@@ -146,12 +146,12 @@ class VehicleDetectionNode(object):
 				return
 			retval, rvecs, tvecs = cv2.solvePnP(self.objp, corners, 
 					self.K, self.distCoeff)
-			tvecs[2] += np.floor(self.circlepattern_dims[1] / 2) * self.distance_between_centers
+			tvecs[0] += np.floor(self.circlepattern_dims[0] / 2) * self.distance_between_centers
 			pose_msg_out.rho = np.linalg.norm(tvecs)
-			pose_msg_out.theta = np.arctan2(tvecs[0], tvecs[2])
-			pose_msg_out.psi = rvecs[1]
-			pose_msg_out.x = tvecs[0]
-			pose_msg_out.y = tvecs[2]
+			pose_msg_out.theta = -np.arctan2(tvecs[0], tvecs[2])
+			pose_msg_out.psi = -rvecs[1]
+			pose_msg_out.x =    tvecs[2]
+			pose_msg_out.y =   -tvecs[0]
 			self.pub_pose.publish(pose_msg_out)
 			self.lock.unlock()
 
