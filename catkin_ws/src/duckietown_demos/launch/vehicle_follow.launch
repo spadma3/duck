@@ -29,12 +29,14 @@
 	    <arg name="/LED/interpreter" value="false" />
         <arg name="odometry_learning" value="false"/>
         <arg name="coordination" value="false"/>
-
         <arg name="navigation" value="false"/>
     	<arg name="parallel_autonomy" value="false"/>
         <arg name="global_localizer" value="false"/>
         <arg name="SLAM" value="false"/>
    		<arg name="wheels" value="true"/>
 	</include>
+	<!--ToDo Fix! this Bypass HACK -->
+	<remap from="vehicle_follow_node/car_cmd" to="car_cmd_switch_node/cmd" />
+
 </launch>
 
