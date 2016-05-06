@@ -114,7 +114,7 @@ class JoyMapper(object):
                 car_cmd_msg.omega = self.joy.axes[3] * self.omega_gain
                 
         self.pub_car_cmd.publish(car_cmd_msg)
-        self.last_pub_time = t_now
+        self.last_pub_time = now
 
 # Button List index of joy.buttons array:
 # a = 0, b=1, x=2. y=3, lb=4, rb=5, back = 6, start =7,
