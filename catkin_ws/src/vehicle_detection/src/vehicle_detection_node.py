@@ -33,7 +33,7 @@ class VehicleDetectionNode(object):
 			rospy.logwarn("[%s] Can't find calibration file: %s.\n" 
 					% (self.node_name, self.cali_file))
 		self.loadConfig(self.cali_file)
-		self.sub_image = rospy.Subscriber("~image", Image, 
+		self.sub_image = rospy.Subscriber("~image", CompressedImage,
 				self.cbImage, queue_size=1)
 		self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
 				self.cbSwitch, queue_size=1)
@@ -121,7 +121,9 @@ class VehicleDetectionNode(object):
 		if self.lock.testandset():
 			pose_msg_out = VehiclePose()
 			try:
-				image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
+#				image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
+				np_arr = np.fromstring(image_msg.data, np.uint8)
+				image_cv = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
 				crop_img = image_cv[self.top_crop:-self.bottom_crop, :, :]
 			except CvBridgeError as e:
 				print e
