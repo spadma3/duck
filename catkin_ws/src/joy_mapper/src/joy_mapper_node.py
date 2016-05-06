@@ -16,13 +16,24 @@ class JoyMapper(object):
         self.last_pub_msg = None
         self.last_pub_time = rospy.Time.now()
 
-
         # Setup Parameters
         self.v_gain = self.setupParam("~speed_gain", 0.41)
         self.omega_gain = self.setupParam("~steer_gain", 8.3)
         self.bicycle_kinematics = self.setupParam("~bicycle_kinematics", 0.0)
         self.steer_angle_gain = self.setupParam("~steer_angle_gain", 1.0)
         self.simulated_vehicle_length = self.setupParam("~simulated_vehicle_length", 0.18)
+        
+        self.vehicule_dynamics = self.setupParam("~vehicule_dynamics", 1.0)
+        self.mass   = self.setupParam("~mass", 3.0) #[kg]
+        self.b      = self.setupParam("~b", 1.0) #[Ns/m]
+        self.I      = self.setupParam("~I", 1.0)     # [Nms2/rad] Inertia
+        self.b_ang  = self.setupParam("~b_ang", 1.0) # [Nms/rad]  Damping
+        self.u_gain = self.setupParam("~u_gain", 0.85) # gain from joystick to Newtons
+        self.t_gain = self.setupParam("~t_gain", 1.0)  # gain from joystick to Newton-Meters
+        
+        # initial state of the filter
+        self.v = 0
+        self.w = 0
 
         # Publications
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
@@ -62,16 +73,47 @@ class JoyMapper(object):
     def publishControl(self):
         car_cmd_msg = Twist2DStamped()
         car_cmd_msg.header.stamp = self.joy.header.stamp
-        car_cmd_msg.v = self.joy.axes[1] * self.v_gain #Left stick V-axis. Up is positive
-        if self.bicycle_kinematics:
-            # Implements Bicycle Kinematics - Nonholonomic Kinematics
-            # see https://inst.eecs.berkeley.edu/~ee192/sp13/pdf/steer-control.pdf
-            steering_angle = self.joy.axes[3] * self.steer_angle_gain
-            car_cmd_msg.omega = car_cmd_msg.v / self.simulated_vehicle_length * math.tan(steering_angle)
+        
+        
+        if self.vehicule_dynamics:
+            
+            # Filtering 
+            t_now              = rospy.Time.now()
+            dt                 = t_now - self.last_pub_time
+            
+            # Longitudinal dynamic
+            u    = self.joy.axes[1] * self.u_gain
+            acc  = 1. / self.mass * ( u - self.b * self.v )
+            v    = self.v + acc * dt
+            
+            car_cmd_msg.v = v
+            self.v        = v
+            
+            # Angular dynamic
+            torque    = self.joy.axes[3] * self.t_gain
+            dw        = 1. / self.I * ( torque - self.b_ang * self.w )
+            w         = self.w + dw * dt
+            
+            car_cmd_msg.omega  = w
+            self.w             = w
+            
+            print 'Speeds commanded:',v,w
+            
         else:
-            # Holonomic Kinematics for Normal Driving
-            car_cmd_msg.omega = self.joy.axes[3] * self.omega_gain
+        
+            car_cmd_msg.v = self.joy.axes[1] * self.v_gain #Left stick V-axis. Up is positive            
+            
+            if self.bicycle_kinematics:
+                # Implements Bicycle Kinematics - Nonholonomic Kinematics
+                # see https://inst.eecs.berkeley.edu/~ee192/sp13/pdf/steer-control.pdf
+                steering_angle = self.joy.axes[3] * self.steer_angle_gain
+                car_cmd_msg.omega = car_cmd_msg.v / self.simulated_vehicle_length * math.tan(steering_angle)
+            else:
+                # Holonomic Kinematics for Normal Driving
+                car_cmd_msg.omega = self.joy.axes[3] * self.omega_gain
+                
         self.pub_car_cmd.publish(car_cmd_msg)
+        self.last_pub_time = t_now
 
 # Button List index of joy.buttons array:
 # a = 0, b=1, x=2. y=3, lb=4, rb=5, back = 6, start =7,
