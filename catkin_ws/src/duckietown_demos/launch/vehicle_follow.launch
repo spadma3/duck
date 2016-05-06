@@ -36,7 +36,6 @@
    		<arg name="wheels" value="true"/>
 	</include>
 	<!--ToDo Fix! this Bypass HACK -->
-	<remap from="vehicle_follow_node/car_cmd" to="car_cmd_switch_node/cmd" />
 
 </launch>
 
