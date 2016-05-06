@@ -10,11 +10,16 @@ from sensor_msgs.msg import Joy
 class VehicleFollow(object):
     def __init__(self):
         self.node_name = rospy.get_name()
-        self.vehicle_pose_last = VehiclePose()
+        self.last_vehicle_pose = VehiclePose()
 
         self.car_cmd_msg = Twist2DStamped()
+        self.car_cmd_msg.omega = 0.0
+        self.car_cmd_msg.v = 0.0
 
-        self.pub_counter = 1
+        # self.pub_counter = 1
+
+        self.last_omega = 0
+        self.last_v = 0
 
         # Setup parameters
         self.dist_ref = self.setup_parameter("~dist_ref", 0.15)
@@ -79,11 +84,6 @@ class VehicleFollow(object):
             self.deadspace_speed = deadspace_speed
             self.deadspace_heading = deadspace_heading
 
-    def stop_vehicle(self):
-        self.car_cmd_msg.v = 0.0
-        self.car_cmd_msg.omega = 0.0
-        self.pub_car_cmd.publish(self.car_cmd_msg)
-
     def custom_shutdown(self):
         rospy.loginfo("[%s] Shutting down..." % self.node_name)
 
@@ -91,23 +91,39 @@ class VehicleFollow(object):
         self.sub_target_pose.unregister()
 
         # Send stop command to car command switch
-        self.stop_vehicle()
+        self.car_cmd_msg.v = 0.0
+        self.car_cmd_msg.omega = 0.0
+        self.pub_car_cmd.publish(self.car_cmd_msg)
 
         rospy.sleep(0.5)  # To make sure that it gets published.
         rospy.loginfo("[%s] Shutdown" % self.node_name)
 
     def cb_pose(self, vehicle_pose_msg):
 
-        # copy message header over:
-        self.car_cmd_msg.header = vehicle_pose_msg.header
-
-        if not vehicle_pose_msg.detection.data:
+        if not vehicle_pose_msg.detection:
             # it stops if it doesnt see
-            self.stop_vehicle()
-            # keep following last command?
+            # copy message header over:
+            self.car_cmd_msg.header = vehicle_pose_msg.header
+            self.car_cmd_msg.v = 0.0
+            self.car_cmd_msg.omega = 0.0
+            self.pub_car_cmd.publish(self.car_cmd_msg)
+            # ToDo: keep following last command?
         else:
+
+            # if self.last_vehicle_pose.header.stamp.to_sec() > 0:  # skip first frame
+                # delta_t = (vehicle_pose_msg.header.stamp - self.last_pose.header.stamp).to_sec()  # throughput delta
+            delta_t = rospy.Time.now() - vehicle_pose_msg.header.stamp  # latency
+            [delta_omega, delta_x, delta_y] = self.integrate(self.car_cmd_msg.omega, self.car_cmd_msg.v, delta_t)
+
+            actual_x = vehicle_pose_msg.x - delta_x
+            actual_y = vehicle_pose_msg.y - delta_y
+            delta_dist_vec = np.array([actual_x, actual_y])
+            actual_rho = np.linalg.norm(delta_dist_vec)
+            actual_theta = vehicle_pose_msg.theta - delta_omega
+
+            self.car_cmd_msg.header = vehicle_pose_msg.header
             # Following Error Calculation
-            following_error = vehicle_pose_msg.rho.data - self.dist_ref
+            following_error = actual_rho - self.dist_ref
             self.car_cmd_msg.v = self.k_follow * following_error
 
             if self.car_cmd_msg.v > self.max_speed:
@@ -119,7 +135,7 @@ class VehicleFollow(object):
 
             # Heading Error Calculation
             # ToDo try an integrator
-            heading_error = vehicle_pose_msg.theta.data - self.head_ref
+            heading_error = actual_theta - self.head_ref
 
             self.car_cmd_msg.omega = self.k_heading * heading_error
 
@@ -131,10 +147,13 @@ class VehicleFollow(object):
                 self.car_cmd_msg.omega = 0.0
             # ToDo: what to do with vehicle_pose_msg.psi.data?
 
+            self.last_omega = self.car_cmd_msg.omega
+            self.last_v = self.car_cmd_msg.v
+
             # Publish control message
             self.pub_car_cmd.publish(self.car_cmd_msg)
 
-        self.vehicle_pose_last = vehicle_pose_msg
+        self.last_vehicle_pose = vehicle_pose_msg
 
         # # debugging
         # self.pub_counter += 1
@@ -142,6 +161,42 @@ class VehicleFollow(object):
         #     self.pub_counter = 1
         #     print "vehicle_follow publish"
         #     print self.car_cmd_msg
+
+    def integrate(self, theta_dot, v, dt):
+        theta_delta = theta_dot * dt
+        if abs(theta_dot) < 0.000001:  # to ensure no division by zero for radius calculation
+            # straight line
+            x_delta = v * dt
+            y_delta = 0
+        else:
+            # arc of circle, see "Probabilitic robotics"
+            radius = v / theta_dot
+            x_delta = radius * np.sin(theta_delta)
+            y_delta = radius * (1.0 - np.cos(theta_delta))
+        return [theta_delta, x_delta, y_delta]
+
+    def propagate(self, theta, x, y, theta_delta, x_delta, y_delta):
+        theta_res = theta + theta_delta
+        # arc of circle, see "Probabilistic robotics"
+        x_res = x + x_delta * np.cos(theta) - y_delta * np.sin(theta)
+        y_res = y + y_delta * np.cos(theta) + x_delta * np.sin(theta)
+        return [theta_res, x_res, y_res]
+
+    def integrate_propagate(self, theta, x, y, theta_dot, v, dt):
+        [theta_delta, x_delta, y_delta] = self.integrate(theta_dot, v, dt)
+        [theta_res, x_res, y_res] = self.propagate(theta, x, y, theta_delta, x_delta, y_delta)
+        # theta_delta = theta_dot*dt
+        # theta_res = theta + theta_delta
+        # if (theta_dot < 0.000001):
+        #     # straight line
+        #     x_res = x+ cos(theta) * v * dt
+        #     y_res = y+ sin(theta) * v * dt
+        # else:
+        #     # arc of circle, see "Probabilitic robotics"
+        #     v_w_ratio = v / theta_dot
+        #     x_res = x + v_w_ratio * sin(theta_res) - v_w_ratio * sin(theta)
+        #     y_res = y + v_w_ratio * cos(theta) - v_w_ratio * cos(theta_res)
+        return [theta_res, x_res, y_res]
 
 
 if __name__ == "__main__":
