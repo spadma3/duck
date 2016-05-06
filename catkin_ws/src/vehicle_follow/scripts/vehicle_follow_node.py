@@ -112,7 +112,7 @@ class VehicleFollow(object):
 
             # if self.last_vehicle_pose.header.stamp.to_sec() > 0:  # skip first frame
                 # delta_t = (vehicle_pose_msg.header.stamp - self.last_pose.header.stamp).to_sec()  # throughput delta
-            delta_t = rospy.Time.now() - vehicle_pose_msg.header.stamp  # latency
+            delta_t = (rospy.Time.now() - vehicle_pose_msg.header.stamp).to_sec()  # latency
             [delta_omega, delta_x, delta_y] = self.integrate(self.car_cmd_msg.omega, self.car_cmd_msg.v, delta_t)
 
             actual_x = vehicle_pose_msg.x - delta_x
