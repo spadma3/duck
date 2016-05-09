@@ -32,6 +32,7 @@ class VehicleFollow(object):
         self.max_heading = self.setup_parameter("~max_heading", 0.2)
         self.deadspace_speed = self.setup_parameter("~deadspace_speed", 0.05)
         self.deadspace_heading = self.setup_parameter("~deadspace_heading", 0.2)
+        self.alpha            = self.setup_parameter("~alpha", 1.0)
 
         # Publication
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
@@ -114,6 +115,10 @@ class VehicleFollow(object):
                 # delta_t = (vehicle_pose_msg.header.stamp - self.last_pose.header.stamp).to_sec()  # throughput delta
             delta_t = (rospy.Time.now() - vehicle_pose_msg.header.stamp).to_sec()  # latency
             [delta_omega, delta_x, delta_y] = self.integrate(self.car_cmd_msg.omega, self.car_cmd_msg.v, delta_t)
+            
+            delta_x     = delta_x * self.alpha
+            delta_y     = delta_y * self.alpha
+            delta_omega = delta_omega * self.alpha
 
             actual_x = vehicle_pose_msg.x - delta_x
             actual_y = vehicle_pose_msg.y - delta_y

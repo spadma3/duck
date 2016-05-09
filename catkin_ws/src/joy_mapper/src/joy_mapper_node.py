@@ -74,8 +74,8 @@ class JoyMapper(object):
         car_cmd_msg = Twist2DStamped()
         car_cmd_msg.header.stamp = self.joy.header.stamp
         
-        self.bicycle_kinematics = self.setupParam("~bicycle_kinematics", 0.0)
-        self.vehicule_dynamics = self.setupParam("~vehicule_dynamics", 1.0)
+        #self.bicycle_kinematics = self.setupParam("~bicycle_kinematics", 0.0)
+        #self.vehicule_dynamics = self.setupParam("~vehicule_dynamics", 1.0)
 
         if self.bicycle_kinematics:
             
