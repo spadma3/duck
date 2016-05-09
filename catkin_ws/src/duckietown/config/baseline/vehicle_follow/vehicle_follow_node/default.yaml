@@ -8,3 +8,4 @@ max_heading: 8.0
 deadspace_speed: 0.03
 deadspace_heading: 0.05
 alpha: 1.0
+alpha_psi: 0.0

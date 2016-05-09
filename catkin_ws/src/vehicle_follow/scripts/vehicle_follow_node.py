@@ -33,6 +33,7 @@ class VehicleFollow(object):
         self.deadspace_speed = self.setup_parameter("~deadspace_speed", 0.05)
         self.deadspace_heading = self.setup_parameter("~deadspace_heading", 0.2)
         self.alpha            = self.setup_parameter("~alpha", 1.0)
+        self.alpha_psi        = self.setup_parameter("~alpha_psi", 0.0)
 
         # Publication
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
@@ -142,7 +143,7 @@ class VehicleFollow(object):
 
             # Heading Error Calculation
             # ToDo try an integrator
-            heading_error = actual_theta - self.head_ref
+            heading_error = actual_theta - self.head_ref + vehicle_pose_msg.psi * self.alpha_psi
 
             self.car_cmd_msg.omega = self.k_heading * heading_error
 
