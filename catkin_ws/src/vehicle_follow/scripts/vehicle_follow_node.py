@@ -2,8 +2,9 @@
 import rospy
 import numpy as np
 import math
-from std_msgs.msg import Bool
-from duckietown_msgs.msg import Twist2DStamped, VehiclePose
+import time
+from std_msgs.msg import Bool, BoolStamped
+from duckietown_msgs.msg import Twist2DStamped, VehiclePose,  AprilTags
 from sensor_msgs.msg import Joy
 
 
@@ -34,15 +35,28 @@ class VehicleFollow(object):
         self.deadspace_heading = self.setup_parameter("~deadspace_heading", 0.2)
         self.alpha            = self.setup_parameter("~alpha", 1.0)
         self.alpha_psi        = self.setup_parameter("~alpha_psi", 0.0)
+        
+        # April ctl Params
+        self.delay_go    = 0.2
+        self.delay_pause = 0.2
+        self.stop_pause  = True
+        self.target = np.array([ 0.4 , 0.0  ])
 
         # Publication
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+        
+        self.pub_april      = rospy.Publisher("apriltags_postprocessing_fast_node/switch",  BoolStamped, queue_size=1)
+        
 
         # Subscriptions
         self.sub_target_pose = rospy.Subscriber("~target_pose", VehiclePose, self.cb_pose, queue_size=1)
 
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params_event)
-
+        
+        self.sub_april      = rospy.Subscriber("apriltags_postprocessing_fast_node/apriltags_out", AprilTags, self.aprillocalization, queue_size=1)
+        self.april_loc = [None,None]
+        
+        
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -109,13 +123,65 @@ class VehicleFollow(object):
         if not vehicle_pose_msg.detection:
             # it stops if it doesnt see
             # copy message header over:
-            self.car_cmd_msg.header = vehicle_pose_msg.header
-            self.car_cmd_msg.v = 0.0
-            self.car_cmd_msg.omega = 0.0
-            self.pub_car_cmd.publish(self.car_cmd_msg)
-            # ToDo: keep following last command?
+        
+            april_tag_backup = True
+            
+            if april_tag_backup:
+                
+                #Start april tags
+                self.pub_april.publish(BoolStamped(data=True))
+                
+                [x,y] = self.april_loc
+                tag   = np.array( [x,y] )
+                
+                if not x==None:
+                    
+                    # Compute error
+                    error  = self.target - tag
+                    d = np.linalg.norm( error )
+                    theta = np.arctan( error[1] /  error[0]  )
+                    error_d_theta = np.array( [d , theta ] )
+                    
+                    # Prop ctl
+                    vel = -error[0] * 1.2
+                    omg = np.sign( -error[1] ) * np.abs( error_d_theta[1] ) * 1.2
+                    
+                    self.car_cmd_msg.header = vehicle_pose_msg.header
+                    self.car_cmd_msg.v = vel
+                    self.car_cmd_msg.omega = omg
+                    self.pub_car_cmd.publish(self.car_cmd_msg)                  
+                    
+                    print self.target, tag, error, error_d_theta , self.cmd
+                    
+                    if self.stop_pause :
+                        time.sleep( self.delay_go )
+                        self.car_cmd_msg.v = 0.0
+                        self.car_cmd_msg.omega = 0.0
+                        self.pub_car_cmd.publish(self.car_cmd_msg)
+                        time.sleep( self.delay_pause )
+                    
+                    
+                else:
+                    
+                    self.car_cmd_msg.header = vehicle_pose_msg.header
+                    self.car_cmd_msg.v = 0.0
+                    self.car_cmd_msg.omega = 0.0
+                    self.pub_car_cmd.publish(self.car_cmd_msg)
+                
+                
+            else:
+            
+                self.car_cmd_msg.header = vehicle_pose_msg.header
+                self.car_cmd_msg.v = 0.0
+                self.car_cmd_msg.omega = 0.0
+                self.pub_car_cmd.publish(self.car_cmd_msg)
+                # ToDo: keep following last command?
         else:
-
+            
+            #Stop april tags
+            self.pub_april.publish(BoolStamped(data=False))
+            self.april_loc = [None,None]
+            
             # if self.last_vehicle_pose.header.stamp.to_sec() > 0:  # skip first frame
                 # delta_t = (vehicle_pose_msg.header.stamp - self.last_pose.header.stamp).to_sec()  # throughput delta
             delta_t = (rospy.Time.now() - vehicle_pose_msg.header.stamp).to_sec()  # latency
@@ -202,6 +268,23 @@ class VehicleFollow(object):
         #     x_res = x + v_w_ratio * sin(theta_res) - v_w_ratio * sin(theta)
         #     y_res = y + v_w_ratio * cos(theta) - v_w_ratio * cos(theta_res)
         return [theta_res, x_res, y_res]
+        
+        
+        
+    def aprillocalization(self, msg):
+        """ """
+        
+        x = None
+        y = None
+        
+        for detection in msg.detections:
+            
+            x = detection.transform.translation.x
+            y = detection.transform.translation.y
+            
+        self.april_loc = [x,y]
+        
+        
 
 
 if __name__ == "__main__":
