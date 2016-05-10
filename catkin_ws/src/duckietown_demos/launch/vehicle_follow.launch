@@ -1,9 +1,11 @@
 <launch>
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
+	<arg name="wheels" default="true"/>
 	<!-- start basic args -->
 	<include file="$(find duckietown_demos)/launch/master.launch">
 	    <arg name="veh" value="$(arg veh)"/>
 	    <arg name="joystick" default="false"/>
+	    <arg name="joy_mapper_param_file_name" value="vehicle_follow"/>
 	    <arg name="fsm" default="false"/>
 		<arg name="visualization" value="false" />
 	    <arg name="verbose" value="false" />
@@ -33,9 +35,8 @@
     	<arg name="parallel_autonomy" value="false"/>
         <arg name="global_localizer" value="false"/>
         <arg name="SLAM" value="false"/>
-   		<arg name="wheels" value="true"/>
+   		<arg name="wheels" value="$(arg wheels)"/>
 	</include>
-	<!--ToDo Fix! this Bypass HACK -->
 
 </launch>
 
