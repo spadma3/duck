@@ -165,14 +165,7 @@ class VehicleFollow(object):
             # Publish control message
             self.pub_car_cmd.publish(self.car_cmd_msg)
 
-        self.last_vehicle_pose = vehicle_pose_msg
-
-        # # debugging
-        # self.pub_counter += 1
-        # if self.pub_counter % 50 == 0:
-        #     self.pub_counter = 1
-        #     print "vehicle_follow publish"
-        #     print self.car_cmd_msg
+            self.last_vehicle_pose = vehicle_pose_msg
 
     def integrate(self, theta_dot, v, dt):
         theta_delta = theta_dot * dt
