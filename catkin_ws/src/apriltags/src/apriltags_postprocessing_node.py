@@ -150,7 +150,8 @@ class AprilPostPros(object):
             
             # Debug Print
             #A_read       = Q_Ftag_Fold.toAngleAxis()
-            #A_Ft_Fv      = Q_Ft_Fv.toAngleAxis()
+            A_Ft_Fv      = Q_Ft_Fv.toAngleAxis()
+            
             #print 'Rotation Read'
             #A_read()
             #print 'Rotation in Vehicle Frame'
