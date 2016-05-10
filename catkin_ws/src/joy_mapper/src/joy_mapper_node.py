@@ -56,8 +56,18 @@ class JoyMapper(object):
         self.state_verbose = False
 
     def cbParamTimer(self,event):
-        self.v_gain = rospy.get_param("~speed_gain", 1.0)
-        self.omega_gain = rospy.get_param("~steer_gain", 10)
+        self.v_gain = rospy.get_param("~speed_gain", self.v_gain)
+        self.omega_gain = rospy.get_param("~steer_gain", self.omega_gain)
+        self.bicycle_kinematics = rospy.get_param("~bicycle_kinematics",self.bicycle_kinematics)
+        self.steer_angle_gain = rospy.get_param("~steer_angle_gain",self.steer_angle_gain)
+        self.simulated_vehicle_length = rospy.get_param("~simulated_vehicle_length", self.simulated_vehicle_length)
+        self.vehicule_dynamics = rospy.get_param("~vehicule_dynamics", self.vehicule_dynamics)
+        self.mass = rospy.get_param("~mass", self.mass)  # [kg]
+        self.b = rospy.get_param("~b", self.b)  # [Ns/m]
+        self.I = rospy.get_param("~I", self.I)  # [Nms2/rad] Inertia
+        self.b_ang = rospy.get_param("~b_ang", self.b_ang)  # [Nms/rad]  Damping
+        self.u_gain = rospy.get_param("~u_gain", self.u_gain)  # gain from joystick to Newtons
+        self.t_gain = rospy.get_param("~t_gain", self.t_gain)  # gain from joystick to Newton-Meters
 
     def setupParam(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
