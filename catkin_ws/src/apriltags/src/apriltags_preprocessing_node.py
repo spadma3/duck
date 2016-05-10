@@ -25,8 +25,8 @@ class AprilPrePros(object):
         self.pub_ToApril_global = rospy.Publisher( "~global_image_raw", Image, queue_size=1)
         self.pub_ToApril_fast   = rospy.Publisher( "~fast_image_raw", Image, queue_size=1)
         
-        self.sub_compressed_img = rospy.Subscriber( "camera_node/image/compressed" , CompressedImage , self.callback, queue_size=1 )
-        #self.sub_img            = rospy.Subscriber( "~image_in", Image, self.callback)
+        #self.sub_compressed_img = rospy.Subscriber( "camera_node/image/compressed" , CompressedImage , self.callback, queue_size=1 )
+        self.sub_img            = rospy.Subscriber( "~image_in", Image, self.callback)
         self.sub_switch_global  = rospy.Subscriber("~global_switch", BoolStamped, self.global_switch, queue_size=1)
         self.sub_switch_fast    = rospy.Subscriber("~fast_switch", BoolStamped, self.fast_switch, queue_size=1)
         
@@ -82,9 +82,9 @@ class AprilPrePros(object):
             return
 
         # Load message
-        #cv_img = self.bridge.imgmsg_to_cv2( msg , desired_encoding="passthrough" )
-        np_arr = np.fromstring(msg.data, np.uint8)
-        cv_img = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
+        cv_img = self.bridge.imgmsg_to_cv2( msg , desired_encoding="passthrough" )
+        #np_arr = np.fromstring(msg.data, np.uint8)
+        #cv_img = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
         
         self.camera_IMG  = cv_img
         self.camera_msg  = msg
