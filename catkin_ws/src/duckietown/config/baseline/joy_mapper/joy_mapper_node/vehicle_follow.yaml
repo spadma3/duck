@@ -8,7 +8,7 @@ steer_angle_gain: 1.04
 simulated_vehicle_length: 0.18
 vehicule_dynamics: 1.0
 mass: 1.0
-b: 0.25
+b: 4.0
 I: 0.3
 b_ang: 0.1
 u_gain: 0.85
