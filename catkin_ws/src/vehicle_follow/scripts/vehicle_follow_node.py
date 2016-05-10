@@ -3,8 +3,8 @@ import rospy
 import numpy as np
 import math
 import time
-from std_msgs.msg import Bool, BoolStamped
-from duckietown_msgs.msg import Twist2DStamped, VehiclePose,  AprilTags
+from std_msgs.msg import Bool
+from duckietown_msgs.msg import Twist2DStamped, VehiclePose,  AprilTags, BoolStamped
 from sensor_msgs.msg import Joy
 
 
