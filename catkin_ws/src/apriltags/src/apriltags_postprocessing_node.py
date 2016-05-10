@@ -108,7 +108,7 @@ class AprilPostPros(object):
             
             t_tc_Fc = k.Vector( x , y , z ) # translation tags(t) w/ camera(c) expressed in camera frame (Fc)
             
-            t_tc_Fc = scale * t_tc_Fc
+            t_tc_Fc =  t_tc_Fc * scale
             
             #Load rotation
             x = detection.transform.rotation.x
