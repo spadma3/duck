@@ -73,18 +73,21 @@ class CameraNode(object):
  
     def startCapturing(self):
         rospy.loginfo("[%s] Start capturing." %(self.node_name))
-        while not self.is_shutdown and not rospy.is_shutdown():
+        while not self.is_shutdown and not self.camera.closed:
             gen =  self.grabAndPublish(self.stream,self.pub_img)
             try:
                 self.camera.capture_sequence(gen,'jpeg',use_video_port=True,splitter_port=0)
             except StopIteration:
                 pass
-            print "updating framerate"
             self.camera.framerate = self.framerate
             self.update_framerate=False
-
-        self.camera.close()
+        self.closeCamera()
         rospy.loginfo("[%s] Capture Ended." %(self.node_name))
+
+    def closeCamera(self):
+        if not self.camera.closed:
+            rospy.loginfo("[%s] Closing camera." %(self.node_name))
+            self.camera.close()
 
     def grabAndPublish(self,stream,publisher):
         while not self.update_framerate and not self.is_shutdown and not rospy.is_shutdown(): 
@@ -120,9 +123,10 @@ class CameraNode(object):
         return value
 
     def onShutdown(self):
-        rospy.loginfo("[%s] Closing camera." %(self.node_name))
         self.is_shutdown=True
         rospy.loginfo("[%s] Shutdown." %(self.node_name))
+        self.closeCamera()
+            
 
 
     def cbSrvSetCameraInfo(self,req):
