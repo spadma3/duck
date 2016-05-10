@@ -128,6 +128,8 @@ class VehicleFollow(object):
             # Start april tags detection
             self.lost_bumper = True
             self.pub_april.publish(BoolStamped(data=True))
+            self.stop_vehicle()
+            
                 
             #     [x,y] = self.april_loc
             #     tag   = np.array( [x,y] )
@@ -156,9 +158,24 @@ class VehicleFollow(object):
             if vehicle_pose_msg.detection:
                 # control vehicle
                 self.control_vehicle(vehicle_pose_msg)
+                
+                if self.stop_pause :
+                    time.sleep( self.delay_go )
+                    self.stop_vehicle()
+                    time.sleep( self.delay_pause )
 
             else:
-                self.control_vehicle(self.last_vehicle_pose)
+                #self.control_vehicle(self.last_vehicle_pose)
+                self.stop_vehicle()
+                
+                
+    def stop_vehicle(self):
+        
+        self.car_cmd_msg.v = 0.0
+        self.car_cmd_msg.omega = 0.0
+        self.pub_car_cmd.publish(self.car_cmd_msg)
+        
+        
 
     def control_vehicle(self, vehicle_pose_cur):
 
