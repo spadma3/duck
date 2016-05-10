@@ -11,6 +11,8 @@
 	<arg name="anti_instagram" default="true"/>
 	<arg name="loc" default="-1"/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
+	<arg name="joy_mapper_param_file_name" default="$(arg param_file_name)"/>
+
 	<!-- end basic args -->
  
 <!-- the things that are "on" by default: 
@@ -171,7 +173,7 @@
 		<include file="$(find joy_mapper)/launch/joy_mapper_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<arg name="param_file_name" value="$(arg joy_mapper_param_file_name)"/>
 		</include>
 	</group>
 	<!-- End Joystick -->
