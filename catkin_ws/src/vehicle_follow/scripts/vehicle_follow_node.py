@@ -56,7 +56,7 @@ class VehicleFollow(object):
         return value
 
     def update_params_event(self, event):
-        params_old = (self.dist_ref, self.head_ref, self.k_follow, self.k_heading, self.head_thres, self.max_speed, self.max_heading, self.deadspace_speed, self.deadspace_heading)
+        params_old = (self.dist_ref, self.head_ref, self.k_follow, self.k_heading, self.head_thres, self.max_speed, self.max_heading, self.deadspace_speed, self.deadspace_heading, self.alpha, self.alpha_psi)
 
         dist_ref = rospy.get_param("~dist_ref")
         head_ref = rospy.get_param("~head_ref")
@@ -67,15 +67,17 @@ class VehicleFollow(object):
         max_heading = rospy.get_param("~max_heading")
         deadspace_speed = rospy.get_param("~deadspace_speed")
         deadspace_heading = rospy.get_param("~deadspace_heading")
+        alpha = rospy.get_param("~alpha")
+        alpha_psi = rospy.get_param("~alpha_psi")
 
-        params_new = (dist_ref, head_ref, k_follow, k_heading, head_thres, max_speed, max_heading, deadspace_speed, deadspace_heading)
+        params_new = (dist_ref, head_ref, k_follow, k_heading, head_thres, max_speed, max_heading, deadspace_speed, deadspace_heading, alpha, alpha_psi)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." % self.node_name)
             rospy.loginfo(
-                "old: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f, deadspace_speed %f , deadspace_heading %f " % params_old)
+                "old: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f, deadspace_speed %f , deadspace_heading %f, alpha %f, alpha_psi %f " % params_old)
             rospy.loginfo(
-                "new: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f, deadspace_speed %f , deadspace_heading %f" % params_new)
+                "new: dist_ref %f, head_ref %f, k_follow %f, k_heading %f, head_thres %f, max_speed %f, max_heading %f, deadspace_speed %f , deadspace_heading %f, alpha %f, alpha_psi %f " % params_new)
             self.dist_ref = dist_ref
             self.head_ref = head_ref
             self.k_follow = k_follow
@@ -85,6 +87,8 @@ class VehicleFollow(object):
             self.max_heading = max_heading
             self.deadspace_speed = deadspace_speed
             self.deadspace_heading = deadspace_heading
+            self.alpha = alpha
+            self.alpha_psi = alpha_psi
 
     def custom_shutdown(self):
         rospy.loginfo("[%s] Shutting down..." % self.node_name)
