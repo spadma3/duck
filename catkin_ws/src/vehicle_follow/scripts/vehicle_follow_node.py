@@ -151,7 +151,7 @@ class VehicleFollow(object):
                     self.car_cmd_msg.omega = omg
                     self.pub_car_cmd.publish(self.car_cmd_msg)                  
                     
-                    print self.target, tag, error, error_d_theta , self.cmd
+                    print 'Tracking apriltags at:', self.april_loc
                     
                     if self.stop_pause :
                         time.sleep( self.delay_go )
