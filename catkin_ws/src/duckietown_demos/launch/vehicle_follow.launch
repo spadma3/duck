@@ -21,7 +21,11 @@
 		<arg name="/vehicle_avoidance/detection" value="true" />
 	    <arg name="/vehicle_avoidance/control" value="false"/>
 	    <arg name="vehicle_follow" value="true"/>
-		<arg name="apriltags" value="false"/>
+		<arg name="apriltags" value="true"/>
+		<arg name="/apriltags/preprocessing" value="true"/>
+		<arg name="/apriltags/global" value="false"/>
+		<arg name="/apriltags/fast" value="true"/>
+		<arg name="/apriltags/postprocessing" value="true"/>
         <arg name="LED" value="false" />
 	    <arg name="/LED/detector" value="false" />
 	    <arg name="/LED/joystick" value="false" />

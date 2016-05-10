@@ -45,7 +45,7 @@ class VehicleFollow(object):
         # Publication
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
         
-        self.pub_april      = rospy.Publisher("apriltags_postprocessing_fast_node/switch",  BoolStamped, queue_size=1)
+        self.pub_april      = rospy.Publisher("~apriltag_switch",  BoolStamped, queue_size=1)
         
 
         # Subscriptions
@@ -53,7 +53,7 @@ class VehicleFollow(object):
 
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params_event)
         
-        self.sub_april      = rospy.Subscriber("apriltags_postprocessing_fast_node/apriltags_out", AprilTags, self.aprillocalization, queue_size=1)
+        self.sub_april      = rospy.Subscriber("~apriltags_in", AprilTags, self.aprillocalization, queue_size=1)
         self.april_loc = [None,None]
         
         

@@ -35,6 +35,7 @@ class VehicleDetectionNode(object):
 		self.loadConfig(self.cali_file)
 		self.sub_image = rospy.Subscriber("~image", CompressedImage,
 				self.cbImage, queue_size=1)
+		self.pub_image = rospy.Publisher("~image_out", Image, queue_size=1)
 		self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
 				self.cbSwitch, queue_size=1)
 		self.pub_circlepattern_image = rospy.Publisher("~circlepattern_image", 
@@ -125,6 +126,8 @@ class VehicleDetectionNode(object):
 				np_arr = np.fromstring(image_msg.data, np.uint8)
 				pose_msg_out.header.stamp = image_msg.header.stamp
 				image_cv = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
+				image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
+				self.pub_image.publish(image_msg_out)
 				crop_img = image_cv[self.top_crop:-self.bottom_crop, :, :]
 			except CvBridgeError as e:
 				print e

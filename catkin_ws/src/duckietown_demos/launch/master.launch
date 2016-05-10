@@ -339,6 +339,8 @@
         <!-- Vehicle Follow Node -->
 		<remap from="vehicle_follow_node/target_pose" to="vehicle_detection_node/target_pose" />
 		<remap from="vehicle_follow_node/car_cmd" to="car_cmd_switch_node/cmd" />
+		<remap from="vehicle_follow_node/apriltags_switch" to="apriltags_postprocessing_fast_node/switch" />
+		<remap from="vehicle_follow_node/apriltags_in" to="apriltags_postprocessing_fast_node/apriltags_out" />
 		<include file="$(find vehicle_follow)/launch/vehicle_follow_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -353,7 +355,7 @@
 
 		<!-- Preprocessing -->
 		<group if="$(arg /apriltags/preprocessing)">
-			<remap from="apriltags_preprocessing_node/image_in" to="camera_node/image/raw"/>
+			<remap from="apriltags_preprocessing_node/image_in" to="vehicle_detection_node/image_out"/>
 			<include file="$(find apriltags)/launch/apriltags_preprocessing_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
