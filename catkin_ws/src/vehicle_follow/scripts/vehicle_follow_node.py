@@ -16,8 +16,7 @@ class VehicleFollow(object):
         self.car_cmd_msg = Twist2DStamped()
         self.car_cmd_msg.omega = 0.0
         self.car_cmd_msg.v = 0.0
-
-        # self.pub_counter = 1
+        self.last_car_cmd_msg = self.car_cmd_msg
 
         self.last_omega = 0
         self.last_v = 0
@@ -41,22 +40,20 @@ class VehicleFollow(object):
         self.delay_pause = 0.2
         self.stop_pause  = True
         self.target = np.array([ 0.4 , 0.0  ])
+        self.lost_bumper = False
 
         # Publication
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
         
-        self.pub_april      = rospy.Publisher("~apriltag_switch",  BoolStamped, queue_size=1)
-        
+        self.pub_april = rospy.Publisher("~apriltag_switch",  BoolStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_target_pose = rospy.Subscriber("~target_pose", VehiclePose, self.cb_pose, queue_size=1)
+        self.sub_target_pose_bumper = rospy.Subscriber("~target_pose", VehiclePose, self.cb_target_pose_bumper, queue_size=1)
 
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.update_params_event)
-        
-        self.sub_april      = rospy.Subscriber("~apriltags_in", AprilTags, self.aprillocalization, queue_size=1)
-        self.april_loc = [None,None]
-        
-        
+
+        self.sub_target_pose_april = rospy.Subscriber("~target_pose_april", VehiclePose, self.cb_target_pose_april, queue_size=1)
+
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -108,7 +105,7 @@ class VehicleFollow(object):
         rospy.loginfo("[%s] Shutting down..." % self.node_name)
 
         # Stop listening
-        self.sub_target_pose.unregister()
+        self.sub_target_pose_bumper.unregister()
 
         # Send stop command to car command switch
         self.car_cmd_msg.v = 0.0
@@ -118,86 +115,76 @@ class VehicleFollow(object):
         rospy.sleep(0.5)  # To make sure that it gets published.
         rospy.loginfo("[%s] Shutdown" % self.node_name)
 
-    def cb_pose(self, vehicle_pose_msg):
+    def cb_target_pose_bumper(self, vehicle_pose_msg):
 
-        if not vehicle_pose_msg.detection:
-            # it stops if it doesnt see
-            # copy message header over:
-        
-            april_tag_backup = True
-            
-            if april_tag_backup:
-                
-                #Start april tags
-                self.pub_april.publish(BoolStamped(data=True))
-                
-                [x,y] = self.april_loc
-                tag   = np.array( [x,y] )
-                
-                if not x==None:
-                    
-                    # Compute error
-                    error  = self.target - tag
-                    d = np.linalg.norm( error )
-                    theta = np.arctan( error[1] /  error[0]  )
-                    error_d_theta = np.array( [d , theta ] )
-                    
-                    # Prop ctl
-                    vel = -error[0] * 1.2
-                    omg = np.sign( -error[1] ) * np.abs( error_d_theta[1] ) * 1.2
-                    
-                    self.car_cmd_msg.header = vehicle_pose_msg.header
-                    self.car_cmd_msg.v = vel
-                    self.car_cmd_msg.omega = omg
-                    self.pub_car_cmd.publish(self.car_cmd_msg)                  
-                    
-                    print 'Tracking apriltags at:', self.april_loc
-                    
-                    if self.stop_pause :
-                        time.sleep( self.delay_go )
-                        self.car_cmd_msg.v = 0.0
-                        self.car_cmd_msg.omega = 0.0
-                        self.pub_car_cmd.publish(self.car_cmd_msg)
-                        time.sleep( self.delay_pause )
-                    
-                    
-                else:
-                    
-                    self.car_cmd_msg.header = vehicle_pose_msg.header
-                    self.car_cmd_msg.v = 0.0
-                    self.car_cmd_msg.omega = 0.0
-                    self.pub_car_cmd.publish(self.car_cmd_msg)
-                
-                
-            else:
-            
-                self.car_cmd_msg.header = vehicle_pose_msg.header
-                self.car_cmd_msg.v = 0.0
-                self.car_cmd_msg.omega = 0.0
-                self.pub_car_cmd.publish(self.car_cmd_msg)
-                # ToDo: keep following last command?
-        else:
-            
-            #Stop april tags
+        if vehicle_pose_msg.detection: # detection of a bumper
+            # Have not lost bumper, stop april tags
+            self.lost_bumper = False
             self.pub_april.publish(BoolStamped(data=False))
-            self.april_loc = [None,None]
-            
-            # if self.last_vehicle_pose.header.stamp.to_sec() > 0:  # skip first frame
-                # delta_t = (vehicle_pose_msg.header.stamp - self.last_pose.header.stamp).to_sec()  # throughput delta
-            delta_t = (rospy.Time.now() - vehicle_pose_msg.header.stamp).to_sec()  # latency
-            [delta_omega, delta_x, delta_y] = self.integrate(self.car_cmd_msg.omega, self.car_cmd_msg.v, delta_t)
-            
-            delta_x     = delta_x * self.alpha
-            delta_y     = delta_y * self.alpha
-            delta_omega = delta_omega * self.alpha
+            # send control values
+            self.control_vehicle(vehicle_pose_msg)
 
-            actual_x = vehicle_pose_msg.x - delta_x
-            actual_y = vehicle_pose_msg.y - delta_y
+        else:  # no detection of a bumper
+            # Start april tags detection
+            self.lost_bumper = True
+            self.pub_april.publish(BoolStamped(data=True))
+                
+            #     [x,y] = self.april_loc
+            #     tag   = np.array( [x,y] )
+            #
+            #     if not x==None:
+            #
+            #         # Compute error
+            #         error  = self.target - tag
+            #         d = np.linalg.norm( error )
+            #         theta = np.arctan( error[1] /  error[0]  )
+            #         error_d_theta = np.array( [d , theta ] )
+            #
+            #         # Prop ctl
+            #         vel = -error[0] * 1.2
+            #         omg = np.sign( -error[1] ) * np.abs( error_d_theta[1] ) * 1.2
+            #            #
+            #         if self.stop_pause :
+            #             time.sleep( self.delay_go )
+            #             self.car_cmd_msg.v = 0.0
+            #             self.car_cmd_msg.omega = 0.0
+            #             self.pub_car_cmd.publish(self.car_cmd_msg)
+            #             time.sleep( self.delay_pause )
+
+    def cb_target_pose_april(self, vehicle_pose_msg):
+        if self.lost_bumper:
+            if vehicle_pose_msg.detection:
+                # control vehicle
+                self.control_vehicle(vehicle_pose_msg)
+
+            else:
+                self.control_vehicle(self.last_vehicle_pose)
+
+    def control_vehicle(self, vehicle_pose_cur):
+
+            # Calculate Latency up to this point starting from camera image
+            delta_t = (rospy.Time.now() - vehicle_pose_cur.header.stamp).to_sec()  # latency
+
+            # decide if smith controller is used or not by variable self.alpha
+            delta_t_alpha = self.alpha * delta_t
+            [delta_omega, delta_x, delta_y] = self.integrate(self.last_car_cmd_msg.omega, self.last_car_cmd_msg.v, delta_t_alpha)
+
+            # Calculate the actual deltas in position:
+            actual_x = vehicle_pose_cur.x - delta_x
+            actual_y = vehicle_pose_cur.y - delta_y
             delta_dist_vec = np.array([actual_x, actual_y])
-            actual_rho = np.linalg.norm(delta_dist_vec)
-            actual_theta = vehicle_pose_msg.theta - delta_omega
 
-            self.car_cmd_msg.header = vehicle_pose_msg.header
+            # Calculate distance rho for polar coordinates:
+            actual_rho = np.linalg.norm(delta_dist_vec)
+
+            # Calculate angle theta for vehicle end pose:
+            actual_theta = vehicle_pose_cur.theta - delta_omega
+
+
+            # WRITE new car command
+            # take over header of message
+            self.car_cmd_msg.header = vehicle_pose_cur.header
+
             # Following Error Calculation
             following_error = actual_rho - self.dist_ref
             self.car_cmd_msg.v = self.k_follow * following_error
@@ -212,8 +199,8 @@ class VehicleFollow(object):
                 self.car_cmd_msg.v = 0.0
 
             # Heading Error Calculation
-            # ToDo try an integrator
-            heading_error = actual_theta - self.head_ref + vehicle_pose_msg.psi * self.alpha_psi
+            # Combining heading error with target vehicle psi
+            heading_error = actual_theta - self.head_ref + vehicle_pose_cur.psi * self.alpha_psi
 
             self.car_cmd_msg.omega = self.k_heading * heading_error
 
@@ -223,7 +210,6 @@ class VehicleFollow(object):
                 self.car_cmd_msg.omega = -self.max_heading
             elif abs(self.car_cmd_msg.omega) < self.deadspace_heading:
                 self.car_cmd_msg.omega = 0.0
-            # ToDo: what to do with vehicle_pose_msg.psi.data?
 
             self.last_omega = self.car_cmd_msg.omega
             self.last_v = self.car_cmd_msg.v
@@ -231,7 +217,8 @@ class VehicleFollow(object):
             # Publish control message
             self.pub_car_cmd.publish(self.car_cmd_msg)
 
-            self.last_vehicle_pose = vehicle_pose_msg
+            self.last_vehicle_pose = vehicle_pose_cur
+            self.last_car_cmd_msg = self.car_cmd_msg
 
     def integrate(self, theta_dot, v, dt):
         theta_delta = theta_dot * dt
@@ -263,28 +250,11 @@ class VehicleFollow(object):
         #     x_res = x+ cos(theta) * v * dt
         #     y_res = y+ sin(theta) * v * dt
         # else:
-        #     # arc of circle, see "Probabilitic robotics"
+        #     # arc of circle, see "Probabilistic robotics"
         #     v_w_ratio = v / theta_dot
         #     x_res = x + v_w_ratio * sin(theta_res) - v_w_ratio * sin(theta)
         #     y_res = y + v_w_ratio * cos(theta) - v_w_ratio * cos(theta_res)
         return [theta_res, x_res, y_res]
-        
-        
-        
-    def aprillocalization(self, msg):
-        """ """
-        
-        x = None
-        y = None
-        
-        for detection in msg.detections:
-            
-            x = detection.transform.translation.x
-            y = detection.transform.translation.y
-            
-        self.april_loc = [x,y]
-        
-        
 
 
 if __name__ == "__main__":
