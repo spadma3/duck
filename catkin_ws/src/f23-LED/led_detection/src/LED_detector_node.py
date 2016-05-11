@@ -52,15 +52,14 @@ class LEDDetectorNode(object):
     def cbSwitch(self, switch_msg): # active/inactive switch from FSM
         self.active = switch_msg.data
         if(self.active):
-            self.trigger = True
             self.camSwitch(True)
+            self.trigger = True
         else:
             self.camSwitch(False)
 
     def camSwitch(self, on):
         if(on):
             rospy.loginfo('[%s] Subscribing to camera' %self.node_name)
-            #self.trigger = True
             self.sub_cam.unregister()
             self.sub_cam = rospy.Subscriber("camera_node/image/compressed",CompressedImage, self.camera_callback)
         else:
