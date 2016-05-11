@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 import rospy
 import time
-#from led_detection.LEDDetector import LEDDetector
 from std_msgs.msg import Byte
-from duckietown_msgs.msg import FSMState, Vector2D, AprilTags, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, SignalsDetection 
+from duckietown_msgs.msg import FSMState, Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, SignalsDetection 
 from sensor_msgs.msg import CompressedImage
-#from duckietown_utils.bag_logs import numpy_from_ros_compressed
-#import numpy as np
 
 #this is a stup for traffic light testing
-
 class LEDInterpreterNode(object):
 	def __init__(self):
 
@@ -34,7 +30,6 @@ class LEDInterpreterNode(object):
 
 		self.signalFrequencies = [self.carSignalA, self.carSignalB,self.carSignalC]
 		self.vehicleSignals = [SignalsDetection.SIGNAL_A,SignalsDetection.SIGNAL_B,SignalsDetection.SIGNAL_C] 
-
 
 		#initialize the standard output message
 		self.front = SignalsDetection.NO_CAR
