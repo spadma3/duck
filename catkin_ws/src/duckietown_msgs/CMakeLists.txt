@@ -65,9 +65,10 @@ add_message_files(
   Pose2DStamped.msg
   SignalsDetection.msg
   Twist2DStamped.msg
-  TagDetection.msg
+  AprilTagDetection.msg
+  AprilTagDetectionArray.msg
+  AprilTagsWithInfos.msg
   TagInfo.msg
-  AprilTags.msg
   Pixel.msg
   Vector2D.msg
   Segment.msg
@@ -75,6 +76,7 @@ add_message_files(
   Rect.msg
   Rects.msg
   SceneSegments.msg
+  SourceTargetNodes.msg
   CoordinationClearance.msg
 #  IntersectionDetection.msg
 #  CoordinationSignal.msg
@@ -156,8 +158,13 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES duckietown_msgs
-   CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs message_runtime visualization_msgs
-
+   CATKIN_DEPENDS
+   geometry_msgs
+   roscpp rospy
+   sensor_msgs
+   std_msgs
+   message_runtime
+   visualization_msgs
 #  DEPENDS system_lib
 )
 
