@@ -59,12 +59,12 @@ class LEDDetectorNode(object):
 
     def camSwitch(self, on):
         if(on):
-            rospy.logerr('[%s] Subscribing to camera' %self.node_name)
+            rospy.loginfo('[%s] Subscribing to camera' %self.node_name)
             #self.trigger = True
             self.sub_cam.unregister()
             self.sub_cam = rospy.Subscriber("camera_node/image/compressed",CompressedImage, self.camera_callback)
         else:
-            rospy.logerr('[%s] Unsubscribing camera' %self.node_name)
+            rospy.loginfo('[%s] Unsubscribing camera' %self.node_name)
             self.sub_cam.unregister()
 
     def camera_callback(self, msg):
@@ -93,7 +93,7 @@ class LEDDetectorNode(object):
 
             # Capturing
             if rel_time > 1.5*self.capture_time:
-                rospy.logerr('[%s] Got OLD frame %s, restarting' %(self.node_name, rel_time))
+                rospy.loginfo('[%s] Got OLD frame %s, restarting' %(self.node_name, rel_time))
                 self.trigger = True
                 self.sub_cam(True)
                 return
