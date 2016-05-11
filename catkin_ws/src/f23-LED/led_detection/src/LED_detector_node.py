@@ -52,11 +52,19 @@ class LEDDetectorNode(object):
     def cbSwitch(self, switch_msg): # active/inactive switch from FSM
         self.active = switch_msg.data
         if(self.active):
-            rospy.loginfo('[%s] Subscribing to camera' %self.node_name)
             self.trigger = True
+            self.camSwitch(True)
+        else:
+            self.camSwitch(False)
+
+    def camSwitch(self, on):
+        if(on):
+            rospy.logerr('[%s] Subscribing to camera' %self.node_name)
+            #self.trigger = True
+            self.sub_cam.unregister()
             self.sub_cam = rospy.Subscriber("camera_node/image/compressed",CompressedImage, self.camera_callback)
         else:
-            rospy.loginfo('[%s] Unsubscribing camera' %self.node_name)
+            rospy.logerr('[%s] Unsubscribing camera' %self.node_name)
             self.sub_cam.unregister()
 
     def camera_callback(self, msg):
@@ -84,6 +92,11 @@ class LEDDetectorNode(object):
             rel_time = float_time - self.first_timestamp
 
             # Capturing
+            if rel_time > 1.5*self.capture_time:
+                rospy.logerr('[%s] Got OLD frame %s, restarting' %(self.node_name, rel_time))
+                self.trigger = True
+                self.sub_cam(True)
+                return
             if rel_time < self.capture_time:
                 self.node_state = 1
                 rgb = numpy_from_ros_compressed(msg)
@@ -97,8 +110,8 @@ class LEDDetectorNode(object):
                 self.node_state = 2
                 self.capture_finished = True
                 self.first_timestamp = 0
-                self.sub_cam.unregister() # IMPORTANT! Explicitly ignore messages  
-                                          # while processing, accumulates delay otherwise!
+                self.camSwitch(False) # IMPORTANT! Explicitly ignore messages  
+                                      # while processing, accumulates delay otherwise!
                 self.send_state(debug_msg)
                 self.process_and_publish()
 
@@ -132,10 +145,9 @@ class LEDDetectorNode(object):
         rospy.loginfo('[%s] Detection done. Processing Time: %.2f'%(self.node_name, toc))
         print('[%s] Total Time taken: %.2f'%(self.node_name, tac))
 
-        if(self.continuous):
+        if(self.continuous and self.active):
             self.trigger = True
-            rospy.loginfo('[%s] Subscribing to camera' %self.node_name)
-            self.sub_cam = rospy.Subscriber("camera_node/image/compressed",CompressedImage, self.camera_callback)
+            self.camSwitch(True)
     
     def send_state(self, msg):
         msg.state = self.node_state
