@@ -140,7 +140,6 @@ states:
     transitions:
       intersection_go: "INTERSECTION_CONTROL"
     active_nodes:
-      - apriltag_global_node
       - led_detector_node
       - led_emitter_node
       - decoder_node
