@@ -147,10 +147,8 @@ states:
     transitions:
       intersection_go: "INTERSECTION_CONTROL"
     active_nodes:
-      - apriltag_node
       - led_detector_node
       - led_emitter_node
-      - decoder_node
     lights: ["coordination"]
   INTERSECTION_CONTROL:
     transitions:
