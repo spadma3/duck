@@ -1,6 +1,6 @@
 
 
-#include "street_name_detector/region.h"
+#include "region.h"
 
 #include <algorithm>
 #include <cassert>

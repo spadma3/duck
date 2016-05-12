@@ -17,7 +17,7 @@
 // <http://www.gnu.org/licenses/>.
 //--------------------------------------------------------------------------------------------------
 
-#include "street_name_detector/mser.h"
+#include "mser.h"
 
 #include <algorithm>
 #include <cassert>
