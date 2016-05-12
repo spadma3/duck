@@ -109,7 +109,7 @@ find_package(OpenCV REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES street_name_detector
-#  CATKIN_DEPENDS duckietown_msgs roscpp rospy apriltags
+  CATKIN_DEPENDS duckietown_msgs roscpp rospy apriltags
 #  DEPENDS system_lib
 )
 
@@ -121,10 +121,10 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-  include/street_name_detector
-  include/AprilTags
+  ${catkin_INCLUDE_DIRS}  
+  #include/street_name_detector
+  #include/AprilTags
   include
-  ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 

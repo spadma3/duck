@@ -1,8 +1,9 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
-#include <duckietown_msgs/TagDetection.h>
-#include <duckietown_msgs/AprilTags.h>
+#include <duckietown_msgs/AprilTagDetection.h>
+#include <duckietown_msgs/AprilTagsWithInfos.h>
+#include <duckietown_msgs/StreetNameDetection.h>
 
 #include <opencv/cv.h>
 #include <cv_bridge/cv_bridge.h>
@@ -43,7 +44,7 @@ public:
 
   StreetNameDetectorNode(const ros::NodeHandle& nh): nh_p_(nh), tag_detector_(AprilTags::TagDetector(AprilTags::tagCodes36h11)),has_camera_info_(false),tag_size_(0.2)
   {
-    pub_detection_ = nh_p_.advertise<duckietown_msgs::AprilTags>("apriltags",1);
+    pub_detection_ = nh_p_.advertise<duckietown_msgs::AprilTagsWithInfos>("apriltags",1);
     pub_image_     = nh_p_.advertise<sensor_msgs::Image>("tags_image",1); // remaps to /apriltags/...
 
     sub_image_ = nh_p_.subscribe("image_raw", 1, &StreetNameDetectorNode::cbImage, this); // remaps in launch file
@@ -103,7 +104,7 @@ public:
     cv::drawKeypoints(image, kps1, image);
 
     /* publish visualization */
-    duckietown_msgs::AprilTags tags_msg;
+    duckietown_msgs::AprilTagsWithInfos tags_msg;
     for (int i = 0; i < detections.size(); ++i){
       tags_msg.detections.push_back(toMsg(detections[i]));
       detections[i].draw(image);
@@ -117,10 +118,10 @@ public:
     pub_detection_.publish(tags_msg);
   }
 
-  /* Convert AprilTags::TagDetection to duckietown_msgs::TagDetection */
-  duckietown_msgs::TagDetection toMsg (const AprilTags::TagDetection& detection)
+  /* Convert AprilTags::TagDetection to duckietown_msgs::AprilTagDetection */
+  duckietown_msgs::StreetNameDetection toMsg (const AprilTags::TagDetection& detection)
   {
-    duckietown_msgs::TagDetection msg;
+    duckietown_msgs::StreetNameDetection msg;
     msg.good = detection.good;
     msg.id = detection.id;
     for (int i = 0; i < msg.p.size(); ++i){
