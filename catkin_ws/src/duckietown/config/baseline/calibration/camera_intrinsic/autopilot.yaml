@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [317.37825798702005, 0.0, 300.18216548360056, 0.0, 313.3012323163475, 223.36119230324286,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: autopilot/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.25786628761527414, 0.04681281701997066, 0.0002486819839226103, 0.0035304926593364206,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [216.6804419758005, 0.0, 306.40777237204975, 0.0, 0.0, 250.04982970707627,
+    213.067538086434, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
