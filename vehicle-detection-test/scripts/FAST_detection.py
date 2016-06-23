@@ -7,20 +7,16 @@ from matplotlib import pyplot as plt
 
 class OpenCV:
 	def __init__(self):
-		self.img = cv2.imread('/home/racecar/duckietown/vehicle-detection-test/test-images/test1.jpg')
+		self.img = cv2.imread('/home/ubuntu/duckietown/vehicle-detection-test/test-images/test1.jpg')
 		self.fast = cv2.FastFeatureDetector()
 
 	def procesImage(self):
-		cv2.imshow('test1', self.img)
-		self.fast.setBool('nonmaxSuppression',0)
-		key_points = self.fast.detect(self.img, None)
-		img2 = cv2.drawKeypoints(self.img, key_points, color = (255,0,0))
-		cv2.imwrite('fast_feature_detection1.jpg', img2)
-
 		self.fast.setBool('nonmaxSuppression',1)
 		key_points = self.fast.detect(self.img, None)
-		img3 = cv2.drawKeypoints(self.img, key_points, color = (255,0,0))
-		cv2.imwrite('fast_feature_detection2.jpg', img3)
+		img2 = cv2.drawKeypoints(self.img, key_points, color = (255,0,0))
+		cv2.namedWindow('Fast_Corner_Detection1', cv2.WINDOW_NORMAL)
+		cv2.imshow('Fast_Corner_Detection1', img2)
+		# cv2.waitKey(0)
 
 def display():
 	obj = OpenCV()
