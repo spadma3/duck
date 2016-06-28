@@ -1,6 +1,7 @@
 <launch>
- 	<node pkg="rosbag" type="play" name="rosbag" args="-d 2 $(find rosbag)/image.bag"/>
- 	<node name="extract" pkg="image_view" type="extract_images" respawn="false" output="screen" cwd="ROS_HOME"
-		<remap from="/autopilot/camera_node/image/compressed" to="/camera/image"/>
+ 	<node pkg="rosbag" type="play" name="rosbag" args="-d 2 $(find vehicle_detection_ml)/src/rosbag/image.bag"/>
+ 	<node name="extract" pkg="image_view" type="extract_images" respawn="false" output="screen" cwd="ROS_HOME" >
+ 		<remap from="/image" to="/autopilot/camera_node/image"/>
+ 		<remap from="~/image_transport" to="compressed"/>
 	</node>
 </launch>
