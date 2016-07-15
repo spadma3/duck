@@ -1,3 +1,6 @@
+import cv2
+import numpy as np
+from time import time
 
 
 class Tracker():
@@ -8,40 +11,59 @@ class Tracker():
 		self.margin = 2
 		self.start_img = None
 		self.target_img = None
+		self.viz = None
 		if not video_path:
 			raise SystemExit("Please upload a video to track the object")
 		else:
 			self.video = cv2.VideoCapture(video_path)
+		self.start()
+		self.show_window()
+
+
+	def show_window(self):
+		cv2.namedWindow("Tracking")
+		while True:
+			cv2.imshow("Tracking", self.viz)
+			key = cv2.waitKey(1) & 0xFF
+
+			if key == ord("r"):
+				image = clone_image.copy()
+
+			if key == ord("c"):
+				break
+
+	def start(self):
+		cv2.namedWindow("Tracking")
+		cv2.setMouseCallback("Tracking", self.create_bounding_box)
+		while True:
+			flag, self.viz = video.read()
+			while True:
+				if create_bounding_box:	
+					continue
+				else:
+					cv2.waitKey(30)
+					break
+			if self.bounding_box:
+				break
 
 	def tracking(self):
 		while True:
-			_,image = self.video.read()
-			self.start_img = image
-			cv2.namedWindow("Tracking")
-			cv2.setMouseCallback("Tracking", self.create_bounding_box)
-			while True:
-				if creating_bounding_box:
-					continue
-				else:
-					break
-			if self.bounding_box:
-				if self.target_img:
-					start_pts = self.gen_point_cloud()  #[(x,y),(x,y)...]
-					corr, dist, target_pts, start_pts = self.cal_target_pts(start_points)
-					good_start_pts, good_target_pts = self.filter_pts(corr, dist, target_pts, start_pts)
-					self.bounding_box = self.target_bounding_box(self.bounding_box,good_start_points, good_target_points)
-					self.draw_bounding_box(self.start_image, )
+			start_bb = self.bounding_box
+			flag, self.viz = video.read()
+			self.target_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
+			start_pts = self.gen_point_cloud(start_bb)  #[(x,y),(x,y)...]
+			corr, dist, target_pts, start_pts = self.cal_target_pts(start_pts)
+			good_start_pts, good_target_pts = self.filter_pts(corr, dist, target_pts, start_pts)
+			self.bounding_box = self.target_bounding_box(start_bb,good_start_points, good_target_points)
+			cv2.rectangle(self.viz, self.bounding_box[0], self.bounding_box[1], (0,255,0),1)
+			self.start_img = self.target_img
+			key = cv2.waitKey(1) & 0xFF
 
-				else:
-					self.target_image = self.start_image
-					continue
+			if key == ord("r"):
+				image = clone_image.copy()
 
-
-			else:
-				continue
-
-				
-		return self.bounding_box
+			if key == ord("c"):
+				break
 
 	def create_bounding_box(self,event, x, y, flags, param):
 		if event == cv2.EVENT_LBUTTONDOWN:
@@ -50,24 +72,23 @@ class Tracker():
 
 		elif event == cv2.EVENT_LBUTTONUP:
 			self.bounding_box.append((x,y))
-			self.draw_bounding_box()
-			cv2.rectangle(self.start_img, self.bounding_box[0], self.bounding_box[1], (0,255,0),1)
+			self.start_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
+			cv2.rectangle(self.viz, self.bounding_box[0], self.bounding_box[1], (0,255,0),1)
 			print self.bounding_boxes
 			self.creating_bounding_box = False
-		cv2.imshow("image", start_img)
-		cv2.waitKey(30)
+			self.tracking()
 
 
-	def gen_point_cloud(self):
+	def gen_point_cloud(self, box):
 		pts = [] 		# [(x1,y1),(x2,y2)...]
 		img_track = [(box[0][0]+self.margin, box[0][1]+self.margin), \
 		(box[1][0]-self.margin,box[1][0]-self.margin)]
-		numY = ((img_track[1][1] - img_track[0][1])/density) + 1
-		numX = (img_track[1][0] - img_track[0][0])/density + 1
+		numY = ((img_track[1][1] - img_track[0][1])/self.init_pts_density) + 1
+		numX = (img_track[1][0] - img_track[0][0])/self.init_pts_density + 1
 		for i in range(numX):
 			for j in range(numY):
-				pts_x = box[0][0] + i*density
-				pts_y = box[0][1] + j*density
+				pts_x = box[0][0] + i*self.init_pts_density
+				pts_y = box[0][1] + j*self.init_pts_density
 				pts.append((pts_x,pts_y))
 		return pts
 
@@ -79,8 +100,8 @@ class Tracker():
 			cv2.TERM_CRITERIA_COUNT,10,0.03),flags=cv2.OPTFLOW_USE_INITIAL_FLOW)
 		matching_param = dict(winSize_match=4, method=cv2.cv.CV_TM_CCOEFF_NORMED)
 
-		target_pts, status_forward,_ = cv2.calcOpticalFlowPyrLK(self.start_image,self.target_image,start_pts,**lk_params) 
-		back_pts, status_backward,_ = cv2.calcOpticalFlowPyrLK(self.start_image,self.target_image,target_pts,**lk_params)
+		target_pts, status_forward,_ = cv2.calcOpticalFlowPyrLK(self.start_img,self.target_img,start_pts,**lk_params) 
+		back_pts, status_backward,_ = cv2.calcOpticalFlowPyrLK(self.start_img,self.target_img,target_pts,**lk_params)
 		status = status_forward & status_backward
 
 		dist_all = self.euclidean_distance(start_pts, target_pts)
@@ -170,6 +191,5 @@ class Tracker():
 		else:
 			return float(sum(new_data[(len(new_data)/2)-1:(len(new_data)/2)+1]))
 
-
-	def draw_bounding_box(self, image, bounding_box):
-		cv2.rectangel(image, bounding_box[0], bounding_box[1], (0,255,0),1)
+test_video = Tracker("/home/ubuntu/Original_Images_Bag/run_video/extract_run3/output3.mpg")
+test_video.tracking()
