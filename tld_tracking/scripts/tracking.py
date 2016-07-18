@@ -10,7 +10,7 @@ class Tracker():
 		self.bounding_box = []
 		self.creating_bounding_box = False
 		self.bounding_box_created = False
-		self.init_pts_density = 2
+		self.init_pts_density = 3
 		self.margin = 0.0
 		self.start_img = None
 		self.target_img = None
@@ -42,13 +42,22 @@ class Tracker():
 			if not self.bounding_box_created:
 				_,self.viz = self.video.read()
 				cv2.imshow("Tracking", self.viz)
+				# gray = cv2.cvtColor(self.viz.copy(), cv2.COLOR_BGR2GRAY)
+				# cv2.imshow("GrayScale", gray)
+				# _,binary = cv2.threshold(gray.copy(),50,255,cv2.THRESH_BINARY)
+				# cv2.imshow("Binary", binary)
+				# hist = cv2.equalizeHist(gray.copy())
+				# cv2.imshow("Histogram Equalized", hist)
+				# _,bin_hist = cv2.threshold(hist.copy(), 50,255, cv2.THRESH_BINARY)
+				# cv2.imshow("Binary after histogram", bin_hist)
 				cv2.waitKey(30)
 		print "End of start function"
-
 
 	def tracking(self):
 		# prev_frame = 0
 		self.start_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
+		# _,self.start_img = cv2.threshold(self.start_img,50,255,cv2.THRESH_BINARY)
+		# self.start_img = cv2.equalizeHist(self.start_img)
 		cv2.rectangle(self.viz, self.bounding_box[0], self.bounding_box[1],(255,0,0),1)
 		cv2.imshow("Tracking", self.viz)
 		cv2.waitKey(30)
@@ -58,6 +67,8 @@ class Tracker():
 				# self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, 0 + prev_frame)
 				flag, self.viz = self.video.read()
 				self.target_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
+				# _,self.target_img = cv2.threshold(self.target_img,50,255,cv2.THRESH_BINARY)
+				# self.target_img = cv2.equalizeHist(self.target_img)
 				self.start_pts = self.gen_point_cloud(start_bb)
 				corr, dist, valid_target_pts, valid_start_pts = self.cal_target_pts(self.start_pts)
 				good_target_pts, good_start_pts = self.filter_pts(corr, dist, valid_target_pts, valid_start_pts)
@@ -195,3 +206,6 @@ class Tracker():
 
 test_video = Tracker(0)
 test_video.tracking()
+
+# test_video2 = Tracker("/home/ubuntu/Original_Images_Bag/run_video/extract_run3/output3.mpg")
+# test_video2.tracking()
