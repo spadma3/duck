@@ -4,111 +4,82 @@ from time import time
 
 
 class Tracker():
-	def __init__(self, video_path=None):
-		self.bounding_box = [(300.0,100.0), (370.0,170.0)]
+	def __init__(self, video_path):
+		# self.bounding_box = [(300.0,100.0), (370.0,170.0)]
 		# self.bounding_box = [(30,30), (100,100)]
+		self.bounding_box = []
 		self.creating_bounding_box = False
-		self.init_pts_density = 40
+		self.bounding_box_created = False
+		self.init_pts_density = 2
 		self.margin = 0.0
 		self.start_img = None
 		self.target_img = None
-		self.viz = None
-		if not video_path:
-			raise SystemExit("Please upload a video to track the object")
-		else:
-			self.video = cv2.VideoCapture(video_path)
+		# self.viz = None
+		# if not video_path:
+		# 	raise SystemExit("Please upload a video to track the object")
+		# else:
+		# 	self.video = cv2.VideoCapture(video_path)
+		self.video = cv2.VideoCapture(video_path)
 		self.start()
-		self.start_pts = self.gen_point_cloud(self.bounding_box)
-		self.tracking()
+		# self.start_pts = self.gen_point_cloud(self.bounding_box)
+		# self.tracking()
 
-
-	def show_window(self):
-		cv2.namedWindow("Tracking")
-		while True:
-			cv2.imshow("Tracking", self.viz)
-			key = cv2.waitKey(1) & 0xFF
-
-			if key == ord("r"):
-				image = clone_image.copy()
-
-			if key == ord("c"):
-				break
 
 	def start(self):
+		_,self.viz = self.video.read()
 		cv2.namedWindow("Tracking")
-		# cv2.setMouseCallback("Tracking", self.create_bounding_box)
+		cv2.imshow("Tracking", self.viz)
+		cv2.setMouseCallback("Tracking", self.create_bounding_box)
 		while True:
-			flag, self.viz = self.video.read()
-			while True:
-				if self.creating_bounding_box:	
-					continue
-				else:
-					cv2.waitKey(30)
-					break
-			if self.bounding_box:
-				self.start_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
-				break
+			if self.creating_bounding_box:
+				cv2.imshow("Tracking", self.viz)
+				cv2.waitKey(30)
+				continue
+
+			if self.bounding_box_created:
+				self.tracking()
+
+			if not self.bounding_box_created:
+				_,self.viz = self.video.read()
+				cv2.imshow("Tracking", self.viz)
+				cv2.waitKey(30)
+		print "End of start function"
+
 
 	def tracking(self):
-		prev_frame = 0
-		while True:
-			start_bb = self.bounding_box
-			self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, 2 + prev_frame)
-			flag, self.viz = self.video.read()
-			prev_frame = self.video.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
-			print prev_frame
-			# print self.video.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
-			# print ""
-			self.target_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
-			# print "Target_img gray generated"
-			cv2.namedWindow("Start and Target Image")
-			cv2.imshow("Start and Target Image", self.start_img)
-			cv2.waitKey(500)
-			cv2.imshow("Start and Target Image", self.target_img)
-			cv2.waitKey(500)
-			self.start_pts = self.gen_point_cloud(start_bb)
-			print self.start_pts
-			print ""
-			corr, dist, valid_target_pts, valid_start_pts = self.cal_target_pts(self.start_pts)
-			# print "Predicted target and start points"
-			print valid_target_pts
-			print ""
-			print valid_start_pts
-			print ''
-			good_target_pts, good_start_pts = self.filter_pts(corr, dist, valid_target_pts, valid_start_pts)
-			# print "Filtered to get good points"
-			print good_start_pts
-			print ""
-			print  good_target_pts
-			print ''
-			self.bounding_box = self.target_bounding_box(start_bb,good_start_pts, good_target_pts)
-			print self.bounding_box
-			cv2.rectangle(self.viz, self.bounding_box[0], self.bounding_box[1], (0,255,0),1)
-			# print "Drew the rectangle"
-			self.start_img = self.target_img
-			# if len(good_target_pts) < 200:
-			# 	self.start_pts = self.gen_point_cloud(self.bounding_box)
-			# else:
-			# 	self.start_pts = good_target_pts
-			# print "Reassigned"
-			cv2.imshow("Tracking", self.viz)
-			# print "Shown the image"
-			cv2.waitKey(1000)
+		# prev_frame = 0
+		self.start_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
+		cv2.rectangle(self.viz, self.bounding_box[0], self.bounding_box[1],(255,0,0),1)
+		cv2.imshow("Tracking", self.viz)
+		cv2.waitKey(30)
+		try:
+			while True:
+				start_bb = self.bounding_box
+				# self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, 0 + prev_frame)
+				flag, self.viz = self.video.read()
+				self.target_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
+				self.start_pts = self.gen_point_cloud(start_bb)
+				corr, dist, valid_target_pts, valid_start_pts = self.cal_target_pts(self.start_pts)
+				good_target_pts, good_start_pts = self.filter_pts(corr, dist, valid_target_pts, valid_start_pts)
+				self.bounding_box = self.target_bounding_box(start_bb,good_start_pts, good_target_pts)
+				print self.bounding_box
+				cv2.rectangle(self.viz, self.bounding_box[0], self.bounding_box[1], (0,255,0),1)
+				self.start_img = self.target_img
+				cv2.imshow("Tracking", self.viz)
+				cv2.waitKey(30)
+		except KeyboardInterrupt:
+			cv2.self.video.release()
+		return None
 
 	def create_bounding_box(self,event, x, y, flags, param):
-		self.show_window()
 		if event == cv2.EVENT_LBUTTONDOWN:
 			self.bounding_box.append((x,y))
 			creating_bounding_box = True
 
 		elif event == cv2.EVENT_LBUTTONUP:
 			self.bounding_box.append((x,y))
-
-			self.start_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
-			cv2.rectangle(self.viz, self.bounding_box[0], self.bounding_box[1], (0,255,0),1)
-			print self.bounding_box
+			self.bounding_box_created = True
 			self.creating_bounding_box = False
-			self.tracking()
 
 
 	def gen_point_cloud(self, box):
@@ -135,9 +106,9 @@ class Tracker():
 		matching_param = dict(winSize_match=10, method=cv2.cv.CV_TM_CCOEFF_NORMED)
 
 		target_pts, status_forward,_ = cv2.calcOpticalFlowPyrLK(self.start_img,self.target_img,start_pts,target_pts,**lk_params) 
+
 		back_pts, status_backward,_ = cv2.calcOpticalFlowPyrLK(self.target_img,self.start_img,target_pts,back_pts,**lk_params)
 		status = status_forward & status_backward
-
 		dist_all = self.euclidean_distance(start_pts, target_pts)
 		valid_corr = self.patch_matching(start_pts,target_pts,status,**matching_param) 
 		valid_dist = [] 
@@ -222,5 +193,5 @@ class Tracker():
 		else:
 			return new_data[len(new_data)/2]
 
-test_video = Tracker("/home/ubuntu/Original_Images_Bag/run_video/extract_run3/output3.mpg")
+test_video = Tracker(0)
 test_video.tracking()
