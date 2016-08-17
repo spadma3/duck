@@ -22,7 +22,6 @@ def mouse_draw(event, x, y, flags, param):
 		print bounding_boxes
 		print "The key is released, value %d, %d" %(ref_points[1][0], ref_points[1][1])
 
-
 argument_object = argparse.ArgumentParser()
 argument_object.add_argument("-i", "--image", required=True, help="Path to the image")
 arguments = vars(argument_object.parse_args())
