@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 from time import time
+import scipy
+from scipy import stats
 feature_params = dict( maxCorners=500, qualityLevel=0.1,minDistance=1,blockSize=1)
 
 class Tracker():
@@ -10,7 +12,7 @@ class Tracker():
 		self.bounding_box = [0]*4
 		self.creating_bounding_box = False
 		self.bounding_box_created = False
-		self.init_pts_density = 7
+		self.init_pts_density = 3
 		self.margin = 0.0
 		self.start_img = None
 		self.target_img = None
@@ -18,16 +20,17 @@ class Tracker():
 		# if not video_path:
 		# 	raise SystemExit("Please upload a video to track the object")
 		# else:
-		# 	self.video = cv2.VideoCapture(video_path)
 		self.video = cv2.VideoCapture(video_path)
+		# self.video = video
 		self.start()
 		# self.start_pts = self.gen_point_cloud(self.bounding_box)
 		# self.tracking()
 
 
 	def start(self):
-		self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES,220)
-		_,self.viz = self.video.read()
+		self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES,280)
+		ret,self.viz = self.video.read()
+		print ret
 		cv2.namedWindow("Tracking")
 		cv2.imshow("Tracking", self.viz)
 		cv2.setMouseCallback("Tracking", self.create_bounding_box)
@@ -42,34 +45,44 @@ class Tracker():
 				self.tracking()
 
 			if not self.bounding_box_created:
-				_,self.viz = self.video.read()
-				cv2.imshow("Tracking", self.viz)
-				# gray = cv2.cvtColor(self.viz.copy(), cv2.COLOR_BGR2GRAY)
-				# cv2.imshow("GrayScale", gray)
-				# _,binary = cv2.threshold(gray.copy(),50,255,cv2.THRESH_BINARY)
-				# cv2.imshow("Binary", binary)
-				# hist = cv2.equalizeHist(gray.copy())
-				# cv2.imshow("Histogram Equalized", hist)
-				# _,bin_hist = cv2.threshold(hist.copy(), 50,255, cv2.THRESH_BINARY)
-				# cv2.imshow("Binary after histogram", bin_hist)
-				cv2.waitKey(1000)
+				ret,self.viz = self.video.read()
+				if ret:
+					cv2.imshow("Tracking", self.viz)
+					# gray = cv2.cvtColor(self.viz.copy(), cv2.COLOR_BGR2GRAY)
+					# cv2.imshow("GrayScale", gray)
+					# _,binary = cv2.threshold(gray.copy(),50,255,cv2.THRESH_BINARY)
+					# cv2.imshow("Binary", binary)
+					# hist = cv2.equalizeHist(gray.copy())
+					# cv2.imshow("Histogram Equalized", hist)
+					# _,bin_hist = cv2.threshold(hist.copy(), 50,255, cv2.THRESH_BINARY)
+					# cv2.imshow("Binary after histogram", bin_hist)
+					cv2.waitKey(1000)
+				else:
+					continue
 		print "End of start function"
 
 	def tracking(self):
 		# prev_frame = 0
 		self.start_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
-		self.start_img = cv2.equalizeHist(self.start_img)
+		# self.start_img = cv2.equalizeHist(self.start_img)
 		cv2.rectangle(self.viz, (self.bounding_box[0],self.bounding_box[1]),(self.bounding_box[2],self.bounding_box[3]), (0,255,0),3)
+		self.start_pts = self.gen_point_cloud(self.bounding_box)
 		cv2.imshow("Tracking", self.viz)
-		cv2.waitKey(1)
+		cv2.waitKey(30)
+		flag = True
+		# self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, 30)
+
 		try:
 			while True:
 				start_bb = self.bounding_box
-				# self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, 0 + prev_frame)
-				flag, self.viz = self.video.read()
+				ret, self.viz = self.video.read()
 				self.target_img = cv2.cvtColor(self.viz, cv2.COLOR_BGR2GRAY)
-				self.target_img = cv2.equalizeHist(self.target_img)
-				self.start_pts = self.gen_point_cloud(start_bb)
+				# self.target_img = cv2.equalizeHist(self.target_img)
+				required_pts_density = float((self.bounding_box[3]-self.bounding_box[1])*(self.bounding_box[2]-self.bounding_box[0]))/(len(self.start_pts))
+				print "Density", required_pts_density, "Length", len(self.start_pts)
+				if required_pts_density > 100:
+					self.start_pts = self.gen_point_cloud(start_bb)
+					flag = True
 				# self.start_pts = self.goodFeature2Track()
 				# for point in self.start_pts:
 				# 	cv2.circle(self.viz, (int(point[0]),int(point[1])),2,(0,255,0),-1)
@@ -78,21 +91,24 @@ class Tracker():
 				corr, dist, valid_target_pts, valid_start_pts = self.cal_target_pts(self.start_pts)
 				# for point in valid_start_pts:
 				# 	cv2.circle(self.viz, (int(point[0]),int(point[1])),2,(0,255,0),-1)
-				good_target_pts, good_start_pts = self.filter_pts(corr, dist, valid_target_pts, valid_start_pts)
-				# good_target_pts, good_start_pts = valid_target_pts, valid_start_pts
-				# print good_target_pts 
+				if flag:
+					good_target_pts, good_start_pts = self.filter_pts(corr, dist, valid_target_pts, valid_start_pts)
+					flag = False
+				else:
+					good_target_pts, good_start_pts = self.filter_pts2(corr, dist, valid_target_pts, valid_start_pts)
 				if good_target_pts is not None:
-					for point in good_target_pts:
-						cv2.circle(self.viz, (int(point[0]),int(point[1])),2,(0,255,255),-1)
+					# for point in good_target_pts:
+					# 	cv2.circle(self.viz, (int(point[0]),int(point[1])),2,(0,255,255),-1)
 					self.bounding_box = self.target_bounding_box(start_bb,good_start_pts, good_target_pts)
 					cv2.rectangle(self.viz, (self.bounding_box[0],self.bounding_box[1]),(self.bounding_box[2],self.bounding_box[3]), (0,255,0),3)
 				else:
 					self.bounding_box = None
 					print "Unable to track object"
 				self.start_img = self.target_img
+				self.start_pts = good_target_pts
 				cv2.imshow("Tracking", self.viz)
-				cv2.imshow("Gray", self.target_img)
-				cv2.waitKey(1)
+				# cv2.imshow("Gray", self.target_img)
+				cv2.waitKey(100)
 		except KeyboardInterrupt:
 			cv2.self.video.release()
 		return None
@@ -170,34 +186,82 @@ class Tracker():
 
 	def euclidean_distance(self,start_pts,target_pts):
 		dist = ((target_pts[:,0]-start_pts[:,0])**2 + (target_pts[:,1]-start_pts[:,1])**2)**0.5
-		return dist
+		return np.round(dist,1)
+
+
+	def filter_pts2(self, valid_corr, valid_dist, valid_target_pts, valid_start_pts):
+		good_target_points = []
+		good_start_points = []
+		medDist = self.median(valid_dist)
+		medCorr = self.median(valid_corr)
+		modDist = stats.mode(valid_dist)[0][0]
+		print modDist, len(valid_dist), max(valid_dist)
+		quarDist = np.percentile(valid_dist, 99)
+		quarCorr = np.percentile(valid_corr, 60)
+		valid_disp = []
+		corr = []
+		for i in range(len(valid_dist)):
+			valid_disp.append(abs(valid_dist[i] - medDist))
+		print "Median: ", self.median(valid_disp)
+
+		for i in range(len(valid_corr)):
+			corr.append(abs(valid_corr[i] - medCorr))
+		print "Correlation: ", self.median(corr)
+
+		# if self.median(valid_disp) > 20:
+		# 	print "Median displacement Failure"
+		# 	return None, None
+		if self.median(corr) > 0.1:
+			print "Correlation very bad. Failure"
+			return None, None
+
+		for i in range(len(valid_dist)):
+			if abs(valid_dist[i] - modDist) <= 10:
+				good_target_points.append(valid_target_pts[i])
+				good_start_points.append(valid_start_pts[i])
+
+		# for i in range(len(valid_dist)):
+		# 	if valid_dist[i] <= quarDist:
+		# 		good_target_points.append(valid_target_pts[i])
+		# 		good_start_points.append(valid_start_pts[i])
+
+		if len(good_target_points) <= 5:
+			print 'Not enough target points'
+			return None, None
+		else:
+			return good_target_points, good_start_points
+
+	# def adaptive_mode_filter(self,):
+
 
 	def filter_pts(self,valid_corr, valid_dist, valid_target_pts, valid_start_pts):
 		good_target_points = []
 		good_start_points = []
 		medDist = self.median(valid_dist)
 		medCorr = self.median(valid_corr)
-		quarDist = np.percentile(valid_dist, 80)
-		quarCorr = np.percentile(valid_corr, 50)
+		quarDist = np.percentile(valid_dist, 50)
+		quarCorr = np.percentile(valid_corr, 60)
 		valid_disp = []
 		for i in range(len(valid_dist)):
 			valid_disp.append(abs(valid_dist[i] - medDist))
 		print "Median: ", self.median(valid_disp)
-		if self.median(valid_disp) > 15:
+		# if self.median(valid_disp) > 20:
+		# 	print "Median displacement Failure"
+		# 	return None, None
+		# for i in range(len(valid_dist)):
+		# 	if valid_dist[i] <= medDist and valid_corr[i] >= medCorr:
+		# 		good_target_points.append(valid_target_pts[i])
+		# 		good_start_points.append(valid_start_pts[i])
+		# return good_target_points, good_start_points
+		for i in range(len(valid_dist)):
+			if valid_dist[i] <= quarDist and valid_corr[i] >= quarCorr:
+				good_target_points.append(valid_target_pts[i])
+				good_start_points.append(valid_start_pts[i])
+
+		if len(good_target_points) <= 5:
+			print 'Not enough target points'
 			return None, None
 		else:
-			# for i in range(len(valid_dist)):
-			# 	if valid_dist[i] <= medDist and valid_corr[i] >= medCorr:
-			# 		good_target_points.append(valid_target_pts[i])
-			# 		good_start_points.append(valid_start_pts[i])
-			# return good_target_points, good_start_points
-			for i in range(len(valid_dist)):
-				if valid_dist[i] <= quarDist and valid_corr[i] >= quarCorr:
-					good_target_points.append(valid_target_pts[i])
-					good_start_points.append(valid_start_pts[i])
-			if len(good_target_points) < 10:
-				print 'Not enough target points'
-				return None, None
 			return good_target_points, good_start_points
 
 	def target_bounding_box(self,start_box,good_start_points, good_target_points):
@@ -210,10 +274,10 @@ class Tracker():
 		for i in range(num_target_pts):
 			diff_x.append(good_target_points[i][0] - good_start_points[i][0])
 			diff_y.append(good_target_points[i][1] - good_start_points[i][1])
-		# dx = self.median(diff_x)
-		# dy = self.median(diff_y)
-		dx = np.percentile(diff_x, 50)
-		dy = np.percentile(diff_y, 50)
+		dx = self.median(diff_x)
+		dy = self.median(diff_y)
+		# dx = np.percentile(diff_x, 40)
+		# dy = np.percentile(diff_y, 40)
 		# dx = self.mean(diff_x)
 		# dy = self.mean(diff_y)
 		diff_y = diff_x = 0
@@ -229,8 +293,8 @@ class Tracker():
 					+ (good_target_points[i][1] - good_target_points[j][1])**2)**0.5
 				scale_factor.append(float(target_img)/start_img)
 		
-		# scale = self.median(scale_factor)
-		scale = np.percentile(scale_factor,50)
+		scale = self.median(scale_factor)
+		# scale = np.percentile(scale_factor,40)
 		# scale = self.mean(scale_factor)
 		print scale, "The scale change"
 		# print width_start, height_start
@@ -256,8 +320,9 @@ class Tracker():
 	def mean(self,data):
 		return sum(data)/len(data)
 
-Tracker("/home/ubuntu/temp/testing_data/testing/testing.mpg")
+# Tracker("/home/ubuntu/temp/testing_data/vehicle2/vehicle2.mpg")
 # Tracker(0)
-# test_video = Tracker("/home/ubuntu/Original_Images_Bag/run_video/extract_run3/output3.mpg")
+# Tracker("/home/ubuntu/Original_Images_Bag/run_video/extract_run/1output1.mpg")
+# Tracker("/home/ubuntu/temp/video_test/vehicle/vehicle.mpg")
 
-# Tracker("/home/ubuntu/temp/video_test/T-test-vehicle/testing/testing.mpg")
+Tracker("/home/ubuntu/temp/video_test/T-test-vehicle/testing/testing.mpg")

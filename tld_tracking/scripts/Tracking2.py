@@ -97,8 +97,8 @@ class Tracker2():
 				for x,y in [np.int32(tr[-1]) for tr in self.track_points]:
 					cv2.circle(self.mask, (x,y),5,0,-1)
 				self.goodFeature2Track()
-				print "New features %" %(self.frame_id), self.track_points
-				print
+				# print "New features %" %(self.frame_id), self.track_points
+				# print
 
 
 			self.frame_id += 1
