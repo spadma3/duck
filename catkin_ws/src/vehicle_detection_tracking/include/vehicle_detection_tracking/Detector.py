@@ -1,5 +1,4 @@
-#!usr/bin/env python
-
+#!/usr/bin/env python
 import cv2
 import os
 import numpy as np 
@@ -346,8 +345,3 @@ class Detector():
 		# cv2.imshow("Detection",self.viz)
 		# if cv2.waitKey(30) & 0xff == ord('q'):
 		# 	break
-# self.video.release()
-# cv2.destroyAllWindows()
-
-# detect = Detector()
-# detect.run("/home/ubuntu/temp/video_test/vehicle/vehicle2.mpg")

@@ -1,4 +1,5 @@
-#!usr/bin/env python
+#!/usr/bin/env python
+
 import rospy
 import cv2
 import numpy as np 
@@ -11,21 +12,21 @@ from std_msgs.msg import Int32
 from mutex import mutex
 
 
-
 class TLD():
-	def __init__(self,pos_dist,neg_dist):
+	def __init__(self):
+		pos_dist = np.load("/home/ubuntu/TLD/posDist.npy").tolist()
+		neg_dist = np.load("/home/ubuntu/TLD/negDist.npy").tolist()
 		self.active = True
 		self.bridge = CvBridge
-		self.video = cv2.VideoCapture(video)
-		self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES,32)
 		self.Detector = Detector()
 		self.Detector.set_posterior(pos_dist,neg_dist)
 		self.Tracker = Tracker()
 		self.tracking = False
-		self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cbImage, queue_size=1)
+		self.sub_image = rospy.Subscriber("/autopilot/camera_node/image", CompressedImage, self.cbImage, queue_size=1)
 		self.pub_image = rospy.Publisher("~image_with_detection", Image, queue_size=1)
-		self.pub_vehicle_detected = rospy.Publisher("~vehicle_detedted", VehicleDetected, queue_size=1)
+		self.pub_vehicle_detected = rospy.Publisher("~vehicle_detected", VehicleDetected, queue_size=1)
 		self.pub_vehicle_bbox = rospy.Publisher("~vehicle_bounding_box", VehicleBoundingBox, queue_size=1)
+		self.lock = mutex()
 
 
 	def cbImage(self, image_msg):
@@ -34,6 +35,7 @@ class TLD():
 		thread = threading.Thread(target=self.run,args=(image_msg,))
 		thread.setDaemon(True)
 		thread.start()
+		print "Started subscription"
 
 
 	def run(self, image_msg):
@@ -84,10 +86,7 @@ class TLD():
 
 			self.lock.unlock()
 
-pos_dist = np.load("/home/ubuntu/TLD/posDist.npy").tolist()
-neg_dist = np.load("/home/ubuntu/TLD/negDist.npy").tolist()
-video = "/home/ubuntu/temp/video_test/vehicle/vehicle2.mpg"
-# video = "/home/ubuntu/temp/testing_data/vehicle/vehicle.mpg"
-
-TLD = TLD(video,pos_dist,neg_dist)
-TLD.run()
+if __name__ == "__main__":
+	rospy.init_node("vehicle_detection_tracking_node")
+	vehicle_detection_tracking_node = TLD()
+	rospy.spin()
