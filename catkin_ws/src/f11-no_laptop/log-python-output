@@ -1,0 +1,494 @@
+Available devices:
+Opening /dev/input/js0...
+Activating ROS...
+...done.
+Setting up PYTHONPATH.
+Setup ROS_HOSTNAME.
+Building machines file...
+make: Entering directory `/home/ubuntu/duckietown'
+make: Nothing to be done for `all'.
+make: Leaving directory `/home/ubuntu/duckietown'
+...done
+Activating development.
+Setting ROS_MASTER_URI...
+No hostname provided. Using cepillo.
+ROS_MASTER_URI set to http://cepillo.local:11311/
+[INFO] [WallTime: 1469396298.563787] [/cepillo/wheels_driver_node] Initializing 
+[INFO] [WallTime: 1469396331.177170] [/cepillo/wheels_driver_node] Shutting down.
+[INFO] [WallTime: 1469396299.140144] [/cepillo/inverse_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469396299.164901] [/cepillo/inverse_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469396299.190989] [/cepillo/inverse_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469396299.208474] [/cepillo/inverse_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469396299.228880] [/cepillo/inverse_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469396299.252626] [/cepillo/inverse_kinematics_node] ~limit = 1.0 
+[INFO] [WallTime: 1469396299.349398] [/cepillo/inverse_kinematics_node] Initialized.
+[INFO] [WallTime: 1469396299.351787] [/cepillo/inverse_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0 limit: 1.0
+[INFO] [WallTime: 1469396298.693459] [/cepillo/joy_mapper_node] Initializing 
+[INFO] [WallTime: 1469396298.740277] [/cepillo/joy_mapper_node] ~speed_gain = 0.41 
+[INFO] [WallTime: 1469396298.797256] [/cepillo/joy_mapper_node] ~steer_gain = 8.3 
+[INFO] [WallTime: 1469396298.826002] [/cepillo/joy_mapper_node] ~bicycle_kinematics = 0.0 
+[INFO] [WallTime: 1469396298.852978] [/cepillo/joy_mapper_node] ~steer_angle_gain = 1.04 
+[INFO] [WallTime: 1469396298.884619] [/cepillo/joy_mapper_node] ~simulated_vehicle_length = 0.18 
+[INFO] [WallTime: 1469396299.047714] [/cepillo/forward_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469396299.069599] [/cepillo/forward_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469396299.094553] [/cepillo/forward_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469396299.118989] [/cepillo/forward_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469396299.144970] [/cepillo/forward_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469396299.187336] [/cepillo/forward_kinematics_node] Initialized.
+[INFO] [WallTime: 1469396299.190224] [/cepillo/forward_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0
+[INFO] [WallTime: 1469396298.842373] [/cepillo/velocity_to_pose_node] Initialized.
+... logging to /home/ubuntu/.ros/log/e83639b4-51e6-11e6-bd98-000f6007b1f3/roslaunch-cepillo-2492.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch
+[1mstarted roslaunch server http://cepillo.local:35512/[0m
+
+SUMMARY
+========
+
+CLEAR PARAMETERS
+ * /cepillo/forward_kinematics_node/
+ * /cepillo/inverse_kinematics_node/
+ * /cepillo/joy_mapper_node/
+ * /cepillo/velocity_to_pose_node/
+ * /cepillo/wheels_driver_node/
+
+PARAMETERS
+ * /cepillo/joy/autorepeat_rate: 2.0
+ * /cepillo/joy/coalesce_interval: 0.02
+ * /cepillo/joy/deadzone: 0.01
+ * /cepillo/joy/dev: /dev/input/js0
+ * /cepillo/joy_mapper_node/bicycle_kinematics: 0.0
+ * /cepillo/joy_mapper_node/simulated_vehicle_length: 0.18
+ * /cepillo/joy_mapper_node/speed_gain: 0.41
+ * /cepillo/joy_mapper_node/steer_angle_gain: 1.04
+ * /cepillo/joy_mapper_node/steer_gain: 8.3
+ * /rosdistro: indigo
+ * /rosversion: 1.11.16
+
+NODES
+  /cepillo/
+    forward_kinematics_node (dagu_car/forward_kinematics_node.py)
+    inverse_kinematics_node (dagu_car/inverse_kinematics_node.py)
+    joy (joy/joy_node)
+    joy_mapper_node (joy_mapper/joy_mapper_node.py)
+    velocity_to_pose_node (dagu_car/velocity_to_pose_node.py)
+    wheels_driver_node (dagu_car/wheels_driver_node.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [2634][0m
+[1mROS_MASTER_URI=http://cepillo.local:11311/[0m
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch http://cepillo.local:11311/
+[1msetting /run_id to e83639b4-51e6-11e6-bd98-000f6007b1f3[0m
+[1mprocess[rosout-1]: started with pid [2673][0m
+started core service [/rosout]
+[1mprocess[cepillo/joy-2]: started with pid [2681][0m
+[1mprocess[cepillo/joy_mapper_node-3]: started with pid [2682][0m
+[1mprocess[cepillo/inverse_kinematics_node-4]: started with pid [2683][0m
+[1mprocess[cepillo/forward_kinematics_node-5]: started with pid [2695][0m
+[1mprocess[cepillo/velocity_to_pose_node-6]: started with pid [2707][0m
+[1mprocess[cepillo/wheels_driver_node-7]: started with pid [2722][0m
+[cepillo/wheels_driver_node-7] killing on exit
+[cepillo/velocity_to_pose_node-6] killing on exit
+[cepillo/forward_kinematics_node-5] killing on exit
+[cepillo/inverse_kinematics_node-4] killing on exit
+[cepillo/joy_mapper_node-3] killing on exit
+[cepillo/joy-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
+Activating ROS...
+...done.
+Setting up PYTHONPATH.
+Setup ROS_HOSTNAME.
+Building machines file...
+make: Entering directory `/home/ubuntu/duckietown'
+make: Nothing to be done for `all'.
+make: Leaving directory `/home/ubuntu/duckietown'
+...done
+Activating development.
+Setting ROS_MASTER_URI...
+No hostname provided. Using cepillo.
+ROS_MASTER_URI set to http://cepillo.local:11311/
+[INFO] [WallTime: 1469396661.128311] [/cepillo/velocity_to_pose_node] Initialized.
+[INFO] [WallTime: 1469396660.853408] [/cepillo/wheels_driver_node] Initializing 
+[INFO] [WallTime: 1469396935.148193] [/cepillo/wheels_driver_node] Shutting down.
+[INFO] [WallTime: 1469396661.343440] [/cepillo/forward_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469396661.364436] [/cepillo/forward_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469396661.384154] [/cepillo/forward_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469396661.404801] [/cepillo/forward_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469396661.424934] [/cepillo/forward_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469396661.475570] [/cepillo/forward_kinematics_node] Initialized.
+[INFO] [WallTime: 1469396661.477987] [/cepillo/forward_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0
+[INFO] [WallTime: 1469396661.491625] [/cepillo/inverse_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469396661.516403] [/cepillo/inverse_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469396661.542904] [/cepillo/inverse_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469396661.561014] [/cepillo/inverse_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469396661.578340] [/cepillo/inverse_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469396661.595953] [/cepillo/inverse_kinematics_node] ~limit = 1.0 
+[INFO] [WallTime: 1469396661.690238] [/cepillo/inverse_kinematics_node] Initialized.
+[INFO] [WallTime: 1469396661.692311] [/cepillo/inverse_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0 limit: 1.0
+[INFO] [WallTime: 1469396660.976393] [/cepillo/joy_mapper_node] Initializing 
+[INFO] [WallTime: 1469396661.013091] [/cepillo/joy_mapper_node] ~speed_gain = 0.41 
+[INFO] [WallTime: 1469396661.062862] [/cepillo/joy_mapper_node] ~steer_gain = 8.3 
+[INFO] [WallTime: 1469396661.085163] [/cepillo/joy_mapper_node] ~bicycle_kinematics = 0.0 
+[INFO] [WallTime: 1469396661.138742] [/cepillo/joy_mapper_node] ~steer_angle_gain = 1.04 
+[INFO] [WallTime: 1469396661.160409] [/cepillo/joy_mapper_node] ~simulated_vehicle_length = 0.18 
+... logging to /home/ubuntu/.ros/log/c0722252-51e7-11e6-a4bb-000f6007b1f3/roslaunch-cepillo-4829.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch
+[1mstarted roslaunch server http://cepillo.local:58688/[0m
+Activating ROS...
+...done.
+Setting up PYTHONPATH.
+Setup ROS_HOSTNAME.
+Building machines file...
+make: Entering directory `/home/ubuntu/duckietown'
+make: Nothing to be done for `all'.
+make: Leaving directory `/home/ubuntu/duckietown'
+...done
+Activating development.
+Setting ROS_MASTER_URI...
+No hostname provided. Using cepillo.
+ROS_MASTER_URI set to http://cepillo.local:11311/
+[INFO] [WallTime: 1469397052.859846] [/cepillo/wheels_driver_node] Initializing 
+[INFO] [WallTime: 1469397096.152576] [/cepillo/wheels_driver_node] Shutting down.
+[INFO] [WallTime: 1469397053.525363] [/cepillo/velocity_to_pose_node] Initialized.
+[INFO] [WallTime: 1469397053.689957] [/cepillo/joy_mapper_node] Initializing 
+[INFO] [WallTime: 1469397053.717512] [/cepillo/joy_mapper_node] ~speed_gain = 0.41 
+[INFO] [WallTime: 1469397053.742572] [/cepillo/joy_mapper_node] ~steer_gain = 8.3 
+[INFO] [WallTime: 1469397053.779561] [/cepillo/joy_mapper_node] ~bicycle_kinematics = 0.0 
+[INFO] [WallTime: 1469397053.807717] [/cepillo/joy_mapper_node] ~steer_angle_gain = 1.04 
+[INFO] [WallTime: 1469397053.836770] [/cepillo/joy_mapper_node] ~simulated_vehicle_length = 0.18 
+[INFO] [WallTime: 1469397053.958964] [/cepillo/forward_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469397053.999630] [/cepillo/forward_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469397054.043606] [/cepillo/forward_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469397054.103708] [/cepillo/forward_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469397054.135467] [/cepillo/forward_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469397054.193646] [/cepillo/forward_kinematics_node] Initialized.
+[INFO] [WallTime: 1469397054.196652] [/cepillo/forward_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0
+[INFO] [WallTime: 1469397054.152793] [/cepillo/inverse_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469397054.185645] [/cepillo/inverse_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469397054.210256] [/cepillo/inverse_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469397054.238005] [/cepillo/inverse_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469397054.267837] [/cepillo/inverse_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469397054.293738] [/cepillo/inverse_kinematics_node] ~limit = 1.0 
+[INFO] [WallTime: 1469397054.416687] [/cepillo/inverse_kinematics_node] Initialized.
+[INFO] [WallTime: 1469397054.420341] [/cepillo/inverse_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0 limit: 1.0
+... logging to /home/ubuntu/.ros/log/a7919118-51e8-11e6-8b3d-000f6007b1f3/roslaunch-cepillo-1543.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch
+[1mstarted roslaunch server http://cepillo.local:52957/[0m
+
+SUMMARY
+========
+
+CLEAR PARAMETERS
+ * /cepillo/forward_kinematics_node/
+ * /cepillo/inverse_kinematics_node/
+ * /cepillo/joy_mapper_node/
+ * /cepillo/velocity_to_pose_node/
+ * /cepillo/wheels_driver_node/
+
+PARAMETERS
+ * /cepillo/joy/autorepeat_rate: 2.0
+ * /cepillo/joy/coalesce_interval: 0.02
+ * /cepillo/joy/deadzone: 0.01
+ * /cepillo/joy/dev: /dev/input/js0
+ * /cepillo/joy_mapper_node/bicycle_kinematics: 0.0
+ * /cepillo/joy_mapper_node/simulated_vehicle_length: 0.18
+ * /cepillo/joy_mapper_node/speed_gain: 0.41
+ * /cepillo/joy_mapper_node/steer_angle_gain: 1.04
+ * /cepillo/joy_mapper_node/steer_gain: 8.3
+ * /rosdistro: indigo
+ * /rosversion: 1.11.16
+
+NODES
+  /cepillo/
+    forward_kinematics_node (dagu_car/forward_kinematics_node.py)
+    inverse_kinematics_node (dagu_car/inverse_kinematics_node.py)
+    joy (joy/joy_node)
+    joy_mapper_node (joy_mapper/joy_mapper_node.py)
+    velocity_to_pose_node (dagu_car/velocity_to_pose_node.py)
+    wheels_driver_node (dagu_car/wheels_driver_node.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [1737][0m
+[1mROS_MASTER_URI=http://cepillo.local:11311/[0m
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch http://cepillo.local:11311/
+[1msetting /run_id to a7919118-51e8-11e6-8b3d-000f6007b1f3[0m
+[1mprocess[rosout-1]: started with pid [1776][0m
+started core service [/rosout]
+[1mprocess[cepillo/joy-2]: started with pid [1788][0m
+[1mprocess[cepillo/joy_mapper_node-3]: started with pid [1798][0m
+[1mprocess[cepillo/inverse_kinematics_node-4]: started with pid [1799][0m
+[1mprocess[cepillo/forward_kinematics_node-5]: started with pid [1800][0m
+[1mprocess[cepillo/velocity_to_pose_node-6]: started with pid [1812][0m
+[1mprocess[cepillo/wheels_driver_node-7]: started with pid [1821][0m
+[cepillo/wheels_driver_node-7] killing on exit
+[cepillo/velocity_to_pose_node-6] killing on exit
+[cepillo/forward_kinematics_node-5] killing on exit
+[cepillo/joy_mapper_node-3] killing on exit
+[cepillo/inverse_kinematics_node-4] killing on exit
+[cepillo/joy-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
+Available devices:
+Opening /dev/input/js0...
+Available devices:
+Opening /dev/input/js0...
+Available devices:
+Opening /dev/input/js0...
+Available devices:
+Opening /dev/input/js0...
+Activating ROS...
+...done.
+Setting up PYTHONPATH.
+Setup ROS_HOSTNAME.
+Building machines file...
+make: Entering directory `/home/ubuntu/duckietown'
+make: Nothing to be done for `all'.
+make: Leaving directory `/home/ubuntu/duckietown'
+...done
+Activating development.
+Setting ROS_MASTER_URI...
+No hostname provided. Using cepillo.
+ROS_MASTER_URI set to http://cepillo.local:11311/
+[INFO] [WallTime: 1469666566.216681] [/cepillo/joy_mapper_node] Initializing 
+[INFO] [WallTime: 1469666566.248697] [/cepillo/joy_mapper_node] ~speed_gain = 0.41 
+[INFO] [WallTime: 1469666566.297589] [/cepillo/joy_mapper_node] ~steer_gain = 8.3 
+[INFO] [WallTime: 1469666566.321918] [/cepillo/joy_mapper_node] ~bicycle_kinematics = 0.0 
+[INFO] [WallTime: 1469666566.347178] [/cepillo/joy_mapper_node] ~steer_angle_gain = 1.04 
+[INFO] [WallTime: 1469666566.369695] [/cepillo/joy_mapper_node] ~simulated_vehicle_length = 0.18 
+[INFO] [WallTime: 1469666565.657596] [/cepillo/wheels_driver_node] Initializing 
+[INFO] [WallTime: 1469666584.236538] [/cepillo/wheels_driver_node] Shutting down.
+[INFO] [WallTime: 1469666566.109104] [/cepillo/velocity_to_pose_node] Initialized.
+[INFO] [WallTime: 1469666566.462862] [/cepillo/forward_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469666566.502994] [/cepillo/forward_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469666566.529534] [/cepillo/forward_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469666566.561897] [/cepillo/forward_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469666566.590440] [/cepillo/forward_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469666566.625851] [/cepillo/forward_kinematics_node] Initialized.
+[INFO] [WallTime: 1469666566.627800] [/cepillo/forward_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0
+[INFO] [WallTime: 1469666566.525534] [/cepillo/inverse_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469666566.560671] [/cepillo/inverse_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469666566.585380] [/cepillo/inverse_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469666566.610054] [/cepillo/inverse_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469666566.634949] [/cepillo/inverse_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469666566.655196] [/cepillo/inverse_kinematics_node] ~limit = 1.0 
+[INFO] [WallTime: 1469666566.757733] [/cepillo/inverse_kinematics_node] Initialized.
+[INFO] [WallTime: 1469666566.763291] [/cepillo/inverse_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0 limit: 1.0
+... logging to /home/ubuntu/.ros/log/2c3b22e2-545c-11e6-9eb7-000f6007b1f3/roslaunch-cepillo-2761.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch
+[1mstarted roslaunch server http://cepillo.local:54323/[0m
+
+SUMMARY
+========
+
+CLEAR PARAMETERS
+ * /cepillo/forward_kinematics_node/
+ * /cepillo/inverse_kinematics_node/
+ * /cepillo/joy_mapper_node/
+ * /cepillo/velocity_to_pose_node/
+ * /cepillo/wheels_driver_node/
+
+PARAMETERS
+ * /cepillo/joy/autorepeat_rate: 2.0
+ * /cepillo/joy/coalesce_interval: 0.02
+ * /cepillo/joy/deadzone: 0.01
+ * /cepillo/joy/dev: /dev/input/js0
+ * /cepillo/joy_mapper_node/bicycle_kinematics: 0.0
+ * /cepillo/joy_mapper_node/simulated_vehicle_length: 0.18
+ * /cepillo/joy_mapper_node/speed_gain: 0.41
+ * /cepillo/joy_mapper_node/steer_angle_gain: 1.04
+ * /cepillo/joy_mapper_node/steer_gain: 8.3
+ * /rosdistro: indigo
+ * /rosversion: 1.11.16
+
+NODES
+  /cepillo/
+    forward_kinematics_node (dagu_car/forward_kinematics_node.py)
+    inverse_kinematics_node (dagu_car/inverse_kinematics_node.py)
+    joy (joy/joy_node)
+    joy_mapper_node (joy_mapper/joy_mapper_node.py)
+    velocity_to_pose_node (dagu_car/velocity_to_pose_node.py)
+    wheels_driver_node (dagu_car/wheels_driver_node.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [2903][0m
+[1mROS_MASTER_URI=http://cepillo.local:11311/[0m
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch http://cepillo.local:11311/
+[1msetting /run_id to 2c3b22e2-545c-11e6-9eb7-000f6007b1f3[0m
+[1mprocess[rosout-1]: started with pid [2942][0m
+started core service [/rosout]
+[1mprocess[cepillo/joy-2]: started with pid [2950][0m
+[1mprocess[cepillo/joy_mapper_node-3]: started with pid [2951][0m
+[1mprocess[cepillo/inverse_kinematics_node-4]: started with pid [2952][0m
+[1mprocess[cepillo/forward_kinematics_node-5]: started with pid [2953][0m
+[1mprocess[cepillo/velocity_to_pose_node-6]: started with pid [2954][0m
+[1mprocess[cepillo/wheels_driver_node-7]: started with pid [2964][0m
+[rosout-1] restarting process
+[1mprocess[rosout-1]: started with pid [3578][0m
+[cepillo/wheels_driver_node-7] killing on exit
+[cepillo/velocity_to_pose_node-6] killing on exit
+[cepillo/inverse_kinematics_node-4] killing on exit
+[cepillo/forward_kinematics_node-5] killing on exit
+[cepillo/joy_mapper_node-3] killing on exit
+[cepillo/joy-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
+Activating ROS...
+...done.
+Setting up PYTHONPATH.
+Setup ROS_HOSTNAME.
+Building machines file...
+make: Entering directory `/home/ubuntu/duckietown'
+make: Nothing to be done for `all'.
+make: Leaving directory `/home/ubuntu/duckietown'
+...done
+Activating development.
+Setting ROS_MASTER_URI...
+No hostname provided. Using cepillo.
+ROS_MASTER_URI set to http://cepillo.local:11311/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             Available devices:
+Opening /dev/input/js0...
+Available devices:
+Opening /dev/input/js0...
+Activating ROS...
+...done.
+Setting up PYTHONPATH.
+Setup ROS_HOSTNAME.
+Building machines file...
+make: Entering directory `/home/ubuntu/duckietown'
+make: Nothing to be done for `all'.
+make: Leaving directory `/home/ubuntu/duckietown'
+...done
+Activating development.
+Setting ROS_MASTER_URI...
+No hostname provided. Using cepillo.
+ROS_MASTER_URI set to http://cepillo.local:11311/
+[INFO] [WallTime: 1469757780.282991] [/cepillo/forward_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469757780.303973] [/cepillo/forward_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469757780.327606] [/cepillo/forward_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469757780.356426] [/cepillo/forward_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469757780.379528] [/cepillo/forward_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469757780.418140] [/cepillo/forward_kinematics_node] Initialized.
+[INFO] [WallTime: 1469757780.420061] [/cepillo/forward_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0
+[INFO] [WallTime: 1469757779.949310] [/cepillo/velocity_to_pose_node] Initialized.
+[INFO] [WallTime: 1469757779.482274] [/cepillo/wheels_driver_node] Initializing 
+[INFO] [WallTime: 1469758589.463784] [/cepillo/wheels_driver_node] Shutting down.
+[INFO] [WallTime: 1469757779.937374] [/cepillo/joy_mapper_node] Initializing 
+[INFO] [WallTime: 1469757779.961558] [/cepillo/joy_mapper_node] ~speed_gain = 0.41 
+[INFO] [WallTime: 1469757779.983847] [/cepillo/joy_mapper_node] ~steer_gain = 8.3 
+[INFO] [WallTime: 1469757780.012807] [/cepillo/joy_mapper_node] ~bicycle_kinematics = 0.0 
+[INFO] [WallTime: 1469757780.032803] [/cepillo/joy_mapper_node] ~steer_angle_gain = 1.04 
+[INFO] [WallTime: 1469757780.052913] [/cepillo/joy_mapper_node] ~simulated_vehicle_length = 0.18 
+[INFO] [WallTime: 1469757927.902601] state_verbose = True
+[INFO] [WallTime: 1469757927.947232] state_verbose = False
+[INFO] [WallTime: 1469757928.163295] state_verbose = True
+[INFO] [WallTime: 1469757928.910832] state_verbose = False
+[INFO] [WallTime: 1469757780.298938] [/cepillo/inverse_kinematics_node] ~gain = 1.0 
+[INFO] [WallTime: 1469757780.318878] [/cepillo/inverse_kinematics_node] ~trim = 0.0500000007451 
+[INFO] [WallTime: 1469757780.340980] [/cepillo/inverse_kinematics_node] ~baseline = 0.1 
+[INFO] [WallTime: 1469757780.361349] [/cepillo/inverse_kinematics_node] ~radius = 0.0318 
+[INFO] [WallTime: 1469757780.385535] [/cepillo/inverse_kinematics_node] ~k = 27.0 
+[INFO] [WallTime: 1469757780.412987] [/cepillo/inverse_kinematics_node] ~limit = 1.0 
+[INFO] [WallTime: 1469757780.519370] [/cepillo/inverse_kinematics_node] Initialized.
+[INFO] [WallTime: 1469757780.521565] [/cepillo/inverse_kinematics_node] gain: 1.0 trim: 0.0500000007451 baseline: 0.1 radius: 0.0318 k: 27.0 limit: 1.0
+... logging to /home/ubuntu/.ros/log/8bda27b4-5530-11e6-9d6e-000f6007b1f3/roslaunch-cepillo-8688.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch
+[1mstarted roslaunch server http://cepillo.local:42247/[0m
+
+SUMMARY
+========
+
+CLEAR PARAMETERS
+ * /cepillo/forward_kinematics_node/
+ * /cepillo/inverse_kinematics_node/
+ * /cepillo/joy_mapper_node/
+ * /cepillo/velocity_to_pose_node/
+ * /cepillo/wheels_driver_node/
+
+PARAMETERS
+ * /cepillo/joy/autorepeat_rate: 2.0
+ * /cepillo/joy/coalesce_interval: 0.02
+ * /cepillo/joy/deadzone: 0.01
+ * /cepillo/joy/dev: /dev/input/js0
+ * /cepillo/joy_mapper_node/bicycle_kinematics: 0.0
+ * /cepillo/joy_mapper_node/simulated_vehicle_length: 0.18
+ * /cepillo/joy_mapper_node/speed_gain: 0.41
+ * /cepillo/joy_mapper_node/steer_angle_gain: 1.04
+ * /cepillo/joy_mapper_node/steer_gain: 8.3
+ * /rosdistro: indigo
+ * /rosversion: 1.11.16
+
+NODES
+  /cepillo/
+    forward_kinematics_node (dagu_car/forward_kinematics_node.py)
+    inverse_kinematics_node (dagu_car/inverse_kinematics_node.py)
+    joy (joy/joy_node)
+    joy_mapper_node (joy_mapper/joy_mapper_node.py)
+    velocity_to_pose_node (dagu_car/velocity_to_pose_node.py)
+    wheels_driver_node (dagu_car/wheels_driver_node.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [8832][0m
+[1mROS_MASTER_URI=http://cepillo.local:11311/[0m
+]2;/home/ubuntu/duckietown/catkin_ws/src/duckietown/launch/joystick.launch http://cepillo.local:11311/
+[1msetting /run_id to 8bda27b4-5530-11e6-9d6e-000f6007b1f3[0m
+[1mprocess[rosout-1]: started with pid [8871][0m
+started core service [/rosout]
+[1mprocess[cepillo/joy-2]: started with pid [8879][0m
+[1mprocess[cepillo/joy_mapper_node-3]: started with pid [8880][0m
+[1mprocess[cepillo/inverse_kinematics_node-4]: started with pid [8881][0m
+[1mprocess[cepillo/forward_kinematics_node-5]: started with pid [8895][0m
+[1mprocess[cepillo/velocity_to_pose_node-6]: started with pid [8906][0m
+[1mprocess[cepillo/wheels_driver_node-7]: started with pid [8917][0m
+[cepillo/wheels_driver_node-7] killing on exit
+[cepillo/velocity_to_pose_node-6] killing on exit
+[cepillo/forward_kinematics_node-5] killing on exit
+[cepillo/inverse_kinematics_node-4] killing on exit
+[cepillo/joy_mapper_node-3] killing on exit
+[cepillo/joy-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
+Available devices:
+Opening /dev/input/js0...
+Available devices:
+Opening /dev/input/js0...
+Available devices:
+Opening /dev/input/js0...
+Available devices:
+Opening /dev/input/js0...
+Available devices:
+  /dev/input/js0
+Opening /dev/input/js0...
+Device name: Logitech Gamepad F710                                           
+joystick-daemon.py is running and listening for inputs!
+Available devices:
+  /dev/input/js0
+Opening /dev/input/js0...
+Device name: Logitech Gamepad F710                                           
+joystick-daemon.py is running and listening for inputs!

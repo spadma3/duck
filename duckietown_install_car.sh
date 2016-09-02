@@ -11,6 +11,9 @@ sudo apt-get install libyaml-cpp-dev -y
 sudo apt-get install ros-indigo-phidgets-drivers
 sudo apt-get install ros-indigo-imu-complementary-filter ros-indigo-imu-filter-madgwick
 
+# supervisor for f11-no_laptop
+pip install supervisor
+
 # # scipy for lane-filter
 # sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
 # sudo pip install scipy --upgrade
