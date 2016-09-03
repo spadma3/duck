@@ -1,19 +1,19 @@
-# f11-no_laptop/README.md
+# f11-no_laptop/README.md (branch:f11-bash)
 
 This is an interface for quickly starting programs on the duckiebot using your joystick controller. See [here](https://github.com/jogama/6.uap-paper/blob/master/jogama-6uap.pdf) for details from Sept 2016 and for work that *really should* still be done. 
 
 ## Installation
-I'll try to use [catkin_make](http://wiki.ros.org/catkin/commands/catkin_make) for y'all to install this in a more 2.166 manner. This here documentation is mostly for myself, documenting as I learn. I don't know that anyone else in Duckietown has done this:
+This a quick hack. Run 
+    
+	$ sudo f11-no_laptop/install.sh. 
 
-	 $ cd ~/catkin_ws
-     $ catkin_make install
+And it's installed!
 
-Which would be equivalent to calling make like this:
+## Why is it a hack?
+Because the ROS means of installing files involve invoking [catkin_make install](http://wiki.ros.org/catkin/commands/catkin_make), with our CMakeLists.txt edited correctly. This equates to the more standard
 
-     $ cd ~/catkin_ws/build
-     # If cmake hasn't already been called
-     $ cmake ../src -DCMAKE_INSTALL_PREFIX=../install -DCATKIN_DEVEL_PREFIX=../devel
-     $ make
-     $ make install
+    $ cmake ..
+	$ make
+	$ make install
 	
-this is not
+I do not know how much time this would take to set up, hence this stopgap. 
