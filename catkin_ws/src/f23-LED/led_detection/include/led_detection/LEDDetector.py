@@ -117,7 +117,7 @@ class LEDDetector():
                    crop_rect_norm=[0,0,1.0,1.0]):
 
         assert len(images.shape) == 1
-        n = images.shape[0]
+        n = images.shape[0] # this is meant to be 16, but better make sure it's that way 
         if n == 0:
             raise ValueError('No images provided')
 
@@ -177,8 +177,9 @@ class LEDDetector():
                 logger.info('Coords: %s, %s'% (led_img_coords.x,led_img_coords.y))
 
             # Frequency estimation based on FFT
-            T = 1.0/30 # TODO expecting 30 fps, but RESAMPLE to be sure
-            f = np.linspace(0.0, 1.0/(2.0*T), n/2)
+            fs = 30;
+            T = 1.0/fs # TODO expecting 30 fps, but RESAMPLE to be sure
+            f = np.linspace(0.0, (0.5-1.0/n)*fs, n/2)
             signal_f = scipy.fftpack.fft(signal)
             y_f =  2.0/n * np.abs(signal_f[:n/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/T/n
