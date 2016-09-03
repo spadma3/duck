@@ -12,7 +12,7 @@ class LEDDetectorNode(object):
     def __init__(self):
         self.active = True # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active 
         self.first_timestamp = 0
-        self.capture_time = 0.97 # capture time
+        self.capture_n = 0.97 # capture time
         self.capture_finished = True
         self.tinit = None
         self.trigger = False
@@ -26,13 +26,13 @@ class LEDDetectorNode(object):
 
         self.protocol = rospy.get_param("~LED_protocol")
         self.crop_rect_normalized = rospy.get_param("~crop_rect_normalized")
-        self.capture_time = rospy.get_param("~capture_time")
+        self.capture_n = rospy.get_param("~capture_n")
         self.cell_size = rospy.get_param("~cell_size")
         self.continuous = rospy.get_param('~continuous', True) # Detect continuously as long as active
                                                                # [INTERACTIVE MODE] set to False for manual trigger
         self.frequencies = self.protocol['frequencies'].values()
 
-        rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
+        rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_n: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_n, self.cell_size))
 
         if not self.veh_name:
             # fall back on private param passed thru rosrun
@@ -76,19 +76,20 @@ class LEDDetectorNode(object):
 
         if self.first_timestamp > 0:
             # TODO sanity check rel_time positive, restart otherwise 
-            rel_time = float_time - self.first_timestamp
+            #rel_time = float_time - self.first_timestamp
 
             # Capturing
-            if rel_time < self.capture_time:
+            #if rel_time < self.capture_time:
+            if len(self.data) < self.capture_n:
                 self.node_state = 1
                 rgb = numpy_from_ros_compressed(msg)
-                rospy.loginfo('[%s] Capturing frame %s' %(self.node_name, rel_time))
+                rospy.loginfo('[%s] Capturing frame %s' %(self.node_name, len(self.data)))
                 self.data.append({'timestamp': float_time, 'rgb': rgb[:,:,:]})
-                debug_msg.capture_progress = 100.0*rel_time/self.capture_time
+                debug_msg.capture_progress = 100.0*len(self.data)/self.capture_n
 
             # Start processing
             elif not self.capture_finished and self.first_timestamp > 0:
-                rospy.loginfo('[%s] Relative Time %s, processing' %(self.node_name, rel_time))
+                rospy.loginfo('[%s] Relative Time %s, processing' %(self.node_name, len(self.data)))
                 self.node_state = 2
                 self.capture_finished = True
                 self.first_timestamp = 0

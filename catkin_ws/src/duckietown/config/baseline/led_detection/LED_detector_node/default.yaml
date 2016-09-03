@@ -1,4 +1,5 @@
 crop_rect_normalized: [0.05, 0.0, 1.0, 0.6]
-capture_time: 0.534 # 16 = 2^4 frames @ 30 Hz, ideal for FFT
+#capture_time: 0.534
+capture_n: 10
 cell_size: [18, 18]
 
