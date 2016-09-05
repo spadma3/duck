@@ -28,8 +28,8 @@ class Detector():
 	def sliding_windows(self):
 		t0 = time()
 		scale_factor = 1.2
-		min_window_width = 36
-		min_window_height = 43
+		min_window_width = 30
+		min_window_height = 36
 		img_height = 120
 		img_width = 640
 		win_size_w = min_window_width
@@ -52,11 +52,11 @@ class Detector():
 
 	def init_fern(self):
 		self.posteriors_pos = [1]*(2**10)*10
-		self.posteriors_neg = [1]*(2**10)*10	
+		self.posteriors_neg = [1]*(2**10)*10
 
-	def train(self,win,image,label):
-		self.img = image
-		featureVector = self.fern(win,label)
+	def train(self,win,image,label,step):
+		self.img = self.image_transformation(image)
+		featureVector = self.fern(win,label,step)
 		self.update_fern(featureVector)
 
 
@@ -65,8 +65,14 @@ class Detector():
 				self.integral_img[win[3]+1,win[0]] - self.integral_img[win[1],win[2]+1]
 		numPixels = (win[2]-win[0]+1)*(win[3]-win[1]+1)
 		avg = _sum/numPixels
-		if 150 <= avg <= 230:
-			return True
+		win = [win[0],win[1],win[2],(win[3]+win[1])/2]
+		_sum = self.integral_img[win[1],win[0]] + self.integral_img[win[3]+1,win[2]+1] - \
+				self.integral_img[win[3]+1,win[0]] - self.integral_img[win[1],win[2]+1]
+		numPixels = (win[2]-win[0]+1)*(win[3]-win[1]+1)
+		avg_upper = _sum/numPixels
+		if 10 <= avg <= 30:
+			if avg_upper <= 5:
+				return True
 		else:
 			return False
 
@@ -77,13 +83,16 @@ class Detector():
 		return '{0:08b}'.format(integer)
 
 	def fern(self,win,label,step):
+		# print "Fern"
+		# cv2.namedWindow("Features",cv2.WINDOW_NORMAL)
+		# temp_img = self.img.copy()
 		if not step:
 			height = win[3] - win[1]
 			width = win[2] - win[0]
 			step_w = width/10.0
 			step_h = height/10.0
 			featureVector = [0]*10
-			for i in range(10):
+			for i in range(5,10):
 				boolean = []
 				for j in range(10):
 					sec = [int(round(win[0]+j*step_w)),int(round(win[1]+i*step_h)) \
@@ -97,12 +106,14 @@ class Detector():
 						# temp_img[sec[1]:sec[3], sec[0]:sec[2]] = 255
 						boolean.append(True)
 				featureVector[i] = self.bool2binary(boolean)
-			# cv2.namedWindow("Features",cv2.WINDOW_NORMAL)
-			# cv2.imshow("Features", temp_img)
-			# cv2.waitKey(10)
+			# cv2.imshow("Features", temp_img[win[1]:win[3], win[0]:win[2]])
+			# cv2.waitKey(100)
 			featureVector.append(label)
+			# print featureVector
 			self.prev_featureVector = featureVector
 			# print "New feature", featureVector
+			# cv2.imshow("Threshold", self.img)
+			# cv2.waitKey(100)
 			return featureVector
 		else:
 			height = win[3] - win[1]
@@ -110,7 +121,7 @@ class Detector():
 			step_w = width/10.0
 			step_h = height/10.0
 			featureVector = [0]*10
-			for i in range(10):
+			for i in range(5,10):
 				if i < 10-step:
 					# print "Fast featureVector", step
 					featureVector[i] = self.prev_featureVector[i+step]
@@ -129,23 +140,24 @@ class Detector():
 						# temp_img[sec[1]:sec[3], sec[0]:sec[2]] = 255
 						boolean.append(True)
 				featureVector[i] = self.bool2binary(boolean)
-			# cv2.namedWindow("Features",cv2.WINDOW_NORMAL)
-			# cv2.imshow("Features", temp_img)
-			# cv2.waitKey(10)
+			# cv2.imshow("Features", temp_img[win[1]:win[3], win[0]:win[2]])
+			# cv2.waitKey(100)
 			featureVector.append(label)
 			self.prev_featureVector = featureVector
 			# print featureVector
+			# cv2.imshow("Threshold", self.img)
+			# cv2.waitKey(100)
 			return featureVector
 
 	def update_fern(self, featureVector):
 		if featureVector[-1] == 1:
-			for classifier in range(10):
+			for classifier in range(5,10):
 				ind = classifier*2**10
 				self.posteriors_pos[ind+int(featureVector[classifier],2)]+=1
 				# print int(featureVector[classifier],2)
 				# print self.posteriors_pos[ind+int(featureVector[classifier],2)]
 		if featureVector[-1] == 0:
-			for classifier in range(10):
+			for classifier in range(5,10):
 				ind = classifier*2**10
 				self.posteriors_neg[ind+int(featureVector[classifier],2)]+=1
 
@@ -154,7 +166,7 @@ class Detector():
 		list_prob = []
 		# list_feat_pos = []
 		# list_feat_neg = []
-		for classifier in range(10):
+		for classifier in range(5,10):
 			ind = classifier*2**10
 			pos = self.posteriors_pos[ind + int(featureVector[classifier],2)]
 			neg = self.posteriors_neg[ind + int(featureVector[classifier],2)]
@@ -189,30 +201,30 @@ class Detector():
 			shape = image.shape
 			ncc = []
 			for i in range(1,numTemplate+1):
-				print "First Template"
-				template = cv2.imread("/home/ubuntu/TLD/ObjectModel/positive{:>03}.jpg".format(i),0)
+				# print "First Template"
+				template = cv2.imread("/home/ubuntu/temp/tld_bag/template{:>03}.jpg".format(i),0)
 				template = cv2.resize(template, (shape[1],shape[0]), interpolation=cv2.INTER_NEAREST)
 				# cv2.imshow("Candidates", image)
 				# cv2.imshow("Template", template)
-				# cv2.waitKey(3000)
+				# cv2.waitKey(10)
 				matching = cv2.matchTemplate(image, template, method)[0][0]
 				ncc.append(matching)
 			max_ncc = max(ncc)
 			correlations.append(max_ncc)
 		max_correlation = max(correlations)
 		print max_correlation
-		if max_correlation > 0.2:
+		if max_correlation > 0.6:
 			return list_vehicle[correlations.index(max_correlation)]
 		else:
 			return None
 
 
-	def generate_negative(self,image, bbox):
-		self.img = image.copy()
-		self.integral_img = cv2.integral(self.img)
-		num = 0
-		ind = 0
-		while ind < len(self.init_windows):
+	def generate_negative(self,image, bbox,num):
+		img = self.image_transformation(image.copy())
+		self.integral_img = cv2.integral(img)
+		i = 0
+		ind = 4000
+		while ind < len(self.init_windows) and i < num:
 			if self.init_windows[ind] != "switch":
 				box = self.init_windows[ind:ind+4]
 				ind += 4
@@ -221,20 +233,43 @@ class Detector():
 					height = box[3] - box[1]
 					bbox_new = [bbox[0] - width, bbox[1]-height, bbox[2], bbox[3]]
 					outside = box[0]>bbox_new[2] or box[0]<bbox_new[0] or box[1]>bbox_new[3] or box[1]<bbox_new[1]
-					inside = box[2] < 640 and box[3] < 170
+					inside = box[2] < 640 and box[3] < 120
 					if outside and inside:
-						num += 1
-						self.train(box,self.img,0)
-						cv2.rectangle(image, (box[0],box[1]), (box[2],box[3]),(0,255,0),2)
-						cv2.imshow("Image", image)
-						cv2.waitKey(10)
+						i += 1
+						self.train(box,image,0,0)
+						cv2.rectangle(self.viz, (box[0],box[1]), (box[2],box[3]),(0,255,0),2)
+						cv2.imshow("Image", self.viz)
+						cv2.waitKey(1)
 			else:
 				ind += 1
 				continue
 		print "Number of Negatives: %i" %(num), "windows"
 
+
+	def train_negative(self,image,bbox,num):
+		img = self.image_transformation(image)
+		self.integral_img = cv2.integral(img)
+		i = 0
+		while i < num:
+			ind = random.choice(range(self.numWindows))
+			box = self.init_windows[4*ind:4*(ind+1)]
+			if self.mean_filter(box):
+				width = box[2] - box[0]
+				height = box[3] - box[1]
+				bbox_new = [bbox[0] - width, bbox[1]-height, bbox[2], bbox[3]]
+				outside = box[0]>bbox_new[2] or box[0]<bbox_new[0] or box[1]>bbox_new[3] or box[1]<bbox_new[1]
+				inside = box[2] < 640 and box[3] < 120
+				if outside and inside:
+					i += 1
+					self.train(box,image,0,0)
+					# cv2.rectangle(self.viz, (box[0],box[1]), (box[2],box[3]),(0,255,0),2)
+					# cv2.imshow("Image", self.viz)
+					# cv2.waitKey(10)
+		print "Number of Negatives: %i" %(num), "windows"
+
+
 	def plot_hist(self, histogram, numHistogram):
-		self.fig = 0
+		# self.fig = 0
 		for i in range(numHistogram):
 			fig = plt.figure(self.fig)
 			ind = 2**10
@@ -247,6 +282,7 @@ class Detector():
 			ax.set_xticklabels(range(len(y)))
 			plt.bar(pos, y, width, color='r')
 			self.fig += 1
+		# plt.show('hold')
 
 	def normalise_hist(self):
 		for i in range(10):
@@ -277,13 +313,15 @@ class Detector():
 		self.posteriors_neg = neg_dist
 
 
-	def image_transformation(self,img):
-		self.nccImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+	def image_transformation(self,image):
+		self.nccImg = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
 		self.viz = self.nccImg.copy()
 		# img = cv2.GaussianBlur(img, (3,3), 3.0)
-		img = cv2.equalizeHist(self.nccImg.copy())
-		img = cv2.threshold(img, 40, 255, cv2.THRESH_BINARY)[1]
-		img = cv2.dilate(img, self.es, iterations=1)
+		# img = cv2.equalizeHist(self.nccImg.copy())
+		img = cv2.threshold(self.nccImg.copy(), 230, 255, cv2.THRESH_BINARY)[1]
+		# img = cv2.dilate(img, self.es, iterations=1)
+		# cv2.imshow("Threshold", img)
+		# cv2.waitKey(10)
 		return img
 
 	def set_video(self,video):
@@ -294,6 +332,7 @@ class Detector():
 		param = dict(winSize_match=10, method=cv2.cv.CV_TM_CCOEFF_NORMED)
 		self.img = self.image_transformation(frame)
 		self.integral_img = cv2.integral(self.img)
+		image = self.viz.copy()
 		list_vehicle = []
 		index = 0
 		prev_ind = 0
@@ -309,9 +348,9 @@ class Detector():
 						veh = self.isVehicle(prob)
 						if veh:
 							list_vehicle.append(win)
-						# cv2.rectangle(image, (win[0],win[1]), (win[2],win[3]),(0,255,0),2)
-						# cv2.imshow("Image", image)
-						# cv2.waitKey(1)
+							# cv2.rectangle(image, (win[0],win[1]), (win[2],win[3]),(0,255,0),2)
+							# cv2.imshow("Image", image)
+							# cv2.waitKey(1)
 					else:
 						if switch:
 							switch = False
@@ -320,12 +359,11 @@ class Detector():
 						veh = self.isVehicle(prob)
 						if veh:
 							list_vehicle.append(win)
-						# cv2.rectangle(image, (win[0],win[1]), (win[2],win[3]),(0,255,0),2)
-						# cv2.imshow("Image", image)
-						# cv2.waitKey(1)
+							# cv2.rectangle(image, (win[0],win[1]), (win[2],win[3]),(0,255,0),2)
+							# cv2.imshow("Image", image)
+							# cv2.waitKey(1)
 					prev_ind = index
 			if self.init_windows[index] == "switch":
-				print "Switch"
 				index += 1
 				switch = True
 				continue
@@ -333,13 +371,26 @@ class Detector():
 
 		if len(list_vehicle) > 0:
 			vehicle = self.nearest_neighbor(list_vehicle, **param)
-			for win in list_vehicle:
-				detection = self.viz[win[1]:win[3], win[0]:win[2]]
-				# cv2.rectangle(self.viz, (win[0],win[1]), (win[2],win[3]),(255,0,0),1)
-				# cv2.imshow("Detected Window", detection)
-				# cv2.waitKey(100)
-			return vehicle
+			# for win in list_vehicle:
+			# 	img = self.img.copy()
+			# 	detection = img[win[1]:win[3], win[0]:win[2]]
+			# 	cv2.rectangle(img, (win[0],win[1]), (win[2],win[3]),(255,0,0),1)
+			# 	cv2.imshow("Detected Window", detection)
+			# 	cv2.waitKey(100)
+			if vehicle:
+				# cv2.rectangle(frame, (vehicle[0],vehicle[1]), (vehicle[2],vehicle[3]),(255,0,0),1)
+				# cv2.imshow("Detected Window", frame)
+				# cv2.waitKey(1)
+				print vehicle
+				return vehicle
+			else:
+				# cv2.imshow("Detected Window", frame)
+				cv2.waitKey(1)
+				print "No good correlation"
+				return None
 		else:
+			# cv2.imshow("Detected Window", frame)
+			# cv2.waitKey(1)
 			print "No vehicle detected"
 			return None
 		# cv2.imshow("Detection",self.viz)

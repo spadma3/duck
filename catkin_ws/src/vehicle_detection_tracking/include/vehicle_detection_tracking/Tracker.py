@@ -9,7 +9,7 @@ feature_params = dict( maxCorners=500, qualityLevel=0.1,minDistance=1,blockSize=
 class Tracker():
 	def __init__(self):
 		self.bounding_box = None
-		self.init_pts_density = 3
+		self.init_pts_density = 4
 		self.required_pts_density = 100
 		self.start_img = None
 		self.target_img = None
@@ -26,8 +26,8 @@ class Tracker():
 		if required_pts_density > 100:
 			self.start_pts = self.gen_point_cloud(self.bounding_box)
 			self.flag = True
-		self.target_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-		self.target_img = cv2.equalizeHist(self.target_img)
+		self.target_img = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
+		# self.target_img = cv2.equalizeHist(self.target_img)
 		corr, dist, valid_target_pts, valid_start_pts = self.cal_target_pts(self.start_pts)
 		# for point in valid_start_pts:
 		# 	cv2.circle(self.viz, (int(point[0]),int(point[1])),2,(0,255,0),-1)
@@ -38,7 +38,7 @@ class Tracker():
 			good_target_pts, good_start_pts = self.filter_pts2(corr, dist, valid_target_pts, valid_start_pts)
 		if good_target_pts is not None:
 			# for point in good_target_pts:
-			# 	cv2.circle(self.viz, (int(point[0]),int(point[1])),2,(0,255,255),-1)
+			# 	cv2.circle(image, (int(point[0]),int(point[1])),2,(0,255,255),-1)
 			bbox = self.target_bounding_box(self.bounding_box,good_start_pts, good_target_pts)
 			self.bounding_box = bbox
 			# cv2.rectangle(image, (self.bounding_box[0],self.bounding_box[1]),(self.bounding_box[2],self.bounding_box[3]), (0,255,0),1)
@@ -121,7 +121,7 @@ class Tracker():
 		medDist = self.median(valid_dist)
 		medCorr = self.median(valid_corr)
 		modDist = stats.mode(valid_dist)[0][0]
-		# print modDist, len(valid_dist), max(valid_dist)
+		print modDist, len(valid_dist), max(valid_dist)
 		quarDist = np.percentile(valid_dist, 99)
 		quarCorr = np.percentile(valid_corr, 60)
 		valid_disp = []
@@ -134,22 +134,28 @@ class Tracker():
 			corr.append(abs(valid_corr[i] - medCorr))
 		print "Correlation: ", self.median(corr)
 
-		if self.median(valid_disp) > 3:
-			print "Median displacement Failure"
+		# if self.median(valid_disp) > 5:
+		# 	print "Median displacement Failure"
+		# 	return None, None
+		# if self.median(corr) > 0.01:
+		# 	print "Correlation very bad. Failure"
+		# 	return None, None
+		median_failure = self.median(valid_disp) > 5
+		correlation_failure = self.median(corr) > 0.01
+		tracking_failure = median_failure and correlation_failure
+		if tracking_failure:
+			print "tracking failure"
 			return None, None
-		if self.median(corr) > 0.01:
-			print "Correlation very bad. Failure"
-			return None, None
-
-		for i in range(len(valid_dist)):
-			if abs(valid_dist[i] - modDist) <= 10:
-				good_target_points.append(valid_target_pts[i])
-				good_start_points.append(valid_start_pts[i])
 
 		# for i in range(len(valid_dist)):
-		# 	if valid_dist[i] <= quarDist:
+		# 	if abs(valid_dist[i] - modDist) <= 2:
 		# 		good_target_points.append(valid_target_pts[i])
 		# 		good_start_points.append(valid_start_pts[i])
+
+		for i in range(len(valid_dist)):
+			if valid_dist[i] <= quarDist:
+				good_target_points.append(valid_target_pts[i])
+				good_start_points.append(valid_start_pts[i])
 
 		if len(good_target_points) <= 5:
 			print 'Not enough target points'
@@ -249,4 +255,3 @@ class Tracker():
 			return new_data[len(new_data)/2]
 	def mean(self,data):
 		return sum(data)/len(data)
-
