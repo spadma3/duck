@@ -1,5 +1,4 @@
 Files in this directory are copied to /etc/ upon installation of this module. 
-No idea whether how far this is from standard practice. 
 
 supervisor:
 
