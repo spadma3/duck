@@ -37,6 +37,7 @@ class TLD():
 		self.pub_vehicle_bbox = rospy.Publisher("~vehicle_bounding_box", VehicleBoundingBox, queue_size=1)
 		self.lock = mutex()
 		self.margin = 3
+		cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
 
 
 
@@ -72,6 +73,7 @@ class TLD():
 					self.pub_vehicle_bbox.publish(vehicle_bounding_box_msg)
 					self.pub_vehicle_detected.publish(vehicle_detected_msg)
 					self.pub_image.publish(image_msg)
+					print self.cal_distance(veh)
 					veh = [veh[0]+self.margin,veh[1]+self.margin, \
 						veh[2]-self.margin,veh[3]-self.margin]
 					self.Tracker.initialize(veh,image_cv)
@@ -92,8 +94,10 @@ class TLD():
 						veh[2]+self.margin,veh[3]+self.margin]
 					vehicle_detected_msg = True
 					vehicle_bounding_box_msg.data = veh
+					print self.cal_distance(veh)
 					cv2.rectangle(image_cv, (veh[0],veh[1]), (veh[2],veh[3]),(255,0,0),2)
 					image_msg = self.bridge.cv2_to_imgmsg(image_cv,"bgr8")
+					# print veh
 					self.pub_vehicle_bbox.publish(vehicle_bounding_box_msg)
 					self.pub_vehicle_detected.publish(vehicle_detected_msg)
 					self.pub_image.publish(image_msg)
@@ -101,6 +105,15 @@ class TLD():
 					cv2.waitKey(10)
 
 			self.lock.unlock()
+
+	def cal_distance(self,bbox):
+		d = 14
+		h = 6.5
+		p = 120
+		focal_length = (d*p)/h
+		height = bbox[3]-bbox[1]
+		distance = (h*focal_length)/height
+		return distance
 
 if __name__ == "__main__":
 	rospy.init_node("vehicle_detection_tracking_node")
