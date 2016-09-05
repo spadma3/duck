@@ -213,7 +213,7 @@ class Detector():
 			correlations.append(max_ncc)
 		max_correlation = max(correlations)
 		print max_correlation
-		if max_correlation > 0.6:
+		if max_correlation > 0.5:
 			return list_vehicle[correlations.index(max_correlation)]
 		else:
 			return None
@@ -318,8 +318,8 @@ class Detector():
 		self.viz = self.nccImg.copy()
 		# img = cv2.GaussianBlur(img, (3,3), 3.0)
 		# img = cv2.equalizeHist(self.nccImg.copy())
-		img = cv2.threshold(self.nccImg.copy(), 230, 255, cv2.THRESH_BINARY)[1]
-		# img = cv2.dilate(img, self.es, iterations=1)
+		img = cv2.threshold(self.nccImg.copy(), 240, 255, cv2.THRESH_BINARY)[1]
+		img = cv2.dilate(img, self.es, iterations=1)
 		# cv2.imshow("Threshold", img)
 		# cv2.waitKey(10)
 		return img
@@ -337,11 +337,16 @@ class Detector():
 		index = 0
 		prev_ind = 0
 		switch = False
+		start = True
 		while index < len(self.init_windows):
 			if self.init_windows[index] != "switch":
 				win = self.init_windows[index:index+4]
 				if self.mean_filter(win):
-					step = (index - prev_ind)/4
+					if start:
+						step = 0
+						start = False
+					else:
+						step = (index - prev_ind)/4
 					if step < 10 and not switch:
 						featureVector = self.fern(win,-1,step) 
 						prob = self.cal_prob(featureVector)

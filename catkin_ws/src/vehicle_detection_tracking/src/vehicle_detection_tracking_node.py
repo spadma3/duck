@@ -36,6 +36,7 @@ class TLD():
 		self.pub_vehicle_detected = rospy.Publisher("~vehicle_detected", VehicleDetected, queue_size=1)
 		self.pub_vehicle_bbox = rospy.Publisher("~vehicle_bounding_box", VehicleBoundingBox, queue_size=1)
 		self.lock = mutex()
+		self.margin = 3
 
 
 
@@ -71,6 +72,8 @@ class TLD():
 					self.pub_vehicle_bbox.publish(vehicle_bounding_box_msg)
 					self.pub_vehicle_detected.publish(vehicle_detected_msg)
 					self.pub_image.publish(image_msg)
+					veh = [veh[0]+self.margin,veh[1]+self.margin, \
+						veh[2]-self.margin,veh[3]-self.margin]
 					self.Tracker.initialize(veh,image_cv)
 					self.tracking = True
 					cv2.imshow("Image", image_cv)
@@ -85,6 +88,8 @@ class TLD():
 					cv2.imshow("Image", image_cv)
 					cv2.waitKey(10)
 				else:
+					veh = [veh[0]-self.margin,veh[1]-self.margin, \
+						veh[2]+self.margin,veh[3]+self.margin]
 					vehicle_detected_msg = True
 					vehicle_bounding_box_msg.data = veh
 					cv2.rectangle(image_cv, (veh[0],veh[1]), (veh[2],veh[3]),(255,0,0),2)

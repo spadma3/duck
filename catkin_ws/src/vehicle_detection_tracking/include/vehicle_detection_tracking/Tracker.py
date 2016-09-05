@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import cv2
+import os
 import numpy as np
 from time import time
 import scipy
@@ -14,6 +15,8 @@ class Tracker():
 		self.start_img = None
 		self.target_img = None
 		self.flag = True
+		self.margin = 3
+		self.param = dict(winSize_match=10, method=cv2.cv.CV_TM_CCOEFF_NORMED)
 
 	def initialize(self,bbox,image):
 		self.start_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -26,8 +29,8 @@ class Tracker():
 		if required_pts_density > 100:
 			self.start_pts = self.gen_point_cloud(self.bounding_box)
 			self.flag = True
-		self.target_img = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
-		# self.target_img = cv2.equalizeHist(self.target_img)
+		img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+		self.target_img = cv2.equalizeHist(img.copy())
 		corr, dist, valid_target_pts, valid_start_pts = self.cal_target_pts(self.start_pts)
 		# for point in valid_start_pts:
 		# 	cv2.circle(self.viz, (int(point[0]),int(point[1])),2,(0,255,0),-1)
@@ -45,6 +48,8 @@ class Tracker():
 		else:
 			self.bounding_box = None
 			print "Unable to track object"
+		if self.bounding_box:
+			self.bounding_box = self.nearest_neighbor(img,[self.bounding_box],**self.param)
 		self.start_img = self.target_img
 		self.start_pts = good_target_pts
 		# cv2.imshow("Tracking", image)
@@ -140,8 +145,8 @@ class Tracker():
 		# if self.median(corr) > 0.01:
 		# 	print "Correlation very bad. Failure"
 		# 	return None, None
-		median_failure = self.median(valid_disp) > 5
-		correlation_failure = self.median(corr) > 0.01
+		median_failure = self.median(valid_disp) > 15
+		correlation_failure = self.median(corr) > 0.1
 		tracking_failure = median_failure and correlation_failure
 		if tracking_failure:
 			print "tracking failure"
@@ -255,3 +260,29 @@ class Tracker():
 			return new_data[len(new_data)/2]
 	def mean(self,data):
 		return sum(data)/len(data)
+
+	def nearest_neighbor(self, img, list_vehicle, winSize_match, method):
+		_,_,files = os.walk("/home/ubuntu/TLD/ObjectModel").next()
+		numTemplate = len(files)
+		correlations = []
+		for veh in list_vehicle:
+			image = img[veh[1]:veh[3],veh[0]:veh[2]]
+			shape = image.shape
+			ncc = []
+			for i in range(1,numTemplate+1):
+				# print "First Template"
+				template = cv2.imread("/home/ubuntu/temp/tld_bag/template{:>03}.jpg".format(i),0)
+				template = cv2.resize(template, (shape[1],shape[0]), interpolation=cv2.INTER_NEAREST)
+				# cv2.imshow("Candidates", image)
+				# cv2.imshow("Template", template)
+				# cv2.waitKey(10)
+				matching = cv2.matchTemplate(image, template, method)[0][0]
+				ncc.append(matching)
+			max_ncc = max(ncc)
+			correlations.append(max_ncc)
+		max_correlation = max(correlations)
+		print max_correlation
+		if max_correlation > 0.5:
+			return list_vehicle[correlations.index(max_correlation)]
+		else:
+			return None
