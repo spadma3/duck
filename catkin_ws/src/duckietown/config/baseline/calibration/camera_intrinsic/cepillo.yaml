@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [315.82433721003633, 0.0, 324.76206090521566, 0.0, 318.3825639516122, 228.49437722185948,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: cepillo/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.2528541436466255, 0.04207853526868465, 2.0974504119684015e-05, -0.003437794482865761,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [211.9757537841797, 0.0, 319.025252028463, 0.0, 0.0, 258.09796142578125, 221.22476484273284,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
