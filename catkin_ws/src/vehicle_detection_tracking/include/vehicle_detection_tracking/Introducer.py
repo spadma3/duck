@@ -11,13 +11,10 @@ class Introducer():
 			self.template = cv2.imread("/home/ubuntu/duckietown/catkin_ws/src/vehicle_detection_tracking/ObjectModel/template001.jpg",0)
 		except IOError:
 			print "Object to detect is unknown."
-		self.numWindows = 0
-		self.init_windows = []
 		self.detector = Detector()
-		self.etector.init_distribution()
+		self.detector.init_distribution()
 		self.detector.sliding_windows()
 		self.numSamples = 0
-
 
 	def patch_matching(self, image):
 		correlation = 0
@@ -44,10 +41,6 @@ class Introducer():
 				self.numSamples += 1
 			else:
 				pass
-		else:
-			self.save_distribution()
-			print "Detector trained with 100 samples. Introducer exiting..."
-			sys.exit()
 
 	def show_image(self,image,veh):
 		cv2.rectangle(image,(veh[0],veh[1]),(veh[2],veh[3]),(0,255,0),1)
@@ -63,3 +56,6 @@ class Introducer():
 		pos,neg = self.Detector.get_posterior()
 		np.save("~/duckietown/catkin_ws/src/vehicle_detection_tracking/ClassifierDistribution/posDist",pos)
 		np.save("~/duckietown/catkin_ws/src/vehicle_detection_tracking/ClassifierDistribution/negDist",neg)
+
+	def getnumSamples(self):
+		return self.numSamples
