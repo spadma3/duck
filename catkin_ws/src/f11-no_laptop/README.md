@@ -1,4 +1,4 @@
-# f11-no_laptop/README.md (branch:f11-bash)
+# f11-no_laptop/README.md 
 
 This is an interface for quickly starting programs on the duckiebot using your joystick controller. See [here](https://github.com/jogama/6.uap-paper/blob/master/jogama-6uap.pdf) for details from Sept 2016 and for further work to be done on this project.
 
