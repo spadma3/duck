@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Activating ROS..."
-source /opt/ros/indigo/setup.bash
+source /opt/ros/kinetic/setup.bash
 echo "...done."
 
 echo "Setting up PYTHONPATH."

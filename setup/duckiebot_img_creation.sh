@@ -18,14 +18,14 @@ sudo ntpdate -u us.pool.ntp.org
 sudo apt-get install -y build-essential git python python-dev ipython python-pip
 sudo apt-get install -y vim htop byobu libav-tools curl
 
-# === Install ROS following http://wiki.ros.org/indigo/Installation/UbuntuARM ===
+# === Install ROS following http://wiki.ros.org/$ROS_DISTRO/Installation/UbuntuARM ===
 # Setup locale, deb, and keys
 sudo update-locale LANG=C LANGUAGE=C LC_ALL=C LC_MESSAGES=POSIX
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
 wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
 # Install ROS
 sudo apt-get update
-sudo apt-get install ros-indigo-ros-base -y
+sudo apt-get install ros-$ROS_DISTRO-ros-base -y
 # Update rosdep
 sudo apt-get install python-rosdep
 sudo rosdep init
@@ -77,7 +77,7 @@ wget -O .ssh/authorized_keys https://www.dropbox.com/s/pxyou3qy1p8m4d0/duckietow
 # Select option (1) for byobu.
 
 # Install additional ROS pkgs to apt-get
-sudo apt-get install ros-indigo-{tf-conversions,cv-bridge,image-transport,camera-info-manager,theora-image-transport}
+sudo apt-get install ros-$ROS_DISTRO-{tf-conversions,cv-bridge,image-transport,camera-info-manager,theora-image-transport}
 
 # List of additional system pkgs
 sudo apt-get install libyaml-cpp-dev

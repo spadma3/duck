@@ -9,7 +9,7 @@ Changelog for package apriltags
 
 0.1.0 (2014-11-08)
 ------------------
-* Updated dependancies for indigo
+* Updated dependancies for $ROS_DISTRO
 * Contributors: Mitchell Wills
 
 0.0.3 (2014-11-08)

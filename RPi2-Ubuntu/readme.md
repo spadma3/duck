@@ -39,15 +39,15 @@ $ sudo apt-get install git
 
 * Edit .bashrc file. Add this line
 ```
-source /opt/ros/indigo/setup.bash
+source /opt/ros/$ROS_DISTRO/setup.bash
 ```
 
 * Install packages
 ```
-sudo apt-get install ros-indigo-tf-conversions
-sudo apt-get install ros-indigo-cv-bridge
-sudo apt-get install ros-indigo-compressed-image-transport 
-sudo apt-get install ros-indigo-camera-info-manager
+sudo apt-get install ros-$ROS_DISTRO-tf-conversions
+sudo apt-get install ros-$ROS_DISTRO-cv-bridge
+sudo apt-get install ros-$ROS_DISTRO-compressed-image-transport 
+sudo apt-get install ros-$ROS_DISTRO-camera-info-manager
 ```
 
 * Enable the camera

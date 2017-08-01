@@ -224,7 +224,7 @@ SUMMARY
 ========
 
 PARAMETERS
- * /rosdistro: indigo
+ * /rosdistro: $ROS_DISTRO
  * /rosversion: 1.11.16
  * /talker/pub_timestep: 0.5
 

@@ -27,7 +27,7 @@ apt-get -y install \
 
 
 # install ROS
-apt-get install ros-indigo-ros-base
+apt-get install ros-$ROS_DISTRO-ros-base
 
 # Install third party packages
 

@@ -17,10 +17,10 @@ sudo apt-get update
 sudo apt-get install sublime-text-installer -y
 
 # packages for the IMU
-sudo apt-get install ros-indigo-phidgets-drivers ros-indigo-imu-tools -y
+sudo apt-get install ros-$ROS_DISTRO-phidgets-drivers ros-$ROS_DISTRO-imu-tools -y
 
 # Additional ROS pkgs
-sudo apt-get install ros-indigo-{tf-conversions,cv-bridge,image-transport,camera-info-manager,theora-image-transport} -y
+sudo apt-get install ros-$ROS_DISTRO-{tf-conversions,cv-bridge,image-transport,camera-info-manager,theora-image-transport} -y
 
 # List of additional system pkgs
 # sudo apt-get install libyaml-cpp-dev
