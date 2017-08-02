@@ -32,7 +32,7 @@ class graph_search_server():
 
         # Send graph through publisher
         self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
-        cv_image = cv2.imread(self.map_path + '.png', cv2.CV_LOAD_IMAGE_COLOR)
+        cv_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
         overlay = self.prepImage(cv_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
@@ -58,12 +58,12 @@ class graph_search_server():
             self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name = self.map_name, highlight_nodes = [req.source_node, req.target_node])
         else:
             self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
-        cv_image = cv2.imread(self.map_path + '.png', cv2.CV_LOAD_IMAGE_COLOR)
+        cv_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
         overlay = self.prepImage(cv_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def prepImage(self, cv_image):
-        map_img = cv2.imread(self.map_img, cv2.CV_LOAD_IMAGE_COLOR)
+        map_img = cv2.imread(self.map_img, cv2.IMREAD_COLOR)
         map_crop = map_img[16:556,29:408,:]
         map_resize = cv2.resize(map_crop,(cv_image.shape[1],955),interpolation=cv2.INTER_AREA)
         cv_image = cv_image[0:955,:,:]
