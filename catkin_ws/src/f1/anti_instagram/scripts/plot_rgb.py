@@ -53,7 +53,7 @@ plt.show()
 # for topic, msg, t in bag.read_messages(topics=['/rosberrypi_cam/image_raw']):
 
 # 	np_arr = np.fromstring(msg.data, np.uint8)
-# 	cv_image = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
+# 	cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 # 	#adj_color = cv2.applyColorMap(cv_image, cv2.COLORMAP_AUTUMN)
 # 	height = len(np_arr)
 # 	horizon_height = int(height/2.0)
