@@ -16,8 +16,13 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   image_geometry
 )
-
-find_package(OpenCV 3 REQUIRED)
+if ("$ENV{ROS_DISTRO}" STREQUAL "indigo")
+  find_package(OpenCV 2.4.8 REQUIRED)
+elseif ("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
+  find_package(OpenCV 3 REQUIRED)
+else()
+  message(FATAL_ERROR "ROS distribution  not supported $ENV{ROS_DISTRO}")
+endif()
 find_package(Boost REQUIRED COMPONENTS filesystem)
 find_package(PkgConfig)
 
