@@ -17,7 +17,7 @@ fix-time2:
 	sudo ntpdate -s time.nist.gov
 
 clean-pyc:
-	find catkin_ws/src/ -name '*.pyc' | xargs rm 
+	find catkin_ws/src/ -name '*.pyc' -delete
 
 catkin-clean: clean-pyc
 	rm -rf $(catkin_ws)/build
