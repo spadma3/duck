@@ -1,8 +1,5 @@
-# Software
+This is the main software repository for the Duckietown project.
 
-In this repository we will collect all the software, middleware, drivers, ROS modules, and so on, that would allow to run our cars. 
+It contains all software as well as hardware projects.
 
-The activity in this repo should be posted automatically to the channel #bot-github.
-
------
-
+For documentation, please refer to <http://book.duckietown.org>.

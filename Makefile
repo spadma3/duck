@@ -17,7 +17,7 @@ fix-time2:
 	sudo ntpdate -s time.nist.gov
 
 clean-pyc:
-	find catkin_ws/src/ -name '*.pyc' | xargs rm 
+	find catkin_ws/src/ -name '*.pyc' -delete
 
 catkin-clean: clean-pyc
 	rm -rf $(catkin_ws)/build
@@ -32,7 +32,10 @@ build:
 # Teddy: make it so "make unittests" runs all unit tests
 
 unittests-environment: $(machines)
-	bash -c "source environment.sh; source set_vehicle_name.sh; python setup/sanity_checks"
+	echo "Removed - try `make what-the-duck`"
+
+what-the-duck:
+	bash -c "source environment.sh; source set_vehicle_name.sh; python setup/what_the_duck"
 
 unittests:
 	$(MAKE) unittests-environment
