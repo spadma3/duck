@@ -3,7 +3,7 @@
 from .checks import *  # @UnusedWildImport
 from .entry import Entry
 from .entry import Diagnosis
-from what_the_duck.detect_environment import on_duckiebot
+from .detect_environment import on_duckiebot
 
 def get_checks():
     """ Returns a list of Entry """
@@ -28,10 +28,11 @@ def get_checks():
     GIT_CONFIG = '~/.gitconfig'
     JOY_DEVICE = '/dev/input/js0'
 
-    add(None,
-        "Camera is detected",
-        CommandOutputContains('sudo vcgencmd get_camera', 'detected=1'),
-        Diagnosis("The camera is not connected."))
+    if on_duckiebot():
+        add(None,
+            "Camera is detected",
+            CommandOutputContains('sudo vcgencmd get_camera', 'detected=1'),
+            Diagnosis("The camera is not connected."))
     
     add(None,
         "Scipy is installed",
@@ -53,33 +54,34 @@ def get_checks():
         YouAreNotUser('root'),
         Diagnosis("You should not run the code as root."))
 
-    not_ubuntu=add(not_root,
-        "Not running as ubuntu",
-        YouAreNotUser('ubuntu'),
+    if on_duckiebot():
+        not_ubuntu=add(not_root,
+            "Not running as ubuntu",
+            YouAreNotUser('ubuntu'),
         Diagnosis("You should not run the code as ubuntu."))
    
    
-    add(not_ubuntu,
-        "Member of group sudo",
-        YouBelongToGroup("sudo"),
-        Diagnosis("You are not authorized to run sudo."))
-    
-    add(not_ubuntu,
-        "Member of group input",
-        YouBelongToGroup("input"),
-        Diagnosis("You are not authorized to use the joystick."))
-    
-    add(not_ubuntu,
-        "Member of group video",
-        YouBelongToGroup("video"),
-        Diagnosis("You are not authorized to read from the camera device."))
-     
-    add(not_ubuntu,
-        "Member of group i2c",
-        YouBelongToGroup("input"),
-        Diagnosis("You are not authorized to use the motor shield."))
-    
-    ssh_is_there = add(not_ubuntu,\
+        add(not_ubuntu,
+            "Member of group sudo",
+            YouBelongToGroup("sudo"),
+            Diagnosis("You are not authorized to run sudo."))
+        
+        add(not_ubuntu,
+            "Member of group input",
+            YouBelongToGroup("input"),
+            Diagnosis("You are not authorized to use the joystick."))
+        
+        add(not_ubuntu,
+            "Member of group video",
+            YouBelongToGroup("video"),
+            Diagnosis("You are not authorized to read from the camera device."))
+         
+        add(not_ubuntu,
+            "Member of group i2c",
+            YouBelongToGroup("input"),
+            Diagnosis("You are not authorized to use the motor shield."))
+        
+    ssh_is_there = add(None,\
         "%s exists" % SSH_DIR,
         DirExists(SSH_DIR),
         Diagnosis("SSH config dir does not exist."))
@@ -145,11 +147,12 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
         "Git push policy set",
         FileContains(GIT_CONFIG, "[push]"),
         Diagnosis("You did not configure the push policy for Git."))
-        
-    add(None,
-        "Edimax detected",
-        CommandOutputContains('iwconfig', 'rtl8822bu'),
-        Diagnosis("It seems that the Edimax is not detected."))
+    
+    if on_duckiebot():
+        add(None,
+            "Edimax detected",
+            CommandOutputContains('iwconfig', 'rtl8822bu'),
+            Diagnosis("It seems that the Edimax is not detected."))
     
     add(None,
         'The hostname is configured',
@@ -160,18 +163,19 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
         '/etc/hosts is sane',
         CheckGoodHostsFile(),
         Diagnosis('The contents of /etc/hosts will cause problems later on.'))
-    
-    add(None,
-        'Correct kernel version',
-        GoodKernel(),
-        Diagnosis('You have been messing with the kernel.'),
+   
+    if on_duckiebot():
+        add(None,
+            'Correct kernel version',
+            GoodKernel(),
+            Diagnosis('You have been messing with the kernel.'),
         Suggestion('You probably need to start with a pristine SD card.'))
     
 
-    add(None,
-        'Wifi name configured',
-        WifiNameConfigured(),
-        Diagnosis('You have not completed the Wifi configuration.'))
+        add(None,
+            'Wifi name configured',
+            WifiNameConfigured(),
+            Diagnosis('You have not completed the Wifi configuration.'))
     
     add(None,
         "Messages are compiled",
@@ -195,10 +199,11 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
         GithubLogin(),
         Diagnosis('You have not successfully setup the Github access.'))
 
-    add(None,
-        "Joystick detected",
-        DeviceExists(JOY_DEVICE),
-        Diagnosis("The joystick is not found at %s" % JOY_DEVICE))
+    if on_duckiebot():
+        add(None,
+            "Joystick detected",
+            DeviceExists(JOY_DEVICE),
+            Diagnosis("The joystick is not found at %s" % JOY_DEVICE))
     
     duckietown_root_var = add(None,
         'Environment variable DUCKIETOWN_ROOT',
