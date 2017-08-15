@@ -9,7 +9,7 @@ detector:
   - configuration:
       dilation_kernel_size: 3
       canny_thresholds: [80,200]
-      hough_threshold: 20
+      hough_threshold: 2
       hough_min_line_length: 3
       hough_max_line_gap:    1
      
