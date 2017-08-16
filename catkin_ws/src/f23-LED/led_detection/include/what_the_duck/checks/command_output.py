@@ -30,4 +30,4 @@ class CommandOutputContains(Check):
             compact = ('Could not find string "%s" in output of %s' % 
                        (self.substring, self.cmd))
             long_explanation = 'Complete output is:\n\n' + indent(res.stdout,' > ')
-            raise CheckFailed(compact=compact, long=long_explanation)
+            raise CheckFailed(compact, long_explanation)
