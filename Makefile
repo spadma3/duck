@@ -15,10 +15,20 @@ fix-time2:
 	sudo ntpdate -s time.nist.gov
 
 clean-pyc:
-	find catkin_ws/src/ -name '*.pyc' -delete
+	@echo Cleaning "*.pyc" files around
+	find catkin_ws/ -name '*.pyc' -delete
 
 catkin-clean: clean-pyc
+	@echo Removing the directory $(catkin_ws)/build
 	rm -rf $(catkin_ws)/build
+
+clean-machines:
+	@echo Removing machines file
+	rm -f $(machines)
+
+clean: catkin-clean clean-machines
+
+
 
 build-parallel:
 	catkin_make -C $(catkin_ws) --make-args "-j4"

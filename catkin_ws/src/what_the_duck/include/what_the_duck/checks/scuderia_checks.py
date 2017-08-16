@@ -1,16 +1,15 @@
 import os
-import os
 
 from duckietown_utils.constants import \
     get_scuderia_path
 from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
-from what_the_duck.check import Check, CheckFailed, CheckError
 from duckietown_utils.scuderia import get_scuderia_contents, ScuderiaException
+from what_the_duck.check import Check, CheckFailed, CheckError
 
 
-class ValidScuderiaFile(Check):
-
+class ScuderiaFileExists(Check):
+    
     def check(self):
         try:
             path = get_scuderia_path()
@@ -22,7 +21,11 @@ class ValidScuderiaFile(Check):
             msg = 'Scuderia file does not exist.'
             l = 'File does not exist: %s '% path
             raise CheckFailed(msg, l)
+        
+ 
+class ValidScuderiaFile(Check):
 
+    def check(self): 
         try:
             contents = get_scuderia_contents()
         except ScuderiaException as e:

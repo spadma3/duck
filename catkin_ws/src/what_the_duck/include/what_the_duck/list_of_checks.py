@@ -5,7 +5,8 @@ from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
 from .entry import Diagnosis, Entry
 from what_the_duck.checks.machines_checks import ValidMachinesFile
-from what_the_duck.checks.scuderia_checks import ValidScuderiaFile
+from what_the_duck.checks.scuderia_checks import ValidScuderiaFile,\
+    ScuderiaFileExists
 
 
 def get_checks():
@@ -121,32 +122,32 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
 
     
     identity_file = add(ssh_config_exists,
-        "At least one key is configured.",
+        "Configured at least one SSH key.",
         FileContains(SSH_CONFIG, 'IdentityFile'),
         Diagnosis('You have not enabled any SSH key.'))
      
     add(ssh_is_there,
-        AUTHORIZED_KEYS + " exists",
+        "Existence of " + AUTHORIZED_KEYS,
         FileExists(AUTHORIZED_KEYS),
         Diagnosis("You did not setup the SSH authorized keys."))
  
     gitconfig = add(None,
-                    "Git configured",
+                    "Existence of " + GIT_CONFIG,
                     FileExists(GIT_CONFIG),
                     Diagnosis("You did not do the local Git configuration."))
     
     add(gitconfig, 
-        "Git email set",
+        "Git config: email",
         FileContains(GIT_CONFIG, "email ="),
         Diagnosis("You did not configure your email for Git."))
 
     add(gitconfig, 
-        "Git name set",
+        "Git config: name ",
         FileContains(GIT_CONFIG, "name ="),
         Diagnosis("You did not configure your name for Git."))
 
     add(gitconfig, 
-        "Git push policy set",
+        "Git config: push policy",
         FileContains(GIT_CONFIG, "[push]"),
         Diagnosis("You did not configure the push policy for Git."))
     
@@ -212,45 +213,65 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
     
     variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT] 
     
+    existence = {}
+    
     for v in variables_to_check:
         
         var_exists = add(None,
-            'Environment variable %s.' % v,
+            'Provided environment variable %s.' % v,
             EnvironmentVariableExists(v),
             Diagnosis("%s is not set." % v),
             Suggestion('You have to set %r in your environment (e.g. .bashrc)' % v))
             
-        add(var_exists,
-            '${%s} exists' % v,
+        existence[v] = add(var_exists,
+            'Existence of path ${%s}' % v,
             DirExists('${%s}' % v),
             Diagnosis("%s is set but it points to a non-existing directory." % v)
             )
-     
-    add(None,
-        'Valid machines file',
+
+    scuderia_exists = add(existence[DUCKIEFLEET_ROOT],
+                          'Existence of scuderia file',
+                          ScuderiaFileExists(),
+                          Diagnosis('You do not have a scuderia file.'),
+                          )
+    
+    ok_scuderia = add(scuderia_exists,
+        'Validation of scuderia file',
+        ValidScuderiaFile(),
+        Diagnosis('You have an invalid scuderia file.'),
+        )
+
+    add(ok_scuderia,
+        'Existence of machines file',
         ValidMachinesFile(),
         Diagnosis('You have an invalid or missing machines file.'),
-        )
-    add(None,
-        'Valid scuderia file',
-        ValidScuderiaFile(),
-        Diagnosis('You have an invalid or missing scuderia file.'),
+        Suggestion("""
+
+To fix this, run:
+
+    $ rosrun duckietown create-machines-file
+        
+        
+""")
         )
  
      
-   
-    if not on_duckiebot():
-        add(None,
-            'Environment variable DUCKIETOWN_DATA',
-            EnvironmentVariableExists('DUCKIETOWN_DATA'),
-            Diagnosis("DUCKIETOWN_DATA is not set."
-"""
-The environment variable DUCKIETOWN_DATA must either:
-1) be set to "n/a"
-2) point to an existing path corresponding to Dropbox/duckietown-data.
-   (containing a subdirectory 'logs')
-"""                  
-                  ))
+    
+    if False: # TODO
+       
+        if not on_duckiebot():
+            
+            existence = add(None,
+                'Environment variable DUCKIETOWN_DATA',
+                EnvironmentVariableExists('DUCKIETOWN_DATA'),
+                Diagnosis("DUCKIETOWN_DATA is not set."
+    """
+    The environment variable DUCKIETOWN_DATA must either:
+    1) be set to "n/a"
+    2) point to an existing path corresponding to Dropbox/duckietown-data.
+       (containing a subdirectory 'logs')
+    """                  
+                      ))
     
     if False:
         # TODO: not sure if this is needed
