@@ -1,4 +1,4 @@
-from what_the_duck.resolution import Suggestion
+from .resolution import Suggestion
 
 class Entry():
     def __init__(self, desc, check, diagnosis, resolutions, only_run_if):

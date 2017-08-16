@@ -4,3 +4,6 @@
 .DS_Store
 catkin_ws/src/duckietown/machines
 .idea/
+.project
+.pydevproject
+.settings/

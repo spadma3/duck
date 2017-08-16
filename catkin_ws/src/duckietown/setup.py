@@ -4,7 +4,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 setup_args = generate_distutils_setup(
     packages=[
-	'led_detection',
+	   'duckietown_utils',
     ],
     install_requires=[],
     package_dir={'': 'include'},

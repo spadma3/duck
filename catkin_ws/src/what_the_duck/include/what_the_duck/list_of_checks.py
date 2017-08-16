@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from .checks import *  # @UnusedWildImport
-from .entry import Entry
-from .entry import Diagnosis
 from .detect_environment import on_duckiebot
+from .entry import Diagnosis, Entry
+
 
 def get_checks():
     """ Returns a list of Entry """
