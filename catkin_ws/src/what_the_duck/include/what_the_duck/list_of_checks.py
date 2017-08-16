@@ -4,6 +4,8 @@ from duckietown_utils import DuckietownConstants
 from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
 from .entry import Diagnosis, Entry
+from what_the_duck.checks.machines_checks import ValidMachinesFile
+from what_the_duck.checks.scuderia_checks import ValidScuderiaFile
 
 
 def get_checks():
@@ -60,7 +62,6 @@ def get_checks():
             "Not running as ubuntu",
             YouAreNotUser('ubuntu'),
         Diagnosis("You should not run the code as ubuntu."))
-   
    
         add(not_ubuntu,
             "Member of group sudo",
@@ -224,6 +225,18 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
             DirExists('${%s}' % v),
             Diagnosis("%s is set but it points to a non-existing directory." % v)
             )
+     
+    add(None,
+        'Valid machines file',
+        ValidMachinesFile(),
+        Diagnosis('You have an invalid or missing machines file.'),
+        )
+    add(None,
+        'Valid scuderia file',
+        ValidScuderiaFile(),
+        Diagnosis('You have an invalid or missing scuderia file.'),
+        )
+ 
      
    
     if not on_duckiebot():

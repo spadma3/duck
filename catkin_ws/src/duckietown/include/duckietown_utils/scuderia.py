@@ -1,12 +1,13 @@
-from duckietown_utils import logger, DuckietownConstants
 import os
-from duckietown_utils.path_utils import expand_all
-from duckietown_utils.exceptions import DTUserError
+
+from duckietown_utils import logger
+from duckietown_utils.constants import get_scuderia_path
 from duckietown_utils.exception_utils import raise_wrapped, raise_desc
+from duckietown_utils.exceptions import DTUserError
 from duckietown_utils.text_utils import indent
 
-# Format of the Scuderia contents
 
+# Format of the Scuderia contents
 # robot-name:
 #  username: <username>
 #  owner_duckietown_id: <duckietown ID> 
@@ -30,25 +31,14 @@ def get_scuderia_contents():
     ''' Returns the contents of the scuderia file 
             from $(DUCKIEFLEET_ROOT)/scuderia.yaml
     '''
-    ev = DuckietownConstants.DUCKIEFLEET_ROOT_variable
-    if not ev in os.environ:
-        msg = 'Environment variable %r not defined.' % ev
-        raise ScuderiaException(msg)
-    
-    fn = expand_all(os.environ[ev])
-    
-    if not os.path.exists(fn):
-        msg = 'Directory %s does not exist' % fn
-        raise ScuderiaException(msg)
-
-    fn_scuderia = os.path.join(fn, DuckietownConstants.scuderia_filename)
-    
+    fn_scuderia = get_scuderia_path()
     try:
         scuderia_contents = read_scuderia(fn_scuderia)
     except ScuderiaException as  e:
         msg = 'Invalid scuderia file %r.' % fn_scuderia
         raise_wrapped(ScuderiaException, e, msg, compact=True)
         
+    logger.info('Read %d entries from scuderia %s' % (len(scuderia_contents), fn_scuderia))
     return scuderia_contents
 
 def read_scuderia(scuderia):
