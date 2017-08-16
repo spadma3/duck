@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from duckietown_utils import DuckietownConstants
 
 from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
@@ -205,30 +206,26 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
             DeviceExists(JOY_DEVICE),
             Diagnosis("The joystick is not found at %s" % JOY_DEVICE))
     
-    duckietown_root_var = add(None,
-        'Environment variable DUCKIETOWN_ROOT',
-        EnvironmentVariableExists('DUCKIETOWN_ROOT'),
-        Diagnosis("DUCKIETOWN_ROOT is not set."),
-        Suggestion('You have not run the environment script.'))
+    DUCKIETOWN_ROOT = DuckietownConstants.DUCKIETOWN_ROOT_variable
+    DUCKIEFLEET_ROOT = DuckietownConstants.DUCKIEFLEET_ROOT_variable
     
-    add(duckietown_root_var,
-        '${DUCKIETOWN_ROOT} exists',
-        DirExists('${DUCKIETOWN_ROOT}'),
-        Diagnosis("DUCKIETOWN_ROOT is set but it points to a non-existing directory.")
-        )
+    variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT] 
     
-    if False: # future
-        duckieteam_root_var = add(None,
-            'Environment variable DUCKIETEAM_ROOT',
-            EnvironmentVariableExists('DUCKIETEAM_ROOT'),
-            Diagnosis("DUCKIETEAM_ROOT is not set."))
+    for v in variables_to_check:
         
-        add(duckieteam_root_var,
-            '${DUCKIETEAM_ROOT} exists',
-            DirExists('${DUCKIETEAM_ROOT}'),
-            Diagnosis("DUCKIETEAM_ROOT is set but it points to a non-existing directory.")
+        var_exists = add(None,
+            'Environment variable %s.' % v,
+            EnvironmentVariableExists(v),
+            Diagnosis("%s is not set." % v),
+            Suggestion('You have to set %r in your environment (e.g. .bashrc)' % v))
+            
+        add(var_exists,
+            '${%s} exists' % v,
+            DirExists('${%s}' % v),
+            Diagnosis("%s is set but it points to a non-existing directory." % v)
             )
-        
+     
+   
     if not on_duckiebot():
         add(None,
             'Environment variable DUCKIETOWN_DATA',

@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 from collections import namedtuple
+import sys
+import traceback
 
 from termcolor import cprint, colored
 
 from duckietown_utils import logger
+from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.system_cmd_imp import indent_with_label
 from what_the_duck.check import CheckError, CheckFailed
 
 from .list_of_checks import get_checks
-import sys
-from duckietown_utils.instantiate_utils import indent
-import traceback
 
 
 FAIL = 'check failed'

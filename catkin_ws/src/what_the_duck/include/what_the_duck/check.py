@@ -5,19 +5,19 @@ class CheckException(Exception):
     def __init__(self, compact, long_explanation=None):
         if long_explanation is None:
             long_explanation = ''
-            
+
         self.compact = compact.strip()
         self.long_explanation = long_explanation.strip()
         both = compact + '\n\n' + long_explanation
         Exception.__init__(self, both)
-        
-        
+
+
 class CheckFailed(CheckException):
     pass
 
 class CheckError(CheckException):
     """ An error while checking; the test itself failed """
-    
+
 class Check():
     __metaclass__ = ABCMeta
     
