@@ -235,6 +235,11 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
                           Diagnosis('You do not have a scuderia file.'),
                           )
     
+    git_lfs_installed = add(None,
+                            'Git LFS installed',
+                            GitLFSInstalled(),
+                            Diagnosis('You have not installed Git LFS'))
+    
     ok_scuderia = add(scuderia_exists,
         'Validation of scuderia file',
         ValidScuderiaFile(),

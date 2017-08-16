@@ -30,5 +30,22 @@ class GithubLogin(Check):
         msg = 'There is something wrong with contacting Github.'
         raise_CheckError_from_CommandResult(res, msg)
 
+
+class GitLFSInstalled(Check):
     
+    def check(self):
+        
+        cmd = ['git', 'lfs']
+            
+        res = system_cmd_result(None, cmd,
+                  display_stdout=False,
+                  display_stderr=False,
+                  raise_on_error=False,
+                  capture_keyboard_interrupt=True, # XXX?
+                  env=None)
+        
     
+        if res.ret != 0:
+            msg = '`git lfs` returned non-zero.'
+            raise CheckFailed(msg)
+        
