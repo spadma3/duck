@@ -8,7 +8,6 @@ if ! [ -x "$(command -v rospack)" ]; then
   exit 1
 fi
 
-
 rospack find what_the_duck
 
 if [ $? -eq 0 ]; then
@@ -16,6 +15,5 @@ if [ $? -eq 0 ]; then
 else
     echo -e "Error: ${RED}Package what_the_duck not compiled.${NC}" >&2
 fi
-
 
 rosrun what_the_duck what-the-duck
