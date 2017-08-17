@@ -284,6 +284,12 @@ To fix this, run:
             )
      
     
+    add(machines_exists,
+        'Machines is updated',
+        MachinesNewerThanScuderia(),
+        Diagnosis('Scuderia was modified after machines created'),
+        )
+    
     if False: # TODO
        
         if this_is_a_laptop:
