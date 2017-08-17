@@ -28,6 +28,15 @@ catkin_package(
   DEPENDS Eigen
 )
 
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  sensor_msgs
+  geometry_msgs
+  duckietown_msgs
+)
+
+
 ###########
 ## Build ##
 ###########
