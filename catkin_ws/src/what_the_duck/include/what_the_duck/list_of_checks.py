@@ -4,9 +4,6 @@ from duckietown_utils import DuckietownConstants
 from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
 from .entry import Diagnosis, Entry
-from what_the_duck.checks.machines_checks import ValidMachinesFile
-from what_the_duck.checks.scuderia_checks import ValidScuderiaFile,\
-    ScuderiaFileExists
 
 
 def get_checks():
@@ -235,7 +232,7 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
                           Diagnosis('You do not have a scuderia file.'),
                           )
     
-    git_lfs_installed = add(None,
+    git_lfs_installed = add(None,  # @UnusedVariable
                             'Git LFS installed',
                             GitLFSInstalled(),
                             Diagnosis('You have not installed Git LFS'))

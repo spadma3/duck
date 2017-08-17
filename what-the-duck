@@ -1,1 +1,18 @@
+#!/bin/bash
+
+if ! [ -x "$(command -v rospack)" ]; then
+  echo 'rospack is not accessible. You need to activate ros and compile the repo.' >&2
+  exit 1
+fi
+
+
+rospack find what_the_duck
+
+if [ $? -eq 0 ]; then
+    echo
+else
+    echo "Package what_the_duck not compiled."
+fi
+
+
 rosrun what_the_duck what-the-duck
