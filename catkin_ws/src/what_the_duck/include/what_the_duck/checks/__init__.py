@@ -14,3 +14,5 @@ from .hostname import *
 from .shells import *
 from .github import *
 from .internet_connected import *
+from .scuderia_checks import *
+from .machines_checks import *

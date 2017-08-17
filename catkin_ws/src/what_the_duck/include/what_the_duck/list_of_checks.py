@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+from duckietown_utils import DuckietownConstants
 
 from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
 from .entry import Diagnosis, Entry
+from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
+from what_the_duck.python_source_checks import PythonPackageCheck
 
 
 def get_checks():
@@ -59,7 +62,6 @@ def get_checks():
             "Not running as ubuntu",
             YouAreNotUser('ubuntu'),
         Diagnosis("You should not run the code as ubuntu."))
-   
    
         add(not_ubuntu,
             "Member of group sudo",
@@ -119,32 +121,32 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
 
     
     identity_file = add(ssh_config_exists,
-        "At least one key is configured.",
+        "Configured at least one SSH key.",
         FileContains(SSH_CONFIG, 'IdentityFile'),
         Diagnosis('You have not enabled any SSH key.'))
      
     add(ssh_is_there,
-        AUTHORIZED_KEYS + " exists",
+        "Existence of " + AUTHORIZED_KEYS,
         FileExists(AUTHORIZED_KEYS),
         Diagnosis("You did not setup the SSH authorized keys."))
  
     gitconfig = add(None,
-                    "Git configured",
+                    "Existence of " + GIT_CONFIG,
                     FileExists(GIT_CONFIG),
                     Diagnosis("You did not do the local Git configuration."))
     
     add(gitconfig, 
-        "Git email set",
+        "Git config: email",
         FileContains(GIT_CONFIG, "email ="),
         Diagnosis("You did not configure your email for Git."))
 
     add(gitconfig, 
-        "Git name set",
+        "Git config: name ",
         FileContains(GIT_CONFIG, "name ="),
         Diagnosis("You did not configure your name for Git."))
 
     add(gitconfig, 
-        "Git push policy set",
+        "Git config: push policy",
         FileContains(GIT_CONFIG, "[push]"),
         Diagnosis("You did not configure the push policy for Git."))
     
@@ -205,42 +207,82 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
             DeviceExists(JOY_DEVICE),
             Diagnosis("The joystick is not found at %s" % JOY_DEVICE))
     
-    duckietown_root_var = add(None,
-        'Environment variable DUCKIETOWN_ROOT',
-        EnvironmentVariableExists('DUCKIETOWN_ROOT'),
-        Diagnosis("DUCKIETOWN_ROOT is not set."),
-        Suggestion('You have not run the environment script.'))
+    DUCKIETOWN_ROOT = DuckietownConstants.DUCKIETOWN_ROOT_variable
+    DUCKIEFLEET_ROOT = DuckietownConstants.DUCKIEFLEET_ROOT_variable
     
-    add(duckietown_root_var,
-        '${DUCKIETOWN_ROOT} exists',
-        DirExists('${DUCKIETOWN_ROOT}'),
-        Diagnosis("DUCKIETOWN_ROOT is set but it points to a non-existing directory.")
-        )
+    variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT] 
     
-    if False: # future
-        duckieteam_root_var = add(None,
-            'Environment variable DUCKIETEAM_ROOT',
-            EnvironmentVariableExists('DUCKIETEAM_ROOT'),
-            Diagnosis("DUCKIETEAM_ROOT is not set."))
+    existence = {}
+    
+    for v in variables_to_check:
         
-        add(duckieteam_root_var,
-            '${DUCKIETEAM_ROOT} exists',
-            DirExists('${DUCKIETEAM_ROOT}'),
-            Diagnosis("DUCKIETEAM_ROOT is set but it points to a non-existing directory.")
+        var_exists = add(None,
+            'Provided environment variable %s.' % v,
+            EnvironmentVariableExists(v),
+            Diagnosis("%s is not set." % v),
+            Suggestion('You have to set %r in your environment (e.g. .bashrc)' % v))
+            
+        existence[v] = add(var_exists,
+            'Existence of path ${%s}' % v,
+            DirExists('${%s}' % v),
+            Diagnosis("%s is set but it points to a non-existing directory." % v)
             )
         
-    if not on_duckiebot():
-        add(None,
-            'Environment variable DUCKIETOWN_DATA',
-            EnvironmentVariableExists('DUCKIETOWN_DATA'),
-            Diagnosis("DUCKIETOWN_DATA is not set."
-"""
-The environment variable DUCKIETOWN_DATA must either:
-1) be set to "n/a"
-2) point to an existing path corresponding to Dropbox/duckietown-data.
-   (containing a subdirectory 'logs')
-"""                  
-                  ))
+        
+    add(existence[DUCKIETOWN_ROOT],
+        'Software repo downloaded with SSH scheme.',
+        GitCorrectRemote('${%s}' % DUCKIETOWN_ROOT),
+        Diagnosis("You downloaded the repo using https."),
+        )
+
+    scuderia_exists = add(existence[DUCKIEFLEET_ROOT],
+                          'Existence of scuderia file',
+                          ScuderiaFileExists(),
+                          Diagnosis('You do not have a scuderia file.'),
+                          )
+    
+    git_lfs_installed = add(None,  # @UnusedVariable
+                            'Git LFS installed',
+                            GitLFSInstalled(),
+                            Diagnosis('You have not installed Git LFS'))
+    
+    ok_scuderia = add(scuderia_exists,
+        'Validation of scuderia file',
+        ValidScuderiaFile(),
+        Diagnosis('You have an invalid scuderia file.'),
+        )
+
+    add(ok_scuderia,
+        'Existence of machines file',
+        ValidMachinesFile(),
+        Diagnosis('You have an invalid or missing machines file.'),
+        Suggestion("""
+
+To fix this, run:
+
+    $ rosrun duckietown create-machines-file
+        
+        
+""")
+        )
+ 
+     
+    
+    if False: # TODO
+       
+        if not on_duckiebot():
+            
+            existence = add(None,
+                'Environment variable DUCKIETOWN_DATA',
+                EnvironmentVariableExists('DUCKIETOWN_DATA'),
+                Diagnosis("DUCKIETOWN_DATA is not set."
+    """
+    The environment variable DUCKIETOWN_DATA must either:
+    1) be set to "n/a"
+    2) point to an existing path corresponding to Dropbox/duckietown-data.
+       (containing a subdirectory 'logs')
+    """                  
+                      ))
     
     if False:
         # TODO: not sure if this is needed
@@ -256,6 +298,19 @@ The environment variable DUCKIETOWN_DATA must either:
     
         export VEHICLE_NAME= (your vehicle name)
     """))
+    
+    try:
+        packagename2dir = get_list_of_packages_in_catkin_ws()
+    except DTConfigException:
+        pass
+    else:
+        for package_name, dirname in packagename2dir.items():
+            c = PythonPackageCheck(package_name, dirname)
+            add(None,
+                'Package %s' % package_name,
+                c,
+                Diagnosis('Something invalid for package %s.' % package_name))
+            
         
     # make sure we resolve the paths  
     # /opt/ros/kinetic/bin/roslaunch

@@ -2,6 +2,9 @@ from duckietown_utils.system_cmd_imp import system_cmd_result
 from what_the_duck.check import Check, CheckFailed
 from what_the_duck.checks.fileutils import raise_CheckError_from_CommandResult,\
     summary_of_cmdres
+from duckietown_utils.path_utils import expand_all
+import os
+from what_the_duck.checks.command_output import fail_if_stdout_contains
 
 
 class GithubLogin(Check):
@@ -30,5 +33,39 @@ class GithubLogin(Check):
         msg = 'There is something wrong with contacting Github.'
         raise_CheckError_from_CommandResult(res, msg)
 
+
+class GitLFSInstalled(Check):
     
+    def check(self):
+        
+        cmd = ['git', 'lfs']
+            
+        res = system_cmd_result(None, cmd,
+                  display_stdout=False,
+                  display_stderr=False,
+                  raise_on_error=False,
+                  capture_keyboard_interrupt=True, # XXX?
+                  env=None)
+        
     
+        if res.ret != 0:
+            msg = '`git lfs` returned non-zero.'
+            raise CheckFailed(msg)
+        
+class GitCorrectRemote(Check):
+    ''' Checks that the git repository has the correct remote (ssh and not https). '''
+    def __init__(self, dirname):
+        self.dirname = dirname
+        
+    def check(self):
+        d = expand_all(self.dirname)
+        if not os.path.exists(d):
+            msg = 'The repo does not exist'
+            l = 'The repo does not exist in directory:\n  %s' % d
+            raise CheckFailed(msg, l)
+        
+        cwd = None
+        cmd = ['git', '-C', d,  'remote', 'get-url',  'origin']
+        fail_if_stdout_contains(cwd, cmd, 'https')
+    
+

@@ -1,32 +1,40 @@
 
 catkin_ws := catkin_ws
-scuderia := scuderia.yaml
 machines := $(catkin_ws)/src/duckietown/machines
 
 all: $(machines)
 
-
 $(machines): $(scuderia)
-	python setup/create-machines-file.py $(scuderia) > $(machines)
+	rosrun duckietown create-machines-file
 
 fix-time:
 	echo "Calling ntpdate to fix time"
-	sudo ntpdate -u us.pool.ntp.org 
+	sudo ntpdate -u us.pool.ntp.org
 
 fix-time2:
 	sudo ntpdate -s time.nist.gov
 
 clean-pyc:
-	find catkin_ws/src/ -name '*.pyc' -delete
+	@echo Cleaning "*.pyc" files around
+	find catkin_ws/ -name '*.pyc' -delete
 
 catkin-clean: clean-pyc
+	@echo Removing the directory $(catkin_ws)/build
 	rm -rf $(catkin_ws)/build
+
+clean-machines:
+	@echo Removing machines file
+	rm -f $(machines)
+
+clean: catkin-clean clean-machines
+
+
 
 build-parallel:
 	catkin_make -C $(catkin_ws) --make-args "-j4"
 
 build:
-	catkin_make -C $(catkin_ws) 
+	catkin_make -C $(catkin_ws)
 
 # Unit tests
 # Teddy: make it so "make unittests" runs all unit tests
@@ -46,14 +54,14 @@ unittests-anti_instagram:
 	$(MAKE) unittests-environment
 	bash -c "source environment.sh; rosrun anti_instagram annotation_tests.py"
 
-# HW testing 
+# HW testing
 
 test-camera:
 	echo "Testing Camera HW by taking a picture (smile!)."
 	raspistill -t 1000 -o test-camera.jpg
 
 
-test-led: 
+test-led:
 	echo "Calibration blinking pattern"
 	bash -c "source environment.sh; rosrun rgb_led blink test_all_1"
 
@@ -123,7 +131,7 @@ traffic-light:
 
 # ==========
 # openhouse demos
- 
+
 openhouse-dp1: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos parallel_autonomy.launch"
 
@@ -186,5 +194,3 @@ openhouse-dp5: unittests-environment
 
 openhouse-dp4: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos traffic_light_coordination.launch"
-
-
