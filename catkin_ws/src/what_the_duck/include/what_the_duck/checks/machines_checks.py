@@ -70,7 +70,7 @@ class MachinesValid(Check):
         contents = open(path).read()
         
         if not '"%s"' % hostname in contents: 
-            msg = 'This robot, "%s" is not mentioned in the machines file.'
+            msg = 'This robot, "%s" is not mentioned in the machines file.' % hostname
             raise CheckFailed(msg)
         
         # TODO: read the machines
