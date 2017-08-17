@@ -11,6 +11,10 @@ class DuckietownConstants():
     scuderia_filename = 'scuderia.yaml'
     
     
+    enforce_no_tabs = False
+    enforce_naming_conventions = False
+
+    
 def get_duckietown_root():
     """ Returns the path of DUCKIETOWN_ROOT and checks it exists """
     return _get_dir(DuckietownConstants.DUCKIETOWN_ROOT_variable)
