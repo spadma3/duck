@@ -225,6 +225,13 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
             DirExists('${%s}' % v),
             Diagnosis("%s is set but it points to a non-existing directory." % v)
             )
+        
+        
+    add(existence[DUCKIETOWN_ROOT],
+        'Software repo downloaded with SSH scheme.',
+        GitCorrectRemote('${%s}' % DUCKIETOWN_ROOT),
+        Diagnosis("You downloaded the repo using https."),
+        )
 
     scuderia_exists = add(existence[DUCKIEFLEET_ROOT],
                           'Existence of scuderia file',
