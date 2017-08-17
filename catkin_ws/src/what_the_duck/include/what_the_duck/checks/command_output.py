@@ -57,4 +57,3 @@ def fail_if_stdout_contains(cwd, cmd, substring):
         long_explanation = 'Complete output is:\n\n' + indent(res.stdout.strip(),' > ')
         raise CheckFailed(compact, long_explanation)
     
-    
