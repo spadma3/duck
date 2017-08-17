@@ -4,6 +4,8 @@ from duckietown_utils import DuckietownConstants
 from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
 from .entry import Diagnosis, Entry
+from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
+from what_the_duck.python_source_checks import PythonPackageCheck
 
 
 def get_checks():
@@ -296,6 +298,19 @@ To fix this, run:
     
         export VEHICLE_NAME= (your vehicle name)
     """))
+    
+    try:
+        packagename2dir = get_list_of_packages_in_catkin_ws()
+    except DTConfigException:
+        pass
+    else:
+        for package_name, dirname in packagename2dir.items():
+            c = PythonPackageCheck(package_name, dirname)
+            add(None,
+                'Package %s' % package_name,
+                c,
+                Diagnosis('Something invalid for package %s.' % package_name))
+            
         
     # make sure we resolve the paths  
     # /opt/ros/kinetic/bin/roslaunch

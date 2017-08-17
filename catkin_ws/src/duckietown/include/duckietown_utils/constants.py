@@ -1,6 +1,7 @@
 from duckietown_utils.path_utils import expand_all
 from duckietown_utils.exceptions import DTConfigException
 import os
+from collections import OrderedDict
 
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
@@ -23,6 +24,29 @@ def get_machines_files_path():
     duckietown_root = get_duckietown_root()
     machines = os.path.join(duckietown_root, 'catkin_ws/src/duckietown/machines')
     return machines
+
+def get_catkin_ws_src():
+    ''' Returns the path to the src/ dir in catkin_ws '''
+    duckietown_root = get_duckietown_root()
+    machines = os.path.join(duckietown_root, 'catkin_ws/src')
+    return machines
+
+def get_list_of_packages_in_catkin_ws():
+    """
+        Returns an ordered dictionary <package name>: <package dir>
+        of packages that exist in catkin_ws/src.
+    
+        Raises DTConfigException if $DUCKIETOWN_ROOT is not set.
+    """
+    src = get_catkin_ws_src()
+    entries = sorted(os.listdir(src))
+    results = OrderedDict()
+    for entry in entries:
+        dn = os.path.join(src, entry)
+        if os.path.isdir(dn):
+            results[entry] = dn
+    return results
+    
 
 def get_scuderia_path():
     ''' Gets the path to the scuderia files. It might not exist. '''
