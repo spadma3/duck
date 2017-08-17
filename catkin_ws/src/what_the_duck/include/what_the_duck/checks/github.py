@@ -47,7 +47,6 @@ class GitLFSInstalled(Check):
                   capture_keyboard_interrupt=True, # XXX?
                   env=None)
         
-    
         if res.ret != 0:
             msg = '`git lfs` returned non-zero.'
             raise CheckFailed(msg)

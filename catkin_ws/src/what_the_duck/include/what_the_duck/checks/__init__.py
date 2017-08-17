@@ -16,3 +16,4 @@ from .github import *
 from .internet_connected import *
 from .scuderia_checks import *
 from .machines_checks import *
+from .packages import *

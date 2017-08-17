@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .resolution import Suggestion
 
 class Entry():
@@ -9,3 +10,10 @@ class Entry():
         self.only_run_if = only_run_if
 
 Diagnosis = Suggestion
+
+
+def SeeDocs(id_topic):
+    msg = '➡ See duckumentation at http://purl.org/dth/%s' % id_topic
+    return Suggestion(msg)
+
+        

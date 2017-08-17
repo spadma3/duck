@@ -9,8 +9,8 @@ def get_groups_in_etc(username):
     groups = [g.gr_name for g in grp.getgrall() if username in g.gr_mem]  # @UndefinedVariable
     return groups
 
-def get_active_groups():
-    cmd = 'groups'
+def get_active_groups(username):
+    cmd = ['groups', username]
     try:
         res = system_cmd_result(None, cmd,
                   display_stdout=False,
@@ -20,18 +20,18 @@ def get_active_groups():
                   env=None)
     except CmdException as e:
         raise CheckError(str(e))
-    active_groups = res.stdout.split()
+    active_groups = res.stdout.split() # XXX
     return active_groups
 
-class YouBelongToGroup(Check):
-    def __init__(self, group):
+
+class UserBelongsToGroup(Check):
+    def __init__(self, username, group):
+        self.username = username
         self.group = group
         
-    def check(self):
-        username = getpass.getuser()        
-        
-        configured_groups = get_groups_in_etc(username)
-        active_groups = get_active_groups()
+    def check(self):        
+        configured_groups = get_groups_in_etc(self.username)
+        active_groups = get_active_groups(self.username)
 
         if not self.group in configured_groups:
             msg = 'You are currently not a member of the group %r' % self.group
@@ -39,15 +39,15 @@ class YouBelongToGroup(Check):
 You can correct this by adding yourself to the group, with the command:
     
     $ sudo adduser %s %s
-    """ % (username, self.group)
+    """ % (self.username, self.group)
             raise CheckFailed(msg, l)
         
         if not self.group in active_groups:
-            msg = 'The user was added to group %r, but the change is not effective yet.' % self.group
+            msg = 'The user %r was added to group %r, but the change is not effective yet.' % (self.username, self.group)
             l = 'While you have added yourself to the group %r using `adduser`,\n' % self.group
             l += 'the change will not take effect until you close all terminals.\n'
             l += 'You can verify whether the change is effective by using the command:\n\n'
-            l += '    $ groups '
+            l += '    $ groups %s' % self.username
             raise CheckFailed(msg, l)    
     
 

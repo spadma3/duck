@@ -33,7 +33,7 @@ def fail_if_stdout_does_not_contain(cwd, cmd, substring):
         raise CheckError(msg)
 
     if not substring in res.stdout:
-        compact = ('Could not find string "%s" in output of %s' % 
+        compact = ('Could not find string "%s" in output of %s.' % 
                    (substring, cmd))
         long_explanation = 'Complete output is:\n\n' + indent(res.stdout,' > ')
         raise CheckFailed(compact, long_explanation)
