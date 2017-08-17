@@ -30,8 +30,11 @@ def get_checks():
     AUTHORIZED_KEYS = '~/.ssh/authorized_keys'
     GIT_CONFIG = '~/.gitconfig'
     JOY_DEVICE = '/dev/input/js0'
+    
+    this_is_a_duckiebot = on_duckiebot()
+    this_is_a_laptop = not this_is_a_duckiebot
 
-    if on_duckiebot():
+    if this_is_a_duckiebot:
         add(None,
             "Camera is detected",
             CommandOutputContains('sudo vcgencmd get_camera', 'detected=1'),
@@ -57,7 +60,7 @@ def get_checks():
         YouAreNotUser('root'),
         Diagnosis("You should not run the code as root."))
 
-    if on_duckiebot():
+    if this_is_a_duckiebot:
         not_ubuntu=add(not_root,
             "Not running as ubuntu",
             YouAreNotUser('ubuntu'),
@@ -150,7 +153,7 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
         FileContains(GIT_CONFIG, "[push]"),
         Diagnosis("You did not configure the push policy for Git."))
     
-    if on_duckiebot():
+    if this_is_a_duckiebot:
         add(None,
             "Edimax detected",
             CommandOutputContains('iwconfig', 'rtl8822bu'),
@@ -166,7 +169,7 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
         CheckGoodHostsFile(),
         Diagnosis('The contents of /etc/hosts will cause problems later on.'))
    
-    if on_duckiebot():
+    if this_is_a_duckiebot:
         add(None,
             'Correct kernel version',
             GoodKernel(),
@@ -201,7 +204,7 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
         GithubLogin(),
         Diagnosis('You have not successfully setup the Github access.'))
 
-    if on_duckiebot():
+    if this_is_a_duckiebot:
         add(None,
             "Joystick detected",
             DeviceExists(JOY_DEVICE),
@@ -251,10 +254,17 @@ You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
         ValidScuderiaFile(),
         Diagnosis('You have an invalid scuderia file.'),
         )
+    
+    if this_is_a_duckiebot:
+        add(scuderia_exists,
+            'This robot is mentioned in scuderia.',
+            ThisRobotInScuderiaFile(),
+            Diagnosis('You have not added the robot to the scuderia.'))
+    
 
-    add(ok_scuderia,
+    machines_exists = add(ok_scuderia,
         'Existence of machines file',
-        ValidMachinesFile(),
+        MachinesExists(),
         Diagnosis('You have an invalid or missing machines file.'),
         Suggestion("""
 
@@ -265,12 +275,18 @@ To fix this, run:
         
 """)
         )
- 
+    
+    if this_is_a_duckiebot:
+        add(machines_exists,
+            'Machines file contains this robot',
+            MachinesValid(),
+            Diagnosis('You have an invalid  machines file.'),
+            )
      
     
     if False: # TODO
        
-        if not on_duckiebot():
+        if this_is_a_laptop:
             
             existence = add(None,
                 'Environment variable DUCKIETOWN_DATA',
@@ -286,7 +302,7 @@ To fix this, run:
     
     if False:
         # TODO: not sure if this is needed
-        if on_duckiebot():
+        if this_is_a_duckiebot:
             add(None,
                 'Environment variable VEHICLE_NAME',
                 EnvironmentVariableExists('VEHICLE_NAME'),
@@ -320,4 +336,5 @@ To fix this, run:
     
     # DISPLAY is not set
     return entries
+
 
