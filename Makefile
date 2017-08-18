@@ -1,8 +1,15 @@
 
 catkin_ws := catkin_ws
-machines := $(catkin_ws)/src/duckietown/machines
 
-all: $(machines)
+duckietown_package := $(catkin_ws)/src/00-infrastructure/duckietown
+
+machines := $(duckietown_package)/machines
+
+
+all:
+	@echo "Please see the documentation."
+
+machines: $(machines)
 
 $(machines): $(scuderia)
 	rosrun duckietown create-machines-file
