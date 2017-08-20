@@ -1,7 +1,7 @@
 import os
 from duckietown_utils.instantiate_utils import indent
 from what_the_duck.check import Check, CheckFailed, CheckError
-from what_the_duck.checks.fileutils import expand_all
+from duckietown_utils import expand_all
 
 class FileContains(Check):
     

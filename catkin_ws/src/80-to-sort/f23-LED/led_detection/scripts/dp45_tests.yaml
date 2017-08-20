@@ -232,4 +232,3 @@ Two_cars_oV_stopS3-tesla:
       image_coordinates_margin: 20 # pixels
       frequency: 5.0
       confidence_min: 0.9
-

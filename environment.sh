@@ -5,7 +5,7 @@
 
 # Do not compile Lisp messages
 # XXX: not sure if this is the place to put this.
-export ROS_LANG_DISABLE=gennodejs:geneus:genlisp:roslisp
+export ROS_LANG_DISABLE=gennodejs:geneus:genlisp
 
 echo "Activating ROS..."
 source /opt/ros/kinetic/setup.bash

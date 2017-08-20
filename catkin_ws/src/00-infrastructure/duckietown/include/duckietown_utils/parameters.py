@@ -1,12 +1,13 @@
-import yaml
 import numpy as np
 
 class Configurable():
     
-    def __init__(self, param_names, configuration):
-        if not isinstance(configuration, dict):
-            msg = 'Expecting a dict, obtained %r' % configuration
+    def __init__(self, param_names, configuration0):
+        if not isinstance(configuration0, dict):
+            msg = 'Expecting a dict, obtained %r' % configuration0
             raise ValueError(msg)
+        configuration = {}
+        configuration.update(configuration0)
         # check that we set all parameters
         given = list(configuration)
         

@@ -1,5 +1,5 @@
 
-__all__ = ['indent']
+__all__ = ['indent', 'seconds_as_ms']
 
 def indent(s, prefix, first=None):
     s = str(s)
@@ -19,3 +19,10 @@ def indent(s, prefix, first=None):
     res = ['%s%s' % (prefix, line.rstrip()) for line in lines]
     res[0] = '%s%s' % (first, lines[0].rstrip())
     return '\n'.join(res)
+
+
+def seconds_as_ms(s):
+    """ Returns a value in seconds as "XXX ms". """
+    if s is None:
+        return 'n/a'
+    return "%.1f ms" % (s*1000)

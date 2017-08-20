@@ -1,0 +1,17 @@
+
+subscriptions: {}
+
+# Parameters that are valid for 
+parameters:
+    en_update_params_interval:
+        desc: Interval at which to update the parameteres.
+        type: float
+        default: 2.0
+    #not-existent:
+    #    desc: Interval at which to update the parameteres.
+    #    type: float 
+    
+        
+contracts: {}
+
+publishers: {}

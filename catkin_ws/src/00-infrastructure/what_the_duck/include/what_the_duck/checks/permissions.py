@@ -3,7 +3,7 @@ import stat
 
 from what_the_duck.check import CheckFailed, CheckError, Check
 from what_the_duck.resolution import Suggestion
-from what_the_duck.checks.fileutils import expand_all
+from duckietown_utils import expand_all
 
 
 class CheckPermissions(Check):

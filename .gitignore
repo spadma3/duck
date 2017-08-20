@@ -9,3 +9,5 @@ catkin_ws/src/duckietown/machines
 .settings/
 catkin_ws/src/core/duckietown/machines
 catkin_ws/src/00-infrastructure/duckietown/machines
+anti_instagram_annotations_test/
+*dl=1

@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from duckietown_utils import logger
-#from PIL import Image as pimg
 
 def image_cv_from_jpg(data):
     """ Returns an OpenCV BGR image from a string """
@@ -35,8 +34,6 @@ def image_cv_from_jpg_fn(fn):
 
 # Second option: use PIL
 
-    
-import numpy as np
 from PIL import ImageFile  # @UnresolvedImport
 def rgb_from_jpg_by_PIL(data):
     """ Warning: this returns RGB """
@@ -47,14 +44,11 @@ def rgb_from_jpg_by_PIL(data):
     return res
 
 # third option: jpeg library
-import StringIO
-
-
 
 def rgb_from_jpg_by_JPEG_library(data):
     try:
         import jpeg4py as jpeg
-    except ImportError as e:
+    except ImportError:
         installation = """
 sudo apt-get install -y libturbojpeg  python-cffi
 sudo pip install jpeg4py

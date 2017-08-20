@@ -53,14 +53,23 @@ def get_list_of_packages_in_catkin_ws():
     for p in package_files:
         dn = os.path.dirname(p)
         entry = os.path.basename(dn)
-        results[entry] = dn
+        if not is_ignored_by_catkin(dn):
+            results[entry] = dn
     # We expect at least these two packages
     if not 'duckietown' in results:
         raise ValueError('Could not find duckietown')
     if not 'what_the_duck' in results:
         raise ValueError('Could not find what_the_duck') 
     return results
-    
+
+def is_ignored_by_catkin(dn):
+    """ Returns true if the directory is inside one with CATKIN_IGNORE """
+    while dn != '/':
+        i = os.path.join(dn, "CATKIN_IGNORE")
+        if os.path.exists(i):
+            return True
+        dn = os.path.dirname(dn)
+    return False
 
 def get_scuderia_path():
     ''' Gets the path to the scuderia files. It might not exist. '''

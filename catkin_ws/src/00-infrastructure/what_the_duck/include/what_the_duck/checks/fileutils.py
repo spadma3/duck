@@ -1,13 +1,7 @@
-import os
 from duckietown_utils.instantiate_utils import indent
-from what_the_duck.check import CheckError
 from duckietown_utils.system_cmd_imp import CmdResult
+from what_the_duck.check import CheckError
 
-def expand_all(filename):
-    fn = filename
-    fn = os.path.expanduser(fn)
-    fn = os.path.expandvars(fn)
-    return fn
 
 def raise_CheckError_from_CommandResult(res, msg = 'Command failed'):
     assert isinstance(res, CmdResult), res

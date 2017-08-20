@@ -71,7 +71,7 @@ def visualize_topic(bag_filename, model, topic, out, tmpdir):
     if os.path.exists(md):
         os.unlink(md)
     # copy out_tmp to out
-    if True: # only AC
+    if False: # only AC XXX
         dn = os.path.dirname(out)
         if not os.path.exists(dn):
             os.makedirs(dn)

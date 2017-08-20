@@ -1,4 +1,5 @@
 
+vehicle_name=$(shell hostname)
 catkin_ws := catkin_ws
 
 duckietown_package := $(catkin_ws)/src/00-infrastructure/duckietown
@@ -17,24 +18,24 @@ $(machines): $(scuderia)
 fix-time:
 	echo "Calling ntpdate to fix time"
 	sudo ntpdate -u us.pool.ntp.org
-
-fix-time2:
-	sudo ntpdate -s time.nist.gov
+	# sudo ntpdate -s time.nist.gov
 
 clean-pyc:
+	@echo
 	@echo Cleaning "*.pyc" files around
 	find catkin_ws/ -name '*.pyc' -delete
 
 catkin-clean: clean-pyc
+	@echo
 	@echo Removing the directory $(catkin_ws)/build
 	rm -rf $(catkin_ws)/build
 
 clean-machines:
-	@echo Removing machines file
+	@echo
+	@echo Removing machines file.
 	rm -f $(machines)
 
 clean: catkin-clean clean-machines
-
 
 
 build-parallel:
@@ -44,21 +45,18 @@ build:
 	catkin_make -C $(catkin_ws)
 
 # Unit tests
-# Teddy: make it so "make unittests" runs all unit tests
 
-unittests-environment: $(machines)
-	echo "Removed - try `make what-the-duck`"
+.PHONY: unittests-environment
 
-what-the-duck:
-	bash -c "source environment.sh; source set_vehicle_name.sh; python setup/what_the_duck"
+unittests-environment:
+	# 
+	#-./what-the-duck
 
-unittests:
-	$(MAKE) unittests-environment
+unittests: unittests-environment
 	bash -c "source environment.sh; catkin_make -C $(catkin_ws) run_tests; catkin_test_results $(catkin_ws)/build/test_results/"
 
 
-unittests-anti_instagram:
-	$(MAKE) unittests-environment
+unittests-anti_instagram: unittests-environment
 	bash -c "source environment.sh; rosrun anti_instagram annotation_tests.py"
 
 # HW testing
@@ -67,27 +65,25 @@ test-camera:
 	echo "Testing Camera HW by taking a picture (smile!)."
 	raspistill -t 1000 -o test-camera.jpg
 
-
-test-led:
-	echo "Calibration blinking pattern"
+test-led: unittests-environment
+	@echo "Calibration blinking pattern"
 	bash -c "source environment.sh; rosrun rgb_led blink test_all_1"
 
-test-turn-right:
-	echo "Calibrating right turn"
+test-turn-right: unittests-environment
+	@echo "Calibrating right turn"
 	bash -c "rostest indefinite_navigation calibrate_turn.test veh:=$(vehicle_name) type:=right"
 
-test-turn-left:
-	echo "Calibrating left turn"
+test-turn-left: unittests-environment
+	@echo "Calibrating left turn"
 	bash -c "rostest indefinite_navigation calibrate_turn.test veh:=$(vehicle_name) type:=left"
 
-test-turn-forward:
-	echo "Calibrating forward turn"
+test-turn-forward: unittests-environment
+	@echo "Calibrating forward turn"
 	bash -c "rostest indefinite_navigation calibrate_turn.test veh:=$(vehicle_name) type:=forward"
 
 
 # Basic demos
 
-vehicle_name=$(shell hostname)
 
 demo-joystick: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh;  roslaunch duckietown joystick.launch veh:=$(vehicle_name)"
@@ -103,8 +99,6 @@ demo-joystick-camera-high-speed: unittests-environment
 
 demo-line_detector: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name)"
-
-
 
 demo-joystick-perception: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos master.launch fsm_file_name:=joystick"
@@ -130,11 +124,9 @@ demo-line_detector-quiet-%: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name) line_detector_param_file_name:=$* verbose:=false"
 
 # traffic lights
-traffic-light:
+traffic-light: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch traffic_light traffic_light_node.launch veh:=$(vehicle_name)"
 
-#traffic-light-%:
-#	bash -c "source environment.sh; source set_ros_master.sh $*; roslaunch traffic_light traffic_light_node.launch veh:=$*"
 
 # ==========
 # openhouse demos

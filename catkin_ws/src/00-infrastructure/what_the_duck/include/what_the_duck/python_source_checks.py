@@ -1,49 +1,108 @@
 # -*- coding: utf-8 -*-
 from what_the_duck.check import CheckFailed, Check
 from duckietown_utils.locate_files_impl import locate_files
-from duckietown_utils.exception_utils import raise_wrapped
 import os
 from duckietown_utils.constants import DuckietownConstants
 from duckietown_utils.instantiate_utils import indent
+from what_the_duck.entry import Diagnosis
 
 class PythonPackageCheck(Check):
     ''' Checks that a package is well formed. '''
     def __init__(self, package_name, dirname):
         self.package_name = package_name
         self.dirname = dirname
-        
+    
+class README(PythonPackageCheck):
+    
     def check(self):
-        
         if self.package_name in DuckietownConstants.good_readme_exceptions:
             pass # 
         else:
             check_good_readme(self.dirname, self.package_name)
-        
+    
+    
+class PythonPackageCheckPythonFiles(PythonPackageCheck):
+    def get_all_python_files(self):
         python_files = locate_files(self.dirname, '*.py')
+        return python_files
+    
+    def check(self):
+        for filename in self.get_all_python_files():
+            try:
+                self.check_python_file(filename)
+            except CheckFailed as e:
+                l = 'Check failed for file:\n    %s' % filename + '\n' + str(e.long_explanation)
+                raise CheckFailed(e.compact, l) 
+
+    def check_python_file(self, filename):
+        raise Exception('to implement')
+    
+    def is_script(self, filename):
+        """ Returns true if the file is in src/ or scripts/ or script/ """
+        prev = os.path.basename(os.path.dirname(filename))
+        return prev in ['src', 'scripts', 'script']
+    
+class NoHalfMerges(PythonPackageCheckPythonFiles):
+    
+    def check_python_file(self, filename):
+        check_no_half_merges(filename)
+
+class NoTabs(PythonPackageCheckPythonFiles):
+
+    def check_python_file(self, filename):
+        if DuckietownConstants.enforce_no_tabs:
+            check_no_tabs(filename)
+
+class Naming(PythonPackageCheckPythonFiles):
+
+    def check_python_file(self, filename):
+        if DuckietownConstants.enforce_no_tabs:
+            check_good_name(filename)
+                
+class Executable(PythonPackageCheckPythonFiles):
+
+    def check_python_file(self, filename):
+        if self.is_script(filename):
+            check_executable(filename)
+
+
+class ShaBang(PythonPackageCheckPythonFiles):
+
+    def check_python_file(self, filename):
+        if self.is_script(filename):
+            check_contains_shabang(filename)
+
+# class ShaBang(PythonPackageCheckPythonFiles):
+# 
+#     def check_python_file(self, filename):
+#         
+#             check_contains_shabang(filename)
+#                 
+                                         
+def add_python_package_checks(add, package_name, dirname):
+    checks = [README, NoHalfMerges, NoTabs, Naming, Executable, ShaBang]
+    for check in checks:
+        c = check(package_name, dirname) 
+        add(None,
+            'Package %s: %s' % (package_name, check.__name__),
+            c,
+            Diagnosis('Something invalid for package %s.' % package_name))
         
-        try:
-            for filename in python_files:
-                try:
-                    check_no_half_merges(filename)
-                    if DuckietownConstants.enforce_no_tabs:
-                        check_no_tabs(filename)
-                    if DuckietownConstants.enforce_naming_conventions:
-                        check_good_name(filename)
-                    
-                except CheckFailed as e:
-                    l = 'Check failed for file:\n    %s' % filename + '\n' + str(e.long_explanation)
-                    raise CheckFailed(e.compact, l)
-                    raise
-#                     fn = os.path.relpath(filename, self.dirname)
-#                     msg = 'Check failed for file %s:' % fn
-#                     raise_wrapped(CheckFailed, e, msg, compact=True)
-
-        except CheckFailed as e:
-            raise
-#             msg = 'Checks failed for package %s.' % self.package_name
-#             l = str(e)
-#             raise CheckFailed(msg, l)
-
+def check_contains_shabang(filename):
+    contents = open(filename).read()
+    shabang = '#!/usr/bin/env python' 
+    if not shabang in contents:
+        short = os.path.basename(filename)
+        msg = 'File %r does not contain #! line.' % short
+        raise CheckFailed(msg)
+        
+def check_executable(filename):
+    if not os.access(filename, os.X_OK):
+        short = os.path.basename(filename)
+        msg = 'The file %r is not executable.' % short
+        raise CheckFailed(msg)
+    
+    
 def looks_camel_case(x):
     """ checks if there is lower UPPER sequence """
     for i in range(len(x)-1):
@@ -58,7 +117,7 @@ def check_good_name(filename):
     bn = os.path.basename(filename)
     
     if looks_camel_case(bn):
-        msg = 'Invalid filename %r. Python files should not use CamelCase; we use underscored_file_names.' %bn
+        msg = 'Invalid filename %r uses CamelCase instead of underscored_file_names.' %bn
         raise CheckFailed(msg)
     
     

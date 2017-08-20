@@ -2,7 +2,7 @@ from duckietown_utils.system_cmd_imp import system_cmd_result
 from what_the_duck.check import Check, CheckFailed
 from what_the_duck.checks.fileutils import raise_CheckError_from_CommandResult,\
     summary_of_cmdres
-from duckietown_utils.path_utils import expand_all
+from duckietown_utils import expand_all
 import os
 from what_the_duck.checks.command_output import fail_if_stdout_contains
 

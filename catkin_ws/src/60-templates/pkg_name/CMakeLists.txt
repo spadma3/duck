@@ -7,7 +7,7 @@ project(pkg_name)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  duckietown_msgs # Every duckietown packages should use this.
+  duckietown_msgs # Every duckietown packages must use this.
   std_msgs
 )
 

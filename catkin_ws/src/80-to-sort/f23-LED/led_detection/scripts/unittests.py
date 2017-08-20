@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# colored logging
 import os
 import sys
+import rospkg
 
 from duckietown_utils import col_logging
 from led_detection import logger
@@ -19,39 +19,19 @@ def main():
     script_name = os.path.basename(sys.argv[0])
     args = sys.argv[1:]
     if len(args) != 2:
-        msg = """
-Usage:
-
-    rosrun led_detection <script> <tests> <algorithms>
-
-where:
-
-    <tests> = comma separated list of algorithms. May use "*".
-    <algorithms> = comma separated list of algorithms. May use  "*".
-
-For example, this runs all tests on all algorithms:
-
-
-    rosrun led_detection <script> '*' '*'
-
-The default algorithm is called "baseline", and the tests are invoked using:
-
-    rosrun led_detection <script> '*' 'baseline'
-
-"""
-
-        msg = msg.replace('<script>', script_name)
+        msg = 'I need two arguments. Please see README.md for documentation.'
         logger.error(msg)
         sys.exit(2)
 
     which_tests0 = sys.argv[1]
     which_estimators0 = sys.argv[2]
 
-    root = os.environ['DUCKIETOWN_ROOT']
-    dirname = 'catkin_ws/src/f23-LED/led_detection/scripts/'
+    package_dir = get_ros_package_path('led_detection')
+    logger.debug('Package dir: %r' % package_dir)
+
+    # dirname = 'catkin_ws/src/f23-LED/led_detection/scripts/'
     #filename = 'all_tests.yaml'
-    filename = 'dp45_tests.yaml'
-    filename = os.path.join(root, dirname, filename)
+    filename = os.path.join(package_dir, 'scripts', 'dp45_tests.yaml')
 
     alltests = load_tests(filename)
     estimators = {  'baseline' :

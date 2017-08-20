@@ -4,6 +4,7 @@ import sys
 
 
 def wrap_main(f):
+    # deprecated
     """ Wraps a main function and colors output """
     try:
         f()

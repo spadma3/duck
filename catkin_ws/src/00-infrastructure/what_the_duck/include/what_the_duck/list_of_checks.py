@@ -2,7 +2,8 @@
 from duckietown_utils import DuckietownConstants
 from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
 from what_the_duck.entry import SeeDocs
-from what_the_duck.python_source_checks import PythonPackageCheck
+from what_the_duck.python_source_checks import PythonPackageCheck,\
+    add_python_package_checks
 
 from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
@@ -41,22 +42,22 @@ def get_checks():
             "Camera is detected",
             CommandOutputContains('sudo vcgencmd get_camera', 'detected=1'),
             Diagnosis("The camera is not connected."))
-        
+
     add(None,
         "Scipy is installed",
         CanImportPackages(['scipy', 'scipy.io']),
         Diagnosis("Scipy is not installed correctly."))
-        
+
     add(None,
         "sklearn is installed",
         CanImportPackages(['sklearn']),
         Diagnosis("sklearn is not installed correctly."))
-    
+
     add(None,
         "Date is set correctly",
         CheckDate(),
         Diagnosis("The date is not set correctly."))
-    
+
     not_root=add(None,
         "Not running as root",
         YouAreNotUser('root'),
@@ -68,22 +69,22 @@ def get_checks():
             "Not running as ubuntu",
             YouAreNotUser('ubuntu'),
             Diagnosis("You should not run the code as ubuntu."))
-        
+
         add(not_ubuntu,
             "Member of group sudo",
             UserBelongsToGroup(username, "sudo"),
             Diagnosis("You are not authorized to run sudo."))
-        
+
         add(not_ubuntu,
             "Member of group input",
             UserBelongsToGroup(username, "input"),
             Diagnosis("You are not authorized to use the joystick."))
-        
+
         add(not_ubuntu,
             "Member of group video",
             UserBelongsToGroup(username, "video"),
             Diagnosis("You are not authorized to read from the camera device."))
-        
+
         add(not_ubuntu,
             "Member of group i2c",
             UserBelongsToGroup(username, "input"),
@@ -117,19 +118,19 @@ def get_checks():
         FileContains(SSH_CONFIG, "HostKeyAlgorithms ssh-rsa"),
         Diagnosis("""
         You did not follow the SSH instructions.
-        
+
         The option "HostKeyAlgorithms ssh-rsa" is necessary for remote
         roslaunch to work. Otherwise it fails because of a limitation
         of the Paramiko library.
-        
+
         See the discussion here:
-        
+
             https://answers.ros.org/question/41446/a-is-not-in-your-ssh-known_hosts-file/
-        
+
         """), Suggestion("""
         You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
         (See discussion above for the why.)
-        
+
         """))
 
 
@@ -155,13 +156,22 @@ def get_checks():
             python-dev ipython python-sklearn
             python-termcolor
             ros-kinetic-desktop-full
+            ntpdate
+
+
+            ipython
+            python-ruamel.yaml
+            virtualenv
+            libxml2-dev libxslt1-dev
+            libffi-dev
+            bibtex2html
+            pdftk
         """))
 
     if this_is_a_duckiebot:
         required_packages.update(make_list("""
             i2c-tools
             python-smbus
-            ntpdate
             """))
 
     if this_is_a_laptop:
@@ -175,7 +185,7 @@ def get_checks():
     for p in required_packages:
         add(None, p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
 
-    forbidden_packages = ["python-roslaunch"]
+    forbidden_packages = ["python-roslaunch", "rosbash"]
 
     for p in forbidden_packages:
         add(None, p, CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
@@ -341,7 +351,7 @@ def get_checks():
         Diagnosis('Scuderia was modified after machines created'),
         )
 
-    if False: # TODO
+    if True: # TODO
 
         if this_is_a_laptop:
 
@@ -356,6 +366,17 @@ def get_checks():
        (containing a subdirectory 'logs')
     """
                       ))
+
+            logs = [
+                "${DUCKIETOWN_DATA}/logs/20160400-phase3-logs/dp45/20160406/20160406-226-All_red_lights_followTheLeader1-2cv.bag",
+            ]
+            for l in logs:
+                add(existence,
+                    'Log %r exists in DUCKIETOWN_DATA' % os.path.basename(l),
+                    FileExists(l),
+                    Diagnosis("The DUCKIETOWN_DATA folder does not contain the logs it should.")
+                    )
+
 
     if False:
         # TODO: not sure if this is needed
@@ -378,13 +399,15 @@ def get_checks():
         pass
     else:
         for package_name, dirname in packagename2dir.items():
-            c = PythonPackageCheck(package_name, dirname)
-            add(None,
-                'Package %s' % package_name,
-                c,
-                Diagnosis('Something invalid for package %s.' % package_name))
+            add_python_package_checks(add, package_name, dirname)
 
     # TODO: DISPLAY is not set
+    # files in src/ or scripts/ are executable
+    # There is no file "util.py" copied from pkg_name
+
+#     add(None,
+#         'Passwordless sudo',
+#         FileContains('/etc/'))
 
     # TODO: date
     return entries
