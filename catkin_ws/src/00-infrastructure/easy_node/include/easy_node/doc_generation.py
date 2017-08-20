@@ -49,7 +49,7 @@ def generate_easy_node_docs():
                 logger.info('already up to date %s' % out)
 
 def write_desc(x):
-    return 'TODO: Missing description for entry "%s".' % x.name
+    return 'TODO: Missing description for entry "`%s`".' % x.name
 
 # @contract(config=EasyNodeConfig)
 def generate_configuration(config):

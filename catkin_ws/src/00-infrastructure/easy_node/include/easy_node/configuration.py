@@ -68,6 +68,9 @@ def load_configuration(realpath, contents):
         except YAMLError as e:
             msg = 'Could not read YAML file properly:' 
             raise_wrapped(DTConfigException, e, msg, compact=True)
+        if not isinstance(data, dict):
+            msg = 'Expected a dict, got %s.' % type(data).__name__
+            raise DTConfigException(msg)
         try:
             parameters = data['parameters']
             subscriptions = data['subscriptions']
