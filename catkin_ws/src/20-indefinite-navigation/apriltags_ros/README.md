@@ -1,4 +1,4 @@
-# Package `apriltags_ros `
+# Package `apriltags_ros` {#apriltags_ros}
 
 AprilTags for ROS.
 
