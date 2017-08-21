@@ -18,7 +18,7 @@ __all__ = [
     'load_configuration',
 ]
 
-EasyNodeConfig = namedtuple('EasyNodeConfig', 'parameters subscriptions contracts publishers')
+EasyNodeConfig = namedtuple('EasyNodeConfig', 'filename parameters subscriptions contracts publishers')
 EasyNodeParameter = namedtuple('EasyNodeParameter', 'name desc type has_default default')
 EasyNodeSubscription = namedtuple('EasyNodeSubscription', 'name desc type topic queue_size process latch')
 EasyNodePublisher = namedtuple('EasyNodePublisher', 'name desc type topic queue_size latch')
@@ -44,7 +44,8 @@ def merge_configuration(c1, c2):
         subscriptions.update(c.subscriptions)
         contracts.update(c.contracts)
         publishers.update(c.publishers)
-    res = EasyNodeConfig(parameters=parameters, 
+    res = EasyNodeConfig(filename=c2.filename, # XXX
+                         parameters=parameters, 
                          subscriptions=subscriptions, 
                          contracts=contracts,
                          publishers=publishers)
@@ -91,7 +92,7 @@ def load_configuration(realpath, contents):
         contracts = load_configuration_contracts(contracts)
         publishers = load_configuration_publishers(publishers)
         
-        return EasyNodeConfig(parameters=parameters, contracts=contracts, 
+        return EasyNodeConfig(filename=realpath, parameters=parameters, contracts=contracts, 
                               subscriptions=subscriptions, publishers=publishers)
     except DTConfigException as e:
         msg = 'Invalid configuration at %s: ' % realpath

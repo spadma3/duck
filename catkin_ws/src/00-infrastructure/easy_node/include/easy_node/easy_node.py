@@ -3,9 +3,11 @@ import rospy
 import threading
 
 from duckietown_utils.exceptions import DTConfigException
+from duckietown_utils.text_utils import indent
 
 from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
 from .node_description.configuration import load_configuration_package_node, merge_configuration
+from .user_config.decide import get_user_configuration
 from .utils.timing import ProcessingTimingStats
 
 
@@ -14,6 +16,9 @@ __all__ = [
 ]
 
 class EasyNode():
+    
+    ENV = 'DUCKIETOWN_CONFIG_SEQUENCE'
+    
     
     def __init__(self, package_name, node_type_name):
         self.package_name = package_name
@@ -159,30 +164,32 @@ class EasyNode():
             pass
         self.config = Config()
         values = {}
+        
+        # load the configuration 
+        qr = get_user_configuration(self.package_name, self.node_type_name)
+        if not qr.is_complete():
+            msg = '\nThe configuration that I could load is not complete:\n'
+            msg += indent(str(qr), '   | ')
+            msg = indent(msg, '%s / %s fatal error >  ' % (self.package_name, self.node_type_name) )
+            raise DTConfigException(msg)
+        self.info('Loaded configuration:\n%s' % qr)
+        
         for p in parameters.values():
-            self.info('Loading parameter %s' % str(p))
-            name = '~' + p.name
-            if p.has_default:
-                val = rospy.get_param(name, p.default)  # @UndefinedVariable
-                if val is not None:
-                    val = p.type(val)
-
-            else:
-                try:
-                    val = rospy.get_param(name)  # @UndefinedVariable
-                except KeyError:
-                    msg = 'Could not load required parameter %r.' % p.name
-                    raise DTConfigException(msg)
+            try:
+                val = qr.values.get(p.name)  # @UndefinedVariable
+            except KeyError:
+                msg = 'Could not load required parameter %r.' % p.name
+                raise DTConfigException(msg)
             
             # write to parameter server, for transparency
             if val is not None: # we cannot set None parameters
-                rospy.set_param(name, val)  # @UndefinedVariable
+                rospy.set_param('~' + p.name, val)  # @UndefinedVariable
                 
             setattr(self.config, p.name, val)
-            self.info('Read %r = %r' % (p.name, val))
             values[p.name] = val
-        
-        duration = self.config.en_update_params_interval
+        self.info('values: %s' % values)
+        duration = values.get('en_update_params_interval', 3.0) # XXX
+#         duration = self.config.en_update_params_interval
         duration = rospy.Duration.from_sec(duration)  # @UndefinedVariable
         self.on_parameters_changed(True, values)
         rospy.Timer(duration, self._update_parameters)  # @UndefinedVariable
@@ -201,11 +208,10 @@ class EasyNode():
         parameters = self._configuration.parameters
         changed = {}
         for p in parameters.values():
-            name = '~' + p.name
-            if p.has_default:
-                val = rospy.get_param(name, p.default)  # @UndefinedVariable
-            else:
-                val = rospy.get_param(name)  # @UndefinedVariable
+#             if p.has_default:
+#                 val = rospy.get_param(name, p.default)  # @UndefinedVariable
+#             else:
+            val = rospy.get_param('~' + p.name)  # @UndefinedVariable
             current = getattr(self.config, p.name)
             s1 = current.__repr__()
             s2 = val.__repr__()

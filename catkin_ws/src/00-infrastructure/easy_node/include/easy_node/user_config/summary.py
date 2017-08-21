@@ -1,18 +1,16 @@
-#!/usr/bin/env python
 import termcolor
 
 from duckietown_utils import col_logging  # @UnusedImport
 from duckietown_utils.exceptions import wrap_script_entry_point
 from duckietown_utils.path_utils import display_filename
-from duckietown_utils.text_utils import truncate_string_right,\
-    format_table_plus
-from easy_node.user_config.db import ConfigDB
+from duckietown_utils.text_utils import truncate_string_right, format_table_plus
+from easy_node.user_config.db import get_config_db
 from easy_node.user_config.get_configuration_files import ConfigInfo
 
 
-def summary():
-    db = ConfigDB()
-    db.validate()
+def user_config_summary():
+    db = get_config_db()
+    
     
     def apply_to_lines(f, x):
         return "\n".join(f(_) for _ in x.split('\n'))
@@ -49,11 +47,7 @@ def summary():
         for row in table:
             row.pop(i)
     
-    remove_field('filename')
+#     remove_field('filename')
         
     s = format_table_plus(table, colspacing=4)
-    print(s)
-        
-    
-if __name__ == '__main__':
-    wrap_script_entry_point(summary)
+    return s

@@ -74,7 +74,7 @@ def format_table_plus(rows, colspacing=1):
         
     s = ''
     for row in rows:
-        s += '\n'
+#         s += '\n'
         
         # how many lines do we need?
         nlines = max(num_lines(cell) for cell in row)

@@ -4,6 +4,7 @@ from duckietown_utils.exceptions import DTConfigException
 import rospkg
 
 
+
 def expand_all(filename):
     """
         Expands ~ and ${ENV} in the string. 
@@ -31,8 +32,14 @@ def display_filename(filename):
     """ Displays a filename in a possibly simpler way """
     cwd = os.path.realpath(os.getcwd())
     filename = os.path.realpath(filename)
+    from duckietown_utils.constants import get_catkin_ws_src
+    cw = os.path.realpath(get_catkin_ws_src())
+    if filename.startswith(cw):
+        return '${CATKIN_WS}/' + filename[len(cw)+1:]
+    
     if filename.startswith(cwd+'/'):
-        filename = os.path.relpath(filename, cwd)
+#         print('cwd %s filename %s' % (cwd, filename))
+        filename = os.path.relpath(filename, cwd +'/.')
         return filename
     
     return filename
