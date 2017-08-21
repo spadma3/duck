@@ -5,9 +5,9 @@ from duckietown_utils.constants import DuckietownConstants
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.locate_files_impl import locate_files
 
+from .check import CheckError
 from .check import CheckFailed, Check
 from .entry import SeeDocs
-from what_the_duck.check import CheckError
 
 
 class PythonPackageCheck(Check):
@@ -105,10 +105,70 @@ class ShaBang(PythonPackageCheckPythonFiles):
         if self.is_script(filename):
             check_contains_shabang(filename)
 
+PACKAGEXML_MAX_COMMENTED_LINE = 10
+CMAKELISTS_MAX_COMMENTED_LINE = 10
+
+def is_a_template_package(package_name):
+    return package_name in ['pkg_name']
+
+
+
+class CheckNoCruff_packagexml(PythonPackageCheck):
+    """ No templates cruff in `package.xml`. """
+    def check(self):
+        if is_a_template_package(self.package_name):
+            return
+
+        filename = os.path.join(self.dirname, 'package.xml')
+        if not os.path.exists(filename):
+            msg = 'File does not exist: %s. ' % os.path.basename(filename)
+            raise CheckFailed(msg)
+
+        data = open(filename).read()
+        lines = data.split('\n')
+        
+        def is_suspicious(line):
+            return '<!--' in line
+        
+        suspicious = [_ for _ in lines if is_suspicious(_)]
+        
+        ns = len(suspicious)
+        
+        if ns > PACKAGEXML_MAX_COMMENTED_LINE:
+            msg = 'Too many commented out lines in "package.xml". Still have contents from template?'
+            l = 'I think you just copied from the template, without deleting the things that you are not using..'
+            raise CheckFailed(msg, l)
+
+class CheckNoCruff_cmakelists(PythonPackageCheck):
+    """ No templates cruff in `CMakeLists.txt`. """
+    def check(self):
+        if is_a_template_package(self.package_name):
+            return
+        
+        filename = os.path.join(self.dirname, 'CMakeLists.txt')
+        if not os.path.exists(filename):
+            msg = 'File does not exist: %s. ' % os.path.basename(filename)
+            raise CheckFailed(msg)
+
+        data = open(filename).read()
+        lines = data.split('\n')
+        
+        def is_suspicious(line):
+            return line.strip().startswith('#')
+        
+        suspicious = [_ for _ in lines if is_suspicious(_)]
+        
+        ns = len(suspicious)
+        
+        if ns > CMAKELISTS_MAX_COMMENTED_LINE:
+            msg = 'Too many commented out lines in "CMakeLists.txt". Still have contents from template?'
+            l = 'I think you just copied from the template, without deleting the things that you are not using..'
+            raise CheckFailed(msg, l)
+        
 class PackageXMLCheck(PythonPackageCheck):
     
     def check_xml(self, xml_package):  # @UnusedVariable
-        msg = 'Forgot to overload check_xml()'
+        msg = 'Forgot to overload check_xml().'
         raise CheckError(msg)
     
     def check(self):
@@ -152,6 +212,13 @@ class NameIsValid(PackageXMLCheck):
             msg = ('Inside package.xml for %r the name is declared as %r.' % 
                    (self.package_name, declared_package_name))
             raise CheckFailed(msg)
+# 
+# class UpdateToVersion2(PackageXMLCheck):
+#     """ Using version=2 format. """
+#     def check_xml(self, root): 
+#         if not 'version' in root.attrib:
+#             msg = "The current ROS "
+
 
 class VersionIsValid(PackageXMLCheck):
     """ Valid version in "package.xml". """
@@ -198,17 +265,21 @@ def get_tag_and_attributes(root, name):
     
 
 def add_python_package_checks(add, package_name, dirname):
-    checks = [README, 
-              NoHalfMerges, 
-              LicenseIsValid,
-                NameIsValid,
-                VersionIsValid,
-              NoTabs, 
-              Naming, 
-              Executable, 
-              ShaBang, 
-              NoBlindCopyingFromTemplate,
-              LineLengths]
+    checks = [
+        README, 
+        NoHalfMerges, 
+        LicenseIsValid,
+        NameIsValid,
+        VersionIsValid,
+        NoTabs, 
+        Naming, 
+        Executable, 
+        ShaBang, 
+        NoBlindCopyingFromTemplate,
+        LineLengths,
+        CheckNoCruff_packagexml,
+        CheckNoCruff_cmakelists,
+    ]
     for check in checks:
         c = check(package_name, dirname)
 #         description = getattr(check, '__doc__')
@@ -219,9 +290,14 @@ def add_python_package_checks(add, package_name, dirname):
         else:
             resolutions = (resolution,)
         
-        what = getattr(check, '__doc__', check.__name__).strip()
+        
+        what = getattr(check, '__doc__', None)
+        if what is None:
+            what = check.__name__
+        else:
+            what = what.strip()
         add(None,
-            'Package %22s: %s' % (package_name, what),
+            'Package %-22s: %s' % (package_name, what),
             c, diagnosis, *resolutions)
         
 def check_contains_shabang(filename):
@@ -229,7 +305,7 @@ def check_contains_shabang(filename):
     shabang = '#!/usr/bin/env python' 
     if not shabang in contents:
         short = os.path.basename(filename)
-        msg = 'File %r does not contain #! line.' % short
+        msg = 'File %r does not contain the sha-bang `#!/usr/bin/env python` line.' % short
         raise CheckFailed(msg)
         
 def check_executable(filename):
