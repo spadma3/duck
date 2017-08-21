@@ -113,8 +113,8 @@ def is_a_template_package(package_name):
 
 
 
-class CheckNoCruff_packagexml(PythonPackageCheck):
-    """ No templates cruff in `package.xml`. """
+class CheckNoCruft_packagexml(PythonPackageCheck):
+    """ No templates cruft in `package.xml`. """
     def check(self):
         if is_a_template_package(self.package_name):
             return
@@ -139,8 +139,8 @@ class CheckNoCruff_packagexml(PythonPackageCheck):
             l = 'I think you just copied from the template, without deleting the things that you are not using..'
             raise CheckFailed(msg, l)
 
-class CheckNoCruff_cmakelists(PythonPackageCheck):
-    """ No templates cruff in `CMakeLists.txt`. """
+class CheckNoCruft_cmakelists(PythonPackageCheck):
+    """ No templates cruft in `CMakeLists.txt`. """
     def check(self):
         if is_a_template_package(self.package_name):
             return
@@ -277,8 +277,8 @@ def add_python_package_checks(add, package_name, dirname):
         ShaBang, 
         NoBlindCopyingFromTemplate,
         LineLengths,
-        CheckNoCruff_packagexml,
-        CheckNoCruff_cmakelists,
+        CheckNoCruft_packagexml,
+        CheckNoCruft_cmakelists,
     ]
     for check in checks:
         c = check(package_name, dirname)
