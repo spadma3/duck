@@ -26,3 +26,14 @@ def get_ros_package_path(package_name):
     rospack = rospkg.RosPack()
     return rospack.get_path(package_name)
 
+
+def display_filename(filename):
+    """ Displays a filename in a possibly simpler way """
+    cwd = os.path.realpath(os.getcwd())
+    filename = os.path.realpath(filename)
+    if filename.startswith(cwd+'/'):
+        filename = os.path.relpath(filename, cwd)
+        return filename
+    
+    return filename
+    

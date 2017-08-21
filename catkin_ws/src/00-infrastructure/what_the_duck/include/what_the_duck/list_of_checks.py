@@ -165,6 +165,7 @@ def get_checks():
             libffi-dev
             bibtex2html
             pdftk
+            python-frozendict
         """))
 
     if this_is_a_duckiebot:

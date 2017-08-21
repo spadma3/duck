@@ -45,7 +45,7 @@ class EasyNode():
         self.info('on_shutdown (default)')
     
     def _init(self):
-        c1 = load_configuration_package_node('line_detector2', 'easy_node')
+        c1 = load_configuration_package_node('easy_node', 'easy_node')
         c2 = load_configuration_package_node(self.package_name, self.node_type_name)
         self._configuration = merge_configuration(c1, c2)
         self._init_parameters()
@@ -163,7 +163,9 @@ class EasyNode():
             name = '~' + p.name
             if p.has_default:
                 val = rospy.get_param(name, p.default)  # @UndefinedVariable
-                val = p.type(val)
+                if val is not None:
+                    val = p.type(val)
+
             else:
                 try:
                     val = rospy.get_param(name)  # @UndefinedVariable
@@ -172,7 +174,8 @@ class EasyNode():
                     raise DTConfigException(msg)
             
             # write to parameter server, for transparency
-            rospy.set_param(name, val)  # @UndefinedVariable
+            if val is not None: # we cannot set None parameters
+                rospy.set_param(name, val)  # @UndefinedVariable
                 
             setattr(self.config, p.name, val)
             self.info('Read %r = %r' % (p.name, val))
