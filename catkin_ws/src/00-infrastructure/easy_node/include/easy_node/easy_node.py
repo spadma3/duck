@@ -4,9 +4,9 @@ import threading
 
 from duckietown_utils.exceptions import DTConfigException
 
-from .configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
-from .configuration import load_configuration_package_node, merge_configuration
-from .timing import ProcessingTimingStats
+from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
+from .node_description.configuration import load_configuration_package_node, merge_configuration
+from .utils.timing import ProcessingTimingStats
 
 
 __all__ = [
@@ -111,6 +111,7 @@ class EasyNode():
                 self.node = node
                 self.subscription = subscription
                 self.sp = getattr(node.subscribers, subscription.name) 
+                
             @contextmanager
             def phase(self, name): 
                 with self.sp.pts.phase(name):

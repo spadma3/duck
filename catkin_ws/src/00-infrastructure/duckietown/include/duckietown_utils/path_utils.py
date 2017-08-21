@@ -23,7 +23,7 @@ def expand_all(filename):
 
 def get_ros_package_path(package_name):
     """ Returns the path to a package. """
-    rospack = rospkg.RosPack()
+    rospack = rospkg.RosPack()  # @UndefinedVariable
     return rospack.get_path(package_name)
 
 

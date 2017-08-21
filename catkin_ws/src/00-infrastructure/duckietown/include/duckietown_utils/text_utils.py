@@ -1,3 +1,4 @@
+import re
 
 __all__ = ['indent', 'seconds_as_ms']
 
@@ -31,6 +32,7 @@ def truncate_string_right(s, N, suff=' [..]'):
     if len(s) > N:
         s = s[:N-len(suff)] + suff
     return s
+
 def truncate_string_left(s, N, suff='[..] '):
     if len(s) > N:
         extra = len(s) - N 
@@ -38,7 +40,17 @@ def truncate_string_left(s, N, suff='[..] '):
     return s
 
 
-def format_table(rows, colspacing=1):
+escape = re.compile('\x1b\[..?m')
+def remove_escapes(s):
+    return escape.sub("", s)
+
+
+def get_length_on_screen(s):
+    """ Returns the length of s without the escapes """
+    return len(remove_escapes(s))
+
+
+def format_table_plus(rows, colspacing=1):
     if not rows:
         raise ValueError('Empty table.')
     nfirst = len(rows[0])
@@ -52,14 +64,34 @@ def format_table(rows, colspacing=1):
     # now convert all to string
     rows = [ [str(_) for _ in row] for row in rows]
     
+    # for each column 
+    def width_cell(s):
+        return max(get_length_on_screen(x) for x in s.split('\n'))
+    
     sizes = []
-    for i in range(len(rows[0])):
-        sizes.append(max(len(row[i]) for row in rows))
+    for col_index in range(len(rows[0])):
+        sizes.append(max(width_cell(row[col_index]) for row in rows))
+        
     s = ''
     for row in rows:
         s += '\n'
-        for size, cell in zip(sizes, row):
-            s += cell.ljust(size)
-            s += ' ' * colspacing
+        
+        # how many lines do we need?
+        nlines = max(num_lines(cell) for cell in row)
+
+        for j in range(nlines):
+            for size, cell in zip(sizes, row):
+                cellsplit = cell.split('\n')
+                if j < len(cellsplit):
+                    cellj = cellsplit[j]
+                else:
+                    cellj = ''
+                    
+#                 s += '%d(' % size + cellj.ljust(size) +')'
+                s +=  cellj.ljust(size) 
+                s += ' ' * colspacing
+            s += '\n'
     return s
 
+def num_lines(s):
+    return len(s.split('\n'))

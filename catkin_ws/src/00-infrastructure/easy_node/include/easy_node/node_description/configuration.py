@@ -1,17 +1,18 @@
 from collections import namedtuple, OrderedDict
+import os
 
 from ruamel import yaml
-# import yaml
 from yaml.error import YAMLError
 
 from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
+from duckietown_utils.instantiate_utils import import_name
 from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import get_ros_package_path
-import os
-from duckietown_utils.instantiate_utils import import_name
+from duckietown_utils.system_cmd_imp import contract
 
 
+# import yaml
 __all__ = [
     'EasyNodeConfig',
     'load_configuration',
@@ -31,7 +32,9 @@ PROCESS_VALUES = [PROCESS_THREADED, PROCESS_SYNCHRONOUS]
 # type = int, bool, float, or None (anything)
 DEFAULT_NOT_GIVEN = 'default-not-given'
 
+@contract(c1=EasyNodeConfig, c2=EasyNodeConfig, returns=EasyNodeConfig)
 def merge_configuration(c1, c2):
+    """ Merges two configurations. Values in c2 override the ones in c1 """
     parameters = OrderedDict()
     subscriptions = OrderedDict()
     contracts = OrderedDict()
@@ -47,6 +50,7 @@ def merge_configuration(c1, c2):
                          publishers=publishers)
     return res
     
+@contract(returns=EasyNodeConfig)
 def load_configuration_package_node(package_name, node_type_name):
     path = get_ros_package_path(package_name)
     look_for = '%s.easy_node.yaml' % node_type_name
@@ -59,7 +63,8 @@ def load_configuration_package_node(package_name, node_type_name):
     contents = open(fn).read()
     res = load_configuration(fn, contents)
     return res
-        
+
+@contract(returns=EasyNodeConfig)
 def load_configuration(realpath, contents):
     # TODO: load "version" string
     try:
@@ -172,11 +177,7 @@ def check_good_name(k):
     # TODO
     pass
 
-def message_class_from_string(s):
-#     from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
-#     from duckietown_msgs.msg import (Twist2DStamped, AntiInstagramTransform, AntiInstagramHealth, BoolStamped, Segment, SegmentList, Vector2D)  # @UnresolvedImport
-#     from sensor_msgs.msg import Joy  # @UnresolvedImport
-    
+def message_class_from_string(s): 
     if not '/' in s:
         msg = ''
         msg += 'Invalid message name "%s".\n' % s
@@ -193,25 +194,7 @@ def message_class_from_string(s):
         msgclass = import_name(symbol)
         return msgclass
     except:
-        raise 
-#         
-#     type2T = {
-#         'CompressedImage': CompressedImage,
-#         'BoolStamped': BoolStamped,
-#         'Image': Image,
-#         'AntiInstagramTransform': AntiInstagramTransform,
-#         'AntiInstagramHealth': AntiInstagramHealth,
-#         'Vector2D': Vector2D,
-#         'SegmentList': SegmentList,
-#         'Segment': Segment,
-#         'Joy': Joy,
-#         'Twist2DStamped': Twist2DStamped,
-#     }
-#     
-#     if not s in type2T:
-#         raise NotImplementedError(s)
-#     
-#     return type2T[s]
+        raise  
     
 def load_configuration_subscription(name, data):
 #      image:
@@ -267,6 +250,7 @@ def load_configuration_publisher(name, data):
                                 type=T, queue_size=queue_size, latch=latch)
     
 def load_configuration_contracts(data):
+    # TODO
     return {}
     
     

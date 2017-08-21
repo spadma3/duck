@@ -14,7 +14,9 @@ from duckietown_utils.path_utils import display_filename
 SUFFIX = '.config.yaml'
 
 ConfigInfo = namedtuple('ConfigInfo', 
-        'filename package_name node_name config_name date_effective description extends values')
+        'filename package_name node_name config_name date_effective description extends values '
+        'valid '
+        'error_if_invalid ')
 
  
 def get_configuration_files(package_name, node_name):
@@ -34,8 +36,11 @@ def get_all_configuration_files():
     configs = search_all_configuration_files()
     results = []
     for filename in configs:
-        results.append(interpret_config_file(filename))
+        c = interpret_config_file(filename)
+        results.append(c)
     return results
+
+
 
 def search_all_configuration_files():
     sources = []
@@ -46,13 +51,13 @@ def search_all_configuration_files():
     
     configs = []
     pattern = '*' + SUFFIX
-    logger.debug('Looking for %s files.' % pattern) 
+    logger.info('Looking for %s files.' % pattern) 
     for s in sources:
         fs = locate_files(s, pattern)
-        logger.debug('%4d files in %s' % (len(fs), s))
+        logger.info('%4d files in %s' % (len(fs), s))
         configs.extend(fs)
     
-    logger.debug('I found:\n' + "\n".join(configs))
+#     logger.debug('I found:\n' + "\n".join(configs))
     
     return configs
 
@@ -148,7 +153,10 @@ def interpret_config_file(filename):
         return ConfigInfo(filename=filename, package_name=package_name, node_name=node_name, 
                           config_name=config_name,
                           date_effective=date_effective,extends=extends,
-                          description=description, values=values)
+                          description=description, values=values,
+                          # not decided
+                          valid=None,
+                          error_if_invalid=None)
     
     except DTConfigException as e:
         msg = 'Invalid file %s' % display_filename(filename)

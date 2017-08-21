@@ -6,7 +6,7 @@ try:
     # use PyContracts if installed 
     from contracts import contract  # @UnresolvedImport
 except ImportError:
-    def contract(**kwargs): 
+    def contract(**kwargs):  # @UnusedVariable
         def phi(f):
             return f
         return phi
