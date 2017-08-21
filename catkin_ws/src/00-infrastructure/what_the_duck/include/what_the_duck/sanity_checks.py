@@ -73,6 +73,11 @@ def do_all_checks():
                 s = '  - %12s:   %s' % (f.status, f.entry.desc)
                 print_bright_red(s)
             print_bright_red('')
+            msg = ("Note that these are *bugs* in `what-the-duck` or its plugins "
+                   "and should be reported \nas soon as possible at the tracker: \n\n"
+                   " https://github.com/duckietown/Software/issues")
+            print_bright_red(msg)
+            print_bright_red('')
                 
         print_red('\nSee above for details and suggestions.')
         bye()
@@ -204,6 +209,7 @@ def display_results(results):
             if r.out_long:
                 print_bright_red(indent_with_label(r.out_long, L('details:')))
             print('')
+            
         elif r.status in [SKIP]:
             print_yellow(s)
             print_yellow(indent_with_label(r.out_short, L(' reason:')))

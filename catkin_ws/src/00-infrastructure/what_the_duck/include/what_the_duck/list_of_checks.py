@@ -325,7 +325,7 @@ def get_checks():
     progs = ['roslaunch', 'rosrun']
     for prog in progs:
         add(None,
-            'Good path for roslaunch',
+            'Good path for "%s"' % prog,
             CommandOutputContains('which %s' % prog, '/opt/ros/kinetic'),
             Diagnosis('The program `%s` is not resolved to the one in /opt/ros' % prog))
 

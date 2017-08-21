@@ -42,6 +42,21 @@ class PythonPackageCheckPythonFiles(PythonPackageCheck):
         prev = os.path.basename(os.path.dirname(filename))
         return prev in ['src', 'scripts', 'script']
     
+class NoBlindCopyingFromTemplate(PythonPackageCheck):
+    """ Checks that the user is not blindly copying from the template """
+    def check(self):
+        forbidden = [
+            'include/pkg_name',
+        ]
+        for f in forbidden:
+            ff = os.path.join(self.dirname, f)
+            if os.path.exists(ff):
+                msg = 'Found a file from the template (%s).' % f
+                l = "This file is the same as in the pkg_template directory: \n"
+                l += '   %s ' % ff
+                raise CheckFailed(msg, l)
+        
+        
 class NoHalfMerges(PythonPackageCheckPythonFiles):
     
     def check_python_file(self, filename):
@@ -80,7 +95,7 @@ class ShaBang(PythonPackageCheckPythonFiles):
 #                 
                                          
 def add_python_package_checks(add, package_name, dirname):
-    checks = [README, NoHalfMerges, NoTabs, Naming, Executable, ShaBang]
+    checks = [README, NoHalfMerges, NoTabs, Naming, Executable, ShaBang, NoBlindCopyingFromTemplate]
     for check in checks:
         c = check(package_name, dirname) 
         add(None,
