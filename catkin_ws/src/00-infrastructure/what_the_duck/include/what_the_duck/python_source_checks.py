@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
-from what_the_duck.check import CheckFailed, Check
-from duckietown_utils.locate_files_impl import locate_files
 import os
+
 from duckietown_utils.constants import DuckietownConstants
 from duckietown_utils.instantiate_utils import indent
-from what_the_duck.entry import Diagnosis
+from duckietown_utils.locate_files_impl import locate_files
+
+from .check import CheckFailed, Check
+from .entry import SeeDocs
+from what_the_duck.check import CheckError
+
 
 class PythonPackageCheck(Check):
+    
     ''' Checks that a package is well formed. '''
     def __init__(self, package_name, dirname):
         self.package_name = package_name
         self.dirname = dirname
     
 class README(PythonPackageCheck):
-    
+    "README exists"
     def check(self):
         if self.package_name in DuckietownConstants.good_readme_exceptions:
             pass # 
@@ -45,63 +50,179 @@ class PythonPackageCheckPythonFiles(PythonPackageCheck):
 class NoBlindCopyingFromTemplate(PythonPackageCheck):
     """ Checks that the user is not blindly copying from the template """
     def check(self):
+        if self.package_name in ['pkg_name']:
+            return
         forbidden = [
             'include/pkg_name',
         ]
         for f in forbidden:
             ff = os.path.join(self.dirname, f)
             if os.path.exists(ff):
-                msg = 'Found a file from the template (%s).' % f
+                msg = 'Found a file from the template (%s). This blind copying will create problems.' % f
                 l = "This file is the same as in the pkg_template directory: \n"
                 l += '   %s ' % ff
                 raise CheckFailed(msg, l)
         
         
 class NoHalfMerges(PythonPackageCheckPythonFiles):
-    
+    """ No half merges """
     def check_python_file(self, filename):
         check_no_half_merges(filename)
 
 class NoTabs(PythonPackageCheckPythonFiles):
+    """ No tabs. """
+    resolution = SeeDocs('no-tabs')
 
     def check_python_file(self, filename):
         if DuckietownConstants.enforce_no_tabs:
             check_no_tabs(filename)
 
 class Naming(PythonPackageCheckPythonFiles):
-
+    """ Proper naming of Python files. """
     def check_python_file(self, filename):
         if DuckietownConstants.enforce_no_tabs:
             check_good_name(filename)
                 
 class Executable(PythonPackageCheckPythonFiles):
-
+    """ Scripts are executable. """
     def check_python_file(self, filename):
         if self.is_script(filename):
             check_executable(filename)
 
 
-class ShaBang(PythonPackageCheckPythonFiles):
+class LineLengths(PythonPackageCheckPythonFiles):
+    """ Maximum line lengths. """
+    diagnosis = SeeDocs('max-line-length')
+    
+    def check_python_file(self, filename):
+        
+        check_line_lengths(filename, max_length=120)
+            
 
+class ShaBang(PythonPackageCheckPythonFiles):
+    """ Sha-bang line. """
     def check_python_file(self, filename):
         if self.is_script(filename):
             check_contains_shabang(filename)
 
-# class ShaBang(PythonPackageCheckPythonFiles):
-# 
-#     def check_python_file(self, filename):
-#         
-#             check_contains_shabang(filename)
-#                 
-                                         
+class PackageXMLCheck(PythonPackageCheck):
+    
+    def check_xml(self, xml_package):  # @UnusedVariable
+        msg = 'Forgot to overload check_xml()'
+        raise CheckError(msg)
+    
+    def check(self):
+        filename = os.path.join(self.dirname, 'package.xml')
+        if not os.path.exists(filename):
+            msg = 'File does not exist: %s. ' % os.path.basename(filename)
+            raise CheckFailed(msg)
+        
+        import xml.etree.ElementTree as ET
+        try:
+            tree = ET.parse(filename)
+            root = tree.getroot()
+        except Exception as e:
+            msg = 'Could not read "package.xml".'
+            l = str(e)
+            raise CheckFailed(msg, l) 
+        
+        if root.tag != 'package':
+            msg = 'Invalid package.xml'
+            raise CheckFailed(msg)
+        
+        try:
+            self.check_xml(root)
+        except CheckFailed as e:
+            msg = 'Invalid contents in "package.xml": ' + e.compact
+            l = e.long_explanation
+            raise CheckFailed(msg, l)
+
+
+class NameIsValid(PackageXMLCheck):
+    """ Valid name in "package.xml". """
+    def check_xml(self, root):
+        # check the name is the same
+        try:
+            declared_package_name = get_package_name(root)
+        except KeyError:
+            msg = 'Could not find tag "name" in package.xml.'
+            raise CheckFailed(msg)
+        
+        if declared_package_name != self.package_name:
+            msg = ('Inside package.xml for %r the name is declared as %r.' % 
+                   (self.package_name, declared_package_name))
+            raise CheckFailed(msg)
+
+class VersionIsValid(PackageXMLCheck):
+    """ Valid version in "package.xml". """
+    def check_xml(self, root): 
+        try:
+            version, _attrs = get_tag_and_attributes(root, 'version')
+        except KeyError:
+            msg = 'Could not find tag "version" in package.xml.'
+            raise CheckFailed(msg)
+        
+        if version == '0.0.0':
+            msg = 'Invalid value of version %r.' % version
+            raise CheckFailed(msg)
+        
+        # TODO: other checks
+
+class LicenseIsValid(PackageXMLCheck):
+    """ Valid license in "package.xml". """
+    
+    def check_xml(self, root): 
+        # check the license is valid 
+        try:
+            contents, _attrs = get_tag_and_attributes(root, 'license')
+        except KeyError:
+            msg = 'Could not find tag "license" in package.xml.'
+            raise CheckFailed(msg)
+        
+        if contents in ['TODO']:
+            msg = 'Invalid value of license %r.' % contents
+            raise CheckFailed(msg)
+        
+
+def get_package_name(package):
+    assert package.tag == 'package'
+    text, _attrs = get_tag_and_attributes(package, 'name')
+    return text
+    
+def get_tag_and_attributes(root, name):
+    for e in root:
+        if e.tag == name:
+            return e.text, e.attrib
+    raise KeyError(name)
+
+    
+
 def add_python_package_checks(add, package_name, dirname):
-    checks = [README, NoHalfMerges, NoTabs, Naming, Executable, ShaBang, NoBlindCopyingFromTemplate]
+    checks = [README, 
+              NoHalfMerges, 
+              LicenseIsValid,
+                NameIsValid,
+                VersionIsValid,
+              NoTabs, 
+              Naming, 
+              Executable, 
+              ShaBang, 
+              NoBlindCopyingFromTemplate,
+              LineLengths]
     for check in checks:
-        c = check(package_name, dirname) 
+        c = check(package_name, dirname)
+#         description = getattr(check, '__doc__')
+        diagnosis = getattr(check, 'diagnosis', None)
+        resolution = getattr(check, 'resolution', None)
+        if resolution is None:
+            resolutions = ()
+        else:
+            resolutions = (resolution,)
+        
+        what = getattr(check, '__doc__', check.__name__).strip()
         add(None,
-            'Package %s: %s' % (package_name, check.__name__),
-            c,
-            Diagnosis('Something invalid for package %s.' % package_name))
+            'Package %22s: %s' % (package_name, what),
+            c, diagnosis, *resolutions)
         
 def check_contains_shabang(filename):
     contents = open(filename).read()
@@ -188,3 +309,25 @@ def check_no_tabs(filename):
         l += '\nPlease be *very* careful in changing them.'
         l += '\nDo *not* use a tool to do it (e.g. "Convert tabs to spaces"); it will get it wrong!' 
         raise CheckFailed(msg, l)
+
+            
+def check_line_lengths(filename, max_length):
+    contents = open(filename).read()
+    lines = contents.split('\n')
+    unacceptable = []
+    maxl = max_length
+    for i, line in enumerate(lines):
+        if len(line) > max_length:
+            unacceptable.append(i+1)
+            maxl = max(maxl, len(line))
+    if unacceptable:
+        short = os.path.basename(filename)
+        msg = ('In "%s" I found %d lines of %d chars or over, '
+               'with the longest at %d chars.' % 
+               (short, len(unacceptable), max_length, maxl))
+        l = ('The lines are %s.' % unacceptable)
+        raise CheckFailed(msg, l)
+        
+        
+        
+        

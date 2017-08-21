@@ -59,7 +59,11 @@ def do_all_checks():
 
         if failed:        
             print_red('* Found %d failure(s):\n' % len(failed))
-            for f in failed:
+            failed_sorted = sort_by_type(failed)
+            for i, f in enumerate(failed_sorted):
+                # Skip a line for each group
+                if i and (get_type(failed_sorted[i]) != get_type(failed_sorted[i-1])):
+                    print('')
                 s = '  - %12s: %s: %s' % (
                     colored(f.status, 'red'), 
                     f.entry.desc, 
@@ -69,7 +73,7 @@ def do_all_checks():
             
         if errored:
             print_bright_red('* Found %d invalid test(s):\n' % len(errored))
-            for f in errored:
+            for f in sort_by_type(errored):
                 s = '  - %12s:   %s' % (f.status, f.entry.desc)
                 print_bright_red(s)
             print_bright_red('')
@@ -82,6 +86,12 @@ def do_all_checks():
         print_red('\nSee above for details and suggestions.')
         bye()
         sys.exit(nfailures)
+
+def get_type(x):
+    return type(x.entry.check).__name__ 
+    
+def sort_by_type(results):
+    return sorted(results, key=get_type)
 
 def bye():
     print('\nPlease add all tests that can be automated to %s.' % WTD)

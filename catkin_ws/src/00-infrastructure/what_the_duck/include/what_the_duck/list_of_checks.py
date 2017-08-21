@@ -2,8 +2,7 @@
 from duckietown_utils import DuckietownConstants
 from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
 from what_the_duck.entry import SeeDocs
-from what_the_duck.python_source_checks import PythonPackageCheck,\
-    add_python_package_checks
+from what_the_duck.python_source_checks import add_python_package_checks
 
 from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
