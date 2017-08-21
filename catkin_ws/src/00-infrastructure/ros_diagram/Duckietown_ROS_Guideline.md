@@ -7,18 +7,18 @@ In `rospy`, this means that the topic argument of `rospy.Publisher` and `rospy.S
 
 In `roscpp`, this means that the node handle should always be initialized as a private node handle by supplying with a `"~"` agrument at initialization. Note that the leading "~" must then be obmitted in the topic names of. ex:
 
-```
-ros::NodeHandle nh_("~");
-sub_lineseglist_ = nh_.subscribe("lineseglist_in", 1, &GroundProjection::lineseglist_cb, this);
-pub_lineseglist_ = nh_.advertise<duckietown_msgs::SegmentList> ("lineseglist_out", 1);
-```
+
+    ros::NodeHandle nh_("~");
+    sub_lineseglist_ = nh_.subscribe("lineseglist_in", 1, &GroundProjection::lineseglist_cb, this);
+    pub_lineseglist_ = nh_.advertise<duckietown_msgs::SegmentList> ("lineseglist_out", 1);
+
 
 ## Parameters
 All the parameters of a node must be private parameters to that node.
 
 All the nodes must write the value of the parameters being used to the parameter server at initialization. This ensures transparence of the parameters. Note that the `get_param(name,default_value)` does not write the default value to the parameter server automatically.
 
-The default parameter of `pkg_name/node_name` should be put in `~/duckietown/catkin_ws/src/duckietown/config/baseline/pkg_name/node_name/dafault.yaml`. The elemental launch file of this node should load the parameter using <rosparam>.
+The default parameter of `pkg_name/node_name` should be put in `~/duckietown/catkin_ws/src/duckietown/config/baseline/pkg_name/node_name/dafault.yaml`. The elemental launch file of this node should load the parameter using <code>&lt;rosparam&gt;</code>.
 
 ## Launch file
 Each node must have a launch file with the same name in the `launch` folder of the package. ex: `joy_mapper.py` must have a `joy_mapper.launch`. These are referred to as the elemental launch files.
@@ -31,6 +31,6 @@ When a node can be run on the vehicle or on a laptop, the elemental launch file 
 
 A node should always be launched by calling its corresponding launch file instead of using `rosrun`. This ensures that the node is put under the correct namespace and all the necessary parameters are provided.
 
-Do not use <remapp> in the elemental launch files.
+Do not use <code>&lt;remapp&gt;</code> in the elemental launch files.
 
-Do not use <param> in the elemental launch files.
+Do not use <code>&lt;param&gt;</code> in the elemental launch files.
