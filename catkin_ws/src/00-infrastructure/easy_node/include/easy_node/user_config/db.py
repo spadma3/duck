@@ -8,15 +8,28 @@ from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import format_table_plus
 from easy_node.node_description.configuration import load_configuration_for_nodes_in_package, EasyNodeConfig
 from easy_node.user_config.get_configuration_files import get_all_configuration_files
-from duckietown_utils.path_utils import display_filename
-
+from duckietown_utils.path_utils import display_filename, expand_all
+import cPickle
+import os
+import rospy
 
 class ValidationError(Exception):
     pass
 
 def get_config_db():
     if ConfigDB._singleton is None:
-        ConfigDB._singleton = ConfigDB()
+        cache = '${DUCKIETOWN_ROOT}/config_db.cache'
+        cache = expand_all(cache)
+        if os.path.exists(cache):
+            rospy.loginfo('Loading config DB from cache %s' % display_filename(cache))
+            with open(cache) as f:
+                ob = cPickle.load(f)
+        else:
+            ob = ConfigDB()
+            rospy.loginfo('Writing config DB to cache %s' % display_filename(cache))
+            with open(cache, 'w') as f:
+                cPickle.dump(ob, f)
+        ConfigDB._singleton = ob 
     return ConfigDB._singleton
 
 class ConfigDB():
@@ -29,10 +42,10 @@ class ConfigDB():
         logger.debug('Reading configuration files...')
         self.configs = get_all_configuration_files()
         self.package2nodes = {}
-        
-        logger.error('approximation')
+
         packages = get_list_of_packages_in_catkin_ws()
-        packages = ['line_detector2'] 
+        packages = ['line_detector2', 'joy_mapper', 'lane_filter', 'lane_control', 'anti_instagram'] 
+        logger.error('approximation, only using %r' % packages)
         logger.debug('Reading %d packages configuration...' % len(packages))
         for p in packages:
             self.package2nodes[p] = load_configuration_for_nodes_in_package(p)
@@ -101,7 +114,17 @@ class ConfigDB():
         values = {}
         origin = {}
         
-        node_config = self.package2nodes[package_name][node_name]
+        if not package_name in self.package2nodes:
+            msg = ('Could not find package "%s"; I know %s.' % 
+                   (package_name, sorted(self.package2nodes)))
+            raise DTConfigException(msg)
+        nodes = self.package2nodes[package_name]
+        if not node_name in nodes:
+            msg = ('Could not find node "%s" in package "%s"; I know %s.' % 
+                   (node_name, package_name, sorted(nodes)))
+            raise DTConfigException(msg)
+         
+        node_config = nodes[node_name]
         all_keys = list(node_config.parameters)
 
         using = []        

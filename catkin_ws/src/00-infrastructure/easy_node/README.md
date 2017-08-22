@@ -494,7 +494,7 @@ The tool shows also which file is responsible for the value of each parameter.
 
 For example, the command
 
-    $ rosrun easy_node desc line_detector2 line_detector2 defaults:andrea
+    $ rosrun easy_node eval line_detector2 line_detector2 defaults:andrea
 
 evaluates the configuration for the `line_detector2` node with the configuration
 sequence `defaults:andrea`.
@@ -503,8 +503,32 @@ The result is:
 
 TODO: output
 
+    Configuration result for node `line_detector_node2` (package `line_detector2`)
+    The configuration sequence was ['defaults', 'baseline', 'andrea'].
+    The following is the list of parameters set and their origin:
+      parameter                    value                              origin
+      ---------                    -----                              ------
+      en_update_params_interval    2.0                                line_detector_node2.easy_node.yaml
+      top_cutoff                   40                                 line_detector2-line_detector_node2.baseline.config.yaml
+      detector                     - line_detector.LineDetectorHSV    line_detector2-line_detector_node2.baseline.config.yaml
+                                   - configuration:
+                                       canny_thresholds: [80, 200]
+                                       dilation_kernel_size: 3
+                                       hough_max_line_gap: 1
+                                       hough_min_line_length: 3
+                                       hough_threshold: 2
+                                       hsv_red1: [0, 140, 100]
+                                       hsv_red2: [15, 255, 255]
+                                       hsv_red3: [165, 140, 100]
+                                       hsv_red4: [180, 255, 255]
+                                       hsv_white1: [0, 0, 150]
+                                       hsv_white2: [180, 60, 255]
+                                       hsv_yellow1: [25, 140, 100]
+                                       hsv_yellow2: [45, 255, 255]
+      img_size                     [120, 160]                         line_detector2-line_detector_node2.baseline.config.yaml
+      verbose                      true                               line_detector_node2.easy_node.yaml
 
-Note how we can tell which configuration file set each parameter.
+Note how we can tell which configuration file is responsible for setting each parameter.
 
 </div>
 
@@ -520,11 +544,12 @@ The syntax is:
 
     $ rosrun easy_node summary
 
-<div class='usage-example'>
+<div class='usage-example' markdown="1">
 
 For example, the output can be:
 
-TODO: example
+    package name      node name              config_name    effective     extends    valid    error    description
+    line_detector2    line_detector_node2    baseline       2017-01-01    ()         yes               These are the standard values for t [..]
 
 </div>
 
@@ -596,3 +621,10 @@ The result can be seen at [](#joy_mapper).
 ## Other ideas
 
 (Add here other ideas that we can implement.)
+
+
+<style>
+    .usage-example pre {
+        font-size: 50%;
+    }
+</style>

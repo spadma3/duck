@@ -5,6 +5,7 @@ import threading
 from duckietown_utils.constants import DuckietownConstants
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.text_utils import indent
+from duckietown_utils.timeit import rospy_timeit_wall
 
 from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
 from .node_description.configuration import load_configuration_package_node
@@ -16,82 +17,91 @@ __all__ = [
     'EasyNode',
 ]
 
+
 class EasyNode():
-    
+
     ENV = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
-    
-    
+
     def __init__(self, package_name, node_type_name):
         self.package_name = package_name
         self.node_type_name = node_type_name
-        rospy.init_node(node_type_name, anonymous=False) # @UndefinedVariable
-    
+        rospy.init_node(node_type_name, anonymous=False)  # @UndefinedVariable
+
     def _msg(self, msg):
         return '%s | %s' % (self.node_type_name, msg)
-    
+
     def info(self, msg):
-        msg = self._msg(msg) 
+        msg = self._msg(msg)
         rospy.loginfo(msg)  # @UndefinedVariable
-        
+
     def debug(self, msg):
-        msg = self._msg(msg) 
-        rospy.logdebug(msg)# @UndefinedVariable
-        
+        msg = self._msg(msg)
+        rospy.logdebug(msg)  # @UndefinedVariable
+
     def error(self, msg):
-        msg = self._msg(msg) 
-        rospy.logerror(msg)# @UndefinedVariable
-        
+        msg = self._msg(msg)
+        rospy.logerror(msg)  # @UndefinedVariable
+
     def on_init(self):
         self.info('on_init (default)')
 
     def on_parameters_changed(self, first_time, changed):
-        self.info('(default) First: %s Parameters changed: %s' % (first_time, changed))
+        self.info('(default) First: %s Parameters changed: %s' %
+                  (first_time, changed))
 
     def on_shutdown(self):
         self.info('on_shutdown (default)')
-    
+
     def _init(self):
         # c1 = load_configuration_package_node('easy_node', 'easy_node')
-        c = load_configuration_package_node(self.package_name, self.node_type_name)
+        c = load_configuration_package_node(
+            self.package_name, self.node_type_name)
         self._configuration = c
+        self._init_publishers()
         self._init_parameters()
         self._init_subscriptions()
-        self._init_publishers()
         self.info(self._configuration)
-        
+
     def _init_subscriptions(self):
         subscriptions = self._configuration.subscriptions
+
         class Subscribers():
             pass
         self.subscribers = Subscribers()
+
         class SubscriberProxy():
             def __init__(self, sub):
                 self.sub = sub
                 self.pts = ProcessingTimingStats()
+
             def init_threaded(self):
                 self.thread_lock = threading.Lock()
-                 
+
         class Callback():
             def __init__(self, node, subscription):
                 self.node = node
-                self.subscription = subscription 
+                self.subscription = subscription
+
             def __call__(self, data):
-                subscriber_proxy = getattr(self.node.subscribers, self.subscription.name)
-                self.node._sub_callback(self.subscription, subscriber_proxy, data)
+                subscriber_proxy = getattr(
+                    self.node.subscribers, self.subscription.name)
+                self.node._sub_callback(
+                    self.subscription, subscriber_proxy, data)
 
         for s in subscriptions.values():
             callback = Callback(node=self, subscription=s)
-            S = rospy.Subscriber(s.topic, s.type, callback, queue_size=s.queue_size)  # @UndefinedVariable
+            S = rospy.Subscriber(s.topic, s.type, callback, # @UndefinedVariable
+                                 queue_size=s.queue_size)  # @UndefinedVariable
             sp = SubscriberProxy(S)
             setattr(self.subscribers, s.name, sp)
-            
+
             self.info('Subscribed to %s' % s.topic)
             if s.process == PROCESS_THREADED:
                 sp.init_threaded()
-            
+
     def _sub_callback(self, subscription, subscriber_proxy, data):
         subscriber_proxy.pts.received_message(data)
-        
+
         callback_name = 'on_received_%s' % subscription.name
         if hasattr(self, callback_name):
             if subscription.process == PROCESS_SYNCHRONOUS:
@@ -110,25 +120,25 @@ class EasyNode():
         else:
             subscriber_proxy.pts.decided_to_skip()
             self.info('No callback %r defined.' % callback_name)
-    
+
     def _get_context(self, subscription):
         class Context():
             def __init__(self, node, subscription):
                 self.node = node
                 self.subscription = subscription
-                self.sp = getattr(node.subscribers, subscription.name) 
-                
+                self.sp = getattr(node.subscribers, subscription.name)
+
             @contextmanager
-            def phase(self, name): 
+            def phase(self, name):
                 with self.sp.pts.phase(name):
-                    yield   
-                    
+                    yield
+
             def get_stats(self):
                 return self.sp.pts.get_stats()
-            
+
         context = Context(self, subscription)
         return context
-            
+
     def _sub_callback_threaded(self, callback_name, subscription, subscriber_proxy, data):
         if not subscriber_proxy.thread_lock.acquire(False):
             # TODO self.stats.skipped()
@@ -140,7 +150,7 @@ class EasyNode():
         finally:
             # Release the thread lock
             subscriber_proxy.thread_lock.release()
-            
+
     def _call_callback(self, callback_name, subscription, data):
         c = getattr(self, callback_name)
         context = self._get_context(subscription)
@@ -148,53 +158,62 @@ class EasyNode():
             c(context, data)
         finally:
             pass
-        
+
     def _init_publishers(self):
         publishers = self._configuration.publishers
+
         class Publishers():
             pass
         self.publishers = Publishers()
         for s in publishers.values():
-            P = rospy.Publisher(s.topic, s.type, queue_size=s.queue_size, latch=s.latch)  # @UndefinedVariable
+            # @UndefinedVariable
+            P = rospy.Publisher(
+                s.topic, s.type, queue_size=s.queue_size, latch=s.latch)
             setattr(self.publishers, s.name, P)
-            
+
     def _init_parameters(self):
         parameters = self._configuration.parameters
-        self.info('Loading %d parameters' % len(parameters))
+        
+
         class Config():
             pass
         self.config = Config()
         values = {}
-        
-        # load the configuration 
-        qr = get_user_configuration(self.package_name, self.node_type_name)
+
+        # load the configuration
+        self.info('Loading parameters...')
+        with rospy_timeit_wall('getting configuration files'):
+            qr = get_user_configuration(self.package_name, self.node_type_name)
+            
         if not qr.is_complete():
             msg = '\nThe configuration that I could load is not complete:\n'
             msg += indent(str(qr), '   | ')
-            msg = indent(msg, '%s / %s fatal error >  ' % (self.package_name, self.node_type_name) )
+            msg = indent(msg, '%s / %s fatal error >  ' %
+                         (self.package_name, self.node_type_name))
             raise DTConfigException(msg)
         self.info('Loaded configuration:\n%s' % qr)
-        
+
         for p in parameters.values():
             try:
                 val = qr.values.get(p.name)  # @UndefinedVariable
             except KeyError:
                 msg = 'Could not load required parameter %r.' % p.name
                 raise DTConfigException(msg)
-            
+
             # write to parameter server, for transparency
-            if val is not None: # we cannot set None parameters
+            if val is not None:  # we cannot set None parameters
                 rospy.set_param('~' + p.name, val)  # @UndefinedVariable
-                
+
             setattr(self.config, p.name, val)
             values[p.name] = val
-        self.info('values: %s' % values)
+            
+#         self.info('values: %s' % values)
 #         duration = values.get('en_update_params_interval', 3.0) # XXX
         duration = self.config.en_update_params_interval
         duration = rospy.Duration.from_sec(duration)  # @UndefinedVariable
         self.on_parameters_changed(True, values)
         rospy.Timer(duration, self._update_parameters)  # @UndefinedVariable
-            
+
     def _update_parameters(self, _event):
         changed = self._get_changed_parameters()
         if changed:
@@ -203,12 +222,12 @@ class EasyNode():
             self.on_parameters_changed(False, changed)
         else:
             pass
-            # self.info('No change in parameters.')    
-        
+            # self.info('No change in parameters.')
+
     def _get_changed_parameters(self):
         parameters = self._configuration.parameters
         changed = {}
-        for p in parameters.values(): 
+        for p in parameters.values():
             val = rospy.get_param('~' + p.name)  # @UndefinedVariable
             current = getattr(self.config, p.name)
             s1 = current.__repr__()
@@ -216,7 +235,7 @@ class EasyNode():
             if s1 != s2:
                 changed[p.name] = current
         return changed
-    
+
     def spin(self):
         rospy.on_shutdown(self.on_shutdown)  # @UndefinedVariable
         self._init()

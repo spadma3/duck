@@ -20,7 +20,7 @@ __all__ = [
     'load_configuration',
 ]
 
-EasyNodeConfig = namedtuple('EasyNodeConfig', 'filename package_name node_type_name parameters subscriptions contracts publishers')
+EasyNodeConfig = namedtuple('EasyNodeConfig', 'filename package_name node_type_name description parameters subscriptions contracts publishers')
 EasyNodeParameter = namedtuple('EasyNodeParameter', 'name desc type has_default default')
 EasyNodeSubscription = namedtuple('EasyNodeSubscription', 'name desc type topic queue_size process latch')
 EasyNodePublisher = namedtuple('EasyNodePublisher', 'name desc type topic queue_size latch')
@@ -46,13 +46,17 @@ def merge_configuration(c1, c2):
         subscriptions.update(c.subscriptions)
         contracts.update(c.contracts)
         publishers.update(c.publishers)
-    res = EasyNodeConfig(filename=c2.filename, # XXX
-                         package_name=c2.package_name,
-                         node_type_name=c2.node_type_name,
-                         parameters=parameters, 
-                         subscriptions=subscriptions, 
-                         contracts=contracts,
-                         publishers=publishers)
+    res = EasyNodeConfig(
+            filename=c2.filename, # XXX
+             package_name=c2.package_name,
+             node_type_name=c2.node_type_name,
+             description=c2.description,
+             
+             parameters=parameters, 
+             subscriptions=subscriptions, 
+             contracts=contracts,
+             publishers=publishers,
+        )
     return res
 
 def load_configuration_baseline():
@@ -95,14 +99,19 @@ def load_configuration(realpath, contents):
             msg = 'Expected a dict, got %s.' % type(data).__name__
             raise DTConfigException(msg)
         try:
-            parameters = data['parameters']
-            subscriptions = data['subscriptions']
-            publishers = data['publishers']
-            contracts = data['contracts']
+            parameters = data.pop('parameters')
+            subscriptions = data.pop('subscriptions')
+            publishers = data.pop('publishers')
+            contracts = data.pop('contracts')
+            description = data.pop('description')
         except KeyError as e:
             key = e.args[0]
-            msg = 'Invalid configuration: missing %r in\n %s' % (key, realpath)
-            raise  DTConfigException(msg)
+            msg = 'Invalid configuration: missing field %r.' % (key)
+            raise DTConfigException(msg)
+        
+        if data:
+            msg = 'Spurious fields found: %s' % sorted(data)
+            raise DTConfigException(msg)
         
         parameters = load_configuration_parameters(parameters)
         subscriptions = load_configuration_subscriptions(subscriptions)
@@ -111,7 +120,7 @@ def load_configuration(realpath, contents):
         
         return EasyNodeConfig(filename=realpath, parameters=parameters, contracts=contracts, 
                               subscriptions=subscriptions, publishers=publishers,
-                              package_name=None,
+                              package_name=None, description=description,
                               node_type_name=None)
     except DTConfigException as e:
         msg = 'Invalid configuration at %s: ' % realpath

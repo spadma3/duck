@@ -271,14 +271,14 @@ def add_python_package_checks(add, package_name, dirname):
         LicenseIsValid,
         NameIsValid,
         VersionIsValid,
-        NoTabs, 
-        Naming, 
+        # NoTabs, 
+#         Naming, 
         Executable, 
-        ShaBang, 
-        NoBlindCopyingFromTemplate,
-        LineLengths,
-        CheckNoCruft_packagexml,
-        CheckNoCruft_cmakelists,
+#         ShaBang, 
+        # NoBlindCopyingFromTemplate,
+        # LineLengths,
+        # CheckNoCruft_packagexml,
+        # CheckNoCruft_cmakelists,
     ]
     for check in checks:
         c = check(package_name, dirname)

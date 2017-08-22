@@ -64,7 +64,7 @@ comptests_out=out/comptests
 
 comptests-clean:
 	rm -rf $(comptests_out)
-	
+
 comptests:
 	comptests -o $(comptests_out) --nonose -c "rparmake" easy_node_tests
 
@@ -203,3 +203,7 @@ openhouse-dp5: unittests-environment
 
 openhouse-dp4: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos traffic_light_coordination.launch"
+
+
+easy_node-docs:
+	rosrun easy_node generate_docs
