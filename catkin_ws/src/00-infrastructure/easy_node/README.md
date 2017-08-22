@@ -52,8 +52,8 @@ This is the syntax:
 
 where:
 
-- ![type] is one of `float`, `int`, `bool`, `str`.
-- ![description] is a description that will appear in the documentation.
+- `![type]` is one of `float`, `int`, `bool`, `str`.
+- `![description]` is a description that will appear in the documentation.
 - The optional field `default` gives a default value for the parameter.
 
 For example:
@@ -76,6 +76,7 @@ The syntax for describing subscribers is:
 
             queue_size: ![queue size]
             latch: ![latch]
+            process: ![process]
 
 where:
 
@@ -84,8 +85,13 @@ where:
 - `![description]` is a Markdown description string.
 - `![queue size]`, `![latch]` are optional parameters for
   ROS publishing/subscribing functions.
+- The optional parameter `![process]`, one of `synchronous` (default) or `asynchronous` describes whether to process the message in a synchronous or asynchronous way (in a separated thread).
+- The optional parameter `[timeout]` describes a timeout value. If no message is received for more than this value, the function `on_timeout_![subscription]()` is called.
 
-The syntax for describing publishers is similar.
+TODO: implement this timeout functionality
+y
+The syntax for describing publishers is similar; it does not have the
+the `process` and `timeout` value.
 
 Example:
 
@@ -96,6 +102,7 @@ Example:
             type: duckietown_msgs/SegmentList
             desc: Line detections
             queue_size: 1
+            timeout: 3
 
     publishers:
         lane_pose:
@@ -177,23 +184,23 @@ To access the parameter value, access `self.config.![parameter]`.
 
 Example:
 
-        class MyNode():
+    class MyNode():
 
-            def __init__(self):
-                EasyNode.__init__(self, 'my_package', 'my_node')
+        def __init__(self):
+            EasyNode.__init__(self, 'my_package', 'my_node')
 
-        def on_parameters_changed(self, first_time, updated):
-            if first_time:
-                self.info('Initializing array for the first time.')
+    def on_parameters_changed(self, first_time, updated):
+        if first_time:
+            self.info('Initializing array for the first time.')
+            self.cells = [0] * self.config.num_cells
+
+        else:
+            if 'num_cells' in updated:
+                self.info('Number of cells changed.')
                 self.cells = [0] * self.config.num_cells
 
-            else:
-                if 'num_cells' in updated:
-                    self.info('Number of cells changed.')
-                    self.cells = [0] * self.config.num_cells
-
-        if __name__ == '__main__':
-            Node().spin()
+    if __name__ == '__main__':
+        Node().spin()
 
 EasyNode will monitor the ROS parameter server, and will call the function
 `on_parameters_changed` if the user changes any parameters.
@@ -236,7 +243,7 @@ Example:
 
 TODO: to implement
 
-The function 'on_timeout_![subscription]()' is called when
+The function `on_timeout_![subscription]()` is called when
 there hasn't been a message for the specified timeout interval.
 
     class MyNode():
@@ -307,8 +314,8 @@ where `![config name]` is a short string (e.g., `baseline`).
 
 The files can be anywhere in:
 
-- `${DUCKIETOWN_ROOT}/catkin_ws/src`
-- `${DUCKIEFLEET_ROOT}`
+- The directory `${DUCKIETOWN_ROOT}/catkin_ws/src`;
+- The directory `${DUCKIEFLEET_ROOT}`.
 
 
 Several config files can exist at the same time.
@@ -322,27 +329,31 @@ where the `baseline` versions are the baseline parameters,
 `fall2017` are the parameters we are using for Fall 2017,
 and `andrea` are temporary parameters that the user is using.
 
+However, there cannot be two configurations with the same filename
+e.g. two copies of `line_detector-line_detector.baseline.config.yaml`.
+In this case, EasyNode will raise an error.
+
+TODO: implement this functionality.
+
 ### Configuration file format
 
 The format of the `*.config.yaml` file is as follows:
 
     description: |
         ![description of what this configuration accomplishes]
-    extends: # list of strings
-    - [config name]
-    - [config name]
+    extends: [![config name], [config name]]
     values:
         ![parameter name]: ![value]
         ![parameter  name]: ![value]
 
-The `extends` field (optional) allows to use the specified configurations as the defaults
-for the current one.
+The `extends` field (optional) is a list of string. It allows to use the
+specified configurations as the defaults for the current one.
 
 For example, the file `line_detector-line_detector.baseline.config.yaml` could contain:
 
     description: |
         These are the standard values for the line detector.
-
+    extends: []
     values:
         img_size: [120,160]
         top_cutoff: 40
@@ -366,20 +377,20 @@ version. Then it loads the `fall2017` version. If a value  was already
 specified in the `baseline` version, it is overwritten. If a version does not
 exist, it is simply skipped.
 
-If a parameter is not specified in any configuration
+If a parameter is not specified in any configuration, an error is raised.
 
 Using this functionality, it is easy to have team-based customization and
 user-based customization.
 
 There are two special configuration names:
 
-1. The configuration name `defaults` loads the defaults specified by the node.
+1. The configuration name "`defaults`" loads the defaults specified by the node.
    Note that the defaults are ignored otherwise.
-2. The configuration name `vehicle` expands to the name of the vehicle being used.
+2. The configuration name "`vehicle`" expands to the name of the vehicle being used.
 
 TODO: the `vehicle` part is not implemented yet.
 
-### Date-based configuration
+### Time-variant configuration
 
 EasyNode allows to describe configuration that can change in time.
 
@@ -403,11 +414,107 @@ is going to be used; for logs in 2017, the second is going to be used.
 
 TODO: not implemented yet.
 
-## Visualizing the data
+## Visualizing the configuration database
+
+There are a few tolls used to visualize the configuration database.
 
 
+### `easy_node desc`: Describing a node
+
+The command
+
+    $ rosrun easy_node desc ![package name] ![node name]
+
+shows a description of the node, as specified in `![package name].![node name].easy_node.yaml`.
+
+<div class='usage-example' markdown="1">
+
+For example:
+
+    $ rosrun easy_node desc line_detector2 line_detector2
+
+shows the following:
+
+TODO: output
+
+
+</div>
+
+### `easy_node eval`: Evaluating a configuration sequence
+
+The program `eval` script allows to evaluate a certain configuration sequence.
+
+The syntax is:
+
+    $ rosrun easy_node eval ![package name] ![node name] ![config sequence]
+
+The tool shows also which file is responsible for the value of each parameter.
+
+<div class='usage-example' markdown="1">
+
+For example, the command
+
+    $ rosrun easy_node desc line_detector2 line_detector2 defaults:andrea
+
+evaluates the configuration for the `line_detector2` node with the configuration
+sequence `defaults:andrea`.
+
+The result is:
+
+TODO: output
+
+
+Note how we can tell which configuration file set each parameter.
+
+</div>
+
+### `easy_node summary`: Describing and validating all configuration files
+
+The program `summary` reads all the configuration files described in the repository
+and validates them against the node description.
+
+If a configuration file refers to parameters that do not exist,
+the configuration file is established to be invalid.
+
+The syntax is:
+
+    $ rosrun easy_node summary
+
+<div class='usage-example'>
+
+For example, the output can be:
+
+TODO: example
+
+</div>
 
 ## Benchmarking {#easy_node-benchmarking}
+
+EasyNode implements some simple timing statistics. These are accessed using
+the `context` object passed to the message received callbacks.
+
+Here's an example use, from [`line_detector2`](#line_detector2-line_detector_node2):
+
+    def on_received_image(self, context, image_msg):
+
+        with context.phase('decoding'):
+            ...
+
+        with context.phase('resizing'):
+            # Resize and crop image
+            ...
+
+        stats = context.get_stats()
+        self.info(stats)
+
+The idea is to enclose the different phases of the computation
+using the [context manager](#python-context-manager) `phase(![name])`.
+
+A summary of the statistics can be accessed by using `context.get_stats()`.
+
+For example, this will print:
+
+TODO: example stats
 
 ## Automatic documentation generation
 
@@ -418,13 +525,12 @@ Note that this can be used independently of the fact that the node
 implements the `EasyNode` API. So, we can use this EasyNode functionality
 also to document the legacy nodes.
 
-
 To generate the docs, use this command:
 
     $ rosrun easy_node generate_docs
 
 For each node documented using a `*.easy_node.yaml`, this generates a Markdown
-file called  '![node name]-easy_node-autogenerated.md' in the package
+file called  "`![node name]-easy_node-autogenerated.md`" in the package
 directory.
 
 The contents are enclosed in a `div` with ID `#![package name]-![node name]-autogenerated`.
@@ -444,4 +550,9 @@ For example, in the `README.md` of the `joy_mapper` package, we have:
 
     <move-here src="#joy_mapper-joy_mapper_node-autogenerated"/>
 
-The result can be seen at [](#joy_mapper)
+The result can be seen at [](#joy_mapper).
+
+
+## Other ideas
+
+(Add here other ideas that we can implement.)
