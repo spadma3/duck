@@ -13,17 +13,21 @@ Use a mouse as encoder. Requires read permission to `/dev/input/mice`.
 
 ## Getting access to `/dev/input/mice`.
 
-* Create a group named `input`
-```
-$ sudo groupadd input
-```
-* Add yourself to the `input` group
-```
-$ sudo adduser your_user_name input
-```
-* Log out and log back in for the change to take effect
-* Put all devices under `/dev/input/` into the `input` group to grant the group read/write permission. Can be done by adding a file name `99-pure-data.rules` under `/etc/udev/rules.d` with the following line:
-```
-SUBSYSTEM=="input", GROUP="input", MODE="660"
-```
-* Reboot for the rule to take effect.
+Create a group named `input`:
+
+
+    $ sudo groupadd input
+
+
+Add yourself to the `input` group:
+
+
+    $ sudo adduser your_user_name input
+
+Log out and log back in for the change to take effect.
+
+Put all devices under `/dev/input/` into the `input` group to grant the group read/write permission. Can be done by adding a file name `99-pure-data.rules` under `/etc/udev/rules.d` with the following line:
+
+    SUBSYSTEM=="input", GROUP="input", MODE="660"
+
+Reboot for the rule to take effect.

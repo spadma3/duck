@@ -2,7 +2,11 @@
 <package>
   <name>pkg_name</name>
   <version>1.0.0</version>
-  <description>TODO: Add a description of package `pkg_name` in `package.xml`.</description>
+  <description>
+The package `pkg_name` is a template for ROS packages.
+
+For the tutorial, see [](#ros-python-howto).
+</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
