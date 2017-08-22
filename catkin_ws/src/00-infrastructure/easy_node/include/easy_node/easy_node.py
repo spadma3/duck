@@ -11,6 +11,8 @@ from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOU
 from .node_description.configuration import load_configuration_package_node
 from .user_config.decide import get_user_configuration
 from .utils.timing import ProcessingTimingStats
+import yaml
+from duckietown_utils.exception_utils import raise_wrapped
 
 
 __all__ = [
@@ -101,12 +103,11 @@ class EasyNode():
 
     def _sub_callback(self, subscription, subscriber_proxy, data):
         subscriber_proxy.pts.received_message(data)
-
         callback_name = 'on_received_%s' % subscription.name
         if hasattr(self, callback_name):
             if subscription.process == PROCESS_SYNCHRONOUS:
                 # Call directly
-                subscriber_proxy.pts.decided_to_process()
+                subscriber_proxy.pts.decided_to_process(data)
                 self._call_callback(callback_name, subscription, data)
             elif subscription.process == PROCESS_THREADED:
                 # Start a daemon thread to process the image
@@ -145,7 +146,7 @@ class EasyNode():
             subscriber_proxy.pts.decided_to_skip()
             return
         try:
-            subscriber_proxy.pts.decided_to_process()
+            subscriber_proxy.pts.decided_to_process(data)
             self._call_callback(callback_name, subscription, data)
         finally:
             # Release the thread lock
@@ -207,19 +208,33 @@ class EasyNode():
             setattr(self.config, p.name, val)
             values[p.name] = val
             
-#         self.info('values: %s' % values)
-#         duration = values.get('en_update_params_interval', 3.0) # XXX
+        self. _on_parameters_changed(first_time=True, values=values)
+
+
         duration = self.config.en_update_params_interval
         duration = rospy.Duration.from_sec(duration)  # @UndefinedVariable
-        self.on_parameters_changed(True, values)
         rospy.Timer(duration, self._update_parameters)  # @UndefinedVariable
 
+    def _on_parameters_changed(self, first_time, values):
+        try:
+            self.on_parameters_changed(first_time, values)
+        except DTConfigException as e:
+            msg = 'Configuration error raised by on_parameters_changed(). Configuration:\n'
+            msg += indent(yaml.dump(values), '  ')
+            raise_wrapped(DTConfigException, e, msg, compact=True)
+        except Exception as e:
+            msg = 'Configuration error raised by on_parameters_changed(). Configuration:\n'
+            msg += indent(yaml.dump(values), '  ')
+            raise_wrapped(DTConfigException, e, msg)
+             
+        
     def _update_parameters(self, _event):
         changed = self._get_changed_parameters()
+#         self.info('Parameters changed: %s' % sorted(changed))
         if changed:
             for k, v in changed.items():
                 setattr(self.config, k, v)
-            self.on_parameters_changed(False, changed)
+            self._on_parameters_changed(False, changed)
         else:
             pass
             # self.info('No change in parameters.')
@@ -233,7 +248,8 @@ class EasyNode():
             s1 = current.__repr__()
             s2 = val.__repr__()
             if s1 != s2:
-                changed[p.name] = current
+                changed[p.name] = val
+#                 setattr(self.config, p.name, current)
         return changed
 
     def spin(self):

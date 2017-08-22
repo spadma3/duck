@@ -133,6 +133,7 @@ class ConfigDB():
                 using.append(config_name)
                 
                 for p in node_config.parameters.values():
+         
                     if p.has_default:
                         values[p.name] = p.default
                         origin[p.name] = node_config.filename

@@ -19,12 +19,13 @@
     <!-- <include file="$(find joy_mapper)/launch/joy_mapper_node2.launch">
     </include> -->
 
-    <node   ns="$(arg veh)"
-            pkg='joy_mapper'
-            type="joy_mapper_node2.py"
-            name="joy_mapper_node"
-            output="screen"
-            required="true">
+    <node
+        ns="$(arg veh)"
+        pkg='joy_mapper'
+        type="joy_mapper_node2.py"
+        name="joy_mapper_node"
+        output="screen"
+        required="true">
     </node>
 
     <!-- run inverse_kinematics_node -->

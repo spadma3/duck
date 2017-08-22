@@ -57,15 +57,17 @@ class ProcessingTimingStats():
         
     def reset(self):
         self.events = []
-        self.last_msg_acquisition = None
+        self.last_msg_received = None
+        self.last_msg_being_processed = None
         self.stats = defaultdict(lambda: SingleStat())
         self.phase_names = []
         
     def received_message(self, msg):
         self.stats['received'].sample()
-        self.last_msg_acquisition = msg.header.stamp.to_sec()
+        self.last_msg_received= msg.header.stamp.to_sec()
     
-    def decided_to_process(self):
+    def decided_to_process(self, msg):
+        self.last_msg_being_processed = msg.header.stamp.to_sec()
         self.stats['processed'].sample()
         
     def decided_to_skip(self):
@@ -86,7 +88,7 @@ class ProcessingTimingStats():
             t2 = rospy.get_time()   # @UndefinedVariable
             delta_clock = c2 - c1
             delta_wall = t2 - t1
-            latency_from_acquisition = t2 - self.last_msg_acquisition
+            latency_from_acquisition = t2 - self.last_msg_being_processed
 
         self.stats[(phase_name, 'clock')].sample(delta_clock)
         self.stats[(phase_name, 'wall')].sample(delta_wall)

@@ -1,5 +1,6 @@
 # Package `mouse_encoder` {#mouse_encoder}
 
+
 Use a mouse as encoder. Requires read permission to `/dev/input/mice`.
 
 ## Publish Topic

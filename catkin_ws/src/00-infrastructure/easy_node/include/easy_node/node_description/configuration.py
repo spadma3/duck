@@ -22,7 +22,7 @@ __all__ = [
 
 EasyNodeConfig = namedtuple('EasyNodeConfig', 'filename package_name node_type_name description parameters subscriptions contracts publishers')
 EasyNodeParameter = namedtuple('EasyNodeParameter', 'name desc type has_default default')
-EasyNodeSubscription = namedtuple('EasyNodeSubscription', 'name desc type topic queue_size process latch')
+EasyNodeSubscription = namedtuple('EasyNodeSubscription', 'name desc type topic queue_size process latch timeout')
 EasyNodePublisher = namedtuple('EasyNodePublisher', 'name desc type topic queue_size latch')
 
 PROCESS_THREADED = 'threaded'
@@ -92,8 +92,8 @@ def load_configuration(realpath, contents):
     try:
         try:
             data = yaml.load(contents)
-        except YAMLError as e:
-            msg = 'Could not read YAML file properly:' 
+        except Exception as e:
+            msg = 'Could not parse YAML file properly:' 
             raise_wrapped(DTConfigException, e, msg, compact=True)
         if not isinstance(data, dict):
             msg = 'Expected a dict, got %s.' % type(data).__name__
@@ -169,17 +169,22 @@ def load_configuration_parameter(name, data):
 #         type: bool
 #         default: true
 #     
-    desc = data.pop('desc', None)
-    desc = preprocess_desc(desc)
-    type_ = data.pop('type')
-    
-    if 'default' in data:
-        default = data.pop('default')
-        has_default = True
-    else:
-        default = DEFAULT_NOT_GIVEN
-        has_default = False
+    try:
+        desc = data.pop('desc', None)
+        desc = preprocess_desc(desc)
+        type_ = data.pop('type')
         
+        if 'default' in data:
+            default = data.pop('default')
+            has_default = True
+        else:
+            default = DEFAULT_NOT_GIVEN
+            has_default = False
+    
+    except KeyError as e:
+        msg = 'Could not find field %r.' % e.args[0]
+        raise DTConfigException(msg)
+
     if data:
         msg = 'Extra keys: %r' % data
         raise DTConfigException(msg)
@@ -191,7 +196,7 @@ def load_configuration_parameter(name, data):
         'float': float,
         'any': None,
     }
-    
+        
     if not type_ in type2T:
         raise NotImplementedError(type_)
     T = type2T[type_] 
@@ -235,6 +240,7 @@ def load_configuration_subscription(name, data):
         desc = data.pop('desc', None)
         desc = preprocess_desc(desc)
         latch = data.pop('latch', None)
+        timeout = data.pop('timeout', None)
         topic = data.pop('topic')
         type_ = data.pop('type')
         queue_size = data.pop('queue_size', None)
@@ -252,7 +258,7 @@ def load_configuration_subscription(name, data):
         raise DTConfigException(msg)
     T = message_class_from_string(type_)  
     
-    return EasyNodeSubscription(name=name, desc=desc, topic=topic,
+    return EasyNodeSubscription(name=name, desc=desc, topic=topic, timeout=timeout,
                                 type=T, queue_size=queue_size, latch=latch, process=process)
 
 
@@ -348,6 +354,8 @@ def format_enc_subscriptions(enc, descriptions):
             options.append('queue_size = %s' % p.queue_size)
         if p.latch is not None:
             options.append('latch = %s ' %  p.latch)
+        if p.timeout is not None:
+            options.append('timeout = %s ' %  p.timeout)
         
         options = '\n'.join(options)
         table.append([p.name, p.type.__name__, p.topic, options, p.process, desc])

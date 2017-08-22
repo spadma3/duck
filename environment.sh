@@ -11,6 +11,7 @@ echo "Activating ROS..."
 source /opt/ros/kinetic/setup.bash
 
 echo "Setup ROS_HOSTNAME..."
+export HOSTNAME=$HOSTNAME
 export ROS_HOSTNAME=$HOSTNAME.local
 export DUCKIETOWN_ROOT=$HOME/duckietown
 
