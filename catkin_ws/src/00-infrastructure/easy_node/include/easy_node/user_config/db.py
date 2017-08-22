@@ -44,8 +44,8 @@ class ConfigDB():
         self.package2nodes = {}
 
         packages = get_list_of_packages_in_catkin_ws()
-        packages = ['line_detector2', 'joy_mapper', 'lane_filter', 'lane_control', 'anti_instagram'] 
-        logger.error('approximation, only using %r' % packages)
+#         packages = ['line_detector2', 'joy_mapper', 'lane_filter', 'lane_control', 'anti_instagram'] 
+#         logger.error('approximation, only using %r' % packages)
         logger.debug('Reading %d packages configuration...' % len(packages))
         for p in packages:
             self.package2nodes[p] = load_configuration_for_nodes_in_package(p)

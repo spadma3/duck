@@ -1,9 +1,7 @@
 from collections import namedtuple, OrderedDict
 import os
 
-from ruamel import yaml
-from yaml.error import YAMLError
-
+from ruamel import yaml 
 from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import import_name
@@ -195,6 +193,8 @@ def load_configuration_parameter(name, data):
         'int': int,
         'float': float,
         'any': None,
+        None: None,
+        'dict': dict,
     }
         
     if not type_ in type2T:
@@ -227,8 +227,9 @@ def message_class_from_string(s):
     try:
         msgclass = import_name(symbol)
         return msgclass
-    except:
-        raise  
+    except ValueError as e:
+        msg = 'Cannot import type for message "%s" (%s).' % (s, symbol)
+        raise_wrapped(DTConfigException, e, msg, compact=True) 
     
 def load_configuration_subscription(name, data):
 #      image:

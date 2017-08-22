@@ -94,7 +94,7 @@ test-turn-forward: unittests-environment
 
 # Basic demos
 
-
+### These are not using master.launch
 demo-joystick: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh;  roslaunch duckietown joystick.launch veh:=$(vehicle_name)"
 
@@ -109,6 +109,7 @@ demo-joystick-camera-high-speed: unittests-environment
 
 demo-line_detector: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name)"
+
 
 demo-joystick-perception: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos master.launch fsm_file_name:=joystick"

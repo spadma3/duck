@@ -1,0 +1,20 @@
+description:
+
+parameters:
+    topicin:
+        default: wheels_driver/wheels_cmd
+        type: str
+    topicout:
+        default: wheels_driver_node/wheels_cmd
+        type: bool
+    bagin:
+        desc:
+        type: str
+    bagout:
+        desc:
+        type: str
+        default: null
+
+subscriptions: {}
+publishers: {}
+contracts: {}
