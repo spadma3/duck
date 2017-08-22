@@ -34,7 +34,7 @@ def easy_node_desc():
     package_name, node_type_name = args
     enc = load_configuration_package_node(package_name, node_type_name)
     assert isinstance(enc, EasyNodeConfig)
-    s = format_enc(enc)
+    s = format_enc(enc, descriptions=False)
     print(s)
         
     

@@ -8,6 +8,7 @@ from duckietown_utils.path_utils import expand_all
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
     DUCKIEFLEET_ROOT_variable = 'DUCKIEFLEET_ROOT'
+    DUCKIETOWN_CONFIG_SEQUENCE_variable = 'DUCKIETOWN_CONFIG_SEQUENCE'
     
     # inside DUCKIEFLEET_ROOT
     scuderia_filename = 'scuderia.yaml'

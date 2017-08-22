@@ -78,18 +78,27 @@ The syntax for describing subscribers is:
             latch: ![latch]
             process: ![process]
 
-where:
+The parameters are as follows.
 
-- `![topic name]` is the name of the topic to subscribe.
-- `![message type]` is a ROS message type name, such as `sensor_msgs/Joy`.
+`![topic name]` is the name of the topic to subscribe.
+
+`![message type]` is a ROS message type name, such as `sensor_msgs/Joy`.
 - `![description]` is a Markdown description string.
-- `![queue size]`, `![latch]` are optional parameters for
-  ROS publishing/subscribing functions.
-- The optional parameter `![process]`, one of `synchronous` (default) or `asynchronous` describes whether to process the message in a synchronous or asynchronous way (in a separated thread).
-- The optional parameter `[timeout]` describes a timeout value. If no message is received for more than this value, the function `on_timeout_![subscription]()` is called.
 
-TODO: implement this timeout functionality
-y
+`![queue size]`, `![latch]` are optional parameters for
+  ROS publishing/subscribing functions.
+
+See the [ROS documentation][queue_size].
+
+[queue_size]: http://wiki.ros.org/rospy/Overview/Publishers%20and%20Subscribers#queue_size:_publish.28.29_behavior_and_queuing
+
+The optional parameter `![process]`, one of `synchronous` (default) or `asynchronous` describes whether to process the message in a synchronous or asynchronous way (in a separated thread).
+
+The optional parameter `![timeout]` describes a timeout value. If no message is received for more than this value, the function `on_timeout_![subscription]()` is called.
+
+TODO: implement this timeout functionality.
+
+
 The syntax for describing publishers is similar; it does not have the
 the `process` and `timeout` value.
 
@@ -143,9 +152,10 @@ Here is a minimal example of a node that conforms with the API:
     if __name__ == '__main__':
         MyNode().spin()
 
-- The node class must derive from `EasyNode`.
-- You need to tell EasyNode what is the package name and the node name.
-- To initialize, call the function `spin()`.
+The node class must derive from `EasyNode`.
+You need to tell EasyNode what is the package name and the node name.
+
+To initialize, call the function `spin()`.
 
 The `EasyNode` class provides the following functions:
 
@@ -364,10 +374,10 @@ Which parameters are used depend on the **configuration sequence**.
 
 The configuration sequence is a list of configuration names.
 
-It can be specified by the environment variable `DUCKIETOWN_CONFIG`,
+It can be specified by the environment variable `DUCKIETOWN_CONFIG_SEQUENCE`,
 using a colon-separated list of strings. For example:
 
-    $ export DUCKIETOWN_CONFIG=baseline:fall2017:andrea
+    $ export DUCKIETOWN_CONFIG_SEQUENCE=baseline:fall2017:andrea
 
 The line above specifies that the configuration sequence is
 `baseline`, `fall2017`, `andrea`.
@@ -435,7 +445,37 @@ For example:
 
 shows the following:
 
-TODO: output
+    Configuration for node "line_detector_node2" in package "line_detector2"
+    ========================================================================
+
+     Parameters
+
+        name                       type   default
+        ----                       ----   -------
+        en_update_params_interval  float  2.0
+        top_cutoff                 int    (none)
+        detector                   (n/a)  (none)
+        img_size                   (n/a)  (none)
+        verbose                    bool   True
+
+
+     Subcriptions
+
+        name       type                    topic       options         process
+        ----       ----                    -----       -------         -------
+        switch     BoolStamped             ~switch     queue_size = 1  synchronous
+        image      CompressedImage         ~image      queue_size = 1  threaded
+        transform  AntiInstagramTransform  ~transform  queue_size = 1  synchronous
+
+
+     Publishers
+
+        name              type         topic              options
+        ----              ----         -----              -------
+        color_segment     Image        ~colorSegment      queue_size = 1
+        edge              Image        ~edge              queue_size = 1
+        segment_list      SegmentList  ~segment_list      queue_size = 1
+        image_with_lines  Image        ~image_with_lines  queue_size = 1
 
 
 </div>

@@ -2,11 +2,12 @@ from contextlib import contextmanager
 import rospy
 import threading
 
+from duckietown_utils.constants import DuckietownConstants
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.text_utils import indent
 
 from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
-from .node_description.configuration import load_configuration_package_node, merge_configuration
+from .node_description.configuration import load_configuration_package_node
 from .user_config.decide import get_user_configuration
 from .utils.timing import ProcessingTimingStats
 
@@ -17,7 +18,7 @@ __all__ = [
 
 class EasyNode():
     
-    ENV = 'DUCKIETOWN_CONFIG_SEQUENCE'
+    ENV = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
     
     
     def __init__(self, package_name, node_type_name):

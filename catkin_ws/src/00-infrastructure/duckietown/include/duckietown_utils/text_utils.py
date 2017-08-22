@@ -1,4 +1,5 @@
 import re
+from duckietown_utils.system_cmd_imp import contract
 
 __all__ = ['indent', 'seconds_as_ms']
 
@@ -49,6 +50,12 @@ def get_length_on_screen(s):
     """ Returns the length of s without the escapes """
     return len(remove_escapes(s))
 
+
+@contract(table='list', f=str)    
+def remove_table_field(table, f):
+    i = table[0].index(f)
+    for row in table:
+        row.pop(i)
 
 def format_table_plus(rows, colspacing=1):
     if not rows:

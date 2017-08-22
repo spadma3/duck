@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>adafruit_imu</name>
-  <version>0.0.0</version>
+  <version>1.0.0</version>
   <description>The Adafruit IMU package for duckietown. Reads sensor data from adafruit IMU and publishes it to sensor_msgs.Imu and sensor_msgs.MagneticField.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
@@ -15,7 +15,7 @@
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
+  <license>GPLv3</license>
 
 
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->

@@ -2,7 +2,8 @@ import termcolor
 
 from duckietown_utils import col_logging  # @UnusedImport
 from duckietown_utils.path_utils import display_filename
-from duckietown_utils.text_utils import truncate_string_right, format_table_plus
+from duckietown_utils.text_utils import truncate_string_right, format_table_plus,\
+    remove_table_field
 from easy_node.user_config.db import get_config_db
 from easy_node.user_config.get_configuration_files import ConfigInfo
 
@@ -39,13 +40,8 @@ def user_config_summary():
             date , c.extends, valid, valid_error,
             d, display_filename(c.filename)
         ])
-        
-    def remove_field(f):
-        i = table[0].index(f)
-        for row in table:
-            row.pop(i)
     
-#     remove_field('filename')
+    remove_table_field(table, 'filename')
         
     s = format_table_plus(table, colspacing=4)
     return s

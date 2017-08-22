@@ -268,8 +268,9 @@ def get_checks():
 
     DUCKIETOWN_ROOT = DuckietownConstants.DUCKIETOWN_ROOT_variable
     DUCKIEFLEET_ROOT = DuckietownConstants.DUCKIEFLEET_ROOT_variable
+    DUCKIETOWN_CONFIG_SEQUENCE = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
-    variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT]
+    variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT, DUCKIETOWN_CONFIG_SEQUENCE]
 
     existence = {}
 
@@ -377,6 +378,7 @@ def get_checks():
                     )
 
 
+        
     if False:
         # TODO: not sure if this is needed
         if this_is_a_duckiebot:
@@ -398,7 +400,8 @@ def get_checks():
         pass
     else:
         for package_name, dirname in packagename2dir.items():
-            add_python_package_checks(add, package_name, dirname)
+#             if package_name != 'pkg_name':
+                add_python_package_checks(add, package_name, dirname)
 
     # TODO: DISPLAY is not set
     # files in src/ or scripts/ are executable

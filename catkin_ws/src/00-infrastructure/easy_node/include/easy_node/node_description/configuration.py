@@ -11,7 +11,7 @@ from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import format_table_plus, wrap_line_length,\
-    indent
+    indent, remove_table_field
 
 
 # import yaml
@@ -225,7 +225,7 @@ def load_configuration_subscription(name, data):
     try:
         desc = data.pop('desc', None)
         desc = preprocess_desc(desc)
-        latch = bool(data.pop('latch', False))
+        latch = data.pop('latch', None)
         topic = data.pop('topic')
         type_ = data.pop('type')
         queue_size = data.pop('queue_size', None)
@@ -251,7 +251,7 @@ def load_configuration_publisher(name, data):
     try:
         desc = data.pop('desc', None)
         desc = preprocess_desc(desc)
-        latch = bool(data.pop('latch', False))
+        latch = data.pop('latch', None)
         topic = data.pop('topic')
         type_ = data.pop('type')
         queue_size = data.pop('queue_size', None)
@@ -288,19 +288,23 @@ def load_configuration_for_nodes_in_package(package_name):
     return res
         
 @contract(enc=EasyNodeConfig, returns=str)
-def format_enc(enc):
+def format_enc(enc, descriptions=False):
     s = 'Configuration for node "%s" in package "%s"' % (enc.node_type_name, enc.package_name)
     s += '\n' + '=' * len(s)
     
-    s += '\n\n' + indent(format_enc_parameters(enc), ' ', 'Parameters      ',)
-    s += '\n\n' + indent(format_enc_subscriptions(enc), ' ', 'Subscriptions   ')
-    s += '\n\n' + indent(format_enc_publishers(enc), ' ', 'Publishers      ')
+    S = ' '*4
+    s += '\n\n Parameters\n\n' 
+    s += indent(format_enc_parameters(enc, descriptions), S)
+    s += '\n\n Subcriptions\n\n'
+    s += indent(format_enc_subscriptions(enc, descriptions), S)
+    s += '\n\n Publishers\n\n'
+    s += indent(format_enc_publishers(enc, descriptions), S)
     return s
     
 @contract(enc=EasyNodeConfig, returns=str)
-def format_enc_parameters(enc):
+def format_enc_parameters(enc, descriptions):
     table = []
-    table.append(['name',  'type', 'default', 'desc',])
+    table.append(['name',  'type', 'default', 'description',])
     table.append(['-'*len(_) for _ in table[0]])
     for p in enc.parameters.values():
         if p.desc:
@@ -311,13 +315,19 @@ def format_enc_parameters(enc):
             default = p.default
         else:
             default = '(none)'
-        table.append([p.name, p.type, default, desc])
-    return format_table_plus(table, 4)
+        if p.type is None:
+            t = '(n/a)'
+        else:
+            t = p.type.__name__
+        table.append([p.name, t, default, desc])
+    if not descriptions:
+        remove_table_field(table, 'description')
+    return format_table_plus(table, 2)
 
 @contract(enc=EasyNodeConfig, returns=str)
-def format_enc_subscriptions(enc):
+def format_enc_subscriptions(enc, descriptions):
     table = []
-    table.append(['name',  'type', 'topic', 'options', 'process', 'desc',])
+    table.append(['name',  'type', 'topic', 'options', 'process', 'description',])
     table.append(['-'*len(_) for _ in table[0]])
     for p in enc.subscriptions.values():
         if p.desc:
@@ -330,15 +340,17 @@ def format_enc_subscriptions(enc):
         if p.latch is not None:
             options.append('latch = %s ' %  p.latch)
         
-        options = ', '.join(options)
+        options = '\n'.join(options)
         table.append([p.name, p.type.__name__, p.topic, options, p.process, desc])
-    return format_table_plus(table, 4)
+    if not descriptions:
+        remove_table_field(table, 'description')
+    return format_table_plus(table, 2)
 
 
 @contract(enc=EasyNodeConfig, returns=str)
-def format_enc_publishers(enc):
+def format_enc_publishers(enc, descriptions):
     table = []
-    table.append(['name',  'type', 'topic', 'options', 'desc',])
+    table.append(['name',  'type', 'topic', 'options', 'description',])
     table.append(['-'*len(_) for _ in table[0]])
     for p in enc.publishers.values():
         if p.desc:
@@ -351,10 +363,8 @@ def format_enc_publishers(enc):
         if p.latch is not None:
             options.append('latch = %s' %  p.latch)
                 
-        options = ', '.join(options)
+        options = '\n'.join(options)
         table.append([p.name, p.type.__name__, p.topic, options, desc])
-    return format_table_plus(table, 4)
-
-EasyNodeParameter = namedtuple('EasyNodeParameter', 'name desc type has_default default')
-EasyNodeSubscription = namedtuple('EasyNodeSubscription', 'name desc type topic queue_size process latch')
-EasyNodePublisher = namedtuple('EasyNodePublisher', 'name desc type topic queue_size latch')
+    if not descriptions:
+        remove_table_field(table, 'description')
+    return format_table_plus(table, 2)
