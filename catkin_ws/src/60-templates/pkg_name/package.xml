@@ -2,7 +2,7 @@
 <package>
   <name>pkg_name</name>
   <version>1.0.0</version>
-  <description>The pkg_name package</description>
+  <description>TODO: Add a description of package `pkg_name` in `package.xml`.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

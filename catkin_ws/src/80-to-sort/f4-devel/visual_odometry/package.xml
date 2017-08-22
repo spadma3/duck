@@ -2,7 +2,7 @@
 <package>
   <name>visual_odometry</name>
   <version>1.0.0</version>
-  <description>The visual_odometry package</description>
+  <description>TODO: Add a description of package `visual_odometry` in `package.xml`.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->

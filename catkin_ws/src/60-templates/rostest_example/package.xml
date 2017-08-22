@@ -2,7 +2,7 @@
 <package>
   <name>rostest_example</name>
   <version>1.0.0</version>
-  <description>The rostest_example package</description>
+  <description>TODO: Add a description of package `rostest_example` in `package.xml`.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->

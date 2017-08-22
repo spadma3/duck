@@ -2,7 +2,7 @@
 <package>
   <name>duckietown_logs</name>
   <version>1.0.0</version>
-  <description>The logs package</description>
+  <description>TODO: Add a description of package `logs` in `package.xml`.</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
