@@ -50,9 +50,9 @@ class EasyNode():
         self.info('on_shutdown (default)')
     
     def _init(self):
-        c1 = load_configuration_package_node('easy_node', 'easy_node')
-        c2 = load_configuration_package_node(self.package_name, self.node_type_name)
-        self._configuration = merge_configuration(c1, c2)
+        # c1 = load_configuration_package_node('easy_node', 'easy_node')
+        c = load_configuration_package_node(self.package_name, self.node_type_name)
+        self._configuration = c
         self._init_parameters()
         self._init_subscriptions()
         self._init_publishers()
@@ -84,7 +84,7 @@ class EasyNode():
             sp = SubscriberProxy(S)
             setattr(self.subscribers, s.name, sp)
             
-            self.info('Subscribed to %s')
+            self.info('Subscribed to %s' % s.topic)
             if s.process == PROCESS_THREADED:
                 sp.init_threaded()
             
@@ -188,8 +188,8 @@ class EasyNode():
             setattr(self.config, p.name, val)
             values[p.name] = val
         self.info('values: %s' % values)
-        duration = values.get('en_update_params_interval', 3.0) # XXX
-#         duration = self.config.en_update_params_interval
+#         duration = values.get('en_update_params_interval', 3.0) # XXX
+        duration = self.config.en_update_params_interval
         duration = rospy.Duration.from_sec(duration)  # @UndefinedVariable
         self.on_parameters_changed(True, values)
         rospy.Timer(duration, self._update_parameters)  # @UndefinedVariable
@@ -207,16 +207,12 @@ class EasyNode():
     def _get_changed_parameters(self):
         parameters = self._configuration.parameters
         changed = {}
-        for p in parameters.values():
-#             if p.has_default:
-#                 val = rospy.get_param(name, p.default)  # @UndefinedVariable
-#             else:
+        for p in parameters.values(): 
             val = rospy.get_param('~' + p.name)  # @UndefinedVariable
             current = getattr(self.config, p.name)
             s1 = current.__repr__()
             s2 = val.__repr__()
             if s1 != s2:
-                # self.info('change from\n%s\n\nto\n\n%s' % (s1,s2))
                 changed[p.name] = current
         return changed
     

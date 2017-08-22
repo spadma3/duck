@@ -10,6 +10,8 @@ from duckietown_utils.instantiate_utils import import_name
 from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.system_cmd_imp import contract
+from duckietown_utils.text_utils import format_table_plus, wrap_line_length,\
+    indent
 
 
 # import yaml
@@ -18,7 +20,7 @@ __all__ = [
     'load_configuration',
 ]
 
-EasyNodeConfig = namedtuple('EasyNodeConfig', 'filename parameters subscriptions contracts publishers')
+EasyNodeConfig = namedtuple('EasyNodeConfig', 'filename package_name node_type_name parameters subscriptions contracts publishers')
 EasyNodeParameter = namedtuple('EasyNodeParameter', 'name desc type has_default default')
 EasyNodeSubscription = namedtuple('EasyNodeSubscription', 'name desc type topic queue_size process latch')
 EasyNodePublisher = namedtuple('EasyNodePublisher', 'name desc type topic queue_size latch')
@@ -45,12 +47,19 @@ def merge_configuration(c1, c2):
         contracts.update(c.contracts)
         publishers.update(c.publishers)
     res = EasyNodeConfig(filename=c2.filename, # XXX
+                         package_name=c2.package_name,
+                         node_type_name=c2.node_type_name,
                          parameters=parameters, 
                          subscriptions=subscriptions, 
                          contracts=contracts,
                          publishers=publishers)
     return res
-    
+
+def load_configuration_baseline():
+    """ Get the baseline configuration. """
+    c1 = load_configuration_package_node('easy_node', 'easy_node')
+    return c1
+        
 @contract(returns=EasyNodeConfig)
 def load_configuration_package_node(package_name, node_type_name):
     path = get_ros_package_path(package_name)
@@ -62,8 +71,16 @@ def load_configuration_package_node(package_name, node_type_name):
     
     fn = found[0]
     contents = open(fn).read()
-    res = load_configuration(fn, contents)
-    return res
+    c = load_configuration(fn, contents)
+    c = c._replace(package_name=package_name)
+    c = c._replace(node_type_name=node_type_name) 
+                         
+    # Add the common parameters
+    if node_type_name != 'easy_node':
+        c0 = load_configuration_baseline()
+        c = merge_configuration(c0, c)
+        
+    return c
 
 @contract(returns=EasyNodeConfig)
 def load_configuration(realpath, contents):
@@ -93,7 +110,9 @@ def load_configuration(realpath, contents):
         publishers = load_configuration_publishers(publishers)
         
         return EasyNodeConfig(filename=realpath, parameters=parameters, contracts=contracts, 
-                              subscriptions=subscriptions, publishers=publishers)
+                              subscriptions=subscriptions, publishers=publishers,
+                              package_name=None,
+                              node_type_name=None)
     except DTConfigException as e:
         msg = 'Invalid configuration at %s: ' % realpath
         raise_wrapped(DTConfigException, e, msg, compact=True)
@@ -268,6 +287,74 @@ def load_configuration_for_nodes_in_package(package_name):
         res[node_name] = load_configuration_package_node(package_name, node_name)
     return res
         
+@contract(enc=EasyNodeConfig, returns=str)
+def format_enc(enc):
+    s = 'Configuration for node "%s" in package "%s"' % (enc.node_type_name, enc.package_name)
+    s += '\n' + '=' * len(s)
     
+    s += '\n\n' + indent(format_enc_parameters(enc), ' ', 'Parameters      ',)
+    s += '\n\n' + indent(format_enc_subscriptions(enc), ' ', 'Subscriptions   ')
+    s += '\n\n' + indent(format_enc_publishers(enc), ' ', 'Publishers      ')
+    return s
     
-    
+@contract(enc=EasyNodeConfig, returns=str)
+def format_enc_parameters(enc):
+    table = []
+    table.append(['name',  'type', 'default', 'desc',])
+    table.append(['-'*len(_) for _ in table[0]])
+    for p in enc.parameters.values():
+        if p.desc:
+            desc = wrap_line_length(p.desc, 80)
+        else:
+            desc = '(none)'
+        if p.has_default:
+            default = p.default
+        else:
+            default = '(none)'
+        table.append([p.name, p.type, default, desc])
+    return format_table_plus(table, 4)
+
+@contract(enc=EasyNodeConfig, returns=str)
+def format_enc_subscriptions(enc):
+    table = []
+    table.append(['name',  'type', 'topic', 'options', 'process', 'desc',])
+    table.append(['-'*len(_) for _ in table[0]])
+    for p in enc.subscriptions.values():
+        if p.desc:
+            desc = wrap_line_length(p.desc, 80)
+        else:
+            desc = '(none)'
+        options = []
+        if p.queue_size is not None:
+            options.append('queue_size = %s' % p.queue_size)
+        if p.latch is not None:
+            options.append('latch = %s ' %  p.latch)
+        
+        options = ', '.join(options)
+        table.append([p.name, p.type.__name__, p.topic, options, p.process, desc])
+    return format_table_plus(table, 4)
+
+
+@contract(enc=EasyNodeConfig, returns=str)
+def format_enc_publishers(enc):
+    table = []
+    table.append(['name',  'type', 'topic', 'options', 'desc',])
+    table.append(['-'*len(_) for _ in table[0]])
+    for p in enc.publishers.values():
+        if p.desc:
+            desc = wrap_line_length(p.desc, 80)
+        else:
+            desc = '(none)'
+        options = []
+        if p.queue_size is not None:
+            options.append('queue_size = %s '% p.queue_size)
+        if p.latch is not None:
+            options.append('latch = %s' %  p.latch)
+                
+        options = ', '.join(options)
+        table.append([p.name, p.type.__name__, p.topic, options, desc])
+    return format_table_plus(table, 4)
+
+EasyNodeParameter = namedtuple('EasyNodeParameter', 'name desc type has_default default')
+EasyNodeSubscription = namedtuple('EasyNodeSubscription', 'name desc type topic queue_size process latch')
+EasyNodePublisher = namedtuple('EasyNodePublisher', 'name desc type topic queue_size latch')

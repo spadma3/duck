@@ -49,7 +49,7 @@ build:
 .PHONY: unittests-environment
 
 unittests-environment:
-	# 
+	#
 	#-./what-the-duck
 
 unittests: unittests-environment
@@ -58,6 +58,16 @@ unittests: unittests-environment
 
 unittests-anti_instagram: unittests-environment
 	bash -c "source environment.sh; rosrun anti_instagram annotation_tests.py"
+
+
+comptests_out=out/comptests
+
+comptests-clean:
+	rm -rf $(comptests_out)
+	
+comptests:
+	comptests -o $(comptests_out) --nonose -c "rparmake" easy_node_tests
+
 
 # HW testing
 

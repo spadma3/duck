@@ -73,9 +73,7 @@ def format_table_plus(rows, colspacing=1):
         sizes.append(max(width_cell(row[col_index]) for row in rows))
         
     s = ''
-    for row in rows:
-#         s += '\n'
-        
+    for row in rows: 
         # how many lines do we need?
         nlines = max(num_lines(cell) for cell in row)
 
@@ -92,6 +90,16 @@ def format_table_plus(rows, colspacing=1):
                 s += ' ' * colspacing
             s += '\n'
     return s
+
+def wrap_line_length(x, N):
+    res = []
+    for l in x.split('\n'):
+        while True:
+            if not l:
+                break
+            first, l = l[:N], l[N:]
+            res.append(first)
+    return "\n".join(res)
 
 def num_lines(s):
     return len(s.split('\n'))

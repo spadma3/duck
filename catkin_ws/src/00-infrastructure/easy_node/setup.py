@@ -5,7 +5,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['easy_node'],
+    packages=['easy_node', 'easy_node_tests'],
     package_dir={'': 'include'},
 )
 
