@@ -1,51 +1,43 @@
+from collections import defaultdict
+
 import yaml
 
 from duckietown_utils import logger
+from duckietown_utils.caching import get_cached
 from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import indent
+from duckietown_utils.path_utils import display_filename
 from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import format_table_plus
+from duckietown_utils.yaml_wrap import look_everywhere_for_config_files
 from easy_node.node_description.configuration import load_configuration_for_nodes_in_package, EasyNodeConfig
 from easy_node.user_config.get_configuration_files import get_all_configuration_files
-from duckietown_utils.path_utils import display_filename, expand_all
-import cPickle
-import os
-import rospy
+
 
 class ValidationError(Exception):
     pass
 
+
 def get_config_db():
     if ConfigDB._singleton is None:
-        cache = '${DUCKIETOWN_ROOT}/config_db.cache'
-        cache = expand_all(cache)
-        if os.path.exists(cache):
-            rospy.loginfo('Loading config DB from cache %s' % display_filename(cache))
-            with open(cache) as f:
-                ob = cPickle.load(f)
-        else:
-            ob = ConfigDB()
-            rospy.loginfo('Writing config DB to cache %s' % display_filename(cache))
-            with open(cache, 'w') as f:
-                cPickle.dump(ob, f)
-        ConfigDB._singleton = ob 
+        ConfigDB._singleton = get_cached('ConfigDB', ConfigDB)
     return ConfigDB._singleton
 
 class ConfigDB():
 
     _singleton = None
-         
-    
+
     def __init__(self):
         # Load all configuration
+        # filename2contents = look_everywhere_for_config_files()
+        
         logger.debug('Reading configuration files...')
         self.configs = get_all_configuration_files()
         self.package2nodes = {}
 
         packages = get_list_of_packages_in_catkin_ws()
-#         packages = ['line_detector2', 'joy_mapper', 'lane_filter', 'lane_control', 'anti_instagram'] 
-#         logger.error('approximation, only using %r' % packages)
+
         logger.debug('Reading %d packages configuration...' % len(packages))
         for p in packages:
             self.package2nodes[p] = load_configuration_for_nodes_in_package(p)
@@ -60,11 +52,7 @@ class ConfigDB():
                 c = c._replace(valid=False)
                 c = c._replace(error_if_invalid=str(e))
                 
-            self.configs[i] = c
-#             self.valid = {}
-#         self.invalid = {}
-#             where = self.valid if c.valid else self.invalid
-
+            self.configs[i] = c 
 
     def validate_file(self, c):
         # first, check that indeed we have a package by that name
@@ -128,7 +116,7 @@ class ConfigDB():
         node_config = nodes[node_name]
         all_keys = list(node_config.parameters)
 
-        
+        overridden = defaultdict(lambda: [])
         using = []        
         for config_name in config_sequence:
             if config_name == 'defaults':
@@ -140,39 +128,38 @@ class ConfigDB():
                         values[p.name] = p.default
                         origin_filename[p.name] = node_config.filename
                         origin[p.name] = config_name
-                
-                # TODO
+                 
             else:
                 c = self.find(package_name, node_name, config_name, date=date)
                 if c is not None:
                     using.append(config_name)
                     
                     for k, v in c.values.items():
-#                         if k in values:
-#                             logger.debug('Configuration %s overrides %s with %r.' % (c.config_name, k, v))
+                        if k in values:
+                            overridden[k].append(origin[k])
                         values[k] = v
                         origin_filename[k] = c.filename
-                        origin[k] = config_name
-
+                        origin[k] = config_name 
         
         if not using:
             msg = ('Cannot find any configuration for %s/%s with config sequence %s' % 
                    (package_name, node_name, ":".join(config_sequence)))
             raise DTConfigException(msg)
-        
-#         msg = 'For node %s/%s config sequence %s yields:\n' % (package_name, node_name, config_sequence)
-#         msg += indent(yaml.dump(values), '  ')
-#         logger.info(msg)
-        return QueryResult(package_name, node_name, config_sequence, all_keys, values, origin, origin_filename)
+         
+        return QueryResult(package_name, node_name, config_sequence, all_keys, 
+                           values, origin, origin_filename, overridden)
 
 class QueryResult():
-    def __init__(self, package_name, node_name, config_sequence, all_keys, values, origin, origin_filename):
+    def __init__(self, package_name, node_name, config_sequence, all_keys,
+                values, origin, origin_filename, overridden):
         self.all_keys = all_keys
         self.values = values
         self.origin = origin
         self.package_name = package_name
         self.node_name = node_name
         self.config_sequence = config_sequence
+        self.origin_filename = origin_filename
+        self.overridden = overridden
         assert isinstance(config_sequence, (list, tuple))
     
     def is_complete(self):

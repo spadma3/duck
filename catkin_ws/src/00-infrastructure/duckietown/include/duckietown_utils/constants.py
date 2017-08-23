@@ -8,6 +8,7 @@ from duckietown_utils.path_utils import expand_all
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
     DUCKIEFLEET_ROOT_variable = 'DUCKIEFLEET_ROOT'
+    DUCKIETOWN_DATA_variable = 'DUCKIETOWN_DATA'
     DUCKIETOWN_CONFIG_SEQUENCE_variable = 'DUCKIETOWN_CONFIG_SEQUENCE'
     
     # inside DUCKIEFLEET_ROOT
@@ -28,6 +29,10 @@ def get_duckietown_root():
 def get_duckiefleet_root():
     """ Returns the path of DUCKIETOWN_ROOT and checks it exists """
     return _get_dir(DuckietownConstants.DUCKIEFLEET_ROOT_variable)
+
+def get_duckietown_data():
+    """ Returns the path of DUCKIETOWN_DATA and checks it exists """
+    return _get_dir(DuckietownConstants.DUCKIETOWN_DATA_variable)
 
 def get_machines_files_path():
     ''' Gets the path to the machines files. It might not exist. '''
