@@ -4,7 +4,7 @@ jobs:
     #    image: circleci/python:2.7.13
     #    image: circleci/classic:latest
     build:
-      docker:
+     docker:
         - image: ros/kinetic-ros-core-xenial
     #  machine: true
      steps:
