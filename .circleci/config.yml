@@ -20,35 +20,17 @@ jobs:
                 sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
                 sudo apt-get update
                 sudo apt-get install ros-indigo-desktop
-        #
-        # # Download and cache dependencies
-        # - restore_cache:
-        #       keys:
-        #       - v1-dependencies-{{ checksum "requirements.txt" }}
-        #       # fallback to using the latest cache if no exact match is found
-        #       - v1-dependencies-
-        #
-        # - run:
-        #       name: install dependencies
-        #       command: |
-        #         python3 -m venv venv
-        #         . venv/bin/activate
-        #         pip install -r requirements.txt
-        #
-        # - save_cache:
-        #       paths:
-        #         - ./venv
-        #       key: v1-dependencies-{{ checksum "requirements.txt" }}
         - run:
             name: build
-            command:
+            command: |
+                source /opt/ros/kinetic/setup.bash
                 make build
-        # run tests!
+
         - run:
-              name: run tests
-              command: |
-                . venv/bin/activate
-                python manage.py test
+            name: run tests
+            command: |
+                source /opt/ros/kinetic/setup.bash
+                make comptests
 
         - store_artifacts:
               path: test-reports
