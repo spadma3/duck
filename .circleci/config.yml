@@ -5,7 +5,7 @@ jobs:
     #    image: circleci/classic:latest
     build:
       docker:
-          image: ros/kinetic-ros-core-xenial
+        - image: ros/kinetic-ros-core-xenial
     #  machine: true
      steps:
         - checkout
