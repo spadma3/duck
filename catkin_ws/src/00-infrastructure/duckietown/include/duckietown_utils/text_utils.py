@@ -57,7 +57,7 @@ def remove_table_field(table, f):
     for row in table:
         row.pop(i)
 
-def format_table_plus(rows, colspacing=1):
+def format_table_plus(rows, colspacing=1, paginate=25):
     if not rows:
         raise ValueError('Empty table.')
     nfirst = len(rows[0])
@@ -81,7 +81,8 @@ def format_table_plus(rows, colspacing=1):
         
     divider = ['-'*_ for _ in sizes]
     rows.insert(1, divider)
-        
+    
+    rows = make_pagination(rows, paginate)
     s = ''
     for row in rows: 
         # how many lines do we need?
@@ -100,6 +101,29 @@ def format_table_plus(rows, colspacing=1):
                 s += ' ' * colspacing
             s += '\n'
     return s
+
+def make_pagination(rows, paginate):
+    if len(rows) < paginate:
+        return rows
+    else:
+        header = rows[0]
+        divider = rows[1]
+        rest = rows[2:]
+        pages = []
+        while rest:
+            n = min(len(rest), paginate)
+            pages.append(rest[:n])
+            rest = rest[n:]
+        result = []
+        spaces = [''] * len(header)
+        for i, p in enumerate(pages):
+            if i != 0:
+                result.append(spaces)
+            result.append(header)
+            result.append(divider)
+            result.extend(p)
+        return result
+    
 
 def wrap_line_length(x, N):
     res = []

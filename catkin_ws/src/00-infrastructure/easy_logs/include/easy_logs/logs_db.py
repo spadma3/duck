@@ -24,8 +24,15 @@ def load_all_logs():
         log_name = basename
         filename = filename
         vehicle_name = None
+        map_name = None
+        description = None
+        length = None
+        date = None
         
-        l = PhysicalLog(log_name=log_name, filename=filename, vehicle_name=vehicle_name)
+        l = PhysicalLog(log_name=log_name, map_name=map_name, 
+                        description=description, length=length,
+                        date=date, 
+                        filename=filename, vehicle_name=vehicle_name)
         logs.append(l)
     
     return logs
