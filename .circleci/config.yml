@@ -32,7 +32,7 @@ jobs:
         - run:
             name: run tests
             command: |
-                source environment
+                source environment.sh
                 make comptests
 
         - store_artifacts:
