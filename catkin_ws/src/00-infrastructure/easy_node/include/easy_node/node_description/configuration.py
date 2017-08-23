@@ -2,7 +2,6 @@ from collections import namedtuple, OrderedDict
 import os
 
 from ruamel import yaml
-from yaml.error import YAMLError
 
 from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
@@ -12,6 +11,7 @@ from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import format_table_plus, wrap_line_length,\
     indent, remove_table_field
+from types import NoneType
 
 
 # import yaml
@@ -109,6 +109,11 @@ def load_configuration(realpath, contents):
             msg = 'Invalid configuration: missing field %r.' % (key)
             raise DTConfigException(msg)
         
+        if not isinstance(description, (str, NoneType)):
+            msg = 'Description should be a string, not %s.' % type(description).__name__
+            raise DTConfigException(msg)
+        
+        
         if data:
             msg = 'Spurious fields found: %s' % sorted(data)
             raise DTConfigException(msg)
@@ -189,12 +194,18 @@ def load_configuration_parameter(name, data):
         msg = 'Extra keys: %r' % data
         raise DTConfigException(msg)
     
+    if not isinstance(desc, (str, NoneType)):
+        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        raise DTConfigException(msg)
+
     type2T = {
         'bool': bool,
         'str': str,
         'int': int,
         'float': float,
         'any': None,
+        None: None,
+        'dict': dict,
     }
         
     if not type_ in type2T:
@@ -227,8 +238,9 @@ def message_class_from_string(s):
     try:
         msgclass = import_name(symbol)
         return msgclass
-    except:
-        raise  
+    except ValueError as e:
+        msg = 'Cannot import type for message "%s" (%s).' % (s, symbol)
+        raise_wrapped(DTConfigException, e, msg, compact=True) 
     
 def load_configuration_subscription(name, data):
 #      image:
@@ -252,6 +264,10 @@ def load_configuration_subscription(name, data):
     except KeyError as e:
         msg = 'Could not find field %r.' % e
         raise DTConfigException(msg)
+
+    if not isinstance(desc, (str, NoneType)):
+        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        raise DTConfigException(msg)
     
     if data:
         msg = 'Extra keys: %r' % data
@@ -274,7 +290,11 @@ def load_configuration_publisher(name, data):
     except KeyError as e:
         msg = 'Could not find field %r.' % e
         raise DTConfigException(msg)
-    
+
+    if not isinstance(desc, (str, NoneType)):
+        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        raise DTConfigException(msg)
+
     if data:
         msg = 'Extra keys: %r' % data
         raise DTConfigException(msg)

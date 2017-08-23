@@ -1,6 +1,5 @@
 import os
 
-from duckietown_utils import logger
 from duckietown_utils.exceptions import DTConfigException
 
 

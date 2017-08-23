@@ -59,14 +59,7 @@ unittests: unittests-environment
 unittests-anti_instagram: unittests-environment
 	bash -c "source environment.sh; rosrun anti_instagram annotation_tests.py"
 
-
-comptests_out=out/comptests
-
-comptests-clean:
-	rm -rf $(comptests_out)
-
-comptests:
-	comptests -o $(comptests_out) --nonose -c "rparmake" easy_node_tests
+include Makefile.tests.mk
 
 
 # HW testing
@@ -94,7 +87,7 @@ test-turn-forward: unittests-environment
 
 # Basic demos
 
-
+### These are not using master.launch
 demo-joystick: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh;  roslaunch duckietown joystick.launch veh:=$(vehicle_name)"
 
@@ -109,6 +102,7 @@ demo-joystick-camera-high-speed: unittests-environment
 
 demo-line_detector: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name)"
+
 
 demo-joystick-perception: unittests-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos master.launch fsm_file_name:=joystick"
