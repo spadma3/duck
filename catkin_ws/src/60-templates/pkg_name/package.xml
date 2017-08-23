@@ -10,8 +10,9 @@ For the tutorial, see [](#ros-python-howto).
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="syliu@mit.edu">Shih-Yuan Liu</maintainer>
+  <author email="syliu@mit.edu">Shih-Yuan Liu</author>
+  <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
+
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->

@@ -4,7 +4,7 @@
   <version>1.0.0</version>
   <description>The `duckietown_unit_test` meta package contains all the unit test launch files for Duckietown.</description>
 
-  <maintainer email="jane.doe@example.com">Jane Doe</maintainer>
+  <maintainer email="mack@duckietown.org">Mack</maintainer>
 
   <license>GPLv3</license>
 

@@ -4,10 +4,9 @@
   <version>1.0.0</version>
   <description>TODO: Add a description of package `kinematics` in `package.xml`.</description>
 
-  <maintainer email="dev@todo.todo">dev</maintainer>
   <license>GPLv3</license>
 
-
+<maintainer email="mack@duckietown.org">Mack</maintainer>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>message_generation</build_depend>

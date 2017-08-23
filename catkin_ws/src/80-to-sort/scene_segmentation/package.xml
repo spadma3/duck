@@ -4,8 +4,9 @@
   <version>1.0.0</version>
   <description>TODO: Add a description of package `scene_segmentation` in `package.xml`.</description>
 
-  <maintainer email="cchoi@csail.mit.edu">Changyun Choi</maintainer>
-
+  <author email="cchoi@csail.mit.edu">Changyun Choi</author>
+  <maintainer email="mack@duckietown.org">Mack</maintainer>
+  
 
   <license>GPLv3</license>
 

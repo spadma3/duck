@@ -270,7 +270,8 @@ def get_checks():
     DUCKIEFLEET_ROOT = DuckietownConstants.DUCKIEFLEET_ROOT_variable
     DUCKIETOWN_CONFIG_SEQUENCE = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
-    variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT, DUCKIETOWN_CONFIG_SEQUENCE]
+    variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT, #DUCKIETOWN_CONFIG_SEQUENCE
+                          ]
 
     existence = {}
 

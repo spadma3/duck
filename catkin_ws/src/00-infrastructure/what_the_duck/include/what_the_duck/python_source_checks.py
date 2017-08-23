@@ -8,6 +8,7 @@ from duckietown_utils.locate_files_impl import locate_files
 from .check import CheckError
 from .check import CheckFailed, Check
 from .entry import SeeDocs
+from duckietown_utils.read_package_xml import read_package_xml_info
 
 
 class PythonPackageCheck(Check):
@@ -164,7 +165,8 @@ class CheckNoCruft_cmakelists(PythonPackageCheck):
             msg = 'Too many commented out lines in "CMakeLists.txt". Still have contents from template?'
             l = 'I think you just copied from the template, without deleting the things that you are not using..'
             raise CheckFailed(msg, l)
-        
+         
+    
 class PackageXMLCheck(PythonPackageCheck):
     
     def check_xml(self, xml_package):  # @UnusedVariable
@@ -176,6 +178,7 @@ class PackageXMLCheck(PythonPackageCheck):
         if not os.path.exists(filename):
             msg = 'File does not exist: %s. ' % os.path.basename(filename)
             raise CheckFailed(msg)
+        
         
         import xml.etree.ElementTree as ET
         try:
@@ -190,8 +193,10 @@ class PackageXMLCheck(PythonPackageCheck):
             msg = 'Invalid package.xml'
             raise CheckFailed(msg)
         
+        info = read_package_xml_info(filename)
+        
         try:
-            self.check_xml(root)
+            self.check_xml(root, info)
         except CheckFailed as e:
             msg = 'Invalid contents in "package.xml": ' + e.compact
             l = e.long_explanation
@@ -200,7 +205,7 @@ class PackageXMLCheck(PythonPackageCheck):
 
 class NameIsValid(PackageXMLCheck):
     """ Valid name in "package.xml". """
-    def check_xml(self, root):
+    def check_xml(self, root, _info):
         # check the name is the same
         try:
             declared_package_name = get_package_name(root)
@@ -215,14 +220,14 @@ class NameIsValid(PackageXMLCheck):
 # 
 # class UpdateToVersion2(PackageXMLCheck):
 #     """ Using version=2 format. """
-#     def check_xml(self, root): 
+#     def check_xml(self, root, _info): 
 #         if not 'version' in root.attrib:
 #             msg = "The current ROS "
 
 
 class VersionIsValid(PackageXMLCheck):
     """ Valid version in "package.xml". """
-    def check_xml(self, root): 
+    def check_xml(self, root, _info): 
         try:
             version, _attrs = get_tag_and_attributes(root, 'version')
         except KeyError:
@@ -238,7 +243,7 @@ class VersionIsValid(PackageXMLCheck):
 class LicenseIsValid(PackageXMLCheck):
     """ Valid license in "package.xml". """
     
-    def check_xml(self, root): 
+    def check_xml(self, root, _info): 
         # check the license is valid 
         try:
             contents, _attrs = get_tag_and_attributes(root, 'license')
@@ -249,6 +254,26 @@ class LicenseIsValid(PackageXMLCheck):
         if contents in ['TODO']:
             msg = 'Invalid value of license %r.' % contents
             raise CheckFailed(msg)
+
+
+class AtLeastOneAuthor(PackageXMLCheck):
+    """ At least one author declared. """
+    
+    def check_xml(self, _root, info):
+        if len(info.authors) == 0:
+            msg = 'No authors defined.'
+            l = str(info)
+            raise CheckFailed(msg, l)
+        
+
+class AtLeastOneMaintainer(PackageXMLCheck):
+    """ At least one maintainer declared. """
+    
+    def check_xml(self, _root, info):
+        if len(info.maintainers) == 0:
+            msg = 'No maintainers defined.'
+            l = str(info)
+            raise CheckFailed(msg, l)
         
 
 def get_package_name(package):
@@ -271,14 +296,16 @@ def add_python_package_checks(add, package_name, dirname):
         LicenseIsValid,
         NameIsValid,
         VersionIsValid,
-        # NoTabs, 
+        NoTabs, 
 #         Naming, 
         Executable, 
 #         ShaBang, 
-        # NoBlindCopyingFromTemplate,
+        NoBlindCopyingFromTemplate,
         # LineLengths,
-        # CheckNoCruft_packagexml,
-        # CheckNoCruft_cmakelists,
+        CheckNoCruft_packagexml,
+        CheckNoCruft_cmakelists,
+        AtLeastOneMaintainer,
+        # AtLeastOneAuthor,
     ]
     for check in checks:
         c = check(package_name, dirname)

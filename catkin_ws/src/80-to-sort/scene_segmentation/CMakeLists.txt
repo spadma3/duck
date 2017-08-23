@@ -14,14 +14,11 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 
-
-## Generate services in the 'srv' folder
 add_service_files(
   FILES
   SegmentImage.srv
 )
-
-## Generate added messages and services with any dependencies listed here
+ 
 generate_messages(
   DEPENDENCIES
   # std_msgs
@@ -29,7 +26,6 @@ generate_messages(
   # geometry_msgs
   duckietown_msgs
 )
-
 
 catkin_package(
 #  INCLUDE_DIRS include
@@ -65,7 +61,6 @@ add_executable(scene_segmentation
 ## same as for the library above
 add_dependencies(scene_segmentation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
 target_link_libraries(scene_segmentation
   ${catkin_LIBRARIES}
   ${OpenCV_LIBS}

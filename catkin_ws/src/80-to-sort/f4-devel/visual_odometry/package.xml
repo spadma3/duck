@@ -4,10 +4,8 @@
   <version>1.0.0</version>
   <description>TODO: Add a description of package `visual_odometry` in `package.xml`.</description>
 
-  <maintainer email="dev@todo.todo">dev</maintainer>
-
   <license>GPLv3</license>
-
+  <maintainer email="mack@duckietown.org">Mack</maintainer>
 
 
   <buildtool_depend>catkin</buildtool_depend>
@@ -17,5 +15,5 @@
   <run_depend>duckietown_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
- 
+
 </package>
