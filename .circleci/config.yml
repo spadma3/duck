@@ -23,13 +23,13 @@ jobs:
         - run:
             name: build
             command: |
-                source /opt/ros/kinetic/setup.bash
-                make build
+                source /opt/ros/indigo/setup.bash
+                make build-parallel
 
         - run:
             name: run tests
             command: |
-                source /opt/ros/kinetic/setup.bash
+                source /opt/ros/indigo/setup.bash
                 make comptests
 
         - store_artifacts:
