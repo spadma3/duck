@@ -3,10 +3,10 @@ jobs:
 
     #    image: circleci/python:2.7.13
     #    image: circleci/classic:latest
-    #   docker:
-    #   - image: kairosaero/dkr-circleci
     build:
-     machine: true
+      docker:
+      - image: ros/kinetic-ros-core-xenial
+    #  machine: true
      steps:
         - checkout
         - run: echo "hello world"
