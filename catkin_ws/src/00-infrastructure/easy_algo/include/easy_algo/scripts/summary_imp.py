@@ -1,6 +1,6 @@
 from duckietown_utils.path_utils import display_filename
 from duckietown_utils.text_utils import remove_table_field, format_table_plus  # @UnusedImport
-from easy_algo.db.load_db import get_easy_algo_db, EasyAlgoFamily
+from easy_algo.algo_db import get_easy_algo_db, EasyAlgoFamily
 from ruamel import yaml
 from duckietown_utils.text_utils import indent
 

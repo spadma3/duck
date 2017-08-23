@@ -1,7 +1,7 @@
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.path_utils import display_filename
 from duckietown_utils.text_utils import format_table_plus
-from easy_algo.logs_db import load_all_logs
+from easy_logs.logs_db import load_all_logs
 
 
 def easy_logs_summary():

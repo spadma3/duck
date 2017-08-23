@@ -1,37 +1,11 @@
-from collections import namedtuple
 import os
 
 from duckietown_utils.caching import get_cached
 from duckietown_utils.exceptions import DTConfigException
+from duckietown_utils.text_utils import id_from_basename_pattern
 from duckietown_utils.type_checks import dt_check_isinstance
 from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_config_files
-from duckietown_utils.text_utils import id_from_basename_pattern
-
-
-EasyAlgoFamily = namedtuple('EasyAlgoFamily', 
-                      ['filename', 
-                       'family_name', 
-                       'interface', 
-                       'description', 
-                       'instances_pattern', 'instances', 'tests', 'tests_pattern'])
-
-            
-EasyAlgoTest = namedtuple('EasyAlgoTest',
-                              ['family_name',
-                               'test_name',
-                               'description',
-                               'filename', # where it was specified
-                               'constructor', # how to instance it
-                               'parameters'])
-
-
-EasyAlgoInstance = namedtuple('EasyAlgoInstance',
-                              ['family_name',
-                               'instance_name',
-                               'description',
-                               'filename', # where it was specified
-                               'constructor', # how to instance it
-                               'parameters'])
+from .algo_structures import EasyAlgoTest, EasyAlgoInstance, EasyAlgoFamily
 
 
 def get_easy_algo_db():
