@@ -14,7 +14,7 @@ comptests-clean:
 comptests:
 	comptests -o $(comptests_out) --nonose -c "rparmake" $(comptests_packages)
 
-tag=4
+tag=5
 
 docker-build:
 	sudo docker build -t andreacensi/duckietown-xenial-kinetic:$(tag) .circleci/images/duckietown-xenial-kinetic/
