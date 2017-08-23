@@ -1,4 +1,4 @@
-# Package `easy_algo` {#easy_algo}
+# Package `easy_logs` {#easy_logs}
 
 
 line_detector.easy_algo.yaml

@@ -24,6 +24,7 @@ jobs:
             name: build
             command: |
                 source /opt/ros/indigo/setup.bash
+                pip install catkin_pkg
                 make build-parallel
 
         - run:

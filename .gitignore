@@ -15,3 +15,4 @@ out/comptests
 config_db.cache
 ./caches/EasyAlgoDB.cache.pickle
 ./caches/
+caches/
