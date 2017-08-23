@@ -1,11 +1,12 @@
 version: 2
 jobs:
-    machine: true
+
     #    image: circleci/python:2.7.13
     #    image: circleci/classic:latest
     #   docker:
     #   - image: kairosaero/dkr-circleci
     build:
+     machine: true
      steps:
         - checkout
         - run: echo "hello world"
