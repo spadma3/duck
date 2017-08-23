@@ -1,5 +1,5 @@
 import re
-from duckietown_utils.system_cmd_imp import contract
+from .system_cmd_imp import contract
 
 __all__ = ['indent', 'seconds_as_ms']
 
@@ -79,6 +79,9 @@ def format_table_plus(rows, colspacing=1):
     for col_index in range(len(rows[0])):
         sizes.append(max(width_cell(row[col_index]) for row in rows))
         
+    divider = ['-'*_ for _ in sizes]
+    rows.insert(1, divider)
+        
     s = ''
     for row in rows: 
         # how many lines do we need?
@@ -110,3 +113,12 @@ def wrap_line_length(x, N):
 
 def num_lines(s):
     return len(s.split('\n'))
+
+
+def id_from_basename_pattern(basename, pattern):
+    # id_from_basename_pattern('a.b.yaml', '*.b.yaml') => 'a'
+    suffix = pattern.replace('*', '')
+    ID = basename.replace(suffix, '')
+    basename2 = pattern.replace('*', ID)
+    assert basename2 == basename, (basename, pattern, ID, basename2)
+    return ID

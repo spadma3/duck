@@ -1,22 +1,24 @@
-from duckietown_utils.constants import get_catkin_ws_src, get_duckiefleet_root
-from duckietown_utils import logger
-from frozendict import frozendict
-from duckietown_utils.locate_files_impl import locate_files
 from collections import namedtuple
 import os
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.exception_utils import raise_wrapped
+
+from frozendict import frozendict
 import yaml
 from yaml.error import YAMLError
+
+from duckietown_utils import logger
+from duckietown_utils.constants import get_catkin_ws_src, get_duckiefleet_root
+from duckietown_utils.exception_utils import raise_wrapped
+from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import indent
+from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import display_filename
+
 
 SUFFIX = '.config.yaml'
 
 ConfigInfo = namedtuple('ConfigInfo', 
         'filename package_name node_name config_name date_effective description extends values '
-        'valid '
-        'error_if_invalid ')
+        'valid error_if_invalid ')
 
  
 def get_configuration_files(package_name, node_name):

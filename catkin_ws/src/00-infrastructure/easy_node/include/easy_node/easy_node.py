@@ -2,7 +2,10 @@ from contextlib import contextmanager
 import rospy
 import threading
 
+import yaml
+
 from duckietown_utils.constants import DuckietownConstants
+from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.text_utils import indent
 from duckietown_utils.timeit import rospy_timeit_wall
@@ -11,8 +14,6 @@ from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOU
 from .node_description.configuration import load_configuration_package_node
 from .user_config.decide import get_user_configuration
 from .utils.timing import ProcessingTimingStats
-import yaml
-from duckietown_utils.exception_utils import raise_wrapped
 
 
 __all__ = [
