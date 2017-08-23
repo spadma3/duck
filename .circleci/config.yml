@@ -20,12 +20,12 @@ jobs:
                 sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
                 sudo apt-get update
                 sudo apt-get install ros-indigo-desktop git git-extras ros-indigo-{tf-conversions,cv-bridge,image-transport,camera-info-manager,theora-image-transport,joy,image-proc,compressed-image-transport,phidgets-drivers,imu-complementary-filter,imu-filter-madgwick} python-numpy python-scipy
+
         - run:
             name: build
             command: |
                 source /opt/ros/indigo/setup.bash
-                pip install empy
-                pip install catkin_pkg
+                pip install empy catkin_pkg numpy 
                 make build-parallel
 
         - run:
