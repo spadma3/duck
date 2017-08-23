@@ -2,7 +2,7 @@ version: 2
 jobs:
     build:
      docker:
-        - image: andreacensi/duckietown-xenial-kinetic
+        - image: andreacensi/duckietown-xenial-kinetic:4
 
      steps:
         - checkout
@@ -23,7 +23,7 @@ jobs:
             name: build
             command: |
                 # source /opt/ros/indigo/setup.bash
-                apt-get install python-pip
+                # apt-get install python-pip
                 pip install empy catkin_pkg numpy
                 pip install comptests
                 make build-parallel
