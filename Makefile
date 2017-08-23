@@ -59,14 +59,7 @@ unittests: unittests-environment
 unittests-anti_instagram: unittests-environment
 	bash -c "source environment.sh; rosrun anti_instagram annotation_tests.py"
 
-
-comptests_out=out/comptests
-
-comptests-clean:
-	rm -rf $(comptests_out)
-
-comptests:
-	comptests -o $(comptests_out) --nonose -c "rparmake" easy_node_tests
+include Makefile.tests.mk
 
 
 # HW testing

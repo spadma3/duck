@@ -1,7 +1,8 @@
 from collections import namedtuple, OrderedDict
 import os
 
-from ruamel import yaml 
+from ruamel import yaml
+
 from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import import_name
