@@ -1,8 +1,9 @@
 version: 2
 jobs:
    build:
-    #  docker:
-    #    - image: circleci/python:2.7.13
+     machine: true
+    #    image: circleci/python:2.7.13
+    #    image: circleci/classic:latest
      steps:
         - checkout
         - run: echo "hello world"
