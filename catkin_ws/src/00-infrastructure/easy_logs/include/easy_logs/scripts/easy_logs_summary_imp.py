@@ -2,10 +2,11 @@ from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.path_utils import display_filename
 from duckietown_utils.text_utils import format_table_plus, remove_table_field
 from easy_logs.logs_db import load_all_logs
+from ruamel import yaml
 
 
-def easy_logs_summary():
-    logs = load_all_logs()    
+def easy_logs_summary(which):
+    logs = load_all_logs(which)    
     s = format_logs(logs)
     return s
     
@@ -22,7 +23,8 @@ def format_logs(logs):
                       'date',
                       'length',
                       'vehicle name',
-                      'filename'])
+                      'filename',
+                      'topics'])
         for i, log in enumerate(logs):
             row = []      
             row.append(i)
@@ -30,9 +32,12 @@ def format_logs(logs):
             row.append(log.map_name)
             row.append(log.description)
             row.append(log.date)
-            row.append(log.length)
+            l = '%4d s' % log.length
+            row.append(l)
             row.append(log.vehicle_name)
             row.append(display_filename(log.filename))
+            info = yaml.dump(log.bag_info['topics'])
+            row.append(info)
             table.append(row)
             
         remove_table_field(table, 'filename')

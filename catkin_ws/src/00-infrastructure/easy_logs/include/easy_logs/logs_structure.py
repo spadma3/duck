@@ -7,4 +7,6 @@ PhysicalLog = namedtuple('PhysicalLog',
                          'map_name',
                          'description',
                          'vehicle_name',
-                         'date','length']) 
+                         'date','length',
+                         'size', 'bag_info',
+                         'has_camera']) 

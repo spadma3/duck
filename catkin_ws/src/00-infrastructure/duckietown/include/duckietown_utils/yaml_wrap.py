@@ -60,7 +60,7 @@ def look_everywhere_for_config_files(pattern):
             results[filename] = contents
     return results
 
-def look_everywhere_for_bag_files():
+def look_everywhere_for_bag_files(pattern='*.bag'):
     """
         Looks for all the bag files    
         Returns a list of basename -> filename.
@@ -72,11 +72,12 @@ def look_everywhere_for_bag_files():
     sources.append(get_duckiefleet_root())
     sources.append(get_duckietown_data())
     
-    logger.info('Reading bag files from sources:\n'+'\n'.join(sources))
-    pattern = '*.bag'
+    logger.info('Looking for files with pattern %s\n' % pattern)
+    
     results = OrderedDict()
     for s in sources:
         filenames = locate_files(s, pattern)
+        logger.info('%5d files in %s' % (len(filenames), s))
         for filename in filenames:
             basename, _ = os.path.splitext(os.path.basename(filename))
             if basename in results:

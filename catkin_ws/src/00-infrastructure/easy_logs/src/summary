@@ -2,9 +2,16 @@
 from duckietown_utils.exceptions import wrap_script_entry_point
 from duckietown_utils import col_logging  # @UnusedImport
 from easy_logs.scripts.easy_logs_summary_imp import easy_logs_summary
+import sys
 
 def print_easy_logs_summary():
-    s = easy_logs_summary()
+    args = sys.argv[1:]
+    if not args:
+        which = '*'
+    else:
+        which = '*'+args[0]+'*'
+        
+    s = easy_logs_summary(which)
     print(s)
 
     

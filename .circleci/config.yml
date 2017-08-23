@@ -32,8 +32,9 @@ jobs:
             name: run tests
             command: |
                 source /opt/ros/indigo/setup.bash
+                pip install comptests
                 make comptests
 
         - store_artifacts:
-              path: test-reports
-              destination: test-reports
+              path: out/comptests
+              destination: out-comptests
