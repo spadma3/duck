@@ -22,7 +22,7 @@ jobs:
         - run:
             name: build
             command: |
-                source /opt/ros/indigo/setup.bash
+                # source /opt/ros/indigo/setup.bash
                 pip install empy catkin_pkg numpy
                 pip install comptests
                 make build-parallel
@@ -30,9 +30,9 @@ jobs:
         - run:
             name: run tests
             command: |
-                source environment.sh
                 export DUCKIETOWN_ROOT=$PWD
                 export HOSTNAME=$HOSTNAME
+                -source environment.sh
                 make comptests
 
         - store_artifacts:
