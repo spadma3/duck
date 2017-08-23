@@ -157,6 +157,7 @@ def get_checks():
             ros-kinetic-desktop-full
             ntpdate
 
+            python-pip
             ipython
             python-ruamel.yaml
             virtualenv
