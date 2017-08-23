@@ -11,6 +11,7 @@ from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import format_table_plus, wrap_line_length,\
     indent, remove_table_field
+from types import NoneType
 
 
 # import yaml
@@ -108,6 +109,11 @@ def load_configuration(realpath, contents):
             msg = 'Invalid configuration: missing field %r.' % (key)
             raise DTConfigException(msg)
         
+        if not isinstance(description, (str, NoneType)):
+            msg = 'Description should be a string, not %s.' % type(description).__name__
+            raise DTConfigException(msg)
+        
+        
         if data:
             msg = 'Spurious fields found: %s' % sorted(data)
             raise DTConfigException(msg)
@@ -188,6 +194,10 @@ def load_configuration_parameter(name, data):
         msg = 'Extra keys: %r' % data
         raise DTConfigException(msg)
     
+    if not isinstance(desc, (str, NoneType)):
+        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        raise DTConfigException(msg)
+
     type2T = {
         'bool': bool,
         'str': str,
@@ -254,6 +264,10 @@ def load_configuration_subscription(name, data):
     except KeyError as e:
         msg = 'Could not find field %r.' % e
         raise DTConfigException(msg)
+
+    if not isinstance(desc, (str, NoneType)):
+        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        raise DTConfigException(msg)
     
     if data:
         msg = 'Extra keys: %r' % data
@@ -276,7 +290,11 @@ def load_configuration_publisher(name, data):
     except KeyError as e:
         msg = 'Could not find field %r.' % e
         raise DTConfigException(msg)
-    
+
+    if not isinstance(desc, (str, NoneType)):
+        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        raise DTConfigException(msg)
+
     if data:
         msg = 'Extra keys: %r' % data
         raise DTConfigException(msg)

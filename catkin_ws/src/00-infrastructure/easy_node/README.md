@@ -558,7 +558,7 @@ A summary of the statistics can be accessed by using `context.get_stats()`.
 For example, this will print:
 
 
-    In the last 24.4 s: received 734 (30.0 fps) processed 301 (12.3 fps) skipped 433 (17.7 fps) (59.0 %)
+    Last 24.4 s: received 734 (30.0 fps) processed 301 (12.3 fps) skipped 433 (17.7 fps) (59 %)
                 decoding | total latency  25.5 ms | delta wall   20.7 ms | delta clock  20.7 ms
                 resizing | total latency  26.6 ms | delta wall    0.8 ms | delta clock   0.7 ms
               correcting | total latency  29.1 ms | delta wall    2.2 ms | delta clock   2.2 ms
