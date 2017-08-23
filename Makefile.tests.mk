@@ -1,5 +1,11 @@
 
-comptests_packages=easy_node_tests
+comptests_packages=\
+	easy_node_tests\
+	easy_logs_tests\
+	easy_algo_tests\
+	duckietown_utils_tests\
+	what_the_duck_tests
+
 comptests_out=out/comptests
 
 comptests-clean:
