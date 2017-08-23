@@ -113,6 +113,7 @@ class ConfigDB():
             raise ValueError(msg) 
         values = {}
         origin = {}
+        origin_filename = {}
         
         if not package_name in self.package2nodes:
             msg = ('Could not find package "%s"; I know %s.' % 
@@ -127,6 +128,7 @@ class ConfigDB():
         node_config = nodes[node_name]
         all_keys = list(node_config.parameters)
 
+        
         using = []        
         for config_name in config_sequence:
             if config_name == 'defaults':
@@ -136,7 +138,8 @@ class ConfigDB():
          
                     if p.has_default:
                         values[p.name] = p.default
-                        origin[p.name] = node_config.filename
+                        origin_filename[p.name] = node_config.filename
+                        origin[p.name] = config_name
                 
                 # TODO
             else:
@@ -148,7 +151,9 @@ class ConfigDB():
 #                         if k in values:
 #                             logger.debug('Configuration %s overrides %s with %r.' % (c.config_name, k, v))
                         values[k] = v
-                        origin[k] = c.filename
+                        origin_filename[k] = c.filename
+                        origin[k] = config_name
+
         
         if not using:
             msg = ('Cannot find any configuration for %s/%s with config sequence %s' % 
@@ -158,10 +163,10 @@ class ConfigDB():
 #         msg = 'For node %s/%s config sequence %s yields:\n' % (package_name, node_name, config_sequence)
 #         msg += indent(yaml.dump(values), '  ')
 #         logger.info(msg)
-        return QueryResult(package_name, node_name, config_sequence, all_keys, values, origin)
+        return QueryResult(package_name, node_name, config_sequence, all_keys, values, origin, origin_filename)
 
 class QueryResult():
-    def __init__(self, package_name, node_name, config_sequence, all_keys, values, origin):
+    def __init__(self, package_name, node_name, config_sequence, all_keys, values, origin, origin_filename):
         self.all_keys = all_keys
         self.values = values
         self.origin = origin

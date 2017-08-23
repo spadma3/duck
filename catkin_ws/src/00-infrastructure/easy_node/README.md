@@ -301,8 +301,9 @@ where `![config name]` is a short string (e.g., `baseline`).
 
 The files can be anywhere in:
 
-- The directory `${DUCKIETOWN_ROOT}/catkin_ws/src`;
-- The directory `${DUCKIEFLEET_ROOT}`.
+- The directory <code>&#36;{DUCKIETOWN_ROOT}/catkin_ws/src</code>;
+
+- The directory <code>&#36;{DUCKIEFLEET_ROOT}</code>.
 
 
 Several config files can exist at the same time.
@@ -471,23 +472,22 @@ The tool shows also which file is responsible for the value of each parameter.
 
 For example, the command
 
-    $ rosrun easy_node eval line_detector2 line_detector2 defaults:andrea
+    $ rosrun easy_node eval line_detector2 line_detector_node2 defaults:andrea
 
-evaluates the configuration for the `line_detector2` node with the configuration
+evaluates the configuration for the `line_detector_node2` node with the configuration
 sequence `defaults:andrea`.
 
 The result is:
 
-TODO: output
 
     Configuration result for node `line_detector_node2` (package `line_detector2`)
     The configuration sequence was ['defaults', 'baseline', 'andrea'].
     The following is the list of parameters set and their origin:
       parameter                    value                              origin
       ---------                    -----                              ------
-      en_update_params_interval    2.0                                line_detector_node2.easy_node.yaml
-      top_cutoff                   40                                 line_detector2-line_detector_node2.baseline.config.yaml
-      detector                     - line_detector.LineDetectorHSV    line_detector2-line_detector_node2.baseline.config.yaml
+      en_update_params_interval    2.0                                defaults
+      top_cutoff                   40                                 baseline
+      detector                     - line_detector.LineDetectorHSV    baseline
                                    - configuration:
                                        canny_thresholds: [80, 200]
                                        dilation_kernel_size: 3
@@ -502,8 +502,9 @@ TODO: output
                                        hsv_white2: [180, 60, 255]
                                        hsv_yellow1: [25, 140, 100]
                                        hsv_yellow2: [45, 255, 255]
-      img_size                     [120, 160]                         line_detector2-line_detector_node2.baseline.config.yaml
-      verbose                      true                               line_detector_node2.easy_node.yaml
+      img_size                     [120, 160]                         baseline
+      verbose                      true                               defaults
+
 
 Note how we can tell which configuration file is responsible for setting each parameter.
 
@@ -556,16 +557,19 @@ A summary of the statistics can be accessed by using `context.get_stats()`.
 
 For example, this will print:
 
+
     In the last 24.4 s: received 734 (30.0 fps) processed 301 (12.3 fps) skipped 433 (17.7 fps) (59.0 %)
-                decoding | total latency    25.5 ms | delta wall    20.7 ms | delta clock    20.7 ms
-                resizing | total latency    26.6 ms | delta wall     0.8 ms | delta clock     0.7 ms
-              correcting | total latency    29.1 ms | delta wall     2.2 ms | delta clock     2.2 ms
-               detection | total latency    47.7 ms | delta wall    18.2 ms | delta clock    21.3 ms
-        preparing-images | total latency    55.0 ms | delta wall     7.0 ms | delta clock     7.0 ms
-              publishing | total latency    55.5 ms | delta wall     0.1 ms | delta clock     0.1 ms
-              draw-lines | total latency    59.7 ms | delta wall     4.0 ms | delta clock     3.9 ms
-        published-images | total latency    61.2 ms | delta wall     0.9 ms | delta clock     0.8 ms
-    pub_edge/pub_segment | total latency    86.3 ms | delta wall    24.7 ms | delta clock    24.0 ms
+                decoding | total latency  25.5 ms | delta wall   20.7 ms | delta clock  20.7 ms
+                resizing | total latency  26.6 ms | delta wall    0.8 ms | delta clock   0.7 ms
+              correcting | total latency  29.1 ms | delta wall    2.2 ms | delta clock   2.2 ms
+               detection | total latency  47.7 ms | delta wall   18.2 ms | delta clock  21.3 ms
+        preparing-images | total latency  55.0 ms | delta wall    7.0 ms | delta clock   7.0 ms
+              publishing | total latency  55.5 ms | delta wall    0.1 ms | delta clock   0.1 ms
+              draw-lines | total latency  59.7 ms | delta wall    4.0 ms | delta clock   3.9 ms
+        published-images | total latency  61.2 ms | delta wall    0.9 ms | delta clock   0.8 ms
+    pub_edge/pub_segment | total latency  86.3 ms | delta wall   24.7 ms | delta clock  24.0 ms
+
+
 
 ## Automatic documentation generation
 
@@ -597,6 +601,9 @@ For example, in the `README.md` of the `joy_mapper` package, we have:
 
 The result can be seen at [](#joy_mapper).
 
+## Parameters and services defined for all packages
+
+<move-here src="#easy_node-easy_node-autogenerated"/>
 
 ## Other ideas
 
