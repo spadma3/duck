@@ -24,6 +24,7 @@ def format_logs(logs):
                       'length',
                       'vehicle name',
                       'filename',
+                      'valid',
                       'topics'])
         for i, log in enumerate(logs):
             row = []      
@@ -32,11 +33,22 @@ def format_logs(logs):
             row.append(log.map_name)
             row.append(log.description)
             row.append(log.date)
-            l = '%4d s' % log.length
+            if log.length is not None:
+                l = '%4d s' % log.length
+            else:
+                l = '(none)'
             row.append(l)
             row.append(log.vehicle_name)
             row.append(display_filename(log.filename))
-            info = yaml.dump(log.bag_info['topics'])
+            if log.valid:
+                s = 'Yes.'
+            else:
+                s = log.error_if_invalid
+            row.append(s)
+            if log.bag_info is not None:
+                info = yaml.dump(log.bag_info['topics'])
+            else:
+                info = '(none)'
             row.append(info)
             table.append(row)
             

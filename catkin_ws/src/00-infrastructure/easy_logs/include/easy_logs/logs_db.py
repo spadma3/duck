@@ -1,9 +1,10 @@
+import os
+import re
+
 from duckietown_utils.caching import get_cached
 from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
 from easy_logs.logs_structure import PhysicalLog
-import os
-from ruamel import yaml
-import re
+from procgraph_ros.bag_utils import rosbag_info  # @UnresolvedImport
 
 
 def get_easy_logs_db():
@@ -18,7 +19,6 @@ class EasyLogsDB():
     def __init__(self):
         self.logs = load_all_logs()
         
-from procgraph_ros.bag_utils import rosbag_info  # @UnresolvedImport
  
     
 def rosbag_info_cached(filename):
@@ -33,18 +33,29 @@ def read_stats(pl):
     assert isinstance(pl, PhysicalLog)
     
     info = rosbag_info_cached(pl.filename)
+    if info is None:
+        return pl._replace(valid=False, error_if_invalid='Not indexed')
     
     # print yaml.dump(info)
     length = info['duration']
+    if length is None:
+        return pl._replace(valid=False, error_if_invalid='Empty bag.')
+    
     date_ms = info['start']
+    if date_ms < 156600713:
+        return pl._replace(valid=False, error_if_invalid='Date not set.')
+    
     date = date_ms
+
+    pl = pl._replace(date=date, length=length, bag_info=info)
+    
     try:
-        vehicle_name = which_robot(info) 
-    except ValueError as e:
+        vehicle_name = which_robot(info)
+        pl =pl._replace(vehicle_name=vehicle_name) 
+    except ValueError:
         vehicle_name = None
-        
-    return pl._replace(date=date, length=length, vehicle_name=vehicle_name,
-                       bag_info=info)
+        pl = pl._replace(valid=False, error_if_invalid='No camera data.')
+    return pl
 
 def which_robot(info):
     pattern  = r'/(\w+)/camera_node/image/compressed'
@@ -74,7 +85,9 @@ def load_all_logs(which):
                         has_camera=None,
                         vehicle_name = None,
                         filename=filename,
-                        bag_info=None)
+                        bag_info=None,
+                        valid=True,
+                        error_if_invalid=None)
         l = read_stats(l)
         logs.append(l)
     
