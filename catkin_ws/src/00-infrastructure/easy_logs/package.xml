@@ -14,5 +14,6 @@
   <build_depend>rospy</build_depend>
  
   <run_depend>rospy</run_depend>
-
+  <run_depend>procgraph</run_depend>
+  
 </package>

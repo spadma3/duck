@@ -1,39 +1,16 @@
 
-continuous-integration-tests:
-	$(MAKE) test-comptests
-	$(MAKE) test-easy_node
-
-### Comptests
-
-test-easy_node:
-	$(MAKE) easy_node-docs
-
-### Comptests
-
-comptests_packages=\
-	easy_node_tests\
-	easy_logs_tests\
-	easy_algo_tests\
-	duckietown_utils_tests\
-	what_the_duck_tests
-
-comptests_out=out/comptests
-
-comptests-clean:
-	rm -rf $(comptests_out)
-
-test-comptests:
-	comptests -o $(comptests_out) --nonose -c "rparmake" $(comptests_packages)
-
-
 ### Docker
 
 tag=10
 
 docker:
-	@echo "make docker-build     creates the image"
-	@echo "make docker-upload    uploads the image"
-	@echo "make docker-clean     removes all local images"
+	@echo "$(sep)Docker commands"
+	@echo
+	@echo "For using Docker images"
+	@echo
+	@echo "  docker-build     creates the image"
+	@echo "  docker-upload    uploads the image"
+	@echo "  docker-clean     removes all local images"
 
 docker-build:
 	sudo docker build -t andreacensi/duckietown-xenial-kinetic:$(tag) .circleci/images/duckietown-xenial-kinetic/

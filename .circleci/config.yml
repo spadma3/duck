@@ -21,7 +21,7 @@ jobs:
                 source $PWD/catkin_ws/devel/setup.bash
                 export DUCKIETOWN_ROOT=$PWD
                 export HOSTNAME=$HOSTNAME
-                make continuous-integration-tests
+                make test-circle
 
         - store_artifacts:
               path: out

@@ -1,13 +1,19 @@
+from ruamel import yaml
+
 from duckietown_utils.path_utils import display_filename
+from duckietown_utils.text_utils import indent
 from duckietown_utils.text_utils import remove_table_field, format_table_plus  # @UnusedImport
 from easy_algo.algo_db import get_easy_algo_db, EasyAlgoFamily
-from ruamel import yaml
-from duckietown_utils.text_utils import indent
+
 
 __all__ = ['summary']
 
 def summary():
     db = get_easy_algo_db()
+    s = format_db(db)
+    print(s)
+    
+def format_db(db):
     S = '\n\n' 
     families = list(db.family_name2config.values())
     s = format_families(families)
