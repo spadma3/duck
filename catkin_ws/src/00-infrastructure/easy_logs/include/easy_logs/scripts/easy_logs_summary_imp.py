@@ -5,7 +5,7 @@ from easy_logs.logs_db import load_all_logs
 from ruamel import yaml
 
 
-def easy_logs_summary(which):
+def easy_logs_summary(which='*'):
     logs = load_all_logs(which)    
     s = format_logs(logs)
     return s

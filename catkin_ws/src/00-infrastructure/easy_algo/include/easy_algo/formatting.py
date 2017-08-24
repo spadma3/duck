@@ -6,22 +6,23 @@ from duckietown_utils.text_utils import remove_table_field, format_table_plus  #
 
 
 from easy_algo.algo_db import EasyAlgoFamily
+from  termcolor import colored
 
 
-def format_db(db):
+def format_db(db, colorize=True):
     S = '\n\n' 
     families = list(db.family_name2config.values())
-    s = format_families(families)
+    s = format_families(families, colorize)
     
     for family in families:
         s += S
-        s += format_tests(family)
+        s += format_tests(family, colorize)
         s += S
-        s += format_instances(family) 
+        s += format_instances(family, colorize) 
         
     return s
 
-def format_families(families):
+def format_families(families, colorize=True):
     if not families:
         s = "No algorithm families found."
         return s
@@ -65,14 +66,19 @@ def format_families(families):
                 s = 'no: ' + family.error_if_invalid
             row.append(s)
             row.append(display_filename(family.filename))
+            
+            if (not family.valid) and colorize:
+                row = make_row_red(row)
             table.append(row)
             
 #         table = remove_table_field(table, 'filename')
         s += indent(format_table_plus(table, colspacing=4), '| ')
         return s    
+
+def make_row_red(row):
+    return [ colored(_, 'magenta') for _ in row]
     
-    
-def format_tests(family):
+def format_tests(family, colorize):
     if not family.tests:
         s = ('No tests files found for family "%s" (pattern = %s).\n\n' % 
              (family.family_name, family.tests_pattern))
@@ -88,11 +94,16 @@ def format_tests(family):
             row.append(t.constructor)
             row.append(t.parameters)
             row.append(t.filename)
+            
+            if (not t.valid) and colorize:
+                row = make_row_red(row)
+            
             table.append(row)
+            
         s += format_table_plus(table, colspacing=4)    
         return s
 
-def format_instances(family):
+def format_instances(family, colorize):
     if not family.instances:
         s = ('No instances files found for family "%s" (pattern = %s).\n\n' % 
              (family.family_name, family.instances_pattern))
@@ -109,7 +120,12 @@ def format_instances(family):
             row.append(_.constructor.replace('.','\n.'))
             row.append(yaml.dump(_.parameters))
             row.append(display_filename(_.filename))
+            
+            if (not _.valid) and colorize:
+                row = make_row_red(row)
+
             table.append(row)
+            
         s += indent(format_table_plus(table, colspacing=4), '| ')
         return s
     

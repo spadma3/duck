@@ -1,3 +1,8 @@
-from .summary import *
-from .validity import *
-from duckietown_utils_tests.hierarchy import *
+
+def jobs_comptests(context):  
+    from . import summary 
+    from . import validity 
+    
+    from comptests.registrar import jobs_registrar_simple
+    jobs_registrar_simple(context)
+    

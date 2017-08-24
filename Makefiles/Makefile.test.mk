@@ -11,10 +11,11 @@ test:
 	@echo "    test-comptests        Comptests"
 
 test-circle: \
-	test-comptests \
-	test-catkin_tests \
-	test-anti_instagram
-
+	test-comptests
+	#
+	# test-catkin_tests \
+	# test-anti_instagram
+	#
 
 ### Comptests
 
@@ -28,10 +29,13 @@ comptests_packages=\
 comptests_out=out/comptests
 
 test-comptests-clean:
-	rm -rf $(comptests_out)
+	-rm -rf $(comptests_out)
 
 test-comptests:
 	comptests -o $(comptests_out) --nonose -c "rparmake" $(comptests_packages)
+
+test-comptests-slow:
+	comptests -o $(comptests_out) --nonose -c "rmake" $(comptests_packages)
 
 # other testss
 

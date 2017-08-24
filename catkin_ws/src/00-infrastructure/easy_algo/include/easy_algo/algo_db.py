@@ -1,25 +1,27 @@
 import os
+from types import NoneType
 
+from duckietown_utils import logger
 from duckietown_utils.caching import get_cached
+from duckietown_utils.exception_utils import raise_x_not_found, check_is_in
 from duckietown_utils.exceptions import DTConfigException
+from duckietown_utils.instantiate_utils import import_name, instantiate, indent
+from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import id_from_basename_pattern
 from duckietown_utils.type_checks import dt_check_isinstance
 from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_config_files,\
     get_config_sources
 
 from .algo_structures import EasyAlgoTest, EasyAlgoInstance, EasyAlgoFamily
-from duckietown_utils.system_cmd_imp import contract
-from duckietown_utils.exception_utils import raise_x_not_found, check_is_in
-from duckietown_utils.instantiate_utils import import_name, instantiate
-from duckietown_utils import logger
-from types import NoneType
 
 
 __all__ = ['get_easy_algo_db', 'EasyAlgoDB']
+cache_algos = False
 
 def get_easy_algo_db():
     if EasyAlgoDB._singleton is None:
-        EasyAlgoDB._singleton = get_cached('EasyAlgoDB', EasyAlgoDB)
+        
+        EasyAlgoDB._singleton = get_cached('EasyAlgoDB', EasyAlgoDB) if cache_algos else EasyAlgoDB()
     return EasyAlgoDB._singleton
 
 class EasyAlgoDB():
@@ -39,15 +41,24 @@ class EasyAlgoDB():
     
     def create_instance(self, family_name, instance_name):
         family = self.get_family(family_name)
+        if not family.valid:
+            msg = 'Cannot instantiate %r because its family %r is invalid.' % (instance_name, family_name)
+            raise DTConfigException(msg)
+            
         check_is_in('instance', instance_name, family.instances)
         instance = family.instances[instance_name]
+        
+        if not instance.valid:
+            msg = ('Cannot instantiate because it is invalid:\n%s' % 
+                   indent(instance.error_if_invalid, '> '))
+            raise DTConfigException(msg)
         res = instantiate(instance.constructor, instance.parameters)
         
         interface = import_name(family.interface)
         if not isinstance(res, interface):
             msg = ('I expected that %r would be a %s but it is a %s.' % 
                    (instance_name, interface.__name__, type(res).__name__))
-            raise ValueError(msg)
+            raise DTConfigException(msg)
              
         return res
         
@@ -118,6 +129,8 @@ def load_family_config(sources):
             
         tests = {}
         
+        c = check_validity_family(c)
+        
         _ = look_everywhere_for_config_files(c.tests_pattern, sources)
         for filename, contents in _.items():
             t = interpret_yaml_file(filename, contents, interpret_test_spec)
@@ -126,6 +139,8 @@ def load_family_config(sources):
                 two = t.filename
                 msg = 'Repeated filename:\n%s\n%s' % (one, two)
                 raise DTConfigException(msg)
+            
+            t = check_validity_test(c, t)
             tests[t.test_name] = t
             
         instances = {}
@@ -137,15 +152,43 @@ def load_family_config(sources):
                 two = i.filename
                 msg = 'Repeated filename:\n%s\n%s' % (one, two)
                 raise DTConfigException(msg)
+            
+            i = check_validity_instance(c, i)
             instances[i.instance_name] = i
         
         c = c._replace(tests=tests, instances=instances)
         
-        c = check_validity_family(c)
+        
         family_name2config[c.family_name] = c
         
     return family_name2config
 
+@contract(f=EasyAlgoFamily, i=EasyAlgoInstance, returns=EasyAlgoInstance)
+def check_validity_instance(f, i):
+    if not f.valid:
+        msg = 'Instance not valid because family not valid.'
+        return i._replace(valid=False, error_if_invalid=msg)
+     
+    try:
+        res = instantiate(i.constructor, i.parameters)
+    except Exception as e:
+        msg = str(e)
+        return i._replace(valid=False, error_if_invalid=msg)
+    
+    interface = import_name(f.interface)
+    
+    if not isinstance(res, interface):
+        msg = ('Expected a %s but it is a %s.' % 
+               (interface.__name__, type(res).__name__))
+        return i._replace(valid=False, error_if_invalid=msg)
+    return i
+
+
+
+@contract(f=EasyAlgoFamily, t=EasyAlgoInstance, returns=EasyAlgoInstance)
+def check_validity_test(f, t):
+    return t
+        
 @contract(f=EasyAlgoFamily, returns=EasyAlgoFamily)
 def check_validity_family(f):
     f = check_validity_family_interface(f)

@@ -1,11 +1,8 @@
 from comptests.registrar import run_module_tests, comptest
 
 from duckietown_utils.disk_hierarchy import dir_from_data
-from easy_algo.formatting import format_db
 from easy_algo.algo_db import EasyAlgoDB
-from contracts.utils import check_isinstance
-
-
+from easy_algo.formatting import format_db
 
 
 @comptest 
@@ -39,26 +36,24 @@ def test_instance():
     data="""
 "adder.easy_algo_family.yaml": | 
     description: desc
-    interface: easy_algo_tests.MyAdderInterface
+    interface: easy_algo_tests.validity.MyAdderInterface
     tests: {}
 
 "one.adder.yaml": |
     description: desc
-    constructor: easy_algo_tests.One
+    constructor: easy_algo_tests.validity.One
     parameters:
-
 
 "not_sub.adder.yaml": |
     description: desc
-    constructor: easy_algo_tests.Two
+    constructor: easy_algo_tests.validity.Two
     parameters:
 
 """
     d = dir_from_data(data)
     sources = [d]
     db = EasyAlgoDB(sources)
-    
-#     import_name()
+     
     print format_db(db)
     
     family = db.get_family('adder')
@@ -68,28 +63,24 @@ def test_instance():
     
     assert type(one).__name__ == 'One'
 
-
     try:
         db.create_instance('not_found', 'does_not_exist')
         raise Exception()
-    except ValueError as e:
+    except Exception as e:
         assert 'not find' in str(e), e
     
     try:
         db.create_instance('adder', 'does_not_exist')
         raise Exception()
-    except ValueError as e:
+    except Exception as e:
         assert 'not find' in str(e), e
         
     try:
         db.create_instance('adder', 'not_sub')
         raise Exception()
-    except ValueError as e:
+    except Exception as e:
         assert 'MyAdderInterface' in str(e)
-        
-        
-    
-    
+
 
 if __name__ == '__main__':
     run_module_tests()
