@@ -1,6 +1,6 @@
 
 docker:
-	@echo '$(sep)Docker commands'
+	@echo "$(sep)Docker commands"
 	@echo
 	@echo 'For using Docker images'
 	@echo

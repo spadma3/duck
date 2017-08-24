@@ -2,7 +2,18 @@
 <package>
   <name>what_the_duck</name>
   <version>1.0.0</version>
-  <description>What the duck?</description>
+  <description>
+
+`what-the-duck` is a program that tests *dozens* of configuration
+inconsistencies that can happen on a Duckiebot.
+
+### The `what-the-duck` program {#what-the-duck}
+
+To use it, first compile the repository, and then run:
+
+    $ ./what-the-duck
+    
+</description>
   <maintainer email="acensi@idsc.mavt.ethz.edu">Andrea Censi</maintainer>
 
   <license>GPLv3</license>

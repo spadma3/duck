@@ -1,14 +1,14 @@
 
-# HW testing
+
 hw-test:
-	@echo '$(sep)Hardware tests'
+	@echo "$(sep)Hardware tests"
 	@echo
 	@echo 'To perform hardware tests:'
 	@echo
-	@echo '    hw-test-camera            Testing Camera HW by taking a picture (smile!).'
-	@echo '    hw-test-turn-right        Calibration right turn'
-	@echo '    hw-test-turn-left         Calibrating left turn'
-	@echo '    hw-test-turn-forward      Calibrating forward turn'
+	@echo '- `make hw-test-camera`     :       Testing Camera HW by taking a picture (smile!).'
+	@echo '- `make hw-test-turn-right`:        Calibration right turn'
+	@echo '- `make hw-test-turn-left`:         Calibrating left turn'
+	@echo '- `make hw-test-turn-forward`:      Calibrating forward turn'
 
 
 hw-test-camera:

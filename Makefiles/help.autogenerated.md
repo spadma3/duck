@@ -27,14 +27,18 @@ Commands to build the software.
 - `make build-machines`       :  Builds the machines file.
 - `make build-machines-clean` :  Removes the machines file.
 - `make build-clean`          :  Clean everything.
-"\\n\\n### "Docker commands
+
+
+### Docker commands
 
 For using Docker images
 
 - `make docker-build`:    Creates the image.
 - `make docker-upload`:   Uploads the image.
 - `make docker-clean`:    Removes all local images.
-"\\n\\n### "Automated files generation
+
+
+### Automated files generation
 
 Generation of documentation
 
@@ -49,15 +53,19 @@ Generation of documentation
 These are simple demos
 
 TODO: to write
-"\\n\\n### "Hardware tests
+
+
+### Hardware tests
 
 To perform hardware tests:
 
-    hw-test-camera            Testing Camera HW by taking a picture (smile!).
-    hw-test-turn-right        Calibration right turn
-    hw-test-turn-left         Calibrating left turn
-    hw-test-turn-forward      Calibrating forward turn
-"\\n\\n### "Maintenance
+- `make hw-test-camera`     :       Testing Camera HW by taking a picture (smile!).
+- `make hw-test-turn-right`:        Calibration right turn
+- `make hw-test-turn-left`:         Calibrating left turn
+- `make hw-test-turn-forward`:      Calibrating forward turn
+
+
+### Maintenance
 
 A couple of utilities for robot maintenance.
 

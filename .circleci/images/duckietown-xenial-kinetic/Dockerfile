@@ -55,13 +55,15 @@ RUN apt-get install -y \
     python-tk \
     python-scipy
 
-
 # RUN rm -rf /var/lib/apt/lists/*
 
 # Other deps for duckuments
-RUN apt-get install -y
 
-RUN pip install empy catkin_pkg numpy
+
+RUN pip install \
+    empy\
+    catkin_pkg\
+    numpy
 
 # mcdp dependencies
 RUN pip install -U \
@@ -91,3 +93,6 @@ RUN pip install -U \
 RUN pip install comptests
 
 RUN wget https://www.princexml.com/download/prince_11.3-1_ubuntu16.04_amd64.deb && dpkg -i prince_11.3-1_ubuntu16.04_amd64.deb
+
+RUN apt-get install -y \
+    python-frozendict

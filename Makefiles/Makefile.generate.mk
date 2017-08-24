@@ -1,6 +1,6 @@
 
 generate:
-	@echo '$(sep)Automated files generation'
+	@echo "$(sep)Automated files generation"
 	@echo
 	@echo 'Generation of documentation'
 	@echo

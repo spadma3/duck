@@ -1,6 +1,6 @@
 
 maintenance:
-	@echo '$(sep)Maintenance'
+	@echo "$(sep)Maintenance"
 	@echo
 	@echo 'A couple of utilities for robot maintenance.'
 	@echo
