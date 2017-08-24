@@ -12,6 +12,12 @@ RUN apt-get install -y git git-extras ros-kinetic-desktop-full ros-kinetic-tf-co
 RUN apt-get install -y ssh python-pip python-numpy python-scipy
 # RUN rm -rf /var/lib/apt/lists/*
 
+# Other deps for duckuments
+RUN apt-get install -y pdftk bibtex2html libxml2-dev libxslt1-dev libffi6 libffi-dev python-dev python-matplotlib virtualenv
 
 RUN pip install empy catkin_pkg numpy
+
+# mcdp dependencies
+RUN pip install pint pyparsing networkx watchdog pyramid pyramid_jinja2 pyramid_debugtoolbar bs4 nose reprep bcrypt markdown junit_xml lxml bcrypt waitress ruamel.yaml gitpython webtest PyContracts decentlogs chardet pillow
+
 RUN pip install comptests
