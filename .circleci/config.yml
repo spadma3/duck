@@ -25,6 +25,8 @@ jobs:
             command: |
                 source /opt/ros/kinetic/setup.bash
                 source $PWD/catkin_ws/devel/setup.bash
+
+                pip install procgraph
                 export DUCKIETOWN_ROOT=$PWD
                 export HOSTNAME=$HOSTNAME
                 make test-circle
