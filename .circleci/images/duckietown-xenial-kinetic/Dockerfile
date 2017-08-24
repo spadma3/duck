@@ -11,3 +11,7 @@ RUN apt-get install -y git git-extras ros-kinetic-desktop-full ros-kinetic-tf-co
 
 RUN apt-get install -y ssh python-pip python-numpy python-scipy
 # RUN rm -rf /var/lib/apt/lists/*
+
+
+RUN pip install empy catkin_pkg numpy
+RUN pip install comptests

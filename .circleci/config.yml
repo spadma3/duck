@@ -15,10 +15,12 @@ jobs:
                 pip install empy catkin_pkg numpy
                 pip install comptests
                 make build-parallel
+                vdir $PWD/catkin_ws/devel
 
         - run:
             name: run tests
             command: |
+                vdir $PWD/catkin_ws/devel
                 export DUCKIETOWN_ROOT=$PWD
                 export HOSTNAME=$HOSTNAME
                 source environment.sh
