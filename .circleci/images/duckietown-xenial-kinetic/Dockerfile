@@ -45,8 +45,7 @@ RUN apt-get install -y \
     python-dev \
     python-matplotlib \
     python-numpy \
-    python-matplotlib
-    virtualenv \
+    python-matplotlib \
     python-setproctitle \
     python-psutil \
     python-lxml \
