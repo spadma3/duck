@@ -96,3 +96,6 @@ RUN wget https://www.princexml.com/download/prince_11.3-1_ubuntu16.04_amd64.deb 
 
 RUN apt-get install -y \
     python-frozendict
+
+RUN apt-get install -y \
+    imagemagick graphviz

@@ -2,7 +2,7 @@ version: 2
 jobs:
     build:
      docker:
-        - image: andreacensi/duckietown-xenial-kinetic:10
+        - image: andreacensi/duckietown-xenial-kinetic:11
 
      steps:
         - checkout
@@ -10,7 +10,7 @@ jobs:
         - run:
             name: deps
             command: |
-                apt install python-frozendict imagemagick
+                apt install -y python-frozendict imagemagick
 
 
         - run:
