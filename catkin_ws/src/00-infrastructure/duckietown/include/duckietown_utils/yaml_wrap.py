@@ -12,6 +12,8 @@ from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import display_filename
 import os
+from duckietown_utils.system_cmd_imp import contract
+from contracts.utils import check_isinstance
 
 
 def interpret_yaml_file(filename, contents, f):
@@ -38,20 +40,27 @@ def interpret_yaml_file(filename, contents, f):
         msg += '   %s\n' % display_filename(filename)
         msg += 'Contents:\n' + indent(contents, ' > ')
         raise_wrapped(DTConfigException, e, msg, compact=True) 
-        
-def look_everywhere_for_config_files(pattern):
-    """
-        Looks for all the configuration files by the given pattern.    
-        Returns a dictionary filename -> contents.
-    """
+
+def get_config_sources():
+    
     sources = []
     # We look in $DUCKIETOWN_ROOT/catkin_ws/src
     sources.append(get_catkin_ws_src())
     # then we look in $DUCKIETOWN_FLEET
     sources.append(get_duckiefleet_root())
     
-    logger.info('Reading configuration files from sources:\n'+'\n'.join(sources))
-
+    return sources
+ 
+@contract(pattern=str, sources='seq(str)')
+def look_everywhere_for_config_files(pattern, sources):
+    """
+        Looks for all the configuration files by the given pattern.    
+        Returns a dictionary filename -> contents.
+    """
+    check_isinstance(sources, list)
+    
+    logger.info('Reading configuration files from sources %r' % sources)
+ 
     results = OrderedDict()
     for s in sources:
         filenames = locate_files(s, pattern)

@@ -2,8 +2,6 @@ import os
 
 from duckietown_utils.exceptions import DTConfigException
 
-
-
 def get_config_sequence():
     """ Reads the variable EasyNode.ENV
     

@@ -1,7 +1,9 @@
 from collections import namedtuple, OrderedDict
 import os
+from types import NoneType
 
 from ruamel import yaml
+import ruamel
 
 from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
@@ -11,8 +13,6 @@ from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import format_table_plus, wrap_line_length,\
     indent, remove_table_field
-from types import NoneType
-import ruamel
 
 
 # import yaml
@@ -113,7 +113,6 @@ def load_configuration(realpath, contents):
         if not isinstance(description, (str, NoneType)):
             msg = 'Description should be a string, not %s.' % type(description).__name__
             raise DTConfigException(msg)
-
 
         if data:
             msg = 'Spurious fields found: %s' % sorted(data)

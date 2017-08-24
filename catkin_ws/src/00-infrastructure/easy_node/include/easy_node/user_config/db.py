@@ -9,8 +9,7 @@ from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.path_utils import display_filename
 from duckietown_utils.system_cmd_imp import contract
-from duckietown_utils.text_utils import format_table_plus
-from duckietown_utils.yaml_wrap import look_everywhere_for_config_files
+from duckietown_utils.text_utils import format_table_plus 
 from easy_node.node_description.configuration import load_configuration_for_nodes_in_package, EasyNodeConfig
 from easy_node.user_config.get_configuration_files import get_all_configuration_files
 

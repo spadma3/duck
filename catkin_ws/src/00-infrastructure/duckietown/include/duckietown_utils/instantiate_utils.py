@@ -35,6 +35,8 @@ def import_name(name):
         Loads the python object with the given name. 
     
         Note that "name" might be "module.module.name" as well.
+        
+        raise ValueError
     '''
     try:
         return __import__(name, fromlist=['dummy'])
