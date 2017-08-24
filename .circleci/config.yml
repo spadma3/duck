@@ -12,19 +12,21 @@ jobs:
             command: |
                 source /opt/ros/kinetic/setup.bash
                 # apt-get install python-pip
-                pip install empy catkin_pkg numpy
-                pip install comptests
+                # pip install empy catkin_pkg numpy
+                # pip install comptests
                 make build-parallel
                 vdir $PWD/catkin_ws/devel
 
         - run:
             name: run tests
             command: |
+                source /opt/ros/kinetic/setup.bash
+                echo  $PWD/catkin_ws/devel
                 vdir $PWD/catkin_ws/devel
                 source $PWD/catkin_ws/devel/setup.bash
                 export DUCKIETOWN_ROOT=$PWD
                 export HOSTNAME=$HOSTNAME
-                source environment.sh
+                #source environment.sh
                 make comptests
 
         - store_artifacts:
