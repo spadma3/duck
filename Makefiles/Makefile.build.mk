@@ -4,9 +4,9 @@ build:
 	@echo
 	@echo "Commands to build the software."
 	@echo
-	@echo "   build-machines         Builds the machines file."
-	@echo "   build-machines-clean   Removes the machines file."
-	@echo "   build-clean            Clean everything."
+	@echo "    build-machines         Builds the machines file."
+	@echo "    build-machines-clean   Removes the machines file."
+	@echo "    build-clean            Clean everything."
 
 build-machines: $(machines)
 

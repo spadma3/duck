@@ -5,10 +5,10 @@ test:
 	@echo
 	@echo "These commands run the unit tests."
 	@echo
-	@echo "   test-circle           The tests run on the cloud."
-	@echo "   test-catkin_tests     ROS tests."
-	@echo "   test-anti_instagram   anti_instagram"
-	@echo "   test-comptests        Comptests"
+	@echo "    test-circle           The tests run on the cloud."
+	@echo "    test-catkin_tests     ROS tests."
+	@echo "    test-anti_instagram   anti_instagram"
+	@echo "    test-comptests        Comptests"
 
 test-circle: \
 	test-comptests \

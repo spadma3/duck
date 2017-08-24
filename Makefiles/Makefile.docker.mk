@@ -8,9 +8,9 @@ docker:
 	@echo
 	@echo "For using Docker images"
 	@echo
-	@echo "  docker-build     creates the image"
-	@echo "  docker-upload    uploads the image"
-	@echo "  docker-clean     removes all local images"
+	@echo "    docker-build     creates the image"
+	@echo "    docker-upload    uploads the image"
+	@echo "    docker-clean     removes all local images"
 
 docker-build:
 	sudo docker build -t andreacensi/duckietown-xenial-kinetic:$(tag) .circleci/images/duckietown-xenial-kinetic/

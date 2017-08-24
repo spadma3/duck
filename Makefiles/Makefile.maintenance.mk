@@ -4,8 +4,8 @@ maintenance:
 	@echo
 	@echo "A couple of utils for robot maintenance"
 	@echo
-	@echo "   maintenance-fix-time     Fixes the time."
-	@echo "   maintenance-clean-pyc    Removes pyc files."
+	@echo "     maintenance-fix-time     Fixes the time."
+	@echo "     maintenance-clean-pyc    Removes pyc files."
 
 maintenance-fix-time:
 	echo "Calling ntpdate to fix time"
