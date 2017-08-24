@@ -14,3 +14,4 @@ config_db.cache
 ./caches/
 caches/
 catkin_ws/src/CMakeLists.txt
+.compmake_history.txt
