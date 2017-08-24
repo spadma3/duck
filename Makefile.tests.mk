@@ -1,4 +1,15 @@
 
+continuous-integration-tests:
+	$(MAKE) test-comptests
+	$(MAKE) test-easy_node
+
+### Comptests
+
+test-easy_node:
+	$(MAKE) easy_node-docs
+
+### Comptests
+
 comptests_packages=\
 	easy_node_tests\
 	easy_logs_tests\
@@ -11,8 +22,11 @@ comptests_out=out/comptests
 comptests-clean:
 	rm -rf $(comptests_out)
 
-comptests:
+test-comptests:
 	comptests -o $(comptests_out) --nonose -c "rparmake" $(comptests_packages)
+
+
+### Docker
 
 tag=7
 
