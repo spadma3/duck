@@ -31,6 +31,10 @@ jobs:
                 export HOSTNAME=$HOSTNAME
                 make test-circle
 
+        - run:
+            name: junit
+            command: |
+                ./misc/collect-test-artifacts.sh ${CIRCLE_ARTIFACTS} ${CIRCLE_TEST_REPORTS}
         - store_artifacts:
               path: out
               destination: out
