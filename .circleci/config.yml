@@ -6,23 +6,11 @@ jobs:
 
      steps:
         - checkout
-        - run: echo "hello world"
-        - run: echo `uname -a`
-        - run: cat /etc/issue
-        # - run:
-        #       name: install Indigo (compatible with 14.04)
-        #       command: |
-        #         sudo apt-get install lsb-release
-        #         sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-        #         sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
-        #         sudo apt-get update
-        #         sudo apt-get install ros-indigo-desktop git git-extras ros-indigo-{tf-conversions,cv-bridge,image-transport,camera-info-manager,theora-image-transport,joy,image-proc,compressed-image-transport,phidgets-drivers,imu-complementary-filter,imu-filter-madgwick} python-numpy python-scipy
-        #         pip install comptests
 
         - run:
             name: build
             command: |
-                #source /opt/ros/indigo/setup.bash
+                source /opt/ros/kinetic/setup.bash
                 # apt-get install python-pip
                 pip install empy catkin_pkg numpy
                 pip install comptests
@@ -33,7 +21,7 @@ jobs:
             command: |
                 export DUCKIETOWN_ROOT=$PWD
                 export HOSTNAME=$HOSTNAME
-                -source environment.sh
+                source environment.sh
                 make comptests
 
         - store_artifacts:
