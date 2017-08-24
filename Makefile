@@ -2,11 +2,8 @@
 vehicle_name=$(shell hostname)
 catkin_ws=catkin_ws
 
-duckietown_package=$(catkin_ws)/src/00-infrastructure/duckietown
-machines=$(duckietown_package)/machines
 
 all:
-	@echo ""
 	@$(MAKE) -s stats
 	@$(MAKE) -s test
 	@$(MAKE) -s build
@@ -18,7 +15,7 @@ all:
 	@$(MAKE) -s openhouse
 
 
-sep="\\n\\n\--- "
+sep="\\n\\n\#\#\# "
 
 
 include Makefiles/Makefile.stats.mk
@@ -30,7 +27,3 @@ include Makefiles/Makefile.demos.mk
 include Makefiles/Makefile.hw_test.mk
 include Makefiles/Makefile.maintenance.mk
 include Makefiles/Makefile.openhouse.mk
-
-# TO add:
-# python-tables
-# catkin_make -C catkin_ws/ --pkg easy_logs

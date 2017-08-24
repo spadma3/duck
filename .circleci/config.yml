@@ -6,6 +6,12 @@ jobs:
 
      steps:
         - checkout
+        
+        - run:
+            name: deps
+            command: |
+                sudo apt install frozendict
+
 
         - run:
             name: build

@@ -161,11 +161,14 @@ def get_checks():
             ipython
             python-ruamel.yaml
             virtualenv
-            libxml2-dev libxslt1-dev
+            libxml2-dev 
+            libxslt1-dev
             libffi-dev
             bibtex2html
             pdftk
             python-frozendict
+             python-tables
+            
         """))
 
     if this_is_a_duckiebot:
@@ -270,6 +273,15 @@ def get_checks():
     DUCKIETOWN_ROOT = DuckietownConstants.DUCKIETOWN_ROOT_variable
     DUCKIEFLEET_ROOT = DuckietownConstants.DUCKIEFLEET_ROOT_variable
     DUCKIETOWN_CONFIG_SEQUENCE = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
+
+    
+    v = DUCKIETOWN_CONFIG_SEQUENCE
+    add(None,
+        'Provided environment variable %s.' % v,
+        EnvironmentVariableExists(v),
+        Diagnosis("%s is not set." % v),
+        Suggestion('You have to set %r in your environment (e.g. .bashrc)' % v))
+
 
     variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT, #DUCKIETOWN_CONFIG_SEQUENCE
                           ]

@@ -1,22 +1,22 @@
 
-### Docker
+docker:
+	@echo '$(sep)Docker commands'
+	@echo
+	@echo 'For using Docker images'
+	@echo
+	@echo '- `make docker-build`:    Creates the image.'
+	@echo '- `make docker-upload`:   Uploads the image.'
+	@echo '- `make docker-clean`:    Removes all local images.'
 
+docker_dir=.circleci/images/duckietown-xenial-kinetic/
+docker_image_name=andreacensi/duckietown-xenial-kinetic
 tag=10
 
-docker:
-	@echo "$(sep)Docker commands"
-	@echo
-	@echo "For using Docker images"
-	@echo
-	@echo "    docker-build     creates the image"
-	@echo "    docker-upload    uploads the image"
-	@echo "    docker-clean     removes all local images"
-
 docker-build:
-	sudo docker build -t andreacensi/duckietown-xenial-kinetic:$(tag) .circleci/images/duckietown-xenial-kinetic/
+	sudo docker build -t $(docker_image_name):$(tag) $(docker_dir)
 
 docker-upload:
-	sudo docker push andreacensi/duckietown-xenial-kinetic:$(tag)
+	sudo docker push $(docker_image_name):$(tag)
 
 docker-clean:
 	# Kill all running containers:

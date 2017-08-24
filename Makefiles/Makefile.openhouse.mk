@@ -4,7 +4,7 @@ openhouse:
 	@echo
 	@echo "These were the open house demos."
 	@echo
-	@echo TODO
+	@echo TODO: to write
 
 
 openhouse-dp1: check-environment

@@ -3,7 +3,7 @@ demos:
 	@echo
 	@echo "These are simple demos"
 	@echo
-	@echo TODO
+	@echo TODO: to write
 
 ### These are not using master.launch
 demo-joystick: check-environment
