@@ -1,0 +1,35 @@
+
+
+1.	find a recent commit (like e.g. Aug 1) where everything is good.
+
+    export COMMIT=cbca9ee028155a1eedb0b1b61470a7e747482a1b
+
+2.	move the folders where we want them to be. Write the
+
+    export WHERE=/tmp/good-Software
+
+    git clone git@github.com:duckietown/Software ${WHERE}
+    git -C  ${WHERE} checkout ${COMMIT}
+
+
+
+3.	applying a mega diff in one commit that add our recent work.
+This will make us lose the recent few weeks of history, but it's ok. (Also I like the idea of having this "mega commit" with all the refreshed stuff.)
+
+
+
+    git checkout cbca9ee028155a1eedb0b1b61470a7e747482a1b
+    git reset --hard cbca9ee028155a1eedb0b1b61470a7e747482a1b
+
+
+    git checkout -b recovery-script-6
+    git reset --soft origin/andrea-config
+    git checkout origin/andrea-config
+
+
+    git checkout -b good-starting-point
+
+    git checkout origin/andrea-config
+    git checkout -b recovery-script-8
+
+    git reset --soft good-starting-point

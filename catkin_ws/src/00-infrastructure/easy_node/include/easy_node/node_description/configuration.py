@@ -12,6 +12,7 @@ from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import format_table_plus, wrap_line_length,\
     indent, remove_table_field
 from types import NoneType
+import ruamel
 
 
 # import yaml
@@ -91,7 +92,7 @@ def load_configuration(realpath, contents):
     # TODO: load "version" string
     try:
         try:
-            data = yaml.load(contents)
+            data = yaml.load(contents, Loader=ruamel.yaml.Loader)
         except Exception as e:
             msg = 'Could not parse YAML file properly:'
             raise_wrapped(DTConfigException, e, msg, compact=True)

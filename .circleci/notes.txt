@@ -8,7 +8,7 @@ docker rm $(docker ps -a -q)
 docker rm $(docker ps -q -f status=exited)
 
 # Delete ALL images:
-docker rmi $(docker images -q)
+sudo docker rmi $(sudo docker images -q)
 
 # Delete all 'untagged/dangling' (<none>) images ():
 docker rmi $(docker images -q -f dangling=true)

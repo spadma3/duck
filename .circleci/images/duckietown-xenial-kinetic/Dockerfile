@@ -7,6 +7,9 @@ RUN apt-get update
 
 RUN apt-get install -y \
     ros-kinetic-perception=1.3.1-0*
+
+
+RUN apt-get install -y \
     git \
     git-extras \
     ros-kinetic-desktop-full \
@@ -37,7 +40,7 @@ RUN apt-get install -y \
     idle \
     virtualenv \
     python-pmw \
-    python-imaging
+    python-imaging \
     python-yaml \
     python-dev \
     python-matplotlib \
