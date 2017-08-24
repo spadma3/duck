@@ -28,7 +28,7 @@ test-comptests:
 
 ### Docker
 
-tag=7
+tag=9
 
 docker-build:
 	sudo docker build -t andreacensi/duckietown-xenial-kinetic:$(tag) .circleci/images/duckietown-xenial-kinetic/
