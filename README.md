@@ -1,11 +1,10 @@
 
 # Main software repository for Duckietown
 
-This is the main software repository for the Duckietown project.
+This is the main software repository for the Duckietown project. It contains all software, as well as hardware projects.
 
-It contains all software, as well as hardware projects.
-
-For extensive documentation, please refer to [the Duckiebooks][duckiebook].
+- For an introduction to the project, see the site [duckietown.org](http://duckietown.org).
+- For extensive technical documentation, please refer to [the Duckiebooks][duckiebook].
 
 
 
@@ -14,8 +13,8 @@ For extensive documentation, please refer to [the Duckiebooks][duckiebook].
 
 #### Continuous integration badges
 
-We use CircleCI. See [the continuous integration console](https://circleci.com/gh/duckietown/Software/).
-
+If you do not know what "continuous integration" is, please see
+ <a href="http://purl.org/dth/continuous-integration">this chapter</a> in the Duckiebook.
 
 <table>
 <thead>
@@ -32,7 +31,9 @@ We use CircleCI. See [the continuous integration console](https://circleci.com/g
         <td> <code>andrea-devel</code> </td>
         <td> <img src='https://circleci.com/gh/duckietown/Software/tree/andrea-devel.svg?style=shield'/>
         </td>
-        <td>     </td>
+        <td> Big reorganization/cleanup. </td>
     </tr>
 </tbody>
 </table>
+
+See [the continuous integration console](https://circleci.com/gh/duckietown/Software/).
