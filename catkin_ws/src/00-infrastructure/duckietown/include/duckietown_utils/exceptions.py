@@ -1,11 +1,25 @@
 
-class DTUserError(Exception):
-    """ Exceptions that will not be printed with full traceback,
+class DTException(Exception):
+    pass
+
+class DTUserError(DTException):
+    """ 
+        Exceptions that will not be printed with full traceback,
         because they contain a simple message for the user, to be printed in red.
     """
 
 class DTConfigException(DTUserError):
+    """
+        The configuration (either environment variables or YAML files)
+        is invalid.
+    """
     pass
+
+class DTBadData(DTException):
+    """
+        A log is invalid.
+    """
+    
 
 import sys
 import traceback

@@ -5,7 +5,7 @@ from ruamel.yaml.error import YAMLError
 
 from duckietown_utils import logger
 from duckietown_utils.constants import get_catkin_ws_src, get_duckiefleet_root,\
-    get_duckietown_data
+    get_duckietown_data, get_duckietown_local_log_downloads
 from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import indent
@@ -80,6 +80,10 @@ def look_everywhere_for_bag_files(pattern='*.bag'):
     # then we look in $DUCKIETOWN_FLEET
     sources.append(get_duckiefleet_root())
     sources.append(get_duckietown_data())
+    # downloads 
+    p = get_duckietown_local_log_downloads()
+    if os.path.exists(p):
+        sources.append(p)
     
     logger.info('Looking for files with pattern %s\n' % pattern)
     

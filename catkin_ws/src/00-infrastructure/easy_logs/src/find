@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+import sys
+
+from duckietown_utils import col_logging  # @UnusedImport
+from duckietown_utils.exceptions import wrap_script_entry_point
+from easy_logs.cli.find import find_logs_main
+
+
+def find_logs():
+    args = sys.argv[1:]
+    if not args:
+        query = '*'
+    else:
+        query = args[0]
+
+    find_logs_main(query)
+    
+
+if __name__ == '__main__':
+    wrap_script_entry_point(find_logs)

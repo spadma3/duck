@@ -17,3 +17,6 @@ catkin_ws/src/CMakeLists.txt
 .compmake_history.txt
 t
 out-comptests/
+out-make_videos.py
+out-programmatic.py
+out-programmatic

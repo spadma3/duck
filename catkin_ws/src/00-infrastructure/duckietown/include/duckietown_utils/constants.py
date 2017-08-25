@@ -4,7 +4,6 @@ from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import expand_all
 
-
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
     DUCKIEFLEET_ROOT_variable = 'DUCKIEFLEET_ROOT'
@@ -14,7 +13,8 @@ class DuckietownConstants():
     # inside DUCKIEFLEET_ROOT
     scuderia_filename = 'scuderia.yaml'
     machines_path_rel_to_root = 'catkin_ws/src/00-infrastructure/duckietown/machines'
-    
+    use_cache_for_algos =  False
+    use_cache_for_logs =  False
     enforce_no_tabs = True
     enforce_naming_conventions = True
     
@@ -33,6 +33,14 @@ def get_duckiefleet_root():
 def get_duckietown_data():
     """ Returns the path of DUCKIETOWN_DATA and checks it exists """
     return _get_dir(DuckietownConstants.DUCKIETOWN_DATA_variable)
+
+def get_duckietown_local_log_downloads():
+    """ Returns the directory to use for local downloads of logs"""
+    d = '/tmp/duckietown-download'
+    if not os.path.exists(d):
+        os.makedirs(d)
+    return d
+    
 
 def get_machines_files_path():
     ''' Gets the path to the machines files. It might not exist. '''

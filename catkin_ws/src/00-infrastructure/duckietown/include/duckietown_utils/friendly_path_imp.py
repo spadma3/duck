@@ -40,12 +40,13 @@ def friendly_path(path, use_environment=True):
             if 'PWD' in e:
                 del envs[e]
 
-        for k, v in envs.items():
-            if v:
-                if v and v[-1] == '/':
-                    v = v[:-1]
-                if v[0] == '/':
-                    rules.append(('${%s}' % k, v))
+        for k, v0 in envs.items():
+            if v0:
+                for v in [v0, os.path.realpath(v0)]:
+                    if v and v[-1] == '/':
+                        v = v[:-1]
+                    if v[0] == '/':
+                        rules.append(('${%s}' % k, v))
 
     # apply longest first
     rules.sort(key=lambda x: (-len(x[1])))

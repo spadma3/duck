@@ -4,8 +4,64 @@
 
 ## Querying the DB
 
+The package includes two programs to query the database: `find` and `summary`.
 
-All the Ferrari logs:
+Use the `summary` program to display a summary of the logs available: 
+
+    $ rosrun easy_logs summary
+
+The `find` command is similar to `summary`, but it only displays the filenames:
+
+    $ rosrun easy_logs find
+
+The `details` command shows a detailed view of the data structure:
+
+    $ rosrun easy_logs details
+
+
+## Selector language
+
+The `summary` command has the general form:
+
+    $ rosrun easy_logs summary ![query]
+    
+where `![query]` is a string in a query language ([](#tab:queries)).
+
+<col3 figure-id='tab:queries' class='labels-row1'>
+    <figcaption>Query language</figcaption>
+    <s>expression</s>
+    <s>example</s>
+    <s>explanation</s>
+    
+    <code>![attribute name]:![expression]</code> 
+    <code>vehicle:ferrari</code> 
+    <s>Checks that the property <code>![[attribute name]</code> of the object 
+        satisfies the expression in <code>![expression]</code></s>
+        
+    <code>&gt;![lower bound]</code> 
+    <code>&gt;10</code>
+    <s>Lower bound</s>
+    
+    <code>&lt;![upper bound]</code>
+    <code>&gt;1</code>
+     <s>Upper bound</s>
+     
+    <code>![expr1],![expr2]</code> 
+    <code>&gt;10,&lt;20</code>
+    <s>And between two expressions</s>
+    
+    <code>![expr1]+![expr2]</code> 
+    <code>&gt;10+&lt;5</code>
+    <s>Or between two expressions</s>
+    
+    <code>![pattern]</code> 
+    <code>*ferrari*</code>
+    <s>Other strings are interpreted as wildcard patterns.</s>
+</col3>
+ 
+Here are some examples.
+
+Show all the Ferrari logs:
 
     $ rosrun easy_logs summary vehicle:ferrari
 
@@ -20,3 +76,5 @@ All the invalid logs:
 All the invalid logs of length less than 45 s:
 
 <pre><code>&#36; rosrun easy_logs summary "length:&lt;45,valid:False"</code></pre>
+
+

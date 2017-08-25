@@ -188,7 +188,7 @@ def parse_match_spec(s):
 def fuzzy_match(spec, stuff):
     """
         spec: a string
-        logs: a dict of logs
+        logs: an OrderedDict str -> object
     """
     if not isinstance(stuff, dict):
         msg = 'Expectd an OrderedDict, got %s.' % describe_type(stuff)

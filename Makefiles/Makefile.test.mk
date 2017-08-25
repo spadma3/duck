@@ -13,6 +13,8 @@ test:
 	@echo '- `make test-comptests`:        Run the `comptests` tests.'
 	@echo '- `make test-comptests-clean`:        Run the `comptests` tests.'
 	@echo '- `make test-comptests-collect-junit`: Collects the JUnit results.'
+	@echo '- `make test-download-logs`: Downloads the logs needed for the tests.'
+
 
 test-circle: \
 	test-comptests
@@ -56,3 +58,7 @@ test-catkin_tests: check-environment
 
 test-anti_instagram: check-environment
 	bash -c "source environment.sh; rosrun anti_instagram annotation_tests.py"
+
+test-download-logs:
+	rosrun easy_logs require 20160223-amadoa-amadobot-RCDP2
+	

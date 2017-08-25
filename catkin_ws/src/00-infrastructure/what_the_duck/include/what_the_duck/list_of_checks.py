@@ -168,6 +168,8 @@ def get_checks():
             pdftk
             python-frozendict
              python-tables
+             mplayer 
+             mencoder
             
         """))
 

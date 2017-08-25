@@ -4,17 +4,20 @@ import re
 
 from contracts.utils import check_isinstance
 
+from duckietown_utils.bag_info import rosbag_info_cached
 from duckietown_utils.caching import get_cached
 from duckietown_utils.fuzzy import parse_match_spec, fuzzy_match
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
 from easy_logs.logs_structure import PhysicalLog
-from procgraph_ros.bag_utils import rosbag_info  # @UnresolvedImport
+from duckietown_utils.constants import DuckietownConstants
 
 
 def get_easy_logs_db():
     if EasyLogsDB._singleton is None:
-        EasyLogsDB._singleton = get_cached('EasyLogsDB', EasyLogsDB)
+        f = EasyLogsDB
+        use_cache = DuckietownConstants.use_cache_for_logs
+        EasyLogsDB._singleton = get_cached('EasyLogsDB', f) if use_cache else f()
     return EasyLogsDB._singleton
 
 
@@ -46,13 +49,6 @@ class EasyLogsDB():
             raise Exception(msg)
         return subset
     
-def rosbag_info_cached(filename):
-    def f():
-        return rosbag_info(filename)
-    basename = os.path.basename(filename)
-    cache_name = 'rosbag_info/' + basename
-    return get_cached(cache_name, f, quiet=True)
-    
     
 def read_stats(pl):
     assert isinstance(pl, PhysicalLog)
@@ -76,12 +72,23 @@ def read_stats(pl):
     
     try:
         vehicle = which_robot(info)
-        pl =pl._replace(vehicle=vehicle) 
+        pl =pl._replace(vehicle=vehicle, has_camera=True) 
     except ValueError:
         vehicle = None
         pl = pl._replace(valid=False, error_if_invalid='No camera data.')
+    
+#     camera_topic = '/%s/camera_node/image/compressed' % vehicle
+# 
+#     found = False
+#     for _ in info['topics']:
+#         if _['topic'] == camera_topic:
+#             found = True
+#     
+#     if not found:
+#         
+        
     return pl
-
+        
 def which_robot(info):
     pattern  = r'/(\w+)/camera_node/image/compressed'
     for topic in info['topics']:

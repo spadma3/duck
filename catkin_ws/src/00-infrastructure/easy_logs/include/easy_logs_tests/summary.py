@@ -1,5 +1,5 @@
 from comptests.registrar import run_module_tests, comptest
-from easy_logs.scripts.easy_logs_summary_imp import easy_logs_summary
+from easy_logs.cli.easy_logs_summary_imp import easy_logs_summary
 
 @comptest
 def call_summary():

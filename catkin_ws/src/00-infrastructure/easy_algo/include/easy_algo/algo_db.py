@@ -13,14 +13,16 @@ from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_
     get_config_sources
 
 from .algo_structures import EasyAlgoTest, EasyAlgoInstance, EasyAlgoFamily
+from duckietown_utils.fuzzy import fuzzy_match
+from duckietown_utils.constants import DuckietownConstants
 
 
 __all__ = ['get_easy_algo_db', 'EasyAlgoDB']
-cache_algos = False
+
 
 def get_easy_algo_db():
     if EasyAlgoDB._singleton is None:
-        
+        cache_algos = DuckietownConstants.use_cache_for_algos
         EasyAlgoDB._singleton = get_cached('EasyAlgoDB', EasyAlgoDB) if cache_algos else EasyAlgoDB()
     return EasyAlgoDB._singleton
 
@@ -35,6 +37,11 @@ class EasyAlgoDB():
             sources = get_config_sources()
         self.family_name2config = load_family_config(sources)
     
+    def query(self, family_name, query):
+        family = self.get_family(family_name)
+        instances = family.instances
+        return fuzzy_match(query, instances)
+        
     def get_family(self, x):
         check_is_in('family', x, self.family_name2config)
         return self.family_name2config[x]
@@ -234,8 +241,6 @@ def interpret_easy_algo_config(filename, data):
                             valid=True,
                             error_if_invalid=False)
     
-    
-    
-    
+
 
 
