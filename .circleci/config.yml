@@ -41,7 +41,10 @@ jobs:
 
         - run:
             name: junit
+            when: always
             command: |
+
+                make test-comptests-collect
 
                 export artifacts=artifacts
                 export reports=reports
@@ -49,9 +52,13 @@ jobs:
                 mkdir -p $reports
                 .circleci/collect-test-artifacts.sh $artifacts $reports
 
+        - test-results-store:
+                path: out/comptests/junit
+
         - store_artifacts:
               path: artifacts
               destination: artifacts
+
         - store_artifacts:
               path: reports
               destination: reports

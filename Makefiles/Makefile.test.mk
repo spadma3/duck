@@ -37,6 +37,9 @@ test-comptests:
 test-comptests-slow:
 	comptests -o $(comptests_out) --nonose -c "rmake" $(comptests_packages)
 
+test-comptests-collect:
+	mkdir - $(comptests_out)/junit
+	comptests-to-junit $(comptests_out)/compmake > $(comptests_out)/junit/junit.xml
 # other testss
 
 test-catkin_tests: check-environment
