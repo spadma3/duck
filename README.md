@@ -1,17 +1,20 @@
+
+# Main software repository for Duckietown
+
 This is the main software repository for the Duckietown project.
 
 It contains all software, as well as hardware projects.
 
-For documentation, please refer to [the Duckiebook][duckiebook].
+For extensive documentation, please refer to [the Duckiebooks][duckiebook].
 
 
 
 [duckiebook]: http://book.duckietown.org/
 
 
-## Continuous integration badges
+#### Continuous integration badges
 
-[Continuous integration console](https://circleci.com/gh/duckietown/Software/)
+We use CircleCI. See [the continuous integration console](https://circleci.com/gh/duckietown/Software/).
 
 
 <table>
