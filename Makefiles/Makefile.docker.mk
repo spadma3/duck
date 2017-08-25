@@ -10,7 +10,7 @@ docker:
 
 docker_dir=.circleci/images/duckietown-xenial-kinetic/
 docker_image_name=andreacensi/duckietown-xenial-kinetic
-tag=13
+tag=14
 
 docker-build:
 	sudo docker build -t $(docker_image_name):$(tag) $(docker_dir)
