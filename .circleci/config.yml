@@ -12,11 +12,13 @@ jobs:
             command: |
                 # apt install -y python-frozendict imagemagick
 
+                # uninstall has the -y
                 pip uninstall -y comptests
+
                 pip install -U comptests
                 ./misc/python_environment.py comptests
 
-                pip install -y procgraph
+                pip install  procgraph
 
         - run:
             name: build
