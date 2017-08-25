@@ -13,7 +13,23 @@ For documentation, please refer to [the Duckiebook][duckiebook].
 
 [Continuous integration console](https://circleci.com/gh/duckietown/Software/)
 
-Branch `master`: [![`master`](https://circleci.com/gh/duckietown/Software/tree/master.svg?style=shield)](https://circleci.com/gh/duckietown/Software/tree/master).
 
-Branch `andrea-devel`: [![`andrea-devel`](https://circleci.com/gh/duckietown/Software/tree/andrea-devel.svg?style=shield)](https://circleci.com/gh/duckietown/Software/tree/andrea-devel).
- 
+<table>
+<thead>
+    <tr><td>Branch</td><td>tests</td><td></td></tr>
+</thead>
+<tbody>
+    <tr>
+        <td> <code>master</code> </td>
+        <td> <img src='https://circleci.com/gh/duckietown/Software/tree/master.svg?style=shield'/>
+        </td>
+        <td>     </td>
+    </tr>
+    <tr>
+        <td> <code>andrea-devel</code> </td>
+        <td> <img src='https://circleci.com/gh/duckietown/Software/tree/andrea-devel.svg?style=shield'/>
+        </td>
+        <td>     </td>
+    </tr>
+</tbody>
+</table>
