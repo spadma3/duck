@@ -15,7 +15,6 @@ def get_easy_logs_db():
 
 class EasyLogsDB():
     _singleton = None 
-     
     
     def __init__(self):
         self.logs = load_all_logs()
@@ -53,10 +52,10 @@ def read_stats(pl):
     pl = pl._replace(date=date, length=length, bag_info=info)
     
     try:
-        vehicle_name = which_robot(info)
-        pl =pl._replace(vehicle_name=vehicle_name) 
+        vehicle = which_robot(info)
+        pl =pl._replace(vehicle=vehicle) 
     except ValueError:
-        vehicle_name = None
+        vehicle = None
         pl = pl._replace(valid=False, error_if_invalid='No camera data.')
     return pl
 
@@ -65,8 +64,8 @@ def which_robot(info):
     for topic in info['topics']:
         m = re.match(pattern, topic['topic'])
         if m: 
-            vehicle_name = m.group(1)
-            return vehicle_name
+            vehicle = m.group(1)
+            return vehicle
     msg = 'Could not find a topic matching %s' % pattern
     raise ValueError(msg)
 
@@ -86,7 +85,7 @@ def load_all_logs(which):
                         date=date,  
                         size=size,
                         has_camera=None,
-                        vehicle_name = None,
+                        vehicle = None,
                         filename=filename,
                         bag_info=None,
                         valid=True,

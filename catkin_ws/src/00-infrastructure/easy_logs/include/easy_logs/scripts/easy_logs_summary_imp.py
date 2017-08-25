@@ -4,11 +4,22 @@ from duckietown_utils.text_utils import format_table_plus, remove_table_field,\
     make_row_red
 from easy_logs.logs_db import load_all_logs
 from ruamel import yaml
+from duckietown_utils.fuzzy import fuzzy_match, parse_match_spec
+from collections import OrderedDict
 
 
-def easy_logs_summary(which='*'):
-    logs = load_all_logs(which)    
-    s = format_logs(logs)
+def easy_logs_summary(query='*'):
+    logs = load_all_logs('*')
+    logs = OrderedDict([(_.log_name, _) for _ in logs])
+    spec = parse_match_spec(query)
+    subset = fuzzy_match(query, logs) 
+    if not subset:
+        msg = 'Could not find any match.'
+        msg += '\nQuery parsed as follows:'
+        msg += '\nQuery: %s' % query
+        msg += '\n'+indent(spec, '', 'Parsed:') 
+        raise Exception(msg)
+    s = format_logs(subset.values())
     return s
     
 def format_logs(logs):
@@ -39,7 +50,7 @@ def format_logs(logs):
             else:
                 l = '(none)'
             row.append(l)
-            row.append(log.vehicle_name)
+            row.append(log.vehicle)
             row.append(display_filename(log.filename))
             if log.valid:
                 s = 'Yes.'

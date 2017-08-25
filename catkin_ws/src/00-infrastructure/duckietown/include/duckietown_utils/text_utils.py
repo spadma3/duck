@@ -88,7 +88,7 @@ def format_table_plus(rows, colspacing=1, paginate=25):
     rows.insert(1, divider)
     
     rows = make_pagination(rows, paginate)
-    s = ''
+    s = '\n---\n'
     for row in rows: 
         # how many lines do we need?
         nlines = max(num_lines(cell) for cell in row)

@@ -7,11 +7,11 @@ import sys
 def print_easy_logs_summary():
     args = sys.argv[1:]
     if not args:
-        which = '*'
+        query = '*' 
     else:
-        which = '*'+args[0]+'*'
+        query = args[0]
         
-    s = easy_logs_summary(which)
+    s = easy_logs_summary(query)
     print(s)
 
     
