@@ -1,17 +1,12 @@
 FROM ros:kinetic-ros-base-xenial
 MAINTAINER Andrea Censi
 
-# install ros packages
-
 RUN apt-get update
 
 RUN apt-get install -y \
     ros-kinetic-perception=1.3.1-0*
 
-
 RUN apt-get install -y \
-    git \
-    git-extras \
     ros-kinetic-desktop-full \
     ros-kinetic-tf-conversions \
     ros-kinetic-cv-bridge \
@@ -23,7 +18,27 @@ RUN apt-get install -y \
     ros-kinetic-compressed-image-transport \
     ros-kinetic-phidgets-drivers \
     ros-kinetic-imu-complementary-filter \
-    ros-kinetic-imu-filter-madgwick \
+    ros-kinetic-imu-filter-madgwick
+
+
+# needed for adding repository
+
+RUN apt-get update
+RUN apt-get install -y \
+    software-properties-common \
+    gnupg \
+    curl
+
+# Git LFS
+
+RUN add-apt-repository -y ppa:git-core/ppa
+RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+
+RUN apt-get update
+
+RUN apt-get install -y \
+    git \
+    git-extras \
     ssh \
     pdftk \
     bibtex2html \
@@ -53,20 +68,20 @@ RUN apt-get install -y \
     python-matplotlib \
     python-pip \
     python-tk \
-    python-scipy
+    python-scipy \
+    python-frozendict \
+    imagemagick \
+    graphviz \
+    ghostscript \
+    git-lfs
 
-# RUN rm -rf /var/lib/apt/lists/*
-
-# Other deps for duckuments
 
 
-RUN pip install \
+# Python deps
+
+RUN pip install -U \
     empy\
     catkin_pkg\
-    numpy
-
-# mcdp dependencies
-RUN pip install -U \
     pint \
     pyparsing \
     networkx \
@@ -90,12 +105,11 @@ RUN pip install -U \
     decentlogs \
     chardet
 
-RUN pip install comptests
+# RUN pip install comptests
+
+
 
 RUN wget https://www.princexml.com/download/prince_11.3-1_ubuntu16.04_amd64.deb && dpkg -i prince_11.3-1_ubuntu16.04_amd64.deb
 
-RUN apt-get install -y \
-    python-frozendict
 
-RUN apt-get install -y \
-    imagemagick graphviz
+# RUN rm -rf /var/lib/apt/lists/* 
