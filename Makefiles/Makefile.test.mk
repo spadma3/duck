@@ -5,10 +5,14 @@ test:
 	@echo
 	@echo "These commands run the unit tests."
 	@echo
-	@echo "    test-circle           The tests run on the cloud."
-	@echo "    test-catkin_tests     ROS tests."
-	@echo "    test-anti_instagram   anti_instagram"
-	@echo "    test-comptests        Comptests"
+	@echo '- `make test-all`:              Run all the tests.'
+	@echo
+	@echo '- `make test-circle`:           The tests to run in continuous integration. .'
+	@echo '- `make test-catkin_tests`:     Run the ROS tests.'
+	@echo '- `make test-anti_instagram`:   Run the `anti_instagram` tests.'
+	@echo '- `make test-comptests`:        Run the `comptests` tests.'
+	@echo '- `make test-comptests-clean`:        Run the `comptests` tests.'
+	@echo '- `make test-comptests-collect-junit`: Collects the JUnit results.'
 
 test-circle: \
 	test-comptests
@@ -16,6 +20,11 @@ test-circle: \
 	# test-catkin_tests \
 	# test-anti_instagram
 	#
+
+test-all: \
+	test-comptests \
+	test-catkin_tests \
+	test-anti_instagram
 
 ### Comptests
 
@@ -40,7 +49,6 @@ test-comptests-slow:
 test-comptests-collect-junit:
 	mkdir -p $(comptests_out)/junit
 	comptests-to-junit $(comptests_out)/compmake > $(comptests_out)/junit/junit.xml
-# other testss
 
 test-catkin_tests: check-environment
 	bash -c "source environment.sh; catkin_make -C $(catkin_ws) run_tests; catkin_test_results $(catkin_ws)/build/test_results/"

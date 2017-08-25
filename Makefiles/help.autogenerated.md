@@ -14,10 +14,14 @@ These provide statistics about the data and the configuration.
 
 These commands run the unit tests.
 
-    test-circle           The tests run on the cloud.
-    test-catkin_tests     ROS tests.
-    test-anti_instagram   anti_instagram
-    test-comptests        Comptests
+- `make test-all`:              Run all the tests.
+
+- `make test-circle`:           The tests to run in continuous integration. .
+- `make test-catkin_tests`:     Run the ROS tests.
+- `make test-anti_instagram`:   Run the `anti_instagram` tests.
+- `make test-comptests`:        Run the `comptests` tests.
+- `make test-comptests-clean`:        Run the `comptests` tests.
+- `make test-comptests-collect-junit`: Collects the JUnit results.
 
 
 ### Building commands
