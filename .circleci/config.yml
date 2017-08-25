@@ -11,6 +11,10 @@ jobs:
             name: deps
             command: |
                 apt install -y python-frozendict imagemagick
+                pip install -U comptests
+
+
+                ./misc/python_environment.py comptests
 
 
         - run:

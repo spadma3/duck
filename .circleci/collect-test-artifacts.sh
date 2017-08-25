@@ -24,7 +24,7 @@ mkdir -p out/comptests-failures # in case there was no failure
 cp -R out/comptests-failures ${outartifacts}/comptests-failures
 #
 mkdir -p ${outreports}
-python src/mcdp_tests/comptest_to_junit.py ${db} > ${outreports}/junit.xml
+comptests-to-junit ${db} > ${outreports}/junit.xml
 cp ${outreports}/junit.xml ${outartifacts}/junit-${i}.xml
 bash -c "pip freeze    > ${outartifacts}/pip_freeze_all-${i}.txt"
 bash -c "pip freeze -l > ${outartifacts}/pip_freeze_local-${i}.txt"
