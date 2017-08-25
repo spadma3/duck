@@ -38,7 +38,9 @@ jobs:
         - run:
             name: junit
             command: |
-                ./misc/collect-test-artifacts.sh ${CIRCLE_ARTIFACTS} ${CIRCLE_TEST_REPORTS}
+                echo CIRCLE_ARTIFACTS: "$CIRCLE_ARTIFACTS"
+                echo CIRCLE_TEST_REPORTS: "$CIRCLE_TEST_REPORTS"
+                ./misc/collect-test-artifacts.sh $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
         - store_artifacts:
               path: out
               destination: out
