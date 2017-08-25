@@ -10,12 +10,13 @@ jobs:
         - run:
             name: deps
             command: |
-                apt install -y python-frozendict imagemagick
+                # apt install -y python-frozendict imagemagick
+
+                pip uninstall comptests
                 pip install -U comptests
-
-
                 ./misc/python_environment.py comptests
 
+                pip install procgraph
 
         - run:
             name: build
@@ -30,13 +31,14 @@ jobs:
                 source /opt/ros/kinetic/setup.bash
                 source $PWD/catkin_ws/devel/setup.bash
 
-                pip install procgraph
                 export DUCKIETOWN_ROOT=$PWD
                 export HOSTNAME=$HOSTNAME
                 export DUCKIEFLEET_ROOT=duckiefleet
                 export DUCKIETOWN_DATA=duckietown-data
                 mkdir -p $DUCKIETOWN_DATA
+
                 git clone git@github.com:duckietown/duckiefleet-fall2017.git $DUCKIEFLEET_ROOT
+
                 make test-circle
 
         - run:
@@ -44,13 +46,15 @@ jobs:
             when: always
             command: |
 
-                make test-comptests-collect
+                make test-comptests-collect-junit
 
-                export artifacts=artifacts
-                export reports=reports
-                mkdir -p $artifacts
-                mkdir -p $reports
-                .circleci/collect-test-artifacts.sh $artifacts $reports
+                # export artifacts=artifacts
+                # export reports=reports
+                # mkdir -p $artifacts
+                # mkdir -p $reports
+                # .circleci/collect-test-artifacts.sh $artifacts $reports
+
+
 
         - test-results-store:
                 path: out/comptests/junit
