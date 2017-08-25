@@ -58,7 +58,7 @@ def require_main(log_names='*'):
                     download_url_to_file(url, filename)
                 
 def download_url_to_file(url, filename):
-    logger.info('Download to %s from %s' % (filename, url))
+    logger.info('Download from %s' % (url))
     tmp = '/tmp/download'
     cmd = [
         'wget',
@@ -75,4 +75,5 @@ def download_url_to_file(url, filename):
               env=None)
     os.rename(tmp, filename)
                 
+    logger.info('-> %s' % filename)
                 

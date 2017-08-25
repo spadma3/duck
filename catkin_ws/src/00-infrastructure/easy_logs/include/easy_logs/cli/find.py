@@ -1,6 +1,5 @@
-from easy_logs.logs_db import get_easy_logs_db
-from duckietown_utils.friendly_path_imp import friendly_path
 from duckietown_utils import logger
+from easy_logs.logs_db import get_easy_logs_db
 
 
 def find_logs_main(query='*'):
@@ -8,6 +7,7 @@ def find_logs_main(query='*'):
     logs  = db.query(query)
     logger.info('Found %d logs.' % len(logs))
     for log in logs.values():
-        print(friendly_path(log.filename))
+        print(log.filename)
+        # print(friendly_path(log.filename))
     
     

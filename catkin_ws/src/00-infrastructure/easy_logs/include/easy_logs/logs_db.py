@@ -22,78 +22,78 @@ def get_easy_logs_db():
 
 
 class EasyLogsDB():
-    _singleton = None 
-    
+    _singleton = None
+
     def __init__(self):
         # ordereddict str -> PhysicalLog
 
         self.logs = load_all_logs()
-        print('loaded :%s' % type(self.logs))
-        assert isinstance(self.logs, OrderedDict)
         
+        assert isinstance(self.logs, OrderedDict)
+
     def query(self, query):
-        """ 
+        """
             query: a string
-            
+
             Returns an OrderedDict str -> PhysicalLog.
         """
         check_isinstance(query, str)
         spec = parse_match_spec(query)
         assert isinstance(self.logs, OrderedDict), type(self.logs)
-        subset = fuzzy_match(query, self.logs) 
+        subset = fuzzy_match(query, self.logs)
         if not subset:
             msg = 'Could not find any match.'
             msg += '\nQuery parsed as follows:'
             msg += '\nQuery: %s' % query
-            msg += '\n'+indent(spec, '', 'Parsed:') 
+            msg += '\n'+indent(spec, '', 'Parsed:')
             raise Exception(msg)
         return subset
-    
-    
+
+
 def read_stats(pl):
     assert isinstance(pl, PhysicalLog)
-    
+
     info = rosbag_info_cached(pl.filename)
     if info is None:
         return pl._replace(valid=False, error_if_invalid='Not indexed')
-    
+
     # print yaml.dump(info)
     length = info['duration']
     if length is None:
         return pl._replace(valid=False, error_if_invalid='Empty bag.')
-    
+
     date_ms = info['start']
     if date_ms < 156600713:
         return pl._replace(valid=False, error_if_invalid='Date not set.')
-    
+
     date = date_ms
 
     pl = pl._replace(date=date, length=length, bag_info=info)
-    
+
     try:
         vehicle = which_robot(info)
-        pl =pl._replace(vehicle=vehicle, has_camera=True) 
+        pl =pl._replace(vehicle=vehicle, has_camera=True)
     except ValueError:
         vehicle = None
         pl = pl._replace(valid=False, error_if_invalid='No camera data.')
-    
+
 #     camera_topic = '/%s/camera_node/image/compressed' % vehicle
-# 
+#
 #     found = False
 #     for _ in info['topics']:
 #         if _['topic'] == camera_topic:
 #             found = True
-#     
+#
 #     if not found:
-#         
-        
+#
+
     return pl
-        
+
 def which_robot(info):
     pattern  = r'/(\w+)/camera_node/image/compressed'
     for topic in info['topics']:
         m = re.match(pattern, topic['topic'])
-        if m: 
+        if m:
             vehicle = m.group(1)
             return vehicle
     msg = 'Could not find a topic matching %s' % pattern
@@ -104,15 +104,15 @@ def load_all_logs(which='*'):
     basename2filename = look_everywhere_for_bag_files(pattern=pattern)
     logs = OrderedDict()
     for basename, filename in basename2filename.items():
-        log_name = basename  
+        log_name = basename
         date = None
         size =  os.stat(filename).st_size
-        
-        l = PhysicalLog(log_name=log_name, 
-                        map_name=None, 
-                        description=None, 
+
+        l = PhysicalLog(log_name=log_name,
+                        map_name=None,
+                        description=None,
                         length=None,
-                        date=date,  
+                        date=date,
                         size=size,
                         has_camera=None,
                         vehicle = None,
@@ -121,6 +121,6 @@ def load_all_logs(which='*'):
                         valid=True,
                         error_if_invalid=None)
         l = read_stats(l)
-        logs[l.log_name]= l 
-    
+        logs[l.log_name]= l
+
     return logs
