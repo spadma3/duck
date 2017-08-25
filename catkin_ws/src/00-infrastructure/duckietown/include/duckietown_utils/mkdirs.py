@@ -3,7 +3,7 @@
 import os
 
 __all__ = [
-    'make_sure_dir_exists',
+    'd8n_make_sure_dir_exists',
     'mkdirs_thread_safe',
 ]
 

@@ -32,17 +32,17 @@ where `![query]` is a string in a query language ([](#tab:queries)).
     <s>example</s>
     <s>explanation</s>
 
-    <code>![attribute name]:![expression]</code>
+    <code>![attribute]:![expr]</code>
     <code>vehicle:ferrari</code>
-    <s>Checks that the property <code>![[attribute name]</code> of the object
-        satisfies the expression in <code>![expression]</code></s>
+    <s>Checks that the attribute <code>![[attribute]</code> of the object
+        satisfies the expression in <code>![expr]</code></s>
 
     <code>&gt;![lower bound]</code>
     <code>&gt;10</code>
     <s>Lower bound</s>
 
     <code>&lt;![upper bound]</code>
-    <code>&gt;1</code>
+    <code>&lt;1</code>
      <s>Upper bound</s>
 
     <code>![expr1],![expr2]</code>
@@ -50,13 +50,22 @@ where `![query]` is a string in a query language ([](#tab:queries)).
     <s>And between two expressions</s>
 
     <code>![expr1]+![expr2]</code>
-    <code>&gt;10+&lt;5</code>
+    <code>&lt;5+&gt;10</code>
     <s>Or between two expressions</s>
 
     <code>![pattern]</code>
     <code>*ferrari*</code>
     <s>Other strings are interpreted as wildcard patterns.</s>
 </col3>
+<style>
+#tab\:queries td {
+text-align: left;
+}
+#tab\:queries td:nth-child(3) {
+
+width: 50%;
+}
+</style>
 
 Here are some examples.
 
@@ -77,15 +86,41 @@ All the invalid logs of length less than 45 s:
 <pre><code>&#36; rosrun easy_logs summary "length:&lt;45,valid:False"</code></pre>
 
 
-## Downloading logs
+## Automatic log download using `require`
 
-The command-line program `require` makes sure
+The command-line program `require` downloads requires
+logs from the cloud.
+
+The syntax is:
+
+    $ rosrun easy_logs require ![log] ![log]
+
+For example:
+
+    $ rosrun easy_logs require ![log] ![log] 20160223-amadoa-amadobot-RCDP2
+
+If the file `20160223-amadoa-amadobot-RCDP2.bag` is not available
+locally, it is downloaded.
+
+The database of URLs is at [the file `dropbox.urls.yaml`][DB] in the package `easy_node`.
+
+[DB]: github:org=duckietown,repo=Software,path=dropbox.urls.yaml
 
 
-A typical use case would be the following, in which :
+A typical use case would be the following, in which a script needs a
+log with which to work.
+
+Using the `require` program we declare that we need
+the log. Then, we use `find` to find the path.
 
     #!/bin/bash
     set -ex
+
+    # We need the log to proceed
     rosrun easy_logs require 20160223-amadoa-amadobot-RCDP2
+
+    # Here, we know that we have the log. We use `find` to get the filename.
     filename=`rosrun easy_logs find 20160223-amadoa-amadobot-RCDP2`
+
+    # We can now use the log
     vdir $filename
