@@ -43,7 +43,7 @@ jobs:
                 export reports=reports
                 mkdir -p $artifacts
                 mkdir -p $reports
-                ./misc/collect-test-artifacts.sh $artifacts $reports
+                .circleci/collect-test-artifacts.sh $artifacts $reports
 
         - store_artifacts:
               path: artifacts
