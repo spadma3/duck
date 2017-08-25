@@ -14,7 +14,7 @@ jobs:
 
                 # uninstall has the -y
                 # pip uninstall -y comptests
-                pip install -U comptests
+                pip install comptests
                 ./misc/python_environment.py comptests
 
                 pip install  procgraph

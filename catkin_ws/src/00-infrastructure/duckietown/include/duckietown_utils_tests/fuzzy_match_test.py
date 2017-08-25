@@ -27,6 +27,7 @@ def matches():
         ('three',  Species('cat', 'medium')) 
     ])
     
+    expect(data, 'all', ['one', 'two', 'three'])
     expect(data, '*', ['one', 'two', 'three'])
     expect(data, 'one', ['one'])
     expect(data, 'two+one', ['two', 'one'])

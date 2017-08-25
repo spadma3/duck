@@ -6,6 +6,7 @@ from duckietown_utils.instantiate_utils import indent
 from abc import abstractmethod, ABCMeta
 import yaml
 from duckietown_utils import logger
+from contracts.interface import describe_type
 
 
 class Spec(object):
@@ -30,35 +31,29 @@ class Spec(object):
                 res[k] = v
         return res
     
+
 class Or(Spec):
         
     def match(self, x):
         for option in self.children:
             if option.match(x):
                 return True
-        return False
-    
-#     def match_dict(self, seq):
-#         matches = OrderedDict()
-#         # found = set()
-#         for option in self.children:
-#             for k, v in seq.items():
-#                 if k not in matches:
-#                     if option.match(k):
-#                         matches[k] = v 
-#         return matches
+        return False 
     
     def match_dict(self, seq):
         matches = OrderedDict()
-        children_answers = []
+#         children_answers = []
         for option in self.children:
             theirs = option.match_dict(seq)
-            children_answers.append(theirs)
-            
-        for k, v in seq.items():
-            ok = any(k in _ for _ in children_answers)
-            if ok:
-                matches[k] = v 
+            for k, v in theirs.items():
+                if not k in matches:
+                    matches[k] = v
+#             children_answers.append(theirs)
+#             
+#         for k, v in seq.items():
+#             ok = any(k in _ for _ in children_answers)
+#             if ok:
+#                 matches[k] = v 
         return matches
     
 class And(Spec): 
@@ -93,13 +88,13 @@ class ByTag(Spec):
         
     def __str__(self):
         return indent(self.spec.__str__(), '', 
-                      'attribute %s\n  ' % self.tagname)
+                      'attribute %s satisfies \n  ' % self.tagname)
     
     def match(self, x):
         if not hasattr(x, self.tagname):
-            msg = ('The object of type %s does not have attribute %s.' %
+            msg = ('The object of type %s does not have attribute "%s".' %
                  (type(x).__name__, self.tagname))
-            msg += 'Available attributes: %s' % sorted(x.__dict__.keys())
+            msg += '\nThe available attributes are:\n  %s' % sorted(x.__dict__.keys())
             raise ValueError(msg)
         val = getattr(x, self.tagname)
         res = self.spec.match(val)
@@ -116,7 +111,7 @@ class Constant(Spec):
     def __init__(self, s):
         self.s = yaml.load(s)
     def __str__(self):
-        return '== %r' % self.s
+        return 'is equal to %r' % self.s
     def match(self, x):
         return self.s == x
          
@@ -183,6 +178,8 @@ def parse_match_spec(s):
     if s.startswith('>'):
         value = float(s[1:])
         return GT(value)
+    if s == 'all':
+        return Wildcard('*')
     if '*' in s:
         return Wildcard(s)
     return Constant(s) 
@@ -193,7 +190,11 @@ def fuzzy_match(spec, stuff):
         spec: a string
         logs: a dict of logs
     """
-    
+    if not isinstance(stuff, dict):
+        msg = 'Expectd an OrderedDict, got %s.' % describe_type(stuff)
+        raise ValueError(msg)
+    check_isinstance(stuff, dict)
+    check_isinstance(spec, str)
     spec = parse_match_spec(spec)
     return spec.match_dict(stuff)
 

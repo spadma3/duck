@@ -1,12 +1,9 @@
 from ruamel import yaml
 
 from duckietown_utils.path_utils import display_filename
-from duckietown_utils.text_utils import indent
+from duckietown_utils.text_utils import indent, make_row_red
 from duckietown_utils.text_utils import remove_table_field, format_table_plus  # @UnusedImport
-
-
 from easy_algo.algo_db import EasyAlgoFamily
-from  termcolor import colored
 
 
 def format_db(db, colorize=True):

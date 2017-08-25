@@ -76,6 +76,10 @@ RUN apt-get install -y \
     git-lfs
 
 
+RUN apt-get install -y \
+    python-termcolor \
+    python-setproctitle \
+    python-psutil
 
 # Python deps
 
@@ -101,9 +105,10 @@ RUN pip install -U \
     ruamel.yaml \
     gitpython \
     webtest \
-    PyContracts \
-    decentlogs \
     chardet
+
+# @PyContracts \
+# decentlogs \
 
 # RUN pip install comptests
 
@@ -112,4 +117,4 @@ RUN pip install -U \
 RUN wget https://www.princexml.com/download/prince_11.3-1_ubuntu16.04_amd64.deb && dpkg -i prince_11.3-1_ubuntu16.04_amd64.deb
 
 
-# RUN rm -rf /var/lib/apt/lists/* 
+# RUN rm -rf /var/lib/apt/lists/*

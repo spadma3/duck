@@ -1,11 +1,15 @@
+from collections import OrderedDict
 import os
 import re
 
+from contracts.utils import check_isinstance
+
 from duckietown_utils.caching import get_cached
+from duckietown_utils.fuzzy import parse_match_spec, fuzzy_match
+from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
 from easy_logs.logs_structure import PhysicalLog
 from procgraph_ros.bag_utils import rosbag_info  # @UnresolvedImport
-from contracts.utils import check_isinstance
 
 
 def get_easy_logs_db():
@@ -13,16 +17,35 @@ def get_easy_logs_db():
         EasyLogsDB._singleton = get_cached('EasyLogsDB', EasyLogsDB)
     return EasyLogsDB._singleton
 
+
 class EasyLogsDB():
     _singleton = None 
     
     def __init__(self):
-        self.logs = load_all_logs()
-        
-    def fuzzy_match(self, s):
-        check_isinstance(s, str)
-        
+        # ordereddict str -> PhysicalLog
 
+        self.logs = load_all_logs()
+        print('loaded :%s' % type(self.logs))
+        assert isinstance(self.logs, OrderedDict)
+        
+    def query(self, query):
+        """ 
+            query: a string
+            
+            Returns an OrderedDict str -> PhysicalLog.
+        """
+        check_isinstance(query, str)
+        spec = parse_match_spec(query)
+        assert isinstance(self.logs, OrderedDict), type(self.logs)
+        subset = fuzzy_match(query, self.logs) 
+        if not subset:
+            msg = 'Could not find any match.'
+            msg += '\nQuery parsed as follows:'
+            msg += '\nQuery: %s' % query
+            msg += '\n'+indent(spec, '', 'Parsed:') 
+            raise Exception(msg)
+        return subset
+    
 def rosbag_info_cached(filename):
     def f():
         return rosbag_info(filename)
@@ -69,14 +92,14 @@ def which_robot(info):
     msg = 'Could not find a topic matching %s' % pattern
     raise ValueError(msg)
 
-def load_all_logs(which):
+def load_all_logs(which='*'):
     pattern = which + '.bag'
     basename2filename = look_everywhere_for_bag_files(pattern=pattern)
-    logs = []
+    logs = OrderedDict()
     for basename, filename in basename2filename.items():
         log_name = basename  
         date = None
-        size=  os.stat(filename).st_size
+        size =  os.stat(filename).st_size
         
         l = PhysicalLog(log_name=log_name, 
                         map_name=None, 
@@ -91,6 +114,6 @@ def load_all_logs(which):
                         valid=True,
                         error_if_invalid=None)
         l = read_stats(l)
-        logs.append(l)
+        logs[l.log_name]= l 
     
     return logs

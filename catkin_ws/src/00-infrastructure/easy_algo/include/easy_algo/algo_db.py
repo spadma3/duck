@@ -3,7 +3,7 @@ from types import NoneType
 
 from duckietown_utils import logger
 from duckietown_utils.caching import get_cached
-from duckietown_utils.exception_utils import raise_x_not_found, check_is_in
+from duckietown_utils.exception_utils import check_is_in
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import import_name, instantiate, indent
 from duckietown_utils.system_cmd_imp import contract

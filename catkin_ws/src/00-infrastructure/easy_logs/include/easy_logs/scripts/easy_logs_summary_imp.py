@@ -1,25 +1,16 @@
+from ruamel import yaml
+
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.path_utils import display_filename
 from duckietown_utils.text_utils import format_table_plus, remove_table_field,\
     make_row_red
-from easy_logs.logs_db import load_all_logs
-from ruamel import yaml
-from duckietown_utils.fuzzy import fuzzy_match, parse_match_spec
-from collections import OrderedDict
+from easy_logs.logs_db import get_easy_logs_db
 
 
 def easy_logs_summary(query='*'):
-    logs = load_all_logs('*')
-    logs = OrderedDict([(_.log_name, _) for _ in logs])
-    spec = parse_match_spec(query)
-    subset = fuzzy_match(query, logs) 
-    if not subset:
-        msg = 'Could not find any match.'
-        msg += '\nQuery parsed as follows:'
-        msg += '\nQuery: %s' % query
-        msg += '\n'+indent(spec, '', 'Parsed:') 
-        raise Exception(msg)
-    s = format_logs(subset.values())
+    db = get_easy_logs_db()
+    logs  = db.query(query) 
+    s = format_logs(logs)
     return s
     
 def format_logs(logs):
@@ -38,7 +29,7 @@ def format_logs(logs):
                       'filename',
                       'valid',
                       'topics'])
-        for i, log in enumerate(logs):
+        for i, (_, log) in enumerate(logs.items()):
             row = []      
             row.append(i)
             row.append(log.log_name)
