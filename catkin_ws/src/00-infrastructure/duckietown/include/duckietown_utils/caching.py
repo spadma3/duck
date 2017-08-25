@@ -5,7 +5,7 @@ import os
 
 
 
-def get_cached(cache_name, f):
+def get_cached(cache_name, f, quiet='not-given'):
     """ 
         Caches the result of f() in a file called
             ${DUCKIETOWN_ROOT}/caches/![name].cache.pickle
@@ -14,13 +14,21 @@ def get_cached(cache_name, f):
     cache = '${DUCKIETOWN_ROOT}/caches/%s.cache.pickle' % cache_name
     cache = expand_all(cache)
     
+    if quiet == 'not-given':
+        should_be_quiet = False
+    else: 
+        should_be_quiet = quiet
+        
     if os.path.exists(cache):
-        logger.info('Using cache %s' % display_filename(cache))
+        
+        if not should_be_quiet:
+            logger.info('Using cache %s' % display_filename(cache))
         with open(cache) as f:
             ob = cPickle.load(f)
     else:
         ob = f()
-        logger.info('Writing to cache %s' % display_filename(cache))
+        if not should_be_quiet:
+            logger.info('Writing to cache %s' % display_filename(cache))
         try:
             os.makedirs(os.path.dirname(cache))
         except:

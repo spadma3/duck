@@ -1,6 +1,7 @@
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.path_utils import display_filename
-from duckietown_utils.text_utils import format_table_plus, remove_table_field
+from duckietown_utils.text_utils import format_table_plus, remove_table_field,\
+    make_row_red
 from easy_logs.logs_db import load_all_logs
 from ruamel import yaml
 
@@ -49,10 +50,14 @@ def format_logs(logs):
                 info = yaml.dump(log.bag_info['topics'])
             else:
                 info = '(none)'
+            if not log.valid:
+                row = make_row_red(row)
+
             row.append(info)
             table.append(row)
             
         remove_table_field(table, 'filename')
+        remove_table_field(table, 'topics')
         s += indent(format_table_plus(table, colspacing=4), '| ')
         return s    
     

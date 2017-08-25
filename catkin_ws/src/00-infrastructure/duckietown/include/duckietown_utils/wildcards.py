@@ -1,6 +1,11 @@
-# Taken from "conf_tools"
-# from contracts import contract
+'''
+    origin: "conf_tools" project
+
+    Author: Andrea Censi
+'''
+
 import re
+from duckietown_utils.memoization import memoize_simple
 
 __all__ = ['expand_string', 'get_wildcard_matches']
 
@@ -30,7 +35,7 @@ def expand_string(x, options):
     else:
         assert False
 
-
+@memoize_simple
 def wildcard_to_regexp(arg):
     """ Returns a regular expression from a shell wildcard expression. """
     return re.compile('\A' + arg.replace('*', '.*') + '\Z')

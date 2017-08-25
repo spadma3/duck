@@ -5,6 +5,7 @@ from duckietown_utils.caching import get_cached
 from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
 from easy_logs.logs_structure import PhysicalLog
 from procgraph_ros.bag_utils import rosbag_info  # @UnresolvedImport
+from contracts.utils import check_isinstance
 
 
 def get_easy_logs_db():
@@ -19,14 +20,16 @@ class EasyLogsDB():
     def __init__(self):
         self.logs = load_all_logs()
         
- 
-    
+    def fuzzy_match(self, s):
+        check_isinstance(s, str)
+        
+
 def rosbag_info_cached(filename):
     def f():
         return rosbag_info(filename)
     basename = os.path.basename(filename)
     cache_name = 'rosbag_info/' + basename
-    return get_cached(cache_name, f)
+    return get_cached(cache_name, f, quiet=True)
     
     
 def read_stats(pl):

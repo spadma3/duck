@@ -1,5 +1,6 @@
 import re
 from .system_cmd_imp import contract
+from termcolor import colored
 
 __all__ = ['indent', 'seconds_as_ms']
 
@@ -57,6 +58,10 @@ def remove_table_field(table, f):
     for row in table:
         row.pop(i)
 
+def make_row_red(row):
+    return [ colored(_, 'magenta') for _ in row]
+
+
 def format_table_plus(rows, colspacing=1, paginate=25):
     if not rows:
         raise ValueError('Empty table.')
@@ -95,12 +100,15 @@ def format_table_plus(rows, colspacing=1, paginate=25):
                     cellj = cellsplit[j]
                 else:
                     cellj = ''
-                    
-#                 s += '%d(' % size + cellj.ljust(size) +')'
-                s +=  cellj.ljust(size) 
+                s += colored_ljust(cellj, size) 
                 s += ' ' * colspacing
             s += '\n'
     return s
+
+def colored_ljust(string, size):
+    a = get_length_on_screen(string)
+    remain = size - a
+    return string + ' ' * remain
 
 def make_pagination(rows, paginate):
     if len(rows) < paginate:

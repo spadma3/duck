@@ -1,11 +1,12 @@
 '''
-    Utilities for writing compact file paths.
+
+Utilities for writing compact file paths.
+Copied from the `compmake` project.
     
-    Andrea Censi
-    
-    (copied from the `compmake` project)
-    
+Author: Andrea Censi
+
 '''
+
 __version__ = '1.0'
 import os
 

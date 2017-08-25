@@ -75,8 +75,6 @@ def format_families(families, colorize=True):
         s += indent(format_table_plus(table, colspacing=4), '| ')
         return s    
 
-def make_row_red(row):
-    return [ colored(_, 'magenta') for _ in row]
     
 def format_tests(family, colorize):
     if not family.tests:
