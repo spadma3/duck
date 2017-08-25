@@ -1,4 +1,4 @@
 description: |
     These are the line detectors.
-interface: line_detector2.LineDetectorInterface
+interface: line_detector.LineDetectorInterface
 tests: {}

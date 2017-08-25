@@ -5,7 +5,8 @@ EasyAlgoFamily = namedtuple('EasyAlgoFamily',
                        'family_name', 
                        'interface', 
                        'description', 
-                       'instances_pattern', 'instances', 'tests', 'tests_pattern'])
+                       'instances_pattern', 'instances', 'tests', 'tests_pattern',
+                       'valid', 'error_if_invalid'])
 
             
 EasyAlgoTest = namedtuple('EasyAlgoTest',
@@ -14,7 +15,8 @@ EasyAlgoTest = namedtuple('EasyAlgoTest',
                                'description',
                                'filename', # where it was specified
                                'constructor', # how to instance it
-                               'parameters'])
+                               'parameters', 
+                               'valid', 'error_if_invalid'])
 
 
 EasyAlgoInstance = namedtuple('EasyAlgoInstance',
@@ -23,4 +25,5 @@ EasyAlgoInstance = namedtuple('EasyAlgoInstance',
                                'description',
                                'filename', # where it was specified
                                'constructor', # how to instance it
-                               'parameters'])
+                               'parameters',
+                               'valid', 'error_if_invalid'])

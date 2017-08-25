@@ -1,4 +1,5 @@
 import traceback
+import yaml
 
 
 
@@ -18,9 +19,10 @@ def instantiate(function_name, parameters):
         # XXX TypeError is too broad, we should bind the params explicitly
         return function(**parameters)
     except TypeError as e:
-        params = ', '.join(['%s=%r' % (k, v) for (k, v) in parameters.items()])
-        msg = ('instantiate(): Could not call function %r\n with params %s:' %
-               (function_name, params))
+#         params = ', '.join(['%s=%r' % (k, v) for (k, v) in parameters.items()])
+        msg = 'Could not call this function or instantiate this object:\n'
+        msg += '\nConstructor: %s' % function_name
+        msg += '\n' + indent(yaml.dump(parameters), '', 'Parameters: ')
         msg += '\n' + indent('%s\n%s' % (e, traceback.format_exc(e)), '> ')
         
         msg += '\n\n One reason this might be triggered is the presence of pyc files for files that were removed.'
@@ -35,6 +37,8 @@ def import_name(name):
         Loads the python object with the given name. 
     
         Note that "name" might be "module.module.name" as well.
+        
+        raise ValueError
     '''
     try:
         return __import__(name, fromlist=['dummy'])

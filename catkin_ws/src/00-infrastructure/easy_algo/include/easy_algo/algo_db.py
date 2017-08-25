@@ -1,16 +1,27 @@
 import os
+from types import NoneType
 
+from duckietown_utils import logger
 from duckietown_utils.caching import get_cached
+from duckietown_utils.exception_utils import raise_x_not_found, check_is_in
 from duckietown_utils.exceptions import DTConfigException
+from duckietown_utils.instantiate_utils import import_name, instantiate, indent
+from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import id_from_basename_pattern
 from duckietown_utils.type_checks import dt_check_isinstance
-from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_config_files
+from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_config_files,\
+    get_config_sources
+
 from .algo_structures import EasyAlgoTest, EasyAlgoInstance, EasyAlgoFamily
 
 
+__all__ = ['get_easy_algo_db', 'EasyAlgoDB']
+cache_algos = False
+
 def get_easy_algo_db():
     if EasyAlgoDB._singleton is None:
-        EasyAlgoDB._singleton = get_cached('EasyAlgoDB', EasyAlgoDB)
+        
+        EasyAlgoDB._singleton = get_cached('EasyAlgoDB', EasyAlgoDB) if cache_algos else EasyAlgoDB()
     return EasyAlgoDB._singleton
 
 class EasyAlgoDB():
@@ -18,10 +29,42 @@ class EasyAlgoDB():
     
     pattern = '*.easy_algo_family.yaml'
     
-    def __init__(self):
-        self.family_name2config = load_family_config()
+    @contract(sources='None|seq(str)')
+    def __init__(self, sources=None):
+        if sources is None:
+            sources = get_config_sources()
+        self.family_name2config = load_family_config(sources)
+    
+    def get_family(self, x):
+        check_is_in('family', x, self.family_name2config)
+        return self.family_name2config[x]
+    
+    def create_instance(self, family_name, instance_name):
+        family = self.get_family(family_name)
+        if not family.valid:
+            msg = 'Cannot instantiate %r because its family %r is invalid.' % (instance_name, family_name)
+            raise DTConfigException(msg)
+            
+        check_is_in('instance', instance_name, family.instances)
+        instance = family.instances[instance_name]
         
-def load_family_config():
+        if not instance.valid:
+            msg = ('Cannot instantiate because it is invalid:\n%s' % 
+                   indent(instance.error_if_invalid, '> '))
+            raise DTConfigException(msg)
+        res = instantiate(instance.constructor, instance.parameters)
+        
+        interface = import_name(family.interface)
+        if not isinstance(res, interface):
+            msg = ('I expected that %r would be a %s but it is a %s.' % 
+                   (instance_name, interface.__name__, type(res).__name__))
+            raise DTConfigException(msg)
+             
+        return res
+        
+#         """ Instantiates an algorithm """
+        
+def load_family_config(sources):
     """
         # now, for each family, we look for tests, which have name
         #  
@@ -35,7 +78,8 @@ def load_family_config():
         #   
     """
     family_name2config = {}
-    configs = look_everywhere_for_config_files(EasyAlgoDB.pattern)
+    
+    configs = look_everywhere_for_config_files(EasyAlgoDB.pattern, sources)
     for filename, contents in configs.items():
         c = interpret_yaml_file(filename, contents, interpret_easy_algo_config)
 
@@ -56,11 +100,13 @@ def load_family_config():
             dt_check_isinstance('constructor', constructor, str) 
 
             parameters = data.pop('parameters')
-            dt_check_isinstance('parameters', parameters, dict) 
+            dt_check_isinstance('parameters', parameters, (dict, NoneType))
+            if parameters is None: parameters = {} 
 
             return EasyAlgoTest(family_name=c.family_name, test_name=test_name,
                                 description=description, filename=filename,
-                                constructor=constructor, parameters=parameters)
+                                constructor=constructor, parameters=parameters,
+                                valid=True, error_if_invalid=None)
             
         def interpret_instance_spec(filename, data):
             basename = os.path.basename(filename)
@@ -73,15 +119,19 @@ def load_family_config():
             dt_check_isinstance('constructor', constructor, str) 
 
             parameters = data.pop('parameters')
-            dt_check_isinstance('parameters', parameters, dict) 
+            dt_check_isinstance('parameters', parameters, (dict, NoneType))
+            if parameters is None: parameters = {} 
 
             return EasyAlgoInstance(family_name=c.family_name, instance_name=instance_name,
                                     description=description, filename=filename,
-                                    constructor=constructor, parameters=parameters)
+                                    constructor=constructor, parameters=parameters,
+                                    valid=True, error_if_invalid=None)
             
         tests = {}
         
-        _ = look_everywhere_for_config_files(c.tests_pattern)
+        c = check_validity_family(c)
+        
+        _ = look_everywhere_for_config_files(c.tests_pattern, sources)
         for filename, contents in _.items():
             t = interpret_yaml_file(filename, contents, interpret_test_spec)
             if t.test_name in tests:
@@ -89,10 +139,12 @@ def load_family_config():
                 two = t.filename
                 msg = 'Repeated filename:\n%s\n%s' % (one, two)
                 raise DTConfigException(msg)
+            
+            t = check_validity_test(c, t)
             tests[t.test_name] = t
             
         instances = {}
-        _ = look_everywhere_for_config_files(c.instances_pattern)
+        _ = look_everywhere_for_config_files(c.instances_pattern, sources)
         for filename, contents in _.items():
             i = interpret_yaml_file(filename, contents, interpret_instance_spec)
             if i.instance_name in instances:
@@ -100,13 +152,59 @@ def load_family_config():
                 two = i.filename
                 msg = 'Repeated filename:\n%s\n%s' % (one, two)
                 raise DTConfigException(msg)
+            
+            i = check_validity_instance(c, i)
             instances[i.instance_name] = i
         
         c = c._replace(tests=tests, instances=instances)
+        
+        
         family_name2config[c.family_name] = c
         
     return family_name2config
+
+@contract(f=EasyAlgoFamily, i=EasyAlgoInstance, returns=EasyAlgoInstance)
+def check_validity_instance(f, i):
+    if not f.valid:
+        msg = 'Instance not valid because family not valid.'
+        return i._replace(valid=False, error_if_invalid=msg)
+     
+    try:
+        res = instantiate(i.constructor, i.parameters)
+    except Exception as e:
+        msg = str(e)
+        return i._replace(valid=False, error_if_invalid=msg)
     
+    interface = import_name(f.interface)
+    
+    if not isinstance(res, interface):
+        msg = ('Expected a %s but it is a %s.' % 
+               (interface.__name__, type(res).__name__))
+        return i._replace(valid=False, error_if_invalid=msg)
+    return i
+
+
+
+@contract(f=EasyAlgoFamily, t=EasyAlgoInstance, returns=EasyAlgoInstance)
+def check_validity_test(f, t):
+    return t
+        
+@contract(f=EasyAlgoFamily, returns=EasyAlgoFamily)
+def check_validity_family(f):
+    f = check_validity_family_interface(f)
+    return f
+
+def check_validity_family_interface(f):
+    # try to import interface
+    symbol = f.interface
+    try:
+        import_name(symbol)
+    except ValueError as e:
+        logger.error(e)
+        error_if_invalid = 'Invalid symbol %r.' % symbol
+        return f._replace(valid=False, error_if_invalid=error_if_invalid)
+    return f
+        
 def interpret_easy_algo_config(filename, data):
     basename = os.path.basename(filename)
     family_name = id_from_basename_pattern(basename, EasyAlgoDB.pattern)
@@ -132,7 +230,11 @@ def interpret_easy_algo_config(filename, data):
                             tests_pattern = tests_pattern,
                             instances=instances,
                             instances_pattern=instances_pattern,
-                            description=description)
+                            description=description,
+                            valid=True,
+                            error_if_invalid=False)
+    
+    
     
     
 

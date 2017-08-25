@@ -1,14 +1,10 @@
-from comptests.registrar import comptest, run_module_tests
-
-from easy_node.user_config.summary import user_config_summary
-
-from .test_configuration import *
 
 
-@comptest
-def call_summary(): 
-    print(user_config_summary())
+def jobs_comptests(context):  
+    from . import summary 
+    from . import test_configuration 
     
+
+    from comptests.registrar import jobs_registrar_simple
+    jobs_registrar_simple(context)
     
-if __name__ == '__main__':
-    run_module_tests()

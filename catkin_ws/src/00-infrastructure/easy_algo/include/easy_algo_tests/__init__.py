@@ -1,11 +1,8 @@
-from easy_algo.scripts.summary_imp import summary
-from comptests.registrar import comptest, run_module_tests
 
-
-@comptest
-def call_summary():
-    summary()
+def jobs_comptests(context):  
+    from . import summary 
+    from . import validity 
     
+    from comptests.registrar import jobs_registrar_simple
+    jobs_registrar_simple(context)
     
-if __name__ == '__main__':
-    run_module_tests()
