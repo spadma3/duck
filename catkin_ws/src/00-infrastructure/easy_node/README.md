@@ -8,10 +8,10 @@ For a node with the name `![my node]`, implemented in the file
 `src/![my node].py` you must create a file by
  the name `![my node].easy_node.yaml`somewhere in the package.
 
-The YAML file must contain 4 sections, each of which is a dictionary.
 
 This is the smallest example of an empty configuration:
 
+    description: My node
     parameters: {}
     subscriptions: {}
     publishers: {}

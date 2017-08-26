@@ -50,23 +50,23 @@ def generate_from_package_info(info, package_dir):
     for p in info.authors:
         md += 'Author: ' + format_person(p) + S
 
-    if not info.authors:
-        md += 'TODO: add authors.' + S
+    # if not info.authors:
+    #     md += 'TODO: add authors.' + S
 
     for p in info.maintainers:
         md += 'Maintainer: ' + format_person(p) + S
 
-    if not info.maintainers:
-        md += 'TODO: add maintainers.' + S
+    # if not info.maintainers:
+    #     md += 'TODO: add maintainers.' + S
 
-    md += 'TODO: add code to generate list of dependency.' + S
+    # md += 'TODO: add code to generate list of dependency.' + S
 
-    md += 'TODO: add code to generate a link to a Github issue table for this package.' + S
+    # md += 'TODO: add code to generate a link to a Github issue table for this package.' + S
 
-    md += 'TODO: add code to show unit tests build indicator.' + S
+    # md += 'TODO: add code to show unit tests build indicator.' + S
 
 
-    md += '### Descriptions {nonumber="1"}' + S
+    md += '### Description {nonumber="1"}' + S
 
     if info.description:
         md += info.description + S

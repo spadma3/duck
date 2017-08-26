@@ -28,6 +28,7 @@ These commands run the unit tests.
 - `make test-comptests`:        Run the `comptests` tests.
 - `make test-comptests-clean`:        Run the `comptests` tests.
 - `make test-comptests-collect-junit`: Collects the JUnit results.
+- `make test-download-logs`: Downloads the logs needed for the tests.
 
 
 ### Building commands
