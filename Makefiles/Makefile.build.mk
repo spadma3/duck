@@ -7,8 +7,12 @@ build:
 	@echo
 	@echo "Commands to build the software."
 	@echo
+	@echo '- `make build`       :  Runs `catkin_make`.'
+	@echo '- `make build-parallel` :  Runs `catkin_make`, with 4 threads.'
+	@echo
 	@echo '- `make build-machines`       :  Builds the machines file.'
 	@echo '- `make build-machines-clean` :  Removes the machines file.'
+	@echo
 	@echo '- `make build-clean`          :  Clean everything.'
 
 $(machines): build-machines
@@ -36,6 +40,9 @@ build-catkin:
 
 build-catkin-parallel:
 	catkin_make -C $(catkin_ws) --make-args "-j4"
+
+build-catkin-parallel-max:
+	catkin_make -C $(catkin_ws) --make-args "-j"
 
 build-catkin-clean:
 	@echo

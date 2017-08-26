@@ -29,7 +29,7 @@ jobs:
             command: |
                 # echo PWD = $PWD
                 source /opt/ros/kinetic/setup.bash
-                make build-catkin-parallel
+                make build-catkin-parallel-max
 
         - run:
             name: make continuous-integration-tests
