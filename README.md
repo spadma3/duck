@@ -17,6 +17,9 @@ This is the main software repository for the Duckietown project. It contains all
 If you do not know what "continuous integration" is, please see
  <a href="http://purl.org/dth/continuous-integration">this chapter</a> in the Duckiebook.
 
+See [the continuous integration console](https://circleci.com/gh/duckietown/Software/).
+
+
 <table>
 <thead>
     <tr><td>Branch</td><td>tests</td><td></td></tr>
@@ -24,17 +27,20 @@ If you do not know what "continuous integration" is, please see
 <tbody>
     <tr>
         <td> <code>master</code> </td>
-        <td> <img src='https://circleci.com/gh/duckietown/Software/tree/master.svg?style=shield'/>
+        <td>
+            <a href="https://circleci.com/gh/duckietown/Software/tree/master">
+                <img src='https://circleci.com/gh/duckietown/Software/tree/master.svg?style=shield'/></a>
         </td>
-        <td>     </td>
+        <td>Merges to master are not allowed unless the tests pass. Master will always be green. </td>
     </tr>
     <tr>
         <td> <code>andrea-devel</code> </td>
-        <td> <img src='https://circleci.com/gh/duckietown/Software/tree/andrea-devel.svg?style=shield'/>
+        <td>
+        <a href="https://circleci.com/gh/duckietown/Software/tree/andrea-deve">
+        <img src='https://circleci.com/gh/duckietown/Software/tree/andrea-devel.svg?style=shield'/>
+        </a>
         </td>
-        <td> Big reorganization/cleanup. </td>
+        <td> Andrea's reorganization/cleanup branch. </td>
     </tr>
 </tbody>
 </table>
-
-See [the continuous integration console](https://circleci.com/gh/duckietown/Software/).
