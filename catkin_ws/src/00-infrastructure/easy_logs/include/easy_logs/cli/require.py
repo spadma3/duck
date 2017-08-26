@@ -39,7 +39,7 @@ def require_main(log_names='*'):
     for name in required:
         if name in logs:
             logger.info('We already have %s locally at %s' % (name, logs[name].filename))
-            #continue
+            continue
         else:
             logger.info('We do not have %s locally.' % name)
         filename = os.path.join(downloads, name + '.bag')
