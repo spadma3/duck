@@ -1,4 +1,3 @@
-
 # Main software repository for Duckietown
 
 This is the main software repository for the Duckietown project. It contains all software, as well as hardware projects.
@@ -7,9 +6,11 @@ This is the main software repository for the Duckietown project. It contains all
 - For extensive technical documentation, please refer to [the Duckiebooks][duckiebook].
 
 
-
 [duckiebook]: http://book.duckietown.org/
 
+#### Master is now a protected branch
+
+[See docs here](https://github.com/blog/2051-protected-branches-and-required-status-checks)
 
 #### Continuous integration badges
 
