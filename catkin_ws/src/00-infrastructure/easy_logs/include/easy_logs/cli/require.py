@@ -1,6 +1,6 @@
 import os
 
-from ruamel import yaml
+import yaml
 
 from duckietown_utils import logger
 from duckietown_utils.constants import get_duckietown_local_log_downloads
@@ -8,12 +8,12 @@ from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.system_cmd_imp import system_cmd_result
 from easy_logs.logs_db import get_easy_logs_db, get_urls_path
 
-
 def get_dropbox_urls():
     f = get_urls_path()
     if not os.path.exists(f):
         raise DTConfigException(f)
     data = open(f).read()
+    
     urls = yaml.load(data)
     
     def sanitize(url):
@@ -34,7 +34,7 @@ def require_main(log_names='*'):
     downloads = get_duckietown_local_log_downloads()
     
     db = get_easy_logs_db()
-    logs  = db.logs
+    logs = db.logs
     
     for name in required:
         if name in logs:
@@ -66,7 +66,7 @@ def download_url_to_file(url, filename):
         tmp,
         url
     ]
-    res = system_cmd_result(cwd='.', cmd=cmd,
+    _ = system_cmd_result(cwd='.', cmd=cmd,
               display_stdout=False,
               display_stderr=False,
               raise_on_error=True,

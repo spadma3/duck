@@ -61,6 +61,13 @@ jobs:
              name: what the duck
              command: "./what-the-duck || :"
 
+        - run:
+            name: ffmpeg
+            command: |
+               add-apt-repository ppa:mc3man/trusty-media
+               apt-get update
+               apt-get install -y  mplayer mencoder ffmpeg gstreamer0.10-ffmpeg
+    
 
         - test-results-store:
                 path: out/comptests/junit

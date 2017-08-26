@@ -118,3 +118,9 @@ RUN wget https://www.princexml.com/download/prince_11.3-1_ubuntu16.04_amd64.deb 
 
 
 # RUN rm -rf /var/lib/apt/lists/*
+
+
+
+RUN add-apt-repository ppa:mc3man/trusty-media
+RUN apt-get update
+RUN apt-get install -y  mplayer mencoder ffmpeg gstreamer0.10-ffmpeg

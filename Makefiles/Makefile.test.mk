@@ -17,7 +17,9 @@ test:
 
 
 test-circle: \
-	test-comptests
+	test-comptests \
+	test-download-logs\
+	test-line-detector-programmatic
 	#
 	# test-catkin_tests \
 	# test-anti_instagram
@@ -59,9 +61,15 @@ test-catkin_tests: check-environment
 test-anti_instagram: check-environment
 	bash -c "source environment.sh; rosrun anti_instagram annotation_tests.py"
 
+onelog=20160223-amadoa-amadobot-RCDP2
+
 test-download-logs:
 	echo Loading
-	rosrun easy_logs download 20160223-amadoa-amadobot-RCDP2
+	rosrun easy_logs download $(onelog)
 	echo Should be equal to 70e9e2a49d1181d2da160ff5e615969f
 	md5sum `rosrun easy_logs find 20160223-amadoa-amadobot-RCDP2`
 	echo TODO: check
+
+test-line-detector-programmatic: test-download-logs
+	rosrun easy_logs download $(onelog)
+	rosrun line_detector2 programmatic --logs $(onelog) --algos all --reset -c parmake
