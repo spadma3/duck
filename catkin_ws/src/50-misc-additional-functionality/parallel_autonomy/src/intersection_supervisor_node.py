@@ -27,7 +27,7 @@ class IntersectionSupervisorNode(object):
 
         # Setup publishers
         self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
-	self.pub_done = rospy.Publisher("~intersection_done",BoolStamped,queue_size=1)
+        self.pub_done = rospy.Publisher("~intersection_done",BoolStamped,queue_size=1)
 
         # Setup subscribers
         self.sub_topic_mode = rospy.Subscriber("~mode", FSMState, self.cbMode, queue_size=1)
@@ -128,15 +128,15 @@ class IntersectionSupervisorNode(object):
                 pass
             # turn off brake lights
             self.led.setRGB(1, [.3, 0, 0])
-	    self.led.setRGB(3, [.3, 0, 0])
+            self.led.setRGB(3, [.3, 0, 0])
             if self.availableTurns == []:
-		#if timeout and no available turns, just leave instersection control 
-		done = BoolStamped()
-	        done.header.stamp = rospy.Time.now()
-        	done.data = True
-		self.pub_done.publish(done)
-	    else:
-	        self.pub_turn_type.publish(self.turn_direction)
+                #if timeout and no available turns, just leave instersection control 
+                done = BoolStamped()
+                done.header.stamp = rospy.Time.now()
+                done.data = True
+                self.pub_done.publish(done)
+            else:
+                self.pub_turn_type.publish(self.turn_direction)
             rospy.loginfo("[%s] Turn type: %i" % (self.node_name, self.turn_direction))
         if self.fsm_mode != "INTERSECTION_CONTROL":
             # on exit intersection control, stop blinking

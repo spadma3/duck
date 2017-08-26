@@ -30,15 +30,15 @@ class parallel_autonomy_test(object):
 
     def cbMode(self, msg):
         if(self.fsm_mode == "INTERSECTION_CONTROL" and self.desired_supervisor_output == 'intersection'):
-        	self.passed +=1
+            self.passed +=1
         else:
-        	self.failed +=1
+            self.failed +=1
         print self.passed/(float(self.passed+self.failed))
-
-
 
 
 if __name__ == "__main__":
     rospy.init_node("parallel_autonomy_test_node",anonymous=False)
     parallel_autonomy_test_node = parallel_autonomy_test()
     rospy.spin()
+
+
