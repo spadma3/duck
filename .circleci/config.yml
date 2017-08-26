@@ -2,17 +2,17 @@ version: 2
 jobs:
     build:
      docker:
-        - image: andreacensi/duckietown-xenial-kinetic:14
+        - image: andreacensi/duckietown-xenial-kinetic:17
      parallelism: 1
      steps:
         - checkout
 
-        - run:
-            name: ffmpeg
-            command: |
-               add-apt-repository ppa:mc3man/trusty-media
-               apt-get update
-               apt-get install -y  mplayer mencoder ffmpeg gstreamer0.10-ffmpeg
+        # - run:
+        #     name: ffmpeg
+        #     command: |
+        #        add-apt-repository ppa:mc3man/trusty-media
+        #        apt-get update
+        #        apt-get install -y  mplayer mencoder ffmpeg gstreamer0.10-ffmpeg
 
         - run:
             name: deps
