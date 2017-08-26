@@ -37,10 +37,11 @@ class EasyAlgoDB():
             sources = get_config_sources()
         self.family_name2config = load_family_config(sources)
     
-    def query(self, family_name, query):
+    def query(self, family_name, query, raise_if_no_matches=False):
         family = self.get_family(family_name)
         instances = family.instances
-        return fuzzy_match(query, instances)
+        result = fuzzy_match(query, instances, raise_if_no_matches=raise_if_no_matches)
+        return result
         
     def get_family(self, x):
         check_is_in('family', x, self.family_name2config)

@@ -26,28 +26,17 @@ class EasyLogsDB():
 
     def __init__(self):
         # ordereddict str -> PhysicalLog
-
         self.logs = load_all_logs()
-        
-        assert isinstance(self.logs, OrderedDict)
-
-    def query(self, query):
+         
+    def query(self, query, raise_if_no_matches=True):
         """
             query: a string
 
             Returns an OrderedDict str -> PhysicalLog.
         """
         check_isinstance(query, str)
-        spec = parse_match_spec(query)
-        assert isinstance(self.logs, OrderedDict), type(self.logs)
-        subset = fuzzy_match(query, self.logs)
-        if not subset:
-            msg = 'Could not find any match.'
-            msg += '\nQuery parsed as follows:'
-            msg += '\nQuery: %s' % query
-            msg += '\n'+indent(spec, '', 'Parsed:')
-            raise Exception(msg)
-        return subset
+        result = fuzzy_match(query, self.logs, raise_if_no_matches=raise_if_no_matches)
+        return result
 
 
 def read_stats(pl):

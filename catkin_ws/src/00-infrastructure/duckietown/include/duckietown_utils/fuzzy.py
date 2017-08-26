@@ -1,13 +1,20 @@
-from contracts.utils import check_isinstance
-from duckietown_utils.wildcards import  wildcard_to_regexp
-from duckietown_utils.system_cmd_imp import contract
-from collections import OrderedDict
-from duckietown_utils.instantiate_utils import indent
 from abc import abstractmethod, ABCMeta
-import yaml
-from duckietown_utils import logger
-from contracts.interface import describe_type
+from collections import OrderedDict
 
+from contracts.interface import describe_type
+from contracts.utils import check_isinstance
+import yaml
+
+from duckietown_utils import logger
+from duckietown_utils.exception_utils import raise_wrapped
+from duckietown_utils.exceptions import DTNoMatches, DTUserError
+from duckietown_utils.instantiate_utils import indent
+from duckietown_utils.system_cmd_imp import contract
+from duckietown_utils.wildcards import wildcard_to_regexp
+
+
+class InvalidQueryForUniverse(Exception):
+    pass
 
 class Spec(object):
     __metaclass__ = ABCMeta
@@ -41,19 +48,12 @@ class Or(Spec):
         return False 
     
     def match_dict(self, seq):
-        matches = OrderedDict()
-#         children_answers = []
+        matches = OrderedDict() 
         for option in self.children:
             theirs = option.match_dict(seq)
             for k, v in theirs.items():
                 if not k in matches:
-                    matches[k] = v
-#             children_answers.append(theirs)
-#             
-#         for k, v in seq.items():
-#             ok = any(k in _ for _ in children_answers)
-#             if ok:
-#                 matches[k] = v 
+                    matches[k] = v 
         return matches
     
 class And(Spec): 
@@ -77,6 +77,25 @@ class And(Spec):
                 matches[k] = v 
         return matches
     
+    
+
+class OnlyFirst(Spec): 
+    def __init__(self, spec):
+        Spec.__init__(self, [spec])
+        
+    def match(self, x):
+        return self.children[0].match(x) # XXX
+
+    def match_dict(self, seq):
+        results = self.children[0].match_dict(seq)
+        
+        res = OrderedDict()
+        if results:
+            k = list(results)[0]
+            res[k] = results[k] 
+        return res
+    
+    
 class ByTag(Spec):
     def __init__(self, tagname, spec):
         if '*' in tagname:
@@ -95,7 +114,7 @@ class ByTag(Spec):
             msg = ('The object of type %s does not have attribute "%s".' %
                  (type(x).__name__, self.tagname))
             msg += '\nThe available attributes are:\n  %s' % sorted(x.__dict__.keys())
-            raise ValueError(msg)
+            raise InvalidQueryForUniverse(msg)
         val = getattr(x, self.tagname)
         res = self.spec.match(val)
         return res
@@ -115,6 +134,15 @@ class Constant(Spec):
     def match(self, x):
         return self.s == x
          
+
+class MatchAll(Spec):
+    def __init__(self):
+        pass
+    def __str__(self):
+        return '(always matches)'
+    def match(self, _):
+        return True
+    
 class Wildcard(Spec):
     def __init__(self, pattern):
         self.pattern = pattern
@@ -123,6 +151,7 @@ class Wildcard(Spec):
         return 'matches %s' % self.pattern
     def match(self, x):
         return isinstance(x, str) and self.regexp.match(x)
+    
 def value_as_float(x):
     try:
         return float(x)
@@ -153,13 +182,28 @@ class GT(Spec):
             return False
         v = value_as_float(x)
         return v > self.value
-    
+
 @contract(s=str, returns=Spec)   
 def parse_match_spec(s):
     """
         
         a, b:>10 or +
     """
+    if s == 'all' or s == '*' or s == '':
+        return MatchAll()
+    
+    if not s:
+        msg = 'Cannot parse empty string.'
+        raise ValueError(msg)
+    
+    filters = {
+        '/first':  OnlyFirst,
+    }
+    for k, F in filters.items():
+        if s.endswith(k):
+            rest = s[:-len(k)]
+            return F(parse_match_spec(rest))
+         
     check_isinstance(s, str)
     if '+' in s:
         tokens = s.split('+')
@@ -178,14 +222,14 @@ def parse_match_spec(s):
     if s.startswith('>'):
         value = float(s[1:])
         return GT(value)
-    if s == 'all':
-        return Wildcard('*')
+    
     if '*' in s:
         return Wildcard(s)
     return Constant(s) 
     
+    
 @contract(stuff=dict)
-def fuzzy_match(spec, stuff):
+def fuzzy_match(query, stuff, raise_if_no_matches=False):
     """
         spec: a string
         logs: an OrderedDict str -> object
@@ -194,39 +238,18 @@ def fuzzy_match(spec, stuff):
         msg = 'Expectd an OrderedDict, got %s.' % describe_type(stuff)
         raise ValueError(msg)
     check_isinstance(stuff, dict)
-    check_isinstance(spec, str)
-    spec = parse_match_spec(spec)
-    return spec.match_dict(stuff)
-
-
-#     
-# def fuzzy_match1(spec, stuff):
-#     
-#     if ':' in spec:
-#         i = spec.index(':')
-#         tagname = spec[:i]
-#         tagvalue = spec[i+1:]
-#         return match_by_tag(tagname, tagvalue, stuff)
-#     return match_by_name(spec, stuff)
-# 
-# def match_by_tag(tagname, tagspec, stuff):
-#     check_isinstance(tagname, str)
-#     check_isinstance(tagspec, str)
-#     check_isinstance(stuff, dict)
-#     result = OrderedDict()
-#     for k, v in stuff.items():
-#         if hasattr(v, tagname):
-#             val = getattr(v, tagname)
-#             if match(tagspec, val):
-#                 result[k]=v
-#     return result    
-#     
-# def match_by_name(spec, stuff):
-#     result = OrderedDict()
-#     for k, v in stuff.items():
-#         if match(spec, k):
-#             result[k] = v
-#     return result
-
-
-
+    check_isinstance(query, str)
+    spec = parse_match_spec(query)
+    try:
+        result = spec.match_dict(stuff)
+    except InvalidQueryForUniverse as e:
+        msg = 'The query does not apply to this type of objects.'
+        raise_wrapped(DTUserError, e, msg, compact=True)
+    
+    if not result:
+        if raise_if_no_matches:
+            msg = 'Could not find any match in a universe of %d elements.' % len(stuff)
+            msg += '\nThe query was interpreted as follows:' 
+            msg += '\n\n'+indent(spec, '', '        %s        means       ' % query)
+            raise DTNoMatches(msg)
+    return result

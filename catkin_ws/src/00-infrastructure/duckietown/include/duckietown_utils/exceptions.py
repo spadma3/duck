@@ -1,8 +1,9 @@
+from decent_params.utils.script_utils import UserError
 
 class DTException(Exception):
     pass
 
-class DTUserError(DTException):
+class DTUserError(DTException, UserError):
     """ 
         Exceptions that will not be printed with full traceback,
         because they contain a simple message for the user, to be printed in red.
@@ -19,6 +20,9 @@ class DTBadData(DTException):
     """
         A log is invalid.
     """
+    
+class DTNoMatches(DTUserError):
+    """ Could not find any matches for the user selector """
     
 
 import sys
