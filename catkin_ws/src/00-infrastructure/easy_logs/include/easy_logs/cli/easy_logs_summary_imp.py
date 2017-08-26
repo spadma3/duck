@@ -63,6 +63,8 @@ def format_logs(logs):
             
         remove_table_field(table, 'filename')
         remove_table_field(table, 'topics')
+        remove_table_field(table, 'description')
+        remove_table_field(table, 'map')
         s += indent(format_table_plus(table, colspacing=4), '| ')
         return s    
     
