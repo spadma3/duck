@@ -6,7 +6,8 @@ from duckietown_utils import logger
 from duckietown_utils.constants import get_duckietown_local_log_downloads
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.system_cmd_imp import system_cmd_result
-from easy_logs.logs_db import get_easy_logs_db, get_urls_path
+from easy_logs.logs_db import get_easy_logs_db, get_urls_path,\
+    get_easy_logs_db_fresh
 
 def get_dropbox_urls():
     f = get_urls_path()
@@ -33,7 +34,7 @@ def require_main(log_names='*'):
     urls = get_dropbox_urls()
     downloads = get_duckietown_local_log_downloads()
     
-    db = get_easy_logs_db()
+    db = get_easy_logs_db_fresh()
     logs = db.logs
     
     for name in required:
