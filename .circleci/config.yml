@@ -3,17 +3,13 @@ jobs:
     build:
      docker:
         - image: andreacensi/duckietown-xenial-kinetic:14
-     parallelism: 4
+     parallelism: 2
      steps:
         - checkout
 
         - run:
             name: deps
             command: |
-                # apt install -y python-frozendict imagemagick
-
-                # uninstall has the -y
-                # pip uninstall -y comptests
                 pip install comptests
                 ./misc/python_environment.py comptests
 
@@ -67,7 +63,7 @@ jobs:
                add-apt-repository ppa:mc3man/trusty-media
                apt-get update
                apt-get install -y  mplayer mencoder ffmpeg gstreamer0.10-ffmpeg
-    
+
 
         - test-results-store:
                 path: out/comptests/junit

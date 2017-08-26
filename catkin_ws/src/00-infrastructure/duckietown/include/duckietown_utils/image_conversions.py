@@ -3,7 +3,7 @@ from cv_bridge import CvBridge  # @UnresolvedImport
 __all__ = ['d8n_image_msg_from_cv_image']
 
 class ImageConversions():
-        
+    # We only instantiate the bridge once
     bridge = None
     
 def d8n_image_msg_from_cv_image(cv_image, image_format, same_timestamp_as = None):

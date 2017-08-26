@@ -3,6 +3,7 @@ import os
 
 from contracts.utils import check_isinstance
 from ruamel import yaml
+import ruamel.yaml
 from ruamel.yaml.error import YAMLError
 
 from duckietown_utils import logger
@@ -21,11 +22,12 @@ def interpret_yaml_file(filename, contents, f):
     """ 
         f is a function that takes
         
-            f(filename, data
+            f(filename, data)
+            
         f can raise KeyError, or DTConfigException """
     try:
         try:
-            data = yaml.load(contents)
+            data = yaml.load(contents, Loader=ruamel.yaml.Loader)
         except YAMLError as e:
             msg = 'Invalid YAML content:'
             raise_wrapped(DTConfigException, e, msg, compact=True)
