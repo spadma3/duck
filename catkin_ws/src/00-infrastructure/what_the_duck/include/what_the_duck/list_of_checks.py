@@ -42,6 +42,8 @@ def get_checks():
             CommandOutputContains('sudo vcgencmd get_camera', 'detected=1'),
             Diagnosis("The camera is not connected."))
 
+    
+
     add(None,
         "Scipy is installed",
         CanImportPackages(['scipy', 'scipy.io']),
@@ -161,16 +163,16 @@ def get_checks():
             ipython
             python-ruamel.yaml
             virtualenv
-            libxml2-dev 
+            libxml2-dev
             libxslt1-dev
             libffi-dev
             bibtex2html
             pdftk
             python-frozendict
              python-tables
-             mplayer 
+             mplayer
              mencoder
-            
+
         """))
 
     if this_is_a_duckiebot:
@@ -276,7 +278,7 @@ def get_checks():
     DUCKIEFLEET_ROOT = DuckietownConstants.DUCKIEFLEET_ROOT_variable
     DUCKIETOWN_CONFIG_SEQUENCE = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
-    
+
     v = DUCKIETOWN_CONFIG_SEQUENCE
     add(None,
         'Provided environment variable %s.' % v,
@@ -394,7 +396,7 @@ def get_checks():
                     )
 
 
-        
+
     if False:
         # TODO: not sure if this is needed
         if this_is_a_duckiebot:

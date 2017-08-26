@@ -2,15 +2,19 @@ from collections import OrderedDict, namedtuple
 from comptests.registrar import comptest, run_module_tests
 from duckietown_utils.fuzzy import fuzzy_match, parse_match_spec
 from duckietown_utils.instantiate_utils import indent
+from contracts.utils import check_isinstance
 
 def expect(data, query, result_keys):
-        
+    result_keys = list(result_keys)
+    check_isinstance(data, OrderedDict)
+    
     spec = parse_match_spec(query)
     print '-----'
     print 'Query: %s' % query
     print indent(spec, '', 'Spec: ')
     res = fuzzy_match(query, data)
-    if list(res) != list(result_keys):
+    check_isinstance(res, OrderedDict)
+    if list(res) != result_keys:
         msg = 'Error:'
         msg += '\n Data: %s' % data
         msg += '\n Query: %s' % query
@@ -33,7 +37,9 @@ def matches():
     expect(data, 'two+one', ['two', 'one'])
     expect(data, '*o', ['two'])
     expect(data, 'o*', ['one'])
-
+    
+    expect(data, 'all/first', ['one'])
+    expect(data, '/first', ['one'])
 
 @comptest
 def matches_tags():

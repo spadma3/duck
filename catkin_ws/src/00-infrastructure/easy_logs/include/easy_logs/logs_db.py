@@ -6,11 +6,21 @@ from contracts.utils import check_isinstance
 
 from duckietown_utils.bag_info import rosbag_info_cached
 from duckietown_utils.caching import get_cached
-from duckietown_utils.fuzzy import parse_match_spec, fuzzy_match
-from duckietown_utils.instantiate_utils import indent
+from duckietown_utils.constants import DuckietownConstants
+from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
 from easy_logs.logs_structure import PhysicalLog
-from duckietown_utils.constants import DuckietownConstants
+
+
+from duckietown_utils.fuzzy import fuzzy_match
+from duckietown_utils import logger
+import time
+
+
+def get_urls_path():
+    d = get_ros_package_path('easy_logs')
+    f = os.path.join(d, 'dropbox.urls.yaml')
+    return f
 
 
 def get_easy_logs_db():
@@ -26,28 +36,17 @@ class EasyLogsDB():
 
     def __init__(self):
         # ordereddict str -> PhysicalLog
-
         self.logs = load_all_logs()
-        
-        assert isinstance(self.logs, OrderedDict)
-
-    def query(self, query):
+         
+    def query(self, query, raise_if_no_matches=True):
         """
             query: a string
 
             Returns an OrderedDict str -> PhysicalLog.
         """
         check_isinstance(query, str)
-        spec = parse_match_spec(query)
-        assert isinstance(self.logs, OrderedDict), type(self.logs)
-        subset = fuzzy_match(query, self.logs)
-        if not subset:
-            msg = 'Could not find any match.'
-            msg += '\nQuery parsed as follows:'
-            msg += '\nQuery: %s' % query
-            msg += '\n'+indent(spec, '', 'Parsed:')
-            raise Exception(msg)
-        return subset
+        result = fuzzy_match(query, self.logs, raise_if_no_matches=raise_if_no_matches)
+        return result
 
 
 def read_stats(pl):
@@ -67,6 +66,8 @@ def read_stats(pl):
         return pl._replace(valid=False, error_if_invalid='Date not set.')
 
     date = date_ms
+    
+    date = time.strftime('%Y-%m-%d', time.gmtime(date_ms))
 
     pl = pl._replace(date=date, length=length, bag_info=info)
 
@@ -99,12 +100,26 @@ def which_robot(info):
     msg = 'Could not find a topic matching %s' % pattern
     raise ValueError(msg)
 
+def is_valid_name(basename):
+    forbidden = [',','(','conflicted', ' ']
+    for f in forbidden:
+        if f in basename:
+            return False
+    return True
+        
 def load_all_logs(which='*'):
     pattern = which + '.bag'
     basename2filename = look_everywhere_for_bag_files(pattern=pattern)
     logs = OrderedDict()
     for basename, filename in basename2filename.items():
         log_name = basename
+       
+        if not is_valid_name(basename):
+            msg = 'Ignoring Bag file with invalid file name "%r".' % (basename)
+            msg += '\n Full path: %s' % filename
+            logger.warn(msg)
+            continue
+
         date = None
         size =  os.stat(filename).st_size
 
