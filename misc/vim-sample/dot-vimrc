@@ -1,0 +1,6 @@
+syntax on
+set number
+filetype plugin indent on
+autocmd FileType python set complete+=k~/.vim/syntax/python.vim isk+=.,(
+highlight Comment ctermfg=Gray
+
