@@ -13,6 +13,8 @@ from easy_logs.logs_structure import PhysicalLog
 
 
 from duckietown_utils.fuzzy import fuzzy_match
+from duckietown_utils import logger
+import time
 
 
 def get_urls_path():
@@ -64,6 +66,8 @@ def read_stats(pl):
         return pl._replace(valid=False, error_if_invalid='Date not set.')
 
     date = date_ms
+    
+    date = time.strftime('%Y-%m-%d', time.gmtime(date_ms))
 
     pl = pl._replace(date=date, length=length, bag_info=info)
 
@@ -96,12 +100,26 @@ def which_robot(info):
     msg = 'Could not find a topic matching %s' % pattern
     raise ValueError(msg)
 
+def is_valid_name(basename):
+    forbidden = [',','(','conflicted', ' ']
+    for f in forbidden:
+        if f in basename:
+            return False
+    return True
+        
 def load_all_logs(which='*'):
     pattern = which + '.bag'
     basename2filename = look_everywhere_for_bag_files(pattern=pattern)
     logs = OrderedDict()
     for basename, filename in basename2filename.items():
         log_name = basename
+       
+        if not is_valid_name(basename):
+            msg = 'Ignoring Bag file with invalid file name "%r".' % (basename)
+            msg += '\n Full path: %s' % filename
+            logger.warn(msg)
+            continue
+
         date = None
         size =  os.stat(filename).st_size
 

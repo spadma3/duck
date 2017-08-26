@@ -3,6 +3,7 @@ import os
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import expand_all
+from duckietown_utils.mkdirs import d8n_mkdirs_thread_safe
 
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
@@ -33,6 +34,14 @@ def get_duckiefleet_root():
 def get_duckietown_data():
     """ Returns the path of DUCKIETOWN_DATA and checks it exists """
     return _get_dir(DuckietownConstants.DUCKIETOWN_DATA_variable)
+
+def get_duckietown_tmp_video_process():
+    """ Returns a suitable dir to do temporary video processing. """
+    d = get_duckietown_root()
+    d =  os.path.join(d, 'caches', 'tmp')
+    d8n_mkdirs_thread_safe(d)
+    return d
+    
 
 def get_duckietown_local_log_downloads():
     """ Returns the directory to use for local downloads of logs"""

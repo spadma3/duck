@@ -27,13 +27,13 @@ def d8n_make_video_from_bag(bag_filename, topic, out):
         from procgraph import pg
     except ImportError:
         raise
+    tmpdir = get_duckietown_tmp_video_process()
     
-    tmpdir = '/tmp'
     # pg -m procgraph_ros bag2mp4 --bag $bag --topic $topic --out $out
       
     model = 'bag2mp4_fixfps'
     out_tmp = os.path.join(tmpdir, os.path.basename(out))
-    logger.debug('Writing temp file to %s' % out)
+    logger.debug('Writing temp file to %s' % out_tmp)
     logger.debug('(You can use mplayer to follow along.)')
     pg(model, config=dict(bag=bag_filename, topic=topic, out=out_tmp))
     md = out_tmp + '.metadata.yaml'
