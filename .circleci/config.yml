@@ -3,7 +3,7 @@ jobs:
     build:
      docker:
         - image: andreacensi/duckietown-xenial-kinetic:14
-     parallelism: 2
+     parallelism: 1
      steps:
         - checkout
 
@@ -13,7 +13,9 @@ jobs:
                 pip install comptests
                 ./misc/python_environment.py comptests
 
-                pip install  procgraph
+                pip install ros_node_utils
+                pip install procgraph
+
 
         - run:
             name: build
