@@ -22,12 +22,26 @@ def get_urls_path():
     f = os.path.join(d, 'dropbox.urls.yaml')
     return f
 
-
 def get_easy_logs_db():
+    return get_easy_logs_db_cached_if_possible
+
+def get_easy_logs_db_cached_if_possible():
     if EasyLogsDB._singleton is None:
         f = EasyLogsDB
         use_cache = DuckietownConstants.use_cache_for_logs
         EasyLogsDB._singleton = get_cached('EasyLogsDB', f) if use_cache else f()
+    return EasyLogsDB._singleton
+
+def get_easy_logs_db_fresh():
+    if EasyLogsDB._singleton is None:
+        f = EasyLogsDB
+        EasyLogsDB._singleton = f()
+    return EasyLogsDB._singleton
+
+def get_easy_logs_db_cloud():
+    if EasyLogsDB._singleton is None:
+        f = EasyLogsDB
+        EasyLogsDB._singleton = f()
     return EasyLogsDB._singleton
 
 
