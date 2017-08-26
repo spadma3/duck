@@ -36,7 +36,7 @@ See [the continuous integration console](https://circleci.com/gh/duckietown/Soft
     <tr>
         <td> <code>andrea-devel</code> </td>
         <td>
-        <a href="https://circleci.com/gh/duckietown/Software/tree/andrea-deve">
+        <a href="https://circleci.com/gh/duckietown/Software/tree/andrea-devel">
         <img src='https://circleci.com/gh/duckietown/Software/tree/andrea-devel.svg?style=shield'/>
         </a>
         </td>

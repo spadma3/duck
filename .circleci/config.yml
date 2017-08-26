@@ -57,6 +57,9 @@ jobs:
                 # .circleci/collect-test-artifacts.sh $artifacts $reports
 
 
+         - run:
+             name: what the duck
+             command: "./what-the-duck || :"
 
 
         - test-results-store:
