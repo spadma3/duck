@@ -61,7 +61,7 @@ test-anti_instagram: check-environment
 
 test-download-logs:
 	echo Loading
-	rosrun easy_logs require 20160223-amadoa-amadobot-RCDP2
+	rosrun easy_logs download 20160223-amadoa-amadobot-RCDP2
 	echo Should be equal to 70e9e2a49d1181d2da160ff5e615969f
 	md5sum `rosrun easy_logs find 20160223-amadoa-amadobot-RCDP2`
 	echo TODO: check

@@ -1,16 +1,16 @@
+import os
+
 from ruamel import yaml
 
-from duckietown_utils.path_utils import  get_ros_package_path
-from easy_logs.logs_db import get_easy_logs_db
 from duckietown_utils import logger
-import os
-from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.constants import get_duckietown_local_log_downloads
+from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.system_cmd_imp import system_cmd_result
+from easy_logs.logs_db import get_easy_logs_db, get_urls_path
+
 
 def get_dropbox_urls():
-    d = get_ros_package_path('easy_logs')
-    f = os.path.join(d, 'dropbox.urls.yaml')
+    f = get_urls_path()
     if not os.path.exists(f):
         raise DTConfigException(f)
     data = open(f).read()

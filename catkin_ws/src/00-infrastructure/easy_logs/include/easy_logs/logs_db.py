@@ -6,11 +6,19 @@ from contracts.utils import check_isinstance
 
 from duckietown_utils.bag_info import rosbag_info_cached
 from duckietown_utils.caching import get_cached
-from duckietown_utils.fuzzy import parse_match_spec, fuzzy_match
-from duckietown_utils.instantiate_utils import indent
+from duckietown_utils.constants import DuckietownConstants
+from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
 from easy_logs.logs_structure import PhysicalLog
-from duckietown_utils.constants import DuckietownConstants
+
+
+from duckietown_utils.fuzzy import fuzzy_match
+
+
+def get_urls_path():
+    d = get_ros_package_path('easy_logs')
+    f = os.path.join(d, 'dropbox.urls.yaml')
+    return f
 
 
 def get_easy_logs_db():
