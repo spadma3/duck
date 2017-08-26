@@ -39,23 +39,23 @@ def require_main(log_names='*'):
     for name in required:
         if name in logs:
             logger.info('We already have %s locally at %s' % (name, logs[name].filename))
-            
+            #continue
         else:
             logger.info('We do not have %s locally.' % name)
-            filename = os.path.join(downloads, name + '.bag')
-            if os.path.exists(filename):
-                logger.info('It was already downloaded as %s' % filename)
-                continue
-        
-            if not name in urls:
-                msg = 'No url found for %r.' % name
-                raise Exception(msg)
-            else:
-                url = urls[name]
-                
-                
-                if not os.path.exists(filename):
-                    download_url_to_file(url, filename)
+        filename = os.path.join(downloads, name + '.bag')
+        if os.path.exists(filename):
+            logger.info('It was already downloaded as %s' % filename)
+            continue
+    
+        if not name in urls:
+            msg = 'No url found for %r.' % name
+            raise Exception(msg)
+        else:
+            url = urls[name]
+            
+            
+            if not os.path.exists(filename):
+                download_url_to_file(url, filename)
                 
 def download_url_to_file(url, filename):
     logger.info('Download from %s' % (url))

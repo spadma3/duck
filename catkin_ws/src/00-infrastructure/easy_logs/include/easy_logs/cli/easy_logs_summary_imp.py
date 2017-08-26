@@ -42,7 +42,10 @@ def format_logs(logs):
                 l = '(none)'
             row.append(l)
             row.append(log.vehicle)
-            row.append(display_filename(log.filename))
+            if log.filename is None:
+                row.append('not local')
+            else:
+                row.append(display_filename(log.filename))
             if log.valid:
                 s = 'Yes.'
             else:

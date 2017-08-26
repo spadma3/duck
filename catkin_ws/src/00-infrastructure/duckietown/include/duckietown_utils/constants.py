@@ -15,7 +15,7 @@ class DuckietownConstants():
     scuderia_filename = 'scuderia.yaml'
     machines_path_rel_to_root = 'catkin_ws/src/00-infrastructure/duckietown/machines'
     use_cache_for_algos =  False
-    use_cache_for_logs =  False
+#     use_cache_for_logs =  False
     enforce_no_tabs = True
     enforce_naming_conventions = True
     

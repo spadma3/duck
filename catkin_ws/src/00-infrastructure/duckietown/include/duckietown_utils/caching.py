@@ -2,6 +2,8 @@ from duckietown_utils.path_utils import expand_all, display_filename
 import cPickle
 from duckietown_utils import logger
 import os
+from ruamel import yaml
+import copy
 
 
 
@@ -35,4 +37,12 @@ def get_cached(cache_name, f, quiet='not-given'):
             pass
         with open(cache, 'w') as f:
             cPickle.dump(ob, f)
+        
+        logs = copy.deepcopy(ob.logs)
+        for k, v in logs.items():
+            logs[k]=v._replace(filename= None)
+        with open(cache+'.yaml', 'w') as f:
+            logs_yaml = yaml.dump(logs)
+            f.write(logs_yaml)
+                
     return ob

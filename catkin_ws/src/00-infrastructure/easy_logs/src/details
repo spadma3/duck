@@ -1,20 +1,18 @@
 #!/usr/bin/env python
-import sys
+import yaml
 
 from duckietown_utils import col_logging  # @UnusedImport
 from duckietown_utils.exceptions import wrap_script_entry_point
-from easy_logs.cli.details import details_main
+from easy_logs.cli.generic import GenericLogDisplay
 
 
-def find_logs():
-    args = sys.argv[1:]
-    if not args:
-        query = '*'
-    else:
-        query = args[0]
-
-    details_main(query)
-    
+class Details(GenericLogDisplay):
+    """ Shows detailed information for the logs. """ 
+    def show_info(self, logs):
+        for log in logs.values():        
+            s = yaml.dump(log._asdict())
+            print(s)
 
 if __name__ == '__main__':
-    wrap_script_entry_point(find_logs)
+    wrap_script_entry_point(Details.get_sys_main())
+

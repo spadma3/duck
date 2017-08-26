@@ -6,10 +6,9 @@ from easy_logs.logs_db import get_easy_logs_db_cached_if_possible, get_easy_logs
     get_easy_logs_db_fresh
 
 
-class RunLineDetectionTests(D8App): 
-    """ Runs the line detection tests programmatically. """
+class GenericLogDisplay(D8App): 
 
-    def define_options(self, params):
+    def define_program_options(self, params):
         params.add_flag('cache', help="Use cache") 
         params.add_flag('cloud', help="Use cloud cache")
         params.accept_extra()
@@ -28,6 +27,7 @@ class RunLineDetectionTests(D8App):
             if len(extra) > 1:
                 msg = 'Expected only one extra argument.'
                 raise DTUserError(msg)
+            query = extra[0]
             
         use_cache = self.options.cache 
         use_cloud = self.options.cloud
@@ -42,7 +42,7 @@ class RunLineDetectionTests(D8App):
         else:
             db = get_easy_logs_db_fresh()
         
-        logs  = db.query(query)
+        logs = db.query(query)
     
         self.info('Found %d logs.' % len(logs))
         self.show_info(logs)

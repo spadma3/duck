@@ -70,6 +70,9 @@ test-download-logs:
 	md5sum `rosrun easy_logs find 20160223-amadoa-amadobot-RCDP2`
 	echo TODO: check
 
+test-cloud-logs: cloud-download
+	rosrun easy_logs summary --cloud 20160122-censi-ferrari-RCDP6-lapentab
+
 test-line-detector-programmatic: test-download-logs
 	rosrun easy_logs download $(onelog)
 	rosrun line_detector2 programmatic --logs $(onelog) --algos all --reset -c parmake
