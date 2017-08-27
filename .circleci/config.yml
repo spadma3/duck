@@ -7,13 +7,6 @@ jobs:
      steps:
         - checkout
 
-        # - run:
-        #     name: ffmpeg
-        #     command: |
-        #        add-apt-repository ppa:mc3man/trusty-media
-        #        apt-get update
-        #        apt-get install -y  mplayer mencoder ffmpeg gstreamer0.10-ffmpeg
-
         - run:
             name: deps
             command: |
@@ -22,7 +15,7 @@ jobs:
 
                 pip install ros_node_utils
                 pip install procgraph
-
+                apt install -y python-sklearn
 
         - run:
             name: build
@@ -47,12 +40,7 @@ jobs:
 
                 make test-download-logs
                 make test-circle
-        # - run:
-        #     name: Setup SSH for what-the-duck
-        #     command:
-        #         chmod 700 ~/.ssh
-        #         touch ~/.ssh/config
-        #         touch ~/.ssh/authorized_key
+
 
         - run:
             name: junit
