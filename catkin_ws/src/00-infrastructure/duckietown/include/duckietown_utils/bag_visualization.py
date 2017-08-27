@@ -1,6 +1,7 @@
 import os
 import shutil
 from duckietown_utils import logger
+from duckietown_utils.constants import get_duckietown_tmp_video_process
 
 def d8n_make_video_from_bag(bag_filename, topic, out):
     """

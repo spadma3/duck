@@ -31,5 +31,8 @@ def d8n_bag_read_with_progress(log, topic):
     if n == 0:
         s = 'Could not find any message for topic %r.' % topic
         raise DTBadData(s)
+    
+    fps = n / (time.time() - first)
+    logger.debug('Read %d messages for %s. Processing time: %.1f fps.' % (n, topic, fps))
     bag.close()
     
