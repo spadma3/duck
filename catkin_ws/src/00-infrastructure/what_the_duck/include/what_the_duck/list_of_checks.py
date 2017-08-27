@@ -108,7 +108,7 @@ def get_checks():
         
     required_packages = set()
 
-    if this_is_a_duckiebot or this_is_a_laptop:
+    if this_is_a_duckiebot or this_is_a_laptop or this_is_circle:
         required_packages.update(make_list("""
             vim byobu
             git git-extras
@@ -142,13 +142,13 @@ def get_checks():
             python-smbus
             """))
 
-    if this_is_a_laptop:
+    if this_is_a_laptop or this_is_circle:
         required_packages.update(make_list("""
             git-lfs
         """))
 
     # TODO
-    suggested = ['emacs', 'zsh', 'nethogs']
+#     suggested = ['emacs', 'zsh', 'nethogs']
 
     for p in required_packages:
         add(None, p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
@@ -195,11 +195,12 @@ def get_checks():
         CheckImportMessages(),
         Diagnosis("The messages are not compiling correctly."))
 
-    add(None,
-        'Shell is bash',
-        EnvironmentVariableIsEqualTo('SHELL', '/bin/bash'),
-        Diagnosis('You have not set the shell to /bin/bash'),
-        Suggestion('You can change the shell using `chsh`.'))
+    if not this_is_circle:
+        add(None,
+            'Shell is bash',
+            EnvironmentVariableIsEqualTo('SHELL', '/bin/bash'),
+            Diagnosis('You have not set the shell to /bin/bash'),
+            Suggestion('You can change the shell using `chsh`.'))
 
 
     if this_is_a_duckiebot:
@@ -352,7 +353,6 @@ def get_checks():
         pass
     else:
         for package_name, dirname in packagename2dir.items():
-#             if package_name != 'pkg_name':
                 add_python_package_checks(add, package_name, dirname)
 
     # TODO: DISPLAY is not set
