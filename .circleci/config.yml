@@ -15,7 +15,7 @@ jobs:
 
                 pip install ros_node_utils
                 pip install procgraph
-                apt install python-sklearn
+                apt install -y python-sklearn
 
         - run:
             name: build
@@ -40,7 +40,7 @@ jobs:
 
                 make test-download-logs
                 make test-circle
-                
+
 
         - run:
             name: junit
