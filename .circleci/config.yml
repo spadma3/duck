@@ -7,13 +7,6 @@ jobs:
      steps:
         - checkout
 
-        # - run:
-        #     name: ffmpeg
-        #     command: |
-        #        add-apt-repository ppa:mc3man/trusty-media
-        #        apt-get update
-        #        apt-get install -y  mplayer mencoder ffmpeg gstreamer0.10-ffmpeg
-
         - run:
             name: deps
             command: |
@@ -22,7 +15,7 @@ jobs:
 
                 pip install ros_node_utils
                 pip install procgraph
-
+                apt install -y python-sklearn
 
         - run:
             name: build
@@ -48,6 +41,7 @@ jobs:
                 make test-download-logs
                 make test-circle
 
+
         - run:
             name: junit
             when: always
@@ -64,7 +58,8 @@ jobs:
 
         - run:
              name: what the duck
-             command: "./what-the-duck || :"
+             command:
+                 "source /opt/ros/kinetic/setup.bash && source $PWD/catkin_ws/devel/setup.bash && ./what-the-duck || :"
 
 
         - test-results-store:

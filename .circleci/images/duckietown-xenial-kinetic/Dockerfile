@@ -127,3 +127,19 @@ RUN  add-apt-repository ppa:mc3man/xerus-media
 RUN apt-get update
 RUN apt-get install -y  mplayer mencoder ffmpeg
 # gstreamer0.10-ffmpeg
+
+
+# Other stuff for Duckiebot / duckietop
+
+RUN apt-get install -y \
+    python-ruamel.yaml \
+    byobu \
+    atop \
+    htop \
+    python-tables \
+    python-sklearn \
+    ntpdate  \
+    libatlas-base-dev \
+    vim\
+    apt-file\
+    iftop

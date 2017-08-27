@@ -14,7 +14,6 @@ from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.friendly_path_imp import friendly_path
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.locate_files_impl import locate_files
-from duckietown_utils.path_utils import display_filename
 from duckietown_utils.system_cmd_imp import contract
 
 
@@ -40,7 +39,7 @@ def interpret_yaml_file(filename, contents, f):
      
     except DTConfigException as e:
         msg = 'Could not interpret the contents of the file using %s()\n' % f.__name__
-        msg += '   %s\n' % display_filename(filename)
+        msg += '   %s\n' % friendly_path(filename)
         msg += 'Contents:\n' + indent(contents, ' > ')
         raise_wrapped(DTConfigException, e, msg, compact=True) 
 

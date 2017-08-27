@@ -7,11 +7,11 @@ from duckietown_utils.caching import get_cached
 from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.path_utils import display_filename
 from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import format_table_plus 
 from easy_node.node_description.configuration import load_configuration_for_nodes_in_package, EasyNodeConfig
 from easy_node.user_config.get_configuration_files import get_all_configuration_files
+from duckietown_utils.friendly_path_imp import friendly_path
 
 
 class ValidationError(Exception):
@@ -183,7 +183,7 @@ def config_summary(all_keys, values, origin):
             if v.endswith('...'):
                 v = v[:-3]
             v = v.strip()
-            table.append([k,v, display_filename(origin[k])])
+            table.append([k,v, friendly_path(origin[k])])
         else:
             table.append([k, '(unset)', '(not found)'])
     return format_table_plus(table, 4)
