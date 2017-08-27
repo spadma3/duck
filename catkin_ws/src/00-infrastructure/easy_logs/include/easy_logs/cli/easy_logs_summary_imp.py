@@ -1,10 +1,10 @@
 from ruamel import yaml
 
 from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.path_utils import display_filename
 from duckietown_utils.text_utils import format_table_plus, remove_table_field,\
     make_row_red
 from easy_logs.logs_db import get_easy_logs_db
+from duckietown_utils.friendly_path_imp import friendly_path
 
 
 def easy_logs_summary(query='*'):
@@ -45,7 +45,7 @@ def format_logs(logs):
             if log.filename is None:
                 row.append('not local')
             else:
-                row.append(display_filename(log.filename))
+                row.append(friendly_path(log.filename))
             if log.valid:
                 s = 'Yes.'
             else:

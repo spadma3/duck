@@ -1,11 +1,12 @@
-from duckietown_utils.path_utils import expand_all, display_filename
+from duckietown_utils.path_utils import expand_all
 import cPickle
 from duckietown_utils import logger
-import os
-from ruamel import yaml
-import copy
+import os 
+from duckietown_utils.friendly_path_imp import friendly_path
 
-
+__all__ = [
+    'get_cached',
+]
 
 def get_cached(cache_name, f, quiet='not-given'):
     """ 
@@ -24,13 +25,13 @@ def get_cached(cache_name, f, quiet='not-given'):
     if os.path.exists(cache):
         
         if not should_be_quiet:
-            logger.info('Using cache %s' % display_filename(cache))
+            logger.info('Using cache %s' % friendly_path(cache))
         with open(cache) as f:
             ob = cPickle.load(f)
     else:
         ob = f()
         if not should_be_quiet:
-            logger.info('Writing to cache %s' % display_filename(cache))
+            logger.info('Writing to cache %s' % friendly_path(cache))
         try:
             os.makedirs(os.path.dirname(cache))
         except:

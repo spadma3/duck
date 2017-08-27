@@ -1,8 +1,10 @@
 from collections import namedtuple
-from duckietown_utils.text_utils import indent
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.path_utils import display_filename
+
 from duckietown_utils.exception_utils import raise_wrapped
+from duckietown_utils.exceptions import DTConfigException
+from duckietown_utils.friendly_path_imp import friendly_path
+from duckietown_utils.text_utils import indent
+
 
 Person = namedtuple('Person', 'name email')
 PackageXML = namedtuple('PackageXML', 
@@ -31,7 +33,7 @@ def read_package_xml_info(filename):
         return PackageXML(name=name, version=version, maintainers=maintainers, authors=authors,
                           license=license_, description=description)
     except DTConfigException as e:
-        msg = 'Could not read info from %s' % display_filename(filename)
+        msg = 'Could not read info from %s' % friendly_path(filename)
         raise_wrapped(DTConfigException, e, msg)
 
 def get_person(element):
@@ -61,3 +63,4 @@ def get_tag_and_attributes(root, name, default=-1):
     if default != -1:
         return default
     raise KeyError(name)
+

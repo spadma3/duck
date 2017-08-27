@@ -11,7 +11,6 @@ from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.locate_files_impl import locate_files
-from duckietown_utils.path_utils import display_filename
 
 
 SUFFIX = '.config.yaml'
@@ -148,7 +147,7 @@ def interpret_config_file(filename):
             
         except DTConfigException as e:
             msg = 'Could not interpret the contents of the file\n'
-            msg += '   %s\n' % display_filename(filename)
+            msg += '   %s\n' % friendly_path(filename)
             msg += 'Contents:\n' + indent(contents, ' > ')
             raise_wrapped(DTConfigException, e, msg, compact=True) 
         
@@ -161,5 +160,5 @@ def interpret_config_file(filename):
                           error_if_invalid=None)
     
     except DTConfigException as e:
-        msg = 'Invalid file %s' % display_filename(filename)
+        msg = 'Invalid file %s' % friendly_path(filename)
         raise_wrapped(DTConfigException, e, msg, compact=True)

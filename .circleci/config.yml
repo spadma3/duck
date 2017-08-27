@@ -65,8 +65,7 @@ jobs:
         - run:
              name: what the duck
              command:
-                 source /opt/ros/kinetic/setup.bash
-                 ./what-the-duck || :
+                 "source /opt/ros/kinetic/setup.bash && ./what-the-duck || :"
 
 
         - test-results-store:

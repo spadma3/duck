@@ -1,7 +1,7 @@
 import termcolor
 
 from duckietown_utils import col_logging  # @UnusedImport
-from duckietown_utils.path_utils import display_filename
+from duckietown_utils.friendly_path_imp import friendly_path
 from duckietown_utils.text_utils import truncate_string_right, format_table_plus,\
     remove_table_field
 
@@ -39,7 +39,7 @@ def user_config_summary():
         table.append([
             c.package_name, c.node_name, c.config_name,
             date , c.extends, valid, valid_error,
-            d, display_filename(c.filename)
+            d, friendly_path(c.filename)
         ])
     
     remove_table_field(table, 'filename')

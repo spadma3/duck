@@ -2,7 +2,7 @@ import os
 import rospkg
 
 from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.friendly_path_imp import friendly_path
+# from duckietown_utils.friendly_path_imp import friendly_path
 
 
 def expand_all(filename):
@@ -28,20 +28,6 @@ def get_ros_package_path(package_name):
     return rospack.get_path(package_name)
 
 
-def display_filename(filename):
-    """ Displays a filename in a possibly simpler way """
-    return friendly_path(filename)
-#     cwd = os.path.realpath(os.getcwd())
-#     filename = os.path.realpath(filename)
-#     from duckietown_utils.constants import get_catkin_ws_src
-#     cw = os.path.realpath(get_catkin_ws_src())
-#     if filename.startswith(cw):
-#         return '${CATKIN_WS}/' + filename[len(cw)+1:]
-#     
-#     if filename.startswith(cwd+'/'):
-# #         print('cwd %s filename %s' % (cwd, filename))
-#         filename = os.path.relpath(filename, cwd +'/.')
-#         return filename
-    
-    return filename
-    
+# def display_filename(filename):
+#     """ Displays a filename in a possibly simpler way """
+#     return friendly_path(filename) 

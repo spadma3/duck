@@ -40,7 +40,7 @@ def interpret_yaml_file(filename, contents, f):
      
     except DTConfigException as e:
         msg = 'Could not interpret the contents of the file using %s()\n' % f.__name__
-        msg += '   %s\n' % display_filename(filename)
+        msg += '   %s\n' % friendly_path(filename)
         msg += 'Contents:\n' + indent(contents, ' > ')
         raise_wrapped(DTConfigException, e, msg, compact=True) 
 

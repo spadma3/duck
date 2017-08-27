@@ -1,9 +1,10 @@
 from ruamel import yaml
 
-from duckietown_utils.path_utils import display_filename
+
 from duckietown_utils.text_utils import indent, make_row_red
 from duckietown_utils.text_utils import remove_table_field, format_table_plus  # @UnusedImport
 from easy_algo.algo_db import EasyAlgoFamily
+from duckietown_utils.friendly_path_imp import friendly_path
 
 
 def format_db(db, colorize=True):
@@ -62,7 +63,7 @@ def format_families(families, colorize=True):
             else:
                 s = 'no: ' + family.error_if_invalid
             row.append(s)
-            row.append(display_filename(family.filename))
+            row.append(friendly_path(family.filename))
             
             if (not family.valid) and colorize:
                 row = make_row_red(row)
@@ -114,7 +115,7 @@ def format_instances(family, colorize):
             row.append(_.description)
             row.append(_.constructor.replace('.','\n.'))
             row.append(yaml.dump(_.parameters))
-            row.append(display_filename(_.filename))
+            row.append(friendly_path(_.filename))
             
             if (not _.valid) and colorize:
                 row = make_row_red(row)
