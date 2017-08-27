@@ -7,13 +7,15 @@ from what_the_duck.python_source_checks import add_python_package_checks
 from .checks import *  # @UnusedWildImport
 from .detect_environment import on_duckiebot
 from .entry import Diagnosis, Entry
+from what_the_duck.detect_environment import on_circle, on_laptop
+from what_the_duck.suite_ssh import good_ssh_configuration
+from what_the_duck.suite_git import add_suite_git
 
-
-def get_checks():
-    """ Returns a list of Entry """
-
-    entries = [] #
-    def add(only_run_if, desc, check, diagnosis, *suggestions):
+class Manager():
+    def __init__(self):
+        self.entries = [] 
+        
+    def add(self, only_run_if, desc, check, diagnosis, *suggestions):
         assert isinstance(check, Check), type(check)
         if not suggestions:
             automated = check.get_suggestion()
@@ -23,17 +25,23 @@ def get_checks():
           diagnosis=diagnosis,
           resolutions=suggestions,
           only_run_if=only_run_if)
-        entries.append(E)
+        self.entries.append(E)
         return E
+        
 
-    SSH_DIR = '~/.ssh'
-    SSH_CONFIG = '~/.ssh/config'
-    AUTHORIZED_KEYS = '~/.ssh/authorized_keys'
-    GIT_CONFIG = '~/.gitconfig'
+def get_checks():
+    """ Returns a list of Entry """
+
+    manager = Manager()
+    add = manager.add
+
+    
     JOY_DEVICE = '/dev/input/js0'
 
     this_is_a_duckiebot = on_duckiebot()
-    this_is_a_laptop = not this_is_a_duckiebot
+    this_is_a_laptop = on_laptop() 
+    this_is_circle = on_circle()
+    
     username = getpass.getuser()
 
     if this_is_a_duckiebot:
@@ -41,8 +49,6 @@ def get_checks():
             "Camera is detected",
             CommandOutputContains('sudo vcgencmd get_camera', 'detected=1'),
             Diagnosis("The camera is not connected."))
-
-    
 
     add(None,
         "Scipy is installed",
@@ -97,54 +103,9 @@ def get_checks():
                 UserBelongsToGroup("ubuntu", g),
                 Diagnosis("Image not created properly."))
 
-
-    ssh_is_there = add(None,\
-        "%s exists" % SSH_DIR,
-        DirExists(SSH_DIR),
-        Diagnosis("SSH config dir does not exist."))
-
-    add(ssh_is_there,
-        SSH_DIR + " permissions",
-        CheckPermissions(SSH_DIR, '0700'),
-        Diagnosis("SSH directory has wrong permissions.")
-        )
-
-    ssh_config_exists = add(ssh_is_there,
-        "%s exists" % SSH_CONFIG,
-        FileExists(SSH_CONFIG),
-        Diagnosis("SSH config does not exist."))
-
-    add(None,
-        "SSH option HostKeyAlgorithms is set",
-        FileContains(SSH_CONFIG, "HostKeyAlgorithms ssh-rsa"),
-        Diagnosis("""
-        You did not follow the SSH instructions.
-
-        The option "HostKeyAlgorithms ssh-rsa" is necessary for remote
-        roslaunch to work. Otherwise it fails because of a limitation
-        of the Paramiko library.
-
-        See the discussion here:
-
-            https://answers.ros.org/question/41446/a-is-not-in-your-ssh-known_hosts-file/
-
-        """), Suggestion("""
-        You will need to add the option, and also remove the "~/.ssh/known_hosts" file.
-        (See discussion above for the why.)
-
-        """))
-
-
-    identity_file = add(ssh_config_exists,
-        "Configured at least one SSH key.",
-        FileContains(SSH_CONFIG, 'IdentityFile'),
-        Diagnosis('You have not enabled any SSH key.'))
-
-    add(ssh_is_there,
-        "Existence of " + AUTHORIZED_KEYS,
-        FileExists(AUTHORIZED_KEYS),
-        Diagnosis("You did not setup the SSH authorized keys."))
-
+    if this_is_a_laptop or this_is_a_duckiebot:
+        good_ssh_configuration(manager)
+        
     required_packages = set()
 
     if this_is_a_duckiebot or this_is_a_laptop:
@@ -196,26 +157,9 @@ def get_checks():
 
     for p in forbidden_packages:
         add(None, p, CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
-
-    gitconfig = add(None,
-                    "Existence of " + GIT_CONFIG,
-                    FileExists(GIT_CONFIG),
-                    Diagnosis("You did not do the local Git configuration."))
-
-    add(gitconfig,
-        "Git config: email",
-        FileContains(GIT_CONFIG, "email ="),
-        Diagnosis("You did not configure your email for Git."))
-
-    add(gitconfig,
-        "Git config: name ",
-        FileContains(GIT_CONFIG, "name ="),
-        Diagnosis("You did not configure your name for Git."))
-
-    add(gitconfig,
-        "Git config: push policy",
-        FileContains(GIT_CONFIG, "[push]"),
-        Diagnosis("You did not configure the push policy for Git."))
+        
+    if not this_is_circle:
+        add_suite_git(manager)
 
     if this_is_a_duckiebot:
         add(None,
@@ -257,16 +201,6 @@ def get_checks():
         Diagnosis('You have not set the shell to /bin/bash'),
         Suggestion('You can change the shell using `chsh`.'))
 
-    # check if we have internet access, and if so try github
-    internet_access = add(identity_file,
-                          "Working internet connection",
-                          InternetConnected(),
-                          Diagnosis('You are not connected to internet.'))
-
-    add(internet_access,
-        "Github configured",
-        GithubLogin(),
-        Diagnosis('You have not successfully setup the Github access.'))
 
     if this_is_a_duckiebot:
         add(None,
@@ -430,7 +364,7 @@ def get_checks():
 #         FileContains('/etc/'))
 
     # TODO: date
-    return entries
+    return manager.entries
 
 def make_list(s):
     return [x for x in s.replace('\n', ' ').split() if x.strip()]

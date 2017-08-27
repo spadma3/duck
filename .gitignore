@@ -22,3 +22,4 @@ out-programmatic.py
 out-programmatic
 out-detector-tests/
 catkin_ws/src/00-infrastructure/easy_logs/cloud.yaml
+catkin_ws/src/XX-exercises/

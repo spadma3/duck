@@ -132,4 +132,14 @@ RUN apt-get install -y  mplayer mencoder ffmpeg
 # Other stuff for Duckiebot / duckietop
 
 RUN apt-get install -y \
-    python-ruamel.yaml byobu atop python-tables python-sklearn ntpdate  libatlas-base-dev 
+    python-ruamel.yaml \
+    byobu \
+    atop \
+    htop \
+    python-tables \
+    python-sklearn \
+    ntpdate  \
+    libatlas-base-dev \
+    vim\
+    apt-file\
+    iftop
