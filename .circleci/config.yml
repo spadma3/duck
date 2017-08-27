@@ -47,6 +47,12 @@ jobs:
 
                 make test-download-logs
                 make test-circle
+        - run:
+            name: Setup SSH for what-the-duck
+            command:
+                chmod 700 ~/.ssh
+                touch ~/.ssh/config
+                touch ~/.ssh/authorized_key
 
         - run:
             name: junit

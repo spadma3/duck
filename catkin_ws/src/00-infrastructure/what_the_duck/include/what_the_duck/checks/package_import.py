@@ -1,4 +1,4 @@
-from what_the_duck.check import Check
+from what_the_duck.check import Check, CheckFailed
 
 
 class CanImportPackages(Check):
@@ -12,4 +12,4 @@ class CanImportPackages(Check):
                 __import__(package, fromlist=['dummy'])
             except ImportError as e:
                 msg = 'Cannot import package %r: %s\n' % (package, e)
-                raise ValueError(msg)
+                raise CheckFailed(msg)
