@@ -1,4 +1,4 @@
-# compied from https://github.com/AndreaCensi/system_cmd
+# copied from https://github.com/AndreaCensi/system_cmd
 
 from duckietown_utils import logger
 
@@ -57,7 +57,8 @@ class CmdException(Exception):
         Exception.__init__(self, str(cmd_result))
         self.res = cmd_result
 
-        
+class CouldNotCallProgram(Exception):
+    pass        
 
 @contract(cwd='str', cmd='str|list(str)', env='dict|None')
 def system_cmd_result(cwd, cmd,
@@ -71,6 +72,9 @@ def system_cmd_result(cwd, cmd,
         Returns the structure CmdResult; raises CmdException.
         Also OSError are captured.
         KeyboardInterrupt is passed through unless specified
+        
+        If the program cannot be called at all (OSError for permissions,
+        existence, it raises CouldNotCallProgram).
         
         :param write_stdin: A string to write to the process.
     '''
@@ -127,9 +131,16 @@ def system_cmd_result(cwd, cmd,
         else:
             raise 
     except OSError as e:
-        interrupted = False
-        ret = 200
-        rets = str(e)
+        msg = 'Invalid executable (OSError)'
+        msg += '\n      cmd   %s' % cmd[0]
+        msg += '\n    errno   %s' % e.errno
+        msg += '\n strerror   %s' % e.strerror
+        raise CouldNotCallProgram(msg)
+        
+#         interrupted = False
+#         ret = 200
+#         rets = str(e)
+#         rets = 'OSError: %s' % e
 
     # remember to go back
     def read_all(f):
