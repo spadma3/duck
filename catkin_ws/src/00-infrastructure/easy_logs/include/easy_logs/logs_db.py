@@ -1,20 +1,20 @@
 from collections import OrderedDict
 import os
 import re
+import time
 
 from contracts.utils import check_isinstance
+import yaml
 
+from duckietown_utils import logger
 from duckietown_utils.bag_info import rosbag_info_cached
 from duckietown_utils.caching import get_cached
-from duckietown_utils.constants import DuckietownConstants
+from duckietown_utils.friendly_path_imp import friendly_path
+from duckietown_utils.fuzzy import fuzzy_match
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
 from easy_logs.logs_structure import PhysicalLog
-
-
-from duckietown_utils.fuzzy import fuzzy_match
-from duckietown_utils import logger
-import time
+from duckietown_utils.exceptions import DTException
 
 
 def get_urls_path():
@@ -22,21 +22,51 @@ def get_urls_path():
     f = os.path.join(d, 'dropbox.urls.yaml')
     return f
 
-
 def get_easy_logs_db():
+    return get_easy_logs_db_cached_if_possible()
+
+def get_easy_logs_db_cached_if_possible():
     if EasyLogsDB._singleton is None:
         f = EasyLogsDB
-        use_cache = DuckietownConstants.use_cache_for_logs
-        EasyLogsDB._singleton = get_cached('EasyLogsDB', f) if use_cache else f()
+#         use_cache = DuckietownConstants.use_cache_for_logs
+        EasyLogsDB._singleton = get_cached('EasyLogsDB', f) #if use_cache else f()
     return EasyLogsDB._singleton
 
+def get_easy_logs_db_fresh():
+    if EasyLogsDB._singleton is None:
+        f = EasyLogsDB
+        EasyLogsDB._singleton = f()
+    return EasyLogsDB._singleton
+
+def get_easy_logs_db_cloud():
+    cloud_file = os.path.join(get_ros_package_path('easy_logs'), 'cloud.yaml')
+    logger.info('Loading cloud DB %s' % friendly_path(cloud_file))
+    with open(cloud_file) as f:
+#         logs = yaml.load(f, Loader=ruamel.yaml.Loader)    
+        data = f.read()
+        
+    if not data:
+        msg = 'Cloud DB is empty: %s' % friendly_path(cloud_file)
+        raise DTException(msg)
+    
+    logs = yaml.load(data)
+
+    logs = OrderedDict(logs)
+    logger.info('Loaded cloud DB with %d entries.' % len(logs))
+    
+    return EasyLogsDB(logs)
+    
 
 class EasyLogsDB():
     _singleton = None
 
-    def __init__(self):
+    def __init__(self, logs=None):
         # ordereddict str -> PhysicalLog
-        self.logs = load_all_logs()
+        if logs is None:
+            logs  = load_all_logs()
+        else:
+            check_isinstance(logs, OrderedDict)
+        self.logs = logs
          
     def query(self, query, raise_if_no_matches=True):
         """
@@ -65,8 +95,6 @@ def read_stats(pl):
     if date_ms < 156600713:
         return pl._replace(valid=False, error_if_invalid='Date not set.')
 
-    date = date_ms
-    
     date = time.strftime('%Y-%m-%d', time.gmtime(date_ms))
 
     pl = pl._replace(date=date, length=length, bag_info=info)

@@ -8,10 +8,11 @@ def expect(data, query, result_keys):
     result_keys = list(result_keys)
     check_isinstance(data, OrderedDict)
     
-    spec = parse_match_spec(query)
-    print '-----'
-    print 'Query: %s' % query
-    print indent(spec, '', 'Spec: ')
+    if False:
+        spec = parse_match_spec(query)
+        print '-----'
+        print 'Query: %s' % query
+        print indent(spec, '', 'Spec: ')
     res = fuzzy_match(query, data)
     check_isinstance(res, OrderedDict)
     if list(res) != result_keys:
@@ -69,3 +70,5 @@ def specs1():
     
 if __name__ == '__main__':
     run_module_tests()
+    
+    

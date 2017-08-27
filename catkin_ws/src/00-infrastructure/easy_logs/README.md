@@ -4,27 +4,99 @@
 
 ## Command-line utilities
 
-The package includes two programs to query the database: `find` and `summary`.
+The package includes a few programs to query the database: `find`, `summary`, and `details`.
+
+They all take the same form:
+
+    $ rosrun easy_logs ![program]  ![query]
+
+where `![query]` is a query expressed in the selector language ([](#selector-language)).
 
 Use the `summary` program to display a summary of the logs available:
 
-    $ rosrun easy_logs summary
+
+<pre>
+ <code class='output'>
+     &#36; rosrun easy_logs summary "*dp3tele*"
+     | #     Log name                          date          length    vehicle name    valid
+     | --    ------------------------------    ----------    ------    ------------    -----------
+     | 0     20160504-dp3tele1-thing           2016-05-04     294 s    thing           Yes.
+     | 1     20160506-dp3tele1-nikola          2016-05-06     321 s    nikola          Yes.
+     | 2     2016-04-29-dp3tele-neptunus-0     2016-04-29     119 s    neptunus        Yes.
+     | 3     20160503-dp3tele1-pipquack        2016-05-03     352 s    pipquack        Yes.
+     | 4     20160503-dp3tele1-redrover        2016-05-03     384 s    redrover        Yes.
+     | 5     20160504-dp3tele1-penguin         None          (none)    None            Not indexed
+     | 6     20160430-dp3tele-3-quackmobile    2016-04-30     119 s    quackmobile     Yes.
+ </code>
+</pre>
+
+<style>
+pre.output { font-size: 70%;}
+</style>
 
 The `find` command is similar to `summary`, but it only displays the filenames:
 
-    $ rosrun easy_logs find
+    $ rosrun easy_logs find vehicle:oreo
+    ![...]/logs/20160400-phase3-dp3-demos/dp3auto_2016-04-29-19-58-57_2-oreo.bag
+    ![...]/logs/20160400-phase3-dp3-demos/dp3auto_2016-04-29-19-56-57_1-oreo.bag
+    ![...]/logs/20160400-phase3-dp3-demos/dp3tele_2016-04-29-19-29-57_1-oreo.bag
+    ![...]/logs/20160210-M02_DPRC/onasafari/201602DD-onasafari-oreo-RCDP5-log_out.bag
+    ![...]/logs/20160400-phase3-dp3-demos/dp3tele_2016-04-29-19-27-57_0-oreo.bag
+    ![...]/pictures/M03_04-demo_or_die/onasafari/oreo_line_follow.bag
+    ![...]/logs/20160400-phase3-dp3-demos/dp3auto_2016-04-29-19-54-57_0-oreo.bag
+    ![...]/logs/20160400-phase3-dp3-demos/dp3tele_2016-04-29-19-31-57_2-oreo.bag
 
 The `details` command shows a detailed view of the data structure:
 
-    $ rosrun easy_logs details
+    $ rosrun easy_logs details dp3auto_2016-04-29-19-58-57_2-oreo
+    - - [log_name, dp3auto_2016-04-29-19-58-57_2-oreo]
+      - [filename, ![...]]
+      - [map_name, null]
+      - [description, null]
+      - [vehicle, oreo]
+      - [date, '2016-04-29']
+      - [length, 112.987947]
+      - [size, 642088366]
+      - - bag_info
+        - compression: none
+          duration: 112.987947
+          end: 1461960050.639
+          indexed: true
+          messages: 15443
+          size: 642088366
+          start: 1461959937.651054
+          topics:
+          - {messages: 107, topic: /diagnostics,
+             type: diagnostic_msgs/DiagnosticArray}
+          - {messages: 8, topic: /oreo/LED_detector_node/switch,
+             type: duckietown_msgs/BoolStamped}
+          - {messages: 9, topic: /oreo/apriltags_global_node/apriltags,
+             type: duckietown_msgs/AprilTags}
+          - {messages: 9, topic: /oreo/apriltags_global_node/tags_image,
+             type: sensor_msgs/Image}
+     ![...]
 
-## Selector language
+## Selector language {#selector-language}
 
-The `summary` command has the general form:
+Here are some examples for the  query language ([](#tab:queries)).
 
-    $ rosrun easy_logs summary ![query]
+Show all the Ferrari logs:
 
-where `![query]` is a string in a query language ([](#tab:queries)).
+    $ rosrun easy_logs summary vehicle:ferrari
+
+All the logs of length less than 45 s:
+
+<pre><code>&#36; rosrun easy_logs summary "length:&lt;45"</code></pre>
+
+All the invalid logs:
+
+<pre><code>&#36; rosrun easy_logs summary "length:&lt;45,valid:False"</code></pre>
+
+All the invalid logs of length less than 45 s:
+
+<pre><code>&#36; rosrun easy_logs summary "length:&lt;45,valid:False"</code></pre>
+
+
 
 <col3 figure-id='tab:queries' class='labels-row1'>
     <figcaption>Query language</figcaption>
@@ -63,27 +135,9 @@ text-align: left;
 }
 #tab\:queries td:nth-child(3) {
 
-width: 50%;
+width: 60%;
 }
 </style>
-
-Here are some examples.
-
-Show all the Ferrari logs:
-
-    $ rosrun easy_logs summary vehicle:ferrari
-
-All the logs of length less than 45 s:
-
-<pre><code>&#36; rosrun easy_logs summary "length:&lt;45"</code></pre>
-
-All the invalid logs:
-
-<pre><code>&#36; rosrun easy_logs summary "length:&lt;45,valid:False"</code></pre>
-
-All the invalid logs of length less than 45 s:
-
-<pre><code>&#36; rosrun easy_logs summary "length:&lt;45,valid:False"</code></pre>
 
 
 ## Automatic log download using `require`
@@ -93,11 +147,11 @@ logs from the cloud.
 
 The syntax is:
 
-    $ rosrun easy_logs require ![log] ![log]
+    $ rosrun easy_logs download ![log name]
 
 For example:
 
-    $ rosrun easy_logs require ![log] ![log] 20160223-amadoa-amadobot-RCDP2
+    $ rosrun easy_logs download 20160223-amadoa-amadobot-RCDP2
 
 If the file `20160223-amadoa-amadobot-RCDP2.bag` is not available
 locally, it is downloaded.
@@ -124,3 +178,31 @@ the log. Then, we use `find` to find the path.
 
     # We can now use the log
     vdir $filename
+
+## Browsing the cloud
+
+How do you know which logs are in the cloud?
+
+Run the following to download a database of all the logs available in the cloud:
+
+    $ make cloud-download
+
+You can query the DB by using `summary` with the option `--cloud`:
+
+    $ rosrun easy_logs summary --cloud '*RCDP6*'
+
+    | #     Log name                                   date          length    vehicle name
+    | --    ---------------------------------------    ----------    ------    ------------
+    | 0     20160122-censi-ferrari-RCDP6-catliu        2016-02-28     194 s    ferrari
+    | 1     20160122-censi-ferrari-RCDP6-joe-wl        2016-02-27     196 s    ferrari
+    | 2     20160228-sanguk-setlist-RCDP6-sangukbo     2016-03-02     193 s    ferrari
+    | 3     20160122-censi-ferrari-RCDP6-eharbitz      2016-02-27     198 s    ferrari
+    | 4     20160122-censi-ferrari-RCDP6-teddy         2016-02-28     193 s    ferrari
+    | 5     20160122-censi-ferrari-RCDP6-jenshen       2016-02-29      83 s    ferrari
+
+
+Then, you can download locally using:
+
+    $ rosrun easy_logs download 20160122-censi-ferrari-RCDP6-teddy
+
+Once it is downloaded, the log becomes part of the local database.

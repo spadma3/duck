@@ -21,3 +21,4 @@ out-make_videos.py
 out-programmatic.py
 out-programmatic
 out-detector-tests/
+catkin_ws/src/00-infrastructure/easy_logs/cloud.yaml

@@ -14,6 +14,12 @@ class D8App(QuickAppBase):
                     (argname, envname))
             raise DTUserError(msg)     
         return options[0]
+#     
+#     @
+#     def main(self):
+#         wrap_script_entry_point()
+#         main = cls.get_sys_main()
+#         return main(*args, **kwargs)
     
 class D8AppWithJobs(D8App, QuickApp):
     pass
