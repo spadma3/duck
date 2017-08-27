@@ -6,7 +6,9 @@ import cv2
 import numpy as np
 from duckietown_utils import logger
 
-
+def jpg_from_image_cv(image):
+    return cv2.imencode('.jpg', image)[1].tostring()
+     
 
 def image_cv_from_jpg(data):
     """ Returns an OpenCV BGR image from a string """
