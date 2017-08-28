@@ -1,0 +1,12 @@
+description: |
+    A simple regression test.
+
+constructor: easy_regression.RegressionTest
+parameters:
+    logs:
+    # - "vehicle:ferrari,length:<50"
+    #- 20160411-226-lane_filter-y_0_theta_-0.45-setlist
+    - 20160223-amadoa-amadobot-RCDP2
+    processors: []
+    analyzers:
+    - count_messages

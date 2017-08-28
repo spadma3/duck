@@ -1,0 +1,4 @@
+interface: easy_regression.RegressionTest
+description: |
+    This class abstracts regression tests.
+tests: {}

@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package>
-  <name>easy_algo</name>
+  <name>easy_regression</name>
   <version>1.0.0</version>
   <description>
 A package to make it easy to abstract about algorithm configuration
-andcreate regression tests.
+and create regression tests.
   </description>
 
   <author email="acensi@idsc.mavt.ethz.ch">Andrea Censi</author>

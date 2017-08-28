@@ -6,7 +6,7 @@ from duckietown_utils import logger
 from duckietown_utils.constants import get_duckietown_local_log_downloads
 from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.system_cmd_imp import system_cmd_result
-from easy_logs.logs_db import get_easy_logs_db, get_urls_path,\
+from easy_logs.logs_db import get_urls_path,\
     get_easy_logs_db_fresh
 
 def get_dropbox_urls():
@@ -31,33 +31,40 @@ def require_main(log_names='*'):
             name = name.replace('.bag','')
         required.append(name)
         
-    urls = get_dropbox_urls()
-    downloads = get_duckietown_local_log_downloads()
+    
     
     db = get_easy_logs_db_fresh()
-    logs = db.logs
-    
+
     for name in required:
-        if name in logs:
-            logger.info('We already have %s locally at %s' % (name, logs[name].filename))
-            continue
-        else:
-            logger.info('We do not have %s locally.' % name)
-        filename = os.path.join(downloads, name + '.bag')
+        get_log_if_not_exists(db.logs, name)
+
+def get_log_if_not_exists(logs, log_name):
+    """" Returns the path to the log. """
+    downloads = get_duckietown_local_log_downloads()
+    urls = get_dropbox_urls()
+    
+    if log_name in  logs and (logs[log_name].filename is not None):
+        where = logs[log_name].filename 
+        logger.info('We already have %s locally at %s' % (log_name, where))
+        return where
+    else:
+        logger.info('We do not have %s locally.' % log_name)
+        filename = os.path.join(downloads, log_name + '.bag')
         if os.path.exists(filename):
             logger.info('It was already downloaded as %s' % filename)
-            continue
-    
-        if not name in urls:
-            msg = 'No url found for %r.' % name
+            return filename
+        
+        if not log_name in urls:
+            msg = 'No URL found for %r.' % log_name
             raise Exception(msg)
         else:
-            url = urls[name]
-            
+            url = urls[log_name]
             
             if not os.path.exists(filename):
                 download_url_to_file(url, filename)
-                
+        return filename
+    
+    
 def download_url_to_file(url, filename):
     logger.info('Download from %s' % (url))
     tmp = '/tmp/download'

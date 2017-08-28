@@ -206,3 +206,30 @@ Then, you can download locally using:
     $ rosrun easy_logs download 20160122-censi-ferrari-RCDP6-teddy
 
 Once it is downloaded, the log becomes part of the local database.
+
+
+## Log sets
+
+Note: This is not implemented yet.
+
+    my-set:
+    - "vehicle:ferrari,length:<10"
+    - ""
+
+## Log generation
+
+Note: This is not implemented yet.
+
+We want the ability to:
+
+- slice a log
+
+
+    ferrari/slice(5)  # now it is a list of a 5 seconds
+
+    (vehice:ferrari) / slice(5) / take(1)  The second slice.
+
+
+A physical log is is a file.
+
+A generated log is given by

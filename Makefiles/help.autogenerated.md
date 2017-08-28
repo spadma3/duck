@@ -11,9 +11,9 @@
 
 These provide statistics about the data and the configuration.
 
-- `make stats-easy_node`:  ?
-- `make stats-easy_logs`:  ?
-- `make stats-easy_algo`:  ?
+- `make stats-easy_node`:  Prints summary of declared nots using the EasyNode frameworks.
+- `make stats-easy_logs`:  Prints summary of available logs.
+- `make stats-easy_algo`:  Prints summary of available algorithms.
 
 
 ### Testing
@@ -35,8 +35,12 @@ These commands run the unit tests.
 
 Commands to build the software.
 
+- `make build-catkin`       :  Runs `catkin_make`.
+- `make build-parallel` :  Runs `catkin_make`, with 4 threads.
+
 - `make build-machines`       :  Builds the machines file.
 - `make build-machines-clean` :  Removes the machines file.
+
 - `make build-clean`          :  Clean everything.
 
 

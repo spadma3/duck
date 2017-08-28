@@ -4,6 +4,7 @@ if __name__ == '__main__':
 
     from duckietown_utils.exceptions import wrap_script_entry_point
     from duckietown_utils import col_logging  # @UnusedImport
-    from easy_algo.scripts import summary
+    from easy_algo.cli import summary
 
     wrap_script_entry_point(summary)
+    
