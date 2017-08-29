@@ -15,6 +15,7 @@ from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
 from easy_logs.logs_structure import PhysicalLog
 from duckietown_utils.exceptions import DTException
+from duckietown_utils.dates import format_time_as_YYYY_MM_DD
 
 
 def get_urls_path():
@@ -95,7 +96,7 @@ def read_stats(pl):
     if date_ms < 156600713:
         return pl._replace(valid=False, error_if_invalid='Date not set.')
 
-    date = time.strftime('%Y-%m-%d', time.gmtime(date_ms))
+    date = format_time_as_YYYY_MM_DD(date_ms)
 
     pl = pl._replace(date=date, length=length, bag_info=info)
 

@@ -1,7 +1,6 @@
 import os
 from types import NoneType
 
-from duckietown_utils import logger
 from duckietown_utils.caching import get_cached
 from duckietown_utils.exception_utils import check_is_in
 from duckietown_utils.exceptions import DTConfigException
@@ -207,8 +206,8 @@ def check_validity_family_interface(f):
     symbol = f.interface
     try:
         import_name(symbol)
-    except ValueError as e:
-        logger.error(e)
+    except ValueError:
+        #logger.error(e)
         error_if_invalid = 'Invalid symbol %r.' % symbol
         return f._replace(valid=False, error_if_invalid=error_if_invalid)
     return f

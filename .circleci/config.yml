@@ -3,6 +3,10 @@ jobs:
     build:
      docker:
         - image: andreacensi/duckietown-xenial-kinetic:17
+          environment:
+              DUCKIEFLEET_ROOT: /root/duckiefleet
+              DUCKIETOWN_ROOT: /root/project
+              DUCKIETOWN_DATA: /root/duckietown-data
      parallelism: 1
      steps:
         - checkout
@@ -20,8 +24,14 @@ jobs:
         - run:
             name: build
             command: |
-                # echo PWD = $PWD
+
                 source /opt/ros/kinetic/setup.bash
+
+                echo PWD = $PWD
+                mkdir -p $DUCKIETOWN_DATA
+                mkdir -p $DUCKIEFLEET_ROOT
+
+                export ROS_LANG_DISABLE=gennodejs:geneus:genlisp
                 make build-catkin-parallel-max
 
         - run:
@@ -30,18 +40,21 @@ jobs:
                 source /opt/ros/kinetic/setup.bash
                 source $PWD/catkin_ws/devel/setup.bash
 
-                export DUCKIETOWN_ROOT=$PWD
+
                 export HOSTNAME=$HOSTNAME
-                export DUCKIEFLEET_ROOT=duckiefleet
-                export DUCKIETOWN_DATA=duckietown-data
-                mkdir -p $DUCKIETOWN_DATA
+
 
                 git clone git@github.com:duckietown/duckiefleet-fall2017.git $DUCKIEFLEET_ROOT
 
                 make test-download-logs
                 make test-circle
 
-
+# - run:
+#     name: MCDP
+#     command: |
+#         git lfs clone -b duckuments --depth 1 git@github.com:AndreaCensi/mcdp
+#         cd mcdp && python setup.py develop
+#         cd $DUCKIETOWN_ROOT && make test-documentation
         - run:
             name: junit
             when: always

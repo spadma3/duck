@@ -12,9 +12,10 @@ def generate_easy_node_docs():
     packages = get_list_of_packages_in_catkin_ws()
     logger.info('Looking in %d packages for nodes.' % len(packages))
 
-    for package_name, package_dir in packages.items():
+    names = sorted(packages, key=lambda _:packages[_])
+    for package_name in names:
         md = ""
-
+        package_dir = packages[package_name] 
         package_xml = os.path.join(package_dir, 'package.xml')
         package_info = read_package_xml_info(package_xml)
         md += generate_from_package_info(package_info, package_dir)

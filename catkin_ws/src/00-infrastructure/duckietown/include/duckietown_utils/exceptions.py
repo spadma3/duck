@@ -1,7 +1,8 @@
 from decent_params.utils.script_utils import UserError
 
 class DTException(Exception):
-    pass
+    """ All exceptions derive from this one. """
+
 
 class DTUserError(DTException, UserError):
     """ 
@@ -13,8 +14,7 @@ class DTConfigException(DTUserError):
     """
         The configuration (either environment variables or YAML files)
         is invalid.
-    """
-    pass
+    """ 
 
 class DTBadData(DTException):
     """

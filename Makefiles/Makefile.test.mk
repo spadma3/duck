@@ -19,13 +19,12 @@ test:
 test-circle: \
 	test-comptests \
 	test-download-logs \
-	test-line-detector-programmatic \
-	test-regression-simple
+	test-line-detector-programmatic
 
-	#
-	# test-catkin_tests \
-	# test-anti_instagram
-	#
+#
+# test-catkin_tests \
+# test-anti_instagram
+#
 
 test-all: \
 	test-comptests \
@@ -80,16 +79,14 @@ test-line-detector-programmatic: test-download-logs
 	rosrun easy_logs download $(onelog)
 	rosrun line_detector2 programmatic --logs $(onelog) --algos all --reset -c parmake
 
-
-test-regression-simple: cloud-download
-	rosrun easy_regression run --tests simple1  --reset --cloud
-
 test-documentation:
-	touch catkin_ws/00_main_template.html
+	echo "<html><head></head><body></body></html>" > catkin_ws/00_main_template.html
 	DISABLE_CONTRACTS=1 mcdp-render-manual \
 	--src $(catkin_ws) \
 	--stylesheet v_manual_split \
 	--mathjax 0 \
 	-o out/test-documentation \
-	--output_file $(out_html).tmp -c "config echo 1; config colorize 0; rparmake"
+	--output_file $(out_html).tmp -c "config echo 1; config colorize 0; rparmake; why failed"
+	# compmake out/test-documentation -c "ls failed"
+	# compmake out/test-documentation -c "why failed"
 	rm -f catkin_ws/00_main_template.html

@@ -110,12 +110,21 @@ class ByTag(Spec):
                       'attribute %s satisfies \n  ' % self.tagname)
     
     def match(self, x):
-        if not hasattr(x, self.tagname):
-            msg = ('The object of type %s does not have attribute "%s".' %
-                 (type(x).__name__, self.tagname))
-            msg += '\nThe available attributes are:\n  %s' % sorted(x.__dict__.keys())
-            raise InvalidQueryForUniverse(msg)
-        val = getattr(x, self.tagname)
+        if isinstance(x, dict):
+            if not self.tagname in x:
+                msg = 'Cannot find %r in keys %r' % (self.tagname, x.keys())
+                raise InvalidQueryForUniverse(msg)
+            val = x[self.tagname]
+        else:
+            if not hasattr(x, self.tagname):
+                msg = ('The object of type %s does not have attribute "%s".' %
+                     (type(x).__name__, self.tagname))
+                try:
+                    msg += '\nThe available attributes are:\n  %s' % sorted(x.__dict__.keys())
+                except:
+                    pass
+                raise InvalidQueryForUniverse(msg)
+            val = getattr(x, self.tagname)
         res = self.spec.match(val)
         return res
    

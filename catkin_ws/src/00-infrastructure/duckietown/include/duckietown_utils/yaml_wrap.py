@@ -99,7 +99,20 @@ def look_everywhere_for_bag_files(pattern='*.bag'):
             if basename in results:
                 one = filename
                 two = results[basename]
-                msg = 'Two bags with same file:\n%s\n%s' %(one, two)
-                raise DTConfigException(msg)
+                if not same_file_content(one, two):
+                    msg = 'Two bags with same name but different content:\n%s\n%s' %(one, two)
+                    raise DTConfigException(msg)
+                else:
+                    msg = 'Two copies of bag found:\n%s\n%s' %(one, two)
+                    logger.warn(msg)
+                    continue
             results[basename] = filename
     return results
+
+def same_file_content(a, b):
+    """ Just check the size """
+    s1 = os.stat(a).st_size
+    s2 = os.stat(b).st_size
+    return s1==s2
+
+    

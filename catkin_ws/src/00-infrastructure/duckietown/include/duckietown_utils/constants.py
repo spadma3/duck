@@ -4,6 +4,7 @@ from duckietown_utils.exceptions import DTConfigException
 from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import expand_all
 from duckietown_utils.mkdirs import d8n_mkdirs_thread_safe
+from duckietown_utils import logger
 
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
@@ -79,6 +80,8 @@ def get_list_of_packages_in_catkin_ws():
         entry = os.path.basename(dn)
         if not is_ignored_by_catkin(dn):
             results[entry] = dn
+        else:
+            logger.debug('Not considering %s' % dn)
     # We expect at least these two packages
     if not 'duckietown' in results:
         raise ValueError('Could not find duckietown')

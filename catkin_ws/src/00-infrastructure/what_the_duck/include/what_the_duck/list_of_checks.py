@@ -184,7 +184,6 @@ def get_checks():
             Diagnosis('You have been messing with the kernel.'),
         Suggestion('You probably need to start with a pristine SD card.'))
 
-
         add(None,
             'Wifi name configured',
             WifiNameConfigured(),

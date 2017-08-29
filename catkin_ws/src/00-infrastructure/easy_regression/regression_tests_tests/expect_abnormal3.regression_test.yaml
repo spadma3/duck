@@ -1,0 +1,16 @@
+description: >
+    A regression test that fails abnormally because
+    it refers to an invalid statistic.
+
+constructor: easy_regression.RegressionTest
+parameters:
+    logs:
+    - 20160223-amadoa-amadobot-RCDP2
+    processors: []
+    analyzers:
+    - count_messages
+
+    checks:
+    - desc: The number of messages read should remain the same.
+      cond: |
+        v:count_messages/all/NOT-EXISTING == 5330

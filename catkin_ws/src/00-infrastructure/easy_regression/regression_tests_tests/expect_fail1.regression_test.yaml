@@ -1,0 +1,17 @@
+description: |
+    A regression test that should fail.
+
+constructor: easy_regression.RegressionTest
+parameters:
+    logs:
+    - 20160223-amadoa-amadobot-RCDP2
+    processors: []
+    analyzers:
+    - count_messages
+
+    checks:
+    - desc: The number of messages read should remain the same.
+      cond: |
+        v:count_messages/20160223-amadoa-amadobot-RCDP2/num_messages == 5330
+        v:count_messages/all/num_messages == 5331
+# fails because wrong

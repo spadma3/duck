@@ -14,9 +14,9 @@ def format_db(db, colorize=True):
     
     for family in families:
         s += S
-        s += format_tests(family, colorize)
-        s += S
-        s += format_instances(family, colorize) 
+#         s += format_tests(family, colorize)
+#         s += S
+#         s += format_instances(family, colorize) 
         
     return s
 

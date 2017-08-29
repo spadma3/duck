@@ -154,3 +154,45 @@ def id_from_basename_pattern(basename, pattern):
     basename2 = pattern.replace('*', ID)
     assert basename2 == basename, (basename, pattern, ID, basename2)
     return ID
+
+
+def remove_prefix(s, prefix):
+    """ 
+        Removes a prefix from a string. 
+        Raises ValueError if the prefix is not there.
+    """
+    if s.startswith(prefix):
+        return s[len(prefix):]
+    else:
+        msg = 'Expected prefix %r in %r' %(prefix, s)
+        raise ValueError(msg) 
+    
+    
+
+def remove_suffix(s, suffix):
+    """ 
+        Removes a prefix from a string. 
+        Raises ValueError if the prefix is not there.
+    """
+    if s.endswith(suffix):
+        return s[:-len(suffix)]
+    else:
+        msg = 'Expected suffix %r in %r' %( suffix, s)
+        raise ValueError(msg) 
+    
+def remove_prefix_suffix(s, prefix, suffix):
+    s = remove_prefix(s, prefix)
+    s = remove_suffix(s, suffix)
+    return s
+
+def string_split(s, sub):
+    """ Assuming s == a + sub + b, returns a,b """
+    if not sub in s:
+        msg = 'Substring %r not found in %r.' % (sub, s)
+        raise ValueError(msg)
+    i = s.index(sub)
+    return s[:i], s[i+1:]
+
+    
+    
+    
