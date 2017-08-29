@@ -81,10 +81,11 @@ def get_list_of_packages_in_catkin_ws():
         if not is_ignored_by_catkin(dn):
             results[entry] = dn
         else:
-            logger.debug('Not considering %s' % dn)
+            #logger.debug('Not considering %s' % dn)
+            pass
     # We expect at least these two packages
     if not 'duckietown' in results:
-        raise ValueError('Could not find duckietown')
+        raise ValueError('Could not find the duckietown ROS package.')
     if not 'what_the_duck' in results:
         raise ValueError('Could not find what_the_duck') 
     return results

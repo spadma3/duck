@@ -2,7 +2,7 @@ version: 2
 jobs:
     build:
      docker:
-        - image: andreacensi/duckietown-xenial-kinetic:17
+        - image: andreacensi/duckietown-xenial-kinetic:18
           environment:
               DUCKIEFLEET_ROOT: /root/duckiefleet
               DUCKIETOWN_ROOT: /root/project

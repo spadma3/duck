@@ -45,12 +45,17 @@ parameters:
 @comptest
 def parse_reg_test():
     x = yaml_load(s)
+    if isinstance(x['description'], unicode):
+        msg = 'I do not expect Unicode'
+        msg += '\n' + x.__repr__()
+        raise ValueError(msg)
     _ = instantiate(x['constructor'], x['parameters'])
 
 
 @comptest
 def parse_reg_fail():
     x = yaml_load(s_fail)
+    print x.__repr__()
     try:
         _ = instantiate(x['constructor'], x['parameters'])
     except RTParseError:

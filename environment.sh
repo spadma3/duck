@@ -1,7 +1,7 @@
 #!/bin/bash
 
-[ -z "$DUCKIETOWN_ROOT" ] && { echo "Need to set DUCKIETOWN_ROOT"; exit 2; }
-[ -z "$HOSTNAME"        ] && { echo "Need to set HOSTNAME.";       exit 3; }
+[ -z "$DUCKIETOWN_ROOT" ] && { echo "Need to set DUCKIETOWN_ROOT - configuration is invalid (!)";  }
+[ -z "$HOSTNAME"        ] && { echo "Need to set HOSTNAME.";        }
 
 # Do not compile Lisp messages
 # XXX: not sure if this is the place to put this.

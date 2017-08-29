@@ -46,11 +46,15 @@ comptests_out=out/comptests
 test-comptests-clean:
 	-rm -rf $(comptests_out)
 
+test-comptests-again:
+	$(MAKE) test-comptests-clean
+	$(MAKE) test-comptests
+	
 test-comptests:
-	comptests -o $(comptests_out) --nonose -c "rparmake" $(comptests_packages)
+	comptests -o $(comptests_out) --nonose --contracts -c "rparmake" $(comptests_packages)
 
 test-comptests-slow:
-	comptests -o $(comptests_out) --nonose -c "rmake" $(comptests_packages)
+	comptests -o $(comptests_out) --nonose --contracts -c "rmake" $(comptests_packages)
 
 test-comptests-collect-junit:
 	mkdir -p $(comptests_out)/junit

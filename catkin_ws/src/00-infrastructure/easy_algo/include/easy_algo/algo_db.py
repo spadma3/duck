@@ -2,18 +2,18 @@ import os
 from types import NoneType
 
 from duckietown_utils.caching import get_cached
+from duckietown_utils.constants import DuckietownConstants
 from duckietown_utils.exception_utils import check_is_in
 from duckietown_utils.exceptions import DTConfigException
+from duckietown_utils.fuzzy import fuzzy_match
 from duckietown_utils.instantiate_utils import import_name, instantiate, indent
 from duckietown_utils.system_cmd_imp import contract
 from duckietown_utils.text_utils import id_from_basename_pattern
 from duckietown_utils.type_checks import dt_check_isinstance
-from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_config_files,\
-    get_config_sources
+from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_config_files, get_config_sources,\
+    look_everywhere_for_config_files2
 
 from .algo_structures import EasyAlgoTest, EasyAlgoInstance, EasyAlgoFamily
-from duckietown_utils.fuzzy import fuzzy_match
-from duckietown_utils.constants import DuckietownConstants
 
 
 __all__ = ['get_easy_algo_db', 'EasyAlgoDB']
@@ -34,7 +34,9 @@ class EasyAlgoDB():
     def __init__(self, sources=None):
         if sources is None:
             sources = get_config_sources()
-        self.family_name2config = load_family_config(sources)
+        self.all_yaml = look_everywhere_for_config_files('*.yaml', sources)
+        
+        self.family_name2config = load_family_config(self.all_yaml)
     
     def query(self, family_name, query, raise_if_no_matches=False):
         family = self.get_family(family_name)
@@ -71,7 +73,7 @@ class EasyAlgoDB():
         
 #         """ Instantiates an algorithm """
         
-def load_family_config(sources):
+def load_family_config(all_yaml):
     """
         # now, for each family, we look for tests, which have name
         #  
@@ -81,12 +83,14 @@ def load_family_config(sources):
         #
         #     ![ID].![family_name]_test.yaml
         #
-        # They both have the format:
         #   
     """
+    if not isinstance(all_yaml, dict):
+        msg = 'Expected a dict, got %s' % type(all_yaml).__name__
+        raise ValueError(msg)
     family_name2config = {}
     
-    configs = look_everywhere_for_config_files(EasyAlgoDB.pattern, sources)
+    configs = look_everywhere_for_config_files2(EasyAlgoDB.pattern, all_yaml)
     for filename, contents in configs.items():
         c = interpret_yaml_file(filename, contents, interpret_easy_algo_config)
 
@@ -138,7 +142,7 @@ def load_family_config(sources):
         
         c = check_validity_family(c)
         
-        _ = look_everywhere_for_config_files(c.tests_pattern, sources)
+        _ = look_everywhere_for_config_files2(c.tests_pattern, all_yaml)
         for filename, contents in _.items():
             t = interpret_yaml_file(filename, contents, interpret_test_spec)
             if t.test_name in tests:
@@ -151,7 +155,7 @@ def load_family_config(sources):
             tests[t.test_name] = t
             
         instances = {}
-        _ = look_everywhere_for_config_files(c.instances_pattern, sources)
+        _ = look_everywhere_for_config_files2(c.instances_pattern, all_yaml)
         for filename, contents in _.items():
             i = interpret_yaml_file(filename, contents, interpret_instance_spec)
             if i.instance_name in instances:

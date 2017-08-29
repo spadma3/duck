@@ -1,4 +1,10 @@
+import sys
+import traceback
+
 from decent_params.utils.script_utils import UserError
+
+from duckietown_utils import logger
+
 
 class DTException(Exception):
     """ All exceptions derive from this one. """
@@ -25,10 +31,7 @@ class DTNoMatches(DTUserError):
     """ Could not find any matches for the user selector """
     
 
-import sys
-import traceback
 
-from duckietown_utils import logger
 
 
 def wrap_script_entry_point(function,

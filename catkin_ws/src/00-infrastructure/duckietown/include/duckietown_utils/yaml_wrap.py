@@ -15,6 +15,7 @@ from duckietown_utils.friendly_path_imp import friendly_path
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.system_cmd_imp import contract
+import fnmatch
 
 
 def interpret_yaml_file(filename, contents, f):
@@ -72,6 +73,23 @@ def look_everywhere_for_config_files(pattern, sources):
         logger.debug('%4d files found in %s' % (len(results), friendly_path(s)))
     return results
 
+@contract(pattern=str, all_yaml='dict(str:str)')
+def look_everywhere_for_config_files2(pattern, all_yaml):
+    """
+        Looks for all the configuration files by the given pattern.    
+        Returns a dictionary filename -> contents.
+        
+        all_yaml = filename -> contents.
+    """
+
+    results = OrderedDict()
+    for filename, contents in all_yaml.items():
+        if fnmatch.fnmatch(filename, pattern):            
+#             contents = open(filename).read()
+            results[filename] = contents
+    logger.debug('%4d configuration files with pattern %s.' % (len(results), pattern))
+    return results
+
 def look_everywhere_for_bag_files(pattern='*.bag'):
     """
         Looks for all the bag files    
@@ -79,7 +97,7 @@ def look_everywhere_for_bag_files(pattern='*.bag'):
     """
     sources = []
     # We look in $DUCKIETOWN_ROOT/catkin_ws/src
-    sources.append(get_catkin_ws_src())
+    # sources.append(get_catkin_ws_src())
     # then we look in $DUCKIETOWN_FLEET
     sources.append(get_duckiefleet_root())
     sources.append(get_duckietown_data())

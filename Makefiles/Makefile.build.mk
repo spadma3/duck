@@ -8,7 +8,8 @@ build:
 	@echo "Commands to build the software."
 	@echo
 	@echo '- `make build-catkin`       :  Runs `catkin_make`.'
-	@echo '- `make build-parallel` :  Runs `catkin_make`, with 4 threads.'
+	@echo '- `make build-catkin-parallel` :  Runs `catkin_make`, with 4 threads.'
+	@echo '- `make build-catkin-parallel-max` :  Runs `catkin_make`, with many threads.'
 	@echo
 	@echo '- `make build-machines`       :  Builds the machines file.'
 	@echo '- `make build-machines-clean` :  Removes the machines file.'
