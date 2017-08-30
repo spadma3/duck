@@ -39,11 +39,5 @@ def get_cached(cache_name, f, quiet='not-given'):
         with open(cache, 'w') as f:
             cPickle.dump(ob, f)
 #         
-#         logs = copy.deepcopy(ob.logs)
-#         for k, v in logs.items():
-#             logs[k]=v._replace(filename= None)
-#         with open(cache+'.yaml', 'w') as f:
-#             logs_yaml = yaml.dump(logs)
-#             f.write(logs_yaml)
 #                 
     return ob

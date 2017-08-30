@@ -1,21 +1,22 @@
 from collections import OrderedDict
+from contracts.utils import check_isinstance
 import os
 import re
-import time
-
-from contracts.utils import check_isinstance
-import yaml
 
 from duckietown_utils import logger
 from duckietown_utils.bag_info import rosbag_info_cached
 from duckietown_utils.caching import get_cached
-from duckietown_utils.friendly_path_imp import friendly_path
-from duckietown_utils.fuzzy import fuzzy_match
-from duckietown_utils.path_utils import get_ros_package_path
-from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files
-from easy_logs.logs_structure import PhysicalLog
-from duckietown_utils.exceptions import DTException
 from duckietown_utils.dates import format_time_as_YYYY_MM_DD
+from duckietown_utils.friendly_path_imp import friendly_path
+from duckietown_utils.fuzzy import fuzzy_match, filters0
+from duckietown_utils.path_utils import get_ros_package_path
+from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files, yaml_load_file,\
+    yaml_write_to_file
+from easy_logs.logs_structure import PhysicalLog
+from easy_logs.time_slice import filters_slice
+from duckietown_utils.constants import get_duckietown_root
+import copy
+from duckietown_utils.download import download_url_to_file
 
 
 def get_urls_path():
@@ -31,6 +32,16 @@ def get_easy_logs_db_cached_if_possible():
         f = EasyLogsDB
 #         use_cache = DuckietownConstants.use_cache_for_logs
         EasyLogsDB._singleton = get_cached('EasyLogsDB', f) #if use_cache else f()
+        
+        fn = os.path.join(get_duckietown_root(),'caches','candidate_cloud.yaml')
+        
+        if not os.path.exists(fn):
+            logs = copy.deepcopy(EasyLogsDB._singleton.logs)
+            # remove the field "filename"
+            for k, v in logs.items():
+                logs[k]=v._replace(filename=None)
+            yaml_write_to_file(logs, fn)
+
     return EasyLogsDB._singleton
 
 def get_easy_logs_db_fresh():
@@ -41,17 +52,14 @@ def get_easy_logs_db_fresh():
 
 def get_easy_logs_db_cloud():
     cloud_file = os.path.join(get_ros_package_path('easy_logs'), 'cloud.yaml')
-    logger.info('Loading cloud DB %s' % friendly_path(cloud_file))
-    with open(cloud_file) as f:
-#         logs = yaml.load(f, Loader=ruamel.yaml.Loader)    
-        data = f.read()
-        
-    if not data:
-        msg = 'Cloud DB is empty: %s' % friendly_path(cloud_file)
-        raise DTException(msg)
+    if not os.path.exists(cloud_file):
+        url = "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
+        download_url_to_file(url, cloud_file)
     
-    logs = yaml.load(data)
-
+    logger.info('Loading cloud DB %s' % friendly_path(cloud_file))
+    
+    logs = yaml_load_file(cloud_file)
+    
     logs = OrderedDict(logs)
     logger.info('Loaded cloud DB with %d entries.' % len(logs))
     
@@ -76,9 +84,12 @@ class EasyLogsDB():
             Returns an OrderedDict str -> PhysicalLog.
         """
         check_isinstance(query, str)
-        result = fuzzy_match(query, self.logs, raise_if_no_matches=raise_if_no_matches)
+        filters = OrderedDict()
+        filters.update(filters_slice)
+        filters.update(filters0)
+        result = fuzzy_match(query, self.logs, filters=filters,
+                             raise_if_no_matches=raise_if_no_matches)
         return result
-
 
 def read_stats(pl):
     assert isinstance(pl, PhysicalLog)
@@ -98,7 +109,7 @@ def read_stats(pl):
 
     date = format_time_as_YYYY_MM_DD(date_ms)
 
-    pl = pl._replace(date=date, length=length, bag_info=info)
+    pl = pl._replace(date=date, length=length, t0=0, t1=length, bag_info=info)
 
     try:
         vehicle = which_robot(info)
@@ -156,6 +167,7 @@ def load_all_logs(which='*'):
                         map_name=None,
                         description=None,
                         length=None,
+                        t0=None,t1=None,
                         date=date,
                         size=size,
                         has_camera=None,

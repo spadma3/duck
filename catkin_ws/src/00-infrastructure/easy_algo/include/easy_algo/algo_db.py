@@ -16,7 +16,10 @@ from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_
 from .algo_structures import EasyAlgoTest, EasyAlgoInstance, EasyAlgoFamily
 
 
-__all__ = ['get_easy_algo_db', 'EasyAlgoDB']
+__all__ = [
+    'get_easy_algo_db', 
+    'EasyAlgoDB',
+]
 
 
 def get_easy_algo_db():

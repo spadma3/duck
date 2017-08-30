@@ -18,8 +18,8 @@ test:
 
 test-circle: \
 	test-comptests \
-	test-download-logs \
-	test-line-detector-programmatic
+	test-download-logs
+	#test-line-detector-programmatic
 
 #
 # test-catkin_tests \
@@ -38,6 +38,7 @@ comptests_packages=\
 	easy_logs_tests\
 	easy_algo_tests\
 	duckietown_utils_tests\
+	line_detector2_tests\
 	what_the_duck_tests\
 	easy_regression_tests
 
@@ -49,7 +50,7 @@ test-comptests-clean:
 test-comptests-again:
 	$(MAKE) test-comptests-clean
 	$(MAKE) test-comptests
-	
+
 test-comptests:
 	comptests -o $(comptests_out) --nonose --contracts -c "rparmake" $(comptests_packages)
 
@@ -70,18 +71,18 @@ test-anti_instagram: check-environment
 onelog=20160223-amadoa-amadobot-RCDP2
 
 test-download-logs:
-	echo Loading
+	@echo Loading log
 	rosrun easy_logs download $(onelog)
-	echo Should be equal to 70e9e2a49d1181d2da160ff5e615969f
+	@echo Should be equal to 70e9e2a49d1181d2da160ff5e615969f
 	md5sum `rosrun easy_logs find 20160223-amadoa-amadobot-RCDP2`
 	echo TODO: check
 
 test-cloud-logs: cloud-download
 	rosrun easy_logs summary --cloud 20160122-censi-ferrari-RCDP6-lapentab
 
-test-line-detector-programmatic: test-download-logs
-	rosrun easy_logs download $(onelog)
-	rosrun line_detector2 programmatic --logs $(onelog) --algos all --reset -c parmake
+# test-line-detector-programmatic: test-download-logs
+# 	rosrun easy_logs download $(onelog)
+# 	rosrun line_detector2 programmatic --logs $(onelog) --algos all --reset -c parmake
 
 test-documentation:
 	echo "<html><head></head><body></body></html>" > catkin_ws/00_main_template.html

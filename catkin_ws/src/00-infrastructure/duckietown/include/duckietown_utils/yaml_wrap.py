@@ -1,7 +1,8 @@
 from collections import OrderedDict
+from contracts.utils import check_isinstance
+import fnmatch
 import os
 
-from contracts.utils import check_isinstance
 from ruamel import yaml
 import ruamel.yaml
 from ruamel.yaml.error import YAMLError
@@ -15,8 +16,27 @@ from duckietown_utils.friendly_path_imp import friendly_path
 from duckietown_utils.instantiate_utils import indent
 from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.system_cmd_imp import contract
-import fnmatch
 
+
+def yaml_write_to_file(ob, filename):
+    from duckietown_utils.yaml_pretty import yaml_dump_pretty
+    from duckietown_utils.file_utils import write_data_to_file
+    try:
+        s = yaml_dump_pretty(ob)
+    except:
+        # todo : add log
+        import yaml as alt
+        s = alt.dump(ob)
+    write_data_to_file(s, filename)
+    
+    
+def yaml_load_file(filename):
+    if not os.path.exists(filename):
+        msg = 'File does not exist: %s' % filename
+        raise ValueError(msg)
+    with open(filename) as f:
+        contents = f.read()
+    return interpret_yaml_file(filename, contents, lambda _filename, data: data)
 
 def interpret_yaml_file(filename, contents, f):
     """ 
@@ -31,7 +51,10 @@ def interpret_yaml_file(filename, contents, f):
         except YAMLError as e:
             msg = 'Invalid YAML content:'
             raise_wrapped(DTConfigException, e, msg, compact=True)
-
+        except TypeError as e:
+            msg = 'Invalid YAML content; this usually happens '
+            msg += 'when you change the definition of a class.'
+            raise_wrapped(DTConfigException, e, msg, compact=True)
         try:  
             return f(filename, data)
         except KeyError as e:
@@ -41,7 +64,7 @@ def interpret_yaml_file(filename, contents, f):
     except DTConfigException as e:
         msg = 'Could not interpret the contents of the file using %s()\n' % f.__name__
         msg += '   %s\n' % friendly_path(filename)
-        msg += 'Contents:\n' + indent(contents, ' > ')
+        msg += 'Contents:\n' + indent(contents[:300], ' > ')
         raise_wrapped(DTConfigException, e, msg, compact=True) 
 
 def get_config_sources():

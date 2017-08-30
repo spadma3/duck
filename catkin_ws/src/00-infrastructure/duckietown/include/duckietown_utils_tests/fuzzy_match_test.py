@@ -1,20 +1,26 @@
 from collections import OrderedDict, namedtuple
 from comptests.registrar import comptest, run_module_tests
-from duckietown_utils.fuzzy import fuzzy_match, parse_match_spec
-from duckietown_utils.instantiate_utils import indent
 from contracts.utils import check_isinstance
+import re
 
-def expect(data, query, result_keys):
+from duckietown_utils.fuzzy import fuzzy_match, parse_match_spec,\
+    slice_regexp
+from duckietown_utils.instantiate_utils import indent
+
+
+def expect(data, query, result_keys, filters=None):
     result_keys = list(result_keys)
     check_isinstance(data, OrderedDict)
     
-    if False:
-        spec = parse_match_spec(query)
+    if True:
+        spec = parse_match_spec(query, filters=filters)
         print '-----'
         print 'Query: %s' % query
         print indent(spec, '', 'Spec: ')
-    res = fuzzy_match(query, data)
+        
+    res = fuzzy_match(query, data, filters=filters)
     check_isinstance(res, OrderedDict)
+    
     if list(res) != result_keys:
         msg = 'Error:'
         msg += '\n Data: %s' % data
@@ -65,8 +71,38 @@ def matches_tags():
     
 @comptest
 def specs1():
-    print parse_match_spec('ciao')
-    print parse_match_spec('ciao+no')
+    parse_match_spec('ciao')
+    parse_match_spec('ciao+no')
+
+
+@comptest
+def my_filter():
+   
+    rc = re.compile(slice_regexp)
+    m = rc.search('[1:2:3]')
+    assert m.group('a') == '1'
+    assert m.group('b') == '2'
+    assert m.group('c') == '3'
+   
+    Species = namedtuple('Species', 'name size weight')
+    data = OrderedDict([
+        ('jeb',  Species('A big horse', 'large', 200)),
+        ('fuffy',  Species('A medium dog', 'medium', 50)),
+        ('ronny',  Species('A medium cat', 'medium', 30)), 
+    ])
+    expect(data, 'all', ['jeb','fuffy','ronny'])
+    
+    expect(data, 'all/[0]', ['jeb'])
+    expect(data, 'all/[0:]', ['jeb','fuffy','ronny'])
+    expect(data, 'all/[0:1]', ['jeb'])
+    expect(data, 'all/[:-1]', ['jeb', 'fuffy'])
+    expect(data, 'all/[::1]', ['jeb', 'fuffy','ronny'])
+    expect(data, 'all/[::2]', ['jeb',  'ronny'])
+    expect(data, 'all/[0:3]', ['jeb', 'fuffy', 'ronny'])
+    
+    
+    res = fuzzy_match('all/shuffle', data)
+    assert len(res)==3
     
 if __name__ == '__main__':
     run_module_tests()

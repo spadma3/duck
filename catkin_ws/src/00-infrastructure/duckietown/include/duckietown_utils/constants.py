@@ -37,12 +37,12 @@ def get_duckietown_data():
     """ Returns the path of DUCKIETOWN_DATA and checks it exists """
     return _get_dir(DuckietownConstants.DUCKIETOWN_DATA_variable)
 
-def get_duckietown_tmp_video_process():
-    """ Returns a suitable dir to do temporary video processing. """
-    d = get_duckietown_root()
-    d =  os.path.join(d, 'caches', 'tmp')
-    d8n_mkdirs_thread_safe(d)
-    return d
+# def get_duckietown_tmp_video_process():
+#     """ Returns a suitable dir to do temporary video processing. """
+#     d = get_duckietown_root()
+#     d =  os.path.join(d, 'caches', 'tmp')
+#     d8n_mkdirs_thread_safe(d)
+#     return d
     
 
 def get_duckietown_local_log_downloads():

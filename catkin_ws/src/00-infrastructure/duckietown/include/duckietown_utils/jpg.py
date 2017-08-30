@@ -5,6 +5,8 @@
 import cv2
 import numpy as np
 from duckietown_utils import logger
+import os
+from duckietown_utils.file_utils import write_data_to_file
 
 def jpg_from_image_cv(image):
     return cv2.imencode('.jpg', image)[1].tostring()
@@ -20,6 +22,21 @@ def image_cv_from_jpg(data):
         raise ValueError(msg)
     return image_cv
 
+
+def image_cv_from_jpg_fn(fn):
+    """ Read a JPG from a file """
+    if not os.path.exists(fn):
+        msg = "File does not exist: %s" % fn
+        raise ValueError(msg)
+    with open(fn) as f:
+        return image_cv_from_jpg(f.read())
+
+def write_jpg_to_file(image_cv, fn):
+    """ Assuming image_cv is a BGR image, write to the file fn. """
+    data = jpg_from_image_cv(image_cv)
+    write_data_to_file(data, fn)
+
+
 # class Storage:
 #     dst = None
 # 
@@ -33,11 +50,6 @@ def image_cv_from_jpg(data):
 #         image_cv = cv2.imdecode(s, cv2.IMREAD_COLOR)
 #     Storage.dst = image_cv
 #     return image_cv
-
-
-def image_cv_from_jpg_fn(fn):
-    with open(fn) as f:
-        return image_cv_from_jpg(f.read())
 
 
 # Second option: use PIL

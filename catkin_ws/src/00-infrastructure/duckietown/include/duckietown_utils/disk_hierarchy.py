@@ -32,8 +32,10 @@ def get_mcdp_tmp_dir():
     """ Returns *the* temp dir for this project.
     Note that we need to customize with username, otherwise
     there will be permission problems.  """
+    V = 'DUCKIETOWN_TMP' 
+    if  V in os.environ:
+        return os.environ[V]
     from tempfile import gettempdir
-    import os
     d0 = gettempdir()
     import getpass
     username = getpass.getuser()

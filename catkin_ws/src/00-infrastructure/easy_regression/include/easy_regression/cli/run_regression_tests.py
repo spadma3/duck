@@ -5,6 +5,7 @@ import os
 from quickapp import QuickApp
 
 from duckietown_utils import logger
+from duckietown_utils.bag_visualization import d8n_make_video_from_bag
 from duckietown_utils.cli import D8AppWithLogs
 from duckietown_utils.exceptions import wrap_script_entry_point, DTUserError
 from duckietown_utils.system_cmd_imp import contract
@@ -16,6 +17,7 @@ from easy_regression.cli.checking import compute_check_results, display_check_re
 from easy_regression.cli.processing import process_one
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.regression_test import RegressionTest
+from duckietown_utils.disk_hierarchy import create_tmpdir
 
 
 ALL_LOGS = 'all'
@@ -70,15 +72,22 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     for a in analyzers:
         results_all[a] = OrderedDict()
     
-    for log_name in logs:
+    tmpdir = create_tmpdir()
+    for log_name, log in logs.items():
         c = context.child(log_name)
-        # process one 
-        log_out = os.path.join(out, 'logs', log_name + '/'  + 'out.bag')
+        # process one     
+        log_out = os.path.join(tmpdir, 'logs', log_name + '/'  + 'out.bag')
         bag_filename = c.comp(get_log_if_not_exists, easy_logs_db.logs, log_name)
-        log_out_ = c.comp(process_one, bag_filename, processors, log_out, job_id=log_name)
+        t0 = log.t0
+        t1 = log.t1
+        log_out_ = c.comp(process_one, bag_filename, t0, t1, processors, log_out, job_id=log_name)
         
         for a in analyzers:
             results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id=a) 
+        
+        for topic in rt.get_topic_videos():
+            mp4 = os.path.join(out, 'videos', log_name, topic + '.mp4')
+            c.comp(d8n_make_video_from_bag, log_out_, topic, mp4)
 
     for a in analyzers:
         results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a)

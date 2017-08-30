@@ -76,10 +76,7 @@ RUN apt-get install -y \
     imagemagick \
     graphviz \
     ghostscript \
-    git-lfs
-
-
-RUN apt-get install -y \
+    git-lfs \
     python-termcolor \
     python-setproctitle \
     python-psutil

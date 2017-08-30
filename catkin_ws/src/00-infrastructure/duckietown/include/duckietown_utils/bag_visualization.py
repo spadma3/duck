@@ -1,7 +1,8 @@
 import os
 import shutil
 from duckietown_utils import logger
-from duckietown_utils.constants import get_duckietown_tmp_video_process
+# from duckietown_utils.constants import get_duckietown_tmp_video_process
+from duckietown_utils.disk_hierarchy import create_tmpdir
 
 def d8n_make_video_from_bag(bag_filename, topic, out):
     """
@@ -28,11 +29,13 @@ def d8n_make_video_from_bag(bag_filename, topic, out):
         from procgraph import pg
     except ImportError:
         raise
-    tmpdir = get_duckietown_tmp_video_process()
+#     tmpdir = get_duckietown_tmp_video_process()
     
     # pg -m procgraph_ros bag2mp4 --bag $bag --topic $topic --out $out
       
     model = 'bag2mp4_fixfps'
+#     model = 'bag2mp4'
+    tmpdir = create_tmpdir()
     out_tmp = os.path.join(tmpdir, os.path.basename(out))
     logger.debug('Writing temp file to %s' % out_tmp)
     logger.debug('(You can use mplayer to follow along.)')

@@ -97,7 +97,6 @@ All the invalid logs of length less than 45 s:
 <pre><code>&#36; rosrun easy_logs summary "length:&lt;45,valid:False"</code></pre>
 
 
-
 <col3 figure-id='tab:queries' class='labels-row1'>
     <figcaption>Query language</figcaption>
     <s>expression</s>
@@ -222,12 +221,25 @@ Note: This is not implemented yet.
 
 We want the ability to:
 
-- slice a log
+- slice a log:
 
+    all/slice(5)/rand/[:10] # First 10 random logs
+    
+    all/slice(5)/rand/[:10]
 
-    ferrari/slice(5)  # now it is a list of a 5 seconds
+    ![...]|slice(5)  # now it is a list of a 5 seconds
 
-    (vehice:ferrari) / slice(5) / take(1)  The second slice.
+    ![...]|rand  # now it is a list of a 5 seconds
+
+    ![...]|[0]  # now it is a list of a 5 seconds
+
+    ![...]|{10s:11}
+    ![...]|{10:}
+    ![...]|{:11}
+
+    (vehice:ferrari/slice(15)/0  The second slice.
+
+    vehice:ferrari/slice(15)/0  The second slice.
 
 
 A physical log is is a file.

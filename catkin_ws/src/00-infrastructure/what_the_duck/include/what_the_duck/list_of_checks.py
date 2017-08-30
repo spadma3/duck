@@ -59,6 +59,18 @@ def get_checks():
         "sklearn is installed",
         CanImportPackages(['sklearn']),
         Diagnosis("sklearn is not installed correctly."))
+    
+    python_packages = [
+        'ros_node_utils',
+        'procgraph',
+        'comptests',
+    ]
+    for p in python_packages:
+        add(None,
+        "%s is installed" % p,
+        CanImportPackages([p]),
+        Diagnosis("Dependency %r is not installed correctly." % p),
+        Suggestion(" pip install --user %s" % p))
 
     add(None,
         "Date is set correctly",
