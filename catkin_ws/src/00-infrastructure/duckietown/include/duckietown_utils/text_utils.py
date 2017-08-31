@@ -1,6 +1,7 @@
 import re
-from .system_cmd_imp import contract
-from termcolor import colored
+
+
+from .contracts_ import contract
 
 __all__ = ['indent', 'seconds_as_ms']
 
@@ -59,6 +60,7 @@ def remove_table_field(table, f):
         row.pop(i)
 
 def make_row_red(row):
+    from termcolor import colored
     return [ colored(_, 'magenta') for _ in row]
 
 

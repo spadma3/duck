@@ -1,4 +1,3 @@
-import numpy as np
 
 class Configurable():
     
@@ -28,6 +27,7 @@ class Configurable():
             value = configuration[p]
             # if the list is 3 numbers, we convert to array
             if isinstance(value, list) and len(value) == 3:
+                import numpy as np
                 value = np.array(value)
             configuration[p] = value
             

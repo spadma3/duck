@@ -1,6 +1,8 @@
-from duckietown_utils.mkdirs import d8n_make_sure_dir_exists
-from duckietown_utils.friendly_path_imp import friendly_path
 from duckietown_utils import logger
+
+from .friendly_path_imp import friendly_path
+from .mkdirs import d8n_make_sure_dir_exists
+
 
 def write_data_to_file(data, filename):
     """ Writes the data to the given filename. """

@@ -1,8 +1,6 @@
 import os
 import subprocess
 
-import yaml
-
 from duckietown_utils import logger
 
 from .caching import get_cached
@@ -21,6 +19,8 @@ def rosbag_info_cached(filename):
     
 
 def rosbag_info(bag):
+    import yaml
+    
     stdout = subprocess.Popen(['rosbag', 'info', '--yaml', bag],
                               stdout=subprocess.PIPE).communicate()[0]
     try:

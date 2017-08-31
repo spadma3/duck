@@ -1,9 +1,9 @@
 from collections import namedtuple
 
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.friendly_path_imp import friendly_path
-from duckietown_utils.text_utils import indent
+from .exception_utils import raise_wrapped
+from .exceptions import DTConfigException
+from .friendly_path_imp import friendly_path
+from .text_utils import indent
 
 
 Person = namedtuple('Person', 'name email')

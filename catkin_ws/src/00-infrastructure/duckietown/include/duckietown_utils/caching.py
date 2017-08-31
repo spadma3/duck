@@ -1,8 +1,8 @@
-from duckietown_utils.path_utils import expand_all
-import cPickle
+from .path_utils import expand_all
+
 from duckietown_utils import logger
 import os 
-from duckietown_utils.friendly_path_imp import friendly_path
+from .friendly_path_imp import friendly_path
 
 __all__ = [
     'get_cached',
@@ -14,6 +14,8 @@ def get_cached(cache_name, f, quiet='not-given'):
             ${DUCKIETOWN_ROOT}/caches/![name].cache.pickle
     """
             
+    import cPickle
+    
     cache = '${DUCKIETOWN_ROOT}/caches/%s.cache.pickle' % cache_name
     cache = expand_all(cache)
     

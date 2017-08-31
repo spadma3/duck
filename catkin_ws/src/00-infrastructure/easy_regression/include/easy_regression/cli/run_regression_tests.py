@@ -100,5 +100,5 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     context.comp(fail_if_not_expected, check_results, expect)
     context.comp(write_to_db, rt_name, results_all, out)
     
-def run_regression_test_main():
-    wrap_script_entry_point(RunRegressionTest.get_sys_main())
+
+    

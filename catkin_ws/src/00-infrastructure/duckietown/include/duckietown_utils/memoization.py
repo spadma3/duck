@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
-# Author: Andrea Censi
-# origin: snippet from PyMCDP
+"""
+    Author: Andrea Censi
+    
+    Origin: snippet from PyMCDP 
+"""
+ 
 
 from decorator import decorator
 

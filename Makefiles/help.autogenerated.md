@@ -35,13 +35,16 @@ These commands run the unit tests.
 
 Commands to build the software.
 
-- `make build-catkin`       :  Runs `catkin_make`.
-- `make build-parallel` :  Runs `catkin_make`, with 4 threads.
+- `make build-catkin`              :  Runs `catkin_make`.
+- `make build-catkin-parallel`     :  Runs `catkin_make`, with 4 threads.
+- `make build-catkin-parallel-max` :  Runs `catkin_make`, with many threads.
 
-- `make build-machines`       :  Builds the machines file.
-- `make build-machines-clean` :  Removes the machines file.
+- `make build-machines`            :  Builds the machines file.
+- `make build-machines-clean`      :  Removes the machines file.
 
-- `make build-clean`          :  Clean everything.
+- `make build-clean`               :  Clean everything.
+
+
 
 
 ### Docker commands

@@ -1,10 +1,9 @@
 import os
 
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.locate_files_impl import locate_files
-from duckietown_utils.path_utils import expand_all
-from duckietown_utils.mkdirs import d8n_mkdirs_thread_safe
-from duckietown_utils import logger
+from .exceptions import DTConfigException
+from .locate_files_impl import locate_files
+from .path_utils import expand_all
+
 
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'

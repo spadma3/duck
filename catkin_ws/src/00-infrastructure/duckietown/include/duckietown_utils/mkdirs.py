@@ -4,7 +4,7 @@ import os
 
 __all__ = [
     'd8n_make_sure_dir_exists',
-    'mkdirs_thread_safe',
+    'd8n_mkdirs_thread_safe',
 ]
 
 

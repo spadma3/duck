@@ -1,7 +1,7 @@
 import time
 
 from duckietown_utils import logger
-from duckietown_utils.exceptions import DTBadData
+from .exceptions import DTBadData
 
 
 class BagReadProxy():

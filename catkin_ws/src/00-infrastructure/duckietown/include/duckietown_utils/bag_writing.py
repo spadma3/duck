@@ -1,9 +1,8 @@
 from contextlib import contextmanager
 import os
-import rosbag
 
 from duckietown_utils import logger
-from duckietown_utils.mkdirs import d8n_make_sure_dir_exists
+from .mkdirs import d8n_make_sure_dir_exists
 
 
 @contextmanager
@@ -13,6 +12,8 @@ def d8n_write_to_bag_context(out_bag_filename):
             bag.write(topic_name, msg)
     
     """
+    import rosbag
+
     d8n_make_sure_dir_exists(out_bag_filename)
     out_bag = rosbag.Bag(out_bag_filename + '.tmp', 'w') 
     yield out_bag

@@ -1,21 +1,18 @@
 from collections import OrderedDict
-from contracts.utils import check_isinstance
 import fnmatch
 import os
 
-from ruamel import yaml
-import ruamel.yaml
-from ruamel.yaml.error import YAMLError
-
 from duckietown_utils import logger
-from duckietown_utils.constants import get_catkin_ws_src, get_duckiefleet_root,\
-    get_duckietown_data, get_duckietown_local_log_downloads
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.friendly_path_imp import friendly_path
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.locate_files_impl import locate_files
-from duckietown_utils.system_cmd_imp import contract
+
+from .constants import get_catkin_ws_src, get_duckiefleet_root, get_duckietown_data, get_duckietown_local_log_downloads
+from .contracts_ import contract
+from .exception_utils import check_isinstance
+from .exception_utils import raise_wrapped
+from .exceptions import DTConfigException
+from .friendly_path_imp import friendly_path
+from .instantiate_utils import indent
+from .locate_files_impl import locate_files
+from .yaml_pretty import yaml_load
 
 
 def yaml_write_to_file(ob, filename):
@@ -32,7 +29,7 @@ def yaml_write_to_file(ob, filename):
     
 def yaml_load_file(filename):
     if not os.path.exists(filename):
-        msg = 'File does not exist: %s' % filename
+        msg = 'File does not exist: %s' % friendly_path(filename)
         raise ValueError(msg)
     with open(filename) as f:
         contents = f.read()
@@ -46,8 +43,10 @@ def interpret_yaml_file(filename, contents, f):
             
         f can raise KeyError, or DTConfigException """
     try:
+        from ruamel.yaml.error import YAMLError
+        
         try:
-            data = yaml.load(contents, Loader=ruamel.yaml.Loader)
+            data = yaml_load(contents)
         except YAMLError as e:
             msg = 'Invalid YAML content:'
             raise_wrapped(DTConfigException, e, msg, compact=True)
@@ -68,7 +67,6 @@ def interpret_yaml_file(filename, contents, f):
         raise_wrapped(DTConfigException, e, msg, compact=True) 
 
 def get_config_sources():
-    
     sources = []
     # We look in $DUCKIETOWN_ROOT/catkin_ws/src
     sources.append(get_catkin_ws_src())

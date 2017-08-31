@@ -1,17 +1,17 @@
 import os
 
 from duckietown_utils import logger
-from duckietown_utils.constants import get_scuderia_path
-from duckietown_utils.exception_utils import raise_wrapped, raise_desc
-from duckietown_utils.exceptions import DTUserError
-from duckietown_utils.text_utils import indent
+
+from .constants import get_scuderia_path
+from .exception_utils import raise_wrapped, raise_desc
+from .exceptions import DTUserError
+from .text_utils import indent
 
 
 # Format of the Scuderia contents
 # robot-name:
 #  username: <username>
 #  owner_duckietown_id: <duckietown ID> 
-
 class ScuderiaEntry():
     def __init__(self, robot_name, username, owner_duckietown_id):
         """ 

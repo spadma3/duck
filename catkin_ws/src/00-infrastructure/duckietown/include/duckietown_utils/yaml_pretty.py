@@ -1,40 +1,44 @@
-from ruamel import yaml as ruamel_yaml
- 
-def yaml_dump_pretty(ob):
-    return ruamel_yaml.dump(ob, Dumper=ruamel_yaml.RoundTripDumper)
 
-
-if True:
-    from ruamel import yaml  # @UnresolvedImport
-    # XXX: does not represent None as null, rather as '...\n'
-    def yaml_load(s):
-        if s.startswith('...'):
-            return None
+# XXX: does not represent None as null, rather as '...\n'
+def yaml_load(s):
+    from ruamel import yaml
+    
+    if s.startswith('...'):
+        return None
+    try:
         l = yaml.load(s, Loader=yaml.RoundTripLoader)
-        return remove_unicode(l)
-    
-    def yaml_dump(s):
-        return yaml.dump(s, Dumper=yaml.RoundTripDumper, allow_unicode=False)
-    
-    
-    def remove_unicode(x):
-        
-        if isinstance(x, unicode):
-            return x.encode('utf8')
+    except:
+        l = yaml.load(s, Loader=yaml.UnsafeLoader)
+    return remove_unicode(l)
 
-        if isinstance(x, dict):
-            T = type(x)
-            return T([(remove_unicode(k), remove_unicode(v)) for k,v in x.items()])
+def yaml_dump(s):
+    from ruamel import yaml 
+    res = yaml.dump(s, Dumper=yaml.RoundTripDumper, allow_unicode=False)
+    return res
 
-        if isinstance(x, list):
-            T = type(x)
-            return T([remove_unicode(_) for _ in x])
-        
-        return x
-else:
-    import yaml  # @Reimport
-    def yaml_load(s):
-        return yaml.load(s)
+def yaml_dump_pretty(ob):
+    from ruamel import yaml
+    return yaml.dump(ob, Dumper=yaml.RoundTripDumper)
+
+def remove_unicode(x):
     
-    def yaml_dump(s):
-        return yaml.dump(s)
+    if isinstance(x, unicode):
+        return x.encode('utf8')
+
+    if isinstance(x, dict):
+        T = type(x)
+        return T([(remove_unicode(k), remove_unicode(v)) for k,v in x.items()])
+
+    if isinstance(x, list):
+        T = type(x)
+        return T([remove_unicode(_) for _ in x])
+    
+    return x
+
+# else:
+#     import yaml  # @Reimport
+#     def yaml_load(s):
+#         return yaml.load(s)
+#     
+#     def yaml_dump(s):
+#         return yaml.dump(s)

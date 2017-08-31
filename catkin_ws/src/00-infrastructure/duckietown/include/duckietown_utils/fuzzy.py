@@ -1,18 +1,17 @@
 from abc import abstractmethod, ABCMeta
 from collections import OrderedDict
-
-from contracts.interface import describe_type
-from contracts.utils import check_isinstance
-import yaml
+import random
+import re
 
 from duckietown_utils import logger
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.exceptions import DTNoMatches, DTUserError
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.system_cmd_imp import contract
-from duckietown_utils.wildcards import wildcard_to_regexp
-import re
-import random
+
+from .contracts_ import contract
+from .exception_utils import check_isinstance, describe_type
+from .exception_utils import raise_wrapped
+from .exceptions import DTNoMatches, DTUserError
+from .instantiate_utils import indent
+from .wildcards import wildcard_to_regexp
+from .yaml_pretty import yaml_load
 
 
 class InvalidQueryForUniverse(Exception):
@@ -200,7 +199,7 @@ class ByTag(Spec):
     
 class Constant(Spec):
     def __init__(self, s):
-        self.s = yaml.load(s)
+        self.s = yaml_load(s)
     def __str__(self):
         return 'is equal to %r' % self.s
     def match(self, x):

@@ -1,9 +1,10 @@
 from contextlib import contextmanager
 import time
-import rospy
+
 
 @contextmanager
 def rospy_timeit_clock(s):
+    import rospy
     t0 = time.clock()
     yield
     delta = time.clock() - t0    
@@ -11,6 +12,7 @@ def rospy_timeit_clock(s):
 
 @contextmanager
 def rospy_timeit_wall(s):
+    import rospy
     t0 = time.time()
     yield
     delta = time.time() - t0    

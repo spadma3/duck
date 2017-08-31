@@ -2,18 +2,26 @@
     The many options to convert JPG into data. 
 """
 
-import cv2
-import numpy as np
-from duckietown_utils import logger
+
 import os
-from duckietown_utils.file_utils import write_data_to_file
+
+from PIL import ImageFile  # @UnresolvedImport
+
+from duckietown_utils import logger
+
+from .file_utils import write_data_to_file
+from .image_composition import make_images_grid  # @UnusedImport
+
 
 def jpg_from_image_cv(image):
+    import cv2
     return cv2.imencode('.jpg', image)[1].tostring()
      
 
 def image_cv_from_jpg(data):
     """ Returns an OpenCV BGR image from a string """
+    import cv2
+    import numpy as np
     s = np.fromstring(data, np.uint8)
     image_cv = cv2.imdecode(s, cv2.IMREAD_COLOR)
     if image_cv is None:
@@ -54,9 +62,9 @@ def write_jpg_to_file(image_cv, fn):
 
 # Second option: use PIL
 
-from PIL import ImageFile  # @UnresolvedImport
 def rgb_from_jpg_by_PIL(data):
     """ Warning: this returns RGB """
+    import numpy as np
     parser = ImageFile.Parser()
     parser.feed(data)
     res = parser.close() 
@@ -66,6 +74,7 @@ def rgb_from_jpg_by_PIL(data):
 # third option: jpeg library
 
 def rgb_from_jpg_by_JPEG_library(data):
+    import numpy as np
     try:
         import jpeg4py as jpeg
     except ImportError:
@@ -83,6 +92,7 @@ sudo pip install jpeg4py
 
 def image_clip_255(image_float):
     """ Clips to 0,255 and converts to uint8 """
+    import numpy as np
     h,w,_ = image_float.shape
     res = np.zeros((h,w,3), dtype=np.uint8)
     np.clip(image_float, 0, 255, out=res)
@@ -101,7 +111,6 @@ def image_clip_255(image_float):
 
 
 
-from .image_composition import make_images_grid  # @UnusedImport
 
 
 

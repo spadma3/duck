@@ -1,6 +1,5 @@
-import numpy as np
 from . import logger
-from duckietown_utils.expand_variables import expand_environment
+from .expand_variables import expand_environment
 import os
 
 __all__ = [
@@ -32,10 +31,10 @@ def d8n_read_all_images(filename, t0=None, t1=None):
 
         Returns a numpy array.
 
-        data = d8n_read_all_images(bag)
-
-        print data.shape # (928,)
-        print data.dtype # [('timestamp', '<f8'), ('rgb', 'u1', (480, 640, 3))]
+            data = d8n_read_all_images(bag)
+    
+            print data.shape # (928,)
+            print data.dtype # [('timestamp', '<f8'), ('rgb', 'u1', (480, 640, 3))]
 
     """
     import rosbag  # @UnresolvedImport
@@ -79,6 +78,8 @@ def d8n_read_all_images(filename, t0=None, t1=None):
         ('timestamp', 'float'),
         ('rgb', 'uint8', (H, W, 3)),
     ]
+    import numpy as np
+
     x = np.zeros((n,), dtype=dtype)
     for i, v in enumerate(data):
         x[i]['timestamp'] = v['timestamp']
@@ -130,8 +131,8 @@ def d8n_get_all_images_topic(bag_filename):
                     continue
             found.append((t,msg_type))
 
-    print('all_types: %s' % all_types)
-    print('found: %s' % found)
+#     print('all_types: %s' % all_types)
+#     print('found: %s' % found)
     return found
 
 def get_image_topic(bag):
@@ -156,4 +157,6 @@ def pil_from_CompressedImage(msg):
     return res
 
 def rgb_from_pil(im):
+    import numpy as np
+
     return np.asarray(im).astype(np.uint8)

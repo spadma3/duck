@@ -3,7 +3,8 @@ from comptests.registrar import comptest, run_module_tests
 
 from termcolor import colored
 
-from duckietown_utils.text_utils import get_length_on_screen, format_table_plus, remove_escapes, make_row_red
+from duckietown_utils.text_utils import (get_length_on_screen, format_table_plus, 
+                                         remove_escapes, make_row_red)
 
 
 @comptest
@@ -45,7 +46,7 @@ def test_table():
     #print r2e
     assert r1 == r2e
     
-    
 
 if __name__ == '__main__':
     run_module_tests()
+    

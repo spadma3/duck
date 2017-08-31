@@ -3,7 +3,7 @@ import os
 from quickapp.quick_app import QuickApp
 from quickapp.quick_app_base import QuickAppBase
 
-from duckietown_utils.exceptions import DTUserError
+from duckietown_utils.exceptions import DTUserError, wrap_script_entry_point
 from easy_logs.logs_db import get_easy_logs_db_cached_if_possible,\
     get_easy_logs_db_cloud, get_easy_logs_db_fresh
 
@@ -19,6 +19,10 @@ class D8App(QuickAppBase):
                     (argname, envname))
             raise DTUserError(msg)     
         return options[0]
+    
+def d8app_run(App):
+    main = App.get_sys_main()
+    wrap_script_entry_point(main)
       
 class D8AppWithLogs(D8App):
     """ 

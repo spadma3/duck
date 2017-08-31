@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 from duckietown_utils import DuckietownConstants
 from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
-from what_the_duck.entry import SeeDocs
-from what_the_duck.python_source_checks import add_python_package_checks
+from duckietown_utils.detect_environment import on_circle, on_laptop
+from duckietown_utils.detect_environment import on_duckiebot
 
 from .checks import *  # @UnusedWildImport
-from .detect_environment import on_duckiebot
 from .entry import Diagnosis, Entry
-from what_the_duck.detect_environment import on_circle, on_laptop
-from what_the_duck.suite_ssh import good_ssh_configuration
-from what_the_duck.suite_git import add_suite_git
+from .entry import SeeDocs
+from .python_source_checks import add_python_package_checks
+from .suite_git import add_suite_git
+from .suite_ssh import good_ssh_configuration
+
 
 class Manager():
     def __init__(self):

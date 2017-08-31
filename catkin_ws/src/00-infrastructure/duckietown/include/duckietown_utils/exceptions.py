@@ -1,7 +1,7 @@
 import sys
 import traceback
 
-from decent_params.utils.script_utils import UserError
+# from decent_params.utils.script_utils import UserError
 
 from duckietown_utils import logger
 
@@ -10,7 +10,7 @@ class DTException(Exception):
     """ All exceptions derive from this one. """
 
 
-class DTUserError(DTException, UserError):
+class DTUserError(DTException):
     """ 
         Exceptions that will not be printed with full traceback,
         because they contain a simple message for the user, to be printed in red.

@@ -2,18 +2,10 @@
 
 from duckietown_utils import logger
 
-try:
-    # use PyContracts if installed 
-    from contracts import contract  # @UnresolvedImport
-except ImportError:
-    def contract(**kwargs):  # @UnusedVariable
-        def phi(f):
-            return f
-        return phi
-    
 import os
 import subprocess
 import tempfile
+from .contracts_ import contract
 
 
 __all__ = [

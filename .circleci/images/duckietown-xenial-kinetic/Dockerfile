@@ -139,4 +139,5 @@ RUN apt-get install -y \
     libatlas-base-dev \
     vim\
     apt-file\
-    iftop
+    iftop\
+    node-less

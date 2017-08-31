@@ -1,4 +1,4 @@
-from duckietown_utils.exceptions import DTConfigException
+from .exceptions import DTConfigException
 
 def dt_check_isinstance(what, x, t):
     if not isinstance(x, t):

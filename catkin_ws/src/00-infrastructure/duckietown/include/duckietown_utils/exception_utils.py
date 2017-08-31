@@ -1,3 +1,10 @@
+""" 
+    All of this is copied from [PyContracts](todo).
+    
+"""
+
+import sys
+
 from .text_utils import indent
 
 
@@ -147,3 +154,71 @@ def x_not_found(what, x, iterable):
 def check_is_in(what, x, iterable, exception=ValueError):
     if not x in iterable:
         raise_x_not_found(what, x, iterable, exception) 
+
+
+def check_isinstance(ob, expected, **kwargs):
+    if not isinstance(ob, expected):
+        kwargs['object'] = ob
+        raise_type_mismatch(ob, expected, **kwargs)
+        
+def raise_type_mismatch(ob, expected, **kwargs):
+    """ Raises an exception concerning ob having the wrong type. """
+    e = 'Object not of expected type:'
+    e +='\n  expected: %s' % str(expected)
+    e +='\n  obtained: %s' % str(type(ob))
+    e += '\n' + indent(format_obs(kwargs), ' ')
+    raise ValueError(e)
+
+
+def describe_type(x):
+    """ Returns a friendly description of the type of x. """
+    
+    inPy2 = sys.version_info[0] == 2
+    if inPy2:
+        from types import ClassType
+        
+    if inPy2 and isinstance(x, ClassType):
+        class_name = '(old-style class) %s' % x
+    else:
+        if hasattr(x, '__class__'):
+            c = x.__class__
+            if hasattr(x, '__name__'):
+                class_name = '%s' % c.__name__
+            else:
+                class_name = str(c)
+        else:
+            # for extension classes (spmatrix)
+            class_name = str(type(x))
+
+    return class_name
+
+
+def describe_value(x, clip=80):
+    """ Describes an object, for use in the error messages.
+        Short description, no multiline.
+    """
+    if hasattr(x, 'shape') and hasattr(x, 'dtype'):
+        shape_desc = 'x'.join(str(i) for i in x.shape)
+        desc = 'array[%r](%s) ' % (shape_desc, x.dtype)
+        final = desc + clipped_repr(x, clip - len(desc))
+        return remove_newlines(final)
+    else:
+        class_name = describe_type(x)
+        desc = 'Instance of %s: ' % class_name
+        final = desc + clipped_repr(x, clip - len(desc))
+        return remove_newlines(final)
+
+def clipped_repr(x, clip):
+    s = "{0!r}".format(x)
+    if len(s) > clip:
+        clip_tag = '... [clip]'
+        cut = clip - len(clip_tag)
+        s = "%s%s" % (s[:cut], clip_tag)
+    return s
+
+
+# TODO: add checks for these functions
+
+
+def remove_newlines(s):
+    return s.replace('\n', ' ')

@@ -1,14 +1,16 @@
-from tempfile import mkdtemp
-import yaml
 import os
+from tempfile import mkdtemp
+
 from duckietown_utils import logger
-from duckietown_utils.exception_utils import raise_desc
-from duckietown_utils.system_cmd_imp import contract
+
+from .contracts_ import contract
+from .exception_utils import raise_desc
+from .yaml_pretty import yaml_load
 
 
 @contract(s=str, returns=str)
 def dir_from_data(s):
-    data = yaml.load(s)
+    data = yaml_load(s)
     d = create_tmpdir()
     write_to_dir(data, d)
     return d
