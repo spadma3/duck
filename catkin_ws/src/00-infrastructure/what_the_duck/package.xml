@@ -12,9 +12,10 @@ inconsistencies that can happen on a Duckiebot.
 To use it, first compile the repository, and then run:
 
     $ ./what-the-duck
-    
+
 </description>
-  <maintainer email="acensi@idsc.mavt.ethz.edu">Andrea Censi</maintainer>
+  <author email="acensi@idsc.mavt.ethz.ch">Andrea Censi</author>
+  <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
 
   <license>GPLv3</license>
 

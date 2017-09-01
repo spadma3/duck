@@ -40,7 +40,8 @@ comptests_packages=\
 	duckietown_utils_tests\
 	line_detector2_tests\
 	what_the_duck_tests\
-	easy_regression_tests
+	easy_regression_tests\
+	anti_instagram_tests
 
 comptests_out=out/comptests
 

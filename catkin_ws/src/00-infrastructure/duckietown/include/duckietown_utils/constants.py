@@ -104,6 +104,8 @@ def get_scuderia_path():
     machines = os.path.join(duckiefleet, DuckietownConstants.scuderia_filename)
     return machines
 
+
+
 def _get_dir(variable_name):
     if not variable_name in os.environ:
         msg = 'Environment variable %r not defined.' % variable_name

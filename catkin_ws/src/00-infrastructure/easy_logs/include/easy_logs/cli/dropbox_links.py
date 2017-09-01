@@ -3,8 +3,9 @@ import os
 from ruamel import yaml
 
 from duckietown_utils import logger
+from duckietown_utils.download import get_urls_path
 from duckietown_utils.system_cmd_imp import system_cmd_result
-from easy_logs.logs_db import get_easy_logs_db, get_urls_path
+from easy_logs.logs_db import get_easy_logs_db
 
 
 def dropbox_links_main(query):

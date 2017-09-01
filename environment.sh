@@ -1,4 +1,3 @@
-#!/bin/bash
 
 [ -z "$DUCKIETOWN_ROOT" ] && { echo "Need to set DUCKIETOWN_ROOT - configuration is invalid (!)";  }
 [ -z "$HOSTNAME"        ] && { echo "Need to set HOSTNAME.";        }
@@ -7,8 +6,9 @@
 # XXX: not sure if this is the place to put this.
 export ROS_LANG_DISABLE=gennodejs:geneus:genlisp
 
+shell=`basename $SHELL`
 echo "Activating ROS..."
-source /opt/ros/kinetic/setup.bash
+source /opt/ros/kinetic/setup.$shell
 
 echo "Setup ROS_HOSTNAME..."
 export HOSTNAME=$HOSTNAME
@@ -23,7 +23,7 @@ export PYTHONPATH=$DUCKIETOWN_ROOT/catkin_ws/src:$PYTHONPATH
 # make -C $DUCKIETOWN_ROOT machines
 
 echo "Activating development environment..."
-source $DUCKIETOWN_ROOT/catkin_ws/devel/setup.bash
+source $DUCKIETOWN_ROOT/catkin_ws/devel/setup.$shell
 
 # TODO: check that the time is >= 2015
 

@@ -1,8 +1,10 @@
-from .path_utils import expand_all
+import os
 
 from duckietown_utils import logger
-import os 
+
 from .friendly_path_imp import friendly_path
+from .path_utils import expand_all
+
 
 __all__ = [
     'get_cached',

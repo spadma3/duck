@@ -1,6 +1,8 @@
+import os
+
 from . import logger
 from .expand_variables import expand_environment
-import os
+
 
 __all__ = [
     'd8n_read_images_interval',

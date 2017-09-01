@@ -8,12 +8,6 @@ import sys
 from .text_utils import indent
 
 
-__all__ = [
-   'raise_wrapped',
-   'raise_desc',
-   'check_isinstance',
-]
-
 def _get_str(x, informal):
     from contracts.interface import describe_value_multiline
     if informal:

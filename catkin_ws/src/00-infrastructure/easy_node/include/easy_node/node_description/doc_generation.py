@@ -47,15 +47,25 @@ def generate_from_package_info(info, package_dir):
 
     md += '### Essentials {nonumber="1"}' + S
 
-
+    def is_in(P, where):
+        return any(P.email == _.email for _ in where)
+      
     for p in info.authors:
-        md += 'Author: ' + format_person(p) + S
+        
+        if is_in(p, info.maintainers):
+            md += 'Author: ' + format_person(p) + ' (maintainer)'+ S
+        else:
+            md += 'Author: ' + format_person(p) + S
 
     # if not info.authors:
     #     md += 'TODO: add authors.' + S
 
     for p in info.maintainers:
-        md += 'Maintainer: ' + format_person(p) + S
+        
+        if is_in(p, info.authors):
+            continue
+        else:
+            md += 'Maintainer: ' + format_person(p) + S
 
     # if not info.maintainers:
     #     md += 'TODO: add maintainers.' + S

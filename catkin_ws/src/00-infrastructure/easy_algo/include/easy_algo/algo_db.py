@@ -1,17 +1,11 @@
 import os
 from types import NoneType
 
-from duckietown_utils.caching import get_cached
-from duckietown_utils.constants import DuckietownConstants
-from duckietown_utils.exception_utils import check_is_in
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.fuzzy import fuzzy_match
-from duckietown_utils.instantiate_utils import import_name, instantiate, indent
-from duckietown_utils.system_cmd_imp import contract
-from duckietown_utils.text_utils import id_from_basename_pattern
-from duckietown_utils.type_checks import dt_check_isinstance
-from duckietown_utils.yaml_wrap import interpret_yaml_file, look_everywhere_for_config_files, get_config_sources,\
-    look_everywhere_for_config_files2
+from duckietown_utils import (DTConfigException,  DuckietownConstants, check_is_in,
+                              contract, dt_check_isinstance, fuzzy_match, get_cached,
+                              id_from_basename_pattern, import_name, instantiate,
+                              indent, interpret_yaml_file, look_everywhere_for_config_files,
+                              get_config_sources, look_everywhere_for_config_files2)
 
 from .algo_structures import EasyAlgoTest, EasyAlgoInstance, EasyAlgoFamily
 

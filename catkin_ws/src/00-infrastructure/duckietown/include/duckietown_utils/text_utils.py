@@ -1,9 +1,8 @@
-import re
 
 
 from .contracts_ import contract
 
-__all__ = ['indent', 'seconds_as_ms']
+# __all__ = ['indent', 'seconds_as_ms']
 
 def indent(s, prefix, first=None):
     s = str(s)
@@ -42,6 +41,7 @@ def truncate_string_left(s, N, suff='[..] '):
         s = suff + s[extra+len(suff):] 
     return s
 
+import re
 
 escape = re.compile('\x1b\[..?m')
 def remove_escapes(s):
@@ -55,9 +55,13 @@ def get_length_on_screen(s):
 
 @contract(table='list', f=str)    
 def remove_table_field(table, f):
+    if not f in table[0]:
+        msg = 'Cannot find field %r' % f
+        raise ValueError(msg)
     i = table[0].index(f)
+
     for row in table:
-        row.pop(i)
+        row.pop(i) 
 
 def make_row_red(row):
     from termcolor import colored

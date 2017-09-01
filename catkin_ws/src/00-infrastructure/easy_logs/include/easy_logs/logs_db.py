@@ -1,28 +1,18 @@
 from collections import OrderedDict
 from contracts.utils import check_isinstance
+import copy
 import os
 import re
 
-from duckietown_utils import logger
-from duckietown_utils.bag_info import rosbag_info_cached
-from duckietown_utils.caching import get_cached
-from duckietown_utils.dates import format_time_as_YYYY_MM_DD
-from duckietown_utils.friendly_path_imp import friendly_path
-from duckietown_utils.fuzzy import fuzzy_match, filters0
-from duckietown_utils.path_utils import get_ros_package_path
-from duckietown_utils.yaml_wrap import look_everywhere_for_bag_files, yaml_load_file,\
-    yaml_write_to_file
+from duckietown_utils import (
+    format_time_as_YYYY_MM_DD,
+    friendly_path, fuzzy_match, filters0, get_cached, rosbag_info_cached,
+    get_duckietown_root, logger,
+    look_everywhere_for_bag_files, yaml_load_file, yaml_write_to_file)
+from duckietown_utils.download import require_resource
 from easy_logs.logs_structure import PhysicalLog
 from easy_logs.time_slice import filters_slice
-from duckietown_utils.constants import get_duckietown_root
-import copy
-from duckietown_utils.download import download_url_to_file
 
-
-def get_urls_path():
-    d = get_ros_package_path('easy_logs')
-    f = os.path.join(d, 'dropbox.urls.yaml')
-    return f
 
 def get_easy_logs_db():
     return get_easy_logs_db_cached_if_possible()
@@ -30,8 +20,7 @@ def get_easy_logs_db():
 def get_easy_logs_db_cached_if_possible():
     if EasyLogsDB._singleton is None:
         f = EasyLogsDB
-#         use_cache = DuckietownConstants.use_cache_for_logs
-        EasyLogsDB._singleton = get_cached('EasyLogsDB', f) #if use_cache else f()
+        EasyLogsDB._singleton = get_cached('EasyLogsDB', f)
         
         fn = os.path.join(get_duckietown_root(),'caches','candidate_cloud.yaml')
         
@@ -51,10 +40,12 @@ def get_easy_logs_db_fresh():
     return EasyLogsDB._singleton
 
 def get_easy_logs_db_cloud():
-    cloud_file = os.path.join(get_ros_package_path('easy_logs'), 'cloud.yaml')
-    if not os.path.exists(cloud_file):
-        url = "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
-        download_url_to_file(url, cloud_file)
+    cloud_file = require_resource('cloud.yaml')
+    
+#     cloud_file = os.path.join(get_ros_package_path('easy_logs'), 'cloud.yaml')
+#     if not os.path.exists(cloud_file):
+#         url = "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
+#         download_url_to_file(url, cloud_file)
     
     logger.info('Loading cloud DB %s' % friendly_path(cloud_file))
     

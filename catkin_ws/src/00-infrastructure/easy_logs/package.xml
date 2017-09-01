@@ -11,7 +11,7 @@ Tests should use the `easy_logs` DB to know what logs to work on.
 
 </description>
 
-
+  <author email="acensi@idsc.mavt.ethz.ch">Andrea Censi</author>
   <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
 
   <license>GPLv3</license>

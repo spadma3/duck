@@ -3,13 +3,12 @@ from contextlib import contextmanager
 import rospy
 import threading
 
-import yaml
-
-from duckietown_utils.constants import DuckietownConstants
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.text_utils import indent
-from duckietown_utils.timeit import rospy_timeit_wall
+from duckietown_utils import DTConfigException
+from duckietown_utils import DuckietownConstants
+from duckietown_utils import indent
+from duckietown_utils import raise_wrapped
+from duckietown_utils import rospy_timeit_wall
+from duckietown_utils import yaml_dump
 
 from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
 from .node_description.configuration import load_configuration_package_node
@@ -228,11 +227,11 @@ class EasyNode():
             self.on_parameters_changed(first_time, values1)
         except DTConfigException as e:
             msg = 'Configuration error raised by on_parameters_changed()' 
-            msg += '\n\n' + indent(yaml.dump(values), '  ', 'Configuration: ')
+            msg += '\n\n' + indent(yaml_dump(values), '  ', 'Configuration: ')
             raise_wrapped(DTConfigException, e, msg, compact=True)
         except Exception as e:
             msg = 'Configuration error raised by on_parameters_changed().'
-            msg += '\n\n' + indent(yaml.dump(values), '  ', 'Configuration: ')
+            msg += '\n\n' + indent(yaml_dump(values), '  ', 'Configuration: ')
             raise_wrapped(DTConfigException, e, msg)
              
         

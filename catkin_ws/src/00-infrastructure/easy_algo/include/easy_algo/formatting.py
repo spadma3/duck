@@ -12,8 +12,8 @@ def format_db(db, colorize=True):
     families = list(db.family_name2config.values())
     s = format_families(families, colorize)
     
-    for family in families:
-        s += S
+#     for family in families:
+#         s += S
 #         s += format_tests(family, colorize)
 #         s += S
 #         s += format_instances(family, colorize) 
@@ -30,25 +30,26 @@ def format_families(families, colorize=True):
         table.append(['Family name', 
                   'description',
                   'interface',
-                  'tests',  
+#                   'tests',  
                   'instances',
                   'valid',
-                  'filename'])
+                  'filename'
+                  ])
         for family in families:
             assert isinstance(family, EasyAlgoFamily)
             row = []        
             row.append(family.family_name)
             row.append(family.description)
             row.append(family.interface.replace('.','\n.'))
-            _ = family.tests_pattern 
-            if not family.tests:
-                _ += '\n(no tests found)'
-            else:
-                _ += '\nFound %d tests:' % len(family.tests)
-                for i, x in enumerate(sorted(family.tests)):
-                    _ += "\n%d) %s" % (i+1, x)
-                
-            row.append(_)
+#             _ = family.tests_pattern 
+#             if not family.tests:
+#                 _ += '\n(no tests found)'
+#             else:
+#                 _ += '\nFound %d tests:' % len(family.tests)
+#                 for i, x in enumerate(sorted(family.tests)):
+#                     _ += "\n%d) %s" % (i+1, x)
+#                 
+#             row.append(_)
             _ = family.instances_pattern 
             if not family.instances:
                 _ += '\n(no instances found)'
@@ -69,7 +70,7 @@ def format_families(families, colorize=True):
                 row = make_row_red(row)
             table.append(row)
             
-#         table = remove_table_field(table, 'filename')
+        remove_table_field(table, 'filename')
         s += indent(format_table_plus(table, colspacing=4), '| ')
         return s    
 

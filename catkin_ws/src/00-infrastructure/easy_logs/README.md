@@ -207,7 +207,66 @@ Then, you can download locally using:
 Once it is downloaded, the log becomes part of the local database.
 
 
-## Log sets
+## Advanged log indexing and generation
+
+
+### Shuffle
+
+`![expr]/shuffle` shuffles the order of the logs in `![expr]`.
+
+Give me all the `oreo` logs, in random order:
+
+    $ rosrun easy_logs summary  vehicle:oreo/shuffle
+
+### Simple indexing
+
+`![expr]/[i]` takes the i-th  entry.
+
+Give me the first log:
+
+    $ rosrun easy_logs summary  "vehicle:oreo/[0]"
+
+Give me a random log; i.e. the first of a random list.
+
+    $ rosrun easy_logs summary  "vehicle:oreo/shuffle/[0]"
+
+### Complex indexing
+
+You can use the exact Python syntax for indexing, including `[a:]`, `[:b]`, `[a:b]`, `[a:b:c]`, etc.
+
+Give me three random logs:
+
+    $ rosrun easy_logs summary  "all/shuffle/[:3]"
+
+
+### Sorting
+
+TODO: To implement.
+
+### Time indexing
+
+
+You can ask for only a part of a log using the syntax:
+
+    ![expr]/{![start]:![stop]}
+    ![expr]/{![start]:}
+    ![expr]/{:![stop]}
+
+where `![start]` and `![stop]` are in time relative to the start of the log.
+
+For example, "give me all the first 1-second intervals of the logs" is
+
+    all/{:1}
+
+Cut the first 3 seconds of all the logs:
+
+    all/{3:}
+
+Give me the interval between 30 s and 35 s:
+
+    all/{30:35}
+
+<!-- ## Log sets
 
 Note: This is not implemented yet.
 
@@ -215,33 +274,32 @@ Note: This is not implemented yet.
     - "vehicle:ferrari,length:<10"
     - ""
 
-## Log generation
+     -->
+## How to use a file from the cloud {#require-from-cloud}
 
-Note: This is not implemented yet.
+This applies to any resource, not only logs.
 
-We want the ability to:
+First, put the file in the `duckiedown-data-2017` directory on Dropbox.
 
-- slice a log:
+This is [the link](https://www.dropbox.com/sh/gt5ls6bh8s58ysj/AADoP0zI1ugde-BSMcYoj5mta?dl=0).
 
-    all/slice(5)/rand/[:10] # First 10 random logs
-    
-    all/slice(5)/rand/[:10]
+You need to ask Liam/Andrea because only them have write access.
 
-    ![...]|slice(5)  # now it is a list of a 5 seconds
+Then, get the public link address and put it in [the file `dropbox.urls.yaml`][DB] in the package `easy_node`. Remember to have `?dl=1` instead of `?dl=0` in the url.
 
-    ![...]|rand  # now it is a list of a 5 seconds
+In the code, use the function `require_resource()`:
 
-    ![...]|[0]  # now it is a list of a 5 seconds
+    from duckietown_utils import require_resource
 
-    ![...]|{10s:11}
-    ![...]|{10:}
-    ![...]|{:11}
+    zipname = require_resource('ii-datasets.zip')
 
-    (vehice:ferrari/slice(15)/0  The second slice.
+The storage area is in `${DUCKIETOWN_ROOT}/cache/download`.
 
-    vehice:ferrari/slice(15)/0  The second slice.
+If the file is already downloaded, it is not downloaded again.
 
+(So, if the file changes, you need to delete the cache directory. The best practice
+is to change the filename every time the file changes.)
 
-A physical log is is a file.
+The function `require_resource()` returns the path to the downloaded file.
 
-A generated log is given by
+Also note that you can put any URL in [the file `dropbox.urls.yaml`][DB]; but the convention is that we only link things to Dropbox.

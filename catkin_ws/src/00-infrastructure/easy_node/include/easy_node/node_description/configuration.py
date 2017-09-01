@@ -2,17 +2,8 @@ from collections import namedtuple, OrderedDict
 import os
 from types import NoneType
 
-from ruamel import yaml
-import ruamel
-
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.instantiate_utils import import_name
-from duckietown_utils.locate_files_impl import locate_files
-from duckietown_utils.path_utils import get_ros_package_path
-from duckietown_utils.system_cmd_imp import contract
-from duckietown_utils.text_utils import format_table_plus, wrap_line_length,\
-    indent, remove_table_field
+from duckietown_utils import DTConfigException, contract, format_table_plus, wrap_line_length,\
+    indent, remove_table_field, get_ros_package_path, import_name, locate_files, raise_wrapped, yaml_load
 
 
 # import yaml
@@ -92,7 +83,7 @@ def load_configuration(realpath, contents):
     # TODO: load "version" string
     try:
         try:
-            data = yaml.load(contents, Loader=ruamel.yaml.Loader)
+            data = yaml_load(contents)
         except Exception as e:
             msg = 'Could not parse YAML file properly:'
             raise_wrapped(DTConfigException, e, msg, compact=True)

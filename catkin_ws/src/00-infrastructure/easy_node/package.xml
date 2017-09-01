@@ -28,7 +28,7 @@ which contains a re-implementation of  `line_detector` using the new framework.
 **Transition plan**: The plan is to first use `easy_node` just for
 documenting the nodes. Then, later, convert all the nodes to use it.
 </description>
-
+    <author email="acensi@idsc.mavt.ethz.ch">Andrea Censi</author>
   <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
 
   <license>GPLv3</license>
