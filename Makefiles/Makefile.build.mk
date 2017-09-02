@@ -21,7 +21,7 @@ build:
 $(machines): build-machines
 
 build-machines:
-	rosrun duckietown create-machines-file
+	rosrun duckieteam create-machines
 
 
 cloud-download: $(cloud_db)

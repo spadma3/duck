@@ -20,7 +20,7 @@ class CreateMachines(D8App):
         if getattr(self.options, 'print'):
             print(machines_contents)
         else:
-            write_data_to_file(fn, machines_contents)
+            write_data_to_file(machines_contents, fn)
     
 
 def create_machines(scuderia_contents):
