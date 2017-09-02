@@ -32,7 +32,8 @@ class D8AppWithLogs(D8App):
     """
 
     def define_program_options(self, params):
-        self._define_options_compmake(params)
+        if hasattr(self, '_define_options_compmake'):
+            self._define_options_compmake(params)
         self._define_my_options(params)
         self.define_options(params)
 

@@ -11,6 +11,15 @@ def yaml_load(s):
         l = yaml.load(s, Loader=yaml.UnsafeLoader)
     return remove_unicode(l)
 
+def yaml_load_plain(s):
+    from ruamel import yaml
+    
+    if s.startswith('...'):
+        return None
+    
+    l = yaml.load(s, Loader=yaml.UnsafeLoader)
+    return remove_unicode(l)
+
 def yaml_dump(s):
     from ruamel import yaml 
     res = yaml.dump(s, Dumper=yaml.RoundTripDumper, allow_unicode=False)

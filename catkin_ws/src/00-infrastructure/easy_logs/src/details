@@ -2,7 +2,7 @@
 import yaml
 
 from duckietown_utils import col_logging  # @UnusedImport
-from duckietown_utils.exceptions import wrap_script_entry_point
+from duckietown_utils.cli import d8app_run
 from easy_logs.cli.generic import GenericLogDisplay
 
 
@@ -12,7 +12,7 @@ class Details(GenericLogDisplay):
         for log in logs.values():        
             s = yaml.dump(log._asdict())
             print(s)
+ 
 
 if __name__ == '__main__':
-    wrap_script_entry_point(Details.get_sys_main())
-
+    d8app_run(Details)

@@ -14,7 +14,8 @@ test:
 	@echo '- `make test-comptests-clean`:        Run the `comptests` tests.'
 	@echo '- `make test-comptests-collect-junit`: Collects the JUnit results.'
 	@echo '- `make test-download-logs`: Downloads the logs needed for the tests.'
-
+	@echo
+	@echo
 
 test-circle: \
 	test-comptests \
@@ -28,8 +29,7 @@ test-circle: \
 
 test-all: \
 	test-comptests \
-	test-catkin_tests \
-	test-anti_instagram
+	test-catkin_tests
 
 ### Comptests
 
@@ -41,7 +41,8 @@ comptests_packages=\
 	line_detector2_tests\
 	what_the_duck_tests\
 	easy_regression_tests\
-	anti_instagram_tests
+	anti_instagram_tests\
+	duckieteam_tests
 
 comptests_out=out/comptests
 
@@ -64,10 +65,6 @@ test-comptests-collect-junit:
 
 test-catkin_tests: check-environment
 	bash -c "source environment.sh; catkin_make -C $(catkin_ws) run_tests; catkin_test_results $(catkin_ws)/build/test_results/"
-
-
-test-anti_instagram: check-environment
-	bash -c "source environment.sh; rosrun anti_instagram annotation_tests.py"
 
 onelog=20160223-amadoa-amadobot-RCDP2
 

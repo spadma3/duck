@@ -5,18 +5,21 @@ EasyAlgoFamily = namedtuple('EasyAlgoFamily',
                        'family_name', 
                        'interface', 
                        'description', 
-                       'instances_pattern', 'instances', 'tests', 'tests_pattern',
+                       'locations',
+                       'default_constructor',
+                       'instances_pattern', 'instances', 
+#                        'tests', 'tests_pattern',
                        'valid', 'error_if_invalid'])
-
-            
-EasyAlgoTest = namedtuple('EasyAlgoTest',
-                              ['family_name',
-                               'test_name',
-                               'description',
-                               'filename', # where it was specified
-                               'constructor', # how to instance it
-                               'parameters', 
-                               'valid', 'error_if_invalid'])
+# 
+#             
+# EasyAlgoTest = namedtuple('EasyAlgoTest',
+#                               ['family_name',
+#                                'test_name',
+#                                'description',
+#                                'filename', # where it was specified
+#                                'constructor', # how to instance it
+#                                'parameters', 
+#                                'valid', 'error_if_invalid'])
 
 
 EasyAlgoInstance = namedtuple('EasyAlgoInstance',

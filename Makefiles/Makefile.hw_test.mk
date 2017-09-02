@@ -9,7 +9,8 @@ hw-test:
 	@echo '- `make hw-test-turn-right`:        Calibration right turn'
 	@echo '- `make hw-test-turn-left`:         Calibrating left turn'
 	@echo '- `make hw-test-turn-forward`:      Calibrating forward turn'
-
+	@echo
+	@echo
 
 hw-test-camera:
 	echo "Testing Camera HW by taking a picture (smile!)."

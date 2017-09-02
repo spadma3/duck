@@ -12,6 +12,7 @@ from .exceptions import DTNoMatches, DTUserError
 from .instantiate_utils import indent
 from .wildcards import wildcard_to_regexp
 from .yaml_pretty import yaml_load
+from duckietown_utils.text_utils import remove_prefix
 
 
 class InvalidQueryForUniverse(Exception):
@@ -243,6 +244,16 @@ class LT(Spec):
         v = value_as_float(x) 
         return v < self.value
 
+class Contains(Spec):
+    def __init__(self, value):
+        self.value = value
+    
+    def __str__(self):
+        return 'contains %s' % self.value
+    
+    def match(self, x):
+        return self.value in x
+
 class GT(Spec):
     def __init__(self, value):
         self.value = value
@@ -323,6 +334,11 @@ def parse_match_spec(s, filters=None):
     if ',' in s:
         tokens = s.split(',')
         return And(map(rec, tokens))
+    
+    if s.startswith('contains:'):
+        rest = remove_prefix(s, 'contains:')
+        return Contains(rest)
+    
     if ':' in s:
         i = s.index(':')
         tagname = s[:i]
@@ -332,9 +348,11 @@ def parse_match_spec(s, filters=None):
     if s.startswith('<'):
         value = float(s[1:])
         return LT(value)
+    
     if s.startswith('>'):
         value = float(s[1:])
         return GT(value)
+    
     
     if '*' in s:
         return Wildcard(s)

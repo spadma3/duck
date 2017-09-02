@@ -1,7 +1,8 @@
 import os
 import shutil
+
 from duckietown_utils import logger
-# from duckietown_utils.constants import get_duckietown_tmp_video_process
+
 from .disk_hierarchy import create_tmpdir
 
 def d8n_make_video_from_bag(bag_filename, topic, out):
@@ -21,15 +22,16 @@ def d8n_make_video_from_bag(bag_filename, topic, out):
         
             sudo add-apt-repository ppa:mc3man/trusty-media
             sudo apt-get update
-            sudo apt-get install -y ffmpeg gstreamer0.10-ffmpeg
+            sudo apt-get install -y ffmpeg 
+            
+        #gstreamer0.10-ffmpeg
         
     """
     try:
         import procgraph_ros  # @UnusedImport
         from procgraph import pg
     except ImportError:
-        raise
-#     tmpdir = get_duckietown_tmp_video_process()
+        raise 
     
     # pg -m procgraph_ros bag2mp4 --bag $bag --topic $topic --out $out
       
@@ -54,3 +56,6 @@ def d8n_make_video_from_bag(bag_filename, topic, out):
     info = out_tmp + '.info.yaml'
     if os.path.exists(info):
         os.unlink(info)
+        
+        
+        

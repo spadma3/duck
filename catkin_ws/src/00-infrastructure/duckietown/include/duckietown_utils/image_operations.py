@@ -17,6 +17,10 @@ def gray2rgb(gray):
         rgb[:, :, i] = gray
     return rgb
 
+def bgr_from_rgb(rgb):
+    import cv2
+    bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+    return bgr
 
 def zoom_image(im, zoom = 4):
     s = (im.shape[1] * zoom, im.shape[0] * zoom)

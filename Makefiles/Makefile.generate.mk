@@ -8,7 +8,8 @@ generate:
 	@echo '- `make generate-help`:             Generates help.'
 	@echo '- `make generate-easy_node`:        Generates the easy node documentation.'
 	@echo '- `make generate-easy_node-clean`:  Cleans the generated files.'
-
+	@echo
+	@echo
 
 generate-all: \
 	generate-help\

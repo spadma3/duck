@@ -4,11 +4,12 @@ import os
 
 from quickapp import QuickApp
 
+from duckietown_utils import DTUserError
+from duckietown_utils import contract
+from duckietown_utils import create_tmpdir
+from duckietown_utils import d8n_make_video_from_bag
 from duckietown_utils import logger
-from duckietown_utils.bag_visualization import d8n_make_video_from_bag
 from duckietown_utils.cli import D8AppWithLogs
-from duckietown_utils.exceptions import wrap_script_entry_point, DTUserError
-from duckietown_utils.system_cmd_imp import contract
 from easy_algo.algo_db import get_easy_algo_db
 from easy_logs.cli.require import get_log_if_not_exists
 from easy_regression.cli.analysis_and_stat import job_analyze, job_merge, print_results
@@ -17,7 +18,6 @@ from easy_regression.cli.checking import compute_check_results, display_check_re
 from easy_regression.cli.processing import process_one
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.regression_test import RegressionTest
-from duckietown_utils.disk_hierarchy import create_tmpdir
 
 
 ALL_LOGS = 'all'

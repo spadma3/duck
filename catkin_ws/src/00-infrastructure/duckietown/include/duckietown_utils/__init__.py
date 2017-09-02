@@ -58,7 +58,6 @@ from .mkdirs import *
 from .parameters import *
 from .path_utils import *
 from .read_package_xml import *
-from .scuderia import *
 from .system_cmd_imp import *
 from .test_hash import *
 from .text_utils import *

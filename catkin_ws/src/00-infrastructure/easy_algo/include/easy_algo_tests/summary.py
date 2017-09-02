@@ -15,9 +15,6 @@ def call_summary():
     for f in db.family_name2config.values():
         if not f.valid:
             errors.append('Family %s: %s' % (f.family_name, f.error_if_invalid))
-        for t in f.tests.values():
-            if not t.valid:
-                errors.append('Family %s / test %r: %s' % (f, t.test_name, t.error_if_invalid))
         for i in f.instances.values():
             if not i.valid:
                 errors.append('Family %s / instance %r: %s' % (f, i.instance_name, i.error_if_invalid))

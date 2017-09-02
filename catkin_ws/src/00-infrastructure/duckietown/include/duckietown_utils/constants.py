@@ -53,7 +53,7 @@ def get_duckietown_local_log_downloads():
     
 
 def get_machines_files_path():
-    ''' Gets the path to the machines files. It might not exist. '''
+    ''' Gets the path to the machines file. It might not exist. '''
     duckietown_root = get_duckietown_root()
     machines = os.path.join(duckietown_root, DuckietownConstants.machines_path_rel_to_root)
     return machines

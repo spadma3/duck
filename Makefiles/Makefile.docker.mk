@@ -7,7 +7,8 @@ docker:
 	@echo '- `make docker-build`:    Creates the image.'
 	@echo '- `make docker-upload`:   Uploads the image.'
 	@echo '- `make docker-clean`:    Removes all local images.'
-
+	@echo
+	@echo
 docker_dir=.circleci/images/duckietown-xenial-kinetic/
 docker_image_name=andreacensi/duckietown-xenial-kinetic
 tag=18

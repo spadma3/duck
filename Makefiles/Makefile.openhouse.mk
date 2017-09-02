@@ -5,6 +5,7 @@ openhouse:
 	@echo "These were the open house demos."
 	@echo
 	@echo TODO: to write
+	@echo
 
 
 openhouse-dp1: check-environment

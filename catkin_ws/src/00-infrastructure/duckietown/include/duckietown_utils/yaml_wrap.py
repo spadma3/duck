@@ -4,7 +4,8 @@ import os
 
 from duckietown_utils import logger
 
-from .constants import get_catkin_ws_src, get_duckiefleet_root, get_duckietown_data, get_duckietown_local_log_downloads
+from .constants import get_catkin_ws_src, get_duckiefleet_root, \
+    get_duckietown_data, get_duckietown_local_log_downloads
 from .contracts_ import contract
 from .exception_utils import check_isinstance
 from .exception_utils import raise_wrapped
@@ -13,6 +14,7 @@ from .friendly_path_imp import friendly_path
 from .instantiate_utils import indent
 from .locate_files_impl import locate_files
 from .yaml_pretty import yaml_load
+from duckietown_utils.yaml_pretty import yaml_load_plain
 
 
 def yaml_write_to_file(ob, filename):
@@ -35,7 +37,7 @@ def yaml_load_file(filename):
         contents = f.read()
     return interpret_yaml_file(filename, contents, lambda _filename, data: data)
 
-def interpret_yaml_file(filename, contents, f):
+def interpret_yaml_file(filename, contents, f, plain_yaml=False):
     """ 
         f is a function that takes
         
@@ -46,7 +48,10 @@ def interpret_yaml_file(filename, contents, f):
         from ruamel.yaml.error import YAMLError
         
         try:
-            data = yaml_load(contents)
+            if plain_yaml:
+                data = yaml_load_plain(contents)
+            else:
+                data = yaml_load(contents)
         except YAMLError as e:
             msg = 'Invalid YAML content:'
             raise_wrapped(DTConfigException, e, msg, compact=True)
@@ -105,10 +110,11 @@ def look_everywhere_for_config_files2(pattern, all_yaml):
 
     results = OrderedDict()
     for filename, contents in all_yaml.items():
-        if fnmatch.fnmatch(filename, pattern):            
-#             contents = open(filename).read()
+        if fnmatch.fnmatch(filename, pattern):
             results[filename] = contents
-    logger.debug('%4d configuration files with pattern %s.' % (len(results), pattern))
+
+    logger.debug('%4d configuration files with pattern %s.' 
+                 % (len(results), pattern))
     return results
 
 def look_everywhere_for_bag_files(pattern='*.bag'):

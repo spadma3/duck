@@ -1,9 +1,8 @@
 
-
 from .contracts_ import contract
 
-# __all__ = ['indent', 'seconds_as_ms']
 
+# __all__ = ['indent', 'seconds_as_ms']
 def indent(s, prefix, first=None):
     s = str(s)
     assert isinstance(prefix, str)
@@ -37,8 +36,8 @@ def truncate_string_right(s, N, suff=' [..]'):
 
 def truncate_string_left(s, N, suff='[..] '):
     if len(s) > N:
-        extra = len(s) - N 
-        s = suff + s[extra+len(suff):] 
+        extra = len(s) - N
+        s = suff + s[extra+len(suff):]
     return s
 
 import re
@@ -53,7 +52,7 @@ def get_length_on_screen(s):
     return len(remove_escapes(s))
 
 
-@contract(table='list', f=str)    
+@contract(table='list', f=str)
 def remove_table_field(table, f):
     if not f in table[0]:
         msg = 'Cannot find field %r' % f
@@ -61,11 +60,14 @@ def remove_table_field(table, f):
     i = table[0].index(f)
 
     for row in table:
-        row.pop(i) 
+        row.pop(i)
+
+def make_red(s):
+    from termcolor import colored
+    return  colored(s, 'red')
 
 def make_row_red(row):
-    from termcolor import colored
-    return [ colored(_, 'magenta') for _ in row]
+    return [ make_red(_) for _ in row]
 
 
 def format_table_plus(rows, colspacing=1, paginate=25):
@@ -78,24 +80,24 @@ def format_table_plus(rows, colspacing=1, paginate=25):
         if len(r) != nfirst:
             msg = 'Row has len %s while first has length %s.' % (len(r), nfirst)
             raise ValueError(msg)
-        
+
     # now convert all to string
     rows = [ [str(_) for _ in row] for row in rows]
-    
-    # for each column 
+
+    # for each column
     def width_cell(s):
         return max(get_length_on_screen(x) for x in s.split('\n'))
-    
+
     sizes = []
     for col_index in range(len(rows[0])):
         sizes.append(max(width_cell(row[col_index]) for row in rows))
-        
+
     divider = ['-'*_ for _ in sizes]
     rows.insert(1, divider)
-    
+
     rows = make_pagination(rows, paginate)
-    s = '\n---\n'
-    for row in rows: 
+    s = ''
+    for row in rows:
         # how many lines do we need?
         nlines = max(num_lines(cell) for cell in row)
 
@@ -106,7 +108,7 @@ def format_table_plus(rows, colspacing=1, paginate=25):
                     cellj = cellsplit[j]
                 else:
                     cellj = ''
-                s += colored_ljust(cellj, size) 
+                s += colored_ljust(cellj, size)
                 s += ' ' * colspacing
             s += '\n'
     return s
@@ -137,7 +139,7 @@ def make_pagination(rows, paginate):
             result.append(divider)
             result.extend(p)
         return result
-    
+
 
 def wrap_line_length(x, N):
     res = []
@@ -163,29 +165,29 @@ def id_from_basename_pattern(basename, pattern):
 
 
 def remove_prefix(s, prefix):
-    """ 
-        Removes a prefix from a string. 
+    """
+        Removes a prefix from a string.
         Raises ValueError if the prefix is not there.
     """
     if s.startswith(prefix):
         return s[len(prefix):]
     else:
         msg = 'Expected prefix %r in %r' %(prefix, s)
-        raise ValueError(msg) 
-    
-    
+        raise ValueError(msg)
+
+
 
 def remove_suffix(s, suffix):
-    """ 
-        Removes a prefix from a string. 
+    """
+        Removes a prefix from a string.
         Raises ValueError if the prefix is not there.
     """
     if s.endswith(suffix):
         return s[:-len(suffix)]
     else:
         msg = 'Expected suffix %r in %r' %( suffix, s)
-        raise ValueError(msg) 
-    
+        raise ValueError(msg)
+
 def remove_prefix_suffix(s, prefix, suffix):
     s = remove_prefix(s, prefix)
     s = remove_suffix(s, suffix)
@@ -198,7 +200,3 @@ def string_split(s, sub):
         raise ValueError(msg)
     i = s.index(sub)
     return s[:i], s[i+1:]
-
-    
-    
-    

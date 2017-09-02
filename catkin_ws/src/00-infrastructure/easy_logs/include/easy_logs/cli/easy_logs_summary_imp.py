@@ -1,10 +1,8 @@
 from ruamel import yaml
 
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.text_utils import format_table_plus, remove_table_field,\
-    make_row_red
+from duckietown_utils import format_table_plus, remove_table_field,\
+    make_row_red, friendly_path,  indent
 from easy_logs.logs_db import get_easy_logs_db
-from duckietown_utils.friendly_path_imp import friendly_path
 
 
 def easy_logs_summary(query='*'):
@@ -37,7 +35,7 @@ def format_logs(logs):
             row.append(log.description)
             row.append(log.date)
             if log.length is not None:
-                l = '%4d s' % log.length
+                l = '%5.1f s' % log.length
             else:
                 l = '(none)'
             row.append(l)

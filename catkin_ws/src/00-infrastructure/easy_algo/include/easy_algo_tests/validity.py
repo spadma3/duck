@@ -11,7 +11,6 @@ def test_validity1():
 "F.easy_algo_family.yaml": | 
     description: desc
     interface: does.not_exist
-    tests: {}
 """
     d = dir_from_data(data)
     sources = [d]
@@ -37,7 +36,6 @@ def test_instance():
 "adder.easy_algo_family.yaml": | 
     description: desc
     interface: easy_algo_tests.validity.MyAdderInterface
-    tests: {}
 
 "one.adder.yaml": |
     description: desc

@@ -4,7 +4,8 @@ demos:
 	@echo "These are simple demos"
 	@echo
 	@echo TODO: to write
-
+	@echo
+	
 ### These are not using master.launch
 demo-joystick: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh;  roslaunch duckietown joystick.launch veh:=$(vehicle_name)"

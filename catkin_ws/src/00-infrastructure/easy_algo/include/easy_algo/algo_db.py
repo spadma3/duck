@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import os
 from types import NoneType
 
@@ -7,7 +8,7 @@ from duckietown_utils import (DTConfigException,  DuckietownConstants, check_is_
                               indent, interpret_yaml_file, look_everywhere_for_config_files,
                               get_config_sources, look_everywhere_for_config_files2)
 
-from .algo_structures import EasyAlgoTest, EasyAlgoInstance, EasyAlgoFamily
+from .algo_structures import EasyAlgoInstance, EasyAlgoFamily
 
 
 __all__ = [
@@ -19,7 +20,8 @@ __all__ = [
 def get_easy_algo_db():
     if EasyAlgoDB._singleton is None:
         cache_algos = DuckietownConstants.use_cache_for_algos
-        EasyAlgoDB._singleton = get_cached('EasyAlgoDB', EasyAlgoDB) if cache_algos else EasyAlgoDB()
+        EasyAlgoDB._singleton = (get_cached('EasyAlgoDB', EasyAlgoDB) 
+                                 if cache_algos else EasyAlgoDB())
     return EasyAlgoDB._singleton
 
 class EasyAlgoDB():
@@ -45,10 +47,17 @@ class EasyAlgoDB():
         check_is_in('family', x, self.family_name2config)
         return self.family_name2config[x]
     
+    def query_and_instance(self, family_name, query, raise_if_no_matches=False):
+        results = self.query(family_name, query, raise_if_no_matches=raise_if_no_matches)
+        stuff = OrderedDict((k, self.create_instance(family_name, k))
+                          for k in results)
+        return stuff
+    
     def create_instance(self, family_name, instance_name):
         family = self.get_family(family_name)
         if not family.valid:
-            msg = 'Cannot instantiate %r because its family %r is invalid.' % (instance_name, family_name)
+            msg = ('Cannot instantiate %r because its family %r is invalid.' %
+                    (instance_name, family_name))
             raise DTConfigException(msg)
             
         check_is_in('instance', instance_name, family.instances)
@@ -78,7 +87,7 @@ def load_family_config(all_yaml):
         #
         # and configuration files, which are:
         #
-        #     ![ID].![family_name]_test.yaml
+        #     ![ID].![family_name].yaml
         #
         #   
     """
@@ -88,6 +97,8 @@ def load_family_config(all_yaml):
     family_name2config = {}
     
     configs = look_everywhere_for_config_files2(EasyAlgoDB.pattern, all_yaml)
+    configs.update(look_everywhere_for_config_files2("*.family.yaml", all_yaml))
+    
     for filename, contents in configs.items():
         c = interpret_yaml_file(filename, contents, interpret_easy_algo_config)
 
@@ -96,65 +107,41 @@ def load_family_config(all_yaml):
             two = c.filename
             msg = 'Repeated filename:\n%s\n%s' % (one, two)
             raise DTConfigException(msg)
-
-        def interpret_test_spec(filename, data):
-            basename = os.path.basename(filename)
-            test_name = id_from_basename_pattern(basename, c.tests_pattern)
-            
-            description = data.pop('description')
-            dt_check_isinstance('description', description, str) 
-
-            constructor = data.pop('constructor')
-            dt_check_isinstance('constructor', constructor, str) 
-
-            parameters = data.pop('parameters')
-            dt_check_isinstance('parameters', parameters, (dict, NoneType))
-            if parameters is None: parameters = {} 
-
-            return EasyAlgoTest(family_name=c.family_name, test_name=test_name,
-                                description=description, filename=filename,
-                                constructor=constructor, parameters=parameters,
-                                valid=True, error_if_invalid=None)
-            
+ 
         def interpret_instance_spec(filename, data):
+            dt_check_isinstance('data', data, dict)
+
             basename = os.path.basename(filename)
             instance_name = id_from_basename_pattern(basename, c.instances_pattern)
             
-            description = data.pop('description')
-            dt_check_isinstance('description', description, str) 
-
-            constructor = data.pop('constructor')
-            dt_check_isinstance('constructor', constructor, str) 
-
-            parameters = data.pop('parameters')
-            dt_check_isinstance('parameters', parameters, (dict, NoneType))
-            if parameters is None: parameters = {} 
+            if c.default_constructor is not None and not 'constructor' in data:
+                description = '(not given)'
+                constructor = c.default_constructor
+                parameters = OrderedDict(data)
+            else:
+                description = data.pop('description')
+                dt_check_isinstance('description', description, str) 
+    
+                constructor = data.pop('constructor')
+                dt_check_isinstance('constructor', constructor, str) 
+    
+                parameters = data.pop('parameters')
+                dt_check_isinstance('parameters', parameters, (dict, NoneType))
+                
+                if parameters is None: parameters = {} 
 
             return EasyAlgoInstance(family_name=c.family_name, instance_name=instance_name,
                                     description=description, filename=filename,
                                     constructor=constructor, parameters=parameters,
                                     valid=True, error_if_invalid=None)
-            
-        tests = {}
+             
         
         c = check_validity_family(c)
-        
-        _ = look_everywhere_for_config_files2(c.tests_pattern, all_yaml)
-        for filename, contents in _.items():
-            t = interpret_yaml_file(filename, contents, interpret_test_spec)
-            if t.test_name in tests:
-                one = tests[t.test_name].filename
-                two = t.filename
-                msg = 'Repeated filename:\n%s\n%s' % (one, two)
-                raise DTConfigException(msg)
-            
-            t = check_validity_test(c, t)
-            tests[t.test_name] = t
-            
+         
         instances = {}
         _ = look_everywhere_for_config_files2(c.instances_pattern, all_yaml)
         for filename, contents in _.items():
-            i = interpret_yaml_file(filename, contents, interpret_instance_spec)
+            i = interpret_yaml_file(filename, contents, interpret_instance_spec, plain_yaml=True)
             if i.instance_name in instances:
                 one = instances[i.instance_name].filename
                 two = i.filename
@@ -164,7 +151,7 @@ def load_family_config(all_yaml):
             i = check_validity_instance(c, i)
             instances[i.instance_name] = i
         
-        c = c._replace(tests=tests, instances=instances)
+        c = c._replace(instances=instances)
         
         
         family_name2config[c.family_name] = c
@@ -184,7 +171,7 @@ def check_validity_instance(f, i):
         return i._replace(valid=False, error_if_invalid=msg)
     
     interface = import_name(f.interface)
-    
+#     print('interface: %s' % interface)
     if not isinstance(res, interface):
         msg = ('Expected a %s but it is a %s.' % 
                (interface.__name__, type(res).__name__))
@@ -214,13 +201,13 @@ def check_validity_family_interface(f):
     return f
         
 def interpret_easy_algo_config(filename, data):
+    """ Interprets the family config """
     basename = os.path.basename(filename)
     family_name = id_from_basename_pattern(basename, EasyAlgoDB.pattern)
     instances_pattern = '*.%s.yaml' % family_name
-    tests_pattern = '*.%s_test.yaml' % family_name
+#     tests_pattern = '*.%s_test.yaml' % family_name
     
     dt_check_isinstance('contents', data, dict)
-    
     
     description = data.pop('description')
     dt_check_isinstance('description', description, str) 
@@ -228,20 +215,23 @@ def interpret_easy_algo_config(filename, data):
     interface = data.pop('interface')
     dt_check_isinstance('interface', interface, str) 
     
-    tests = None
-    instances = None 
+    locations = data.pop('locations', None)
+    default_constructor = data.pop('default_constructor', None)
     
+    if data:
+        msg = 'Extra keys in configuration: %s' % list(data)
+        raise DTConfigException(msg)
+    
+
+     
     return EasyAlgoFamily(interface=interface, 
                             family_name=family_name,
-                            filename=filename, 
-                            tests=tests, 
-                            tests_pattern = tests_pattern,
-                            instances=instances,
+                            filename=filename,  
+                            instances=None,
                             instances_pattern=instances_pattern,
                             description=description,
                             valid=True,
+                            locations=locations,
+                            default_constructor=default_constructor,
                             error_if_invalid=False)
     
-
-
-

@@ -7,7 +7,9 @@ stats:
 	@echo '- `make stats-easy_node`:  Prints summary of declared nots using the EasyNode frameworks.'
 	@echo '- `make stats-easy_logs`:  Prints summary of available logs.'
 	@echo '- `make stats-easy_algo`:  Prints summary of available algorithms.'
-
+	@echo
+	@echo
+	
 stats-easy_node:
 	rosrun easy_node summary
 

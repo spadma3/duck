@@ -1,128 +1,104 @@
-from ruamel import yaml
+from duckietown_utils import (friendly_path, indent, make_row_red, make_red,
+                              remove_table_field, format_table_plus, yaml_dump_pretty)
+
+from .algo_db import EasyAlgoFamily
 
 
-from duckietown_utils.text_utils import indent, make_row_red
-from duckietown_utils.text_utils import remove_table_field, format_table_plus  # @UnusedImport
-from easy_algo.algo_db import EasyAlgoFamily
-from duckietown_utils.friendly_path_imp import friendly_path
-
-
-def format_db(db, colorize=True):
-    S = '\n\n' 
+def format_db(db, colorize=True, verbose=False):
     families = list(db.family_name2config.values())
-    s = format_families(families, colorize)
-    
-#     for family in families:
-#         s += S
-#         s += format_tests(family, colorize)
-#         s += S
-#         s += format_instances(family, colorize) 
-        
+    s = format_families(families, colorize, verbose=verbose)
     return s
 
-def format_families(families, colorize=True):
+def format_families(families, colorize=True, verbose=True):
     if not families:
         s = "No algorithm families found."
         return s
     else:
-        s = "Found %d algorithm families:\n" % len(families)
+
         table = []
-        table.append(['Family name', 
-                  'description',
+        table.append(['Family name',
                   'interface',
-#                   'tests',  
-                  'instances',
+                  'pattern',
+                  '# found',
                   'valid',
-                  'filename'
+                  'filename',
+                  'description',
                   ])
         for family in families:
             assert isinstance(family, EasyAlgoFamily)
-            row = []        
+            row = []
             row.append(family.family_name)
-            row.append(family.description)
-            row.append(family.interface.replace('.','\n.'))
-#             _ = family.tests_pattern 
-#             if not family.tests:
-#                 _ += '\n(no tests found)'
-#             else:
-#                 _ += '\nFound %d tests:' % len(family.tests)
-#                 for i, x in enumerate(sorted(family.tests)):
-#                     _ += "\n%d) %s" % (i+1, x)
-#                 
-#             row.append(_)
-            _ = family.instances_pattern 
+            row.append(family.interface)
+            row.append(family.instances_pattern)
             if not family.instances:
-                _ += '\n(no instances found)'
+                row.append('\n(none)')
             else:
-                _ += '\nFound %d instances:' % len(family.instances)
-                for i, x in enumerate(sorted(family.instances)):
-                    _ += "\n%d) %s" % (i+1, x)
-                
-            row.append(_)
+                n_valid = len([_ for _ in family.instances.values() if _.valid])
+                n_invalid = len(family.instances) - n_valid
+                ss = '%s' % len(family.instances)
+                if n_invalid:
+                    ss += make_red(' (%d invalid)' % n_invalid)
+                row.append(ss)
+
             if family.valid:
-                s = 'yes'
+                ss = 'yes'
             else:
-                s = 'no: ' + family.error_if_invalid
-            row.append(s)
+                ss = 'no: ' + family.error_if_invalid
+            row.append(ss)
             row.append(friendly_path(family.filename))
-            
+
             if (not family.valid) and colorize:
                 row = make_row_red(row)
-            table.append(row)
-            
-        remove_table_field(table, 'filename')
-        s += indent(format_table_plus(table, colspacing=4), '| ')
-        return s    
 
-    
-def format_tests(family, colorize):
-    if not family.tests:
-        s = ('No tests files found for family "%s" (pattern = %s).\n\n' % 
-             (family.family_name, family.tests_pattern))
-        return s
-    else:
-        s = 'Tests for family "%s"\n\n' % family.family_name
-        table = []
-        table.append(['Test name', 'description', 'constructor', 'parameters', 'filename'])
-        for t in family.tests.values():
-            row = []
-            row.append(t.test_name)
-            row.append(t.description)
-            row.append(t.constructor)
-            row.append(t.parameters)
-            row.append(t.filename)
-            
-            if (not t.valid) and colorize:
-                row = make_row_red(row)
-            
+            row.append(family.description.strip())
             table.append(row)
-            
-        s += format_table_plus(table, colspacing=4)    
+
+        if not verbose:
+            remove_table_field(table, 'filename')
+
+        s = "Found %d algorithm families:\n\n" % len(families)
+        s += indent(format_table_plus(table, colspacing=4), '   ')
+
         return s
 
-def format_instances(family, colorize):
+
+
+def format_instances(family, colorize, verbose=False):
     if not family.instances:
-        s = ('No instances files found for family "%s" (pattern = %s).\n\n' % 
+        s = ('No instances files found for family "%s" (pattern = %s).\n\n' %
              (family.family_name, family.instances_pattern))
         return s
     else:
-        s = ('Found %d instances of algorithm family "%s":\n' % 
+        s = ('Found %d instances of algorithm family "%s":\n' %
              (len(family.instances), family.family_name))
         table = []
-        table.append(['Instance name', 'description', 'constructor', 'parameters', 'filename'])
+        table.append(['Instance name',  'constructor',
+                      'parameters', 'description', 'filename'])
         for _ in family.instances.values():
             row = []
-            row.append(_.instance_name)
-            row.append(_.description)
-            row.append(_.constructor.replace('.','\n.'))
-            row.append(yaml.dump(_.parameters))
-            row.append(friendly_path(_.filename))
-            
+            name = _.instance_name
             if (not _.valid) and colorize:
-                row = make_row_red(row)
+                name = make_red(name)
+
+            row.append(name)
+
+            row.append(_.constructor)
+            row.append(yaml_dump_pretty(_.parameters))
+
+            row.append(_.description)
+            row.append(friendly_path(_.filename))
 
             table.append(row)
-            
+
+        if not verbose:
+            remove_table_field(table, 'filename')
+            remove_table_field(table, 'description')
         s += indent(format_table_plus(table, colspacing=4), '| ')
+
+        for _ in family.instances.values():
+            if not _.valid:
+                msg = _.error_if_invalid
+                s += make_red('\n' + indent(msg, '', _.instance_name + ': '))
+
+
         return s
-    

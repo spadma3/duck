@@ -6,7 +6,9 @@ maintenance:
 	@echo
 	@echo '- `make maintenance-fix-time`:     Fixes the time.'
 	@echo '- `make  maintenance-clean-pyc`:    Removes pyc files.'
-
+	@echo
+	@echo
+	
 maintenance-fix-time:
 	echo 'Calling ntpdate to fix time'
 	sudo ntpdate -u us.pool.ntp.org
