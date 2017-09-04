@@ -53,10 +53,10 @@ test-comptests-again:
 	$(MAKE) test-comptests-clean
 	$(MAKE) test-comptests
 
-test-comptests:
+test-comptests:  test-download-logs
 	comptests -o $(comptests_out) --nonose --contracts -c "rparmake" $(comptests_packages)
 
-test-comptests-slow:
+test-comptests-slow:  test-download-logs
 	comptests -o $(comptests_out) --nonose --contracts -c "rmake" $(comptests_packages)
 
 test-comptests-collect-junit:

@@ -11,7 +11,8 @@ def test_cli1():
                       raise_on_error=True)
 @comptest
 def test_cli2():
-    cmd = ['rosrun', 'easy_algo', 'summary', 'robots']
+    cwd = '.'
+    cmd = ['rosrun', 'easy_algo', 'summary', 'robot']
     system_cmd_result(cwd, cmd,
                       display_stdout=True,
                       display_stderr=True,

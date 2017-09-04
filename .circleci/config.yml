@@ -14,11 +14,14 @@ jobs:
         - run:
             name: deps
             command: |
-                pip install comptests
-                ./misc/python_environment.py comptests
+                apt install -y python-frozendict python-ruamel.yaml
+                pip install --upgrade PyContracts QuickApp conftools comptests procgraph
 
-                pip install ros_node_utils
-                pip install procgraph
+                ./misc/python_environment.py comptests
+                which comptests
+
+                # pip install ros_node_utils
+                # pip install procgraph
                 apt install -y python-sklearn
 
         - run:

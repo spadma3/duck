@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from duckietown_utils import DuckietownConstants
-from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
-from duckietown_utils.detect_environment import on_circle, on_laptop
-from duckietown_utils.detect_environment import on_duckiebot
+from duckietown_utils import get_list_of_packages_in_catkin_ws
+from duckietown_utils import on_circle, on_laptop
+from duckietown_utils import on_duckiebot
 
 from .checks import *  # @UnusedWildImport
-from .entry import Diagnosis, Entry
-from .entry import SeeDocs
+from .entry import Diagnosis, Entry, SeeDocs
 from .python_source_checks import add_python_package_checks
 from .suite_git import add_suite_git
 from .suite_ssh import good_ssh_configuration
@@ -62,7 +61,7 @@ def get_checks():
         Diagnosis("sklearn is not installed correctly."))
     
     python_packages = [
-        'ros_node_utils',
+#         'ros_node_utils',
         'procgraph',
         'comptests',
     ]
@@ -207,12 +206,12 @@ def get_checks():
         CheckImportMessages(),
         Diagnosis("The messages are not compiling correctly."))
 
-    if not this_is_circle:
-        add(None,
-            'Shell is bash',
-            EnvironmentVariableIsEqualTo('SHELL', '/bin/bash'),
-            Diagnosis('You have not set the shell to /bin/bash'),
-            Suggestion('You can change the shell using `chsh`.'))
+#     if not this_is_circle:
+#         add(None,
+#             'Shell is bash',
+#             EnvironmentVariableIsEqualTo('SHELL', '/bin/bash'),
+#             Diagnosis('You have not set the shell to /bin/bash'),
+#             Suggestion('You can change the shell using `chsh`.'))
 
 
     if this_is_a_duckiebot:
@@ -260,28 +259,28 @@ def get_checks():
         Diagnosis("You downloaded the repo using https."),
         )
 
-    scuderia_exists = add(existence[DUCKIEFLEET_ROOT],
-                          'Existence of scuderia file',
-                          ScuderiaFileExists(),
-                          Diagnosis('You do not have a scuderia file.'),
-                          SeeDocs('scuderia')
-                          )
+#     scuderia_exists = add(existence[DUCKIEFLEET_ROOT],
+#                           'Existence of scuderia file',
+#                           ScuderiaFileExists(),
+#                           Diagnosis('You do not have a scuderia file.'),
+#                           SeeDocs('scuderia')
+#                           )
 
     git_lfs_installed = add(None,  # @UnusedVariable
                             'Git LFS installed',
                             GitLFSInstalled(),
                             Diagnosis('You have not installed Git LFS'),
                             SeeDocs('git-lfs'))
-
-    ok_scuderia = add(scuderia_exists,
-        'Validation of scuderia file',
-        ValidScuderiaFile(),
-        Diagnosis('You have an invalid scuderia file.'),
-        SeeDocs('scuderia')
-        )
+# 
+#     ok_scuderia = add(scuderia_exists,
+#         'Validation of scuderia file',
+#         ValidScuderiaFile(),
+#         Diagnosis('You have an invalid scuderia file.'),
+#         SeeDocs('scuderia')
+#         )
 
     if this_is_a_duckiebot:
-        add(scuderia_exists,
+        add(None,
             'This robot is mentioned in scuderia.',
             ThisRobotInScuderiaFile(),
             Diagnosis('You have not added the robot to the scuderia.'),
@@ -294,8 +293,15 @@ def get_checks():
             CommandOutputContains('which %s' % prog, '/opt/ros/kinetic'),
             Diagnosis('The program `%s` is not resolved to the one in /opt/ros' % prog))
 
+    
+#     add(None,
+#         'Hub is installed',
+#         CommandOutputContains('hub --version'),
+#         Diagnosis('The program "hub" is not installed'),
+#         SeeDocs("hub"))
 
-    machines_exists = add(ok_scuderia,
+
+    machines_exists = add(None,
         'Existence of machines file',
         MachinesExists(),
         Diagnosis('You have an invalid or missing machines file.'),
@@ -309,12 +315,12 @@ def get_checks():
             Diagnosis('You have an invalid  machines file.'),
             )
 
-
-    add(machines_exists,
-        'Machines is updated',
-        MachinesNewerThanScuderia(),
-        Diagnosis('Scuderia was modified after machines created'),
-        )
+# 
+#     add(machines_exists,
+#         'Machines is updated',
+#         MachinesNewerThanScuderia(),
+#         Diagnosis('Scuderia was modified after machines created'),
+#         )
 
     if True: # TODO
 
