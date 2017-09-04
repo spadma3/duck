@@ -14,9 +14,9 @@ jobs:
         - run:
             name: deps
             command: |
-                sudo apt install -y python-frozendict python-ruamel.yaml
+                apt install -y python-frozendict python-ruamel.yaml
                 pip install --upgrade --user PyContracts QuickApp conftools comptests procgraph
-                
+
                 ./misc/python_environment.py comptests
 
                 # pip install ros_node_utils
