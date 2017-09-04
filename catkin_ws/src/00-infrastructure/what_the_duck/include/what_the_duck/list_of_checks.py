@@ -294,11 +294,11 @@ def get_checks():
             Diagnosis('The program `%s` is not resolved to the one in /opt/ros' % prog))
 
     
-    add(None,
-        'Hub is installed',
-        CommandOutputContains('hub --version'),
-        Diagnosis('The program "hub" is not installed'),
-        SeeDocs("hub"))
+#     add(None,
+#         'Hub is installed',
+#         CommandOutputContains('hub --version'),
+#         Diagnosis('The program "hub" is not installed'),
+#         SeeDocs("hub"))
 
 
     machines_exists = add(None,
@@ -315,12 +315,12 @@ def get_checks():
             Diagnosis('You have an invalid  machines file.'),
             )
 
-
-    add(machines_exists,
-        'Machines is updated',
-        MachinesNewerThanScuderia(),
-        Diagnosis('Scuderia was modified after machines created'),
-        )
+# 
+#     add(machines_exists,
+#         'Machines is updated',
+#         MachinesNewerThanScuderia(),
+#         Diagnosis('Scuderia was modified after machines created'),
+#         )
 
     if True: # TODO
 
