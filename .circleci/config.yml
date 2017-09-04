@@ -15,7 +15,7 @@ jobs:
             name: deps
             command: |
                 alias sudo=''
-                ./dependencies_since_image.sh
+                source ./dependencies_since_image.sh
                 ./misc/python_environment.py comptests
 
                 # pip install ros_node_utils
