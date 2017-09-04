@@ -14,11 +14,11 @@ jobs:
         - run:
             name: deps
             command: |
-                pip install comptests
+                ./dependencies_since_image.sh
                 ./misc/python_environment.py comptests
 
-                pip install ros_node_utils
-                pip install procgraph
+                # pip install ros_node_utils
+                # pip install procgraph
                 apt install -y python-sklearn
 
         - run:
