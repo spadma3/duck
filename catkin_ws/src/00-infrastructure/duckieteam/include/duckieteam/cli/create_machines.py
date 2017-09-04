@@ -12,17 +12,20 @@ class CreateMachines(D8App):
         params.add_flag(
             'print', help="If true, print instead of writing to file.")
 
-    def go(self):
-        db = get_easy_algo_db()
-        robots = db.query_and_instance('robot', 'all')
-
+    def go(self): 
+        robots = get_scuderia_contents()
         machines_contents = create_machines(robots)
         fn = get_machines_files_path()
         if getattr(self.options, 'print'):
             print(machines_contents)
         else:
-            write_data_to_file(machines_contents, fn)
 
+            write_data_to_file(machines_contents, fn)
+    
+def get_scuderia_contents():
+    db = get_easy_algo_db()
+    robots = db.query_and_instance('robot', 'all')
+    return robots
 
 def create_machines(scuderia_contents):
     """ Returns XML string """
