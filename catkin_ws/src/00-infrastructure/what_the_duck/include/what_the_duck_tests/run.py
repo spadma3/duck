@@ -5,8 +5,8 @@ from duckietown_utils.system_cmd_imp import system_cmd_result
 def test_cli2():
     cwd = '.'
     cmd = ['rosrun', 'what_the_duck', 'what-the-duck']
-    system_cmd_result(cwd, cmd,
+    res = system_cmd_result(cwd, cmd,
                       display_stdout=True,
                       display_stderr=True,
-                      raise_on_error=True)
-    
+                      raise_on_error=False)
+    assert res.ret > 0
