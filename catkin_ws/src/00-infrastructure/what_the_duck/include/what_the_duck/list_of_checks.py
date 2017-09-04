@@ -294,6 +294,13 @@ def get_checks():
             CommandOutputContains('which %s' % prog, '/opt/ros/kinetic'),
             Diagnosis('The program `%s` is not resolved to the one in /opt/ros' % prog))
 
+    
+    add(None,
+        'Hub is installed',
+        CommandOutputContains('hub --version'),
+        Diagnosis('The program "hub" is not installed'),
+        SeeDocs("hub"))
+
 
     machines_exists = add(ok_scuderia,
         'Existence of machines file',
