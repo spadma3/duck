@@ -2,4 +2,4 @@
 set -e
 set -x
 sudo apt install -y python-frozendict python-ruamel.yaml
-pip install --user PyContracts QuickApp conftools
+pip install --upgrade --user PyContracts QuickApp conftools comptests procgraph
