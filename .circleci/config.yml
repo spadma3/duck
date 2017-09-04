@@ -15,9 +15,10 @@ jobs:
             name: deps
             command: |
                 apt install -y python-frozendict python-ruamel.yaml
-                pip install --upgrade --user PyContracts QuickApp conftools comptests procgraph
+                pip install --upgrade PyContracts QuickApp conftools comptests procgraph
 
                 ./misc/python_environment.py comptests
+                which comptests
 
                 # pip install ros_node_utils
                 # pip install procgraph
