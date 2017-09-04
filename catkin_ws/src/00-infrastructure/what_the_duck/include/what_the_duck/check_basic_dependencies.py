@@ -9,7 +9,7 @@ except ImportError as e:
     msg = 'Comptests not installed.'
     msg += '\n\nTry the following:'
     msg += '\n\n     pip install --user comptests'
-    raise_desc(Exception, e, msg)
+    raise_wrapped(Exception, e, msg)
     
     
 try:
