@@ -1,20 +1,21 @@
+from duckietown_utils import raise_desc
 
 # Let's make sure we have the depedencies
 
 try:
     import comptests  # @UnusedImport
-except:
+except ImportError as e:
     msg = 'Comptests not installed.'
     msg += '\n\nTry the following:'
     msg += '\n\n     pip install --user comptests'
-    raise Exception(msg)
+    raise_desc(Exception, e, msg)
     
     
 try:
     import procgraph  # @UnresolvedImport @UnusedImport
-except:
+except ImportError as e:
     msg = 'procgraph not installed.'
     msg += '\n\nTry the following:'
     msg += '\n\n     pip install --user procgraph'
-    raise Exception(msg)
+    raise_desc(Exception, e, msg)
     
