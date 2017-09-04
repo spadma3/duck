@@ -2,7 +2,7 @@ from .logging_logger import logger
 
 
 try:
-    import frozendict  # @UnusedImport
+    import frozendict  # @UnusedImport @UnresolvedImport
 except:
     msg = 'frozendict not installed.'
     msg += '\n\nTry the following:'

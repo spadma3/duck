@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
 
-from contracts import describe_type
-
 from duckietown_utils import logger
 
 from .safe_reading import safe_read, safe_write
@@ -28,7 +26,7 @@ def safe_pickle_dump(value, filename, protocol=pickle.HIGHEST_PROTOCOL,
         except KeyboardInterrupt:
             raise
         except Exception:
-            msg = 'Cannot pickle object of class %s' % describe_type(value)
+            msg = 'Cannot pickle object of class %s' % type(value).__name__
             logger.error(msg)
 #             msg = find_pickling_error(value, protocol)
 #             logger.error(msg)
