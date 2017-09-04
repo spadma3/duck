@@ -18,7 +18,7 @@ class CreateMachines(D8App):
         if getattr(self.options, 'print'):
             print(machines_contents)
         else:
-            write_data_to_file(fn, machines_contents)
+            write_data_to_file(machines_contents, fn)
     
 def get_scuderia_contents():
     db = get_easy_algo_db()
