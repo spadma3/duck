@@ -1,6 +1,8 @@
 
 [ -z "$DUCKIETOWN_ROOT" ] && { echo "Need to set DUCKIETOWN_ROOT - configuration is invalid (!)";  }
 [ -z "$HOSTNAME"        ] && { echo "Need to set HOSTNAME.";        }
+[ -z "$DUCKIEFLEET"        ] && { echo "Need to set DUCKIEFLEET.";        }
+[ -z "$DUCKIETOWN_DATA"        ] && { echo "Need to set DUCKIETOWN_DATA.";        }
 
 # Do not compile Lisp messages
 # XXX: not sure if this is the place to put this.
@@ -14,6 +16,8 @@ echo "Setup ROS_HOSTNAME..."
 export HOSTNAME=$HOSTNAME
 export ROS_HOSTNAME=$HOSTNAME.local
 export DUCKIETOWN_ROOT=$HOME/duckietown
+export DUCKIEFLEET_ROOT=$DUCKIETOWN_ROOT/duckiefleet
+export DUCKIETOWN_DATA=$DUCKIETOWN_ROOT/duckietown-data
 
 echo "Setting up PYTHONPATH..."
 export PYTHONPATH=$DUCKIETOWN_ROOT/catkin_ws/src:$PYTHONPATH

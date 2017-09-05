@@ -17,7 +17,8 @@ def yaml_load_plain(s):
     if s.startswith('...'):
         return None
     
-    l = yaml.load(s, Loader=yaml.UnsafeLoader)
+    l = yaml.load(s)
+#    l = yaml.load(s, Loader=yaml.UnsafeLoader)
     return remove_unicode(l)
 
 def yaml_dump(s):
