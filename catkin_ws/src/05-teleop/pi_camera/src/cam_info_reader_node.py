@@ -17,8 +17,10 @@ class CamInfoReader(object):
         self.pub_camera_info = rospy.Publisher("~camera_info", CameraInfo, queue_size=1)
         # Get path to calibration yaml file
         rospack = rospkg.RosPack()
-        self.cali_file = (rospack.get_path('duckietown') + "/config/"+ self.config + "/calibration/camera_intrinsic/"+self.cali_file_name + ".yaml")
         
+        self.cali_file = (rospack.get_path('duckietown') + "/config/"
+                            + self.config + "/calibration/camera_intrinsic/"
+                           +  self.cali_file_name + ".yaml")
         self.camera_info_msg = None
 
         # Load calibration yaml file
