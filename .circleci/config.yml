@@ -85,9 +85,9 @@ jobs:
               path: artifacts
               destination: artifacts
 
-        - store_artifacts:
-              path: anti_instagram_annotations_test
-              destination: anti_instagram_annotations_test
+        # - store_artifacts:
+        #       path: anti_instagram_annotations_test
+        #       destination: anti_instagram_annotations_test
 
         - store_artifacts:
               path: reports
