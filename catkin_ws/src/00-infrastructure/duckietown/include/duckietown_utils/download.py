@@ -38,6 +38,7 @@ def download_if_not_exist(url, filename):
     if not os.path.exists(filename):
         logger.info('Path does not exist: %s'% filename)
         download_url_to_file(url, filename)
+        assert os.path.exists(filename)
     return filename
 
 def download_url_to_file(url, filename):
@@ -49,6 +50,7 @@ def download_url_to_file(url, filename):
         tmp,
         url
     ]
+    d8n_make_sure_dir_exists(tmp)
     _ = system_cmd_result(cwd='.', 
                           cmd=cmd,
                           display_stdout=False,
@@ -57,8 +59,7 @@ def download_url_to_file(url, filename):
                           write_stdin='',
                           capture_keyboard_interrupt=False,
                           env=None)
-    
-    d8n_make_sure_dir_exists(filename)
+    assert os.path.exists(tmp)
     os.rename(tmp, filename)
                 
     logger.info('-> %s' % friendly_path(filename))
