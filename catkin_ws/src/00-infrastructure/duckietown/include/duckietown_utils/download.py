@@ -38,7 +38,11 @@ def download_if_not_exist(url, filename):
     if not os.path.exists(filename):
         logger.info('Path does not exist: %s'% filename)
         download_url_to_file(url, filename)
-        assert os.path.exists(filename)
+        if not os.path.exists(filename):
+            msg = 'I expected download_url_to_file() to raise an error if failed.'
+            msg +='\n url: %s' % url
+            msg +='\n filename: %s' % filename
+            raise AssertionError(msg)
     return filename
 
 def download_url_to_file(url, filename):
@@ -59,7 +63,12 @@ def download_url_to_file(url, filename):
                           write_stdin='',
                           capture_keyboard_interrupt=False,
                           env=None)
-    assert os.path.exists(tmp)
+    if not os.path.exists(tmp):
+        msg = 'Wget did not give any error.'
+        msg +='\n url: %s' % url
+        msg +='\n filename: %s' % filename
+        raise Exception(msg)
+    
     os.rename(tmp, filename)
                 
     logger.info('-> %s' % friendly_path(filename))
