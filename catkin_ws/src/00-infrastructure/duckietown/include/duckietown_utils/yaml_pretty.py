@@ -8,7 +8,10 @@ def yaml_load(s):
     try:
         l = yaml.load(s, Loader=yaml.RoundTripLoader)
     except:
-        l = yaml.load(s, Loader=yaml.UnsafeLoader)
+        try:
+            l = yaml.load(s, Loader=yaml.UnsafeLoader)
+        except:
+            l = yaml.load(s)
     return remove_unicode(l)
 
 def yaml_load_plain(s):
@@ -16,8 +19,10 @@ def yaml_load_plain(s):
     
     if s.startswith('...'):
         return None
-    
-    l = yaml.load(s, Loader=yaml.UnsafeLoader)
+    try:
+        l = yaml.load(s, Loader=yaml.UnsafeLoader)
+    except:
+        l = yaml.load(s)
     return remove_unicode(l)
 
 def yaml_dump(s):
