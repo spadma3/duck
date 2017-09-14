@@ -25,7 +25,8 @@ def write_data_to_file(data, filename):
     if os.path.exists(filename):
         current = open(filename).read()
         if current == data:
-            logger.debug('already up to date %s' % friendly_path(filename))
+            if not 'assets/' in filename:
+                logger.debug('already up to date %s' % friendly_path(filename))
             return
          
     with open(filename, 'w') as f:

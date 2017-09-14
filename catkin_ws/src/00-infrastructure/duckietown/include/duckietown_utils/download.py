@@ -10,6 +10,7 @@ from .mkdirs import d8n_make_sure_dir_exists
 from .exceptions import DTConfigException
 from .yaml_pretty import yaml_load
 from .memoization import memoize_simple
+from contracts.utils import indent
 
 def get_urls_path():
     from .path_utils import get_ros_package_path
@@ -38,7 +39,11 @@ def download_if_not_exist(url, filename):
     if not os.path.exists(filename):
         logger.info('Path does not exist: %s'% filename)
         download_url_to_file(url, filename)
-        assert os.path.exists(filename)
+        if not os.path.exists(filename):
+            msg = 'I expected download_url_to_file() to raise an error if failed.'
+            msg +='\n url: %s' % url
+            msg +='\n filename: %s' % filename
+            raise AssertionError(msg)
     return filename
 
 def download_url_to_file(url, filename):
@@ -51,7 +56,7 @@ def download_url_to_file(url, filename):
         url
     ]
     d8n_make_sure_dir_exists(tmp)
-    _ = system_cmd_result(cwd='.', 
+    res = system_cmd_result(cwd='.', 
                           cmd=cmd,
                           display_stdout=False,
                           display_stderr=False,
@@ -59,7 +64,13 @@ def download_url_to_file(url, filename):
                           write_stdin='',
                           capture_keyboard_interrupt=False,
                           env=None)
-    assert os.path.exists(tmp)
+    if not os.path.exists(tmp):
+        msg = 'File does not exist but wget did not give any error.'
+        msg +='\n url: %s' % url
+        msg +='\n filename: %s' % filename
+        msg +='\n' + indent(str(res), ' | ')
+        raise Exception(msg)
+    
     os.rename(tmp, filename)
                 
     logger.info('-> %s' % friendly_path(filename))
