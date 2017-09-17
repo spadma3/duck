@@ -10,6 +10,7 @@ from .mkdirs import d8n_make_sure_dir_exists
 from .exceptions import DTConfigException
 from .yaml_pretty import yaml_load
 from .memoization import memoize_simple
+from contracts.utils import indent
 
 def get_urls_path():
     from .path_utils import get_ros_package_path
@@ -55,7 +56,7 @@ def download_url_to_file(url, filename):
         url
     ]
     d8n_make_sure_dir_exists(tmp)
-    _ = system_cmd_result(cwd='.', 
+    res = system_cmd_result(cwd='.', 
                           cmd=cmd,
                           display_stdout=False,
                           display_stderr=False,
@@ -64,9 +65,10 @@ def download_url_to_file(url, filename):
                           capture_keyboard_interrupt=False,
                           env=None)
     if not os.path.exists(tmp):
-        msg = 'Wget did not give any error.'
+        msg = 'File does not exist but wget did not give any error.'
         msg +='\n url: %s' % url
         msg +='\n filename: %s' % filename
+        msg +='\n' + indent(str(res), ' | ')
         raise Exception(msg)
     
     os.rename(tmp, filename)
