@@ -13,20 +13,20 @@ from Adafruit_MotorHAT import Adafruit_MotorHAT
 from math import fabs, floor
 
 class DaguWheelsDriver:
-    LEFT_MOTOR_MIN_PWM = 60        # Minimum speed for left motor  
-    LEFT_MOTOR_MAX_PWM = 255       # Maximum speed for left motor  
-    RIGHT_MOTOR_MIN_PWM = 60       # Minimum speed for right motor  
-    RIGHT_MOTOR_MAX_PWM = 255      # Maximum speed for right motor  
+    LEFT_MOTOR_MIN_PWM = 60        # Minimum speed for left motor
+    LEFT_MOTOR_MAX_PWM = 255       # Maximum speed for left motor
+    RIGHT_MOTOR_MIN_PWM = 60       # Minimum speed for right motor
+    RIGHT_MOTOR_MAX_PWM = 255      # Maximum speed for right motor
     # AXEL_TO_RADIUS_RATIO = 1.0     # The axel length and turning radius ratio
     SPEED_TOLERANCE = 1.e-2       # speed tolerance level
 
     def __init__(self, verbose=False, debug=False, left_flip=False, right_flip=False):
         self.motorhat = Adafruit_MotorHAT(addr=0x60)
-        self.leftMotor = self.motorhat.getMotor(1)
-        self.rightMotor = self.motorhat.getMotor(2)
+        self.leftMotor = self.motorhat.getMotor(2)
+        self.rightMotor = self.motorhat.getMotor(4)
         self.verbose = verbose or debug
         self.debug = debug
-        
+
         self.left_sgn = 1.0
         if left_flip:
             self.left_sgn = -1.0
@@ -60,7 +60,7 @@ class DaguWheelsDriver:
             pwml = 0
         elif vl > 0:
             leftMotorMode = Adafruit_MotorHAT.FORWARD
-        elif vl < 0: 
+        elif vl < 0:
             leftMotorMode = Adafruit_MotorHAT.BACKWARD
 
         if fabs(vr) < self.SPEED_TOLERANCE:
@@ -68,7 +68,7 @@ class DaguWheelsDriver:
             pwmr = 0
         elif vr > 0:
             rightMotorMode = Adafruit_MotorHAT.FORWARD
-        elif vr < 0: 
+        elif vr < 0:
             rightMotorMode = Adafruit_MotorHAT.BACKWARD
 
         self.leftMotor.setSpeed(pwml)
