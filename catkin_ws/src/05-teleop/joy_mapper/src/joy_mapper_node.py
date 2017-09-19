@@ -4,6 +4,7 @@ import math
 
 from duckietown_msgs.msg import Twist2DStamped, BoolStamped
 from sensor_msgs.msg import Joy
+from std_msgs.msg import Float32
 
 from __builtin__ import True
 
@@ -30,6 +31,8 @@ class JoyMapper(object):
         self.pub_anti_instagram = rospy.Publisher("anti_instagram_node/click",BoolStamped, queue_size=1)
         self.pub_e_stop = rospy.Publisher("wheels_driver_node/emergency_stop",BoolStamped,queue_size=1)
         self.pub_avoidance = rospy.Publisher("~start_avoidance",BoolStamped,queue_size=1)
+        self.pub_patrol = rospy.Publisher("patrol",BoolStamped,queue_size=1)
+        self.pub_boost = rospy.Publisher("boost",Float32,queue_size=1)
 
         # Subscriptions
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
@@ -41,6 +44,8 @@ class JoyMapper(object):
 
         self.state_parallel_autonomy = False
         self.state_verbose = False
+        self.patrol_trigger_initialized = False
+        self.boost_trigger_initialized = False
 
         pub_msg = BoolStamped()
         pub_msg.data = self.state_parallel_autonomy
@@ -87,14 +92,14 @@ class JoyMapper(object):
             override_msg.data = True
             rospy.loginfo('override_msg = True')
             self.pub_joy_override.publish(override_msg)
-            
+
         elif (joy_msg.buttons[7] == 1): #the start button
             override_msg = BoolStamped()
             override_msg.header.stamp = self.joy.header.stamp
             override_msg.data = False
             rospy.loginfo('override_msg = False')
             self.pub_joy_override.publish(override_msg)
-            
+
         elif (joy_msg.buttons[5] == 1): # Right back button
             self.state_verbose ^= True
             rospy.loginfo('state_verbose = %s' % self.state_verbose)
@@ -130,6 +135,23 @@ class JoyMapper(object):
             some_active = sum(joy_msg.buttons) > 0
             if some_active:
                 rospy.loginfo('No binding for joy_msg.buttons = %s' % str(joy_msg.buttons))
+
+        # RT trigger
+        if joy_msg.axes[4] == 1: self.boost_trigger_initialized = True
+        boost_msg = Float32()
+        boost_msg.data = 0.0
+        if self.boost_trigger_initialized:
+            boost_msg.data = 0.5 * ( 1.0 - joy_msg.axes[4] )
+        self.pub_boost.publish(boost_msg)
+
+        # LT trigger
+        if joy_msg.axes[5] == 1: self.patrol_trigger_initialized = True
+        patrol_msg = BoolStamped()
+        patrol_msg.data = False
+        patrol_msg.header.stamp = self.joy.header.stamp
+        if self.patrol_trigger_initialized:
+            patrol_msg.data = True if joy_msg.axes[5] < 1.0 else False
+        self.pub_patrol.publish(patrol_msg)
 
 
 if __name__ == "__main__":
