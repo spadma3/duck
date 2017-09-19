@@ -52,4 +52,9 @@
     <include file="$(find dagu_car)/launch/wheels_driver_node.launch">
         <arg name="veh" value="$(arg veh)"/>
     </include>
+
+    <!-- Patrol Lights Driver -->
+    <include file="$(find patrol_bot)/launch/patrol_bot_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
 </launch>
