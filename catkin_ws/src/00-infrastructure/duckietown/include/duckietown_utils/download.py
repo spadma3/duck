@@ -70,7 +70,7 @@ def download_url_to_file(url, filename):
         msg +='\n downloaded to: %s' % tmp
         msg +='\n' + indent(str(res), ' | ')
         d = os.path.dirname(tmp)
-        r = system_cmd_result(d, ['ls', '-l', display_stdout=False,
+        r = system_cmd_result(d, ['ls', '-l'], display_stdout=False,
                           display_stderr=False,
                           raise_on_error=True)
         msg += '\n Contents of the directory:'
