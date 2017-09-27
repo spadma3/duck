@@ -1,4 +1,4 @@
-
+#!/bin/bash
 [ -z "$DUCKIETOWN_ROOT" ] && { echo "Need to set DUCKIETOWN_ROOT - configuration is invalid (!)";  }
 [ -z "$HOSTNAME"        ] && { echo "Need to set HOSTNAME.";        }
 
