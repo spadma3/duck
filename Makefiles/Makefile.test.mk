@@ -18,7 +18,7 @@ test:
 	@echo
 
 test-circle: \
-	test-comptests \
+	test-comptests-slow \
 	test-download-logs
 	#test-line-detector-programmatic
 
