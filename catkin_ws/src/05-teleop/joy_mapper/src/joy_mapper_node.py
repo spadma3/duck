@@ -102,24 +102,24 @@ class JoyMapper(object):
             rospy.loginfo('state_verbose = %s' % self.state_verbose)
             rospy.set_param('line_detector_node/verbose', self.state_verbose) # bad - should be published for all to hear - not set a specific param
 
-        elif (joy_msg.buttons[4] == 1): #Left back button
-            self.state_parallel_autonomy ^= True
-            rospy.loginfo('state_parallel_autonomy = %s' % self.state_parallel_autonomy)
-            parallel_autonomy_msg = BoolStamped()
-            parallel_autonomy_msg.header.stamp = self.joy.header.stamp
-            parallel_autonomy_msg.data = self.state_parallel_autonomy
-            self.pub_parallel_autonomy.publish(parallel_autonomy_msg)
+        #elif (joy_msg.buttons[4] == 1): #Left back button
+        #    self.state_parallel_autonomy ^= True
+        #    rospy.loginfo('state_parallel_autonomy = %s' % self.state_parallel_autonomy)
+        #    parallel_autonomy_msg = BoolStamped()
+        #    parallel_autonomy_msg.header.stamp = self.joy.header.stamp
+        #    parallel_autonomy_msg.data = self.state_parallel_autonomy
+        #    self.pub_parallel_autonomy.publish(parallel_autonomy_msg)
         elif (joy_msg.buttons[3] == 1):
             anti_instagram_msg = BoolStamped()
             anti_instagram_msg.header.stamp = self.joy.header.stamp
             anti_instagram_msg.data = True
-            rospy.loginfo('anti_instagram message')
+            rospy.loginfo('anti_instagram message rithesh!!!!!')
             self.pub_anti_instagram.publish(anti_instagram_msg)
-        elif (joy_msg.buttons[2] == 1):
+        elif (joy_msg.buttons[4] == 1):
             imitation_msg = BoolStamped()
             imitation_msg.header.stamp = self.joy.header.stamp
             imitation_msg.data = True
-            rospy.loginfo('imitation mode setting message')
+            rospy.loginfo('imitation mode setting message!!!!!!!!!!!!!!')
             self.pub_imitation.publish(imitation_msg)
         elif (joy_msg.buttons[8] == 1):  # power button (middle)
             e_stop_msg = BoolStamped()

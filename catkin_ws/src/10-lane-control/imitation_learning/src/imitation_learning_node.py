@@ -57,7 +57,7 @@ class LaneFollowerNode(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header.stamp = image_delay_stamp
-        car_control_msg.v = 1.
+        car_control_msg.v = 10.
         car_control_msg.omega = 0.5
 
 	rospy.loginfo("Published car control message!")

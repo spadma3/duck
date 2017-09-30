@@ -13,11 +13,11 @@ events: #Maps from subscribing topic to signal ids
   imitation_mode_on:
     topic: "joy_mapper_node/imitation_mode"
     msg_type: "BoolStamped"
-    trigger: True
+    trigger: "True"
   imitation_mode_off:
     topic: "joy_mapper_node/imitation_mode"
     msg_type: "BoolStamped"
-    trigger: False
+    trigger: "False"
   parallel_autonomy_on:
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
@@ -88,6 +88,7 @@ global_transitions:
   joystick_override_on: "JOYSTICK_CONTROL"
   parallel_autonomy_on: "PARALLEL_AUTONOMY"
   parallel_autonomy_off: "JOYSTICK_CONTROL"
+  imitation_mode_on: "IMITATION"
 
 # Define nodes 
 nodes:
@@ -118,7 +119,6 @@ states:
       - decoder_node
       - apriltag_node
     lights: ["joystick"]
-  IMITATION:
   PARALLEL_AUTONOMY:
     transitions:
       vehicle_detection: "AVOID_VEHICLE"
@@ -202,4 +202,9 @@ states:
       intersection_recovery_timeout_reached: "JOYSTICK_CONTROL"
     active_nodes:
       - lane_filter_node
+      - line_detector_node
+  IMITATION:
+    transitions:
+      intersection_done: "LANE_FOLLOWING"
+    active_nodes:
       - line_detector_node

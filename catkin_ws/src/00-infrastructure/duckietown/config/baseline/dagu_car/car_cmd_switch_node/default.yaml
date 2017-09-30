@@ -10,7 +10,7 @@ source_topics: #Mapping from cmd source name to topics
   parallel_autonomy: "lane_supervisor_node/car_cmd"
   recovery: "lane_recovery_node/car_cmd" # not implemented yet
 mappings: #Mapping from FSMStates.state to cmd source names. Allows different FSM mode to use the same source.
-  LANE_FOLLOWING: "lane"
+  LANE_FOLLOWING: "imitate"
   LANE_FOLLOWING_AVOID: "lane"
   IMITATION: "imitate"
   INTERSECTION_CONTROL: "intersection"
