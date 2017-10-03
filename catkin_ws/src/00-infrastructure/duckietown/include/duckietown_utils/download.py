@@ -65,10 +65,16 @@ def download_url_to_file(url, filename):
                           capture_keyboard_interrupt=False,
                           env=None)
     if not os.path.exists(tmp):
-        msg = 'File does not exist but wget did not give any error.'
+        msg = 'Downloaded file does not exist but wget did not give any error.'
         msg +='\n url: %s' % url
-        msg +='\n filename: %s' % filename
+        msg +='\n downloaded to: %s' % tmp
         msg +='\n' + indent(str(res), ' | ')
+        d = os.path.dirname(tmp)
+        r = system_cmd_result(d, ['ls', '-l'], display_stdout=False,
+                          display_stderr=False,
+                          raise_on_error=True)
+        msg += '\n Contents of the directory:'
+        msg += '\n' + indent(str(r.stdout), ' | ')
         raise Exception(msg)
     
     os.rename(tmp, filename)
