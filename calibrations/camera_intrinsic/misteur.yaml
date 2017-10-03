@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [352.1310670029488, 0.0, 334.70123956958656, 0.0, 348.8221203120959, 257.75678001642524,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: misteur/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.30893627879739316, 0.08043063601527398, 0.00031451121405878877, 0.0033785022746683426,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [257.2113952636719, 0.0, 338.28825239130674, 0.0, 0.0, 285.32025146484375,
+    266.7580076056656, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
