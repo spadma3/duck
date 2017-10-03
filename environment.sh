@@ -13,7 +13,7 @@ source /opt/ros/kinetic/setup.$shell
 echo "Setup ROS_HOSTNAME..."
 export HOSTNAME=$HOSTNAME
 export ROS_HOSTNAME=$HOSTNAME.local
-export DUCKIETOWN_ROOT=$HOME/duckietown
+export DUCKIETOWN_ROOT=$(pwd)
 
 echo "Setting up PYTHONPATH..."
 export PYTHONPATH=$DUCKIETOWN_ROOT/catkin_ws/src:$PYTHONPATH
