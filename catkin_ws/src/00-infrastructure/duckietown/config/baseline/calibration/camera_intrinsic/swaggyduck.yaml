@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [333.8237966835112, 0.0, 327.3690862247198, 0.0, 330.28807940817296, 230.85687175495661,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: swaggyduck/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.2748349170805222, 0.05105419301683663, 0.0018460198698129415, 0.0015970374201616986,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [224.1515655517578, 0.0, 325.8779774536433, 0.0, 0.0, 268.5711975097656, 227.71283483729167,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
