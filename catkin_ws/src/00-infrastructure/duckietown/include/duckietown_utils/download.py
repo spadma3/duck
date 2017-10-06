@@ -48,7 +48,7 @@ def download_if_not_exist(url, filename):
 
 def download_url_to_file(url, filename):
     logger.info('Download from %s' % (url))
-    tmp = filename + '.download'
+    tmp = filename + '.tmp_download_file'
     cmd = [
         'wget',
         '-O',
@@ -64,7 +64,8 @@ def download_url_to_file(url, filename):
                           write_stdin='',
                           capture_keyboard_interrupt=False,
                           env=None)
-    if not os.path.exists(tmp):
+    
+    if not os.path.exists(tmp) and not os.path.exists(filename):
         msg = 'Downloaded file does not exist but wget did not give any error.'
         msg +='\n url: %s' % url
         msg +='\n downloaded to: %s' % tmp
@@ -77,7 +78,8 @@ def download_url_to_file(url, filename):
         msg += '\n' + indent(str(r.stdout), ' | ')
         raise Exception(msg)
     
-    os.rename(tmp, filename)
+    if not os.path.exists(filename):
+        os.rename(tmp, filename)
                 
     logger.info('-> %s' % friendly_path(filename))
 
