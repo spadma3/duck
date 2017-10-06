@@ -15,10 +15,13 @@ jobs:
             name: deps
             command: |
                 apt install -y python-frozendict python-ruamel.yaml
-                pip install --upgrade PyContracts QuickApp conftools comptests procgraph
+                pip install --upgrade compmake==3.5.6 PyContracts QuickApp conftools comptests procgraph
 
                 ./misc/python_environment.py comptests
                 which comptests
+
+                ./misc/python_environment.py compmake
+
 
                 # pip install ros_node_utils
                 # pip install procgraph
@@ -47,7 +50,8 @@ jobs:
                 export HOSTNAME=$HOSTNAME
 
 
-                git clone git@github.com:duckietown/duckiefleet-fall2017.git $DUCKIEFLEET_ROOT
+                # git clone git@github.com:duckietown/duckiefleet-fall2017.git $DUCKIEFLEET_ROOT
+                mkdir -p $DUCKIEFLEET_ROOT
 
                 make test-download-logs
                 make test-circle
@@ -85,9 +89,9 @@ jobs:
               path: artifacts
               destination: artifacts
 
-        - store_artifacts:
-              path: anti_instagram_annotations_test
-              destination: anti_instagram_annotations_test
+        # - store_artifacts:
+        #       path: anti_instagram_annotations_test
+        #       destination: anti_instagram_annotations_test
 
         - store_artifacts:
               path: reports

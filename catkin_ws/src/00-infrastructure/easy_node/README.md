@@ -60,7 +60,8 @@ The parameters are as follows.
 `![topic name]` is the name of the topic to subscribe.
 
 `![message type]` is a ROS message type name, such as `sensor_msgs/Joy`.
-- `![description]` is a Markdown description string.
+
+`![description]` is a Markdown description string.
 
 `![queue size]`, `![latch]` are optional parameters for
   ROS publishing/subscribing functions.
