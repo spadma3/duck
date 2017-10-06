@@ -1,16 +1,16 @@
+from contracts.utils import indent
+from duckietown_utils import logger
 import os
 
-from duckietown_utils import logger
-
-from .friendly_path_imp import friendly_path
-from .system_cmd_imp import system_cmd_result
 from .constants import get_duckietown_root
-from .test_hash import get_md5
-from .mkdirs import d8n_make_sure_dir_exists
 from .exceptions import DTConfigException
-from .yaml_pretty import yaml_load
+from .friendly_path_imp import friendly_path
 from .memoization import memoize_simple
-from contracts.utils import indent
+from .mkdirs import d8n_make_sure_dir_exists
+from .system_cmd_imp import system_cmd_result
+from .test_hash import get_md5
+from .yaml_pretty import yaml_load
+
 
 def get_urls_path():
     from .path_utils import get_ros_package_path
