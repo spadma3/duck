@@ -3,11 +3,12 @@
 This is an attempt to use addressable leds with the duckiebot by means of ATTINY85 as an i2c slave, 
 and 5 WS2812 addressable leds. 
 
-The original duckiebot uses a PWM hat and a custom made PCB that connects to the leds that are on the bumpers. Since each LED requires 4 cables, this creates a cable clutter, and difficulties in assembly and cost.
+The original duckiebot uses a PWM hat and a custom made PCB that connects to the leds that are on the bumpers. Since each LED requires 4 cables, this creates a cable clutter, and difficulties in assembly.
 
 - ATTINY85 is connected to I2C on Raspberry PI and powered with 3V3 from Raspberry PI.
 - PB3 pin of the ATTINY85 is connected to led strips data line.
 - https://github.com/usedbytes/neopixel_i2c library is used with minor modification.
+- This setup costs much less.
 
 # Required Circuit
 
