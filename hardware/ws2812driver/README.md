@@ -31,3 +31,6 @@ After installing the avr-gcc tools, just type `make` and it will compile and upl
 - 0x04,0x05,0x06 are the GRB of the first led and so on.
 - 0x00 is a control register. Writing 0x01 to it causes reset, writing 0x02 will cause the global GRB values at 0x01,0x02,0x03 be applied to all the leds.
 
+# Getting it to work with duckietown code
+
+- The neopixel library can be modified to emulate PCA9685 chip with the ATTINY85 so it could work transparently, however this would be a waste of resources.
