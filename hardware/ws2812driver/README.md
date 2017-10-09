@@ -20,7 +20,7 @@ A cheap USBASP programmer is required to program the ATTINY85. The original code
 - Just uncomment the `swirly();` at line 124 of main.c 
 - Set the `#define N_LEDS 5` in neopixel_i2c/i2c/i2c_slave_defs.h file.
 
-After installing the avr-gcc tools, just type `make` and it will compile and upload the program. Also if it is the first time programming the ATTINY chip, you have to type `make fuses` to configure the fuses. Also, the usbasp programmer has a jumper for slow sck. Depending on your programmer, if the make command fails you might need to short this jumper on the programmer.
+After installing the avr-gcc tools, just type `make` and it will compile and upload the program. Also if it is the first time programming the ATTINY85 chip, you have to type `make fuses` to configure the fuses. Also, the usbasp programmer has a jumper for slow sck. Depending on your programmer, if the make command fails you might need to short this jumper on the programmer.
 
 # Testing the hardware
 
