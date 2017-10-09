@@ -31,6 +31,21 @@ After installing the avr-gcc tools, just type `make` and it will compile and upl
 - 0x04,0x05,0x06 are the GRB of the first led and so on.
 - 0x00 is a control register. Writing 0x01 to it causes reset, writing 0x02 will cause the global GRB values at 0x01,0x02,0x03 be applied to all the leds.
 
-# Getting it to work with duckietown code
+# Getting it to work with duckiebot
 
 - The neopixel library can be modified to emulate PCA9685 chip with the ATTINY85 so it could work transparently, however this would be a waste of resources.
+- Copy the `NeoPixel_I2C_Driver` directory into `duckietown/catkin_ws/src/05-teleop/adafruit_drivers/`
+- Modify the `duckietown/catkin_ws/src/05-teleop/adafruit_drivers/setup.py` file and add `'NeoPixel_I2C_Driver'` to packages array to make it look like:
+`packages=['Adafruit_ADS1x15', 'Adafruit_GPIO','Adafruit_I2C','Adafruit_LSM303','Adafruit_MotorHAT','Adafruit_PWM_Servo_Driver','Gyro_L3GD20', 'NeoPixel_I2C_Driver'],`
+-Modify the `duckietown/catkin_ws/src/40-coordination/rgb_led/include/rgb_led/rgb_led.py` and add
+`OFFSET_RED   = 1
+ OFFSET_GREEN = 0
+ OFFSET_BLUE  = 2`
+ This is because the WS2812 expects GRB instead of RGB order.
+ - Change `from Adafruit_PWM_Servo_Driver import PWM  # @UnresolvedImport` to `from NeoPixel_I2C_Driver import PWM # @UnresolvedImport`
+
+After this launch `'roslaunch led_joy_mapper led_joy_with_led_emitter_test.launch veh:=robotname'` and it should respond to joystick buttons as described in documentation.
+
+LEDs are in the same order. FL, BL, TOP, BR, FR are LED 1 to 5 respectively.
+
+
