@@ -24,7 +24,7 @@ After installing the avr-gcc tools, just type `make` and it will compile and upl
 
 # Testing the hardware
 
-- SSH into duckiebot and `sudo i2cdetect -t 1` you should see the device at 0x40. (Make sure that the original PWM hat is off)
+- ssh into duckiebot and `sudo i2cdetect -t 1` you should see the device at 0x40. (Make sure that the original PWM hat is off)
 - `sudo i2cset -y 1 0x40 0x04 0x80` should light the first led in GREEN.
 - `sudo i2cset -y 1 0x40 0x07 0x80` should light the second led in GREEN.
 - `sudo i2cset -y 1 0x40 0x00 0x01` all leds should be off. (RESET)
