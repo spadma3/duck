@@ -7,7 +7,7 @@ The original duckiebot uses a PWM hat and a custom made PCB that connects to the
 
 - ATTINY85 is connected to I2C on RaspberryPI
 - PB3 pin of the ATTINY85 is connected to leds.
-- https://github.com/usedbytes/neopixel_i2c is used with minor modification on the ATTINY85
+- https://github.com/usedbytes/neopixel_i2c library is used with minor modification.
 
 # Required Circuit
 
