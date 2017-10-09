@@ -33,8 +33,7 @@ class PWM :
     "Sets a single PWM channel"
     pwmval = int((on / float(off)) * 255)
     self.i2c.write8(self.__OFFSET + channel, pwmval)
-    #CA check this statement
-    time.sleep(0.00001)
+    time.sleep(0.001)
 
   def setAllPWM(self, on, off):
     "Sets all PWM channels"
