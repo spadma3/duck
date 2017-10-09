@@ -33,7 +33,7 @@ After installing the avr-gcc tools, just type `make` and it will compile and upl
 
 # Getting it to work with duckiebot software
 
-The neopixel_i2c library can be modified to emulate PCA9685 chip with the ATTINY85 so it could work transparently, however this would be a waste of resources. However it is also possible to modify the duckiebot code to use the led driver without further modification on the neopixel_i2c library. Below are steps required for this modification.
+The neopixel_i2c library can be modified to emulate PCA9685 chip with the ATTINY85 so it could work transparently, however this would be a waste of resources. However it is also possible to modify the duckiebot code to use the led driver without further modification on the neopixel_i2c library. Below are steps required for such modification.
 
 - Copy the `NeoPixel_I2C_Driver` directory into `duckietown/catkin_ws/src/05-teleop/adafruit_drivers/`
 - Modify the `duckietown/catkin_ws/src/05-teleop/adafruit_drivers/setup.py` file and add `'NeoPixel_I2C_Driver'` to packages array to make it look like:
