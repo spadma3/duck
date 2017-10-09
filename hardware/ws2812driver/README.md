@@ -3,7 +3,7 @@
 This is an attempt to use addressable leds with the duckiebot by means of ATTINY85 as an i2c slave, 
 and 5 WS2812 addressable leds. 
 
-The original duckiebot uses a PWM hat and a custom made PCB that connects to the leds that are on the bumpers. Since each LED requires 4 cable this creates a cable clutter, and diffuculties in assembly.
+The original duckiebot uses a PWM hat and a custom made PCB that connects to the leds that are on the bumpers. Since each LED requires 4 cables, this creates a cable clutter, and diffuculties in assembly.
 
 - ATTINY85 is connected to I2C on RaspberryPI
 - PB3 pin of the ATTINY85 is connected to leds.
@@ -47,6 +47,4 @@ The neopixel_i2c library can be modified to emulate PCA9685 chip with the ATTINY
 
 After this launch `'roslaunch led_joy_mapper led_joy_with_led_emitter_test.launch veh:=robotname'` and it should respond to joystick buttons as described in documentation.
 
-LEDs are in the same order. FL, BL, TOP, BR, FR are LED 1 to 5 respectively.
-
-
+The WS2812 leds are in the same order. FL, BL, TOP, BR, FR are LED 1 to 5 respectively.
