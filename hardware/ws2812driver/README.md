@@ -31,9 +31,13 @@ After installing the avr-gcc tools, just type `make` and it will compile and upl
 - 0x04,0x05,0x06 are the GRB of the first led and so on.
 - 0x00 is a control register. Writing 0x01 to it causes reset, writing 0x02 will cause the global GRB values at 0x01,0x02,0x03 be applied to all the leds.
 
-# Getting it to work with duckiebot software
+# Getting it to work duckiebot
 
-The neopixel_i2c library can be modified to emulate PCA9685 chip with the ATTINY85 so it could work transparently, however this would be a waste of resources. However it is also possible to modify the duckiebot code to use the led driver without further modification on the neopixel_i2c library. Below are steps required for such modification.
+The neopixel_i2c library can be modified to emulate PCA9685 chip so it could work transparently, but the PCA9685 uses 4 bytes per channel and this would be a waste of resources both on the ATTINY85 and the Raspberry PI's I2C bus.
+
+It is also possible to modify the duckiebot code to use the led driver without further modification on the neopixel_i2c library. 
+
+Below are steps required for such modification.
 
 - Copy the `NeoPixel_I2C_Driver` directory into `duckietown/catkin_ws/src/05-teleop/adafruit_drivers/`
 - Modify the `duckietown/catkin_ws/src/05-teleop/adafruit_drivers/setup.py` file and add `'NeoPixel_I2C_Driver'` to packages array to make it look like:
