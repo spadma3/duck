@@ -38,7 +38,7 @@ The neopixel_i2c library can be modified to emulate PCA9685 chip with the ATTINY
 - Copy the `NeoPixel_I2C_Driver` directory into `duckietown/catkin_ws/src/05-teleop/adafruit_drivers/`
 - Modify the `duckietown/catkin_ws/src/05-teleop/adafruit_drivers/setup.py` file and add `'NeoPixel_I2C_Driver'` to packages array to make it look like:
 `packages=['Adafruit_ADS1x15', 'Adafruit_GPIO','Adafruit_I2C','Adafruit_LSM303','Adafruit_MotorHAT','Adafruit_PWM_Servo_Driver','Gyro_L3GD20', 'NeoPixel_I2C_Driver'],`
--Modify the `duckietown/catkin_ws/src/40-coordination/rgb_led/include/rgb_led/rgb_led.py` and add
+- Modify the `duckietown/catkin_ws/src/40-coordination/rgb_led/include/rgb_led/rgb_led.py` and add
 `OFFSET_RED   = 1
  OFFSET_GREEN = 0
  OFFSET_BLUE  = 2`
