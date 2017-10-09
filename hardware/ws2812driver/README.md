@@ -15,7 +15,7 @@ The original duckiebot uses a PWM hat and a custom made PCB that connects to the
 
 # Programming The ATTINY85
 
-A cheap USBASP programmer is required to program the ATTINY85. The original code @ https://github.com/usedbytes/neopixel_i2c must be modified.
+A cheap (5$) USBASP programmer is required to program the ATTINY85. The original code @ https://github.com/usedbytes/neopixel_i2c must be modified.
 
 - Just uncomment the `swirly();` at line 124 of main.c 
 - Set the `#define N_LEDS 5` in neopixel_i2c/i2c/i2c_slave_defs.h file.
