@@ -1,0 +1,11 @@
+<launch>
+	<arg name="pkg_name" value="micromvp_test"/>
+	<arg name="node_name" default="subspeed_node"/>
+		
+	<arg name="veh" default="erickietop" doc="Name of vehicle. ex: megaman"/>
+
+	<node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true">
+	</node>
+
+	
+</launch>
