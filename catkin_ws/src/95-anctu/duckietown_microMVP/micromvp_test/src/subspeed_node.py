@@ -16,7 +16,7 @@ class Subspeed_node(object):
 		self.control_constant = 1.0
 		self.sub_topic = rospy.Subscriber("micromvp", micromvp_carspeed, self.cbWheelsCmd, queue_size=1)
 
-		self.max_vel = 200
+		self.max_vel = 80
 
 	def cbWheelsCmd(self,msg):
 		
