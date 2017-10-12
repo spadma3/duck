@@ -156,9 +156,9 @@ class App(gui.Desktop):
         #self.sim = bool(os.environ.get("sim", args.sim))
         self.sim = True
         self.vMax = 1.0
-        self.simSpeed = utils.simSpeed
+        #self.simSpeed = utils.simSpeed
         #if not self.sim:
-            #self.simSpeed = 0.99
+        self.simSpeed = 1
         self.runCar = False
         #if not self.sim:
         #    self.xBee = xBee.Bee(utils.xBeeSocket)
@@ -646,8 +646,8 @@ class App(gui.Desktop):
                 for i in range(len(utils.carInfo)):
                     newList2.append(speeds[i][0])
                     newList3.append(speeds[i][1])
-                car_msg.lspeed = newList2[0]
-                car_msg.rspeed = newList3[0]
+                car_msg.lspeed = newList3[0]
+                car_msg.rspeed = newList2[0]
                 self.carpub.publish(car_msg)
             else:
                 car_msg.lspeed = 0
