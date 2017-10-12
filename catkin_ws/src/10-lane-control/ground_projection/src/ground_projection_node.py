@@ -2,12 +2,12 @@
 
 import rospy
 import cv2
-from duckietown_msgs import (Pixel, Vector2D, Segment, SegmentList)
-from ground_projection import (EstimateHomography, GetGroundCoord, GetImageCoord)
-from sensors_msgs import (Image, CameraInfo, image_encodings)
+from ground_projection.srv import EstimateHomography, EstimateHomographyResponse, GetGroundCoord, GetGroundCoordResponse, GetImageCoord, GetImageCoordResponse
+from duckietown_msgs.msg import (Pixel, Vector2D, Segment, SegmentList)
+from sensor_msgs.msg import (Image, CameraInfo)
 from cv_bridge import CvBridge
 import numpy as np
-from ground_projection.GroundProjection import *
+from ground_projection.GroundProjection import GroundProjection
 
 
 class GroundProjectionNode(object):
@@ -18,21 +18,31 @@ class GroundProjectionNode(object):
         self.active = True
         self.bridge=CvBridge()
 
-        # Params 
+        self.robot_name = rospy.get_param("~config_file_name","robot_not_specified")
+        
+        camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
+        rospy.loginfo("camera info topic is " + camera_info_topic)
+        rospy.loginfo("waiting for camera info")
+        camera_info = rospy.wait_for_message(camera_info_topic,CameraInfo)
+        rospy.loginfo("camera info received")
 
-        gp.robot_name = rospy.get_param("robot_name","shamrock")
-        gp.rectified_input_ = rospy.get_param("rectified_input", False)
+        self.gp.initialize_pinhole_camera_model(camera_info)
+        # Params 
+        
+        
+        self.gp.robot_name = self.robot_name
+        self.gp.rectified_input_ = rospy.get_param("rectified_input", False)
         self.image_channel_name = "image_raw"
         
         # Subs and Pubs
-        self.pub_lineseglist_ = rospy.Publisher("lineseglist_out",SegmentList, queue_size=1)
-        self.sub_lineseglist) = rospy.Subscriber("lineseglist_in",SegmentList, self.lineseglist_cb)
+        self.pub_lineseglist_ = rospy.Publisher("~lineseglist_out",SegmentList, queue_size=1)
+        self.sub_lineseglist_ = rospy.Subscriber("~lineseglist_in",SegmentList, self.lineseglist_cb)
         
         
         # TODO prepare services
-        self.service_homog_ = rospy.Service("estimate_homography", EstimateHomography, self.estimate_homography_cb)
-        self.service_gnd_coord_ = rospy.Service("get_ground_coordinate", GetGroundCoord, self.get_ground_coordinate_cv)
-        self.service_img_coord_ = rospy.Service("get_image_coordinate", GetImageCoord, self.get_image_coordinate_cv)
+        self.service_homog_ = rospy.Service("~estimate_homography", EstimateHomography, self.estimate_homography_cb)
+        self.service_gnd_coord_ = rospy.Service("~get_ground_coordinate", GetGroundCoord, self.get_ground_coordinate_cb)
+        self.service_img_coord_ = rospy.Service("~get_image_coordinate", GetImageCoord, self.get_image_coordinate_cb)
 
         
     def rectifyImage(self,img_msg):
@@ -44,35 +54,33 @@ class GroundProjectionNode(object):
 
     def lineseglist_cb(self,seglist_msg):
         seglist_out = SegmentList()
-        for received_segment in seglist_msg:
+        for received_segment in seglist_msg.segments:
             new_segment = Segment()
-            new_segment.points[0] = gp.pixel2ground(received_segment.pixels_normalized[0])
-            new_segment.points[1] = gp.pixel2ground(received_segment.pixels_normalized[1])
-            seglist_out.segments.push(new_segment)
-        pub_lineseglist.publish(seglist_out)
+            new_segment.points[0] = self.gp.vector2ground(received_segment.pixels_normalized[0])
+            new_segment.points[1] = self.gp.vector2ground(received_segment.pixels_normalized[1])
+            new_segment.color = received_segment.color
+            # TODO what about normal and points
+            seglist_out.segments.append(new_segment)
+        self.pub_lineseglist_.publish(seglist_out)
 
-    def get_ground_coordinate_cb(req):
-        return GetGroundCoordResponse(gp.pixel2ground(req.normalized_uv))
+    def get_ground_coordinate_cb(self,req):
+        return GetGroundCoordResponse(self.gp.pixel2ground(req.normalized_uv))
 
-    def get_image_coordinate_cb(req):
-        return GetImageCoordResponse(gp.ground2pixel(req.gp))
+    def get_image_coordinate_cb(self,req):
+        return GetImageCoordResponse(self.gp.ground2pixel(req.gp))
 
-    def estimate_homography_cb(req):
-        board_w = rospy.get_param("board_w",7)
-        board_h = rospy.get_param("board_h",5)
-        square_size = rospy.get_param("square_size",0.031)
-        board_size = cv2.Size(board_w,board_h)
-        x_offset = rospy.get_param("x_offset",0.191)
-        y_offset = rospy.get_param("y_offset",-0.93)
-        offset = cv2.Point2f(x_offset,y_offset)
-        
-        logger.info("Waiting for raw image on topic"+self.image_topic_name)
-        img_msg = rospy.wait_for_message(self.image_topic_name,Image)
+    def estimate_homography_cb(self,req):
+        rospy.loginfo("Estimating homography")      
+        rospy.loginfo("Waiting for raw image")
+        img_msg = rospy.wait_for_message("/"+self.robot_name+"/camera_node/image/raw",Image)
+        rospy.loginfo("Got raw image")
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(img_msg,desired_encoding="mono8")
+            cv_image = self.bridge.imgmsg_to_cv2(img_msg,desired_encoding="bgr8")
         except CvBridgeError as e:
-            logger.error(e)
-        gp.estimate_homography(cv_image, board_size, offset)
+            rospy.logerr(e)
+        self.gp.estimate_homography(cv_image)
+        rospy.loginfo("wrote homography")
+        return EstimateHomographyResponse()
         
     def onShutdown(self):
         rospy.loginfo("[GroundProjectionNode] Shutdown.")
