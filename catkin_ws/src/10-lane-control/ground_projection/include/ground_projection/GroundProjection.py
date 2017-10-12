@@ -10,9 +10,10 @@ from image_geometry import PinholeCameraModel
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import (yaml_load_file, yaml_write_to_file)
 import os.path
-from duckietown_utils import logger
+from duckietown_utils import (logger, get_duckiefleet_root)
 
 class GroundProjection():
+    
     def __init__(self, robot_name="shamrock"):
 
         # defaults overwritten by param
@@ -23,16 +24,17 @@ class GroundProjection():
         self.H = self.load_homography()
         self.Hinv = np.linalg.inv(self.H)
 
-        # Load intrinsic parameters
-        self.ci_ = self.load_camera_info()
         self.pcm_ = PinholeCameraModel()
-        self.pcm_.fromCameraInfo(self.ci_)
-        # Manually correct the distortion coefficients
-        self.pcm_.D = self.ci_.D
 
         # Load checkerboard information
         self.board_ = self.load_board_info()
 
+    # wait until we have recieved the camera info message through ROS and then initialize
+    def initialize_pinhole_camera_model(self,camera_info):
+        self.ci_=camera_info
+        self.pcm_.fromCameraInfo(camera_info)
+        print("pinhole camera model initialized")
+        
     def vector2pixel(self, vec):
         pixel = Pixel()
         cw = self.ci_.width
@@ -78,7 +80,8 @@ class GroundProjection():
     def ground2pixel(self, point):
         # TODO check whether z=0 or z=1.
         # I think z==1 (jmichaux)
-        ground_point = np.array([point.x, point.y, 1.0])
+        # I think z==0 (liam)
+        ground_point = np.array([point.x, point.y, 0.0])
         image_point = self.Hinv * ground_point
         image_point = np.abs(image_point / image_point[2])
 
@@ -126,15 +129,16 @@ class GroundProjection():
 
         # Compute homography from image to ground
         self.H, mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
-        self.write_homography(self.extrinsics_filename + "_test")
-        logger.info("Wrote ground projection to {}".format(self.extrinsics_filename + "_test"))
+        extrinsics_filename = get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml"
+        self.write_homography(extrinsics_filename)
+        logger.info("Wrote ground projection to {}".format(extrinsics_filename))
 
     def load_homography(self):
         '''Load homography (extrinsic parameters)'''
-        filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_extrinsic/" + self.robot_name + ".yaml")
+        filename = (get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml")
         if not os.path.isfile(filename):
             logger.warn("no extrinsic calibration parameters for {}, trying default".format(self.robot_name))
-            filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_extrinsic/default.yaml")
+            filename = (get_duckiefleet_root() + "/calibrations/camera_extrinsic/default.yaml")
             if not os.path.isfile(filename):
                 logger.error("can't find default either, something's wrong")
             else:
@@ -145,29 +149,10 @@ class GroundProjection():
         return np.array(data['homography']).reshape((3,3))
 
     def write_homography(self, filename):
-        ob = {'Homography': self.H.reshape(9,1)}
+        ob = {'homography': sum(self.H.reshape(9,1).tolist(),[])}
+        print ob
         yaml_write_to_file(ob,filename)
 
-    def load_camera_info(self):
-        '''Load camera intrinsics'''
-        filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsic/" + self.robot_name + ".yaml")
-        if not os.path.isfile(filename):
-            logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
-            filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsic/default.yaml")
-            if not os.path.isfile(filename):
-                logger.error("can't find default either, something's wrong")
-        calib_data = yaml_load_file(filename)
-        #     logger.info(yaml_dump(calib_data))
-        cam_info = CameraInfo()
-        cam_info.width = calib_data['image_width']
-        cam_info.height = calib_data['image_height']
-        cam_info.K = np.array(calib_data['camera_matrix']['data']).reshape((3,3))
-        cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
-        cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
-        cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
-        cam_info.distortion_model = calib_data['distortion_model']
-        logger.info("Loaded camera calibration parameters for {} from {}".format(self.robot_name, os.path.basename(filename)))
-        return cam_info
 
 
     def load_board_info(self, filename=''):
@@ -192,6 +177,28 @@ class GroundProjection():
 #                   OLD STUFF                         #
 
 #######################################################
+
+    def load_camera_info(self):
+        '''Load camera intrinsics'''
+        filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + self.robot_name + ".yaml")
+        if not os.path.isfile(filename):
+            logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
+            filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
+            if not os.path.isfile(filename):
+                logger.error("can't find default either, something's wrong")
+        calib_data = yaml_load_file(filename)
+        #     logger.info(yaml_dump(calib_data))
+        cam_info = CameraInfo()
+        cam_info.width = calib_data['image_width']
+        cam_info.height = calib_data['image_height']
+        cam_info.K = np.array(calib_data['camera_matrix']['data']).reshape((3,3))
+        cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
+        cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
+        cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
+        cam_info.distortion_model = calib_data['distortion_model']
+        logger.info("Loaded camera calibration parameters for {} from {}".format(self.robot_name, os.path.basename(filename)))
+        return cam_info
+
 
     def _load_homography(self, filename):
         data = yaml_load_file(filename)
