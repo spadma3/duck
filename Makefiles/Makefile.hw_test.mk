@@ -22,8 +22,8 @@ hw-test-led: check-environment
 	bash -c "source environment.sh; rosrun rgb_led blink test_all_1"
 
 hw-test-kinematics: check-environment
-	@echo "Testing Calibration"
-	bash -c "roslaunch duckietown kinematics_calibration.launch veh:=$(vehicle_name)"
+	@echo "Testing Kinematics Calibration"
+	bash -c "rostest indefinite_navigation calibrate_kinematics.test veh:=$(vehicle_name)"
 
 hw-test-turn-right: check-environment
 	@echo "Calibrating right turn"
