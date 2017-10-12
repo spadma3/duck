@@ -4,11 +4,10 @@ from duckietown_msgs.msg import WheelsCmdStamped, Twist2DStamped
 from duckietown_msgs.srv import SetValueRequest, SetValueResponse, SetValue
 from std_srvs.srv import EmptyRequest, EmptyResponse, Empty
 from numpy import *
-import rospkg
 import yaml
 import time
 import os.path
-
+from duckietown_utils import get_duckiefleet_root
 
 # Inverse Kinematics Node
 # Author: Robert Katzschmann, Shih-Yuan Liu
@@ -75,9 +74,6 @@ class InverseKinematicsNode(object):
                 # Skip if not defined, use default value instead.
                 pass
 
-    def getFilePath(self, name):
-        rospack = rospkg.RosPack()
-        return rospack.get_path('duckietown')+'/config/baseline/calibration/kinematics/' + name + ".yaml"        
 
     def saveCalibration(self):
         # Write to yaml
