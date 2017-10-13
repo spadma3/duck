@@ -1,9 +1,20 @@
+<<<<<<< HEAD
 owner: andy
+=======
+owner: andreas
+>>>>>>> 693718c2651849c1b2d642b03e659787e0f898f7
 hostname: yaf
 username: andya
 description: >
     Yellow and Furious.
 log:
+<<<<<<< HEAD
     2017-10-13: >
         Initial version.
     
+=======
+    2017-08-01: >
+        Switched RPI2 with RPI3.
+    2017-08-20: >
+        There is something wrong with the PWM hat and the LEDs.
+>>>>>>> 693718c2651849c1b2d642b03e659787e0f898f7
