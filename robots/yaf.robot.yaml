@@ -2,15 +2,7 @@ owner: andy
 hostname: yaf
 username: andya
 description: >
-<<<<<<< HEAD
     Yellow and Furious
 log:
     2017-10-13: >
         Initial Version.
-=======
-    Yellow and Furious.
-log:
-    2017-10-13: >
-        Initial version.
-
->>>>>>> a10e0b3f4e71014a0bc483d375861a805cdb7661
