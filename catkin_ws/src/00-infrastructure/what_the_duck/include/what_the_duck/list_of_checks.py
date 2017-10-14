@@ -64,6 +64,8 @@ def get_checks():
 #         'ros_node_utils',
         'procgraph',
         'comptests',
+        'compmake',
+        'contracts',
     ]
     for p in python_packages:
         add(None,
@@ -163,12 +165,13 @@ def get_checks():
 #     suggested = ['emacs', 'zsh', 'nethogs']
 
     for p in required_packages:
-        add(None, p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
+        add(None, "Installed APT package " + p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
 
     forbidden_packages = ["python-roslaunch", "rosbash"]
 
     for p in forbidden_packages:
-        add(None, p, CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
+        add(None, "Not installed APT package " + p, 
+            CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
         
     if not this_is_circle:
         add_suite_git(manager)

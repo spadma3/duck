@@ -10,7 +10,7 @@ class EnvironmentVariableExists(Check):
         if self.name not in os.environ:
             msg = 'Could not find environment variable %r.' % self.name
             raise CheckFailed(msg)
-        
+        return 'The value is %r' % os.environ[self.name]
         
         
 
@@ -30,3 +30,5 @@ class EnvironmentVariableIsEqualTo(Check):
         if value != self.expected:
             msg = 'Value of $%s is %r instead of %r.' % (self.name, value, self.expected)
             raise CheckFailed(msg)
+        
+        return 'The value is %r' % os.environ[self.name]

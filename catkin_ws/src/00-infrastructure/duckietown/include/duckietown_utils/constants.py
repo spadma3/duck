@@ -57,7 +57,7 @@ def get_duckiefleet_root():
         for d in defaults:
             d2 = expand_all(d)
             if os.path.exists(d2):
-                found.append(d)
+                found.append(d2)
         if not found:
             msg = 'Could not find any of the default directories:'
             for d in defaults:
