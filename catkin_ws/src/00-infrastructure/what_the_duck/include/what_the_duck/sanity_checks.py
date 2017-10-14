@@ -36,6 +36,8 @@ def do_all_checks():
     write_data_to_file(o, filename)
     print('\nNow send the file "%s" to the TA/instructors.' % filename)
     
+    print('\nYou can also upload it using the following command: ')
+    print('\n  scp %s duckiestats@frankfurt.co-design.science:%s ' % (filename, filename))
     stats = Statistics(results)
     if stats.nfailures == 0:    
         sys.exit(0)
