@@ -1,9 +1,10 @@
 import os
 
+from . import logger
 from .exceptions import DTConfigException
 from .locate_files_impl import locate_files
 from .path_utils import expand_all
-from . import logger
+
 
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
@@ -47,7 +48,8 @@ def get_duckiefleet_root():
     if vname in os.environ:
         return _get_dir(vname)
     else:
-        msg = 'The environment variable %s is not defined, so I will look for the default directories.'
+        msg = 'The environment variable %s is not defined,' % vname
+        msg += ' so I will look for the default directories.'  
         logger.info(msg)
         
         defaults =  DuckietownConstants.duckiefleet_root_defaults
