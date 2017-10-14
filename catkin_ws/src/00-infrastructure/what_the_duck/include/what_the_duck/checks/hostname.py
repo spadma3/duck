@@ -19,7 +19,8 @@ class CheckHostnameConfigured(Check):
             msg = 'The hostname is %r but it does not match %s.' % (hostname, fn)
             l = 'Entire contents of %s:\n' % fn + indent(contents, '  > ')
             raise CheckFailed(msg, l)
-         
+        
+        return contents
          
 class CheckGoodHostsFile(Check):
     
@@ -43,5 +44,6 @@ class CheckGoodHostsFile(Check):
         if not hostname in contents:
             msg = 'The %s file does not contain an entry for your hostname %r.' % (fn, hostname)
             raise CheckFailed(msg, l)
-            
+        
+        return contents
         

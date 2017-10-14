@@ -1,10 +1,13 @@
-from what_the_duck.checks.existence import DirExists, FileExists
-from what_the_duck.entry import Diagnosis
-from what_the_duck.checks.permissions import CheckPermissions
-from what_the_duck.checks.file_contains import FileContains
-from what_the_duck.resolution import Suggestion
-from what_the_duck.checks.internet_connected import InternetConnected
-from what_the_duck.checks.github import GithubLogin
+# -*- coding: utf-8 -*-
+from .checks.existence import DirExists, FileExists
+from .checks.file_contains import FileContains
+from .checks.github import GithubLogin
+from .checks.internet_connected import InternetConnected
+from .checks.permissions import CheckPermissions
+from .entry import Diagnosis
+from .resolution import Suggestion
+
+
 SSH_DIR = '~/.ssh'
 SSH_CONFIG = '~/.ssh/config'
 AUTHORIZED_KEYS = '~/.ssh/authorized_keys'
