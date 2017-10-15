@@ -3,5 +3,5 @@ hostname: ata
 username: selcuk
 description: >
     Selcuk's car.
-log: 8 October 2017 -> changed duckie's name selcukercan -> ata
-
+log:
+    2017-10-08:  "changed duckie's name selcukercan -> ata"
