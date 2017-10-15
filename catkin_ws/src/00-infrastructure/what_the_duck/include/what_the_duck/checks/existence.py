@@ -1,7 +1,7 @@
 import os
 
-from what_the_duck.check import Check, CheckFailed
 from duckietown_utils import expand_all
+from what_the_duck.check import Check, CheckFailed
 
 
 class FileExists(Check):
@@ -22,6 +22,12 @@ class FileExists(Check):
             msg = 'Expect this to be a file, not a directory: %s' % short
             l = 'Complete path:\n  %s' % fn
             raise CheckFailed(msg)
+        
+        data = open(fn).read()
+        lines = data.split('\n')
+        maxlen = max(map(len, lines))
+        if len(lines) < 100 and maxlen < 80:
+            return data
     
 
 class DeviceExists(Check):

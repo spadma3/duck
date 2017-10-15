@@ -6,6 +6,7 @@ hw-test:
 	@echo 'To perform hardware tests:'
 	@echo
 	@echo '- `make hw-test-camera`     :       Testing Camera HW by taking a picture (smile!).'
+	@echo '- `make hw-test-kinematics  :       Testing kinematics calibration'
 	@echo '- `make hw-test-turn-right`:        Calibration right turn'
 	@echo '- `make hw-test-turn-left`:         Calibrating left turn'
 	@echo '- `make hw-test-turn-forward`:      Calibrating forward turn'
@@ -19,6 +20,10 @@ hw-test-camera:
 hw-test-led: check-environment
 	@echo "Calibration blinking pattern"
 	bash -c "source environment.sh; rosrun rgb_led blink test_all_1"
+
+hw-test-kinematics: check-environment
+	@echo "Testing Kinematics Calibration"
+	bash -c "rostest indefinite_navigation calibrate_kinematics.test veh:=$(vehicle_name)"
 
 hw-test-turn-right: check-environment
 	@echo "Calibrating right turn"

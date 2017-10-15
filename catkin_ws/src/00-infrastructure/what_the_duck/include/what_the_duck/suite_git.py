@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from what_the_duck.checks.existence import FileExists
 from what_the_duck.entry import Diagnosis
 from what_the_duck.checks.file_contains import FileContains

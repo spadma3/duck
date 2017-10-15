@@ -8,7 +8,7 @@ from .checks import *  # @UnusedWildImport
 from .entry import Diagnosis, Entry, SeeDocs
 from .python_source_checks import add_python_package_checks
 from .suite_git import add_suite_git
-from .suite_ssh import good_ssh_configuration
+from .suite_ssh import good_ssh_configuration 
 
 
 class Manager():
@@ -64,6 +64,8 @@ def get_checks():
 #         'ros_node_utils',
         'procgraph',
         'comptests',
+        'compmake',
+        'contracts',
     ]
     for p in python_packages:
         add(None,
@@ -163,12 +165,13 @@ def get_checks():
 #     suggested = ['emacs', 'zsh', 'nethogs']
 
     for p in required_packages:
-        add(None, p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
+        add(None, "Installed APT package " + p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
 
     forbidden_packages = ["python-roslaunch", "rosbash"]
 
     for p in forbidden_packages:
-        add(None, p, CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
+        add(None, "Not installed APT package " + p, 
+            CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
         
     if not this_is_circle:
         add_suite_git(manager)
@@ -225,12 +228,13 @@ def get_checks():
     DUCKIETOWN_CONFIG_SEQUENCE = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
 
-    v = DUCKIETOWN_CONFIG_SEQUENCE
-    add(None,
-        'Provided environment variable %s.' % v,
-        EnvironmentVariableExists(v),
-        Diagnosis("%s is not set." % v),
-        Suggestion('You have to set %r in your environment (e.g. .bashrc)' % v))
+    if False:
+        v = DUCKIETOWN_CONFIG_SEQUENCE
+        add(None,
+            'Provided environment variable %s.' % v,
+            EnvironmentVariableExists(v),
+            Diagnosis("%s is not set." % v),
+            Suggestion('You have to set %r in your environment (e.g. .bashrc)' % v))
 
 
     variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT, #DUCKIETOWN_CONFIG_SEQUENCE
@@ -266,7 +270,8 @@ def get_checks():
 #                           SeeDocs('scuderia')
 #                           )
 
-    git_lfs_installed = add(None,  # @UnusedVariable
+    if not this_is_a_duckiebot:
+        _git_lfs_installed = add(None,  # @UnusedVariable
                             'Git LFS installed',
                             GitLFSInstalled(),
                             Diagnosis('You have not installed Git LFS'),
@@ -315,6 +320,18 @@ def get_checks():
             Diagnosis('You have an invalid  machines file.'),
             )
 
+    found_duckiefleet = add(None, 
+                            'Possible to get duckiefleet in some way',
+                            FindingDuckiefleet(),
+                            Diagnosis('Cannot find duckiefleet root'),
+        )
+    
+    add(found_duckiefleet, 
+        'The duckiefleet repo is up to date',
+        UptodateDuckiefleet(), 
+        Diagnosis('The duckiefleet repo is not up to date') )
+
+     
 # 
 #     add(machines_exists,
 #         'Machines is updated',
@@ -322,7 +339,7 @@ def get_checks():
 #         Diagnosis('Scuderia was modified after machines created'),
 #         )
 
-    if True: # TODO
+    if False: # TODO
 
         if this_is_a_laptop:
 
@@ -371,7 +388,7 @@ def get_checks():
         pass
     else:
         for package_name, dirname in packagename2dir.items():
-                add_python_package_checks(add, package_name, dirname)
+            add_python_package_checks(add, package_name, dirname)
 
     # TODO: DISPLAY is not set
     # files in src/ or scripts/ are executable
