@@ -1,0 +1,33 @@
+tanibot@argo:~/duckietown$ source environment.sh
+Activating ROS...
+Setup ROS_HOSTNAME...
+Setting up DUCKIETOWN_ROOT...
+Setting up PYTHONPATH...
+Activating development environment...
+tanibot@argo:~/duckietown$ ./what-the-duck 
+/home/tanibot/duckietown/catkin_ws/src/00-infrastructure/what_the_duck
+
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_cv/models/cv_demo_feature.pgc'
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_cv/models/cv_capture_demo.pgc'
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_cv/models/cv_demo_feature_orb.pgc'
+WARNING:procgraph:Could not import hdflogs
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_hdf/models/hdfread_many_test.pgc'
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_hdf/models/hdfread_test.pgc'
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_mpl/models/test_mpl_animation.pgc'
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_mplayer/models/video_bg_depth.pgc'
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_mplayer/models/video_average.pgc'
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_mplayer/models/video_bg.pgc'
+INFO:procgraph:Cannot write cache file: [Errno 13] Permission denied: '/usr/local/lib/python2.7/dist-packages/procgraph_mplayer/models/video_motion_profile.pgc'
+Traceback (most recent call last):
+  File "/home/tanibot/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/scripts/what-the-duck", line 21, in <module>
+    all_checks()
+  File "/home/tanibot/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/scripts/what-the-duck", line 16, in all_checks
+    from what_the_duck.sanity_checks import do_all_checks
+  File "/home/tanibot/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/sanity_checks.py", line 13, in <module>
+    from .statistics import display_results, display_summary,\
+  File "/home/tanibot/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/statistics.py", line 4, in <module>
+    from .visualize import MakeSpans 
+  File "/home/tanibot/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/visualize.py", line 4, in <module>
+    from bs4 import BeautifulSoup
+ImportError: No module named bs4
+
