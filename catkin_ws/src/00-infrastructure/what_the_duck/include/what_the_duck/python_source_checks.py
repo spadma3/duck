@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
 
-from duckietown_utils.constants import DuckietownConstants
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.locate_files_impl import locate_files
+from duckietown_utils import read_package_xml_info
+from duckietown_utils import DuckietownConstants
+from duckietown_utils import indent
+from duckietown_utils import locate_files
 
 from .check import CheckError
 from .check import CheckFailed, Check
 from .entry import SeeDocs
-from duckietown_utils.read_package_xml import read_package_xml_info
 
 
 class PythonPackageCheck(Check):
@@ -297,7 +297,7 @@ def add_python_package_checks(add, package_name, dirname):
         LicenseIsValid,
         NameIsValid,
         VersionIsValid,
-        NoTabs,
+#         NoTabs, # XXX
 #         Naming,
         Executable,
 #         ShaBang,

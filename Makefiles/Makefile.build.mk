@@ -51,6 +51,8 @@ build-catkin-clean:
 	@echo
 	@echo Removing the directory $(catkin_ws)/build
 	rm -rf $(catkin_ws)/build
+	@echo Removing the directory $(catkin_ws)/devel
+	rm -rf $(catkin_ws)/devel
 
 
 .PHONY: check-environment

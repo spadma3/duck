@@ -4,7 +4,7 @@ def ipython_if_guy():
     """ 
     Use like this:
  
-        from duckietown_utils.ipython_utils import ipython_if_gui
+        from duckietown_utils.ipython_utils import ipython_if_guy
          
          
         ipython_if_guy()

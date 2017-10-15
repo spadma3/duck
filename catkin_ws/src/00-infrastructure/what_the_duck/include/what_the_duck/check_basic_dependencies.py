@@ -1,4 +1,3 @@
-from duckietown_utils import raise_desc
 from duckietown_utils import raise_wrapped
 
 

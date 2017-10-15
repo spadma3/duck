@@ -10,7 +10,7 @@ from sensor_msgs.msg import Image, CompressedImage, CameraInfo
 from sensor_msgs.srv import SetCameraInfo, SetCameraInfoResponse
 from picamera import PiCamera
 from picamera.array import PiRGBArray
-
+from duckietown_utils import get_duckiefleet_root
 from duckietown_msgs.msg import BoolStamped
 
 class CameraNode(object):
@@ -34,9 +34,7 @@ class CameraNode(object):
 
 
         # For intrinsic calibration
-        rospack = rospkg.RosPack()
-        self.config = self.setupParam("~config","baseline")
-        self.cali_file_folder = rospack.get_path('duckietown') + "/config/" + self.config + "/calibration/camera_intrinsic/"
+        self.cali_file_folder = get_duckiefleet_root() + "/calibrations/camera_intrinsic/"
     
         self.frame_id = rospy.get_namespace().strip('/') + "/camera_optical_frame"
 

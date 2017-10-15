@@ -1,16 +1,16 @@
+from contracts.utils import indent
+from duckietown_utils import logger
 import os
 
-from duckietown_utils import logger
-
-from .friendly_path_imp import friendly_path
-from .system_cmd_imp import system_cmd_result
 from .constants import get_duckietown_root
-from .test_hash import get_md5
-from .mkdirs import d8n_make_sure_dir_exists
 from .exceptions import DTConfigException
-from .yaml_pretty import yaml_load
+from .friendly_path_imp import friendly_path
 from .memoization import memoize_simple
-from contracts.utils import indent
+from .mkdirs import d8n_make_sure_dir_exists
+from .system_cmd_imp import system_cmd_result
+from .test_hash import get_md5
+from .yaml_pretty import yaml_load
+
 
 def get_urls_path():
     from .path_utils import get_ros_package_path
@@ -48,7 +48,7 @@ def download_if_not_exist(url, filename):
 
 def download_url_to_file(url, filename):
     logger.info('Download from %s' % (url))
-    tmp = filename + '.download'
+    tmp = filename + '.tmp_download_file'
     cmd = [
         'wget',
         '-O',
@@ -64,14 +64,22 @@ def download_url_to_file(url, filename):
                           write_stdin='',
                           capture_keyboard_interrupt=False,
                           env=None)
-    if not os.path.exists(tmp):
-        msg = 'File does not exist but wget did not give any error.'
+    
+    if not os.path.exists(tmp) and not os.path.exists(filename):
+        msg = 'Downloaded file does not exist but wget did not give any error.'
         msg +='\n url: %s' % url
-        msg +='\n filename: %s' % filename
+        msg +='\n downloaded to: %s' % tmp
         msg +='\n' + indent(str(res), ' | ')
+        d = os.path.dirname(tmp)
+        r = system_cmd_result(d, ['ls', '-l'], display_stdout=False,
+                          display_stderr=False,
+                          raise_on_error=True)
+        msg += '\n Contents of the directory:'
+        msg += '\n' + indent(str(r.stdout), ' | ')
         raise Exception(msg)
     
-    os.rename(tmp, filename)
+    if not os.path.exists(filename):
+        os.rename(tmp, filename)
                 
     logger.info('-> %s' % friendly_path(filename))
 

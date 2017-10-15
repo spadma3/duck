@@ -20,6 +20,8 @@ test:
 test-circle: \
 	test-comptests \
 	test-download-logs
+
+	
 	#test-line-detector-programmatic
 
 #
