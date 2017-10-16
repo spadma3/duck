@@ -41,7 +41,7 @@ def display_summary(results):
             o += NL
             
         if stats.errored:
-            stats += M.red('* Found %d invalid test(s):\n' % len(stats.errored))
+            o += M.red('* Found %d invalid test(s):\n' % len(stats.errored))
             for f in sort_by_type(stats.errored):
                 s = '  - %12s:   %s' % (f.status, f.entry.desc)
                 o += M.bright_red(s) + NL
