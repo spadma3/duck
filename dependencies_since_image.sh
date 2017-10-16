@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 set -x
-sudo apt install -y python-frozendict 
+sudo apt install -y python-frozendict libxslt-dev libxml2-dev
 pip install --upgrade --user \
 	ruamel.yaml \
 	bs4 \
