@@ -1,2 +1,3 @@
 from . import check_basic_dependencies
 
+__version__ = '1.0.0'

@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-from duckietown_utils import DuckietownConstants
-from duckietown_utils import get_list_of_packages_in_catkin_ws
-from duckietown_utils import on_circle, on_laptop
-from duckietown_utils import on_duckiebot
+from duckietown_utils import DuckietownConstants, get_list_of_packages_in_catkin_ws, on_circle, on_laptop, on_duckiebot
 
 from .checks import *  # @UnusedWildImport
 from .entry import Diagnosis, Entry, SeeDocs
@@ -44,6 +41,7 @@ def get_checks():
     
     username = getpass.getuser()
 
+    
     if this_is_a_duckiebot:
         add(None,
             "Camera is detected",
@@ -140,20 +138,22 @@ def get_checks():
             virtualenv
             libxml2-dev
             libxslt1-dev
-            libffi-dev
-            bibtex2html
-            pdftk
+            
             python-frozendict
              python-tables
-             mplayer
-             mencoder
-
+            
         """))
 
     if this_is_a_duckiebot:
         required_packages.update(make_list("""
             i2c-tools
             python-smbus
+            libffi-dev
+            bibtex2html
+            pdftk
+             mplayer
+             mencoder
+
             """))
 
     if this_is_a_laptop or this_is_circle:
@@ -170,7 +170,7 @@ def get_checks():
     forbidden_packages = ["python-roslaunch", "rosbash"]
 
     for p in forbidden_packages:
-        add(None, "Not installed APT package " + p, 
+        add(None, "You should not have installed APT package " + p, 
             CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
         
     if not this_is_circle:
@@ -261,14 +261,22 @@ def get_checks():
         'Software repo downloaded with SSH scheme.',
         GitCorrectRemote('${%s}' % DUCKIETOWN_ROOT),
         Diagnosis("You downloaded the repo using https."),
+        SeeDocs('clone-software-repo')
+        )
+ 
+    # recent update
+    add(existence[DUCKIETOWN_ROOT],
+        'You pulled the Software repo in the last 24 hours',
+        RecentlyPulled('${%s}' % DUCKIETOWN_ROOT, 24),
+        Diagnosis("You did not recently pull the Software repository."),
         )
 
-#     scuderia_exists = add(existence[DUCKIEFLEET_ROOT],
-#                           'Existence of scuderia file',
-#                           ScuderiaFileExists(),
-#                           Diagnosis('You do not have a scuderia file.'),
-#                           SeeDocs('scuderia')
-#                           )
+    add(existence[DUCKIEFLEET_ROOT],
+        'You pulled the Duckiefleet root in the last 24 hours',
+        RecentlyPulled('${%s}' % DUCKIEFLEET_ROOT, 24),
+        Diagnosis("You did not recently pull the Duckiefleet repository."),
+        )
+ 
 
     if not this_is_a_duckiebot:
         _git_lfs_installed = add(None,  # @UnusedVariable
@@ -276,13 +284,6 @@ def get_checks():
                             GitLFSInstalled(),
                             Diagnosis('You have not installed Git LFS'),
                             SeeDocs('git-lfs'))
-# 
-#     ok_scuderia = add(scuderia_exists,
-#         'Validation of scuderia file',
-#         ValidScuderiaFile(),
-#         Diagnosis('You have an invalid scuderia file.'),
-#         SeeDocs('scuderia')
-#         )
 
     if this_is_a_duckiebot:
         add(None,
@@ -297,14 +298,7 @@ def get_checks():
             'Good path for "%s"' % prog,
             CommandOutputContains('which %s' % prog, '/opt/ros/kinetic'),
             Diagnosis('The program `%s` is not resolved to the one in /opt/ros' % prog))
-
-    
-#     add(None,
-#         'Hub is installed',
-#         CommandOutputContains('hub --version'),
-#         Diagnosis('The program "hub" is not installed'),
-#         SeeDocs("hub"))
-
+ 
 
     machines_exists = add(None,
         'Existence of machines file',
@@ -330,14 +324,7 @@ def get_checks():
         'The duckiefleet repo is up to date',
         UptodateDuckiefleet(), 
         Diagnosis('The duckiefleet repo is not up to date') )
-
-     
-# 
-#     add(machines_exists,
-#         'Machines is updated',
-#         MachinesNewerThanScuderia(),
-#         Diagnosis('Scuderia was modified after machines created'),
-#         )
+ 
 
     if False: # TODO
 
@@ -364,8 +351,6 @@ def get_checks():
                     FileExists(l),
                     Diagnosis("The DUCKIETOWN_DATA folder does not contain the logs it should.")
                     )
-
-
 
     if False:
         # TODO: not sure if this is needed

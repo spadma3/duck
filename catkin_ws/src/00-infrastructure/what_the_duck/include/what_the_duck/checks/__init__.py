@@ -18,3 +18,4 @@ from .scuderia_checks import *
 from .machines_checks import *
 from .packages import *
 from .duckietown_dirs import *
+from .git_repos import *
