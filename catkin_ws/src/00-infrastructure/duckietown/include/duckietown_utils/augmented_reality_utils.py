@@ -44,3 +44,12 @@ def load_camera_intrincs(robot_name):
 	intrinsics['distortion_model'] = data['distortion_model']
 	logger.info('Loaded camera intrinsics for {}'.format(robot_name))
 	return intrinsics
+
+def rectify(image, intrinsics):
+	'''Undistort image'''
+	height, width, channels = image.shape
+	rectified_image = np.zeros(np.shape(image))
+	mapx = np.ndarray(shape=(height, width, 1), dtype='float32')
+	mapy = np.ndarray(shape=(height, width, 1), dtype='float32')
+	mapx, mapy = cv2.initUndistortRectifyMap(intrinsics['K'], intrinsics['D'], intrinsics['R'], intrinsics['P'], (width, height), cv2.CV_32FC1, mapx, mapy)
+	return cv2.remap(image, mapx, mapy, cv2.INTER_CUBIC, rectified_image)
