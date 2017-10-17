@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [351.8398781506417, 0.0, 329.39408551654145, 0.0, 344.8299709638719, 235.27511948682226,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: duckbrown/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.29303606051118747, 0.0637789912337118, 0.00255287545391549, -0.0014171495187053921,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [243.7100067138672, 0.0, 326.785359717398, 0.0, 0.0, 284.07196044921875, 235.61648093993426,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
