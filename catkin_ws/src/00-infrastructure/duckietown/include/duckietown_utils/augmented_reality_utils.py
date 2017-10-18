@@ -8,78 +8,75 @@ from .yaml_pretty import yaml_load
 
 
 class BaseAugmenter(object):
-	'''Base class for doing augmented reality'''
-	def __init__(self, robot_name='', map_file=''):
-		# Robot name
-		self.robot_name = robot_name
-
-		# Load camera calibration parameters
-		self.intrinsics = ''
-		self.H = ''
+    '''Base class for doing augmented reality'''
+    def __init__(self, robot_name=''):
+        # Robot name
+        self.robot_name = robot_name
+        print 'BaseAugmenter'
 
         # Masking
         #frustum = mask()
+    def callback(self, msg=None):
+        pass
 
-	def callback(self, msg=None):
-        raise NotImplementedError()
-
-	def ground2pixel(self, point):
-		'''Transforms point in ground coordinates to point in image
-		coordinates using the inverse homography'''
-        raise NotImplementedError()
+    def ground2pixel(self, point):
+        '''Transforms point in ground coordinates to point in image
+        coordinates using the inverse homography'''
+        pass
 
     def mask(self):
         '''Tests that ground points in the world frame transform to
         the viewing frustum of the camera'''
         pass
 
-	def render_segments(self, image):
-		for segment in map_data["segments"]:
-			pt_x = []
-			pt_y = []
-			for point in segment["points"]:
-				frame, ground_point = map_data["points"][point]
-				pixel = []
-				if frame == 'axle':
-					pixel = self.ground2pixel(ground_point)
-				elif frame == 'camera':
-					pixel = ground_point
-				else:
-					# logger.info('Unkown reference frame. Using "axle" frame')
-					pixel = self.ground2pixel(ground_point)
-				pt_x.append(pixel[0])
-				pt_y.append(pixel[1])
-			color = segment["color"]
-			image = self.draw_segment(image, pt_x, pt_y, color)
-		return image
 
-	def draw_segment(self, image, pt_x, pt_y, color):
-		defined_colors = {
-			'red' : ['rgb', [1, 0, 0]],
-			'green' : ['rgb', [0, 1, 0]],
-			'blue' : ['rgb', [0, 0, 1]],
-			'yellow' : ['rgb', [1, 1, 0]],
-			'magenta' : ['rgb', [1, 0 ,1]],
-			'cyan' : ['rgb', [0, 1, 1]],
-			'white' : ['rgb', [1, 1, 1]],
-			'black' : ['rgb', [0, 0, 0]]}
-		color_type, [r, g, b] = defined_colors[color]
-		cv2.line(image, (pt_x[0], pt_y[0]),(pt_x[1], pt_y[1]),(b * 255, g* 255, r * 255), 5)
-		return image
+    def render_segments(self, image):
+        for segment in self.map_data["segments"]:
+            pt_x = []
+            pt_y = []
+            for point in segment["points"]:
+                frame, ground_point = self.map_data["points"][point]
+                pixel = []
+                if frame == 'axle':
+                    pixel = self.ground2pixel(ground_point)
+                elif frame == 'camera':
+                    pixel = ground_point
+                else:
+                    # logger.info('Unkown reference frame. Using "axle" frame')
+                    pixel = self.ground2pixel(ground_point)
+                pt_x.append(pixel[0])
+                pt_y.append(pixel[1])
+            color = segment["color"]
+            image = self.draw_segment(image, pt_x, pt_y, color)
+        return image
+
+    def draw_segment(self, image, pt_x, pt_y, color):
+        defined_colors = {
+            'red' : ['rgb', [1, 0, 0]],
+            'green' : ['rgb', [0, 1, 0]],
+            'blue' : ['rgb', [0, 0, 1]],
+            'yellow' : ['rgb', [1, 1, 0]],
+            'magenta' : ['rgb', [1, 0 ,1]],
+            'cyan' : ['rgb', [0, 1, 1]],
+            'white' : ['rgb', [1, 1, 1]],
+            'black' : ['rgb', [0, 0, 0]]}
+        color_type, [r, g, b] = defined_colors[color]
+        cv2.line(image, (pt_x[0], pt_y[0]),(pt_x[1], pt_y[1]),(b * 255, g* 255, r * 255), 5)
+        return image
 
 #-----------------------------------------------------------------------------#
 #                       Augmented reality utils                               #
 #-----------------------------------------------------------------------------#
 
 def get_map_name(map_filename):
-    return splitext(basename(map_file))[0]
+    return splitext(basename(map_filename))[0]
 
 def load_map(map_filename):
     if not isfile(map_filename):
         print('Map does not exist')
         exit(1)
-    map_name = splitext(basename(map_file))[0]
-    with open(map_file) as f:
+    map_name = splitext(basename(map_filename))[0]
+    with open(map_filename) as f:
         contents = f.read()
         data = yaml_load(contents)
     logger.info('Loaded {} map data'.format(map_name))
@@ -97,7 +94,7 @@ def load_homography(robot_name):
     logger.info('Loaded homography for {}'.format(robot_name))
     return np.array(data['homography']).reshape(3,3)
 
-def load_camera_intrincs(robot_name):
+def load_camera_intrinsics(robot_name):
     path = '/calibrations/camera_'
     filename = get_duckiefleet_root() + path + 'intrinsic/' + robot_name + '.yaml'
     if not isfile(filename):
