@@ -3,8 +3,4 @@ hostname: botanic
 username: apatru
 description: >
     Antoine's car.
-log:
-    2017-08-01: >
-        Switched RPI2 with RPI3.
-    2017-08-20: >
-        There is something wrong with the PWM hat and the LEDs.
+log: 
