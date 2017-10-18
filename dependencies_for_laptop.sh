@@ -1,3 +1,3 @@
 echo "To write!"
 
-pip --user install pymongo
+pip install --user  pymongo
