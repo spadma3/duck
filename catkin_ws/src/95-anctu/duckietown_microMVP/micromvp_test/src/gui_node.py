@@ -133,10 +133,16 @@ class Painter(gui.Widget):
 # Main screen
 class App(gui.Desktop):
     def __init__(self, **params):
-        #self.publisher = rospy.Publisher("~topic", String, queue_size=1)
-        self.carpub = rospy.Publisher("micromvp", micromvp_carspeed, queue_size=20)
         gui.Desktop.__init__(self, **params)
-        self.package_path = rospkg.RosPack().get_path('micromvp_test') #setup path for load image etc.
+        #set up publisher
+        carpub = []
+        for i in range(len(utils.carInfo))
+            topic = "~micromvp" + i
+            self.carpub[] = rospy.Publisher(topic, micromvp_carspeed, queue_size=20)
+        #set up subscriber for car location (Apriltags)
+        self.carloc = rospy.subscriber("~tag_detections", ApriltagDetectionArray, self.GetLocation, queue_size=1)
+        #setup path for load image etc.
+        self.package_path = rospkg.RosPack().get_path('micromvp_test')
         self.connect(gui.QUIT, self.FlushQuit, None)
         # Setup everything
         self.SetupArgv()
@@ -568,6 +574,10 @@ class App(gui.Desktop):
                     self.cars[j].rSpeed = speeds[i][1]
                     self.cars[j].path = paths[i]
             time.sleep(0.02)
+
+    def ros_GetLocation(self, msg):
+        #ros subscriber get location
+        #msg
 
     def GetLocation(self):
         with lock:
