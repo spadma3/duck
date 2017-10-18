@@ -4,7 +4,7 @@
 	<arg name="config" default="baseline" />
 	<arg name="local" default="true" />
 	<arg name="param_file_name" default="default" />
-	<arg name="Postprocessing" default="false">
+	<arg name="Postprocessing" default="false" />
 
 	<!-- AprilTags Detections -->
 	<remap from="image_rect" to="camera_node/image/raw" />
@@ -29,5 +29,5 @@
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
-	
+
 </launch>
