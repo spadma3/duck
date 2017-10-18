@@ -40,4 +40,5 @@ generate-roster:
 fleet_stats=fleet.html
 generate-fleet-statistics:
 	rosrun what_the_duck what-the-duck-stats $(fleet_stats)
-	rsync $(fleet_stats) duckietown@frankfurt.co-design.science:public_html/fleet-fall2017.html
+	rsync --progress $(fleet_stats) \
+		duckietown@frankfurt.co-design.science:public_html/fleet-fall2017.html

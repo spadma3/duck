@@ -213,6 +213,7 @@ td.hostname {
 td.test_name {
     
     width: 30em;
+    max-width: 30em;
 }
 
 body {
