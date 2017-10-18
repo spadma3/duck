@@ -174,8 +174,8 @@ def visualize(summary):
             else:
                 td.attrs['class']  = d['status']
                 
-                out = "/".join([str(d['out_short']), str(d['out_long'])])
-                s.attrs['title'] = out
+                out = " ||| ".join([str(d['out_short']), str(d['out_long'])])
+                td.attrs['title'] = out
                 upload_date = d['upload_event_date']
                 elapsedTime = datetime.datetime.now() - upload_date
                 when = duration_compact(elapsedTime.total_seconds())
