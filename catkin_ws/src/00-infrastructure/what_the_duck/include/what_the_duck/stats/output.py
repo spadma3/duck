@@ -5,6 +5,8 @@ from collections import defaultdict
 from bs4.element import Tag
 from duckietown_utils.file_utils import write_data_to_file
 from what_the_duck.constant import ChecksConstants
+from compmake.utils.duration_hum import duration_compact
+import datetime
 
 class MongoSummary(object):
     def __init__(self):
@@ -132,17 +134,20 @@ def visualize(summary):
             if d is None:
                 v = 'n/a'
                 status_class = 'n-a'
+                when = 'n/a'
                 extra = ''
             else:
                 v = d['status']
                 status_class = v
                 extra = d['out_long']
-                
+                upload_date = d['upload_event_date']
+                elapsedTime = datetime.datetime.now() - upload_date
+                when = duration_compact(elapsedTime.total_seconds())
             td = Tag(name='td')
             td.attrs['class'] = status_class
             s = Tag(name='span')
             s.attrs['title'] = extra
-            s.append(v)
+            s.append('%s (%s)' % (v, when))
             td.append(s)
             tr.append(td)
         table.append(tr)
