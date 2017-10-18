@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from os.path import basename, expanduser, isfile, join, splitext
+from sys import exit
 
 from duckietown_utils import logger, get_duckiefleet_root
 from .yaml_pretty import yaml_load
