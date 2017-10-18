@@ -5,13 +5,13 @@ from duckietown_utils import load_homography, load_map
 
 
 class Draw():
-	'''class for drawing projected line segments'''
-	def __init__(self, robot_name='', map_file=''):
+    '''class for drawing projected line segments'''
+    def __init__(self, robot_name='', map_file=''):
         # Set robot name
         self.robot_name = robot_name
 
         # Load map
-        self.map_data =
+        self.map_data = load_map(map_file)
 
         # Load homography
         self.H = load_homography(self.robot_name)
@@ -19,7 +19,7 @@ class Draw():
     def mask():
         return
 
-	def draw(self, image):
+	def render(self, image):
 		defined_colors = {
 			'red' : ['rgb', [1, 0, 0]],
 			'green' : ['rgb', [0, 1, 0]],
