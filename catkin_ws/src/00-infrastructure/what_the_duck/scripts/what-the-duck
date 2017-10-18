@@ -12,10 +12,12 @@ def go():
         #sys.stderr.write('Could not import duckietown_utils and what_the_duck packages:\n%s\n' % e)
         sys.exit(255)
 
-    else:
-        from what_the_duck.stats.stats_main import what_the_duck_stats
 
-        what_the_duck_stats()
+    else:
+        from what_the_duck.sanity_checks import do_all_checks
+
+        do_all_checks()
 
 if __name__ == '__main__':
     go()
+    

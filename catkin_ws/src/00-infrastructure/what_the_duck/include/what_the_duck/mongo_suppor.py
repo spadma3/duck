@@ -56,28 +56,30 @@ def json_from_result(result):
     return d
 #     Result = namedtuple('Result', 'entry status out_short out_long')
     
-def upload_results(results):
-    to_upload = []
-    d0 = get_local_keys()
-    
-    for i, result in enumerate(results):
-        d1 = json_from_result(result)
-        d1.update(d0)  
-        to_upload.append(d1)
-    
+def get_upload_collection():
     s = get_connection_string()
     
-    logger.info('Opening DB connections')
+    logger.info('Opening connection to MongoDB...')
     client = pymongo.MongoClient(s)
     
     db = client[mongo_db]
     collection = db[mongo_collection]
+    return collection
+    
+def upload_results(results):
+    to_upload = []
+    d0 = get_local_keys()
+    
+    for result in results:
+        d1 = json_from_result(result)
+        d1.update(d0)  
+        to_upload.append(d1)
+    
+    collection = get_upload_collection()
+    
     logger.info('Inserting %s tests' % len(to_upload))
     collection.insert_many(to_upload)
-    
     logger.info('done')
 
-    
-    
     
     
