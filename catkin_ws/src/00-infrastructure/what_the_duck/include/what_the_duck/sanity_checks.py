@@ -14,6 +14,7 @@ from .list_of_checks import get_checks
 from .statistics import display_results, display_summary, Statistics
 from .visualize import escaped_from_html
 from .statistics import display_short_statistics
+from what_the_duck.mongo_suppor import upload_results
 
 
 def do_all_checks():
@@ -38,10 +39,12 @@ def do_all_checks():
     print(escaped_from_html(o_user))
     
     write_data_to_file(o_user, filename)
-    print('\nNow send the file "%s" to the TA/instructors.' % filename)
+#     print('\nNow send the file "%s" to the TA/instructors.' % filename)
     
-    print('\nYou can also upload it using the following command: ')
-    print('\n  scp %s duckiestats@frankfurt.co-design.science:%s ' % (filename, filename))
+    upload_results(results)
+#     
+#     print('\nYou can also upload it using the following command: ')
+#     print('\n  scp %s duckiestats@frankfurt.co-design.science:%s ' % (filename, filename))
     stats = Statistics(results)
     if stats.nfailures == 0:    
         sys.exit(0)
