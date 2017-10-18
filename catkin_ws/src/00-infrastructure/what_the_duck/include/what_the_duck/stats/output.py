@@ -22,7 +22,6 @@ class MongoSummary(object):
         robots = db.query('robot', '*')
         for robot, data in robots.items():
             self.hostnames[robot] += 1
-#             print data
             self.host_properties[robot]['owner'] = data.parameters['owner']
     
     def get_owner(self, hostname):
@@ -69,6 +68,8 @@ class MongoSummary(object):
                 if v is not None:
                     if v['status'] == ChecksConstants.FAIL:
                         n_not_passed += 1
+                    if v['status'] == ChecksConstants.OK:
+                        n_not_passed += 0.01
 #                 else:
 #                     n_not_passed += 2
             return -n_not_passed
@@ -84,8 +85,8 @@ class MongoSummary(object):
                 if v is not None:
                     if v['status'] != ChecksConstants.OK:
                         n_not_passed += 1
-                else:
-                    n_not_passed += 2
+#                 else:
+#                     n_not_passed += 2
             return -n_not_passed
                 
         return sorted(self.test_names, key=order)
@@ -172,13 +173,17 @@ def visualize(summary):
                 td.append('-')
             else:
                 td.attrs['class']  = d['status']
-                s.attrs['title'] =d['out_long']
+                
+                out = "/".join([str(d['out_short']), str(d['out_long'])])
+                s.attrs['title'] = out
                 upload_date = d['upload_event_date']
                 elapsedTime = datetime.datetime.now() - upload_date
                 when = duration_compact(elapsedTime.total_seconds())
-                td.append(d['status'])
-                td.append(Tag(name='br'))
-                td.append('(%s)' %  when)
+#                 td.append(d['status'])
+#                 td.append(Tag(name='br'))
+#                 td.append('(%s)' %  when)
+#                 
+                s.append(when)
              
             
             td.append(s)
@@ -211,9 +216,21 @@ td.test_name {
 }
 
 body {
-font-size: 8pt;
+    font-size: 8pt;
 }
  
+ 
+td {
+    overflow-wrap: break-word;
+    min-width: 4em;
+    max-width: 4em;
+    padding-bottom: 3px; 
+}
+td {
+    border-bottom: solid 1px black;
+}
+
+
 """
     style = Tag(name='style')
     style.append(css)

@@ -4,6 +4,7 @@ from duckietown_utils import logger
 from duckietown_utils import yaml_dump
 from duckietown_utils import write_data_to_file
 from what_the_duck.stats.output import create_summary
+import sys
 
 def get_valid_data(collection):
     
@@ -26,6 +27,12 @@ def get_valid_data(collection):
     
     
 def what_the_duck_stats():
+    
+    if len(sys.argv) > 1:
+        output =  sys.argv[1]
+    else:
+        output = 'what_the_duck_stats.html'
+        
     collection = get_upload_collection()
     
     res = list(get_valid_data(collection))
@@ -49,6 +56,6 @@ def what_the_duck_stats():
     logger.info(s)
     
     html = create_summary(res)
-    write_data_to_file(html, 'what_the_duck_stats.html')
+    write_data_to_file(html, output)
     
     

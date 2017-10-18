@@ -62,7 +62,7 @@ def json_from_result(result):
     d['test_name'] = result.entry.get_test_id()
     d['status'] = result.status
     d['out_short'] = result.out_short
-    d['out_long'] = result.out_short
+    d['out_long'] = result.out_long
     return d
 #     Result = namedtuple('Result', 'entry status out_short out_long')
     
