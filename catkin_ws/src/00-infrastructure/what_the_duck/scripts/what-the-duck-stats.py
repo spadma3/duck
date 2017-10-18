@@ -2,7 +2,7 @@
 import sys
 import traceback
 
-def go():
+def all_checks():
     try:
         import duckietown_utils
     except ImportError as e:
@@ -13,9 +13,9 @@ def go():
         sys.exit(255)
 
     else:
-        from what_the_duck.stats.stats_main import what_the_duck_stats
+        from what_the_duck.sanity_checks import do_all_checks
 
-        what_the_duck_stats()
+        do_all_checks()
 
 if __name__ == '__main__':
-    go()
+    all_checks()

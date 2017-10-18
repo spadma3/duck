@@ -8,7 +8,7 @@ from .suite_git import add_suite_git
 from .suite_ssh import good_ssh_configuration 
 
 
-class Manager():
+class Manager(object):
     def __init__(self):
         self.entries = [] 
         

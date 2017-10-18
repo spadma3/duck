@@ -1,3 +1,4 @@
 from . import check_basic_dependencies
 
-__version__ = '1.0.0'
+what_the_duck_version = '1.1'
+__version__ = what_the_duck_version
