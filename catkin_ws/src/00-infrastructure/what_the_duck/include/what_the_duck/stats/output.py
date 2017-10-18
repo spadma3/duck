@@ -4,6 +4,7 @@ from duckietown_utils import yaml_load_file
 from collections import defaultdict
 from bs4.element import Tag
 from duckietown_utils.file_utils import write_data_to_file
+from what_the_duck.constant import ChecksConstants
 
 class MongoSummary(object):
     def __init__(self):
@@ -34,11 +35,43 @@ class MongoSummary(object):
         k = test_name, hostname
         return self.th.get(k, None)
     
+    def get_host_type(self, hostname):
+        for test_name in self.test_names:
+            v = self.get_data(hostname=hostname, test_name=test_name)
+            if v is not None:
+                return v.get('type', '???')
+        return '?'
+            
+        
     def get_sorted_hostnames(self):
-        return sorted(self.hostnames)
+        def order(hostname):
+            # sort by number of mistakes
+            n_not_passed = 0
+            for test_name in self.test_names:
+                v = self.get_data(hostname=hostname, test_name=test_name)
+                if v is not None:
+                    if v['status'] != ChecksConstants.OK:
+                        n_not_passed += 1
+                else:
+                    n_not_passed += 2
+            return -n_not_passed
+                
+        return sorted(self.hostnames, key=order)
     
     def get_sorted_test_names(self):
-        return sorted(self.test_names)
+        def order(test_name):
+            # sort by number of mistakes
+            n_not_passed = 0
+            for hostname in self.hostnames:
+                v = self.get_data(hostname=hostname, test_name=test_name)
+                if v is not None:
+                    if v['status'] != ChecksConstants.OK:
+                        n_not_passed += 1
+                else:
+                    n_not_passed += 2
+            return -n_not_passed
+                
+        return sorted(self.test_names, key=order)
     
 def create_summary(mongo_data):
     summary = MongoSummary()
@@ -75,6 +108,16 @@ def visualize(summary):
         td.append(hostname)
         tr.append(td)
     table.append(tr)
+
+    tr = Tag(name='tr')
+    tr.append(Tag(name='td'))
+    for hostname in hostnames:
+        td = Tag(name='td')
+        stype = summary.get_host_type(hostname)
+        td.attrs['class'] = stype
+        td.append(stype)
+        tr.append(td)
+    table.append(tr)
     
     for test_name in sorted_test_names:
         tr = Tag(name='tr')
@@ -84,19 +127,23 @@ def visualize(summary):
         td.append(test_name)
         tr.append(td)
         for hostname in hostnames:
-            k = test_name, hostname
+
             d = summary.get_data(test_name=test_name, hostname=hostname)
             if d is None:
                 v = 'n/a'
                 status_class = 'n-a'
+                extra = ''
             else:
                 v = d['status']
                 status_class = v
-        
+                extra = d['out_long']
                 
             td = Tag(name='td')
             td.attrs['class'] = status_class
-            td.append(v)
+            s = Tag(name='span')
+            s.attrs['title'] = extra
+            s.append(v)
+            td.append(s)
             tr.append(td)
         table.append(tr)
     body.append(table)
@@ -110,7 +157,7 @@ td.passed {
 
 td.skipped {
     background-color: yellow;
-    color: white;
+    color: black;
 }
 
 td.failed {

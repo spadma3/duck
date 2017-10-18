@@ -3,6 +3,7 @@ from collections import defaultdict
 from duckietown_utils import logger
 from duckietown_utils import yaml_dump
 from duckietown_utils import write_data_to_file
+from what_the_duck.stats.output import create_summary
 
 def get_valid_data(collection):
     
@@ -10,10 +11,15 @@ def get_valid_data(collection):
     out = []
     for r in res:
         if 'what_the_duck_version' in r:
-            if r['what_the_duck_version'] in ['1.1']:
+            v = r['what_the_duck_version']
+            if v in ['1.1', '1.2']:
                 del r['_id']
-                out.append(r)
+                
+                if v in ['1.1']:
+                    r['type'] = '?'
     
+                out.append(r)
+                
     logger.info('Found %d database entries; %d are compatible.' % 
                 (len(res), len(out)))
     return out
@@ -41,5 +47,8 @@ def what_the_duck_stats():
         s += '\n- %s: %d tests' % (h, n)
     
     logger.info(s)
+    
+    html = create_summary(res)
+    write_data_to_file(html, 'what_the_duck_stats.html')
     
     

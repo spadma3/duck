@@ -39,12 +39,12 @@ def do_all_checks():
     print(escaped_from_html(o_user))
     
     write_data_to_file(o_user, filename)
-    print('\nNow send the file "%s" to the TA/instructors.' % filename)
+#     print('\nNow send the file "%s" to the TA/instructors.' % filename)
     
     upload_results(results)
-    
-    print('\nYou can also upload it using the following command: ')
-    print('\n  scp %s duckiestats@frankfurt.co-design.science:%s ' % (filename, filename))
+#     
+#     print('\nYou can also upload it using the following command: ')
+#     print('\n  scp %s duckiestats@frankfurt.co-design.science:%s ' % (filename, filename))
     stats = Statistics(results)
     if stats.nfailures == 0:    
         sys.exit(0)
