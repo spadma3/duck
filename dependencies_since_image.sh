@@ -10,7 +10,8 @@ pip install --upgrade --user \
 	QuickApp \
 	conftools \
 	comptests \
-	procgraph
+	procgraph \
+	pymongo
 
 # None of this should be needed. Next time you think you need it, let me know and we figure it out. -AC
 # sudo pip install --upgrade pip setuptools wheel 
