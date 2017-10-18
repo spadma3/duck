@@ -33,7 +33,7 @@
 	<arg name="/camera/raw/rect" default="false"/>
 	<arg name="/camera/local" default="false" />
 
-	<arg name="apriltags" default="false"/>
+	<arg name="apriltags" default="true"/>
 	<arg name="/apriltags/local" default="false" />
 
 	<!-- end switch args -->
