@@ -1,19 +1,34 @@
+from collections import defaultdict
+from compmake.utils import duration_compact
+import datetime
+from duckietown_utils import yaml_load_file, write_data_to_file
 import sys
 
-from duckietown_utils import yaml_load_file
-from collections import defaultdict
 from bs4.element import Tag
-from duckietown_utils.file_utils import write_data_to_file
+
+from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
-from compmake.utils.duration_hum import duration_compact
-import datetime
+
 
 class MongoSummary(object):
     def __init__(self):
         self.test_names = defaultdict(lambda: 0)
         self.hostnames = defaultdict(lambda: 0)
         self.th = {}
+        self.host_properties = defaultdict(lambda: {})
         
+    def add_scuderia(self):
+        db = get_easy_algo_db()
+        robots = db.query('robot', '*')
+        for robot, data in robots.items():
+            self.hostnames[robot] += 1
+#             print data
+            self.host_properties[robot]['owner'] = data.parameters['owner']
+    
+    def get_owner(self, hostname):
+        p = self.host_properties[hostname]
+        return p.get('owner', '?')
+    
     def parse_mongo_data(self, mongo_data):
         for r in mongo_data:
             self.parse_mongo_one(r)
@@ -52,10 +67,10 @@ class MongoSummary(object):
             for test_name in self.test_names:
                 v = self.get_data(hostname=hostname, test_name=test_name)
                 if v is not None:
-                    if v['status'] != ChecksConstants.OK:
+                    if v['status'] == ChecksConstants.FAIL:
                         n_not_passed += 1
-                else:
-                    n_not_passed += 2
+#                 else:
+#                     n_not_passed += 2
             return -n_not_passed
                 
         return sorted(self.hostnames, key=order)
@@ -77,6 +92,7 @@ class MongoSummary(object):
     
 def create_summary(mongo_data):
     summary = MongoSummary()
+    summary.add_scuderia()
     summary.parse_mongo_data(mongo_data)
     body = visualize(summary)
     html = str(body)
@@ -103,7 +119,9 @@ def visualize(summary):
     table = Tag(name='table')
     
     tr = Tag(name='tr')
-    tr.append(Tag(name='td'))
+    td = Tag(name='td')
+    td.append('hostname')
+    tr.append(td)
     for hostname in hostnames:
         td = Tag(name='td')
         td.attrs['class'] = 'hostname'
@@ -112,12 +130,26 @@ def visualize(summary):
     table.append(tr)
 
     tr = Tag(name='tr')
-    tr.append(Tag(name='td'))
+    td = Tag(name='td')
+    td.append('type')
+    tr.append(td)
     for hostname in hostnames:
         td = Tag(name='td')
         stype = summary.get_host_type(hostname)
         td.attrs['class'] = stype
         td.append(stype)
+        tr.append(td)
+    table.append(tr)
+    
+    tr = Tag(name='tr')
+    td = Tag(name='td')
+    td.append('owner')
+    tr.append(td)
+    for hostname in hostnames:
+        td = Tag(name='td')
+        td.attrs['class'] = 'owner'
+        owner = summary.get_owner(hostname) or '(no owner)'
+        td.append(owner)
         tr.append(td)
     table.append(tr)
     
@@ -130,28 +162,29 @@ def visualize(summary):
         tr.append(td)
         for hostname in hostnames:
 
+            td = Tag(name='td')
+            
+            s = Tag(name='span')
+            
             d = summary.get_data(test_name=test_name, hostname=hostname)
             if d is None:
-                v = 'n/a'
-                status_class = 'n-a'
-                when = 'n/a'
-                extra = ''
+                td.attrs['class'] = 'n-a'
+                td.append('-')
             else:
-                v = d['status']
-                status_class = v
-                extra = d['out_long']
+                td.attrs['class']  = d['status']
+                s.attrs['title'] =d['out_long']
                 upload_date = d['upload_event_date']
                 elapsedTime = datetime.datetime.now() - upload_date
                 when = duration_compact(elapsedTime.total_seconds())
-            td = Tag(name='td')
-            td.attrs['class'] = status_class
-            s = Tag(name='span')
-            s.attrs['title'] = extra
-            s.append('%s (%s)' % (v, when))
+                td.append(d['status'])
+                td.append(Tag(name='br'))
+                td.append('(%s)' %  when)
+             
+            
             td.append(s)
             tr.append(td)
         table.append(tr)
-    body.append(table)
+    
     css = """
 
 td.passed {
@@ -173,15 +206,19 @@ td.hostname {
     font-family: monospace;
 }
 td.test_name {
-    font-size:smaller;
+    
     width: 30em;
+}
+
+body {
+font-size: 8pt;
 }
  
 """
     style = Tag(name='style')
     style.append(css)
     body.append(style)
-        
+    body.append(table)
     return body
 
         
