@@ -4,6 +4,7 @@
 	<arg name="config" default="baseline" />
 	<arg name="local" default="true" />
 	<arg name="param_file_name" default="default" />
+	<arg name="Postprocessing" default="false">
 
 	<!-- AprilTags Detections -->
 	<remap from="image_rect" to="camera_node/image/raw" />
@@ -19,11 +20,13 @@
 	</include>
 
 	<!-- Postprocessing node -->
-	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
-	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
-		<arg name="veh" value="$(arg veh)"/>
-		<arg name="local" value="$(arg local)"/>
-		<arg name="config" value="$(arg config)"/>
-		<arg name="param_file_name" value="$(arg param_file_name)"/>
-	</include>
+	<group if="$(arg Postprocessing)">
+		<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
+		<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="local" value="$(arg local)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+		</include>
+	</group>
 </launch>
