@@ -12,8 +12,7 @@ class BaseAugmenter(object):
     def __init__(self, robot_name=''):
         # Robot name
         self.robot_name = robot_name
-        print 'BaseAugmenter'
-
+        
         # Masking
         #frustum = mask()
     def callback(self, msg=None):
