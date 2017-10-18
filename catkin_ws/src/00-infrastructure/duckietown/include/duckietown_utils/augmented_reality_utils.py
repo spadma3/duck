@@ -67,7 +67,7 @@ class BaseAugmenter(object):
 #                       Augmented reality utils                               #
 #-----------------------------------------------------------------------------#
 
-def get_map_name(map_filename):
+def get_base_name(map_filename):
     return splitext(basename(map_filename))[0]
 
 def load_map(map_filename):
