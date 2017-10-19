@@ -15,7 +15,9 @@ sudo apt install -y \
 	python-ruamel.ordereddict \
 	python-tables
 
+
 # These don't have an APT package
+
 pip install --upgrade --user \
 	PyContracts \
 	QuickApp \
