@@ -12,5 +12,8 @@ sudo apt install -y \
 	python-lxml \
 	python-bs4 \
 	python-ruamel.yaml \
-	python-ruamel.ordereddict \
-	python-pymongo
+	python-ruamel.ordereddict
+
+
+# exception: pymongo is too old
+pip install --user  --upgrade pymongo

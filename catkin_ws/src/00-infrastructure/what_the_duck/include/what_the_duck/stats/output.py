@@ -1,11 +1,11 @@
 from collections import defaultdict
 from compmake.utils import duration_compact
 import datetime
-from duckietown_utils import yaml_load_file, write_data_to_file
 import sys
 
 from bs4.element import Tag
 
+from duckietown_utils import yaml_load_file, write_data_to_file
 from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
 
@@ -96,6 +96,11 @@ def create_summary(mongo_data):
     summary.add_scuderia()
     summary.parse_mongo_data(mongo_data)
     body = visualize(summary)
+    
+    p = Tag(name='p')
+    now = datetime.datetime.now()
+    p.append('Report created on %s' % now.isoformat())
+    body.insert(0, p)
     html = str(body)
     return html
      
