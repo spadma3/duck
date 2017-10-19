@@ -9,9 +9,9 @@ from .yaml_pretty import yaml_load
 
 class BaseAugmenter(object):
     '''Base class for doing augmented reality'''
-    def __init__(self, robot_name=''):
+    def __init__(self, veh=''):
         # Robot name
-        self.robot_name = robot_name
+        self.veh = veh
         
         # Masking
         #frustum = mask()
@@ -81,23 +81,23 @@ def load_map(map_filename):
     logger.info('Loaded {} map data'.format(map_name))
     return data
 
-def load_homography(robot_name):
+def load_homography(veh):
     path = '/calibrations/camera_'
-    filename = get_duckiefleet_root() + path + 'extrinsic/' + robot_name + '.yaml'
+    filename = get_duckiefleet_root() + path + 'extrinsic/' + veh + '.yaml'
     if not isfile(filename):
-        print('Extrinsic calibration for {} does not exist.'.format(robot_name))
+        print('Extrinsic calibration for {} does not exist.'.format(veh))
         exit(2)
     with open(filename) as f:
         contents = f.read()
         data = yaml_load(contents)
-    logger.info('Loaded homography for {}'.format(robot_name))
+    logger.info('Loaded homography for {}'.format(veh))
     return np.array(data['homography']).reshape(3,3)
 
-def load_camera_intrinsics(robot_name):
+def load_camera_intrinsics(veh):
     path = '/calibrations/camera_'
-    filename = get_duckiefleet_root() + path + 'intrinsic/' + robot_name + '.yaml'
+    filename = get_duckiefleet_root() + path + 'intrinsic/' + veh + '.yaml'
     if not isfile(filename):
-        print('Intrinsic calibration for {} does not exist.'.format(robot_name))
+        print('Intrinsic calibration for {} does not exist.'.format(veh))
         exit(3)
     with open(filename) as f:
         contents = f.read()
@@ -108,7 +108,7 @@ def load_camera_intrinsics(robot_name):
     intrinsics['R'] = np.array(data['rectification_matrix']['data']).reshape(3, 3)
     intrinsics['P'] = np.array(data['projection_matrix']['data']).reshape((3,4))
     intrinsics['distortion_model'] = data['distortion_model']
-    logger.info('Loaded camera intrinsics for {}'.format(robot_name))
+    logger.info('Loaded camera intrinsics for {}'.format(veh))
     return intrinsics
 
 def rectify(image, intrinsics):
