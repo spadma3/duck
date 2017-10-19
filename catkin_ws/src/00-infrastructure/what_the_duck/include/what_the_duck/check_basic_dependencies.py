@@ -10,7 +10,6 @@ except ImportError as e:
     msg += '\n\n     pip install --user comptests'
     raise_wrapped(Exception, e, msg)
 
-
 try:
     import procgraph  # @UnresolvedImport @UnusedImport
 except ImportError as e:
@@ -18,3 +17,4 @@ except ImportError as e:
     msg += '\n\nTry the following:'
     msg += '\n\n     pip install --user procgraph'
     raise_wrapped(Exception, e, msg)
+

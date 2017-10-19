@@ -8,7 +8,7 @@ from .suite_git import add_suite_git
 from .suite_ssh import good_ssh_configuration 
 
 
-class Manager():
+class Manager(object):
     def __init__(self):
         self.entries = [] 
         
@@ -149,8 +149,8 @@ def get_checks():
             i2c-tools
             python-smbus
             libffi-dev
-            bibtex2html
-            pdftk
+            
+            
              mplayer
              mencoder
 
@@ -159,6 +159,8 @@ def get_checks():
     if this_is_a_laptop or this_is_circle:
         required_packages.update(make_list("""
             git-lfs
+            pdftk
+            bibtex2html
         """))
 
     # TODO
