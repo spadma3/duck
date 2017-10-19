@@ -6,7 +6,7 @@ import socket
 from contracts import contract
 from what_the_duck import what_the_duck_version
 from .constant import Result
-from duckietown_utils.detect_environment import on_duckiebot, on_laptop
+from duckietown_utils import on_duckiebot, on_laptop, on_circle
 
 
 mongo_db = 'wtd01'
@@ -37,14 +37,16 @@ def get_local_keys():
     username = getpass.getuser()
     hostname = socket.gethostname()
     d = {}
-    this_is_a_duckiebot = on_duckiebot()
-    this_is_a_laptop = on_laptop()
-    if  this_is_a_duckiebot:
+
+    if on_duckiebot():
         stype = 'duckiebot'
-    elif this_is_a_laptop:
+    elif on_laptop():
         stype = 'laptop'
+    elif on_circle():
+        stype = 'cloud'
     else:
         stype = 'unknown'
+        
     d['type'] = stype
     d['what_the_duck_version'] = what_the_duck_version
     d['username'] = username
