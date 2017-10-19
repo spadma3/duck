@@ -8,6 +8,9 @@ from what_the_duck import what_the_duck_version
 from .constant import Result
 from duckietown_utils.detect_environment import on_duckiebot, on_laptop
 
+from duckietown_utils import on_duckiebot, on_laptop, on_circle
+from what_the_duck.geolocation import get_geolocation_data
+
 
 mongo_db = 'wtd01'
 mongo_collection = 'uploads'
@@ -54,6 +57,8 @@ def get_local_keys():
     upload_event_id = hostname + '-' + date_s 
     d['upload_event_id'] = upload_event_id
     d['upload_event_date'] = now
+    location = get_geolocation_data()
+    d.update(location)
     return d
     
 @contract(result=Result)
@@ -64,8 +69,7 @@ def json_from_result(result):
     d['out_short'] = result.out_short
     d['out_long'] = result.out_long
     return d
-#     Result = namedtuple('Result', 'entry status out_short out_long')
-    
+     
 def get_upload_collection():
     s = get_connection_string()
     
@@ -77,13 +81,7 @@ def get_upload_collection():
     return collection
     
 def upload_results(results):
-    to_upload = []
-    d0 = get_local_keys()
-    
-    for result in results:
-        d1 = json_from_result(result)
-        d1.update(d0)  
-        to_upload.append(d1)
+    to_upload = json_from_results(results)
     
     collection = get_upload_collection()
     
@@ -91,7 +89,16 @@ def upload_results(results):
     collection.insert_many(to_upload)
     logger.info('done')
 
-    
+
+def json_from_results(results):
+    to_upload = []
+    d0 = get_local_keys()
+    for i, result in enumerate(results):
+        d1 = json_from_result(result)
+        d1['_id'] = d0['upload_event_id'] + '-%d' % i
+        d1.update(d0)  
+        to_upload.append(d1)
+    return to_upload
     
     
     
