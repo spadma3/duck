@@ -13,7 +13,7 @@ def get_valid_data(collection):
     for r in res:
         if 'what_the_duck_version' in r:
             v = r['what_the_duck_version']
-            if v in ['1.1', '1.2']:
+            if v in ['1.1', '1.2', '1.3']:
                 del r['_id']
                 
                 if v in ['1.1']:
