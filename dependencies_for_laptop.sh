@@ -13,4 +13,13 @@ sudo apt install -y \
 	python-bs4 \
 	python-ruamel.yaml \
 	python-ruamel.ordereddict \
-	python-pymongo
+	python-tables
+
+
+pip install --upgrade --user \
+	PyContracts \
+	QuickApp \
+	conftools \
+	comptests \
+	procgraph \
+	pymongo
