@@ -5,7 +5,7 @@ set -x
 pip install --upgrade --user \
 	ruamel.yaml \
 	bs4 \
-	lxml \
+	lxml \git 
 	PyContracts \
 	QuickApp \
 	conftools \
@@ -14,4 +14,4 @@ pip install --upgrade --user \
 	pymongo
 
 # None of this should be needed. Next time you think you need it, let me know and we figure it out. -AC
-# sudo pip install --upgrade pip setuptools wheel 
+# sudo pip install --upgrade pip setuptools wheel

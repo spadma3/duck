@@ -10,6 +10,8 @@ from duckietown_utils.detect_environment import on_duckiebot, on_laptop
 
 from duckietown_utils import on_duckiebot, on_laptop, on_circle
 from what_the_duck.geolocation import get_geolocation_data
+from duckietown_utils.networking import is_internet_connected
+import shelve
 
 
 mongo_db = 'wtd01'
@@ -83,12 +85,36 @@ def get_upload_collection():
 def upload_results(results):
     to_upload = json_from_results(results)
     
-    collection = get_upload_collection()
+    upload(to_upload)
     
-    logger.info('Inserting %s tests' % len(to_upload))
-    collection.insert_many(to_upload)
-    logger.info('done')
+def upload(to_upload):
+    filename = '/tmp/what_the_duck'
+    S = shelve.open(filename)
+    try:
+#         logger.debug('New records: %s  previous: %s' % (len(to_upload), len(S)))
+        
+        for u in to_upload:
+            S[u['_id']] = u
+        
+        if not is_internet_connected():
+            msg = 'Internet is not connected: cannot upload results.'
+            logger.warning(msg)
+        else:
+            remaining = []
+            for k in S:
+                remaining.append(S[k])
+                
+            collection = get_upload_collection()
+            logger.info('Uploading %s test results' % len(remaining))
+            collection.insert_many(remaining)
+            logger.info('done')
+            for r in remaining:
+                del S[r['_id']]
+    finally:
+#         logger.info('Remaining %s' % (len(S)))
+        S.close()
 
+        
 
 def json_from_results(results):
     to_upload = []
