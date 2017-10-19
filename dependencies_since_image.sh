@@ -2,6 +2,9 @@
 set -e
 set -x
 
+# Important: always use the python-X library if available,
+# rather than doing "pip install X".
+
 sudo apt install -y \
 	python-frozendict \
 	libxslt-dev \
@@ -12,6 +15,7 @@ sudo apt install -y \
 	python-ruamel.ordereddict \
 	python-pymongo
 
+# These don't have an APT package
 pip install --upgrade --user \
 	PyContracts \
 	QuickApp \
