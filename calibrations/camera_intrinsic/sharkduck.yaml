@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [330.303138051367, 0.0, 290.4600624948155, 0.0, 334.44123505972186, 230.1665642015719,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: sharkduck/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.2825718717813583, 0.05970337510102522, -0.002618301765849447, 0.0028076059839361902,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [232.18922424316406, 0.0, 295.7734046029036, 0.0, 0.0, 271.6142883300781,
+    221.6407196800974, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
