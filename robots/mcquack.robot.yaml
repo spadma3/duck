@@ -3,6 +3,4 @@ hostname: mcquack
 username: jarsenault
 description: >
     Jonathan's car
-log:
-    2017-08-01: >
-        Switched RPI2 with RPI3.
+log: 
