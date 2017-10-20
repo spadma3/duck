@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [336.61240887971286, 0.0, 315.21519814641715, 0.0, 338.7973934950836, 231.3524122076635,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: omon/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.2703426741476552, 0.0496896400277387, 0.0020448710770629842, 0.0012806021660232453,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [222.61639404296875, 0.0, 318.9333606049913, 0.0, 0.0, 281.02288818359375,
+    229.1106709384294, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
