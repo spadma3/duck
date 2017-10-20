@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [330.761539159526, 0.0, 312.20703570922115, 0.0, 333.8470783354571, 243.8722626949024,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: backseatdriver/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.2825495987996847, 0.062128723657066974, -0.00028504654944288036, 0.0010506219963350317,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [234.51419067382812, 0.0, 315.2264584007862, 0.0, 0.0, 273.6504821777344,
+    245.59450026242484, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
