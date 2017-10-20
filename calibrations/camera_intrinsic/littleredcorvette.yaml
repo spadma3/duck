@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [340.4135058862268, 0.0, 313.6382404127212, 0.0, 336.1726789848235, 225.8905611272356,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: littleredcorvette/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.27412712901520325, 0.04920372504918229, 0.0033378265403828907, -0.00090773106095812,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [225.22840881347656, 0.0, 313.42178863707704, 0.0, 0.0, 275.80865478515625,
+    221.83954540680497, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
