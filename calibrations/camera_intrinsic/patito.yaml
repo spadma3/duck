@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [318.86767068143655, 0.0, 324.3401617717598, 0.0, 316.26340488028313, 214.90876976659635,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: patito/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.2653184688643635, 0.053264426992813384, 0.00175837354200965, -0.002346161231274308,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [225.44192504882812, 0.0, 321.17029191192705, 0.0, 0.0, 253.0819549560547,
+    202.93288086050597, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
