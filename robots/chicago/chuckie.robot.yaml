@@ -1,13 +1,7 @@
 owner: devshi-mehrotra
 hostname: chuckie
 username: devshi
-<<<<<<< HEAD
 description: This will be my car for Duckietown 2017.
 log:
     2017-09-09: >
         Assembled configuration C0.
-=======
-description: >
-    Devshi's car.
-log:
->>>>>>> c53934b222f48af19e7de2b1d8006a91ca1799b8
