@@ -42,3 +42,6 @@ generate-fleet-statistics:
 	rosrun what_the_duck what-the-duck-stats $(fleet_stats)
 	rsync --progress $(fleet_stats) \
 		duckietown@frankfurt.co-design.science:public_html/fleet-fall2017.html
+
+generate-fleet-statistics-table:
+	python -m what_the_duck.stats.output last_download.yaml

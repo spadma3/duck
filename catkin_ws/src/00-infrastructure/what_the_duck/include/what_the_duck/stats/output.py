@@ -8,6 +8,7 @@ from bs4.element import Tag
 
 from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
+import dateutil.parser
 
 
 class MongoSummary(object):
@@ -16,7 +17,11 @@ class MongoSummary(object):
         self.hostnames = defaultdict(lambda: 0)
         self.th = {}
         self.host_properties = defaultdict(lambda: {})
-        
+        self.host2last_date = {}
+    
+    def get_last_upload_date(self, hostname):
+        return self.host2last_date.get(hostname, None)
+    
     def add_scuderia(self):
         db = get_easy_algo_db()
         robots = db.query('robot', '*')
@@ -35,10 +40,21 @@ class MongoSummary(object):
     def parse_mongo_one(self, r):
         if 'not-implemented' in r['test_name']:
             return
+        hostname = r['hostname']
         self.test_names[r['test_name']] += 1
-        self.hostnames[r['hostname']] += 1
-        k = r['test_name'], r['hostname']
+        self.hostnames[hostname] += 1
+        k = r['test_name'], hostname
+        
         date = r['upload_event_date']
+        
+        if hostname in self.host2last_date:
+            previous = self.host2last_date[hostname]
+            if date > previous:
+                self.host2last_date[hostname] = date
+        else:
+            self.host2last_date[hostname] = date
+        
+        
         if k in self.th:
             last = self.th[k]['upload_event_date']
             if date > last:
@@ -57,9 +73,22 @@ class MongoSummary(object):
             if v is not None:
                 return v.get('type', '???')
         return '?'
-            
         
     def get_sorted_hostnames(self):
+        return self.get_sorted_hostnames_by_date()
+        
+    def get_sorted_hostnames_by_date(self):
+        def order(hostname):
+            d = self.get_last_upload_date(hostname)
+            if d is None:
+                d0 = dateutil.parser.parse('Jan 1, 2016')
+                return d0
+            else:
+                return d
+        
+        return sorted(self.hostnames, key=order)
+    
+    def get_sorted_hostnames_by_failures(self):
         def order(hostname):
             # sort by number of mistakes
             n_not_passed = 0
@@ -141,6 +170,23 @@ def visualize(summary):
         td.append(stype)
         tr.append(td)
     table.append(tr)
+    
+    tr = Tag(name='tr')
+    td = Tag(name='td')
+    td.append('last heard')
+    tr.append(td)
+    for hostname in hostnames:
+        td = Tag(name='td')
+        date = summary.get_last_upload_date(hostname)
+        if date is not None:
+            date_s = date.isoformat()
+        else:
+            date_s = '?'
+        td.attrs['class'] = 'date'
+        td.append(date_s)
+        tr.append(td)
+    table.append(tr)
+    
     
     tr = Tag(name='tr')
     td = Tag(name='td')
