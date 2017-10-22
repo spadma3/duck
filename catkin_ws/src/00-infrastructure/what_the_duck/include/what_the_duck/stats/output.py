@@ -9,6 +9,8 @@ import dateutil.parser
 
 from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
+import yaml
+from duckietown_utils.yaml_pretty import yaml_load
 
 
 class MongoSummary(object):
@@ -86,7 +88,7 @@ class MongoSummary(object):
             else:
                 return d
         
-        return sorted(self.hostnames, key=order)
+        return sorted(self.hostnames, key=order, reverse=True)
     
     def get_sorted_hostnames_by_failures(self):
         def order(hostname):
@@ -294,6 +296,9 @@ td {
 
 if __name__ == '__main__':
     filename = sys.argv[1]
-    mongo_data = yaml_load_file(filename)
+    data = open(filename).read()
+    print('loading data (%d chars)' % (len(data)))
+    mongo_data = yaml_load(data)
+    print('creating summary')
     html = create_summary(mongo_data)
     write_data_to_file(html, 'output.html')
