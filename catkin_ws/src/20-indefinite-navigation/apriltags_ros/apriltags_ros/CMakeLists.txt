@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   geometry_msgs
   duckietown_msgs
+  micromvp_test
   tf
   cv_bridge
   message_generation
@@ -24,13 +25,14 @@ generate_messages(
   sensor_msgs
   geometry_msgs
   duckietown_msgs
+  micromvp_test
 )
 
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES apriltag_detector
-  CATKIN_DEPENDS apriltags image_transport roscpp sensor_msgs geometry_msgs duckietown_msgs tf cv_bridge message_runtime nodelet std_msgs
+  CATKIN_DEPENDS apriltags image_transport roscpp sensor_msgs geometry_msgs duckietown_msgs micromvp_test tf cv_bridge message_runtime nodelet std_msgs
   DEPENDS Eigen
 )
 
@@ -51,7 +53,13 @@ add_library(apriltag_detector
 target_link_libraries(apriltag_detector
   ${catkin_LIBRARIES}
 )
-add_dependencies(apriltag_detector apriltags_ros_generate_messages_cpp)
+add_library(micromvp_apriltag_detector
+  src/micromvp_apriltag_detector.cpp
+)
+target_link_libraries(micromvp_apriltag_detector
+  ${catkin_LIBRARIES}
+)
+add_dependencies(apriltag_detector micromvp_apriltag_detector apriltags_ros_generate_messages_cpp)
 
 
 add_library(apriltag_detector_nodelet src/apriltag_detector_nodelet.cpp)
@@ -66,12 +74,18 @@ target_link_libraries(apriltag_detector_node
   apriltag_detector
 )
 
+add_executable(micromvp_apriltag_detector_node src/micromvp_apriltag_detector_node.cpp)
+target_link_libraries(micromvp_apriltag_detector_node
+  ${catkin_LIBRARIES}
+  micromvp_apriltag_detector
+)
+
 #############
 ## Install ##
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS apriltag_detector apriltag_detector_nodelet apriltag_detector_node
+install(TARGETS apriltag_detector apriltag_detector_nodelet apriltag_detector_node micromvp_apriltag_detector
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

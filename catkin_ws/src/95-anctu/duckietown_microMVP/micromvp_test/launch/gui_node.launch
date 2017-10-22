@@ -5,7 +5,7 @@
 	<arg name="veh" default="erickietop" doc="Name of vehicle. ex: megaman"/>
 	<arg name="sim" default="true" doc="Know if simulation"/>
 
-	<node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true">
+	<node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)">
 	</node>
 
 	
