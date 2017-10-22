@@ -1,7 +1,7 @@
 from collections import defaultdict
 from compmake.utils import duration_compact
 import datetime
-from duckietown_utils import yaml_load_file, write_data_to_file
+from duckietown_utils import  write_data_to_file
 import sys
 
 from bs4.element import Tag
@@ -9,7 +9,6 @@ import dateutil.parser
 
 from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
-import yaml
 from duckietown_utils.yaml_pretty import yaml_load
 
 
@@ -42,6 +41,10 @@ class MongoSummary(object):
     def parse_mongo_one(self, r):
         if 'not-implemented' in r['test_name']:
             return
+        
+        if r.get('type', None) in ['unknown', 'cloud']:
+            return
+            
         hostname = r['hostname']
         self.test_names[r['test_name']] += 1
         self.hostnames[hostname] += 1
