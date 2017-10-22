@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [349.18921932331176, 0.0, 316.9798439193762, 0.0, 344.96501541863654, 234.86911731101867,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: waddlepower/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.27294267716280257, 0.05173104362530905, -0.0006381091797122176, 0.0013401932769698637,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [236.35707092285156, 0.0, 318.73241591195256, 0.0, 0.0, 288.21185302734375,
+    231.6684629986339, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
