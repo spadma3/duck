@@ -19,6 +19,7 @@
         </node>
 
         <!-- run remote -->
+        <include unless="$(arg local)" file="$(find duckietown)/machines"/>
         <node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)"
               type="$(arg node_name)" output="screen">
             <rosparam command="load"
