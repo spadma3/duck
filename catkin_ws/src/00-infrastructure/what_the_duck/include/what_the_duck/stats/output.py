@@ -1,14 +1,14 @@
 from collections import defaultdict
 from compmake.utils import duration_compact
 import datetime
+from duckietown_utils import yaml_load_file, write_data_to_file
 import sys
 
 from bs4.element import Tag
+import dateutil.parser
 
-from duckietown_utils import yaml_load_file, write_data_to_file
 from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
-import dateutil.parser
 
 
 class MongoSummary(object):
