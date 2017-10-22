@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [350.53615807297524, 0.0, 308.2121685081162, 0.0, 347.2873409861993, 222.46043124317262,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: fergy/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.3097656977852485, 0.08157123141034009, 0.003485199559033859, 0.0011809934016869005,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [258.658935546875, 0.0, 310.82799971444183, 0.0, 0.0, 285.18878173828125,
+    217.66814294159485, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
