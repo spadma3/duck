@@ -1,8 +1,6 @@
 from what_the_duck.mongo_suppor import get_upload_collection
 from collections import defaultdict
-from duckietown_utils import logger
-from duckietown_utils import yaml_dump
-from duckietown_utils import write_data_to_file
+from duckietown_utils import logger, yaml_dump, write_data_to_file
 from what_the_duck.stats.output import create_summary
 import sys
 
