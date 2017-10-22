@@ -14,7 +14,8 @@ class Subspeed_node(object):
 
 		# Setup subscribers
 		self.control_constant = 1.0
-		self.sub_topic = rospy.Subscriber("micromvp", micromvp_carspeed, self.cbWheelsCmd, queue_size=1)
+		#must right a dynamic tag detector
+		self.sub_topic = rospy.Subscriber("gui_node/micromvp39", micromvp_carspeed, self.cbWheelsCmd, queue_size=1)
 
 		self.max_vel = 0.5
 

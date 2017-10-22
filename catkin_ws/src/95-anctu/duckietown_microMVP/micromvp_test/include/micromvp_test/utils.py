@@ -38,7 +38,7 @@ microMVP useful functions.
 """
 
 # The arduino ID and the respect tag of car (ID, tag), max 10
-carInfo = [(0, 0)]
+carInfo = [(0, 39)]
 # IP address of the computer running position_.exe (local: zmqPublisherIP = "localhost")
 zmqPublisherIP = "localhost"
 # Port of xBee sender, can be found in Device Manager, Ports
@@ -56,12 +56,19 @@ Dont make changes under this line
 """
 # Part 0: configs
 zmqPublisherPort = "5556"
-wheelBase = 30.0
-tagRatio = 0.90
-container_width = 1420
-container_height = 780
-painter_width = 1280
-painter_height = 720
+#pixel of one car
+#wheelBase = 30.0
+wheelBase = 30
+#tagRatio = 0.90
+tagRatio = 0.10
+#container_width = 1420
+#container_height = 780
+container_width = 640
+container_height = 480
+#painter_width = 1280
+#painter_height = 720
+painter_width = 640
+painter_height = 480
 spacer = 8
 gridCopy = []
 

@@ -5,15 +5,7 @@
 	<arg name="config" default="baseline" />
 	<arg name="param_file_name" default="default" />
 	<arg name="apriltags_param_file_name" default="$(arg param_file_name)" />
-	<arg name="fsm_file_name" default="default" />
-	<arg name="visualization" default="true" />
-	<arg name="verbose" default="false" />
 	<arg name="statistics" default="false"/>
-	<arg name="map_name" default="duckietown_map"/>
-	<arg name="anti_instagram" default="true"/>
-	<arg name="loc" default="-1"/>
-	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
-	<arg name="intersectionType" />
 	<!-- end basic args -->
  
 <!-- the things that are "on" by default: 
@@ -108,7 +100,7 @@
 		<!-- change to raw image -->
 		<remap from="apriltags_detector_node/image_raw" to="camera_node/image/raw"/>
 		<remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
-		<include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
+		<include file="$(find apriltags_ros)/launch/micromvp_apriltag_detector_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="local" value="$(arg /apriltags/local)"/>
 			<arg name="config" value="$(arg config)"/>

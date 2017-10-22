@@ -3,6 +3,7 @@
 import rospy
 import rospkg
 from micromvp_test.msg import micromvp_carspeed
+from micromvp_test.msg import micromvp_pose
 import pygame
 from pygame.locals import *
 from pgu import gui
@@ -135,25 +136,29 @@ class App(gui.Desktop):
     def __init__(self, **params):
         gui.Desktop.__init__(self, **params)
         #set up publisher
-        carpub = []
-        for i in range(len(utils.carInfo))
-            topic = "~micromvp" + i
-            self.carpub[] = rospy.Publisher(topic, micromvp_carspeed, queue_size=20)
+        self.carpub = []
+        for i in range(len(utils.carInfo)):
+            topic = "~micromvp" + str(utils.carInfo[i][1])
+            self.carpub.append(rospy.Publisher(topic, micromvp_carspeed, queue_size=1))
         #set up subscriber for car location (Apriltags)
-        self.carloc = rospy.subscriber("~tag_detections", ApriltagDetectionArray, self.GetLocation, queue_size=1)
+        self.carloc = rospy.Subscriber("erickiemocap/tag_detections_xyo", micromvp_pose, self.ros_GetLocation, queue_size=1)
         #setup path for load image etc.
         self.package_path = rospkg.RosPack().get_path('micromvp_test')
-        self.connect(gui.QUIT, self.FlushQuit, None)
+        #self.connect(gui.QUIT, self.FlushQuit, None)
+        self.connect(gui.QUIT, self.shutdown, None)
         # Setup everything
         self.SetupArgv()
         self.SetupCars()
         self.SetupGUI()
-
+        # test location
+        #self.test_Location()
+    '''
     def FlushQuit(self, garbage):
         with lock:
             if not self.sim:
                 self.xBee.xBeeFlush7()
         self.quit()
+    '''
 
     def SetupArgv(self):
         #parser = argparse.ArgumentParser(description = "microMVP")
@@ -179,14 +184,16 @@ class App(gui.Desktop):
             self.cars[item[1]] = utils.UnitCar(tag = item[1], ID = item[0])
         if self.sim:
             self.SetupWB()
-            self.GetRandomArrangement()
+            #self.GetRandomArrangement()
+            self.test_Location()
         else:
-            positionZMQSub._initialize_zmq()
+            self.test_Location()
             self.SetupWB()
-        #print 'Car dict: ', self.cars
 
     def SetupWB(self):
         # Auto-detect the size of cars
+        # new version: set WB in utils.py
+        '''
         if self.sim:
             pass
         else:
@@ -203,6 +210,7 @@ class App(gui.Desktop):
                     utils.wheelBase += tagSize / utils.tagRatio
             utils.wheelBase = utils.wheelBase / read  
             #print utils.wheelBase
+        '''
         self.bound = utils.Boundary()
 
     def SetupGUI(self):
@@ -578,9 +586,25 @@ class App(gui.Desktop):
     def ros_GetLocation(self, msg):
         #ros subscriber get location
         #msg
+        compensation = -1*math.pi/2
+        KEY = self.cars.keys()
+        locs = [(0, 0, 0) for x in range(len(self.cars.keys()))]
+        for index, key in enumerate(KEY):
+            locs[index] = (msg.x, msg.y, compensation+msg.theta)
+        for i, j in enumerate(self.cars.keys()):
+            self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
 
+    def test_Location(self):
+        compensation = -1*math.pi/2
+        for i, j in enumerate(self.cars.keys()):
+            self.cars[j].x, self.cars[j].y, self.cars[j].theta = (160, 120, compensation+math.pi/2)
+
+    '''    
     def GetLocation(self):
         with lock:
+            #for i, j in enumerate(self.cars.keys()):
+                #self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
+        
             KEY = self.cars.keys()
         if self.sim:
             locs = [0 for x in range(len(self.cars.keys()))]
@@ -633,15 +657,19 @@ class App(gui.Desktop):
                 with lock:
                     for i, j in enumerate(self.cars.keys()):
                         self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
-                time.sleep(0.02)          
+                time.sleep(0.02)    
+        '''      
 
     def SendSpeed(self):
-        car_msg = micromvp_carspeed()
+        car_msg = []
+        for i in range(len(utils.carInfo)):
+            car_msg.append(micromvp_carspeed())
+        
         newList1 = []
         with lock:
             for carID, garbage in utils.carInfo:
                 newList1.append(carID)
-            car_msg.carID = newList1[0]
+                car_msg[i].carID = newList1[i]
         speeds = [(0, 0) for x in range(len(self.cars.keys()))]
         run = True
         while True:
@@ -656,34 +684,49 @@ class App(gui.Desktop):
                 for i in range(len(utils.carInfo)):
                     newList2.append(speeds[i][0])
                     newList3.append(speeds[i][1])
-                car_msg.lspeed = newList3[0]
-                car_msg.rspeed = newList2[0]
-                self.carpub.publish(car_msg)
+                    car_msg[i].lspeed = newList3[i]
+                    car_msg[i].rspeed = newList2[i]
+                    self.carpub[i].publish(car_msg[i])
             else:
-                car_msg.lspeed = 0
-                car_msg.rspeed = 0
-                self.carpub.publish(car_msg)
+                for i in range(len(utils.carInfo)):
+                    car_msg[i].lspeed = 0
+                    car_msg[i].rspeed = 0
+                    self.carpub[i].publish(car_msg[i])
             time.sleep(0.02)
 
+    def shutdown():
+        '''
+        car_msg = []
+        for i in range(len(utils.carInfo)):
+            car_msg.append(micromvp_carspeed())
+        for i in range(len(utils.carInfo)):
+            car_msg[i].lspeed = 0
+            car_msg[i].rspeed = 0
+            self.carpub[i].publish(car_msg[i])
+        '''
+        print "microMVP shutdown"
+        self.quit()
+
 if __name__ == "__main__":
-    rospy.init_node('gui')
+    rospy.init_node('gui_node')
     app = App()
 
     t1 = threading.Thread(target = app.Draw)
     t2 = threading.Thread(target = app.Follow)
-    t3 = threading.Thread(target = app.GetLocation)
+    #t3 = threading.Thread(target = app.GetLocation)
     t4 = threading.Thread(target = app.SendSpeed)
 
     t1.setDaemon(True)
     t2.setDaemon(True)
-    t3.setDaemon(True)
+    #t3.setDaemon(True)
     t4.setDaemon(True)
 
-    t3.start()
+    #t3.start()
     t1.start()
     t2.start()
     t4.start()
     app.run()
 
-    rospy.on_shutdown(gui_node.onShutdown)
+    rospy.on_shutdown(shutdown)
+    #rospy.on_shutdown()
     rospy.spin()
