@@ -1,10 +1,8 @@
-owner: censi
-hostname: emma
-username: andrea
+owner: salazar
+hostname: anda
+username: samauro
 description: >
-    Andrea's car.
+    Mauro Salazar's elegant car.
 log:
-    2017-08-01: >
-        Switched RPI2 with RPI3.
-    2017-08-20: >
-        There is something wrong with the PWM hat and the LEDs.
+    2017-10-22: >
+        Work in progress
