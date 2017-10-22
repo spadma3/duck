@@ -14,7 +14,7 @@ from .list_of_checks import get_checks
 from .statistics import display_results, display_summary, Statistics
 from .visualize import escaped_from_html
 from .statistics import display_short_statistics
-from what_the_duck.mongo_suppor import upload_results
+from .mongo_suppor import upload_results
 
 
 def do_all_checks():
@@ -56,6 +56,8 @@ def do_all_checks():
 def run_checks(entries):
     """ Returns the names of the failures  """
     results = [] 
+    
+#     entries = entries[:10]
     
     def record_result(r):
         results.append(r) 
