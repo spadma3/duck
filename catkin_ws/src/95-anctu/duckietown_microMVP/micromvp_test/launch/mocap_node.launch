@@ -7,7 +7,7 @@
 	<arg name="Postprocessing" default="false" />
 
 	<!-- AprilTags Detections -->
-	<remap from="image_rect" to="camera_node/image/raw" /-->
+	<remap from="image_rect" to="camera_node/image/raw">
 	<!-- change to raw image -->
 	<include file="$(find apriltags_ros)/launch/micromvp_apriltag_detector_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
