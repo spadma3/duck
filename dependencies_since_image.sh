@@ -11,10 +11,11 @@ sudo apt install -y \
 	libxml2-dev \
 	python-lxml \
 	python-bs4 \
-	python-ruamel.yaml \
-	python-ruamel.ordereddict \
 	python-tables
 
+sudo apt remove -y \
+	python-ruamel.yaml \
+	python-ruamel.ordereddict
 
 # These don't have an APT package
 

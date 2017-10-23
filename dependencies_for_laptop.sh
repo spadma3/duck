@@ -13,6 +13,10 @@ sudo apt install -y \
 	python-bs4 \
 	python-tables
 
+sudo apt remove -y \
+	python-ruamel.yaml \
+	python-ruamel.ordereddict
+
 
 pip install --upgrade --user \
 	PyContracts \

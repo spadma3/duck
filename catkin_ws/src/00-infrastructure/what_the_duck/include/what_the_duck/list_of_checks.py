@@ -172,7 +172,9 @@ def get_checks():
     forbidden_packages = [
         "python-roslaunch", 
         "rosbash",
-        'python-ruamel.yaml']
+        'python-ruamel.yaml',
+        'python-ruamel.ordereddict',
+    ]
 
     for p in forbidden_packages:
         add(None, "You should not have installed APT package " + p, 
