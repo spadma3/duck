@@ -11,8 +11,6 @@ sudo apt install -y \
 	libxml2-dev \
 	python-lxml \
 	python-bs4 \
-	python-ruamel.yaml \
-	python-ruamel.ordereddict \
 	python-tables
 
 
@@ -22,4 +20,5 @@ pip install --upgrade --user \
 	conftools \
 	comptests \
 	procgraph \
-	pymongo
+	pymongo \
+	ruamel.yaml==0.15.34

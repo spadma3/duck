@@ -24,7 +24,8 @@ pip install --upgrade --user \
 	conftools \
 	comptests \
 	procgraph \
-	pymongo
+	pymongo \
+	ruamel.yaml==0.15.34
 
 # None of this should be needed. Next time you think you need it, let me know and we figure it out. -AC
 # sudo pip install --upgrade pip setuptools wheel
