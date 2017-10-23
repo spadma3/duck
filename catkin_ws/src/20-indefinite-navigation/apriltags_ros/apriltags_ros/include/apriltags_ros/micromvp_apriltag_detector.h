@@ -38,6 +38,7 @@ void switchCB(const duckietown_msgs::BoolStamped::ConstPtr& switch_msg);
   std::string sensor_frame_id_;
   image_transport::ImageTransport it_;
   image_transport::CameraSubscriber image_sub_;
+  //image_transport::Subscriber image_sub_
   image_transport::Publisher image_pub_;
   ros::Subscriber switch_sub_;
   ros::Publisher detections_pub_;

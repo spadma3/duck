@@ -590,7 +590,7 @@ class App(gui.Desktop):
         KEY = self.cars.keys()
         locs = [(0, 0, 0) for x in range(len(self.cars.keys()))]
         for index, key in enumerate(KEY):
-            locs[index] = (msg.x, msg.y, compensation+msg.theta)
+            locs[index] = (msg.x, msg.y, compensation+msg.o)
         for i, j in enumerate(self.cars.keys()):
             self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
 
