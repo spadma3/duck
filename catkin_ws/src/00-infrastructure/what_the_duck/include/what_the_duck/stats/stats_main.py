@@ -3,6 +3,7 @@ from collections import defaultdict
 from duckietown_utils import logger, yaml_dump, write_data_to_file
 from what_the_duck.stats.output import create_summary
 import sys
+from duckietown_utils.safe_pickling import safe_pickle_dump
 
 def get_valid_data(collection):
     
@@ -35,12 +36,13 @@ def what_the_duck_stats():
     
     res = list(get_valid_data(collection))
 
-#     for r in res:
-#         del r['_id']
-#          
-    data = yaml_dump(res)
-        
+
+    logger.debug('dumping YAML')
+    import yaml
+    data = yaml.dump(res)
     write_data_to_file(data, 'last_download.yaml')
+    logger.debug('dumping Pickle')
+    safe_pickle_dump(res, 'last_download.pickle')
         
     hostnames = defaultdict(lambda:0)
     

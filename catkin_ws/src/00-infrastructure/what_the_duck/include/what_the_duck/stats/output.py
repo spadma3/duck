@@ -10,6 +10,8 @@ import dateutil.parser
 from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
 from duckietown_utils.yaml_pretty import yaml_load
+from duckietown_utils.safe_pickling import safe_pickle_load
+from contracts import contract
 
 
 class MongoSummary(object):
@@ -30,10 +32,15 @@ class MongoSummary(object):
             self.hostnames[robot] += 1
             self.host_properties[robot]['owner'] = data.parameters['owner']
     
+    def get_country(self, hostname):
+        p = self.host_properties[hostname]
+        return p.get('country', None)
+    
     def get_owner(self, hostname):
         p = self.host_properties[hostname]
         return p.get('owner', '?')
     
+    @contract(mongo_data='list(dict)')
     def parse_mongo_data(self, mongo_data):
         for r in mongo_data:
             self.parse_mongo_one(r)
@@ -59,13 +66,19 @@ class MongoSummary(object):
         else:
             self.host2last_date[hostname] = date
         
-        
+        update = False
         if k in self.th:
             last = self.th[k]['upload_event_date']
             if date > last:
-                self.th[k] = r
+                update = True
         else:
+            update = True
+            
+        if update:
             self.th[k] = r
+
+            self.host_properties[hostname]['country'] = r.get('country', None)
+            
             
     def get_data(self, hostname, test_name):
         """ Returns None if does not exist """
@@ -181,21 +194,21 @@ def visualize(summary):
         tr.append(td)
     table.append(tr)
     
-    tr = Tag(name='tr')
-    td = Tag(name='td')
-    td.append('last heard')
-    tr.append(td)
-    for hostname in hostnames:
-        td = Tag(name='td')
-        date = summary.get_last_upload_date(hostname)
-        if date is not None:
-            date_s = date.isoformat()
-        else:
-            date_s = '?'
-        td.attrs['class'] = 'date'
-        td.append(date_s)
-        tr.append(td)
-    table.append(tr)
+#     tr = Tag(name='tr')
+#     td = Tag(name='td')
+#     td.append('last heard')
+#     tr.append(td)
+#     for hostname in hostnames:
+#         td = Tag(name='td')
+#         date = summary.get_last_upload_date(hostname)
+#         if date is not None:
+#             date_s = date.isoformat()
+#         else:
+#             date_s = '?'
+#         td.attrs['class'] = 'date'
+#         td.append(date_s)
+#         tr.append(td)
+#     table.append(tr)
     
     
     tr = Tag(name='tr')
@@ -209,6 +222,19 @@ def visualize(summary):
         td.append(owner)
         tr.append(td)
     table.append(tr)
+    
+    tr = Tag(name='tr')
+    td = Tag(name='td')
+    td.append('location')
+    tr.append(td)
+    for hostname in hostnames:
+        td = Tag(name='td')
+        td.attrs['class'] = 'location'
+        owner = summary.get_country(hostname) or ''
+        td.append(owner)
+        tr.append(td)
+    table.append(tr)
+    
     
     for test_name in sorted_test_names:
         tr = Tag(name='tr')
@@ -299,9 +325,21 @@ td {
 
 if __name__ == '__main__':
     filename = sys.argv[1]
-    data = open(filename).read()
-    print('loading data (%d chars)' % (len(data)))
-    mongo_data = yaml_load(data)
+    
+    if filename.endswith('yaml'):
+        data = open(filename).read()
+        print('loading data (%d chars)' % (len(data)))
+    #     from ruamel import yaml
+        import yaml
+    #     mongo_data = yaml.load(data, Loader=yaml.UnsafeLoader)
+        mongo_data = yaml.load(data)
+    else:
+#         data = open(filename).read()
+        mongo_data = safe_pickle_load(filename)
+        
+#     mongo_data = yaml_load(data)
     print('creating summary')
     html = create_summary(mongo_data)
     write_data_to_file(html, 'output.html')
+    
+    
