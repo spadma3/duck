@@ -659,7 +659,6 @@ class App(gui.Desktop):
                         self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
                 time.sleep(0.02)    
         '''      
-
     def SendSpeed(self):
         car_msg = []
         for i in range(len(utils.carInfo)):
@@ -693,6 +692,37 @@ class App(gui.Desktop):
                     car_msg[i].rspeed = 0
                     self.carpub[i].publish(car_msg[i])
             time.sleep(0.02)
+    '''
+    def SendSpeed(self):
+        car_msg = []
+        for i in range(len(utils.carInfo)):
+            car_msg.append(micromvp_carspeed())
+        
+        newList1 = []
+        for carID, garbage in utils.carInfo:
+            newList1.append(carID)
+            car_msg[i].carID = newList1[i]
+        speeds = [(0, 0) for x in range(len(self.cars.keys()))]
+
+        run = self.runCar
+        for i, (carID, tagID) in enumerate(utils.carInfo):
+            speeds[i] = (self.cars[tagID].lSpeed * self.simSpeed, self.cars[tagID].rSpeed * self.simSpeed)
+        if run:
+            print "send speed"
+            newList2 = [] #leftspeed
+            newList3 = [] #rightspeed
+            for i in range(len(utils.carInfo)):
+                newList2.append(speeds[i][0])
+                newList3.append(speeds[i][1])
+                car_msg[i].lspeed = newList3[i]
+                car_msg[i].rspeed = newList2[i]
+                self.carpub[i].publish(car_msg[i])
+        else:
+            for i in range(len(utils.carInfo)):
+                car_msg[i].lspeed = 0
+                car_msg[i].rspeed = 0
+                self.carpub[i].publish(car_msg[i])
+    '''
 
     def shutdown():
         '''
