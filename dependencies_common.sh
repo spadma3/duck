@@ -9,7 +9,15 @@ sudo apt install -y \
 	libxml2-dev \
 	python-lxml \
 	python-bs4 \
-	python-tables
+	python-tables \
+    python-sklearn \
+    apt-file \
+    iftop \
+    atop \
+    ntpdate \
+    python-termcolor \
+    sklearn \
+    libatlas-base-dev
 
 sudo apt remove -y \
 	python-ruamel.yaml \
@@ -18,11 +26,12 @@ sudo apt remove -y \
 # These don't have an APT package
 
 pip install --upgrade --user \
-	PyContracts \
-	QuickApp \
-	conftools \
-	comptests \
-	procgraph \
+	PyContracts==1.7.15 \
+    DecentLogs==1.1.2\
+	QuickApp==1.3.8 \
+	conftools==1.9.1 \
+	comptests==1.4.10 \
+	procgraph==1.10.6 \
 	pymongo==3.5.1 \
 	ruamel.yaml==0.15.34
 
