@@ -16,8 +16,12 @@ sudo apt install -y \
     atop \
     ntpdate \
     python-termcolor \
-    sklearn \
-    libatlas-base-dev
+    python-sklearn \
+    libatlas-base-dev \
+    python-dev \
+    ipython \
+    python-sklearn \
+    python-smbus
 
 sudo apt remove -y \
 	python-ruamel.yaml \
