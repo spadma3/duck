@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [335.0144159647963, 0.0, 312.7556403559304, 0.0, 335.99342504537003, 223.87367939434756,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: erickiebot/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.28459355796502367, 0.06215452209602464, 0.0020426829493934468, 0.0015025826777736357,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [237.4633026123047, 0.0, 315.93552751081916, 0.0, 0.0, 274.8999938964844,
+    217.71689428094942, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
