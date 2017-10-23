@@ -2,8 +2,6 @@
 set -e
 set -x
 
-# Important: always use the python-X library if available,
-# rather than doing "pip install X".
 
 sudo apt install -y \
 	python-frozendict \
@@ -25,8 +23,11 @@ pip install --upgrade --user \
 	conftools \
 	comptests \
 	procgraph \
-	pymongo \
+	pymongo==3.5.1 \
 	ruamel.yaml==0.15.34
+
+
+
 
 # None of this should be needed. Next time you think you need it, let me know and we figure it out. -AC
 # sudo pip install --upgrade pip setuptools wheel
