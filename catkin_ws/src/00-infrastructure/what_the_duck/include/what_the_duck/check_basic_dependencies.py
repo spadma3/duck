@@ -3,7 +3,8 @@ from duckietown_utils import raise_wrapped
 
 # Let's make sure we have the depedencies
 try:
-    import comptests  # @UnusedImport
+#     import comptests  # @UnusedImport
+    pass
 except ImportError as e:
     msg = 'Comptests not installed.'
     msg += '\n\nTry the following:'
@@ -11,7 +12,8 @@ except ImportError as e:
     raise_wrapped(Exception, e, msg)
 
 try:
-    import procgraph  # @UnresolvedImport @UnusedImport
+#     import procgraph  # @UnresolvedImport @UnusedImport
+    pass
 except ImportError as e:
     msg = 'procgraph not installed.'
     msg += '\n\nTry the following:'

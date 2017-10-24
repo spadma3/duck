@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from collections import defaultdict
 from compmake.utils import duration_compact
 import datetime
@@ -230,8 +231,8 @@ def visualize(summary):
     for hostname in hostnames:
         td = Tag(name='td')
         td.attrs['class'] = 'location'
-        owner = summary.get_country(hostname) or ''
-        td.append(owner)
+        country = summary.get_country(hostname) or ''
+        td.append(cute_country(country))
         tr.append(td)
     table.append(tr)
     
@@ -321,11 +322,24 @@ td {
     body.append(table)
     return body
 
+def cute_country(country_code):
+    cute = {
+#        'CA': "🇨🇦",
+        'CA': "🏒",
+        'CH': "🇨🇭",
+        'US': "🇺🇸",
+        "TW": "🐉",
+    }
+    return cute.get(country_code, country_code)
+    
         
 
 if __name__ == '__main__':
     filename = sys.argv[1]
-    
+    if len(sys.argv) >= 3:
+        output = sys.argv[2]
+    else:
+        output = 'output.html'
     if filename.endswith('yaml'):
         data = open(filename).read()
         print('loading data (%d chars)' % (len(data)))
@@ -340,6 +354,6 @@ if __name__ == '__main__':
 #     mongo_data = yaml_load(data)
     print('creating summary')
     html = create_summary(mongo_data)
-    write_data_to_file(html, 'output.html')
+    write_data_to_file(html, output)
     
     
