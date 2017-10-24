@@ -1,20 +1,23 @@
-image_width: 640
-image_height: 480
-camera_name: /shamrock/rosberrypi_cam
 camera_matrix:
-  rows: 3
   cols: 3
-  data: [305.5718893575089, 0, 303.0797142544728, 0, 308.8338858195428, 231.8845403702499, 0, 0, 1]
-distortion_model: plumb_bob
+  data: [290.94151410605076, 0.0, 286.5039344512315, 0.0, 297.2399997853595, 193.05809165251975,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: shamrock/camera_node
 distortion_coefficients:
-  rows: 1
   cols: 5
-  data: [-0.2944667743901807, 0.0701431287084318, 0.0005859930422629722, -0.0006697840226199427, 0]
-rectification_matrix:
-  rows: 3
-  cols: 3
-  data: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+  data: [-0.2612388157663992, 0.04739310953387896, 0.006991212954311324, 0.007481818746143102,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
 projection_matrix:
-  rows: 3
   cols: 4
-  data: [220.2460277141687, 0, 301.8668918355899, 0, 0, 238.6758484095299, 227.0880056118307, 0, 0, 0, 1, 0]
+  data: [199.68255615234375, 0.0, 299.17436747469037, 0.0, 0.0, 226.38104248046875,
+    174.09963655728643, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
