@@ -8,7 +8,7 @@ from .suite_git import add_suite_git
 from .suite_ssh import good_ssh_configuration 
 
 
-class Manager():
+class Manager(object):
     def __init__(self):
         self.entries = [] 
         
@@ -134,7 +134,7 @@ def get_checks():
 
             python-pip
             ipython
-            python-ruamel.yaml
+            
             virtualenv
             libxml2-dev
             libxslt1-dev
@@ -149,8 +149,8 @@ def get_checks():
             i2c-tools
             python-smbus
             libffi-dev
-            bibtex2html
-            pdftk
+            
+            
              mplayer
              mencoder
 
@@ -159,6 +159,8 @@ def get_checks():
     if this_is_a_laptop or this_is_circle:
         required_packages.update(make_list("""
             git-lfs
+            pdftk
+            bibtex2html
         """))
 
     # TODO
@@ -167,7 +169,12 @@ def get_checks():
     for p in required_packages:
         add(None, "Installed APT package " + p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
 
-    forbidden_packages = ["python-roslaunch", "rosbash"]
+    forbidden_packages = [
+        "python-roslaunch", 
+        "rosbash",
+        'python-ruamel.yaml',
+        'python-ruamel.ordereddict',
+    ]
 
     for p in forbidden_packages:
         add(None, "You should not have installed APT package " + p, 
@@ -298,6 +305,12 @@ def get_checks():
             'Good path for "%s"' % prog,
             CommandOutputContains('which %s' % prog, '/opt/ros/kinetic'),
             Diagnosis('The program `%s` is not resolved to the one in /opt/ros' % prog))
+
+    add(None,
+        'Good path for python',
+        CommandOutputContains('which python', '/usr/bin/python'),
+        Diagnosis('The program `python` is not resolved to the one in /usr/bin. '))
+    
  
 
     machines_exists = add(None,

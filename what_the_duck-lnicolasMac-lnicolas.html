@@ -1,0 +1,80 @@
+<pre><code>
+<span style="color: red">  ✗  Existence of ~/.ssh/authorized_keys </span>
+<span style="color: red">            failure:  Path does not exist: authorized_keys</span>
+<span style="color: red">            details:  Complete path:
+                        /home/lnicolas/.ssh/authorized_keys</span>
+          diagnosis:  You did not setup the SSH authorized keys.
+
+
+<span style="color: red">  ✗  Installed APT package python-ruamel.yaml </span>
+<span style="color: red">            failure:  The package 'python-ruamel.yaml' is not installed, but it should be.</span>
+          diagnosis:  Package 'python-ruamel.yaml' not installed.
+
+
+<span style="color: red">  ✗  Installed APT package git-lfs </span>
+<span style="color: red">            failure:  The package 'git-lfs' is not installed, but it should be.</span>
+          diagnosis:  Package 'git-lfs' not installed.
+
+
+<span style="color: red">  ✗  Provided environment variable DUCKIEFLEET_ROOT. </span>
+<span style="color: red">            failure:  Could not find environment variable 'DUCKIEFLEET_ROOT'.</span>
+          diagnosis:  DUCKIEFLEET_ROOT is not set.
+
+         resolution:  You have to set 'DUCKIEFLEET_ROOT' in your environment (e.g. .bashrc)
+
+<span style="color: orange"> skip  Existence of path ${DUCKIEFLEET_ROOT} </span>
+<span style="color: orange">             reason:  Skipped because the previous test 'Provided environment variable DUCKIEFLEET_ROOT.' failed.</span>
+
+<span style="color: red; font-weight: bold">    !  You pulled the Software repo in the last 24 hours </span>
+<span style="color: red; font-weight: bold">              error:  Invalid test: it raised the exception OSError.</span>
+<span style="color: red; font-weight: bold">            details:  I expect the tests to only raise CheckError or CheckFailed.
+                      
+                      Entire exception:
+                      
+                        Traceback (most recent call last):
+                          File "/home/lnicolas/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/sanity_checks.py", line 104, in run_checks
+                            res = entry.check.check() or ''
+                          File "/home/lnicolas/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/checks/git_repos.py", line 49, in check
+                            age = get_repo_age(d)
+                          File "/home/lnicolas/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/checks/git_repos.py", line 27, in get_repo_age
+                            mtime = os.stat(fn).st_mtime
+                        OSError: [Errno 2] No such file or directory: '/home/lnicolas/duckietown/.git/FETCH_HEAD'
+                      </span>
+
+<span style="color: orange"> skip  You pulled the Duckiefleet root in the last 24 hours </span>
+<span style="color: orange">             reason:  Skipped because the previous test 'Existence of path ${DUCKIEFLEET_ROOT}' skipped.</span>
+
+
+<span style="color: red">  ✗  Git LFS installed </span>
+<span style="color: red">            failure:  `git lfs` returned non-zero.
+                      > The command: git lfs
+                      >      in dir: .
+                      > returned: 1
+                      > stderr>git: 'lfs' is not a git command. See 'git --help'.
+                      > stderr>Did you mean one of these?
+                      > stderr>	alias
+                      > stderr>	log</span>
+          diagnosis:  You have not installed Git LFS
+
+         resolution:  ➡ See duckumentation at http://purl.org/dth/git-lfs
+
+
+<span style="color: red">  ✗  Existence of machines file </span>
+<span style="color: red">            failure:  Machines file does not exist.</span>
+<span style="color: red">            details:  File does not exist: /home/lnicolas/duckietown/catkin_ws/src/00-infrastructure/duckietown/machines</span>
+          diagnosis:  You have an invalid or missing machines file.
+
+         resolution:  ➡ See duckumentation at http://purl.org/dth/machines
+
+</code></pre>
+
+Summary of results:
+<span style="color: green">* 508 test(s) executed successfully.</span>
+<span style="color: orange">* 2 test(s) were skipped.</span>
+<span style="color: red">* 6 test(s) failed
+</span><span style="color: red">* Found 1 invalid test(s) [what-the-duck bugs]</span>
+<span style="color: red; font-weight: bold">Note that these are *bugs* in `what-the-duck` or its plugins and should be reported 
+as soon as possible at the tracker: 
+
+ https://github.com/duckietown/Software/issues</span>
+

@@ -14,10 +14,9 @@ def go():
 
 
     else:
-        from what_the_duck.sanity_checks import do_all_checks
+        from what_the_duck.stats.stats_main import what_the_duck_stats
 
-        do_all_checks()
+        what_the_duck_stats()
 
 if __name__ == '__main__':
     go()
-    
