@@ -56,6 +56,7 @@ from .locate_files_impl import *
 from .logging_logger import *
 from .memoization import *
 from .mkdirs import *
+from .networking import *
 from .parameters import *
 from .path_utils import *
 from .read_package_xml import *

@@ -134,7 +134,7 @@ def get_checks():
 
             python-pip
             ipython
-            python-ruamel.yaml
+            
             virtualenv
             libxml2-dev
             libxslt1-dev
@@ -169,7 +169,12 @@ def get_checks():
     for p in required_packages:
         add(None, "Installed APT package " + p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
 
-    forbidden_packages = ["python-roslaunch", "rosbash"]
+    forbidden_packages = [
+        "python-roslaunch", 
+        "rosbash",
+        'python-ruamel.yaml',
+        'python-ruamel.ordereddict',
+    ]
 
     for p in forbidden_packages:
         add(None, "You should not have installed APT package " + p, 
