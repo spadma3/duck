@@ -340,7 +340,16 @@ td {
     style.append(css)
     body.append(style)
     body.append(table)
-    return body
+    
+    html = Tag(name='html')
+    head = Tag(name='head')
+    meta = Tag(name='meta')
+    meta.attrs['charset'] = 'UTF-8'
+    head.append(meta)
+    html.append(head)
+    html.append(body) 
+
+    return html
 
 def cute_country(country_code):
     cute = {
