@@ -1,13 +1,17 @@
 from collections import defaultdict
 from compmake.utils import duration_compact
 import datetime
+from duckietown_utils import  write_data_to_file
 import sys
 
 from bs4.element import Tag
+import dateutil.parser
 
-from duckietown_utils import yaml_load_file, write_data_to_file
 from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
+from duckietown_utils.yaml_pretty import yaml_load
+from duckietown_utils.safe_pickling import safe_pickle_load
+from contracts import contract
 
 
 class MongoSummary(object):
@@ -16,7 +20,11 @@ class MongoSummary(object):
         self.hostnames = defaultdict(lambda: 0)
         self.th = {}
         self.host_properties = defaultdict(lambda: {})
-        
+        self.host2last_date = {}
+    
+    def get_last_upload_date(self, hostname):
+        return self.host2last_date.get(hostname, None)
+    
     def add_scuderia(self):
         db = get_easy_algo_db()
         robots = db.query('robot', '*')
@@ -24,10 +32,15 @@ class MongoSummary(object):
             self.hostnames[robot] += 1
             self.host_properties[robot]['owner'] = data.parameters['owner']
     
+    def get_country(self, hostname):
+        p = self.host_properties[hostname]
+        return p.get('country', None)
+    
     def get_owner(self, hostname):
         p = self.host_properties[hostname]
         return p.get('owner', '?')
     
+    @contract(mongo_data='list(dict)')
     def parse_mongo_data(self, mongo_data):
         for r in mongo_data:
             self.parse_mongo_one(r)
@@ -35,16 +48,37 @@ class MongoSummary(object):
     def parse_mongo_one(self, r):
         if 'not-implemented' in r['test_name']:
             return
+        
+        if r.get('type', None) in ['unknown', 'cloud']:
+            return
+            
+        hostname = r['hostname']
         self.test_names[r['test_name']] += 1
-        self.hostnames[r['hostname']] += 1
-        k = r['test_name'], r['hostname']
+        self.hostnames[hostname] += 1
+        k = r['test_name'], hostname
+        
         date = r['upload_event_date']
+        
+        if hostname in self.host2last_date:
+            previous = self.host2last_date[hostname]
+            if date > previous:
+                self.host2last_date[hostname] = date
+        else:
+            self.host2last_date[hostname] = date
+        
+        update = False
         if k in self.th:
             last = self.th[k]['upload_event_date']
             if date > last:
-                self.th[k] = r
+                update = True
         else:
+            update = True
+            
+        if update:
             self.th[k] = r
+
+            self.host_properties[hostname]['country'] = r.get('country', None)
+            
             
     def get_data(self, hostname, test_name):
         """ Returns None if does not exist """
@@ -57,9 +91,22 @@ class MongoSummary(object):
             if v is not None:
                 return v.get('type', '???')
         return '?'
-            
         
     def get_sorted_hostnames(self):
+        return self.get_sorted_hostnames_by_date()
+        
+    def get_sorted_hostnames_by_date(self):
+        def order(hostname):
+            d = self.get_last_upload_date(hostname)
+            if d is None:
+                d0 = dateutil.parser.parse('Jan 1, 2016')
+                return d0
+            else:
+                return d
+        
+        return sorted(self.hostnames, key=order, reverse=True)
+    
+    def get_sorted_hostnames_by_failures(self):
         def order(hostname):
             # sort by number of mistakes
             n_not_passed = 0
@@ -147,6 +194,23 @@ def visualize(summary):
         tr.append(td)
     table.append(tr)
     
+#     tr = Tag(name='tr')
+#     td = Tag(name='td')
+#     td.append('last heard')
+#     tr.append(td)
+#     for hostname in hostnames:
+#         td = Tag(name='td')
+#         date = summary.get_last_upload_date(hostname)
+#         if date is not None:
+#             date_s = date.isoformat()
+#         else:
+#             date_s = '?'
+#         td.attrs['class'] = 'date'
+#         td.append(date_s)
+#         tr.append(td)
+#     table.append(tr)
+    
+    
     tr = Tag(name='tr')
     td = Tag(name='td')
     td.append('owner')
@@ -158,6 +222,19 @@ def visualize(summary):
         td.append(owner)
         tr.append(td)
     table.append(tr)
+    
+    tr = Tag(name='tr')
+    td = Tag(name='td')
+    td.append('location')
+    tr.append(td)
+    for hostname in hostnames:
+        td = Tag(name='td')
+        td.attrs['class'] = 'location'
+        owner = summary.get_country(hostname) or ''
+        td.append(owner)
+        tr.append(td)
+    table.append(tr)
+    
     
     for test_name in sorted_test_names:
         tr = Tag(name='tr')
@@ -248,6 +325,21 @@ td {
 
 if __name__ == '__main__':
     filename = sys.argv[1]
-    mongo_data = yaml_load_file(filename)
+    
+    if filename.endswith('yaml'):
+        data = open(filename).read()
+        print('loading data (%d chars)' % (len(data)))
+    #     from ruamel import yaml
+        import yaml
+    #     mongo_data = yaml.load(data, Loader=yaml.UnsafeLoader)
+        mongo_data = yaml.load(data)
+    else:
+#         data = open(filename).read()
+        mongo_data = safe_pickle_load(filename)
+        
+#     mongo_data = yaml_load(data)
+    print('creating summary')
     html = create_summary(mongo_data)
     write_data_to_file(html, 'output.html')
+    
+    
