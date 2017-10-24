@@ -3,16 +3,16 @@ from collections import defaultdict
 from compmake.utils import duration_compact
 import datetime
 from duckietown_utils import  write_data_to_file
+from duckietown_utils.safe_pickling import safe_pickle_load
 import sys
 
+from bs4.dammit import EntitySubstitution
 from bs4.element import Tag
 import dateutil.parser
 
+from contracts import contract
 from easy_algo import get_easy_algo_db
 from what_the_duck.constant import ChecksConstants
-from duckietown_utils.yaml_pretty import yaml_load
-from duckietown_utils.safe_pickling import safe_pickle_load
-from contracts import contract
 
 
 class MongoSummary(object):
@@ -39,7 +39,7 @@ class MongoSummary(object):
     
     def get_owner(self, hostname):
         p = self.host_properties[hostname]
-        return p.get('owner', '?')
+        return p.get('owner', None) or p.get('username', None) or '?'
     
     @contract(mongo_data='list(dict)')
     def parse_mongo_data(self, mongo_data):
@@ -78,7 +78,9 @@ class MongoSummary(object):
         if update:
             self.th[k] = r
 
-            self.host_properties[hostname]['country'] = r.get('country', None)
+            properties = ['country', 'username']
+            for p in properties:
+                self.host_properties[hostname][p] = r.get(p, None)
             
             
     def get_data(self, hostname, test_name):
@@ -191,7 +193,7 @@ def visualize(summary):
         td = Tag(name='td')
         stype = summary.get_host_type(hostname)
         td.attrs['class'] = stype
-        td.append(stype)
+        td.append(cute_stype(stype))
         tr.append(td)
     table.append(tr)
     
@@ -214,7 +216,7 @@ def visualize(summary):
     
     tr = Tag(name='tr')
     td = Tag(name='td')
-    td.append('owner')
+    td.append('owner/username')
     tr.append(td)
     for hostname in hostnames:
         td = Tag(name='td')
@@ -244,6 +246,19 @@ def visualize(summary):
 #         vis = test_name.replace(' : ', )
         td.append(test_name)
         tr.append(td)
+        n_failed_or_invalid = 0
+        for hostname in hostnames:
+            d = summary.get_data(test_name=test_name, hostname=hostname)
+            if d is not None and d['status'] in [ChecksConstants.FAIL, ChecksConstants.ERROR]:
+                n_failed_or_invalid += 1
+        
+        if n_failed_or_invalid == 0:
+            continue
+            
+            
+        if "dt_live_instagram_" in test_name or 'dt_augmented_reality_' in test_name:
+            continue
+        
         for hostname in hostnames:
 
             td = Tag(name='td')
@@ -280,6 +295,11 @@ td.passed {
     color: white;
 }
 
+
+td.invalid {
+    background-color: purple;
+    color: white;
+}
 
 td.skipped {
     background-color: yellow;
@@ -331,6 +351,16 @@ def cute_country(country_code):
         "TW": "🐉",
     }
     return cute.get(country_code, country_code)
+
+
+escaper = EntitySubstitution()
+def cute_stype(x):
+    cute = {
+        'laptop': u"💻",
+        'duckiebot': u"🚗"
+    }
+    s = cute.get(x, x)
+    return escaper.substitute_html(s)
     
         
 
