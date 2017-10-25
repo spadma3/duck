@@ -165,7 +165,7 @@ class App(gui.Desktop):
         #parser.add_argument("-s", dest = "sim", action = "store_true", default = False, help = "Simulation Mode")
         #args = parser.parse_args()
         #self.sim = bool(os.environ.get("sim", args.sim))
-        self.sim = True
+        self.sim = False
         self.vMax = 1.0
         #self.simSpeed = utils.simSpeed
         #if not self.sim:
