@@ -1,21 +1,4 @@
-<pre><code>
-<span style="color: red">  ✗  Installed APT package git-lfs </span>
-<span style="color: red">            failure:  The package 'git-lfs' is not installed, but it should be.</span>
-          diagnosis:  Package 'git-lfs' not installed.
-
-
-<span style="color: red">  ✗  Git config: push policy </span>
-<span style="color: red">            failure:  String '[push]' not contained in /home/christoph/.gitconfig</span>
-<span style="color: red">            details:  Entire contents of /home/christoph/.gitconfig:
-                        > [user]
-                        > 	name = czuidema
-                        > 	email = czuidema@student.ethz.ch
-                        ></span>
-          diagnosis:  You did not configure the push policy for Git.
-
-         resolution:  ➡ See duckumentation at http://purl.org/dth/howto-git-local-config
-
-<span style="color: red; font-weight: bold">    !  You pulled the Duckiefleet root in the last 24 hours </span>
+<pre><code><span style="color: red; font-weight: bold">    !  You pulled the Duckiefleet root in the last 24 hours </span>
 <span style="color: red; font-weight: bold">              error:  Invalid test: it raised the exception OSError.</span>
 <span style="color: red; font-weight: bold">            details:  I expect the tests to only raise CheckError or CheckFailed.
                       
@@ -31,27 +14,13 @@
                         OSError: [Errno 2] No such file or directory: '/home/christoph/duckiefleet/.git/FETCH_HEAD'
                       </span>
 
-
-<span style="color: red">  ✗  Git LFS installed </span>
-<span style="color: red">            failure:  `git lfs` returned non-zero.
-                      > The command: git lfs
-                      >      in dir: .
-                      > returned: 1
-                      > stderr>git: 'lfs' is not a git command. See 'git --help'.
-                      > stderr>Did you mean one of these?
-                      > stderr>	alias
-                      > stderr>	log</span>
-          diagnosis:  You have not installed Git LFS
-
-         resolution:  ➡ See duckumentation at http://purl.org/dth/git-lfs
-
 </code></pre>
 
 Summary of results:
-<span style="color: green">* 516 test(s) executed successfully.</span>
+<span style="color: green">* 519 test(s) executed successfully.</span>
 * No tests were skipped.
-<span style="color: red">* 3 test(s) failed
-</span><span style="color: red">* Found 1 invalid test(s) [what-the-duck bugs]</span>
+<span style="color: green">* All tests executed succeeded.</span>
+<span style="color: red">* Found 1 invalid test(s) [what-the-duck bugs]</span>
 <span style="color: red; font-weight: bold">Note that these are *bugs* in `what-the-duck` or its plugins and should be reported 
 as soon as possible at the tracker: 
 
