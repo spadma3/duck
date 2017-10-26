@@ -13,7 +13,7 @@ import os.path
 from duckietown_utils import (logger, get_duckiefleet_root)
 
 class GroundProjection():
-    
+
     def __init__(self, robot_name="shamrock"):
 
         # defaults overwritten by param
@@ -34,7 +34,7 @@ class GroundProjection():
         self.ci_=camera_info
         self.pcm_.fromCameraInfo(camera_info)
         print("pinhole camera model initialized")
-        
+
     def vector2pixel(self, vec):
         pixel = Pixel()
         cw = self.ci_.width
@@ -61,7 +61,7 @@ class GroundProjection():
         pixel = self.ground2pixel(point)
         return self.pixel2vector(pixel)
 
-    def pixel2ground(self,pixel):
+    def pixel2ground(self, pixel):
         uv_raw = np.array([pixel.u, pixel.v])
         if not self.rectified_input:
             uv_raw = self.pcm_.rectifyPoint(uv_raw)
@@ -79,11 +79,12 @@ class GroundProjection():
 
     def ground2pixel(self, point):
         # TODO check whether z=0 or z=1.
-        # I think z==1 (jmichaux)
+        # I think z==1 for homogeneous coordinates (jmichaux)
+        ground_point = np.array([point.x, point.y, 1.0])
         # I think z==0 (liam)
-        ground_point = np.array([point.x, point.y, 0.0])
-        image_point = self.Hinv * ground_point
-        image_point = np.abs(image_point / image_point[2])
+        #ground_point = np.array([point.x, point.y, 0.0])
+        image_point = np.dot(self.Hinv, ground_point)
+        image_point = image_point / image_point[2]
 
         pixel = Pixel()
         if not self.rectified_input:
@@ -93,6 +94,7 @@ class GroundProjection():
         else:
             pixel.u = image_point[0]
             pixel.v = image_point[1]
+        return pixel
 
     def rectify(self, cv_image_raw):
         '''Undistort image'''
