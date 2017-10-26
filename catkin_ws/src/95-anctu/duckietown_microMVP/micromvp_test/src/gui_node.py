@@ -548,11 +548,13 @@ class App(gui.Desktop):
             time.sleep(0.01)
 
     def Draw(self):
+        rospy.loginfo("Draw First")
         locs = [0 for x in range(len(self.cars.keys()))]
         paths = [0 for x in range(len(self.cars.keys()))]
         #print 'Draw locs: ', locs
         #print 'Draw paths: ', paths
-        while True:            
+        while True:
+            rospy.loginfo("1: Draw")            
             with lock:
                 for i, j in enumerate(self.cars.keys()):
                     locs[i] = (self.cars[j].x, self.cars[j].y, self.cars[j].theta, self.cars[j].ID)
@@ -560,6 +562,31 @@ class App(gui.Desktop):
             self.painter.draw(locs, paths)
             time.sleep(0.015)
 
+    def Follow(self):
+        rospy.loginfo("Follow First")
+        locs = [0 for x in range(len(self.cars.keys()))]
+        paths = [0 for x in range(len(self.cars.keys()))]
+        speeds = [(0.0, 0.0) for x in range(len(self.cars.keys()))]
+        vM = 1.0
+        while True:
+            rospy.loginfo("2: Follow")            
+            with lock:
+                syn = self.syn
+                for i, j in enumerate(self.cars.keys()):
+                    locs[i] = (self.cars[j].x, self.cars[j].y, self.cars[j].theta)
+                    paths[i] = list(self.cars[j].path)
+                    vM = self.sli_v.value / 100.0 * self.vMax
+            for i, j in enumerate(locs):
+                speeds[i] = DDR.Calculate(j[0], j[1], j[2], paths[i], vM, utils.wheelBase)
+            if syn:
+                self.Synchronize(speeds, paths)
+            with lock:
+                for i, j in enumerate(self.cars.keys()):
+                    self.cars[j].lSpeed = speeds[i][0]
+                    self.cars[j].rSpeed = speeds[i][1]
+                    self.cars[j].path = paths[i]
+            time.sleep(0.02)
+    '''
     def Follow(self):
         locs = [0 for x in range(len(self.cars.keys()))]
         paths = [0 for x in range(len(self.cars.keys()))]
@@ -582,10 +609,12 @@ class App(gui.Desktop):
                     self.cars[j].rSpeed = speeds[i][1]
                     self.cars[j].path = paths[i]
             time.sleep(0.02)
+    '''
 
     def ros_GetLocation(self, msg):
         #ros subscriber get location
         #msg
+        rospy.loginfo("3: GetLocation")
         compensation = -1*math.pi/2
         KEY = self.cars.keys()
         locs = [(0, 0, 0) for x in range(len(self.cars.keys()))]
@@ -593,6 +622,7 @@ class App(gui.Desktop):
             locs[index] = (msg.x, msg.y, compensation+msg.o)
         for i, j in enumerate(self.cars.keys()):
             self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
+        self.SendSpeed()
 
     def test_Location(self):
         compensation = -1*math.pi/2
@@ -658,7 +688,8 @@ class App(gui.Desktop):
                     for i, j in enumerate(self.cars.keys()):
                         self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
                 time.sleep(0.02)    
-        '''      
+        ''' 
+    '''     
     def SendSpeed(self):
         car_msg = []
         for i in range(len(utils.carInfo)):
@@ -722,7 +753,7 @@ class App(gui.Desktop):
                 car_msg[i].lspeed = 0
                 car_msg[i].rspeed = 0
                 self.carpub[i].publish(car_msg[i])
-    '''
+    #'''
 
     def shutdown():
         '''
@@ -744,18 +775,19 @@ if __name__ == "__main__":
     t1 = threading.Thread(target = app.Draw)
     t2 = threading.Thread(target = app.Follow)
     #t3 = threading.Thread(target = app.GetLocation)
-    t4 = threading.Thread(target = app.SendSpeed)
+    #t4 = threading.Thread(target = app.SendSpeed)
 
     t1.setDaemon(True)
     t2.setDaemon(True)
     #t3.setDaemon(True)
-    t4.setDaemon(True)
+    #t4.setDaemon(True)
 
     #t3.start()
     t1.start()
     t2.start()
-    t4.start()
+    #t4.start()
     app.run()
+    rospy.loginfo("Start Run")
 
     rospy.on_shutdown(shutdown)
     #rospy.on_shutdown()
