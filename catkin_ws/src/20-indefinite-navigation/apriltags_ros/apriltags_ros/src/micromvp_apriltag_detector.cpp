@@ -37,9 +37,9 @@ namespace apriltags_ros{
     AprilTags::TagCodes tag_codes = AprilTags::tagCodes36h11;
     tag_detector_= boost::shared_ptr<AprilTags::TagDetector>(new AprilTags::TagDetector(tag_codes));
     //image_sub_ = it_.subscribeCamera("image_rect", 1, &AprilTagDetector::imageCb, this);
-    image_sub_ = it_.subscribeCamera("image_rect", 1000, &AprilTagDetector::imageCb, this);
+    image_sub_ = it_.subscribeCamera("image_rect", 2, &AprilTagDetector::imageCb, this);
     switch_sub_ = nh.subscribe("switch",1,&AprilTagDetector::switchCB, this);
-    image_pub_ = it_.advertise("tag_detections_image", 1);
+    //image_pub_ = it_.advertise("tag_detections_image", 1);
     //detections_pub_ = nh.advertise<duckietown_msgs::AprilTagDetectionArray>("tag_detections", 1);
     //pose_pub_ = nh.advertise<geometry_msgs::PoseArray>("tag_detections_pose", 1);
     xyo_pub = nh.advertise<micromvp_test::micromvp_pose>("tag_detections_xyo", 1);
@@ -54,7 +54,7 @@ namespace apriltags_ros{
   }
   
   void AprilTagDetector::imageCb(const sensor_msgs::ImageConstPtr& msg,const sensor_msgs::CameraInfoConstPtr& cam_info){
-    ROS_INFO("image get");
+    //ROS_INFO("image get it");
 
     cv_bridge::CvImagePtr cv_ptr;
     try{
@@ -99,7 +99,7 @@ namespace apriltags_ros{
 
       double tag_size = description.size();
       
-      detection.draw(cv_ptr->image);
+      //detection.draw(cv_ptr->image);
       /*
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
