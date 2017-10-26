@@ -53,6 +53,7 @@ catkin_python_setup()
    FILES
    micromvp_carspeed.msg
    micromvp_pose.msg
+   micromvp_poseArray.msg
  )
 
 ## Generate services in the 'srv' folder

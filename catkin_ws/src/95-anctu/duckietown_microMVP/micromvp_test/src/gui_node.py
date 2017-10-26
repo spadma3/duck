@@ -4,6 +4,7 @@ import rospy
 import rospkg
 from micromvp_test.msg import micromvp_carspeed
 from micromvp_test.msg import micromvp_pose
+from micromvp_test.msg import micromvp_poseArray
 import pygame
 from pygame.locals import *
 from pgu import gui
@@ -138,10 +139,10 @@ class App(gui.Desktop):
         #set up publisher
         self.carpub = []
         for i in range(len(utils.carInfo)):
-            topic = "~micromvp" + str(utils.carInfo[i][1])
+            topic = "~tag" + str(utils.carInfo[i][1])
             self.carpub.append(rospy.Publisher(topic, micromvp_carspeed, queue_size=1))
         #set up subscriber for car location (Apriltags)
-        self.carloc = rospy.Subscriber("erickiemocap/tag_detections_xyo", micromvp_pose, self.ros_GetLocation, queue_size=1)
+        self.carloc = rospy.Subscriber("erickiemocap/tag_detections_poses", micromvp_poseArray, self.ros_GetLocation, queue_size=1)
         #setup path for load image etc.
         self.package_path = rospkg.RosPack().get_path('micromvp_test')
         #self.connect(gui.QUIT, self.FlushQuit, None)
@@ -175,6 +176,8 @@ class App(gui.Desktop):
         #    self.xBee = xBee.Bee(utils.xBeeSocket)
         #    self.xBee.xBeeFlush7()
         self.syn = False
+        #for first get location
+        self.firstgetlocation = True
 
     def SetupCars(self):
         self.cars = dict()
@@ -182,6 +185,7 @@ class App(gui.Desktop):
         #print 'CarInfo: ', utils.carInfo
         for item in utils.carInfo:
             self.cars[item[1]] = utils.UnitCar(tag = item[1], ID = item[0])
+        '''
         if self.sim:
             self.SetupWB()
             #self.GetRandomArrangement()
@@ -189,8 +193,10 @@ class App(gui.Desktop):
         else:
             self.test_Location()
             self.SetupWB()
+        '''
+        self.test_Location()
 
-    def SetupWB(self):
+    def SetupWB(self, tag_size):
         # Auto-detect the size of cars
         # new version: set WB in utils.py
         '''
@@ -211,7 +217,10 @@ class App(gui.Desktop):
             utils.wheelBase = utils.wheelBase / read  
             #print utils.wheelBase
         '''
-        self.bound = utils.Boundary()
+        if self.firstgetlocation:
+            utils.wheelBase = tag_size / utils.tagRatio
+            self.bound = utils.Boundary()
+            self.firstgetlocation = False
 
     def SetupGUI(self):
         c = gui.Container(width = utils.container_width, height = utils.container_height)
@@ -614,14 +623,25 @@ class App(gui.Desktop):
     def ros_GetLocation(self, msg):
         #ros subscriber get location
         #msg
-        rospy.loginfo("3: GetLocation")
+        #set up wheelbase when first get location
+        self.SetupWB(msg.poses[0].tag_size)
         compensation = -1*math.pi/2
         KEY = self.cars.keys()
-        locs = [(0, 0, 0) for x in range(len(self.cars.keys()))]
-        for index, key in enumerate(KEY):
-            locs[index] = (msg.x, msg.y, compensation+msg.o)
+        #locs = [(0, 0, 0) for x in range(len(self.cars.keys()))]
+        #make every xyo become origin and than allocate xyo
         for i, j in enumerate(self.cars.keys()):
-            self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
+            self.cars[j].x = -1
+            self.cars[j].y = -1
+            self.cars[j].theta = 0 + compensation
+        for index in range(len(msg.poses)):
+            for i, j in enumerate(self.cars.keys()):
+                if msg.poses[index].id == self.cars[j].tag:
+                    self.cars[j].x = msg.poses[index].x
+                    self.cars[j].y = msg.poses[index].y
+                    self.cars[j].theta = msg.poses[index].o + compensation
+                    break
+        #for i, j in enumerate(self.cars.keys()):
+        #    self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
         self.SendSpeed()
 
     def test_Location(self):
@@ -747,6 +767,7 @@ class App(gui.Desktop):
                 newList3.append(speeds[i][1])
                 car_msg[i].lspeed = newList3[i]
                 car_msg[i].rspeed = newList2[i]
+                if 
                 self.carpub[i].publish(car_msg[i])
         else:
             for i in range(len(utils.carInfo)):

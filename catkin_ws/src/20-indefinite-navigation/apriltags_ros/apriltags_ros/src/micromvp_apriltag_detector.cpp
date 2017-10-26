@@ -7,12 +7,14 @@
 #include <duckietown_msgs/AprilTagDetection.h>
 #include <duckietown_msgs/AprilTagDetectionArray.h>
 #include <micromvp_test/micromvp_pose.h>
+#include <micromvp_test/micromvp_poseArray.h>
 #include <AprilTags/Tag16h5.h>
 #include <AprilTags/Tag25h7.h>
 #include <AprilTags/Tag25h9.h>
 #include <AprilTags/Tag36h9.h>
 #include <AprilTags/Tag36h11.h>
 #include <XmlRpcException.h>
+#include <math.h>
 
 namespace apriltags_ros{
 
@@ -42,7 +44,7 @@ namespace apriltags_ros{
     //image_pub_ = it_.advertise("tag_detections_image", 1);
     //detections_pub_ = nh.advertise<duckietown_msgs::AprilTagDetectionArray>("tag_detections", 1);
     //pose_pub_ = nh.advertise<geometry_msgs::PoseArray>("tag_detections_pose", 1);
-    xyo_pub = nh.advertise<micromvp_test::micromvp_pose>("tag_detections_xyo", 1);
+    xyo_pub = nh.advertise<micromvp_test::micromvp_poseArray>("tag_detections_poses", 1);
     on_switch=true;
   }
   AprilTagDetector::~AprilTagDetector(){
@@ -84,7 +86,7 @@ namespace apriltags_ros{
     geometry_msgs::PoseArray tag_pose_array;
     tag_pose_array.header = cv_ptr->header;
     */
-    micromvp_test::micromvp_pose pose;
+    micromvp_test::micromvp_poseArray pose_array;
     
     BOOST_FOREACH(AprilTags::TagDetection detection, detections){
       
@@ -97,9 +99,13 @@ namespace apriltags_ros{
       AprilTagDescription description = description_itr->second;
       
 
-      double tag_size = description.size();
+      //double tag_size = description.size();
+
+      //tag size in pixel
+      double tag_size = sqrt(pow(detection.p[0].first - detection.p[1].first, 2) + pow(detection.p[0].second - detection.p[1].second, 2));
       
       //detection.draw(cv_ptr->image);
+      micromvp_test::micromvp_pose pose;
       /*
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
@@ -127,17 +133,21 @@ namespace apriltags_ros{
       tf_pub_.sendTransform(tf::StampedTransform(tag_transform, tag_transform.stamp_, tag_transform.frame_id_, description.frame_name()));
       */
 
+      pose.id = detection.id;
       pose.x = detection.cxy.first;
       pose.y = detection.cxy.second;
+      pose.tag_size = tag_size;
+      //pose.y = (detection.p[0].first+detection.p[1].first+detection.p[2].first+detection.p[3].first)/4;
       pose.o = detection.getXYOrientation();
 
+      pose_array.poses.push_back(pose);
     }
     /*
     detections_pub_.publish(tag_detection_array);
     pose_pub_.publish(tag_pose_array);
     image_pub_.publish(cv_ptr->toImageMsg());
     */
-    xyo_pub.publish(pose);
+    xyo_pub.publish(pose_array);
   }
 
 
