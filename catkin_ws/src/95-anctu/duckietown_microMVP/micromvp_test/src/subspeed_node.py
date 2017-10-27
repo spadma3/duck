@@ -23,7 +23,7 @@ class Subspeed_node(object):
 		
 		tagID = rospy.get_param("tagID")
 		for i in range(len(msg.speeds)):
-			if msg.speeds[i].tagID == int(tagID)
+			if msg.speeds[i].tagID == int(tagID):
 				lspeed = msg.speeds[i].lspeed * self.max_vel
 				rspeed = msg.speeds[i].rspeed * self.max_vel #change normalize to real pwm
 		self.driver.setWheelsSpeed(left=lspeed,right=rspeed)
