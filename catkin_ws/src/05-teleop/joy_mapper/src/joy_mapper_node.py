@@ -79,47 +79,48 @@ class JoyMapper(object):
 # Button List index of joy.buttons array:
 # a = 0, b=1, x=2. y=3, lb=4, rb=5, back = 6, start =7,
 # logitek = 8, left joy = 9, right joy = 10
+# shirLin joystick (new): a=0, b=1, x=3, y=4, L1=6, R1=7, L2 =8, R2=9,select=10, start=11, left-joy-click=13, right-joy-click=14
 # XXX: here we should use constants
     def processButtons(self, joy_msg):
-        if (joy_msg.buttons[6] == 1): #The back button
+        if (joy_msg.buttons[8] == 1): #The back button
             override_msg = BoolStamped()
             override_msg.header.stamp = self.joy.header.stamp
             override_msg.data = True
             rospy.loginfo('override_msg = True')
             self.pub_joy_override.publish(override_msg)
             
-        elif (joy_msg.buttons[7] == 1): #the start button
+        elif (joy_msg.buttons[11] == 1): #the start button
             override_msg = BoolStamped()
             override_msg.header.stamp = self.joy.header.stamp
             override_msg.data = False
             rospy.loginfo('override_msg = False')
             self.pub_joy_override.publish(override_msg)
             
-        elif (joy_msg.buttons[5] == 1): # Right back button
+        elif (joy_msg.buttons[7] == 1): # Right back button
             self.state_verbose ^= True
             rospy.loginfo('state_verbose = %s' % self.state_verbose)
             rospy.set_param('line_detector_node/verbose', self.state_verbose) # bad - should be published for all to hear - not set a specific param
 
-        elif (joy_msg.buttons[4] == 1): #Left back button
+        elif (joy_msg.buttons[6] == 1): #Left back button
             self.state_parallel_autonomy ^= True
             rospy.loginfo('state_parallel_autonomy = %s' % self.state_parallel_autonomy)
             parallel_autonomy_msg = BoolStamped()
             parallel_autonomy_msg.header.stamp = self.joy.header.stamp
             parallel_autonomy_msg.data = self.state_parallel_autonomy
             self.pub_parallel_autonomy.publish(parallel_autonomy_msg)
-        elif (joy_msg.buttons[3] == 1):
+        elif (joy_msg.buttons[9] == 1):
             anti_instagram_msg = BoolStamped()
             anti_instagram_msg.header.stamp = self.joy.header.stamp
             anti_instagram_msg.data = True
             rospy.loginfo('anti_instagram message')
             self.pub_anti_instagram.publish(anti_instagram_msg)
-        elif (joy_msg.buttons[8] == 1): #power button (middle)
+        elif (joy_msg.buttons[10] == 1): #power button (middle)
             e_stop_msg = BoolStamped()
             e_stop_msg.header.stamp = self.joy.header.stamp
             e_stop_msg.data = True # note that this is toggle (actual value doesn't matter)
             rospy.loginfo('E-stop message')
             self.pub_e_stop.publish(e_stop_msg)
-        elif (joy_msg.buttons[9] == 1): #push left joystick button
+        elif (joy_msg.buttons[13] == 1): #push left joystick button
             avoidance_msg = BoolStamped()
             rospy.loginfo('start lane following with avoidance mode')
             avoidance_msg.header.stamp = self.joy.header.stamp
