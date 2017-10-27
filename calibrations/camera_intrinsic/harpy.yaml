@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [336.91937102522724, 0.0, 302.74556331557176, 0.0, 334.14008604221976, 246.8929509909638,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: harpy/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.27121043531509065, 0.05571792304859836, 0.0030341701669081744, 0.003680800519664405,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [235.97406005859375, 0.0, 308.5612331400698, 0.0, 0.0, 275.58502197265625,
+    253.82753854726616, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
