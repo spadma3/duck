@@ -38,7 +38,7 @@ microMVP useful functions.
 """
 
 # The arduino ID and the respect tag of car (ID, tag), max 10
-carInfo = [(0, 39)]
+carInfo = [(0, 39), (1, 131)]
 # IP address of the computer running position_.exe (local: zmqPublisherIP = "localhost")
 zmqPublisherIP = "localhost"
 # Port of xBee sender, can be found in Device Manager, Ports

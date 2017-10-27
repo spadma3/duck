@@ -52,6 +52,7 @@ catkin_python_setup()
  add_message_files(
    FILES
    micromvp_carspeed.msg
+   micromvp_carspeedArray.msg
    micromvp_pose.msg
    micromvp_poseArray.msg
  )

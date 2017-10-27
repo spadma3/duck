@@ -15,14 +15,17 @@ class Subspeed_node(object):
 		# Setup subscribers
 		self.control_constant = 1.0
 		#must right a dynamic tag detector
-		self.sub_topic = rospy.Subscriber("subspeed", micromvp_carspeed, self.cbWheelsCmd, queue_size=1)
+		self.sub_topic = rospy.Subscriber("subspeed", micromvp_carspeedArray, self.cbWheelsCmd, queue_size=1)
 
 		self.max_vel = 0.5
 
 	def cbWheelsCmd(self,msg):
 		
-		lspeed = msg.lspeed * self.max_vel
-		rspeed = msg.rspeed * self.max_vel #change normalize to real pwm
+		tagID = rospy.get_param("tagID")
+		for i in range(len(msg.speeds))
+			if msg.speeds[i].tagID == int(tagID)
+				lspeed = msg.speeds[i].lspeed * self.max_vel
+				rspeed = msg.speeds[i].rspeed * self.max_vel #change normalize to real pwm
 		self.driver.setWheelsSpeed(left=lspeed,right=rspeed)
 		
 		# Put the wheel commands in a message and publish

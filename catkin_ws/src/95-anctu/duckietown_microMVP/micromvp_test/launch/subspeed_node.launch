@@ -4,7 +4,8 @@
 	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
 	<arg name="tagID" doc="Subscribe specific tag ID. ex: tag39">
 
-	<remap from="subspeed" to="/gui_node/$(arg tagID)"/>
+	<remap from="subspeed" to="/gui_node/carspeeds"/>
+	<rosparam param="tagID" subst_value="True">$(arg tagID)</rosparam>
 	<node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true"/>
 	
 </launch>

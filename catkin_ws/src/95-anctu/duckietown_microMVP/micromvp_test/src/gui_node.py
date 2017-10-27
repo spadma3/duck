@@ -3,6 +3,7 @@
 import rospy
 import rospkg
 from micromvp_test.msg import micromvp_carspeed
+from micromvp_test.msg import micromvp_carspeedArray
 from micromvp_test.msg import micromvp_pose
 from micromvp_test.msg import micromvp_poseArray
 import pygame
@@ -137,10 +138,7 @@ class App(gui.Desktop):
     def __init__(self, **params):
         gui.Desktop.__init__(self, **params)
         #set up publisher
-        self.carpub = []
-        for i in range(len(utils.carInfo)):
-            topic = "~tag" + str(utils.carInfo[i][1])
-            self.carpub.append(rospy.Publisher(topic, micromvp_carspeed, queue_size=1))
+        self.carpub=rospy.Publisher("~carspeeds", micromvp_carspeedArray, queue_size=1)
         #set up subscriber for car location (Apriltags)
         self.carloc = rospy.Subscriber("erickiemocap/tag_detections_poses", micromvp_poseArray, self.ros_GetLocation, queue_size=1)
         #setup path for load image etc.
@@ -194,9 +192,10 @@ class App(gui.Desktop):
             self.test_Location()
             self.SetupWB()
         '''
+        self.SetupWB()
         self.test_Location()
 
-    def SetupWB(self, tag_size):
+    def SetupWB(self):
         # Auto-detect the size of cars
         # new version: set WB in utils.py
         '''
@@ -217,10 +216,10 @@ class App(gui.Desktop):
             utils.wheelBase = utils.wheelBase / read  
             #print utils.wheelBase
         '''
-        if self.firstgetlocation:
-            utils.wheelBase = tag_size / utils.tagRatio
-            self.bound = utils.Boundary()
-            self.firstgetlocation = False
+        tag_size = 20
+        utils.wheelBase = tag_size / utils.tagRatio
+        self.bound = utils.Boundary()
+        #self.firstgetlocation = False
 
     def SetupGUI(self):
         c = gui.Container(width = utils.container_width, height = utils.container_height)
@@ -557,13 +556,11 @@ class App(gui.Desktop):
             time.sleep(0.01)
 
     def Draw(self):
-        rospy.loginfo("Draw First")
         locs = [0 for x in range(len(self.cars.keys()))]
         paths = [0 for x in range(len(self.cars.keys()))]
         #print 'Draw locs: ', locs
         #print 'Draw paths: ', paths
-        while True:
-            rospy.loginfo("1: Draw")            
+        while True:           
             with lock:
                 for i, j in enumerate(self.cars.keys()):
                     locs[i] = (self.cars[j].x, self.cars[j].y, self.cars[j].theta, self.cars[j].ID)
@@ -572,13 +569,11 @@ class App(gui.Desktop):
             time.sleep(0.015)
 
     def Follow(self):
-        rospy.loginfo("Follow First")
         locs = [0 for x in range(len(self.cars.keys()))]
         paths = [0 for x in range(len(self.cars.keys()))]
         speeds = [(0.0, 0.0) for x in range(len(self.cars.keys()))]
         vM = 1.0
-        while True:
-            rospy.loginfo("2: Follow")            
+        while True:            
             with lock:
                 syn = self.syn
                 for i, j in enumerate(self.cars.keys()):
@@ -623,8 +618,7 @@ class App(gui.Desktop):
     def ros_GetLocation(self, msg):
         #ros subscriber get location
         #msg
-        #set up wheelbase when first get location
-        self.SetupWB(msg.poses[0].tag_size)
+        # setWB and GUI
         compensation = -1*math.pi/2
         KEY = self.cars.keys()
         #locs = [(0, 0, 0) for x in range(len(self.cars.keys()))]
@@ -634,11 +628,11 @@ class App(gui.Desktop):
             self.cars[j].y = -1
             self.cars[j].theta = 0 + compensation
         for index in range(len(msg.poses)):
-            for i, j in enumerate(self.cars.keys()):
-                if msg.poses[index].id == self.cars[j].tag:
-                    self.cars[j].x = msg.poses[index].x
-                    self.cars[j].y = msg.poses[index].y
-                    self.cars[j].theta = msg.poses[index].o + compensation
+            for carID, tagID in enumerate(self.cars.keys()):
+                if msg.poses[index].id == self.cars[tagID].tag:
+                    self.cars[tagID].x = msg.poses[index].x
+                    self.cars[tagID].y = msg.poses[index].y
+                    self.cars[tagID].theta = msg.poses[index].o + compensation
                     break
         #for i, j in enumerate(self.cars.keys()):
         #    self.cars[j].x, self.cars[j].y, self.cars[j].theta = locs[i]
@@ -750,9 +744,9 @@ class App(gui.Desktop):
             car_msg.append(micromvp_carspeed())
         
         newList1 = []
-        for carID, garbage in utils.carInfo:
-            newList1.append(carID)
-            car_msg[i].carID = newList1[i]
+        for carID, tagID in utils.carInfo:
+            newList1.append(tagID)
+            car_msg[carID].tagID = newList1[carID]
         speeds = [(0, 0) for x in range(len(self.cars.keys()))]
 
         run = self.runCar
@@ -762,18 +756,21 @@ class App(gui.Desktop):
             print "send speed"
             newList2 = [] #leftspeed
             newList3 = [] #rightspeed
-            for i in range(len(utils.carInfo)):
-                newList2.append(speeds[i][0])
-                newList3.append(speeds[i][1])
-                car_msg[i].lspeed = newList3[i]
-                car_msg[i].rspeed = newList2[i]
-                if 
-                self.carpub[i].publish(car_msg[i])
+            for carID, tagID in enumerate(utils.carInfo):
+                #newList2.append(speeds[carID][0])
+                #newList3.append(speeds[carID][1])
+                #car_msg[carID].lspeed = newList3[carID]
+                #car_msg[carID].rspeed = newList2[carID]
+                car_msg[carID].lspeed = speeds[carID][1]
+                car_msg[carID].rspeed = speeds[carID][0]
+                if self.cars[i].x == -1:
+                    car_msg[i].lspeed = 0
+                    car_msg[i].rspeed = 0
         else:
             for i in range(len(utils.carInfo)):
                 car_msg[i].lspeed = 0
                 car_msg[i].rspeed = 0
-                self.carpub[i].publish(car_msg[i])
+        self.carpub.publish(car_msg)
     #'''
 
     def shutdown():
