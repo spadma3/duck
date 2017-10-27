@@ -7,18 +7,18 @@
 export ROS_LANG_DISABLE=gennodejs:geneus:genlisp
 
 shell=`basename $SHELL`
-echo "Activating ROS..."
+echo "Activating ROS with shell: $SHELL"
 source /opt/ros/kinetic/setup.$shell
 
-echo "Setup ROS_HOSTNAME..."
 export HOSTNAME=$HOSTNAME
 export ROS_HOSTNAME=$HOSTNAME.local
+echo "Set ROS_HOSTNAME to: $ROS_HOSTNAME"
 
-echo "Setting up DUCKIETOWN_ROOT..."
 export DUCKIETOWN_ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+echo "Set DUCKIETOWN_ROOT to: $DUCKIETOWN_ROOT"
 
-echo "Setting up PYTHONPATH..."
 export PYTHONPATH=$DUCKIETOWN_ROOT/catkin_ws/src:$PYTHONPATH
+echo "Set PYTHONPATH to: $PYTHONPATH"
 
 # Cannot make machines before building
 # echo "Building machines file..."
@@ -27,7 +27,9 @@ export PYTHONPATH=$DUCKIETOWN_ROOT/catkin_ws/src:$PYTHONPATH
 echo "Activating development environment..."
 source $DUCKIETOWN_ROOT/catkin_ws/devel/setup.$shell
 
-# TODO: check that the time is >= 2015
-
+if [ 2015 -ge $(date +%Y) ];          
+then
+    >&2 echo "Error! Time travel detected. System time is: $(date)"
+fi
 
 exec "$@" #Passes arguments. Need this for ROS remote launching to work.
