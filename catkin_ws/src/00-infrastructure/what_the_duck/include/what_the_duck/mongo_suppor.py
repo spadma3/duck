@@ -1,17 +1,15 @@
+from contracts import contract
 import datetime
-from duckietown_utils import logger, raise_wrapped
 import getpass
+import shelve
 import socket
 
-from contracts import contract
+from duckietown_utils import is_internet_connected, logger, raise_wrapped
+from duckietown_utils import on_duckiebot, on_laptop, on_circle
 from what_the_duck import what_the_duck_version
-from .constant import Result
-from duckietown_utils import on_duckiebot, on_laptop, on_circle
 
-from duckietown_utils import on_duckiebot, on_laptop, on_circle
-from what_the_duck.geolocation import get_geolocation_data
-from duckietown_utils.networking import is_internet_connected
-import shelve
+from .constant import Result
+from .geolocation import get_geolocation_data
 
 
 mongo_db = 'wtd01'
