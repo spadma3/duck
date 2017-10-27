@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [315.99986017540493, 0.0, 325.09117477221434, 0.0, 313.8702486304635, 242.57944642097354,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: emma/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.2575810538059969, 0.0438194025070965, -0.0046661641016833705, -0.001344135804785668,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [212.5464324951172, 0.0, 321.0576349190469, 0.0, 0.0, 252.11007690429688,
+    237.8627876171904, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
