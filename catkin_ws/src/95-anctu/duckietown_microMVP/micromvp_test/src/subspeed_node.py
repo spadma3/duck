@@ -2,6 +2,7 @@
 import rospy
 import rospkg
 from micromvp_test.msg import micromvp_carspeed
+from micromvp_test.msg import micromvp_carspeedArray
 from dagu_car.dagu_wheels_driver import DaguWheelsDriver
 
 class Subspeed_node(object):
