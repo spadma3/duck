@@ -2,7 +2,7 @@
 	<arg name="pkg_name" value="micromvp_test"/>
 	<arg name="node_name" default="subspeed_node"/>
 	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
-	<arg name="tagID" doc="Subscribe specific tag ID. ex: tag39">
+	<arg name="tagID" doc="Subscribe specific tag ID. ex: tag39"/>
 
 	<remap from="subspeed" to="/gui_node/carspeeds"/>
 	<rosparam param="tagID" subst_value="True">$(arg tagID)</rosparam>
