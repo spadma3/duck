@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [328.77834152033836, 0.0, 341.9259670421642, 0.0, 322.49605146891486, 245.44154001299418,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: neptr/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.28029633392155445, 0.0589136746082929, -0.002341713662931685, -0.0016590045783266933,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [229.55142211914062, 0.0, 337.0993323835246, 0.0, 0.0, 258.7996520996094,
+    245.66280411958542, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
