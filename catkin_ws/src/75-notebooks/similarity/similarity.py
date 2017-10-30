@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
-from duckietown_utils.image_operations import bgr_from_rgb
-from duckietown_utils.image_writing import write_image_as_jpg
-from duckietown_utils.jpg import image_cv_from_jpg_fn
-from duckietown_utils.locate_files_impl import locate_files
-from duckietown_utils.safe_pickling import safe_pickle_dump
+from duckietown_utils import bgr_from_rgb, rgb_from_bgr
+from duckietown_utils import write_image_as_jpg
+from duckietown_utils import image_cv_from_jpg_fn
+from duckietown_utils import locate_files
+from duckietown_utils import safe_pickle_dump
 import os
 
 from quickapp.quick_app import QuickApp
@@ -26,8 +26,8 @@ class SimilarityMatrix(QuickApp):
             msg = 'Could not find any file'
             raise Exception(msg)
         options = {
-            'L1': dict(phi=asfloat, distance=L1),
-            'L2': dict(phi=asfloat, distance=L2),
+            'L1': dict(phi=make_smaller, distance=L1),
+            'L2': dict(phi=make_smaller, distance=L2),
         }
         
         filenames = [ f for f in filenames if '-0' in f]
@@ -40,9 +40,15 @@ class SimilarityMatrix(QuickApp):
             out = os.path.join(dirname, 'similarity', id_option, 'similarity')
             A = c.comp(get_similarity_matrix, images, out=out, **params)
             c.comp(write_similarity_matrix, A, out+'_final', more=True, images=images)   
-        
+
+def make_smaller(x):
+    x = d8_image_zoom_linear(x, 1/16.0)
+    return  x.astype('float32')
+
 def asfloat(x):
     return x.astype('float32')
+
+
 
 def L1(a, b):
     d = np.mean(np.fabs(a-b))
@@ -88,8 +94,12 @@ def write_similarity_matrix(A, out, more=False, images=None):
         n = A.shape[0]
         for i in range(n):
             f = r.figure()
+            
+            ignore = 10
             Ai = A[i, :].copy()
-            Ai[i] = np.inf
+            for i2 in range(i-ignore, i+ignore):
+                if 0 <= i2 < n:
+                    Ai[i2] = np.inf
             jbest = np.argmin(Ai)
             
             with f.plot('i-%d' % i) as pylab:

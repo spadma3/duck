@@ -48,6 +48,7 @@ from .image_jpg_create import *
 from .image_rescaling import *
 from .image_timestamps import *
 from .image_writing import *
+from .image_operations import *
 
 from .instantiate_utils import *
 from .ipython_utils import *
