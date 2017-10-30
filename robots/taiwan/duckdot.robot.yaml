@@ -1,0 +1,7 @@
+owner: jiunchengtsai
+hostname: duckdot
+username: user
+description: Duckiebot
+log:
+    2017-10-25: >
+        Set up.
