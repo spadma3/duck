@@ -58,9 +58,9 @@ Dont make changes under this line
 zmqPublisherPort = "5556"
 #pixel of one car
 #wheelBase = 30.0
-wheelBase = 20
+wheelBase = 0
 #tagRatio = 0.90
-tagRatio = 0.85
+tagRatio = 0.55
 #container_width = 1420
 #container_height = 780
 container_width = 640
