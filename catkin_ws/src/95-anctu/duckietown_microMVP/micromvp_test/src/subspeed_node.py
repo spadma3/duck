@@ -23,6 +23,7 @@ class Subspeed_node(object):
 	def cbWheelsCmd(self,msg):
 		
 		tagID = rospy.get_param("tagID")
+		max_spd = rospy.get_param("maxspeed")
 		for i in range(len(msg.speeds)):
 			if msg.speeds[i].tagID == int(tagID):
 				lspeed = msg.speeds[i].lspeed * self.max_vel

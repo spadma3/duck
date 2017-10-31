@@ -624,8 +624,8 @@ class App(gui.Desktop):
         #locs = [(0, 0, 0) for x in range(len(self.cars.keys()))]
         #make every xyo become origin and than allocate xyo
         for i, j in enumerate(self.cars.keys()):
-            self.cars[j].x = -1
-            self.cars[j].y = -1
+            self.cars[j].x = 0
+            self.cars[j].y = 0
             self.cars[j].theta = 0 + compensation
         for index in range(len(msg.poses)):
             for carID, tagID in enumerate(self.cars.keys()):
@@ -753,19 +753,18 @@ class App(gui.Desktop):
         for i, (carID, tagID) in enumerate(utils.carInfo):
             speeds[i] = (self.cars[tagID].lSpeed * self.simSpeed, self.cars[tagID].rSpeed * self.simSpeed)
         if run:
-            print "send speed"
             newList2 = [] #leftspeed
             newList3 = [] #rightspeed
-            for carID, tagID in enumerate(utils.carInfo):
+            for i, (carID, tagID) in enumerate(utils.carInfo):
                 #newList2.append(speeds[carID][0])
                 #newList3.append(speeds[carID][1])
                 #car_msg[carID].lspeed = newList3[carID]
                 #car_msg[carID].rspeed = newList2[carID]
                 car_msg[carID].lspeed = speeds[carID][1]
                 car_msg[carID].rspeed = speeds[carID][0]
-                if self.cars[i].x == -1:
-                    car_msg[i].lspeed = 0
-                    car_msg[i].rspeed = 0
+                if self.cars[tagID].x == 0:
+                    car_msg[carID].lspeed = 0
+                    car_msg[carID].rspeed = 0
         else:
             for i in range(len(utils.carInfo)):
                 car_msg[i].lspeed = 0

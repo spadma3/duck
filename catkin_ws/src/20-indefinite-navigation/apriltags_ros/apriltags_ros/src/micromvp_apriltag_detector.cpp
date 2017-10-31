@@ -39,7 +39,7 @@ namespace apriltags_ros{
     AprilTags::TagCodes tag_codes = AprilTags::tagCodes36h11;
     tag_detector_= boost::shared_ptr<AprilTags::TagDetector>(new AprilTags::TagDetector(tag_codes));
     //image_sub_ = it_.subscribeCamera("image_rect", 1, &AprilTagDetector::imageCb, this);
-    image_sub_ = it_.subscribeCamera("image_rect", 2, &AprilTagDetector::imageCb, this);
+    image_sub_ = it_.subscribeCamera("image_rect", 20, &AprilTagDetector::imageCb, this);
     switch_sub_ = nh.subscribe("switch",1,&AprilTagDetector::switchCB, this);
     //image_pub_ = it_.advertise("tag_detections_image", 1);
     //detections_pub_ = nh.advertise<duckietown_msgs::AprilTagDetectionArray>("tag_detections", 1);
