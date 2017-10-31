@@ -24,8 +24,8 @@ class Subspeed_node(object):
 		max_spd = rospy.get_param("maxspeed")
 		for i in range(len(msg.speeds)):
 			if msg.speeds[i].tagID == int(tagID):
-				lspeed = msg.speeds[i].lspeed * self.max_spd
-				rspeed = msg.speeds[i].rspeed * self.max_spd #change normalize to real pwm
+				lspeed = msg.speeds[i].lspeed * max_spd
+				rspeed = msg.speeds[i].rspeed * max_spd #change normalize to real pwm
 		self.driver.setWheelsSpeed(left=lspeed,right=rspeed)
 		
 		# Put the wheel commands in a message and publish
