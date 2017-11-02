@@ -1,4 +1,4 @@
-import urllib
+import urllib2
 from what_the_duck.check import Check, CheckFailed
 
 class InternetConnected(Check):
@@ -11,7 +11,7 @@ class InternetConnected(Check):
         
     def check(self):
         try:
-            urllib.urlopen(self.url)
+            urllib2.urlopen(self.url, timeout=3)
 #             print "Connected"
         except IOError as e:
             msg = 'Cannot connect to %s' % self.url

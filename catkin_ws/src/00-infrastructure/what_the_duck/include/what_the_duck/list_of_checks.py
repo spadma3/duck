@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-from duckietown_utils import DuckietownConstants
-from duckietown_utils import get_list_of_packages_in_catkin_ws
-from duckietown_utils import on_circle, on_laptop
-from duckietown_utils import on_duckiebot
+from duckietown_utils import DuckietownConstants, get_list_of_packages_in_catkin_ws, on_circle, on_laptop, on_duckiebot
 
 from .checks import *  # @UnusedWildImport
 from .entry import Diagnosis, Entry, SeeDocs
 from .python_source_checks import add_python_package_checks
 from .suite_git import add_suite_git
-from .suite_ssh import good_ssh_configuration
+from .suite_ssh import good_ssh_configuration 
 
 
-class Manager():
+class Manager(object):
     def __init__(self):
         self.entries = [] 
         
@@ -44,6 +41,7 @@ def get_checks():
     
     username = getpass.getuser()
 
+    
     if this_is_a_duckiebot:
         add(None,
             "Camera is detected",
@@ -64,6 +62,8 @@ def get_checks():
 #         'ros_node_utils',
         'procgraph',
         'comptests',
+        'compmake',
+        'contracts',
     ]
     for p in python_packages:
         add(None,
@@ -134,41 +134,51 @@ def get_checks():
 
             python-pip
             ipython
-            python-ruamel.yaml
+            
             virtualenv
             libxml2-dev
             libxslt1-dev
-            libffi-dev
-            bibtex2html
-            pdftk
+            
             python-frozendict
              python-tables
-             mplayer
-             mencoder
-
+            
         """))
 
     if this_is_a_duckiebot:
         required_packages.update(make_list("""
             i2c-tools
             python-smbus
+            libffi-dev
+            
+            
+             mplayer
+             mencoder
+
             """))
 
     if this_is_a_laptop or this_is_circle:
         required_packages.update(make_list("""
             git-lfs
+            pdftk
+            bibtex2html
         """))
 
     # TODO
 #     suggested = ['emacs', 'zsh', 'nethogs']
 
     for p in required_packages:
-        add(None, p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
+        add(None, "Installed APT package " + p, CheckPackageInstalled(p), Diagnosis('Package %r not installed.' % p))
 
-    forbidden_packages = ["python-roslaunch", "rosbash"]
+    forbidden_packages = [
+        "python-roslaunch", 
+        "rosbash",
+        'python-ruamel.yaml',
+        'python-ruamel.ordereddict',
+    ]
 
     for p in forbidden_packages:
-        add(None, p, CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
+        add(None, "You should not have installed APT package " + p, 
+            CheckPackageNotInstalled(p), Diagnosis('Forbidden package %r is installed.' % p))
         
     if not this_is_circle:
         add_suite_git(manager)
@@ -225,12 +235,13 @@ def get_checks():
     DUCKIETOWN_CONFIG_SEQUENCE = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
 
-    v = DUCKIETOWN_CONFIG_SEQUENCE
-    add(None,
-        'Provided environment variable %s.' % v,
-        EnvironmentVariableExists(v),
-        Diagnosis("%s is not set." % v),
-        Suggestion('You have to set %r in your environment (e.g. .bashrc)' % v))
+    if False:
+        v = DUCKIETOWN_CONFIG_SEQUENCE
+        add(None,
+            'Provided environment variable %s.' % v,
+            EnvironmentVariableExists(v),
+            Diagnosis("%s is not set." % v),
+            Suggestion('You have to set %r in your environment (e.g. .bashrc)' % v))
 
 
     variables_to_check = [DUCKIETOWN_ROOT, DUCKIEFLEET_ROOT, #DUCKIETOWN_CONFIG_SEQUENCE
@@ -257,27 +268,29 @@ def get_checks():
         'Software repo downloaded with SSH scheme.',
         GitCorrectRemote('${%s}' % DUCKIETOWN_ROOT),
         Diagnosis("You downloaded the repo using https."),
+        SeeDocs('clone-software-repo')
+        )
+ 
+    # recent update
+    add(existence[DUCKIETOWN_ROOT],
+        'You pulled the Software repo in the last 24 hours',
+        RecentlyPulled('${%s}' % DUCKIETOWN_ROOT, 24),
+        Diagnosis("You did not recently pull the Software repository."),
         )
 
-#     scuderia_exists = add(existence[DUCKIEFLEET_ROOT],
-#                           'Existence of scuderia file',
-#                           ScuderiaFileExists(),
-#                           Diagnosis('You do not have a scuderia file.'),
-#                           SeeDocs('scuderia')
-#                           )
+    add(existence[DUCKIEFLEET_ROOT],
+        'You pulled the Duckiefleet root in the last 24 hours',
+        RecentlyPulled('${%s}' % DUCKIEFLEET_ROOT, 24),
+        Diagnosis("You did not recently pull the Duckiefleet repository."),
+        )
+ 
 
-    git_lfs_installed = add(None,  # @UnusedVariable
+    if not this_is_a_duckiebot:
+        _git_lfs_installed = add(None,  # @UnusedVariable
                             'Git LFS installed',
                             GitLFSInstalled(),
                             Diagnosis('You have not installed Git LFS'),
                             SeeDocs('git-lfs'))
-# 
-#     ok_scuderia = add(scuderia_exists,
-#         'Validation of scuderia file',
-#         ValidScuderiaFile(),
-#         Diagnosis('You have an invalid scuderia file.'),
-#         SeeDocs('scuderia')
-#         )
 
     if this_is_a_duckiebot:
         add(None,
@@ -293,13 +306,12 @@ def get_checks():
             CommandOutputContains('which %s' % prog, '/opt/ros/kinetic'),
             Diagnosis('The program `%s` is not resolved to the one in /opt/ros' % prog))
 
+    add(None,
+        'Good path for python',
+        CommandOutputContains('which python', '/usr/bin/python'),
+        Diagnosis('The program `python` is not resolved to the one in /usr/bin. '))
     
-#     add(None,
-#         'Hub is installed',
-#         CommandOutputContains('hub --version'),
-#         Diagnosis('The program "hub" is not installed'),
-#         SeeDocs("hub"))
-
+ 
 
     machines_exists = add(None,
         'Existence of machines file',
@@ -315,14 +327,19 @@ def get_checks():
             Diagnosis('You have an invalid  machines file.'),
             )
 
-# 
-#     add(machines_exists,
-#         'Machines is updated',
-#         MachinesNewerThanScuderia(),
-#         Diagnosis('Scuderia was modified after machines created'),
-#         )
+    found_duckiefleet = add(None, 
+                            'Possible to get duckiefleet in some way',
+                            FindingDuckiefleet(),
+                            Diagnosis('Cannot find duckiefleet root'),
+        )
+    
+    add(found_duckiefleet, 
+        'The duckiefleet repo is up to date',
+        UptodateDuckiefleet(), 
+        Diagnosis('The duckiefleet repo is not up to date') )
+ 
 
-    if True: # TODO
+    if False: # TODO
 
         if this_is_a_laptop:
 
@@ -348,8 +365,6 @@ def get_checks():
                     Diagnosis("The DUCKIETOWN_DATA folder does not contain the logs it should.")
                     )
 
-
-
     if False:
         # TODO: not sure if this is needed
         if this_is_a_duckiebot:
@@ -371,7 +386,7 @@ def get_checks():
         pass
     else:
         for package_name, dirname in packagename2dir.items():
-                add_python_package_checks(add, package_name, dirname)
+            add_python_package_checks(add, package_name, dirname)
 
     # TODO: DISPLAY is not set
     # files in src/ or scripts/ are executable

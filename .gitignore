@@ -6,6 +6,7 @@
 .project
 .pydevproject
 .settings
+.remote-sync.json
 catkin_ws/src/00-infrastructure/duckietown/machines
 anti_instagram_annotations_test/
 *dl=1
@@ -23,3 +24,4 @@ out-programmatic
 out-detector-tests/
 catkin_ws/src/00-infrastructure/easy_logs/cloud.yaml
 catkin_ws/src/XX-exercises/
+.ipynb_checkpoints
