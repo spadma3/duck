@@ -1,7 +1,7 @@
 # default parameters for lane_filter/lane_filter_node
 
 #propagation
-use_propagation: False
+use_propagation: True
 
 filter:
   - lane_filter.LaneFilterHistogram
@@ -21,6 +21,6 @@ filter:
       linewidth_yellow: 0.025
       lanewidth: 0.23
       min_max: 0.1
-      sigma_d_mask: 0.05
-      sigma_phi_mask: 0.05
+      sigma_d_mask: 0.5
+      sigma_phi_mask: 1.0
 
