@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [332.2980214782378, 0.0, 323.73625094561316, 0.0, 327.76333293803, 221.21201638316458,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: paco/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.25720827314408057, 0.04603173857328603, 0.00039004219720149884, 0.002925758244662835,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [225.95166015625, 0.0, 329.40637052909005, 0.0, 0.0, 269.01531982421875, 211.75580065344548,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3

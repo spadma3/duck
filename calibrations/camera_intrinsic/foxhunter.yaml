@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [370.7872857889499, 0.0, 319.08831724272767, 0.0, 366.0194565652439, 245.1111870014684,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: foxhunter/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.3191475764040283, 0.0713468121453462, 0.0019085502239632375, 0.0008740366233535758,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [248.090087890625, 0.0, 321.010836279107, 0.0, 0.0, 302.7804870605469, 249.7578581101443,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
