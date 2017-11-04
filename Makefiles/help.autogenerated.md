@@ -16,6 +16,8 @@ These provide statistics about the data and the configuration.
 - `make stats-easy_algo`:  Prints summary of available algorithms.
 
 
+
+
 ### Testing
 
 These commands run the unit tests.
@@ -29,6 +31,8 @@ These commands run the unit tests.
 - `make test-comptests-clean`:        Run the `comptests` tests.
 - `make test-comptests-collect-junit`: Collects the JUnit results.
 - `make test-download-logs`: Downloads the logs needed for the tests.
+
+
 
 
 ### Building commands
@@ -56,6 +60,8 @@ For using Docker images
 - `make docker-clean`:    Removes all local images.
 
 
+
+
 ### Automated files generation
 
 Generation of documentation
@@ -66,6 +72,8 @@ Generation of documentation
 - `make generate-easy_node-clean`:  Cleans the generated files.
 
 
+
+
 ### Demos
 
 These are simple demos
@@ -73,14 +81,18 @@ These are simple demos
 TODO: to write
 
 
+
 ### Hardware tests
 
 To perform hardware tests:
 
 - `make hw-test-camera`     :       Testing Camera HW by taking a picture (smile!).
+- `make hw-test-kinematics  :       Testing kinematics calibration
 - `make hw-test-turn-right`:        Calibration right turn
 - `make hw-test-turn-left`:         Calibrating left turn
 - `make hw-test-turn-forward`:      Calibrating forward turn
+
+
 
 
 ### Maintenance
@@ -91,11 +103,14 @@ A couple of utilities for robot maintenance.
 - `make  maintenance-clean-pyc`:    Removes pyc files.
 
 
+
+
 ### Open house demos
 
 These were the open house demos.
 
 TODO: to write
+
 
 
 </div>
