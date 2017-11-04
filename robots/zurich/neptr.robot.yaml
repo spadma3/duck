@@ -1,7 +1,6 @@
 owner: FlinHoepflinger
-username: flin
 hostname: neptr
-description: never ending pie throwing robot
+username: flin
+description: Flin's car.
 log:
-    2017-10-14: created this file
-    
+     2017-10-14: created this file
