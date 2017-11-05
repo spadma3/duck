@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [331.1642920381446, 0.0, 316.02168777288074, 0.0, 331.29139704133274, 230.24296586006434,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: blindrider/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.3149091258748844, 0.08641059498448919, 0.0001685585385524081, 0.00039750398667578123,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [246.0006561279297, 0.0, 316.4181374925829, 0.0, 0.0, 264.8988037109375, 225.20530980401236,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
