@@ -39,6 +39,7 @@ jobs:
 
                 export ROS_LANG_DISABLE=gennodejs:geneus:genlisp
                 make build-catkin-parallel-max
+                make build-machines
 
         - run:
             name: make continuous-integration-tests
