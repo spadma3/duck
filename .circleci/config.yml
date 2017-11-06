@@ -42,7 +42,7 @@ jobs:
 
 
                 source environment.sh
-                make build-machines
+                # make build-machines
 
         - run:
             name: make continuous-integration-tests
