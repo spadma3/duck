@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="veh"/>
+  <arg name="institution" />
+  <arg name="exclude" default="(/(.*)/(pointgrey|usb_cam(.*))/(image_mono(.*)|image_color(.*)|image_proc(.*)|image_raw)|/(.*)/(rear_right_scan|rear_left_scan|front_scan|front_top_scan)|/(.*)velodyne_points)"/> <!-- regex that keeps only /image_color/compressed , also only log 2d scans after changed range-->
+  <arg name="out_path" default="$(env /media/logs)"/>
+
+  <node pkg="rosbag" type="record" name="rosbag_record" args="-a -x $(arg exclude) -o $(arg out_path)/$(arg veh)_$(arg location)"/>
+
+</launch>
