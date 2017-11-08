@@ -10,6 +10,7 @@ from __builtin__ import True
 class JoyMapper(object):
     def __init__(self):
 
+
         # DEMO FIX HARD CODED
         self.trim = 0.0
         self.gain = 0.5
@@ -96,18 +97,22 @@ class JoyMapper(object):
 
 
         if (joy_msg.axes[6] == -1.0):
-            print("Increase trim")
             self.trim -= 0.02
+            print("INCREASING TRIM TO " + str(self.trim))
+
         if (joy_msg.axes[6] == 1.0):
-            print("Decrease trim")
             self.trim += 0.02
+            print("DECREASING TRIM TO " + str(self.trim))
+
 
         if (joy_msg.axes[7] == -1.0):
-            print("Decrease gain")
             self.gain -= 0.05
+            print("DECREASING GAIN TO " + str(self.gain))
+
         if (joy_msg.axes[7] == 1.0):
-            print("Increase gain")
             self.gain += 0.05
+            print("INCREASING GAIN TO " + str(self.gain))
+
 
         if (joy_msg.axes[7] != 0.0):
             os.system("rosservice call /" + str(veh_name) + "/inverse_kinematics_node/set_gain -- " + str(self.gain)) #SHIT DIRTY, LET ME JUST SAY IT 20 TIMES TO MAKE SURE EVERYONE GOT IT
