@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 import rospy
 import math
-
+import os
 from duckietown_msgs.msg import Twist2DStamped, BoolStamped
 from sensor_msgs.msg import Joy
-
+import os
 from __builtin__ import True
 
 class JoyMapper(object):
     def __init__(self):
+
+        # DEMO FIX HARD CODED
+        self.trim = 0.0
+        self.gain = 0.5
+
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initializing " %(self.node_name))
 
@@ -81,20 +86,51 @@ class JoyMapper(object):
 # logitek = 8, left joy = 9, right joy = 10
 # XXX: here we should use constants
     def processButtons(self, joy_msg):
+
+
+        # HARD CODED FOR DEMO
+        # AS IF YOUR HANDS ARE STUCK IN SHIT-DIRTY SOLUTION
+
+
+        veh_name = rospy.get_param("duckiebot_visualizer/veh_name") # HOLY CRAP SO DIRTY SOLUTION
+
+
+        if (joy_msg.axes[6] == -1.0):
+            print("Increase trim")
+            self.trim -= 0.02
+        if (joy_msg.axes[6] == 1.0):
+            print("Decrease trim")
+            self.trim += 0.02
+
+        if (joy_msg.axes[7] == -1.0):
+            print("Decrease gain")
+            self.gain -= 0.05
+        if (joy_msg.axes[7] == 1.0):
+            print("Increase gain")
+            self.gain += 0.05
+
+        if (joy_msg.axes[7] != 0.0):
+            os.system("rosservice call /" + str(veh_name) + "/inverse_kinematics_node/set_gain -- " + str(self.gain)) #SHIT DIRTY, LET ME JUST SAY IT 20 TIMES TO MAKE SURE EVERYONE GOT IT
+        if (joy_msg.axes[6] != 0.0):
+            os.system("rosservice call /" + str(veh_name) + "/inverse_kinematics_node/set_trim -- " + str(self.trim)) #SHIT DIRTY, LET ME JUST SAY IT 20 TIMES TO MAKE SURE EVERYONE GOT IT
+
+        #dirtydirtydirtydirtydirtydirtydirty
+        # END HARD CODED FOR DEMO
+
         if (joy_msg.buttons[6] == 1): #The back button
             override_msg = BoolStamped()
             override_msg.header.stamp = self.joy.header.stamp
             override_msg.data = True
             rospy.loginfo('override_msg = True')
             self.pub_joy_override.publish(override_msg)
-            
+
         elif (joy_msg.buttons[7] == 1): #the start button
             override_msg = BoolStamped()
             override_msg.header.stamp = self.joy.header.stamp
             override_msg.data = False
             rospy.loginfo('override_msg = False')
             self.pub_joy_override.publish(override_msg)
-            
+
         elif (joy_msg.buttons[5] == 1): # Right back button
             self.state_verbose ^= True
             rospy.loginfo('state_verbose = %s' % self.state_verbose)
