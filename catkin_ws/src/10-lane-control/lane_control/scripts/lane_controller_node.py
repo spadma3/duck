@@ -48,6 +48,9 @@ class lane_controller(object):
         self.theta_thres = self.setupParameter("~theta_thres",d_thres) # Maximum desire theta
         self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
 
+        # HARDCODED FOR DEMO
+        v_theta = -7.5
+
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
         k_d = rospy.get_param("~k_d")
@@ -69,6 +72,9 @@ class lane_controller(object):
             self.d_thres = d_thres
             self.theta_thres = theta_thres
             self.d_offset = d_offset
+
+        # HARDCODED FOR DEMO since at slow speed, 2 wont be good enough
+        v_theta = -7.5
 
 
     def custom_shutdown(self):
