@@ -12,16 +12,20 @@ class Talker(object):
 
         # Setup publishers
         self.pub_topic_a = rospy.Publisher("~topic_a",String, queue_size=1)
-        # Setup subscriber
-        self.sub_topic_b = rospy.Subscriber("~topic_b", String, self.cbTopic)
+        # Setup subscriber ,"" has to be equal to launch file channel
+        self.sub_topic_b = rospy.Subscriber("~topic_b", String, self.cbTopic) 
         # Read parameters
+        print("Hi a")
         self.pub_timestep = self.setupParameter("~pub_timestep",1.0)
+        # change inside "" will be displayed at the beginning in terminal
         # Create a timer that calls the cbTimer function every 1.0 second
+        print("hi b")
         self.timer = rospy.Timer(rospy.Duration.from_sec(self.pub_timestep),self.cbTimer)
 
         rospy.loginfo("[%s] Initialzed." %(self.node_name))
 
     def setupParameter(self,param_name,default_value):
+    	print("hi1")
         value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
@@ -29,12 +33,16 @@ class Talker(object):
 
     def cbTopic(self,msg):
         rospy.loginfo("[%s] %s" %(self.node_name,msg.data))
+        print("Hi2") #not in rospy loginfo
+        s = "I heard: %s" % (msg.data)
+    	rospy.loginfo("[%s] %s" %(self.node_name, s))
 
     def cbTimer(self,event):
+    	print("hi3")
         singer = HelloGoodbye()
         # Simulate hearing something
         msg = String()
-        msg.data = singer.sing("duckietown")
+        msg.data = singer.sing("duckietown duck")
         self.pub_topic_a.publish(msg)
 
     def on_shutdown(self):
