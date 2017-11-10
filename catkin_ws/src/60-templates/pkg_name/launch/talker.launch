@@ -1,9 +1,27 @@
 <launch>
+  <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+  <arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
+  <arg name="config" default="baseline" doc="Specify a config."/>
+  <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
+  <arg name="raw" default="false" doc="If set to true, also publish raw image using decoder."/>
+  <arg name="cam_info" default="true" doc="If set to true, use cam_info_reader_node to pusblish CameraInfo."/>
+  <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
+
 	<node name="talker" pkg="pkg_name" type="talker.py" output="screen">
 		<!-- Setup parameters -->
 		<param name="~pub_timestep" value="0.5"/>
 		<!-- Remapping topics -->
 		<remap from="~topic_b" to="~topic_a"/>
+		<!-- somehow map the camera_node/image/compressed = topic_b to topic_a = topic/filter/compressed  -->
 		<!-- <remap from="~topic_b" to="talker/topic_a"/> -->
 	</node>
+  <include file="$(find duckietown)/launch/camera.launch">
+    <arg name="veh" value="$(arg veh)"/>
+    <arg name="local" value="$(arg local)"/>
+    <arg name="config" value="$(arg config)"/>
+    <arg name="param_file_name" value="$(arg param_file_name)"/>
+    <arg name="raw" value="$(arg raw)"/>
+    <arg name="cam_info" value="$(arg cam_info)"/> <!-- this should possible change later when we take logs without camera info but let's leave for now -->
+    <arg name="live" value="$(arg live)"/>
+  </include>
 </launch>
