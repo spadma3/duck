@@ -14,7 +14,7 @@ jobs:
         - run:
             name: deps
             command: |
-                apt install -y python-frozendict python-ruamel.yaml
+                # apt install -y python-frozendict python-ruamel.yaml
                 pip install --upgrade compmake==3.5.6 PyContracts QuickApp conftools comptests procgraph pymongo
 
                 ./misc/python_environment.py comptests
@@ -39,6 +39,10 @@ jobs:
 
                 export ROS_LANG_DISABLE=gennodejs:geneus:genlisp
                 make build-catkin-parallel-max
+
+
+                source environment.sh
+                # make build-machines
 
         - run:
             name: make continuous-integration-tests
