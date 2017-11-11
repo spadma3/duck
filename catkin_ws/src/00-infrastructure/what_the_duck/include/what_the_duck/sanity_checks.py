@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
+import getpass
+import socket
 import sys
 import traceback
 
 from termcolor import colored
 
-from duckietown_utils import indent, logger
-from duckietown_utils import write_data_to_file
+from duckietown_utils import indent, logger, write_data_to_file
 
 from .check import CheckError, CheckFailed
 from .constant import ChecksConstants, Result
 from .list_of_checks import get_checks
-from .statistics import display_results, display_summary,\
-    Statistics
+from .statistics import display_results, display_summary, Statistics
 from .visualize import escaped_from_html
-import getpass
-import socket
+from .statistics import display_short_statistics
+from .mongo_suppor import upload_results
 
 
 def do_all_checks():
@@ -25,19 +25,26 @@ def do_all_checks():
     entries = get_checks()
     
 #     logger.info("%s checks many things about the Duckiebot configuration" % WTD)
-    logger.info('%s will run %s tests.\n' % (WTD, len(entries))) 
+    logger.info('%s will run %s tests.' % (WTD, len(entries))) 
     results = run_checks(entries)
-    o = ""
-    o += display_results(results) + '\n\n'
-    o += display_summary(results) + '\n\n'
+     
+    o_complete = ""
+    o_complete += display_results(results, show_successes=True) + '\n\n'
+    o_complete += display_summary(results) + '\n\n'
     
-    print(escaped_from_html(o))
+    o_user = ""
+    o_user += display_results(results, show_successes=False)
+    o_user += '\n\n' + display_short_statistics(results)
     
-    write_data_to_file(o, filename)
-    print('\nNow send the file "%s" to the TA/instructors.' % filename)
+    print(escaped_from_html(o_user))
     
-    print('\nYou can also upload it using the following command: ')
-    print('\n  scp %s duckiestats@frankfurt.co-design.science:%s ' % (filename, filename))
+    write_data_to_file(o_user, filename)
+#     print('\nNow send the file "%s" to the TA/instructors.' % filename)
+    
+    upload_results(results)
+#     
+#     print('\nYou can also upload it using the following command: ')
+#     print('\n  scp %s duckiestats@frankfurt.co-design.science:%s ' % (filename, filename))
     stats = Statistics(results)
     if stats.nfailures == 0:    
         sys.exit(0)
@@ -49,6 +56,8 @@ def do_all_checks():
 def run_checks(entries):
     """ Returns the names of the failures  """
     results = [] 
+    
+#     entries = entries[:10]
     
     def record_result(r):
         results.append(r) 

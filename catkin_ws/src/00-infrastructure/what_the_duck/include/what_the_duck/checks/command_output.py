@@ -14,10 +14,10 @@ class CommandOutputContains(Check):
         self.cmd = cmd
         self.cwd = cwd
         self.substring = substring
+
         
     def check(self):
         fail_if_stdout_does_not_contain(self.cwd, self.cmd, self.substring)
-        
         
 def fail_if_stdout_does_not_contain(cwd, cmd, substring):
     try:
