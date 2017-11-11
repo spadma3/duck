@@ -644,4 +644,11 @@
 	</group>
 	<!-- End localization -->
 
+
+	<!-- Start Patrol (Custom Feature for Police Duckiebot) -->
+	<include file="$(find patrol_bot)/launch/patrol_bot_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+	</include>
+        <!-- End SLAM -->
+
 </launch>
