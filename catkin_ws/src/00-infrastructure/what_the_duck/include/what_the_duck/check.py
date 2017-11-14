@@ -18,7 +18,7 @@ class CheckFailed(CheckException):
 class CheckError(CheckException):
     """ An error while checking; the test itself failed """
 
-class Check():
+class Check(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
@@ -36,3 +36,6 @@ class Check():
         """ If the check can generate a resolution, return
             a Suggestion() object. """
         return None
+    
+        
+        

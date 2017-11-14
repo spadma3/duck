@@ -26,7 +26,7 @@ class AprilPostPros(object):
 
         rospack = rospkg.RosPack()
         self.pkg_path = rospack.get_path('apriltags_ros')
-        tags_filepath = self.setupParam("~tags_file", self.pkg_path+"/apriltagsDB/apriltagsDB.yaml") # No tags_file input atm., so default value is used
+        tags_filepath = self.setupParam("~tags_file", self.pkg_path+"/../signs_and_tags/apriltagsDB.yaml") # No tags_file input atm., so default value is used
         self.loc = self.setupParam("~loc", -1) # -1 if no location is given
         tags_file = open(tags_filepath, 'r')
         self.tags_dict = yaml.load(tags_file)

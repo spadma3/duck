@@ -5,6 +5,7 @@ from what_the_duck.checks.fileutils import raise_CheckError_from_CommandResult,\
 from duckietown_utils import expand_all
 import os
 from what_the_duck.checks.command_output import fail_if_stdout_contains
+from duckietown_utils.text_utils import indent
 
 
 class GithubLogin(Check):
@@ -49,6 +50,7 @@ class GitLFSInstalled(Check):
 
         if res.ret != 0:
             msg = '`git lfs` returned non-zero.'
+            msg += '\n' + indent(res, '> ')
             raise CheckFailed(msg)
 
 class GitCorrectRemote(Check):

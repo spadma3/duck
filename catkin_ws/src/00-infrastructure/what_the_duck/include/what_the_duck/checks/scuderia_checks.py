@@ -1,10 +1,10 @@
-import os
-
-from duckietown_utils.constants import \
-    get_scuderia_path
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.exceptions import DTConfigException
-from what_the_duck.check import Check, CheckFailed, CheckError
+# import os
+# 
+# from duckietown_utils.constants import \
+#     get_scuderia_path
+# from duckietown_utils.exception_utils import raise_wrapped
+# from duckietown_utils.exceptions import DTConfigException
+from what_the_duck.check import Check, CheckFailed
 import socket
 from duckieteam.cli.create_machines import get_scuderia_contents
 # 
