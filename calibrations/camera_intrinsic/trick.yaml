@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [560.2505650004841, 0.0, 318.88154517978785, 0.0, 577.0799322549453, 207.16176625735275,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: trick/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.7038975911442977, 0.4305081572055853, -0.01717347826227552, -0.01567299860781199,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [413.05413818359375, 0.0, 299.8454260223516, 0.0, 0.0, 475.7109069824219,
+    184.95713556278588, 0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3

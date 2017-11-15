@@ -1,0 +1,9 @@
+owner: Kuang
+hostname: duckiefat
+username: dalek
+description: Kuang's car.
+log:
+    2017-10-24: >
+        Switched RPI2 with RPI3.
+    2017-11-9: >
+        calibrations
