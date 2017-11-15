@@ -3,5 +3,4 @@ username: theducktor
 hostname: luckybot
 description: Nicolas Schmid's Car
 log:
-    date: comment
-    date: comment
+    2017-10-21: Created yaml-file.

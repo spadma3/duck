@@ -1,8 +1,8 @@
-owner: Reza
-hostname: ordakgt
-username: reza
+owner: gioele
+hostname: ducktrgio
+username: gioele
 description: >
-    Reza's car.
+    Gioele's car.
 log:
     2017-08-01: >
         Switched RPI2 with RPI3.
