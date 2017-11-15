@@ -62,7 +62,7 @@ openhouse-dp6: check-environment
 openhouse-dp6-laptop-%: check-environment
 	bash -c "source set_ros_master.sh $*; rqt --force-discover"
 
-openhouse-dp3: check-environment
+indefinite-navigation: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos indefinite_navigation.launch"
 
 openhouse-dp3-%: check-environment
