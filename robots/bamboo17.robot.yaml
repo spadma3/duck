@@ -1,0 +1,8 @@
+owner: shiying
+hostname: bamboo17
+username: lsy17
+description: >
+    shiying's robot
+log:
+    2017-11-15: >
+	initalization of the duckiebot
