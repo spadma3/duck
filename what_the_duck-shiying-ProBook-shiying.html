@@ -1,0 +1,26 @@
+<pre><code>
+<span style="color: red">  ✗  /etc/hosts is sane </span>
+<span style="color: red">            failure:  The /etc/hosts file contains hard-wired IPs.</span>
+<span style="color: red">            details:  Entire contents of /etc/hosts:
+                        > 127.0.0.1	localhost
+                        > 127.0.1.1	shiying-ProBook
+                        > #10.2.104.10	duckiebot-desktop
+                        > #10.2.96.253	bamboo
+                        > #10.2.102.132	bamboo17
+                        >
+                        > # The following lines are desirable for IPv6 capable hosts
+                        > ::1     ip6-localhost ip6-loopback
+                        > fe00::0 ip6-localnet
+                        > ff00::0 ip6-mcastprefix
+                        > ff02::1 ip6-allnodes
+                        > ff02::2 ip6-allrouters
+                        ></span>
+          diagnosis:  The contents of /etc/hosts will cause problems later on.
+
+</code></pre>
+
+Summary of results:
+<span style="color: green">* 519 test(s) executed successfully.</span>
+* No tests were skipped.
+<span style="color: red">* 1 test(s) failed
+</span>
