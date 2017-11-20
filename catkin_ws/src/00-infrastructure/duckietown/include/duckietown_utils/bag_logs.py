@@ -49,21 +49,41 @@ def d8n_read_all_images(filename, t0=None, t1=None):
     bag = rosbag.Bag(filename)
     topic = get_image_topic(bag)
     bag_proxy = BagReadProxy(bag, t0, t1)
+    # FIXME: this is wrong
     res = d8n_read_all_images_from_bag(bag_proxy, topic, t0=t0,t1=t1)
     return res
 
-def d8n_read_all_images_from_bag(bag, topic0):
+def d8n_read_all_images_from_bag(bag, topic0, max_images=None):
     import numpy as np
 
+    nfound = bag.get_message_count(topic_filters=topic0)
+    logger.info('Found %d images for %s' % (nfound, topic0))    
+    logger.debug('max_images = %d ' % (max_images))    
+        
     data = []
     first_timestamp = None
 
+    if max_images is None:
+        interval = None
+    else:
+        interval = int(np.ceil(nfound / max_images))
+        if interval == 0:
+            interval = 1
+        logger.info('Read %s images; interval = %d' % (nfound, interval))
+           
     for j, (topic, msg, t) in enumerate(bag.read_messages()):
         if topic == topic0:
             float_time = t.to_sec()
             if first_timestamp is None:
                 first_timestamp = float_time
+            
+            if interval is not None:
+                add = (j % interval == 0)
+                if not add:
+                    continue
+                
             rgb = numpy_from_ros_compressed(msg)
+
             data.append({'timestamp': float_time, 'rgb': rgb})
 
             if j % 10 == 0:
@@ -76,6 +96,7 @@ def d8n_read_all_images_from_bag(bag, topic0):
     H, W, _ = rgb.shape  # (480, 640, 3)
     logger.info('Detected image shape: %s x %s' % (W, H))
     n = len(data)
+    
     dtype = [
         ('timestamp', 'float'),
         ('rgb', 'uint8', (H, W, 3)),
@@ -85,7 +106,7 @@ def d8n_read_all_images_from_bag(bag, topic0):
     logger.info('dtype = %s' % x.dtype)
 
     for i, v in enumerate(data):
-        print(i, v['rgb'].shape)
+#         print(i, v['rgb'].shape)
         x[i]['timestamp'] = v['timestamp']
         x[i]['rgb'][:] = v['rgb']
 
