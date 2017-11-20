@@ -2,6 +2,7 @@
 
 from collections import namedtuple
 
+
 class ChecksConstants(object):
     FAIL = 'failed' # do not change
     ERROR = 'invalid' # do not change
