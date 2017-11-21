@@ -1,0 +1,24 @@
+name: Lane following
+
+desc: |
+
+    The ability to follow a lane until a stop line,
+    and then stop at the stop line.
+
+    A lane is defined as ...
+
+
+quantification:
+
+    average_velocity:
+        unit: m/s
+        desc: The average velocity during lane following
+
+    max_stop_orientation_error:
+        unit: deg
+        desc: Maximum deviation from aligned to lane direction.
+
+
+    max_stop_linear_error:
+        unit: cm
+        desc: Maximum deviation from stop line position. 

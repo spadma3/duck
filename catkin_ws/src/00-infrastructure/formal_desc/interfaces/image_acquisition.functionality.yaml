@@ -1,0 +1,25 @@
+name: Image acquisition
+
+desc: >
+
+    The ability to acquire an image, with a certain resolution, and
+    horizontal and vertical field of view.
+
+
+quantification:
+
+    resolution:
+        unit: 1/deg
+        desc: Resolution of the image, measured in pixels per degree.
+
+    fov_horizontal:
+        unit: deg
+        desc: Horizontal field of view
+
+    fov_vertical:
+        unit: deg
+        desc: Vertical field of view
+
+    frequency:
+        unit: Hz
+        desc: Acquisition frequency
