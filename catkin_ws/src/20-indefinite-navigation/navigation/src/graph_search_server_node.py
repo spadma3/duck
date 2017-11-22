@@ -70,7 +70,7 @@ class graph_search_server():
         cv_image = 255 - cv_image                                                                                                                                                                            
         overlay = cv2.addWeighted(cv_image, 0.65, map_resize,0.35,0)
         overlay = cv2.resize(overlay, (0, 0), fx=0.9, fy=0.9, interpolation=cv2.INTER_AREA)
-        overlay = np.multiplay(overlay, 1.4)
+        overlay = np.multiply(overlay, 1.4)
         return overlay
 
 
