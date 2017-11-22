@@ -36,7 +36,7 @@ class graph_search_server():
         overlay = self.prepImage(cv_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
-    def handle_graph_search(self,req):
+    def handle_graph_search(self, req):
         # Checking if nodes exists
         if (req.source_node not in self.duckietown_graph) or (req.target_node not in self.duckietown_graph):
             print "Source or target node do not exist."
@@ -64,14 +64,15 @@ class graph_search_server():
 
     def prepImage(self, cv_image):
         map_img = cv2.imread(self.map_img, cv2.IMREAD_COLOR)
-        map_crop = map_img[16:556,29:408,:]
-        map_resize = cv2.resize(map_crop,(cv_image.shape[1],955),interpolation=cv2.INTER_AREA)
-        cv_image = cv_image[0:955,:,:]
+        map_crop = map_img[16:556, 29:408, :]
+        map_resize = cv2.resize(map_crop, (cv_image.shape[1], 955), interpolation=cv2.INTER_AREA)
+        cv_image = cv_image[0:955, :, :]
         cv_image = 255 - cv_image                                                                                                                                                                            
-        overlay = cv2.addWeighted(cv_image,0.65,map_resize,0.35,0)                                                                                                                                             
-        overlay = cv2.resize(overlay,(0,0),fx=0.9,fy=0.9,interpolation=cv2.INTER_AREA) 
-        overlay *= 1.4
+        overlay = cv2.addWeighted(cv_image, 0.65, map_resize,0.35,0)
+        overlay = cv2.resize(overlay, (0, 0), fx=0.9, fy=0.9, interpolation=cv2.INTER_AREA)
+        overlay = np.multiplay(overlay, 1.4)
         return overlay
+
 
 if __name__ == "__main__":
     rospy.init_node('graph_search_server_node')
