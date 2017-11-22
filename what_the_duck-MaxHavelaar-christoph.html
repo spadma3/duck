@@ -1,28 +1,6 @@
-<pre><code><span style="color: red; font-weight: bold">    !  You pulled the Duckiefleet root in the last 24 hours </span>
-<span style="color: red; font-weight: bold">              error:  Invalid test: it raised the exception OSError.</span>
-<span style="color: red; font-weight: bold">            details:  I expect the tests to only raise CheckError or CheckFailed.
-                      
-                      Entire exception:
-                      
-                        Traceback (most recent call last):
-                          File "/home/christoph/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/sanity_checks.py", line 109, in run_checks
-                            res = entry.check.check() or ''
-                          File "/home/christoph/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/checks/git_repos.py", line 49, in check
-                            age = get_repo_age(d)
-                          File "/home/christoph/duckietown/catkin_ws/src/00-infrastructure/what_the_duck/include/what_the_duck/checks/git_repos.py", line 27, in get_repo_age
-                            mtime = os.stat(fn).st_mtime
-                        OSError: [Errno 2] No such file or directory: '/home/christoph/duckiefleet/.git/FETCH_HEAD'
-                      </span>
-
-</code></pre>
+<pre><code></code></pre>
 
 Summary of results:
-<span style="color: green">* 519 test(s) executed successfully.</span>
+<span style="color: green">* 520 test(s) executed successfully.</span>
 * No tests were skipped.
 <span style="color: green">* All tests executed succeeded.</span>
-<span style="color: red">* Found 1 invalid test(s) [what-the-duck bugs]</span>
-<span style="color: red; font-weight: bold">Note that these are *bugs* in `what-the-duck` or its plugins and should be reported 
-as soon as possible at the tracker: 
-
- https://github.com/duckietown/Software/issues</span>
-
