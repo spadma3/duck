@@ -2,7 +2,7 @@
 	<arg name="pkg_name" value="micromvp_test"/>
 	<arg name="node_name" default="gui_node"/>
 		
-	<arg name="veh" default="erickietop" doc="Name of vehicle. ex: megaman"/>
+	<arg name="veh" default="erickiemvp" doc="Name of vehicle. ex: megaman"/>
 	<arg name="sim" default="true" doc="Know if simulation"/>
 	<node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen">
 	</node>
