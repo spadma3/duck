@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+import sys
+import traceback
+
+def go():
+    try:
+        import duckietown_utils
+    except ImportError as e:
+        sys.stderr.write('\nYou can use what-the-duck only *after* building the repository.\n')
+        sys.stderr.write('\n\nError:\n\n\t%s\n\n\n' % traceback.format_exc(e))
+        sys.stderr.write('Try again after building the repository.\n\n')
+        #sys.stderr.write('Could not import duckietown_utils and what_the_duck packages:\n%s\n' % e)
+        sys.exit(255)
+
+
+    else:
+        from what_the_duck.stats.stats_main import what_the_duck_stats
+
+        what_the_duck_stats()
+
+if __name__ == '__main__':
+    go()

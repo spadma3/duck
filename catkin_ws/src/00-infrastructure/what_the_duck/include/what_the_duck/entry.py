@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .resolution import Suggestion
 
-class Entry():
+class Entry(object):
     def __init__(self, desc, check, diagnosis, resolutions, only_run_if):
         self.desc = desc
         self.check = check
@@ -9,6 +9,9 @@ class Entry():
         self.resolutions = resolutions
         self.only_run_if = only_run_if
 
+    def get_test_id(self):
+        return self.desc
+    
 Diagnosis = Suggestion
 
 
