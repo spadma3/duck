@@ -65,7 +65,7 @@ class LaneFilterNode(object):
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
         lanePose.d = d_max
-        lanePose.phi = phi_max + 180
+        lanePose.phi = phi_max
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
 
