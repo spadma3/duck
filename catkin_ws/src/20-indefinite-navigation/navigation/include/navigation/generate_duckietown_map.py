@@ -1,4 +1,4 @@
-import pickle, csv, os
+import pickle, csv, os, sys
 import numpy as np
 from graph import Graph
 
@@ -225,10 +225,9 @@ class graph_creator():
 		pickle.dump([self.edges, self.node_locations], afile)
 		afile.close()		
 
-	def build_graph_from_csv(self, csv_filename='tiles_226.csv'):
-		script_dir = os.path.dirname(__file__)
-		map_path = script_dir + '/../../src/maps/' + csv_filename
-		with open(map_path + '.csv', 'rb') as f:
+	def build_graph_from_csv(self, script_dir, csv_filename='tiles_226.csv'):
+		map_path = os.path.abspath(script_dir + '/maps/' + csv_filename + '.csv')
+		with open(map_path, 'rb') as f:
 			spamreader = csv.reader(f,skipinitialspace=True)
 			for i,row in enumerate(spamreader):
 				if i != 0:
@@ -343,13 +342,15 @@ class graph_creator():
  
 if __name__ == "__main__":
     gc = graph_creator()
-    duckietown_graph = gc.build_graph_from_csv(csv_filename='tiles_226.csv')
+    mapname=sys.argv[1]
+    mapsdir = os.path.abspath(os.path.dirname(__file__) + '/../../src/')
+    duckietown_graph = gc.build_graph_from_csv(script_dir=mapsdir, csv_filename=mapname)
     # Node locations (for visual representation) and heuristics calculation
     #node_locations, edges = gc.get_map_226()
     #gc.add_node_locations(node_locations)
     #gc.add_edges(edges)
     #gc.pickle_save()
-    duckietown_graph.draw(map_name='duckietown_226')
+    duckietown_graph.draw(script_dir=mapsdir, map_name=mapname,highlight_edges=None)
 
 
 
