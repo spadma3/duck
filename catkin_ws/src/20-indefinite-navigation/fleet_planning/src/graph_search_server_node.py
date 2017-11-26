@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import rospy, sys, os, cv2, pickle
-from navigation.graph import Graph
-from navigation.graph_search import GraphSearchProblem
+from fleet_planning.graph import Graph
+from fleet_planning.graph_search import GraphSearchProblem
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-from navigation.srv import *
-from navigation.generate_duckietown_map import graph_creator
+from fleet_planning.srv import *
+from fleet_planning.generate_duckietown_map import graph_creator
 import numpy as np
 
 class graph_search_server():
