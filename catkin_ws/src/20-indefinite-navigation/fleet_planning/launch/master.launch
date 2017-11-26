@@ -285,7 +285,6 @@
 
 	<!-- Start Fleet Planning -->
 	<group if="$(arg fleet_planning)">
-		<!-- TODO: check what this does and if necessary -->
 		<group if="$(arg /fleet_planning/intersection_control)">
 			<!-- open loop intersection_controller -->
 			<remap from="open_loop_intersection_control_node/mode" to="fsm_node/mode"/>
