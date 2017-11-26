@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>navigation</name>
+  <name>fleet_planning</name>
   <version>1.0.0</version>
-  <description>TODO: Add a description of package `navigation` in `package.xml`.</description>
+  <description>TODO: Add a description of package `fleet_plannig` in `package.xml`.</description>
 
   <author email="franzoni@mit.edu">igor</author>
   <maintainer email="mack@duckietown.org">Mack</maintainer>
