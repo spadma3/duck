@@ -8,6 +8,7 @@ from os.path import basename, expanduser, isfile, join, splitext
 import socket
 from matplotlib import pyplot as plt
 import time
+from skimage import measure
 
 import rospy
 from sensor_msgs.msg import CompressedImage
@@ -63,66 +64,7 @@ class Detector():
 
     def segment_img(self, image):
 		#returns segmented image on Grayscale image where all interconnected pixels have same number
-
-	    A=np.nonzero(image)
-	    nonzero_val=np.empty(np.shape(A),dtype=int) #read the nonzero values
-	    nonzero_val[0,:]=A[0] 
-	    nonzero_val[1,:]=A[1]
-
-	    end_arr=np.size(nonzero_val,1)-1 
-
-	    final=np.zeros_like(image)
-	    i=1
-	    final[nonzero_val[0,end_arr],nonzero_val[1,end_arr]]=i
-	    #merged=0
-	    check = False
-
-	    #SEGMENTIERUNG MUSS DEFINITIV INTELLIGENTER WERDEN!!!! -> BISHER NOCH VIEL ZU VIELE!!!! SHIIIIIT^^
-	    for l in range(1,np.size(A,1)):
-		j=end_arr-l
-
-		if (final[nonzero_val[0,j]+1,nonzero_val[1,j]]!=0): #eins nach unten
-		    final[nonzero_val[0,j],nonzero_val[1,j]]=final[nonzero_val[0,j]+1,nonzero_val[1,j]]
-		    if (check and (final[nonzero_val[0,j],nonzero_val[1,j]]!=final[nonzero_val[0,j],nonzero_val[1,j]+1] and final[nonzero_val[0,j],nonzero_val[1,j]+1]!=0)):
-			#akt WERT final[nonzero_val[0,j],nonzero_val[1,j]] anders als der 1ns rechts final[nonzero_val[0,j],nonzero_val[1,j]+1] und der rechte !=0!!!
-			# -> der rechte WERT IST FALSCH!!! WEISSE DEN AKTUELLEN ZU!!
-			final[final == final[nonzero_val[0,j],nonzero_val[1,j]+1]] = final[nonzero_val[0,j],nonzero_val[1,j]] #
-			check = False 
-			#merged+=1
-
-
-		elif (final[nonzero_val[0,j]+1,nonzero_val[1,j]+1]!=0): #eins rechts und unten
-		    final[nonzero_val[0,j],nonzero_val[1,j]]=final[nonzero_val[0,j]+1,nonzero_val[1,j]+1]
-
-		    if (check and (final[nonzero_val[0,j],nonzero_val[1,j]]!=final[nonzero_val[0,j],nonzero_val[1,j]+1] and final[nonzero_val[0,j],nonzero_val[1,j]+1]!=0)):
-			#akt WERT final[nonzero_val[0,j],nonzero_val[1,j]] anders als der 1ns rechts final[nonzero_val[0,j],nonzero_val[1,j]+1] und der rechte !=0!!!
-			# -> der rechte WERT IST FALSCH!!! WEISSE DEN AKTUELLEN ZU!!
-			final[final == final[nonzero_val[0,j],nonzero_val[1,j]+1]] = final[nonzero_val[0,j],nonzero_val[1,j]] #
-			check = False
-			#merged+=1
-
-
-		if (final[nonzero_val[0,j]+1,nonzero_val[1,j]-1]!=0): #eins nach unten & links
-		    final[nonzero_val[0,j],nonzero_val[1,j]]=final[nonzero_val[0,j]+1,nonzero_val[1,j]-1]
-		    if (check and (final[nonzero_val[0,j],nonzero_val[1,j]]!=final[nonzero_val[0,j],nonzero_val[1,j]+1] and final[nonzero_val[0,j],nonzero_val[1,j]+1]!=0)):
-			#akt WERT final[nonzero_val[0,j],nonzero_val[1,j]] anders als der 1ns rechts final[nonzero_val[0,j],nonzero_val[1,j]+1] und der rechte !=0!!!
-			# -> der rechte WERT IST FALSCH!!! WEISSE DEN AKTUELLEN ZU!!
-			final[final == final[nonzero_val[0,j],nonzero_val[1,j]+1]] = final[nonzero_val[0,j],nonzero_val[1,j]] #
-			check = False
-			#merged+=1
-
-		elif(final[nonzero_val[0,j],nonzero_val[1,j]+1]!=0): #eins nach rechts!
-		    final[nonzero_val[0,j],nonzero_val[1,j]]=final[nonzero_val[0,j],nonzero_val[1,j]+1]
-		    check = True
-
-		else:
-		    i+=1
-		    final[nonzero_val[0,j],nonzero_val[1,j]]=i
-
-
-	    return final
-
-
+		return measure.label(image)
 
 
 
