@@ -1,0 +1,11 @@
+<launch>
+    <arg name="robot_name" default="dori" doc="Name of robot_name. ex: megaman"/>
+
+    <param name="~robot_name" value="$(arg robot_name)"/>
+
+    <node name="obstacle_detection_node" pkg="obst_avoid" type="obstacle_detection_node.py" output="screen">
+    </node>
+    
+
+
+</launch>
