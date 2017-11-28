@@ -1,0 +1,47 @@
+<pre><code>
+<span style="color: red">  ✗  Installed APT package htop </span>
+<span style="color: red">            failure:  The package 'htop' is not installed, but it should be.</span>
+          diagnosis:  Package 'htop' not installed.
+
+
+<span style="color: red">  ✗  Installed APT package git-extras </span>
+<span style="color: red">            failure:  The package 'git-extras' is not installed, but it should be.</span>
+          diagnosis:  Package 'git-extras' not installed.
+
+
+<span style="color: red">  ✗  Installed APT package git-lfs </span>
+<span style="color: red">            failure:  The package 'git-lfs' is not installed, but it should be.</span>
+          diagnosis:  Package 'git-lfs' not installed.
+
+
+<span style="color: red">  ✗  Git config: push policy </span>
+<span style="color: red">            failure:  String '[push]' not contained in /home/luca/.gitconfig</span>
+<span style="color: red">            details:  Entire contents of /home/luca/.gitconfig:
+                        > [user]
+                        > 	email = somml@student.ethz.ch
+                        > 	name = somml
+                        ></span>
+          diagnosis:  You did not configure the push policy for Git.
+
+         resolution:  ➡ See duckumentation at http://purl.org/dth/howto-git-local-config
+
+
+<span style="color: red">  ✗  Git LFS installed </span>
+<span style="color: red">            failure:  `git lfs` returned non-zero.
+                      > The command: git lfs
+                      >      in dir: .
+                      > returned: 1
+                      > stderr>git: 'lfs' is not a git command. See 'git --help'.
+                      > stderr>Did you mean this?
+                      > stderr>	log</span>
+          diagnosis:  You have not installed Git LFS
+
+         resolution:  ➡ See duckumentation at http://purl.org/dth/git-lfs
+
+</code></pre>
+
+Summary of results:
+<span style="color: green">* 515 test(s) executed successfully.</span>
+* No tests were skipped.
+<span style="color: red">* 5 test(s) failed
+</span>

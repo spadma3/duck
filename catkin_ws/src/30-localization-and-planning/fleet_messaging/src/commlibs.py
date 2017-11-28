@@ -1,6 +1,7 @@
 # Import modules
 import zmq
 import seriallibs
+import time
 
 # zeroMQ
 class duckie0mq(object):
