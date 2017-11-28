@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose
+from duckietown_msgs.msg import Twist2DStamped, LanePose, FSMState
 
 class lane_controller(object):
     def __init__(self):
@@ -15,6 +15,7 @@ class lane_controller(object):
 
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+        self.pub_image_delay = rospy.Publisher('~image_delay', FSMState, queue_size=1)
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
@@ -100,6 +101,9 @@ class lane_controller(object):
         self.pub_car_cmd.publish(car_cmd_msg)
         #self.pub_wheels_cmd.publish(wheels_cmd_msg)
 
+    def publishDelay(self, delay_msg):
+        self.pub_image_delay.publish(delay_msg)
+
     def cbPose(self, lane_pose_msg):
 
         self.lane_reading = lane_pose_msg
@@ -128,6 +132,10 @@ class lane_controller(object):
         # self.pub_.publish(car_control_msg)
         self.publishCmd(car_control_msg)
 
+        delay_msg = FSMState()
+        delay_msg.header = lane_pose_msg.header
+        delay_msg.state = str(image_delay)
+        self.publishDelay(delay_msg)
         # debuging
         # self.pub_counter += 1
         # if self.pub_counter % 50 == 0:
