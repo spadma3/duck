@@ -75,7 +75,7 @@ class InverseKinematicsNode(object):
                 pass
 
     def getFilePath(self, name):
-        return (get_duckiefleet_root()+'/calibrations/kinematics/' + name + ".yaml")
+        return (get_duckiefleet_root()+'calibrations/kinematics/' + name + ".yaml")
 
             
     def saveCalibration(self):
