@@ -23,13 +23,18 @@ UNKNOWN = 'UNKNOWN'
 
 class State:
     LANE_FOLLOWING = 'LANE_FOLLOWING'
-    AT_STOP_CLEARING = 'AT_STOP_CLEARING'
-    AT_STOP_CLEAR = 'AT_STOP_CLEAR'
-    RESERVING = 'RESERVING'
-    CONFLICT = 'CONFLICT'
+    #AT_STOP_CLEARING = 'AT_STOP_CLEARING'
+    #AT_STOP_CLEAR = 'AT_STOP_CLEAR'
+    #RESERVING = 'RESERVING'
+    #CONFLICT = 'CONFLICT'
     GO = 'GO'
     TL_SENSING = 'TL_SENSING'
-    INTERSECTION_NAVIGATION = 'INTERSECTION_NAVIGATION'
+    #INTERSECTION_NAVIGATION = 'INTERSECTION_NAVIGATION'
+    
+    NO_COLOR_QUEUE = 'NO_COLOR_QUEUE'
+    RED_QUEUE = 'RED_QUEUE'
+    NEGOTIATION_QUEUE = 'NEGOTIATION_QUEUE'
+
 
 class VehicleCoordinator():
     """The Vehicle Coordination Module for Duckiebot"""
@@ -96,19 +101,16 @@ class VehicleCoordinator():
         self.state = state
         self.last_state_transition = time()
 
-        if self.state == State.AT_STOP_CLEARING:
-            self.reset_signals_detection()
-            self.roof_light = CoordinationSignal.SIGNAL_A
-        elif self.state == State.AT_STOP_CLEAR:
-            self.roof_light = CoordinationSignal.SIGNAL_A
-        elif self.state == State.RESERVING:
-            self.roof_light = CoordinationSignal.SIGNAL_B
-        elif self.state == State.CONFLICT:
-            self.roof_light = CoordinationSignal.SIGNAL_A
-        elif self.state == State.GO and not self.traffic_light_intersection:
+        
+        if self.state == State.NO_COLOR_QUEUE:
+            self.roof_light = CoordinationSignal.OFF
+        elif self.state == RED_QUEUE:
             self.roof_light = CoordinationSignal.SIGNAL_C
+        elif self.state == NEGOTIATION_QUEUE:
+            self.roof_light = CoordinationSignal.SIGNAL_B
         else:
             self.roof_light = CoordinationSignal.OFF
+
 
         if self.state == State.GO:
             self.clearance_to_go = CoordinationClearance.GO
@@ -116,6 +118,8 @@ class VehicleCoordinator():
             self.clearance_to_go = CoordinationClearance.WAIT
 
         rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
+
+
 
     def time_at_current_state(self):
         return time() - self.last_state_transition
@@ -197,18 +201,18 @@ class VehicleCoordinator():
                 self.left_veh == SignalsDetection.SIGNAL_A or 
                 self.left_veh == SignalsDetection.SIGNAL_B):
 
-                self.set_state(State.RED_QUEUE)#todo: signal red
+                self.set_state(State.RED_QUEUE)
 
             else:
                 if(self.right_veh == SignalsDetection.SIGNAL_C or 
                     self.opposite_veh == SignalsDetection.SIGNAL_C or
                     self.left_veh == SignalsDetection.SIGNAL_C):
 
-                    self.state(State.NEGOTIATION_QUEUE)#todo: signal green
+                    self.state(State.NEGOTIATION_QUEUE)
                 
                 else:#if no signal from any side, enter the intersection
-                    self.set_state(State.GO)#todo: should also signal yellow, check if different states are already assigned 
-                                            #different colors
+                    self.roof_light = CoordinationSignal.SIGNAL_A
+                    self.set_state(State.GO)
 
             #todo: if two reds waiting for yellow, and yellow is gone:
             #   if one red turns green before second can catch its red color, bots from no_color_queue will join the red
@@ -217,7 +221,11 @@ class VehicleCoordinator():
 
 
         elif self.state == State.NEGOTIATION_QUEUE:
+            
+            #self.random_delay = random() * self.T_MAX_RANDOM
+
             rospy.sleep(random() * self.T_MAX_RANDOM)
+            
             if(self.right_veh == SignalsDetection.SIGNAL_A or 
                 self.opposite_veh == SignalsDetection.SIGNAL_A or
                 self.left_veh == SignalsDetection.SIGNAL_A):
@@ -226,7 +234,7 @@ class VehicleCoordinator():
                 #or set state to negotiation_queue and do: if self.time_at_current_state() > self.T_CROSS + self.T_SENSE:         
                 self.set_state(State.NEGOTIATION_QUEUE)
             else:#no negotiators about to go(yellow)
-                #todo: turn yellow
+                self.roof_light = CoordinationSignal.SIGNAL_A
                 rospy.sleep(self.T_CROSS + self.T_SENSE)
                 if(self.right_veh == SignalsDetection.SIGNAL_A or 
                     self.opposite_veh == SignalsDetection.SIGNAL_A or
@@ -243,16 +251,7 @@ class VehicleCoordinator():
             if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
                 self.set_state(State.AT_STOP_CLEARING)
             elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
-                self.set_state(State.AT_STOP_CLEAR)
-
-
-        elif self.state == State.AT_STOP_CLEAR:
-            if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
-                self.set_state(State.AT_STOP_CLEARING)
-            else:
-                self.set_state(State.RESERVING)
-
-
+                self.set_state(State.AT_STOP_CLEAR)        
         elif self.state == State.RESERVING:
             if self.right_veh != SignalsDetection.NO_CAR:
                 self.set_state(State.AT_STOP_CLEARING)
@@ -263,23 +262,16 @@ class VehicleCoordinator():
                     self.set_state(State.CONFLICT)
                 else:
                     self.set_state(State.GO)
-
-
-        elif self.state == State.GO:
-            if self.mode == 'LANE_FOLLOWING':
-                self.set_state(State.LANE_FOLLOWING)
-
-
         elif self.state == State.CONFLICT:
             if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
                 self.set_state(State.AT_STOP_CLEARING)
             elif self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEAR)
         '''
-    
 
-
-
+        elif self.state == State.GO:
+            if self.mode == 'LANE_FOLLOWING':
+                self.set_state(State.LANE_FOLLOWING)
 
         elif self.state == State.TL_SENSING:
             if self.traffic_light == SignalsDetection.GO:
