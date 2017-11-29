@@ -322,23 +322,43 @@ class MapImageCreator():
 		oriented_tile = cv2.warpAffine(tile,rotation_matrix,(self.tile_length,self.tile_length))
 		self.map_image[yS:yS+self.tile_length,xS:xS+self.tile_length]=oriented_tile
 
+	def prepImage(self, graph_image, map_img):
+		inverted_graph_image = 255 - graph_image
+		th, thresholded_graph_image = cv2.threshold(inverted_graph_image,100,255,cv2.THRESH_BINARY)
+		colored_graph_image = cv2.cvtColor(thresholded_graph_image,cv2.COLOR_GRAY2BGR)
+		overlay = cv2.addWeighted(colored_graph_image, 0.5, map_img,0.5,0)
+		hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV) #convert it to hsv
+		h, s, v = cv2.split(hsv)
+		lim = 255 - 60
+		v[v > lim] = 255
+		v[v <= lim] += 60
+		final_hsv = cv2.merge((h, s, v))
+		overlay = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+		return overlay
+
 if __name__ == "__main__":
-    gc = graph_creator()
-    mapname='tiles_226'
-    mapsdir = os.path.abspath(os.path.dirname(__file__) + '/../../src/')
-    mapfile = os.path.abspath(mapsdir + '/maps/' + mapname + '.png')
-    tiles_dir = os.path.abspath(mapsdir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
-    duckietown_graph = gc.build_graph_from_csv(script_dir=mapsdir, csv_filename=mapname)
-    duckietown_graph.draw(script_dir=mapsdir, map_name=mapname,highlight_edges=None)
-    graph = cv2.imread(mapfile,cv2.IMREAD_GRAYSCALE)
-    g2 = gc.cropGraphImage(graph)
-    #writer = Csv2Xacro.Csv2Xacro(mapsdir+'/maps/'+mapname+'.csv',mapsdir+'/maps/'+'tags_'+mapname+'.csv',mapsdir+'/maps/'+mapname+'.urdf.xacro',0.595,0.125,0.035)
-    #writer.writeXacro()
-    mc = MapImageCreator(tiles_dir)
-    mc.build_map_from_csv(mapsdir,mapname,553,961)
+	gc = graph_creator()
+	map_name='tiles_lab'
+	script_dir = os.path.abspath(os.path.dirname(__file__) + '/../../src/')
+	mapfile = os.path.abspath(script_dir + '/maps/' + map_name)
+	tiles_dir = os.path.abspath(script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
 
-
-
-
-
-
+	map_path = script_dir + '/maps/' + map_name
+	map_img_path = map_path + '_map'
+	#todo: make this way more robust
+	tiles_dir = os.path.abspath(script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
+	gc = graph_creator()
+	duckietown_graph = gc.build_graph_from_csv(script_dir=script_dir, csv_filename=map_name)
+	print "Map loaded successfully!\n"
+	# Send graph through publisher
+	duckietown_graph.draw(script_dir, highlight_edges=None, map_name = map_name)
+	graph_image = cv2.imread(map_path + '.png', cv2.IMREAD_GRAYSCALE)
+	graph_image = gc.cropGraphImage(graph_image)
+	h, w = graph_image.shape
+	mc = MapImageCreator(tiles_dir)
+	map_img = mc.build_map_from_csv(script_dir=script_dir, csv_filename=map_name, graph_width=w, graph_height=h)
+	overlay = mc.prepImage(graph_image,map_img)
+	cv2.imshow("map",map_img)
+	cv2.imshow("graph",graph_image)
+	cv2.imshow("over",overlay)
+	cv2.waitKey(0)
