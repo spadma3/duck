@@ -30,7 +30,7 @@ generate_messages(
 
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES navigation
+#  LIBRARIES fleet_planning
   CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
@@ -41,6 +41,6 @@ include_directories(
 
 
 install(PROGRAMS
-  scripts/rqt_navigation
+  scripts/rqt_fleet_planning
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

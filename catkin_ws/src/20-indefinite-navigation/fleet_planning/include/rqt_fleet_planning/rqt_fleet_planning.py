@@ -6,20 +6,20 @@ from python_qt_binding.QtWidgets import QWidget
 from duckietown_msgs.msg import SourceTargetNodes
 #path_dir = os.path.dirname(__file__) + '/../../scripts/'
 #sys.path.append(path_dir)
-from navigation.generate_duckietown_map import graph_creator
+from fleet_planning.generate_duckietown_map import graph_creator
 
-class RQTNavigation(Plugin):
+class RQTFleetPlanning(Plugin):
 
     def __init__(self, context):
-        super(RQTNavigation, self).__init__(context)
+        super(RQTFleetPlanning, self).__init__(context)
         # Give QObjects reasonable names
-        self.setObjectName('Fleet-Planning Navigation')
+        self.setObjectName('Fleet-Planning')
 
         # Create QWidget
         self._widget = QWidget()
-        ui_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'rqt_navigation.ui')
+        ui_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'rqt_fleet_planning.ui')
         loadUi(ui_file, self._widget)
-        self._widget.setObjectName('rqt_navigation')
+        self._widget.setObjectName('rqt_fleet_planning')
         # Show _widget.windowTitle on left-top of each plugin (when 
         # it's set in _widget). This is useful when you open multiple 
         # plugins at once. Also if you open multiple instances of your 
@@ -35,17 +35,17 @@ class RQTNavigation(Plugin):
         # ROS stuff
         self.veh = rospy.get_param('/veh')
         self.topic_name = '/' + self.veh + '/actions_dispatcher_node/plan_request'
-        self.pub = rospy.Publisher(self.topic_name,SourceTargetNodes, queue_size = 1, latch=True)
+        self.pub = rospy.Publisher(self.topic_name,SourceTargetNodes, queue_size=1, latch=True)
         self._widget.buttonFindPlan.clicked.connect(self.requestPlan)
 
 
     def loadComboBoxItems(self):
         # Loading map
-        self.map_name = rospy.get_param('/map_name', 'tiles_226')
+        self.map_name = rospy.get_param('/map_name', 'tiles_lab')
         self.script_dir = os.path.dirname(__file__)
         self.map_path = self.script_dir + '/../../src/maps/' + self.map_name
         gc = graph_creator()
-        gc.build_graph_from_csv(csv_filename=self.map_name)
+        gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
 
         node_locations = gc.node_locations
         #comboBoxList = sorted([int(key) for key in node_locations if key[0:4]!='turn'])
