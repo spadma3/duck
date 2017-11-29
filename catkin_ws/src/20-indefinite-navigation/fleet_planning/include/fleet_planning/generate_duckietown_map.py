@@ -1,7 +1,7 @@
 import pickle, csv, os, sys, cv2
 import numpy as np
 from graph import Graph
-from duckietown_description import Csv2Xacro
+#from duckietown_description import Csv2Xacro
 
 class Node():
 	n = 1
@@ -260,11 +260,10 @@ class graph_creator():
 			edges = tile.create_edges(self.tile_map)
 			self.add_edges(edges)
 
-	def cropGraphImage(self,image_path):
-		tmp = cv2.imread(image_path,cv2.IMREAD_COLOR)
-		h,w,c = tmp.shape
-		tmp2 = tmp[0:h-50,:,:]
-		cv2.imwrite(image_path,tmp2)
+	def cropGraphImage(self, grayscale_image):
+		h,w = grayscale_image.shape
+		tmp2 = grayscale_image[0:h - 50, :]
+		return tmp2
 
 class MapImageCreator():
 	def __init__(self, tiles_dir):
@@ -325,15 +324,17 @@ class MapImageCreator():
 
 if __name__ == "__main__":
     gc = graph_creator()
-    mapname=sys.argv[1]
+    mapname='tiles_226'
     mapsdir = os.path.abspath(os.path.dirname(__file__) + '/../../src/')
+    mapfile = os.path.abspath(mapsdir + '/maps/' + mapname + '.png')
     tiles_dir = os.path.abspath(mapsdir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
     duckietown_graph = gc.build_graph_from_csv(script_dir=mapsdir, csv_filename=mapname)
     duckietown_graph.draw(script_dir=mapsdir, map_name=mapname,highlight_edges=None)
-    gc.cropGraphImage("/home/nico/duckietown/catkin_ws/src/20-indefinite-navigation/navigation/src/maps/tiles_226.png")
+    graph = cv2.imread(mapfile,cv2.IMREAD_GRAYSCALE)
+    g2 = gc.cropGraphImage(graph)
     #writer = Csv2Xacro.Csv2Xacro(mapsdir+'/maps/'+mapname+'.csv',mapsdir+'/maps/'+'tags_'+mapname+'.csv',mapsdir+'/maps/'+mapname+'.urdf.xacro',0.595,0.125,0.035)
     #writer.writeXacro()
-    mc = MapImageCreator('/home/nico/duckietown/catkin_ws/src/30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
+    mc = MapImageCreator(tiles_dir)
     mc.build_map_from_csv(mapsdir,mapname,553,961)
 
 
