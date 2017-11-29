@@ -40,10 +40,10 @@ class graph_search_server():
         h, w = graph_image.shape
         print (self.map_path)
         print ("Before passing it in h: {}, w: {}, channels: {}".format(h,w,len(graph_image.shape)))
-        mc = MapImageCreator(self.tiles_dir)
-        self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name, graph_width=w, graph_height=h)
+        self.mc = MapImageCreator(self.tiles_dir)
+        self.map_img = self.mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name, graph_width=w, graph_height=h)
 
-        overlay = mc.prepImage(graph_image,self.map_img)
+        overlay = self.mc.prepImage(graph_image,self.map_img)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def handle_graph_search(self, req):
@@ -68,8 +68,8 @@ class graph_search_server():
             self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name = self.map_name, highlight_nodes = [req.source_node, req.target_node])
         else:
             self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
-        cv_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
-        overlay = self.prepImage(cv_image)
+        graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_GRAYSCALE)
+        overlay = self.mc.prepImage(graph_image,self.map_img)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
 if __name__ == "__main__":
