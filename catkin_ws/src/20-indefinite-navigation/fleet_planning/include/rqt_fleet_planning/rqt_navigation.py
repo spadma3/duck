@@ -13,7 +13,7 @@ class RQTNavigation(Plugin):
     def __init__(self, context):
         super(RQTNavigation, self).__init__(context)
         # Give QObjects reasonable names
-        self.setObjectName('Navigation')
+        self.setObjectName('Fleet-Planning Navigation')
 
         # Create QWidget
         self._widget = QWidget()
