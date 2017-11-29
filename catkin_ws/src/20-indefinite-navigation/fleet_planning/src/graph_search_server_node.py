@@ -7,6 +7,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from navigation.srv import *
 from navigation.generate_duckietown_map import graph_creator
+from navigation.generate_duckietown_map import MapImageCreator
 import numpy as np
 
 class graph_search_server():
@@ -16,13 +17,15 @@ class graph_search_server():
         # Input: csv file
         self.map_name = rospy.get_param('/map_name')
 
-        # Loading map
+        # Loading paths
         self.script_dir = os.path.dirname(__file__)
         self.map_path = self.script_dir + '/maps/' + self.map_name
-        self.map_img = self.script_dir + '/maps/map.png'
+        self.map_img_path = self.map_path + '_map.png'
+        #todo: make this way more robust
+        self.tiles_dir = os.path.abspath(self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
 
         gc = graph_creator()
-        self.duckietown_graph = gc.build_graph_from_csv(csv_filename=self.map_name)
+        self.duckietown_graph = gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
         self.duckietown_problem = GraphSearchProblem(self.duckietown_graph, None, None)
     
         print "Map loaded successfully!\n"
@@ -32,8 +35,12 @@ class graph_search_server():
 
         # Send graph through publisher
         self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
-        cv_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
-        overlay = self.prepImage(cv_image)
+        graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
+        w,h,c = graph_image.shape
+        mc = MapImageCreator(self.tiles_dir)
+        self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name,graph_width=w,graph_height=h)
+
+        overlay = self.prepImage(graph_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def handle_graph_search(self, req):
@@ -62,15 +69,18 @@ class graph_search_server():
         overlay = self.prepImage(cv_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
-    def prepImage(self, cv_image):
-        map_img = cv2.imread(self.map_img, cv2.IMREAD_COLOR)
-        map_crop = map_img[16:556, 29:408, :]
-        map_resize = cv2.resize(map_crop, (cv_image.shape[1], 955), interpolation=cv2.INTER_AREA)
-        cv_image = cv_image[0:955, :, :]
-        cv_image = 255 - cv_image                                                                                                                                                                            
-        overlay = cv2.addWeighted(cv_image, 0.65, map_resize,0.35,0)
-        overlay = cv2.resize(overlay, (0, 0), fx=0.9, fy=0.9, interpolation=cv2.INTER_AREA)
-        overlay = np.multiply(overlay, 1.4).astype(np.uint8)
+    def prepImage(self, graph_image):
+        graph_image = 255 - graph_image
+        th, graph_image = cv2.threshold(graph_image,100,255,cv2.THRESH_BINARY)
+        graph_image = cv2.cvtColor(graph_image,cv2.COLOR_GRAY2BGR)
+        overlay = cv2.addWeighted(graph_image, 0.5, self.map_img,0.5,0)
+        hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV) #convert it to hsv
+        h, s, v = cv2.split(hsv)
+        lim = 255 - 60
+        v[v > lim] = 255
+        v[v <= lim] += 60
+        final_hsv = cv2.merge((h, s, v))
+        overlay = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
         return overlay
 
 
