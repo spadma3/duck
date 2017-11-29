@@ -43,9 +43,9 @@ class RQTFleetPlanning(Plugin):
         # Loading map
         self.map_name = rospy.get_param('/map_name', 'tiles_lab')
         self.script_dir = os.path.dirname(__file__)
-        self.map_path = self.script_dir + '/../../src/maps/' + self.map_name
+        super_script_dir = self.script_dir + '/../../src/'
         gc = graph_creator()
-        gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
+        gc.build_graph_from_csv(script_dir=super_script_dir, csv_filename=self.map_name)
 
         node_locations = gc.node_locations
         #comboBoxList = sorted([int(key) for key in node_locations if key[0:4]!='turn'])
