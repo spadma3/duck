@@ -20,7 +20,7 @@ class graph_search_server():
         # Loading paths
         self.script_dir = os.path.dirname(__file__)
         self.map_path = self.script_dir + '/maps/' + self.map_name
-        self.map_img_path = self.map_path + '_map.png'
+        self.map_img_path = self.map_path + '_map'
         #todo: make this way more robust
         self.tiles_dir = os.path.abspath(self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
 
