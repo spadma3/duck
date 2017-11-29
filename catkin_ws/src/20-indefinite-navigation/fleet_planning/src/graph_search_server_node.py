@@ -36,7 +36,7 @@ class graph_search_server():
         # Send graph through publisher
         self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
         graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_GRAYSCALE)
-        w,h,c = graph_image.shape
+        w, h = graph_image.shape
         mc = MapImageCreator(self.tiles_dir)
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name,graph_width=w,graph_height=h)
 
