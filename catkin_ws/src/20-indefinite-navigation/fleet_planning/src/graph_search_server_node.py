@@ -37,6 +37,7 @@ class graph_search_server():
         self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
         graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_GRAYSCALE)
         graph_image = gc.cropGraphImage(graph_image)
+        cv2.imwrite(self.map_path + '.png',graph_image)
         h, w = graph_image.shape
         print (self.map_path)
         print ("Before passing it in h: {}, w: {}, channels: {}".format(h,w,len(graph_image.shape)))
