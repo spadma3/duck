@@ -1,6 +1,8 @@
-import pickle, csv, os, sys
+import pickle, csv, os, sys, cv2
 import numpy as np
 from graph import Graph
+from duckietown_description import Csv2Xacro
+from matplotlib import pyplot as plt
 
 class Node():
 	n = 1
@@ -258,99 +260,83 @@ class graph_creator():
 		for tile in self.tile_map:
 			edges = tile.create_edges(self.tile_map)
 			self.add_edges(edges)
-	def get_map_226(self):
-		# Node locations (for visual representation) and heuristics calculation
-		node_locations = {"11":(4,0.75),"12":(3.75,1),"13":(3.25,1),"14":(3,0.75),"15":(3,0.25),"18":(4,0.25),
-                          "21":(1,2.75),"22":(0.75,3),"23":(0.25,3),"26":(0.25,2),"27":(0.75,2),"28":(1,2.25),
-                          "31":(1,5.75),"32":(0.75,6),"33":(0.25,6),"36":(0.25,5),"37":(0.75,5),"38":(1,5.25),
-                          "41":(3,5.75),"42":(2.75,6),"43":(2.25,6),"44":(2,5.75),"45":(2,5.25),"46":(2.25,5),
-                          "47":(2.75,5),"48":(3,5.25),
-                          "51":(4,9.75),"54":(3,9.75),"55":(3,9.25),"56":(3.25,9),"57":(3.75,9),"58":(4,9.25),
-                          "121":(3.75,3.25),"122":(5.25,3.25),"123":(5.25,0.75),
-                          "181":(5.75,0.25),"182":(5.75,3.75),"183":(3.25,3.75),
-                          "141":(0.75,0.75),
-                          "261":(0.25,0.25),
-                          "281":(2.75,2.25),
-                          "481":(4.75,5.25),"482":(4.75,8.25),"483":(5.75,8.25),"484":(5.75,9.75),
-                          "581":(5.25,9.25),"582":(5.25,8.75),"583":(4.25,8.75),"584":(4.25,5.75),
-                          "561":(3.25,7.75),"562":(2.25,7.75),
-                          "421":(2.75,7.25),"422":(3.75,7.25),
-                          "541":(0.25,9.75),
-                          "321":(0.75,9.25),
-                          "461":(2.25,2.75)}
 
-        # Create edges for the map.
-        # Edges is a list of lists, in which each edge is in the format: [source, target, action]
-		edges = [["11", "12", 'r'],
-        ["11", "14",  's'],
-        ["12", "121", 'f'], ["121", "122", 'f'], ["122", "123", 'f'], ["123", "11", 'f'] , 
-        ["13", "14",  'r'],
-        ["13", "18",  'l'],
-        ["14", "141", 'f'], ["141", "27",  'f'],
-        ["15", "12",  'l'],
-        ["15", "18",  's'],
-        ["18", "181", 'f'], ["181", "182", 'f'],  ["182", "183", 'f'],  ["183", "13", 'f'],
+	def cropGraphImage(self,image_path):
+		tmp = cv2.imread(image_path,cv2.IMREAD_COLOR)
+		h,w,c = tmp.shape
+		tmp2 = tmp[0:h-50,:,:]
+		cv2.imwrite(image_path,tmp2)
 
-        ["21", "22",  'r'],
-        ["21", "26",  'l'],
-        ["22", "37",  'f'],
-        ["23", "26",  's'],
-        ["23", "28",  'r'],
-        ["26", "261", 'f'], ["261", "15", 'f'],
-        ["27", "22",  's'],
-        ["27", "28",  'r'],
-        ["28", "281",  'f'], ["281", "47",  'f'],
+class MapImageCreator():
+	def __init__(self, tiles_dir):
+		self.tile_length = 80
+		self.tile_midpoint = (self.tile_length/2,self.tile_length/2)
+		self.turn_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/turn.png'))
+		self.three_way_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/3way.png'))
+		self.four_way_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/4way.png'))
+		self.straight_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/straight.png'))
+		self.empty_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/empty.png'))
 
-        ["31", "32",  'r'],
-        ["31", "36",  'l'],
-        ["32", "321",  'f'], ["321", "55",  'f'],
-        ["33", "36",  's'],
-        ["33", "38",  'r'],
-        ["36", "23",  'f'],
-        ["37", "32",  's'],
-        ["37", "38",  'r'],
-        ["38", "45",  'f'],
-     
-        ["41", "42",  'r'],
-        ["41", "44",  's'],
-        ["41", "46",  'l'],
-        ["42", "421",  'f'], ["421", "422",  'f'], ["422", "57",  'f'],
-        ["43", "44",  'r'],
-        ["43", "46",  's'],
-        ["43", "48",  'l'],
-        ["44", "31",  'f'],
-        ["45", "46",  'r'],
-        ["45", "48",  's'],
-        ["45", "42",  'l'],
-        ["46", "461",  'f'], ["461", "21",  'f'],
-        ["47", "48",  'r'],
-        ["47", "42",  's'],
-        ["47", "44",  'l'],
-        ["48", "481",  'f'], ["481", "482",  'f'],["482", "483",  'f'],["483", "484",  'f'], ["484", "51",  'f'],
-     
-        ["51", "54",  's'],
-        ["51", "56",  'l'],
-        ["54", "541",  'f'], ["541", "33",  'f'],
-        ["55", "56",  'r'],
-        ["55", "58",  's'],
-        ["56", "561",  'f'], ["561", "562",  'f'], ["562", "43",  'f'],
-        ["57", "58",  'r'],
-        ["57", "54",  'l'],
-        ["58", "581",  'f'], ["581", "582",  'f'], ["582", "583",  'f'], ["583", "584",  'f'], ["584", "41",  'f']]
+	def imread_and_resize(self,path):
+		tmp = cv2.imread(path,cv2.IMREAD_COLOR)
+		return cv2.resize(tmp,(self.tile_length,self.tile_length),interpolation=cv2.INTER_AREA)
 
-		return node_locations, edges
- 
+	def build_map_from_csv(self,script_dir,csv_filename,graph_width,graph_height):
+		map_path = os.path.abspath(script_dir + '/maps/' + csv_filename + '.csv')
+		self.num_tiles_y = -1
+		self.num_tiles_x = -1
+		with open(map_path, 'rb') as f:
+			spamreader = csv.reader(f,skipinitialspace=True)
+			#analyze the file before we build the image
+			for (j,row) in enumerate(spamreader):
+				if j != 0:
+					row_clean = [element.strip() for element in row]
+					self.num_tiles_y = max(int(row_clean[1]),self.num_tiles_y)
+					self.num_tiles_x = max(int(row_clean[0]),self.num_tiles_x)
+			#since the indices are zero based, the total count is one higher
+			self.num_tiles_x = self.num_tiles_x + 1
+			self.num_tiles_y = self.num_tiles_y + 1
+			self.map_height = self.num_tiles_y*self.tile_length
+			self.map_width = self.num_tiles_x*self.tile_length
+			self.map_image = np.zeros((self.map_height,self.map_width,3),np.uint8)
+			f.seek(0) # reset the reader to the beginning of the file
+			for i,row in enumerate(spamreader):
+				if i != 0:
+					row_ = [element.strip() for element in row] # remove white spaces
+					if row_[2] == 'turn':
+						self.appendTile(row_,self.turn_tile)
+					elif row_[2] == '3way':
+						self.appendTile(row_,self.three_way_tile)
+					elif row_[2] == '4way':
+						self.appendTile(row_,self.four_way_tile)
+					elif row_[2] == 'straight':
+						self.appendTile(row_,self.straight_tile)
+					elif row_[2] == 'empty':
+						self.appendTile(row_,self.empty_tile)
+		self.map_image = cv2.resize(self.map_image,(graph_width,graph_height),interpolation=cv2.INTER_AREA)
+		cv2.imwrite(os.path.abspath(script_dir + '/maps/' + csv_filename + '_map.png'), self.map_image)
+		return self.map_image
+
+	def appendTile(self,row,tile):
+		xS = int(row[0])*self.tile_length
+		yS = self.map_height-(int(row[1])+1)*self.tile_length
+		rotation_matrix = cv2.getRotationMatrix2D(self.tile_midpoint,float(row[3]),1.0)
+		oriented_tile = cv2.warpAffine(tile,rotation_matrix,(self.tile_length,self.tile_length))
+		self.map_image[yS:yS+self.tile_length,xS:xS+self.tile_length]=oriented_tile
+
 if __name__ == "__main__":
     gc = graph_creator()
     mapname=sys.argv[1]
     mapsdir = os.path.abspath(os.path.dirname(__file__) + '/../../src/')
+    tiles_dir = os.path.abspath(mapsdir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
     duckietown_graph = gc.build_graph_from_csv(script_dir=mapsdir, csv_filename=mapname)
-    # Node locations (for visual representation) and heuristics calculation
-    #node_locations, edges = gc.get_map_226()
-    #gc.add_node_locations(node_locations)
-    #gc.add_edges(edges)
-    #gc.pickle_save()
     duckietown_graph.draw(script_dir=mapsdir, map_name=mapname,highlight_edges=None)
+    gc.cropGraphImage("/home/nico/duckietown/catkin_ws/src/20-indefinite-navigation/navigation/src/maps/tiles_226.png")
+    #writer = Csv2Xacro.Csv2Xacro(mapsdir+'/maps/'+mapname+'.csv',mapsdir+'/maps/'+'tags_'+mapname+'.csv',mapsdir+'/maps/'+mapname+'.urdf.xacro',0.595,0.125,0.035)
+    #writer.writeXacro()
+    mc = MapImageCreator('/home/nico/duckietown/catkin_ws/src/30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
+    mc.build_map_from_csv(mapsdir,mapname,553,961)
+
 
 
 
