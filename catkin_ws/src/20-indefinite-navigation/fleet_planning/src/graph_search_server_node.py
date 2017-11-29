@@ -65,14 +65,14 @@ class graph_search_server():
         if path:
             self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name = self.map_name, highlight_nodes = [req.source_node, req.target_node])
         else:
-            self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
+            self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
         cv_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
         overlay = self.prepImage(cv_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def prepImage(self, graph_image):
         graph_image = 255 - graph_image
-        th, graph_image = cv2.threshold(graph_image,100,255,cv2.THRESH_BINARY)
+        th, graph_image = cv2.threshold(graph_image.copy(), 100, 255, cv2.THRESH_BINARY)
         graph_image = cv2.cvtColor(graph_image,cv2.COLOR_GRAY2BGR)
         overlay = cv2.addWeighted(graph_image, 0.5, self.map_img,0.5,0)
         hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV) #convert it to hsv
