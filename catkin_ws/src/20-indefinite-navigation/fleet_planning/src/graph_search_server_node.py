@@ -38,10 +38,12 @@ class graph_search_server():
         graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_GRAYSCALE)
         graph_image = gc.cropGraphImage(graph_image)
         h, w = graph_image.shape
+        print (self.map_path)
+        print ("Before passing it in h: {}, w: {}, channels: {}".format(h,w,len(graph_image.shape)))
         mc = MapImageCreator(self.tiles_dir)
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name, graph_width=w, graph_height=h)
 
-        overlay = self.prepImage(graph_image)
+        overlay = mc.prepImage(graph_image,self.map_img)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def handle_graph_search(self, req):
@@ -69,21 +71,6 @@ class graph_search_server():
         cv_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
         overlay = self.prepImage(cv_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
-
-    def prepImage(self, graph_image):
-        inverted_graph_image = 255 - graph_image
-        th, thresholded_graph_image = cv2.threshold(inverted_graph_image,100,255,cv2.THRESH_BINARY)
-        colored_graph_image = cv2.cvtColor(thresholded_graph_image,cv2.COLOR_GRAY2BGR)
-        overlay = cv2.addWeighted(colored_graph_image, 0.5, self.map_img,0.5,0)
-        hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV) #convert it to hsv
-        h, s, v = cv2.split(hsv)
-        lim = 255 - 60
-        v[v > lim] = 255
-        v[v <= lim] += 60
-        final_hsv = cv2.merge((h, s, v))
-        overlay = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
-        return overlay
-
 
 if __name__ == "__main__":
     rospy.init_node('graph_search_server_node')

@@ -325,7 +325,11 @@ class MapImageCreator():
 	def prepImage(self, graph_image, map_img):
 		inverted_graph_image = 255 - graph_image
 		th, thresholded_graph_image = cv2.threshold(inverted_graph_image,100,255,cv2.THRESH_BINARY)
+		h,w = thresholded_graph_image.shape
+		print ("After thresholding h: {}, w: {}, channels: {}".format(h,w,len(thresholded_graph_image.shape)))
 		colored_graph_image = cv2.cvtColor(thresholded_graph_image,cv2.COLOR_GRAY2BGR)
+		hi,wi,chan = colored_graph_image.shape
+		print ("After coloring h: {}, w: {}, channels: {}".format(hi,wi,len(colored_graph_image.shape)))
 		overlay = cv2.addWeighted(colored_graph_image, 0.5, map_img,0.5,0)
 		hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV) #convert it to hsv
 		h, s, v = cv2.split(hsv)
@@ -354,11 +358,8 @@ if __name__ == "__main__":
 	duckietown_graph.draw(script_dir, highlight_edges=None, map_name = map_name)
 	graph_image = cv2.imread(map_path + '.png', cv2.IMREAD_GRAYSCALE)
 	graph_image = gc.cropGraphImage(graph_image)
-	h, w = graph_image.shape
 	mc = MapImageCreator(tiles_dir)
+	h,w = graph_image.shape
 	map_img = mc.build_map_from_csv(script_dir=script_dir, csv_filename=map_name, graph_width=w, graph_height=h)
 	overlay = mc.prepImage(graph_image,map_img)
-	cv2.imshow("map",map_img)
-	cv2.imshow("graph",graph_image)
-	cv2.imshow("over",overlay)
-	cv2.waitKey(0)
+
