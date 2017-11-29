@@ -4,7 +4,7 @@ from sensor_msgs.msg import CompressedImage
 
 ### note you need to change the name of the robot to yours here
 from obst_avoid.detector import Detector
-from duckietown_utils import get_base_name, rgb_from_ros
+from duckietown_utils import get_base_name, rgb_from_ros, rectify, load_camera_intrinsics
 
 class ObstDetectNode(object):
     """
@@ -16,6 +16,9 @@ class ObstDetectNode(object):
         self.count = 1
 
         self.detector = Detector(robot_name=robot_name)
+
+        # Load camera calibration parameters
+	self.intrinsics = load_camera_intrinsics(robot_name)
 
         # Create a Publisher
         self.pub_topic = '/{}/obst_detect/image/compressed'.format(robot_name)
@@ -32,8 +35,8 @@ class ObstDetectNode(object):
             obst_image.header.stamp = image.header.stamp
             obst_image.format = "jpeg"
 
-            # you should write the following function in your class
-            obst_image.data = self.detector.process_image(rgb_from_ros(image))
+            # pass RECTIFIED IMAGE TO DETECTOR MODULE
+            obst_image.data = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
 
             #later instead of obst_image-data more like:
             #1. EXTRACT OBSTACLES 
