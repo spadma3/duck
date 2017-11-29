@@ -19,9 +19,9 @@ from duckietown_utils import load_map, load_camera_intrinsics, load_homography, 
 
 class Detector():
     '''class for detecting obstacles'''
-    def __init__(self, robot_name='', map_file=''):
+    def __init__(self, robot_name=''):
         # Robot name
-        self.robot_name = robot_name
+    	self.robot_name = robot_name
 
         # Load camera calibration parameters
 	self.intrinsics = load_camera_intrinsics(robot_name)
@@ -29,11 +29,10 @@ class Detector():
 	
     def process_image(self, image):
 
-    # YOUR CODE GOES HERE, image is BGR
-	# CROP IMAGE
+	# CROP IMAGE, image is BGR
  	im1_cropped = image[130:,:,:]
 
-    # FILTER IMAGE
+        # FILTER IMAGE
 	# Convert BGR to HSV
 	hsv = cv2.cvtColor(im1_cropped, cv2.COLOR_RGB2HSV)
 	lower_yellow = np.array([20,75,100])
@@ -63,7 +62,7 @@ class Detector():
 
 
     def segment_img(self, image):
-		#returns segmented image on Grayscale image where all interconnected pixels have same number
+		#returns segmented image on Grayscale where all interconnected pixels have same number
 		return measure.label(image)
 
 
@@ -71,12 +70,12 @@ class Detector():
     def object_filter(self,segmented_img,orig_img):
 	#for future: filter has to become adaptive to depth
 	i=np.max(segmented_img)
-	for k in range(1,i+1): #durch alle zahlen durchiterieren
+	for k in range(1,i+1): #iterate through all segmented numbers
 		#first only keep large elements then eval their shape
 		if (np.sum((segmented_img == k))<100): #skip all those who were merged away or have not enough pixels tiefenabh???
 		    segmented_img[(segmented_img == k)]=0
 		else:
-		    #DIE BREITE MUSS ICH AUF DER GLEICHEN HOEHE NEHMEN!!!!!!
+		    
 		    B=np.copy(segmented_img)
 		    B[(B != k)]=0
 		    C=np.nonzero(B)
@@ -86,10 +85,11 @@ class Detector():
 		    bottom=np.max(C[0])
 		    left=np.min(C[1])
 		    right=np.max(C[1])
-		    height=bottom-top #da bottom hoehere pixzahl hat!!
+		    height=bottom-top #indices are counted from top to down
 		    total_width=right-left
-
-		    height_left=np.max(ITER[0,(C[1]==left)]) #ACHTUNG:kann mehrere WERTE HABEN
+		    
+		    # Now finidng the width on the same height
+		    height_left=np.max(ITER[0,(C[1]==left)]) 
 		    width_height_left = np.max(ITER[1,(C[0]==height_left)])
 		    #WIDTH AT HEIGHT OF LEFT POSITION
 		    width_left= width_height_left-left
