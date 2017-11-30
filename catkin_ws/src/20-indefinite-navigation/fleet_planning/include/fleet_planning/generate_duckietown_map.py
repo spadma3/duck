@@ -329,8 +329,8 @@ class MapImageCreator():
 		#print ("After thresholding h: {}, w: {}, channels: {}".format(h,w,len(thresholded_graph_image.shape)))
 		#colored_graph_image = cv2.cvtColor(thresholded_graph_image,cv2.COLOR_GRAY2BGR)
 		colored_graph_image = graph_image
-		hi,wi,chan = colored_graph_image.shape
-		print ("After coloring h: {}, w: {}, channels: {}".format(hi,wi,len(colored_graph_image.shape)))
+		#hi,wi,chan = colored_graph_image.shape
+		#print ("After coloring h: {}, w: {}, channels: {}".format(hi,wi,len(colored_graph_image.shape)))
 		overlay = cv2.addWeighted(colored_graph_image, 0.5, map_img,0.5,0)
 		hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV) #convert it to hsv
 		h, s, v = cv2.split(hsv)
