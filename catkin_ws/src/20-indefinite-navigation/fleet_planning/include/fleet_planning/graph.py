@@ -1,5 +1,6 @@
 import graphviz
 import os
+import cv2
 
 class NodeNotInGraph(Exception):
     def __init__(self, node):
@@ -118,5 +119,9 @@ class Graph(object):
         map_path = script_dir + '/maps/'
         g.format = 'png'
         g.render(filename=map_name, directory=map_path, view=False, cleanup=True)
-        
+
+        # crop lower useless title on the bottom of the image
+        image_path = map_path+map_name+'.png'
+        img = cv2.imread(image_path)
+        cv2.imwrite(image_path[:-50,:], img)
       

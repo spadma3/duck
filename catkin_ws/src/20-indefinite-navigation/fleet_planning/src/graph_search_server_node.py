@@ -21,7 +21,6 @@ class graph_search_server():
         self.script_dir = os.path.dirname(__file__)
         self.map_path = self.script_dir + '/maps/' + self.map_name
         self.map_img_path = self.map_path + '_map'
-        #todo: make this way more robust
         self.tiles_dir = os.path.abspath(self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
 
         gc = graph_creator()
@@ -72,9 +71,8 @@ class graph_search_server():
 
     def prepImage(self, graph_img):
         inverted_graph_img = 255 - graph_img
-
-        # crop to same size
-        inverted_graph_img = inverted_graph_img[:self.map_img.shape[0], :self.map_img.shape[1], :]
+        # bring to same size
+        inverted_graph_img = cv2.resize(inverted_graph_img, (self.map_img.shape[1], self.map_img.shape[0]))
 
         # overlay images
         overlay = cv2.addWeighted(inverted_graph_img, 1, self.map_img, 0.5, 0)
