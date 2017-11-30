@@ -136,8 +136,8 @@ class ThreeWayTile(Tile):
 		self.node5 = ThreeWayTile.node5_default.globalPosAndDirection(theta, x, y)
 		self.node6 = ThreeWayTile.node6_default.globalPosAndDirection(theta, x, y)
 		node_loc = {self.node1.name:self.node1.pos, self.node2.name:self.node2.pos,
-			        self.node3.name:self.node3.pos, self.node4.name:self.node4.pos,
-			        self.node5.name:self.node5.pos, self.node6.name:self.node6.pos}
+					self.node3.name:self.node3.pos, self.node4.name:self.node4.pos,
+					self.node5.name:self.node5.pos, self.node6.name:self.node6.pos}
 
 		edges = [[self.node1.name, self.node2.name, 'r'],
 				 [self.node1.name, self.node4.name, 's'],
@@ -177,22 +177,22 @@ class FourWayTile(Tile):
 		self.node7 = FourWayTile.node7_default.globalPosAndDirection(theta, x, y)
 		self.node8 = FourWayTile.node8_default.globalPosAndDirection(theta, x, y)
 		node_loc = {self.node1.name:self.node1.pos, self.node2.name:self.node2.pos,
-			        self.node3.name:self.node3.pos, self.node4.name:self.node4.pos,
-			        self.node5.name:self.node5.pos, self.node6.name:self.node6.pos,
-			        self.node7.name:self.node7.pos, self.node8.name:self.node8.pos}
+					self.node3.name:self.node3.pos, self.node4.name:self.node4.pos,
+					self.node5.name:self.node5.pos, self.node6.name:self.node6.pos,
+					self.node7.name:self.node7.pos, self.node8.name:self.node8.pos}
 
 		edges = [[self.node1.name, self.node2.name, 'r'],
-        		 [self.node1.name, self.node4.name, 's'],
-        		 [self.node1.name, self.node6.name, 'l'],
-        		 [self.node3.name, self.node4.name, 'r'],
-        		 [self.node3.name, self.node8.name, 'l'],
-        		 [self.node3.name, self.node6.name, 's'],
-        		 [self.node5.name, self.node2.name, 'l'],
-        		 [self.node5.name, self.node8.name, 's'],
-        		 [self.node5.name, self.node6.name, 'r'],
-        		 [self.node7.name, self.node8.name, 'r'],
-        		 [self.node7.name, self.node2.name, 's'],
-        		 [self.node7.name, self.node4.name, 'l']]
+				 [self.node1.name, self.node4.name, 's'],
+				 [self.node1.name, self.node6.name, 'l'],
+				 [self.node3.name, self.node4.name, 'r'],
+				 [self.node3.name, self.node8.name, 'l'],
+				 [self.node3.name, self.node6.name, 's'],
+				 [self.node5.name, self.node2.name, 'l'],
+				 [self.node5.name, self.node8.name, 's'],
+				 [self.node5.name, self.node6.name, 'r'],
+				 [self.node7.name, self.node8.name, 'r'],
+				 [self.node7.name, self.node2.name, 's'],
+				 [self.node7.name, self.node4.name, 'l']]
 
 		return node_loc,edges
 	def create_edges(self,tile_map):
@@ -260,12 +260,9 @@ class graph_creator():
 			edges = tile.create_edges(self.tile_map)
 			self.add_edges(edges)
 
-	def cropGraphImage(self, grayscale_image):
-		h,w = grayscale_image.shape
-		tmp2 = grayscale_image[0:h - 50, :]
-		return tmp2
 
-class MapImageCreator():
+class MapImageCreator:
+
 	def __init__(self, tiles_dir):
 		self.tile_length = 80
 		self.tile_midpoint = (self.tile_length/2,self.tile_length/2)
@@ -281,22 +278,23 @@ class MapImageCreator():
 
 	def build_map_from_csv(self,script_dir,csv_filename,graph_width,graph_height):
 		map_path = os.path.abspath(script_dir + '/maps/' + csv_filename + '.csv')
-		self.num_tiles_y = -1
-		self.num_tiles_x = -1
+		num_tiles_y = -1
+		num_tiles_x = -1
 		with open(map_path, 'rb') as f:
 			spamreader = csv.reader(f,skipinitialspace=True)
 			#analyze the file before we build the image
 			for (j,row) in enumerate(spamreader):
-				if j != 0:
-					row_clean = [element.strip() for element in row]
-					self.num_tiles_y = max(int(row_clean[1]),self.num_tiles_y)
-					self.num_tiles_x = max(int(row_clean[0]),self.num_tiles_x)
+					if j != 0:
+						row_clean = [element.strip() for element in row]
+						num_tiles_y = max(int(row_clean[1]),num_tiles_y)
+						num_tiles_x = max(int(row_clean[0]),num_tiles_x)
 			#since the indices are zero based, the total count is one higher
-			self.num_tiles_x = self.num_tiles_x + 1
-			self.num_tiles_y = self.num_tiles_y + 1
-			self.map_height = self.num_tiles_y*self.tile_length
-			self.map_width = self.num_tiles_x*self.tile_length
-			self.map_image = np.zeros((self.map_height,self.map_width,3),np.uint8)
+			snum_tiles_x = num_tiles_x + 1
+			num_tiles_y = num_tiles_y + 1
+			map_height = num_tiles_y*self.tile_length
+			map_width = num_tiles_x*self.tile_length
+
+			self.map_image = np.zeros((map_height,map_width,3),np.uint8)
 			f.seek(0) # reset the reader to the beginning of the file
 			for i,row in enumerate(spamreader):
 				if i != 0:
@@ -311,6 +309,7 @@ class MapImageCreator():
 						self.appendTile(row_,self.straight_tile)
 					elif row_[2] == 'empty':
 						self.appendTile(row_,self.empty_tile)
+
 		self.map_image = cv2.resize(self.map_image,(graph_width,graph_height),interpolation=cv2.INTER_AREA)
 		cv2.imwrite(os.path.abspath(script_dir + '/maps/' + csv_filename + '_map.png'), self.map_image)
 		return self.map_image
@@ -321,46 +320,3 @@ class MapImageCreator():
 		rotation_matrix = cv2.getRotationMatrix2D(self.tile_midpoint,float(row[3]),1.0)
 		oriented_tile = cv2.warpAffine(tile,rotation_matrix,(self.tile_length,self.tile_length))
 		self.map_image[yS:yS+self.tile_length,xS:xS+self.tile_length]=oriented_tile
-
-	def prepImage(self, graph_image, map_img):
-		inverted_graph_image = 255 - graph_image
-		#th, thresholded_graph_image = cv2.threshold(inverted_graph_image,100,255,cv2.THRESH_BINARY)
-		#h,w = thresholded_graph_image.shape
-		#print ("After thresholding h: {}, w: {}, channels: {}".format(h,w,len(thresholded_graph_image.shape)))
-		#colored_graph_image = cv2.cvtColor(thresholded_graph_image,cv2.COLOR_GRAY2BGR)
-		colored_graph_image = graph_image
-		#hi,wi,chan = colored_graph_image.shape
-		#print ("After coloring h: {}, w: {}, channels: {}".format(hi,wi,len(colored_graph_image.shape)))
-		overlay = cv2.addWeighted(colored_graph_image, 0.5, map_img,0.5,0)
-		hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV) #convert it to hsv
-		h, s, v = cv2.split(hsv)
-		lim = 255 - 60
-		v[v > lim] = 255
-		v[v <= lim] += 60
-		final_hsv = cv2.merge((h, s, v))
-		overlay = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
-		return overlay
-
-if __name__ == "__main__":
-	gc = graph_creator()
-	map_name='tiles_lab'
-	script_dir = os.path.abspath(os.path.dirname(__file__) + '/../../src/')
-	mapfile = os.path.abspath(script_dir + '/maps/' + map_name)
-	tiles_dir = os.path.abspath(script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
-
-	map_path = script_dir + '/maps/' + map_name
-	map_img_path = map_path + '_map'
-	#todo: make this way more robust
-	tiles_dir = os.path.abspath(script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
-	gc = graph_creator()
-	duckietown_graph = gc.build_graph_from_csv(script_dir=script_dir, csv_filename=map_name)
-	print "Map loaded successfully!\n"
-	# Send graph through publisher
-	duckietown_graph.draw(script_dir, highlight_edges=None, map_name = map_name)
-	graph_image = cv2.imread(map_path + '.png', cv2.IMREAD_GRAYSCALE)
-	graph_image = gc.cropGraphImage(graph_image)
-	mc = MapImageCreator(tiles_dir)
-	h,w = graph_image.shape
-	map_img = mc.build_map_from_csv(script_dir=script_dir, csv_filename=map_name, graph_width=w, graph_height=h)
-	overlay = mc.prepImage(graph_image,map_img)
-

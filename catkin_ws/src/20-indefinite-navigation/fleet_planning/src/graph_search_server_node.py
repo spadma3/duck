@@ -35,14 +35,13 @@ class graph_search_server():
 
         # Send graph through publisher
         self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
-        self.graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_GRAYSCALE)
-        self.graph_image = gc.cropGraphImage(self.graph_image)
 
-        h, w = self.graph_image.shape
+        graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
+        graph_image = gc.cropGraphImage(self.graph_image)
+
         self.mc = MapImageCreator(self.tiles_dir)
         self.map_img = self.mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name, graph_width=w, graph_height=h)
-        cv2.imwrite('map_img.png', self.map_img)
-        overlay = self.mc.prepImage(self.graph_image,self.map_img)
+        overlay = self.prepImage(graph_image, self.map_img)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def handle_graph_search(self, req):
@@ -68,13 +67,29 @@ class graph_search_server():
         else:
             self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
-        gih,giw = self.graph_image.shape
-        mih,miw,mic = self.map_img.shape
-        print ("graph callback graph h: {}, w: {}, channels: {}".format(gih,giw,len(self.graph_image.shape)))
-        print ("graph callback map h: {}, w: {}, channels: {}".format(mih,miw,len(self.map_img.shape)))
-        self.graph_image = cv2.imread(self.graph_image, cv2.IMREAD_COLOR)
-        overlay = self.mc.prepImage(self.graph_image, self.map_img)
+        graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
+        overlay = self.prepImage(graph_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
+
+    def prepImage(self, graph_img):
+        inverted_graph_img = 255 - graph_img
+
+        # crop to same size
+        inverted_graph_img = inverted_graph_img[:self.map_img.shape[0], :self.map_img.shape[1], :]
+
+        # overlay images
+        overlay = cv2.addWeighted(inverted_graph_img, 1, self.map_img, 0.5, 0)
+
+        # some color operations
+        hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV)  # convert it to hsv
+        h, s, v = cv2.split(hsv)
+        lim = 255 - 60
+        v[v > lim] = 255
+        v[v <= lim] += 60
+        final_hsv = cv2.merge((h, s, v))
+
+        overlay = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+        return overlay
 
 if __name__ == "__main__":
     rospy.init_node('graph_search_server_node')
