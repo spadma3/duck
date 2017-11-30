@@ -63,11 +63,8 @@ class graph_search_server():
 
     def publishImage(self, req, path):
         if path:
-            print path
-            print path.edges()
             self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name = self.map_name, highlight_nodes = [req.source_node, req.target_node])
         else:
-            print 'not entered if'
             self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
         gih,giw = self.graph_image.shape

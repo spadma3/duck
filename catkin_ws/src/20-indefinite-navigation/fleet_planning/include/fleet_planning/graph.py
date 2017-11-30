@@ -107,7 +107,7 @@ class Graph(object):
                     t = ""
                 print 'bevore if!!'
                 print highlight_edges
-                print self.node_edges((src_node))
+                print self.node_label_fn(src_node)
                 print self.node_label_fn(e.target)
                 if highlight_edges and (self.node_label_fn(src_node), self.node_label_fn(e.target)) in highlight_edges:
                     print 'entered if successfully'
