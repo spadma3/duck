@@ -1,6 +1,6 @@
 import graphviz
-import os
 import cv2
+
 
 class NodeNotInGraph(Exception):
     def __init__(self, node):
@@ -23,6 +23,7 @@ class Edge(object):
     def __eq__(self, other):
         return self.source == other.source and self.target == other.target \
             and self.weight == other.weight and self.action == other.action
+
     def __repr__(self):
         return "Edge(%r,%r,%r)" % (self.source, self.target, self.weight, self.action)
 
@@ -114,14 +115,13 @@ class Graph(object):
                     p = '1.5'
                     
                 g.edge(self.node_label_fn(src_node), self.node_label_fn(e.target), taillabel=t , color = c, penwidth = p)
-        
-        #script_dir = os.path.dirname(__file__)
+
         map_path = script_dir + '/maps/'
         g.format = 'png'
         g.render(filename=map_name, directory=map_path, view=False, cleanup=True)
 
-        # crop lower useless title on the bottom of the image
+        # crop lower useless title on the bottom of the rendered image
         image_path = map_path+map_name+'.png'
         img = cv2.imread(image_path)
         cv2.imwrite(image_path, img[:-50, :])
-      
+
