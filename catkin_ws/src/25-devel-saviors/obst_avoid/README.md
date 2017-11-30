@@ -8,7 +8,8 @@ the scripts folder provides three useful files:
 
 the node implements a first rough duckiedetection algorithm which has to be further improved
 the node can be launched via:
-roslaunch obst_avoid obst_avoid.launch
+roslaunch obst_avoid obst_avoid.launch robot_name:=YOUR_ROBOT_NAME_GOES_HERE
+example: roslaunch obst_avoid obst_avoid.launch robot_name:=arki
 BUT: we need an additional library istall via: "pip install scikit-image"
 
 

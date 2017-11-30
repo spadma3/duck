@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from sensor_msgs.msg import CompressedImage
+from geometry_msgs.msg import PoseArray
 
 ### note you need to change the name of the robot to yours here
 from obst_avoid.detector import Detector

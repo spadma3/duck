@@ -12,6 +12,7 @@ from skimage import measure
 
 import rospy
 from sensor_msgs.msg import CompressedImage
+from geometry_msgs.msg import PoseArray, Point
 
 from duckietown_utils import d8_compressed_image_from_cv_image, logger, rgb_from_ros, yaml_load, get_duckiefleet_root
 from duckietown_utils import get_base_name, load_camera_intrinsics, load_homography, load_map, rectify
@@ -25,12 +26,22 @@ class Detector():
 
         # Load camera calibration parameters
 	self.intrinsics = load_camera_intrinsics(robot_name)
-	self.H = inv(load_homography(self.robot_name))	
+	self.H = load_homography(self.robot_name)
+
+	#define where to cut the image, which subsection you want to focus on
+	#self.crop=130
+	self.crop=0
+	
+
+	# initialize second publisher, later i think we should put this in the "front" file
+	# currently we publish the "bottom" center of the obstacle!!!
+	self.pub_topic2 = '/{}/obst_coordinates'.format(robot_name)
+        self.publisher2 = rospy.Publisher(self.pub_topic2, Point, queue_size=1)
 	
     def process_image(self, image):
 
 	# CROP IMAGE, image is BGR
- 	im1_cropped = image[130:,:,:]
+ 	im1_cropped = image[self.crop:,:,:]
 
         # FILTER IMAGE
 	# Convert BGR to HSV
@@ -124,12 +135,22 @@ class Detector():
 
 		    else:
 		        #UEBERGABE?
-		        #obst_arr[0,entry]=int(np.max(C[0])-0.5*width)
-		        #obst_arr[1,entry]=int(np.max(C[1])-0.5*height)
-		        #obst_arr[2,entry]=int(0.5*width)
-		        #obst_arr[3,entry]=int(0.5*height)
-		        #entry+=1
-		        cv2.rectangle(orig_img,(np.min(C[1]),np.min(C[0])),(np.max(C[1]),np.max(C[0])),(0,255,0),3)
+		        obst_coordinates = Point()
+			point_calc=np.zeros((3,1),dtype=np.float)
+			#take care cause image was cropped,..
+			point_calc= np.dot(self.H,[[left+0.5*total_width],[bottom+self.crop],[1]])
+			realW_coords=[(point_calc[0])/point_calc[2],(point_calc[1])/point_calc[2]]
+			obst_coordinates.x = realW_coords[0]
+			obst_coordinates.y = realW_coords[1]
+			obst_coordinates.z = 1
+			if (obst_coordinates.x<0):
+				print "ERRONEOUS HOMOGRAPHY!"
+				print [[left+0.5*total_width],[bottom+self.crop],[1]]
+				print realW_coords
+			self.publisher2.publish(obst_coordinates) 
+			#explanation: those parameters published here are seen from the !center of the axle! in direction
+			#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
+			cv2.rectangle(orig_img,(np.min(C[1]),np.min(C[0])),(np.max(C[1]),np.max(C[0])),(0,255,0),3)
 
 	    #eig box np.min breite und hoehe!! if they passed the test!!!!
 	    #print abc
@@ -146,7 +167,7 @@ class Detector():
         '''Transforms point in ground coordinates to point in image
         coordinates using the inverse homography'''
 	point_calc=np.zeros((3,1),dtype=np.float)
-	point_calc= np.dot(self.H,[[point[0]],[point[1]],[1]])
+	point_calc= np.dot(inv(self.H),[[point[0]],[point[1]],[1]])
 
 	pixel_int=[int((point_calc[0])/point_calc[2]),int((point_calc[1])/point_calc[2])]
 	#print pixel_float
