@@ -310,7 +310,6 @@ class MapImageCreator:
 					elif row_[2] == 'empty':
 						self.appendTile(row_,self.empty_tile)
 
-		self.map_image = cv2.resize(self.map_image,(graph_width,graph_height),interpolation=cv2.INTER_AREA)
 		cv2.imwrite(os.path.abspath(script_dir + '/maps/' + csv_filename + '_map.png'), self.map_image)
 		return self.map_image
 

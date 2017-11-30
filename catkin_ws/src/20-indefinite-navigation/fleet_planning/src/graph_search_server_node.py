@@ -37,8 +37,8 @@ class graph_search_server():
         self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
         graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
 
-        self.mc = MapImageCreator(self.tiles_dir)
-        self.map_img = self.mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name, graph_width=graph_image.shape[1], graph_height=graph_image.shape[0])
+        mc = MapImageCreator(self.tiles_dir)
+        self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name, graph_width=graph_image.shape[1], graph_height=graph_image.shape[0])
 
         overlay = self.prepImage(graph_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
