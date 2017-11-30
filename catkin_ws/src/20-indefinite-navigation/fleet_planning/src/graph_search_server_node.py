@@ -40,7 +40,7 @@ class graph_search_server():
         self.mc = MapImageCreator(self.tiles_dir)
         self.map_img = self.mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name, graph_width=graph_image.shape[1], graph_height=graph_image.shape[0])
 
-        overlay = self.prepImage(graph_image, self.map_img)
+        overlay = self.prepImage(graph_image)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def handle_graph_search(self, req):
