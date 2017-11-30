@@ -55,7 +55,7 @@
 
 	<arg name="localization" default="true"/>
 	<arg name="/localization/local" default="true" />
-	<arg name="/localization/map_name" default="open_house_dp6" />
+	<arg name="/localization/map_name" default="tags_tiles_lab" />
 	<arg name="/localization/gui" default="false"/>
 
 	<!-- end switch args -->
