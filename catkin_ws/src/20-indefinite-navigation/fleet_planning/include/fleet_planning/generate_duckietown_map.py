@@ -289,12 +289,12 @@ class MapImageCreator:
 						num_tiles_y = max(int(row_clean[1]),num_tiles_y)
 						num_tiles_x = max(int(row_clean[0]),num_tiles_x)
 			#since the indices are zero based, the total count is one higher
-			snum_tiles_x = num_tiles_x + 1
+			num_tiles_x = num_tiles_x + 1
 			num_tiles_y = num_tiles_y + 1
-			map_height = num_tiles_y*self.tile_length
+			self.map_height = num_tiles_y*self.tile_length
 			map_width = num_tiles_x*self.tile_length
 
-			self.map_image = np.zeros((map_height,map_width,3),np.uint8)
+			self.map_image = np.zeros((self.map_height,map_width,3),np.uint8)
 			f.seek(0) # reset the reader to the beginning of the file
 			for i,row in enumerate(spamreader):
 				if i != 0:
