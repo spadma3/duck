@@ -63,7 +63,7 @@ class graph_search_server():
 
     def publishImage(self, req, path):
         if path:
-            self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name = self.map_name, highlight_nodes = [req.source_node, req.target_node])
+            self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name=self.map_name, highlight_nodes = [req.source_node, req.target_node])
         else:
             self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
@@ -71,7 +71,8 @@ class graph_search_server():
         mih,miw,mic = self.map_img.shape
         print ("graph callback graph h: {}, w: {}, channels: {}".format(gih,giw,len(self.graph_image.shape)))
         print ("graph callback map h: {}, w: {}, channels: {}".format(mih,miw,len(self.map_img.shape)))
-        overlay = self.mc.prepImage(self.graph_image,self.map_img)
+        self.graph_image = cv2.imread(self.graph_image, cv2.IMREAD_COLOR)
+        overlay = self.mc.prepImage(self.graph_image, self.map_img)
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
 if __name__ == "__main__":

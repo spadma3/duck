@@ -324,10 +324,11 @@ class MapImageCreator():
 
 	def prepImage(self, graph_image, map_img):
 		inverted_graph_image = 255 - graph_image
-		th, thresholded_graph_image = cv2.threshold(inverted_graph_image,100,255,cv2.THRESH_BINARY)
-		h,w = thresholded_graph_image.shape
-		print ("After thresholding h: {}, w: {}, channels: {}".format(h,w,len(thresholded_graph_image.shape)))
-		colored_graph_image = cv2.cvtColor(thresholded_graph_image,cv2.COLOR_GRAY2BGR)
+		#th, thresholded_graph_image = cv2.threshold(inverted_graph_image,100,255,cv2.THRESH_BINARY)
+		#h,w = thresholded_graph_image.shape
+		#print ("After thresholding h: {}, w: {}, channels: {}".format(h,w,len(thresholded_graph_image.shape)))
+		#colored_graph_image = cv2.cvtColor(thresholded_graph_image,cv2.COLOR_GRAY2BGR)
+		colored_graph_image = graph_image
 		hi,wi,chan = colored_graph_image.shape
 		print ("After coloring h: {}, w: {}, channels: {}".format(hi,wi,len(colored_graph_image.shape)))
 		overlay = cv2.addWeighted(colored_graph_image, 0.5, map_img,0.5,0)
