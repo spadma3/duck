@@ -12,7 +12,7 @@ from skimage import measure
 
 import rospy
 from sensor_msgs.msg import CompressedImage
-from geometry_msgs.msg import PoseArray, Point
+from geometry_msgs.msg import PoseArray, Point, Pose, Quaternion
 
 from duckietown_utils import d8_compressed_image_from_cv_image, logger, rgb_from_ros, yaml_load, get_duckiefleet_root
 from duckietown_utils import get_base_name, load_camera_intrinsics, load_homography, load_map, rectify
@@ -20,7 +20,7 @@ from duckietown_utils import load_map, load_camera_intrinsics, load_homography, 
 
 class Detector():
     '''class for detecting obstacles'''
-    def __init__(self, robot_name=''):
+    def __init__(self, robot_name='',crop_rate=150):
         # Robot name
     	self.robot_name = robot_name
 
@@ -28,48 +28,39 @@ class Detector():
 	self.intrinsics = load_camera_intrinsics(robot_name)
 	self.H = load_homography(self.robot_name)
 
-	#define where to cut the image, which subsection you want to focus on
-	self.crop=150
-	#self.crop=0
+	#define where to cut the image, color range,...
+	self.crop=crop_rate #default value=150 see above!!!
+	self.lower_yellow = np.array([20,75,100])
+	self.upper_yellow = np.array([40,255,255])
 	
 
 	# initialize second publisher, later i think we should put this in the "front" file
 	# currently we publish the "bottom" center of the obstacle!!!
-	self.pub_topic2 = '/{}/obst_coordinates'.format(robot_name)
-        self.publisher2 = rospy.Publisher(self.pub_topic2, Point, queue_size=1)
+	#self.pub_topic2 = '/{}/obst_coordinates'.format(robot_name)
+    	#self.publisher2 = rospy.Publisher(self.pub_topic2, Point, queue_size=1)
 	
     def process_image(self, image):
-
-	# CROP IMAGE, image is BGR
- 	im1_cropped = image[self.crop:,:,:]
-
-        # FILTER IMAGE
+    	obst_list = PoseArray()
+	# FILTER CROPPED IMAGE
 	# Convert BGR to HSV
-	hsv = cv2.cvtColor(im1_cropped, cv2.COLOR_RGB2HSV)
-	lower_yellow = np.array([20,75,100])
-	upper_yellow = np.array([40,255,255])
+	hsv = cv2.cvtColor(image[self.crop:,:,:], cv2.COLOR_RGB2HSV)
 	# Threshold the HSV image to get only yellow colors
-	mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+	mask = cv2.inRange(hsv, self.lower_yellow, self.upper_yellow)
 	#die Randpixel auf null setzen sonst unten probleme mit den boundaries
 	mask[0,:]=0
 	mask[np.size(mask,0)-1,:]=0
 	mask[:,0]=0
 	mask[:,np.size(mask,1)-1]=0
-	
+		
 	if(np.sum(mask!=0)!=0): #there were segment detected then
 		#SEGMENT IMAGE
 		segmented_image=self.segment_img(mask)
 
 		#apply filter on elements-> only obstacles remain and mark them in original picture
 		#in the future: might be separated in 2 steps 1)extract objects 2)visualisation		
-		image = self.object_filter(segmented_image,im1_cropped)
-	else:
-		image = im1_cropped
+		obst_list = self.object_filter(segmented_image)
 
-	# CHANGE BGR BACK TO RGB
-	jpg_data = image[:,:,::-1]
-	#before sending: REDEFINE DATA 
-    	return d8_compressed_image_from_cv_image(jpg_data)
+	return obst_list
 
 
     def segment_img(self, image):
@@ -78,8 +69,10 @@ class Detector():
 
 
 
-    def object_filter(self,segmented_img,orig_img):
+    def object_filter(self,segmented_img):
 	#for future: filter has to become adaptive to depth
+	obst_list = PoseArray()
+   	obst_list.header.frame_id=self.robot_name
 	i=np.max(segmented_img)
 	for k in range(1,i+1): #iterate through all segmented numbers
 		#first only keep large elements then eval their shape
@@ -135,77 +128,37 @@ class Detector():
 
 		    else:
 		        #UEBERGABE?
-		        obst_coordinates = Point()
+		        obst_object = Pose()
 			point_calc=np.zeros((3,1),dtype=np.float)
+			point_calc=self.pixel2ground([[left+0.5*total_width],[bottom+self.crop]])
 			#take care cause image was cropped,..
-			point_calc= np.dot(self.H,[[left+0.5*total_width],[bottom+self.crop],[1]])
-			realW_coords=[(point_calc[0])/point_calc[2],(point_calc[1])/point_calc[2]]
-			obst_coordinates.x = realW_coords[0]
-			obst_coordinates.y = realW_coords[1]
-			obst_coordinates.z = 1
-			self.publisher2.publish(obst_coordinates) 
+			obst_object.position.x = point_calc[0] #obstacle coord x
+			obst_object.position.y = point_calc[1] #obstacle coord y
+			#calculate radius:
+			point_calc2=np.zeros((3,1),dtype=np.float)
+			point_calc2=self.pixel2ground([[left],[bottom+self.crop]])
+			obst_object.position.z = point_calc2[1]-point_calc[1] #this is the radius!
+
+			#fill in the pixel boundaries
+			obst_object.orientation.x = left
+			obst_object.orientation.y = top
+			obst_object.orientation.z = right
+			obst_object.orientation.w = bottom
+
+			obst_list.poses.append(obst_object)
+		 
 			#explanation: those parameters published here are seen from the !center of the axle! in direction
 			#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
-			cv2.rectangle(orig_img,(np.min(C[1]),np.min(C[0])),(np.max(C[1]),np.max(C[0])),(0,255,0),3)
+			#cv2.rectangle(orig_img,(np.min(C[1]),np.min(C[0])),(np.max(C[1]),np.max(C[0])),(0,255,0),3)
 
 	    #eig box np.min breite und hoehe!! if they passed the test!!!!
 	    #print abc
 	    
-	return orig_img
+	return obst_list
 
-
-
-
-
-
-
-    def ground2pixel(self, point):
-        '''Transforms point in ground coordinates to point in image
-        coordinates using the inverse homography'''
+    def pixel2ground(self,pixel):
+    	#taking pixel coordinates with (column,row) and returning real world coordinates!!!
 	point_calc=np.zeros((3,1),dtype=np.float)
-	point_calc= np.dot(inv(self.H),[[point[0]],[point[1]],[1]])
-
-	pixel_int=[int((point_calc[0])/point_calc[2]),int((point_calc[1])/point_calc[2])]
-	#print pixel_float
-        return pixel_int
-
-    def just2pixel(self, point):
-        '''Draw Lines around picture'''
-        return [point[0]*640,point[1]*480]
-
-
-    def render_segments(self, image):
-        for segment in self.map_data["segments"]:	
-            pt_x = []
-            pt_y = []
-            for point in segment["points"]:
-                frame, ground_point = self.map_data["points"][point]
-                pixel = []
-                if frame == 'axle':
-                    pixel = self.ground2pixel(ground_point)
-                elif frame == 'camera':
-                    pixel = ground_point
-                elif frame == 'image01':
-                    pixel = self.just2pixel(ground_point)
-                else:
-                    logger.info('Unkown reference frame. Using "axle" frame')
-                    pixel = self.ground2pixel(ground_point)
-                pt_x.append(pixel[0])
-                pt_y.append(pixel[1])
-            color = segment["color"]
-            image = self.draw_segment(image, pt_x, pt_y, color)
-        return image
-
-    def draw_segment(self, image, pt_x, pt_y, color):
-        defined_colors = {
-            'red' : ['rgb', [1, 0, 0]],
-            'green' : ['rgb', [0, 1, 0]],
-            'blue' : ['rgb', [0, 0, 1]],
-            'yellow' : ['rgb', [1, 1, 0]],
-            'magenta' : ['rgb', [1, 0 ,1]],
-            'cyan' : ['rgb', [0, 1, 1]],
-            'white' : ['rgb', [1, 1, 1]],
-            'black' : ['rgb', [0, 0, 0]]}
-        color_type, [r, g, b] = defined_colors[color]
-        cv2.line(image, (pt_x[0], pt_y[0]),(pt_x[1], pt_y[1]),(b * 255, g* 255, r * 255), 5)
-        return image
+	point_calc= np.dot(self.H,[pixel[0],pixel[1],[1]]) #calculating realWorldcoords
+	point_calc=[(point_calc[0])/point_calc[2],(point_calc[1])/point_calc[2],1]
+	return point_calc
