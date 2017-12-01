@@ -1,5 +1,5 @@
 <library path="include">
-  <class name="My Plugin" type="rqt_fleet_planning.rqt_fleet_planning.RQTFleetPlanning" base_class_type="rqt_gui_py::Plugin">
+  <class name="rqt_fleet_planning" type="rqt_fleet_planning.rqt_fleet_planning.RQTFleetPlanning" base_class_type="rqt_gui_py::Plugin">
     <description>
       An example Python GUI plugin to create a great user interface.
     </description>
@@ -12,9 +12,9 @@
         <label>Subgroup</label>
       </group>
       -->
-      <label>Navigation</label>
+      <label>Fleet Planning</label>
       <icon type="theme">applications-science</icon>
-      <statustip>Great user interface to provide real value.</statustip>
+      <statustip>Fleet Planning GUI</statustip>
     </qtgui>
   </class>
 </library>
