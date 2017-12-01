@@ -130,6 +130,12 @@ class lane_controller(object):
         # self.pub_.publish(car_control_msg)
         self.publishCmd(car_control_msg)
 
+        # Latency car_cmd
+        car_cmd_stamp = rospy.Time.now() - timestamp_now
+        car_cmd_latency = car_cmd_stamp.secs + car_cmd_stamp.nsecs/1e9
+
+        print "Latency car_cmd: ", car_cmd_latency
+
         # debuging
         # self.pub_counter += 1
         # if self.pub_counter % 50 == 0:
