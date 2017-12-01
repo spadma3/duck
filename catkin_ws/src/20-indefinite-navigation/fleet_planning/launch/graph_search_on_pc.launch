@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <arg name="veh" default="$(env VEHICLE_NAME)"/>
+	<arg name="config" default="baseline" />
+	<arg name="param_file_name" default="default" />
+	<arg name="map_name" default="tiles_lab"/>
+	<arg name="fsm_file_name" default="default" />
+
+    <remap from="actions_dispatcher_node/fsm_mode" to="fsm_node/mode" />
+    <!-- remapping outputs since there are two different possible turn types -->
+    <remap from="actions_dispatcher_node/turn_type" to="open_loop_intersection_control_node/turn_type" />
+
+    <include file="$(find fleet_planning)/launch/graph_search_server_node.launch">
+        <arg name="map_name" value="$(arg map_name)"/>
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+
+    <include file="$(find fleet_planning)/launch/actions_dispatcher_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg fsm_file_name)"/>
+    </include>
+</launch>
