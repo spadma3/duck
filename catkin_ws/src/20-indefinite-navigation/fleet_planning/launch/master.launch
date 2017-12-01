@@ -46,6 +46,8 @@
 
 	<arg name="fsm" default="true"/>
 
+    <arg name="coordination" default="false"/>
+
 	<arg name="apriltags" default="true"/>
 	<arg name="/apriltags/local" default="true" />
 
