@@ -79,7 +79,7 @@ class LaneFilterNode(object):
         
         # Calculate latency of estimation
         estimation_latency_stamp = rospy.Time.now() - timestamp_now
-        estimation_latency = estimation_latenc_stamp.secs + estimation_latency_stamp.nsecs/1e9
+        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
 
         print estimation_latency
 
