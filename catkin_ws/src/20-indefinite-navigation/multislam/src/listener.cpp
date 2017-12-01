@@ -34,6 +34,7 @@ int curposeindex = 0;
 float curx = 0;
 float cury = 0;
 float curtheta = 0;
+double lastTimeSecs;
 
 void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
 {
@@ -47,8 +48,6 @@ void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
     graph.add(BearingRangeFactor<Pose2, Point2>(curposeindex, l, bearing, range, measurementNoise));
 
     if (tagsSeen.find(it->id) == tagsSeen.end()) {
-      // TODO: confirm that x and y are the same coordinates (x in front, y
-      // to the left)
       initialEstimate.insert(l, Point2(curx + x, cury + y));
       tagsSeen.insert(it->id);
     }
@@ -66,12 +65,14 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
   // float32 omega
   curposeindex += 1;
   printf("%d", curposeindex);
-  float delta_t = 0.5; // From rosmsg hz
-		       // duckietown_msgs/Twist2DStamped (should be
-		       // changed, looking at timestamps)
+
+  double timeNowSecs = ros::Time::now().toSec();
+  double delta_t = timeNowSecs - lastTimeSecs;
+  lastTimeSecs = timeNowSecs;
+
   // maybe msg.omega needs to be switched to degrees/radians?
-  float delta_d = delta_t * msg->v;
-  float delta_theta = delta_t * msg->omega;
+  double delta_d = delta_t * msg->v;
+  double delta_theta = delta_t * msg->omega;
   graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
 
   curx += cos(curtheta) * delta_d;
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
 {
 
   ros::init(argc, argv, "listener");
+
+  lastTimeSecs = ros::Time::now().toSec();
 
   // Prior on the first pose, set at the origin
   noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.3, 0.3, 0.1));
