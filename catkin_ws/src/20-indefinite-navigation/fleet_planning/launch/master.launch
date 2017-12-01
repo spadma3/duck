@@ -187,6 +187,21 @@
 
 	<!--End FSM -->
 
+    <!-- Start Coordination -->
+    <group unless="$(arg coordination)">
+	  <!-- Vehicle Coordinator-->
+	  <remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
+	  <include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
+	    <arg name="veh" value="$(arg veh)"/>
+	    <arg name="config" value="$(arg config)"/>
+	    <arg name="param_file_name" value="$(arg param_file_name)"/>
+	  </include>
+	  <!-- Extra Remapping to make the fake coordination car cmds look real -->
+	  <remap from="fake_coordinator_node/car_cmd" to="simple_coordinator_node/car_cmd"/>
+	</group>
+    <!-- End Coordination -->
+
+
 	<!-- Start Lane Following -->
 	<group if="$(arg lane_following)">
 
