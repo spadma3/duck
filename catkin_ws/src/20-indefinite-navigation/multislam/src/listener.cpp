@@ -1,3 +1,5 @@
+#include <set>
+
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "duckietown_msgs/AprilTagsWithInfos.h"
@@ -23,6 +25,7 @@ NonlinearFactorGraph graph;
 Values initialEstimate;
 noiseModel::Diagonal::shared_ptr measurementNoise = noiseModel::Diagonal::Sigmas((Vector(2) << 0.1, 0.2));
 noiseModel::Diagonal::shared_ptr odomNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.2, 0.2, 0.1));
+set<int> tagsSeen;
 
 // current pose will change every odometry measurement.
 // its used in callback to create landmark "attachment"
@@ -41,8 +44,13 @@ void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
     float range = std::sqrt(x*x + y*y);
     Rot2 bearing = Rot2::atan2(y,x);
     graph.add(BearingRangeFactor<Pose2, Point2>(curposeindex, l, bearing, range, measurementNoise));
-    initialEstimate.insert(l, Point2(1.8, 2.1));
-    
+
+    if (tagsSeen.find(it->id) == tagsSeen.end())
+    {
+	    initialEstimate.insert(l, Point2(1.8, 2.1));
+	    tagsSeen.insert(it->id);
+    }
+
     // ROS_INFO("range: [%f]", range);
     // ROS_INFO("bearing: [%d]", bearing);
   }
@@ -63,7 +71,7 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
   // maybe msg.omega needs to be switched to degrees/radians?
   graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_t * msg->v, 0, delta_t * msg->omega), odomNoise));
   initialEstimate.insert(curposeindex, Pose2(0.0, 0.0,  0.0));
-  
+
 }
 
 void timerCallback(const ros::TimerEvent&)
@@ -89,18 +97,18 @@ int main(int argc, char **argv)
   // Listen to velocity msgs
   ros::Subscriber velsub = n.subscribe("/mrgoobers/joy_mapper_node/car_cmd", 1000, velcallback);
 
-  
+
   // Optimize using Levenberg-Marquardt optimization. The optimizer
   // accepts an optional set of configuration parameters, controlling
   // things like convergence criteria, the type of linear system solver
   // to use, and the amount of information displayed during optimization.
   // Here we will use the default set of parameters.  See the
   // documentation for the full set of parameters.
-    
+
   ros::Timer timer = n.createTimer(ros::Duration(1), timerCallback);
   initialEstimate.print("\nInitial Estimate:\n"); // print
-  
-  
+
+
 
   // Calculate and print marginal covariances for all variables
   // Marginals marginals(graph, result);
@@ -109,6 +117,3 @@ int main(int argc, char **argv)
   ros::spin();
   return 0;
 }
-
-
-
