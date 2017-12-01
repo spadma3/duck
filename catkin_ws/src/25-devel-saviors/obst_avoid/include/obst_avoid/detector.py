@@ -29,8 +29,8 @@ class Detector():
 	self.H = load_homography(self.robot_name)
 
 	#define where to cut the image, which subsection you want to focus on
-	#self.crop=130
-	self.crop=0
+	self.crop=150
+	#self.crop=0
 	
 
 	# initialize second publisher, later i think we should put this in the "front" file
