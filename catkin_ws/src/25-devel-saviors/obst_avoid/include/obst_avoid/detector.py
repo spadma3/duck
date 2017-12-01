@@ -143,10 +143,6 @@ class Detector():
 			obst_coordinates.x = realW_coords[0]
 			obst_coordinates.y = realW_coords[1]
 			obst_coordinates.z = 1
-			if (obst_coordinates.x<0):
-				print "ERRONEOUS HOMOGRAPHY!"
-				print [[left+0.5*total_width],[bottom+self.crop],[1]]
-				print realW_coords
 			self.publisher2.publish(obst_coordinates) 
 			#explanation: those parameters published here are seen from the !center of the axle! in direction
 			#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
