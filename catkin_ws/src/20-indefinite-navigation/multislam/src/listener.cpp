@@ -1,4 +1,5 @@
 #include <set>
+#include <math.h>
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
@@ -24,7 +25,7 @@ using namespace gtsam;
 NonlinearFactorGraph graph;
 Values initialEstimate;
 noiseModel::Diagonal::shared_ptr measurementNoise = noiseModel::Diagonal::Sigmas((Vector(2) << 0.1, 0.2));
-noiseModel::Diagonal::shared_ptr odomNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.2, 0.2, 0.1));
+noiseModel::Diagonal::shared_ptr odomNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.2, 0.2, 0.3));
 set<int> tagsSeen;
 
 // current pose will change every odometry measurement.
@@ -38,21 +39,19 @@ void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
 {
   vector<duckietown_msgs::AprilTagDetection>::const_iterator it;
   for(it = msg->detections.begin(); it != msg->detections.end(); it++) {
-    static Symbol l('l', it->id);
+    Symbol l('l', it->id);
     float x = it->pose.pose.position.x;
     float y = it->pose.pose.position.y;
     float range = std::sqrt(x*x + y*y);
     Rot2 bearing = Rot2::atan2(y,x);
     graph.add(BearingRangeFactor<Pose2, Point2>(curposeindex, l, bearing, range, measurementNoise));
 
-    if (tagsSeen.find(it->id) == tagsSeen.end())
-    {
-	    initialEstimate.insert(l, Point2(1.8, 2.1));
-	    tagsSeen.insert(it->id);
+    if (tagsSeen.find(it->id) == tagsSeen.end()) {
+      // TODO: confirm that x and y are the same coordinates (x in front, y
+      // to the left)
+      initialEstimate.insert(l, Point2(curx + x, cury + y));
+      tagsSeen.insert(it->id);
     }
-
-    // ROS_INFO("range: [%f]", range);
-    // ROS_INFO("bearing: [%d]", bearing);
   }
 }
 
@@ -67,10 +66,18 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
   // float32 omega
   curposeindex += 1;
   printf("%d", curposeindex);
-  float delta_t = 0.5; // From rosmsg hz duckietown_msgs/Twist2DStamped
+  float delta_t = 0.5; // From rosmsg hz
+		       // duckietown_msgs/Twist2DStamped (should be
+		       // changed, looking at timestamps)
   // maybe msg.omega needs to be switched to degrees/radians?
-  graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_t * msg->v, 0, delta_t * msg->omega), odomNoise));
-  initialEstimate.insert(curposeindex, Pose2(0.0, 0.0,  0.0));
+  float delta_d = delta_t * msg->v;
+  float delta_theta = delta_t * msg->omega;
+  graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
+
+  curx += cos(curtheta) * delta_d;
+  cury += sin(curtheta) * delta_d;
+  curtheta = fmod(curtheta + delta_theta,M_PI);
+  initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
 
 }
 
