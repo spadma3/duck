@@ -76,7 +76,7 @@ class LaneFilterNode(object):
         estimation_latency_stamp = rospy.Time.now() - timestamp_now
         estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
 
-        print "Latency of estimation: "
+        print "Latency of estimation: ", estimation_latency
 
         # publish the belief image
         bridge = CvBridge()
@@ -87,7 +87,7 @@ class LaneFilterNode(object):
         belief_latency_stamp = rospy.Time.now() - estimation_latency_stamp
         belief_latency = belief_latency_stamp.secs + belief_latency_stamp.nsecs/1e9
 
-        print belief_latency
+        print "Latency of belief image: ", belief_latency
 
         self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
