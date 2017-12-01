@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   duckietown_msgs
 
 ## -- UNCOMMENT BELOW LINE FOR LAPTOP BUILD -- ##
-##  rqt_gui_py
+rqt_gui_py
 )
 
 
