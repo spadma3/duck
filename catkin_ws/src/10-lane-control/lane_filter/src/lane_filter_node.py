@@ -78,7 +78,9 @@ class LaneFilterNode(object):
         belief_img.header.stamp = segment_list_msg.header.stamp
         
         # Calculate latency of estimation
-        estimation_latency = timestamp_now - rospy.Time.now()
+        estimation_latency_stamp = rospy.Time.now() - timestamp_now
+        estimation_latency = estimation_latenc_stamp.secs + estimation_latency_stamp.nsecs/1e9
+
         print estimation_latency
 
         self.pub_lane_pose.publish(lanePose)
