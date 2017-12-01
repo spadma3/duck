@@ -1,29 +1,29 @@
 <launch>
-  <arg name="veh"/>
-  <arg name="config" default="baseline"/>
-  <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
-  <arg name="local" default="false" doc="true to launch locally on laptop. false to launch of vehicle"/>
-  <arg name="pkg_name" default="navigation" doc="name of the package"/>
-  <arg name="node_name" default="actions_dispatcher_node" doc="name of the node"/>
-  <param name="veh" value="$(arg veh)"/>
+	<arg name="veh" default="$(env VEHICLE_NAME)"/>
+	<arg name="pkg_name" value="multislam"/>
+	<arg name="node_name" default="listener"/>
+	<arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
 
-  <group ns="$(arg veh)">
-    <!-- Local -->
-    <node if="$(arg local)" pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true">
-      <rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
-    </node>
+	<!-- start basic args -->
+	<include file="$(find duckietown_demos)/launch/master.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="visualization" value="true" />
+		<arg name="navigation" value="true"/>
+		<arg name="apriltags" value="true" />
+		<arg name="/camera/raw" value="true"/>
+		<arg name="/camera/raw/rect" value="true"/>
+		<arg name="param_file_name" default="default" />
+		<arg name="line_detector_param_file_name" default="default" />
+		<arg name="anti_instagram" default="true" />
+	</include>
 
-    <!-- Remote -->
-    <include unless="$(arg local)" file="$(find duckietown)/machines"/>
-    <node unless="$(arg local)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true">
-      <rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
-    </node>
-  </group>
+	<group ns="$(arg veh)">
+		<node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" >
+		</node>
 
-  <!-- Publication -->
-  <!-- ~topic: msg_type. Description. -->
-  
-  <!-- Subscription -->
-  <!-- ~topic: msg_type. Description. -->
+		<!-- run remote -->
+		<node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true">
+		</node>
 
+	</group>
 </launch>
