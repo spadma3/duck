@@ -48,6 +48,7 @@ from .image_jpg_create import *
 from .image_rescaling import *
 from .image_timestamps import *
 from .image_writing import *
+from .image_operations import *
 
 from .instantiate_utils import *
 from .ipython_utils import *
@@ -60,6 +61,7 @@ from .networking import *
 from .parameters import *
 from .path_utils import *
 from .read_package_xml import *
+from .safe_pickling import *
 from .system_cmd_imp import *
 from .test_hash import *
 from .text_utils import *
