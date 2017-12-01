@@ -33,14 +33,13 @@ class graph_search_server():
         self.bridge = CvBridge()
 
         # prepare and send graph image through publisher
-        self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
-        graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
+        self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
 
         mc = MapImageCreator(self.tiles_dir)
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name,
-                                             graph_width=graph_image.shape[1], graph_height=graph_image.shape[0])
+                                             graph_width=self.graph_image.shape[1], graph_height=self.graph_image.shape[0])
 
-        overlay = self.prepImage(graph_image)
+        overlay = self.prepImage()
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def handle_graph_search(self, req):
@@ -63,26 +62,25 @@ class graph_search_server():
 
     def publishImage(self, req, path):
         if path:
-            self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name=self.map_name,
+            self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name=self.map_name,
                                        highlight_nodes=[req.source_node, req.target_node])
         else:
-            self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
+            self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
-        graph_image = cv2.imread(self.map_path + '.png', cv2.IMREAD_COLOR)
-        overlay = self.prepImage(graph_image)
+        overlay = self.prepImage()
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
-    def prepImage(self, graph_img):
+    def prepImage(self):
         """takes the graph image and map image and overlays them"""
-        inverted_graph_img = 255 - graph_img
+        inverted_graph_img = 255 - self.graph_image
         # bring to same size
         inverted_graph_img = cv2.resize(inverted_graph_img, (self.map_img.shape[1], self.map_img.shape[0]))
 
         # overlay images
         overlay = cv2.addWeighted(inverted_graph_img, 1, self.map_img, 0.5, 0)
 
-        # some color operations
-        hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV)  # convert it to hsv
+        # make the image bright enough for display again
+        hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV)
         h, s, v = cv2.split(hsv)
         lim = 255 - 60
         v[v > lim] = 255
