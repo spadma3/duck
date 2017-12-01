@@ -72,16 +72,22 @@ class LaneFilterNode(object):
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
 
+        # Calculate latency of estimation
+        estimation_latency_stamp = rospy.Time.now() - timestamp_now
+        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
+
+        print "Latency of estimation: "
+
         # publish the belief image
         bridge = CvBridge()
         belief_img = bridge.cv2_to_imgmsg((255*self.filter.belief).astype('uint8'), "mono8")
         belief_img.header.stamp = segment_list_msg.header.stamp
         
-        # Calculate latency of estimation
-        estimation_latency_stamp = rospy.Time.now() - timestamp_now
-        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
+        # Calculate latency of belief image
+        belief_latency_stamp = rospy.Time.now() - estimation_latency_stamp
+        belief_latency = belief_latency_stamp.secs + belief_latency_stamp.nsecs/1e9
 
-        print estimation_latency
+        print belief_latency
 
         self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
