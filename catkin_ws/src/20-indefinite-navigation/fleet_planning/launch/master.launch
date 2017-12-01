@@ -45,8 +45,7 @@
 	<arg name="/lane_following/lane_controller" default="true"/>
 
 	<arg name="fsm" default="true"/>
-    <arg name="fsm_file_name" value="default" />
-    
+
 	<arg name="apriltags" default="true"/>
 	<arg name="/apriltags/local" default="true" />
 
