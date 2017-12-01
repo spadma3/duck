@@ -123,5 +123,5 @@ class Graph(object):
         # crop lower useless title on the bottom of the rendered image
         image_path = map_path+map_name+'.png'
         img = cv2.imread(image_path)
-        cv2.imwrite(image_path, img[:-50, :])
+        return img[:-50, :]
 
