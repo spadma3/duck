@@ -84,7 +84,7 @@ class LaneFilterNode(object):
         belief_img.header.stamp = segment_list_msg.header.stamp
         
         # Calculate latency of belief image
-        belief_latency_stamp = rospy.Time.now() - estimation_latency_stamp
+        belief_latency_stamp = rospy.Time.now() - timestamp_now estimation_latency_stamp
         belief_latency = belief_latency_stamp.secs + belief_latency_stamp.nsecs/1e9
 
         print "Latency of belief image: ", belief_latency
