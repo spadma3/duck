@@ -170,6 +170,9 @@ class LineDetectorNode(object):
         # Set the image to be detected
         self.detector.setImage(image_cv_corr)
 
+        #
+        timestamp_now = rospy.Time.now()
+
         # Detect lines and normals
 
         white = self.detector.detectLines('white')
@@ -200,9 +203,17 @@ class LineDetectorNode(object):
         
         tk.completed('prepared')
 
+        # Latency of segment List construction
+        segment_latency_stamp = rospy.Time.now() - timestamp_now
+        segment_latency = segment_latency_stamp.secs + segment_latency_stamp.nsecs/1e9
+
+        print "Latency of segment list: ", segment_latency
+
         # Publish segmentList
         self.pub_lines.publish(segmentList)
         tk.completed('--pub_lines--')
+
+ 
 
         # VISUALIZATION only below
         
