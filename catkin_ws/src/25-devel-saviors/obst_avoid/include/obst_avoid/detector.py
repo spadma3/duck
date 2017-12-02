@@ -141,9 +141,9 @@ class Detector():
 
 			#fill in the pixel boundaries
 			obst_object.orientation.x = left
-			obst_object.orientation.y = top
+			obst_object.orientation.y = top+self.crop
 			obst_object.orientation.z = right
-			obst_object.orientation.w = bottom
+			obst_object.orientation.w = bottom+self.crop
 
 			obst_list.poses.append(obst_object)
 		 

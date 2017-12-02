@@ -17,14 +17,11 @@ from duckietown_utils import load_map, load_camera_intrinsics, load_homography, 
 
 class Visualizer():
     '''class for visualizing detected obstacles'''
-    def __init__(self, robot_name='',crop_rate=150):
+    def __init__(self, robot_name=''):
         # Robot name
     	self.robot_name = robot_name
 
-	#define where to cut the image, color range,...
-	self.crop=crop_rate #default value=150 see above!!!
-
-	
+			
     def visualize_marker(self, obst_list):
     	marker_list=MarkerArray()
 	
@@ -53,21 +50,20 @@ class Visualizer():
 	   	marker.pose.position.z = 0 
 	   	marker_list.markers.append(marker)
 
-    	print marker_list.markers.__len__()
+    	#print marker_list.markers.__len__()
     	return marker_list
 
     def visualize_image(self, image,obst_list):
 
-    	orig_img=image[self.crop:,:,:]
     	size = obst_list.poses.__len__()
    	for i in range(0,size):
 
-   		cv2.rectangle(orig_img,(obst_list.poses[i].orientation.x,obst_list.poses[i].orientation.y),(obst_list.poses[i].orientation.z,obst_list.poses[i].orientation.w),(0,255,0),3)
+   		cv2.rectangle(image,(int(obst_list.poses[i].orientation.x),int(obst_list.poses[i].orientation.y)),(int(obst_list.poses[i].orientation.z),int(obst_list.poses[i].orientation.w)),(0,255,0),3)
 
 	    #eig box np.min breite und hoehe!! if they passed the test!!!!
 	    #print abc
 	    
-	return d8_compressed_image_from_cv_image(orig_img[:,:,::-1])
+	return d8_compressed_image_from_cv_image(image[:,:,::-1])
 
 
 
