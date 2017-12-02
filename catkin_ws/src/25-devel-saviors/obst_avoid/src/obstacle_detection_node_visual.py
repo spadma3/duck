@@ -16,12 +16,12 @@ class ObstDetectNodeVisual(object):
     """
     def __init__(self):
         self.node_name = "Obstacle Detecion Node"
-        #robot_name = rospy.get_param("~robot_name", "")
-        robot_name = "dori"
-        #self.show_marker = (rospy.get_param("~show_marker", ""))
-        self.show_marker=True
-        #self.show_image = (rospy.get_param("~show_image", ""))
-        self.show_image=True
+        robot_name = rospy.get_param("~robot_name", "")
+        #robot_name = "dori"
+        self.show_marker = (rospy.get_param("~show_marker", ""))
+        #self.show_marker=True
+        self.show_image = (rospy.get_param("~show_image", ""))
+        #self.show_image=True
 
         self.visualizer = Visualizer(robot_name=robot_name)
 
@@ -39,15 +39,20 @@ class ObstDetectNodeVisual(object):
                 self.publisher_img = rospy.Publisher(self.pub_topic_img, CompressedImage, queue_size=1)
                 print "YEAH I GIVE YOU THE IMAGE"
 
-        # Create a Subscriber
-        self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
-        self.subscriber = message_filters.Subscriber(self.sub_topic, CompressedImage)
-        #self.subscriber.registerCallback(self.callback)
-        self.sub_topic_arr = '/{}/obst_detect/posearray'.format(robot_name)
-        self.subscriber_arr = message_filters.Subscriber(self.sub_topic_arr, PoseArray)
-        #self.subscriber_arr.registerCallback(self.callback)
-        self.ts = message_filters.TimeSynchronizer([self.subscriber_arr,self.subscriber],500)
-        self.ts.registerCallback(self.callback)
+        # Create necessary Publishers
+        if (self.show_image):
+                self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
+                self.subscriber = message_filters.Subscriber(self.sub_topic, CompressedImage)
+        if (self.show_image and not(self.show_marker)):
+                self.subscriber.registerCallback(self.callback)
+        if (self.show_marker):
+                self.sub_topic_arr = '/{}/obst_detect/posearray'.format(robot_name)
+                self.subscriber_arr = message_filters.Subscriber(self.sub_topic_arr, PoseArray)
+        if (self.show_marker and not(self.show_image))
+                self.subscriber_arr.registerCallback(self.callback)
+        if (self.show_marker and self.show_image)
+                self.ts = message_filters.TimeSynchronizer([self.subscriber_arr,self.subscriber],500)
+                self.ts.registerCallback(self.callback)
 
     def callback(self,obst_list,image):
         print "CALLBACK HERE"
