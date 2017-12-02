@@ -1,7 +1,7 @@
 from compmake.utils.duration_hum import duration_compact
-from comptests import comptest, run_module_tests
-
 from duckietown_utils.constants import get_duckietown_root
+
+from comptests import comptest, run_module_tests
 from what_the_duck.checks.git_repos import get_repo_age
 
 
