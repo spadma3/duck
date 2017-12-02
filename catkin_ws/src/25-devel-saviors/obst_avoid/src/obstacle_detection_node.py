@@ -18,9 +18,8 @@ class ObstDetectNode(object):
         robot_name = rospy.get_param("~robot_name", "")
         self.show_marker = (rospy.get_param("~show_marker", ""))
         self.show_image = (rospy.get_param("~show_image", ""))
-        self.count = 1
         self.crop = 150
-
+        self.r = rospy.Rate(2) # Rate in Hz
 
         self.detector = Detector(robot_name=robot_name,crop_rate=self.crop)
         self.visualizer = Visualizer(robot_name=robot_name)
@@ -44,45 +43,44 @@ class ObstDetectNode(object):
 
         # Create a Subscriber
         self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
-        self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback)
+        self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback,queue_size=1, buff_size=2**19)
+        #buff size to approximately 0.5MB - close to 2^19 such that always most recent pic is taken
+        #essentail 
 
     def callback(self, image):
-        if (self.count==5): #only run with 30/self.count Hz WOULD BE POSSIBLE AS INPUT PARAM!!!!
 
-            obst_list = PoseArray()
-            marker_list = MarkerArray()
-        
-            # pass RECTIFIED IMAGE TO DETECTOR MODULE
-            #1. EXTRACT OBSTACLES and return the pose array
-            obst_list = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
-            obst_list.header.stamp = image.header.stamp #for synchronization
-            self.publisher_arr.publish(obst_list)
-            #EXPLANATION: (x,y) is world coordinates of obstacle, z is radius of obstacle
-            #QUATERNION HAS NO MEANING!!!!    
+        obst_list = PoseArray()
+        marker_list = MarkerArray()
+    
+        # pass RECTIFIED IMAGE TO DETECTOR MODULE
+        #1. EXTRACT OBSTACLES and return the pose array
+        obst_list = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
+        obst_list.header.stamp = image.header.stamp #for synchronization
+        print image.header.stamp.to_sec()
+        self.publisher_arr.publish(obst_list)
+        #EXPLANATION: (x,y) is world coordinates of obstacle, z is radius of obstacle
+        #QUATERNION HAS NO MEANING!!!!    
 
-            #3. VISUALIZE POSE ARRAY IN TF
-            if (self.show_marker):
-                    marker_list = self.visualizer.visualize_marker(obst_list)
-                    self.publisher_marker.publish(marker_list)
+        #3. VISUALIZE POSE ARRAY IN TF
+        if (self.show_marker):
+                marker_list = self.visualizer.visualize_marker(obst_list)
+                self.publisher_marker.publish(marker_list)
 
 
-            #4. EVENTUALLY DISPLAY !!!!CROPPED!!!!!! IMAGE
-            if (self.show_image):
-                    obst_image = CompressedImage()
-                    obst_image.header.stamp = image.header.stamp
-                    obst_image.format = "jpeg"
-                    obst_image.data = self.visualizer.visualize_image(rectify(rgb_from_ros(image),self.intrinsics),obst_list)
-                    #here i want to display cropped image
-                    image=rgb_from_ros(obst_image.data)
-                    obst_image.data = d8_compressed_image_from_cv_image(image[self.crop:,:,::-1])
-                    #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
-                    #the visualizer.py modular!!!
-                    self.publisher_img.publish(obst_image.data)
+        #4. EVENTUALLY DISPLAY !!!!CROPPED!!!!!! IMAGE
+        if (self.show_image):
+                obst_image = CompressedImage()
+                obst_image.header.stamp = image.header.stamp
+                obst_image.format = "jpeg"
+                obst_image.data = self.visualizer.visualize_image(rectify(rgb_from_ros(image),self.intrinsics),obst_list)
+                #here i want to display cropped image
+                image=rgb_from_ros(obst_image.data)
+                obst_image.data = d8_compressed_image_from_cv_image(image[self.crop:,:,::-1])
+                #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
+                #the visualizer.py modular!!!
+                self.publisher_img.publish(obst_image.data)
 
-            self.count=1
-        else:
-            self.count+=1
-  
+        self.r.sleep()
 
     def onShutdown(self):
         rospy.loginfo('Shutting down Obstacle Detection, back to unsafe mode')

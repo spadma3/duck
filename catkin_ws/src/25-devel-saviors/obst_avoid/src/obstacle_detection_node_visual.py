@@ -16,10 +16,12 @@ class ObstDetectNodeVisual(object):
     """
     def __init__(self):
         self.node_name = "Obstacle Detecion Node"
-        robot_name = rospy.get_param("~robot_name", "")
-        self.show_marker = (rospy.get_param("~show_marker", ""))
-        self.show_image = (rospy.get_param("~show_image", ""))
-
+        #robot_name = rospy.get_param("~robot_name", "")
+        robot_name = "dori"
+        #self.show_marker = (rospy.get_param("~show_marker", ""))
+        self.show_marker=True
+        #self.show_image = (rospy.get_param("~show_image", ""))
+        self.show_image=True
 
         self.visualizer = Visualizer(robot_name=robot_name)
 
@@ -40,12 +42,15 @@ class ObstDetectNodeVisual(object):
         # Create a Subscriber
         self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
         self.subscriber = message_filters.Subscriber(self.sub_topic, CompressedImage)
+        #self.subscriber.registerCallback(self.callback)
         self.sub_topic_arr = '/{}/obst_detect/posearray'.format(robot_name)
         self.subscriber_arr = message_filters.Subscriber(self.sub_topic_arr, PoseArray)
-        self.ts = message_filters.TimeSynchronizer([self.subscriber_arr,self.subscriber],10)
+        #self.subscriber_arr.registerCallback(self.callback)
+        self.ts = message_filters.TimeSynchronizer([self.subscriber_arr,self.subscriber],500)
         self.ts.registerCallback(self.callback)
 
-    def callback(self, obst_list,image):
+    def callback(self,obst_list,image):
+        print "CALLBACK HERE"
         if (self.show_marker):
                 marker_list = self.visualizer.visualize_marker(obst_list)
                 self.publisher_marker.publish(marker_list)
