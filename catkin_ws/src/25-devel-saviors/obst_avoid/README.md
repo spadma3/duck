@@ -22,21 +22,33 @@ this pose array contains an array of all of the detected obstacles, where:
 - orientation.x represents the "most" left pixel of the obstacle
 - orientation.y represents the "most" top pixel of the obstacle
 - orientation.z represents the "most" right pixel of the obstacle
-- orientation.w represents the "most" bottom pixel of the obstacle
+- orientation.w represents the "most" bottom pixel of the 
+
 THIS SPECIAL MEANING IS VERY IMPORTANT!!!
+
 the node can be launched via:
+
 roslaunch obst_avoid obst_avoid.launch robot_name:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false)
+
 example without visualizing anything: roslaunch obst_avoid obst_avoid.launch robot_name:=arki
+
 example with visualizing the obstacles in the imageframe: roslaunch obst_avoid obst_avoid.launch robot_name:=arki show_image:=true
+
 NOTE: although this node is not meant for visualization but rather for fast execution you can still visualize the obstacles with those two parameters if you want to and since the obstacle detection algorithm is performing on a cropped version of the image, here if you turn on show_image, this cropped version is displayed. So the visualisation properties in this node are for making development easy but throughout normal operation we recommend to use our SECOND NODE:
 
 2. THERE IS THE OBSTACLE_DETECTION_NODE_VISUAL
 in this node we visualize the output of our obstacle detection (=OBSTACLE_DETECTION_NODE). This node is meant to be run on your personal laptop for verifying what is going on during the drive!!!
+
 FOR THIS NODE TO RUN PROPERLY, THE OBSTACLE_DETECTION_NODE MUST BE RUNNING
+
 this node publishes 2 things:
-1. the obstacles as markers which can be shown in rviz
-2. the obstacles marked in the image IMPORTANT: unlike in 1. we here show the whole image!!!
-the node can be launched via: roslaunch obst_avoid obst_avoid_visual.launch robot_name:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=true) show_image:= (default=true)
+- the obstacles as markers which can be shown in rviz
+- the obstacles marked in the image IMPORTANT: unlike in 1. we here show the whole image!!!
+
+the node can be launched via: 
+
+roslaunch obst_avoid obst_avoid_visual.launch robot_name:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=true) show_image:= (default=true)
+
 example with visualizing everything: roslaunch obst_avoid obst_avoid_visual.launch robot_name:=arki
 
 
