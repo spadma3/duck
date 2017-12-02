@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(veh_coordinator)
+project(explicit_coordinator)
 
 find_package(catkin REQUIRED COMPONENTS
   duckietown_msgs
