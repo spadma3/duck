@@ -43,8 +43,8 @@ class ObstDetectNode(object):
 
         # Create a Subscriber
         self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
-        self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback,queue_size=1, buff_size=2**19)
-        #buff size to approximately 0.5MB - close to 2^19 such that always most recent pic is taken
+        self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback,queue_size=1, buff_size=2**24)
+        #buff size to approximately close to 2^24 such that always most recent pic is taken
         #essentail 
 
     def callback(self, image):
@@ -56,7 +56,7 @@ class ObstDetectNode(object):
         #1. EXTRACT OBSTACLES and return the pose array
         obst_list = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
         obst_list.header.stamp = image.header.stamp #for synchronization
-        print image.header.stamp.to_sec()
+        #print image.header.stamp.to_sec()
         self.publisher_arr.publish(obst_list)
         #EXPLANATION: (x,y) is world coordinates of obstacle, z is radius of obstacle
         #QUATERNION HAS NO MEANING!!!!    
