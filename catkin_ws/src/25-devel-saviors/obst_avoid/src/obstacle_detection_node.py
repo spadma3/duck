@@ -47,7 +47,7 @@ class ObstDetectNode(object):
         self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback)
 
     def callback(self, image):
-        if (self.count==10): #only run with 30/self.count Hz WOULD BE POSSIBLE AS INPUT PARAM!!!!
+        if (self.count==5): #only run with 30/self.count Hz WOULD BE POSSIBLE AS INPUT PARAM!!!!
 
             obst_list = PoseArray()
             marker_list = MarkerArray()
