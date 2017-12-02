@@ -25,29 +25,32 @@ class Visualizer():
     def visualize_marker(self, obst_list):
     	marker_list=MarkerArray()
 	
-	marker = Marker()
-	marker.type = marker.CYLINDER
-	marker.header.frame_id=self.robot_name
-	marker.frame_locked=False
-	marker.scale.z = 1.0
-	marker.color.a = 1.0
-	marker.color.r = 0.0
-	marker.color.g = 0.0
-	marker.color.b = 1.0
-	marker.pose.orientation.w = 1.0
-	marker.lifetime = rospy.Time(1.0) 
-	#each marker if not replaced earlier by same id will dissapear after max 1 second
+	
 
    	size = obst_list.poses.__len__()
    	for i in range(0,size):
 
-
+                marker = Marker()
+                marker.type = marker.CYLINDER
+                marker.header.frame_id=self.robot_name
+                marker.frame_locked=False
+                marker.scale.z = 1.0
+                marker.color.a = 1.0
+                marker.color.r = 0.0
+                marker.color.g = 0.0
+                marker.color.b = 1.0
+                marker.pose.orientation.w = 1.0
+                marker.lifetime = rospy.Time(2.0) 
+                #each marker if not replaced earlier by same id will dissapear after max 1 second
    		marker.id = i
 	   	marker.scale.x = obst_list.poses[i].position.z
-   		marker.scale.y = obst_list.poses[i].position.z
+                #marker.scale.x = 0.2
+                marker.scale.y = obst_list.poses[i].position.z
+                #marker.scale.y = 0.2
 	   	marker.pose.position.x = obst_list.poses[i].position.x
 	   	marker.pose.position.y = obst_list.poses[i].position.y
-	   	marker.pose.position.z = 0 
+	   	marker.pose.position.y = 0.2
+                marker.pose.position.z = 0 
 	   	marker_list.markers.append(marker)
 
     	#print marker_list.markers.__len__()

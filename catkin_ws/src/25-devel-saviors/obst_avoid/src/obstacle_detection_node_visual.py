@@ -48,14 +48,14 @@ class ObstDetectNodeVisual(object):
         if (self.show_marker):
                 self.sub_topic_arr = '/{}/obst_detect/posearray'.format(robot_name)
                 self.subscriber_arr = message_filters.Subscriber(self.sub_topic_arr, PoseArray)
-        if (self.show_marker and not(self.show_image))
+        if (self.show_marker and not(self.show_image)):
                 self.subscriber_arr.registerCallback(self.callback)
-        if (self.show_marker and self.show_image)
+        if (self.show_marker and self.show_image):
                 self.ts = message_filters.TimeSynchronizer([self.subscriber_arr,self.subscriber],500)
                 self.ts.registerCallback(self.callback)
 
     def callback(self,obst_list,image):
-        print "CALLBACK HERE"
+        #print "CALLBACK HERE"
         if (self.show_marker):
                 marker_list = self.visualizer.visualize_marker(obst_list)
                 self.publisher_marker.publish(marker_list)
