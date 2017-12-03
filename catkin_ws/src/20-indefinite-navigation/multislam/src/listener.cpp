@@ -1,5 +1,6 @@
 #include <set>
 #include <math.h>
+#include <fstream>
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
@@ -24,6 +25,7 @@ using namespace gtsam;
 // callback
 NonlinearFactorGraph graph;
 Values initialEstimate;
+Values result;
 noiseModel::Diagonal::shared_ptr measurementNoise = noiseModel::Diagonal::Sigmas((Vector(2) << 0.1, 0.2));
 noiseModel::Diagonal::shared_ptr odomNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.2, 0.2, 0.3));
 set<int> tagsSeen;
@@ -82,26 +84,33 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
 
 }
 
-void timerCallback(const ros::TimerEvent&)
+void optimizeCallback(const ros::TimerEvent&)
 {
   LevenbergMarquardtOptimizer optimizer(graph, initialEstimate);
-  Values result = optimizer.optimize();
+  result = optimizer.optimize();
   result.print("Final Result:\n");
+}
+
+void vizCallback(const ros::TimerEvent&)
+{
+  ofstream os("/home/samlaf/winning.dot");
+  graph.saveGraph(os, result);
+  printf("\n\n\n printed graph to os gogo \n\n\n");
 }
 
 int main(int argc, char **argv)
 {
 
   ros::init(argc, argv, "listener");
-
+  ros::NodeHandle n;
+ 
   lastTimeSecs = ros::Time::now().toSec();
 
   // Prior on the first pose, set at the origin
   noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.3, 0.3, 0.1));
   graph.add(PriorFactor<Pose2>(0, Pose2(0, 0, 0), priorNoise));
-  initialEstimate.insert(0, Pose2(0.0, 0.0,  0.0   ));
+  initialEstimate.insert(0, Pose2(0.0, 0.0, 0.0));
 
-  ros::NodeHandle n;
   // Listen to apriltags
   ros::Subscriber aprilsub = n.subscribe("/mrgoobers/apriltags_postprocessing_node/apriltags_out", 1000, aprilcallback);
   // Listen to velocity msgs
@@ -115,10 +124,10 @@ int main(int argc, char **argv)
   // Here we will use the default set of parameters.  See the
   // documentation for the full set of parameters.
 
-  ros::Timer timer = n.createTimer(ros::Duration(1), timerCallback);
+  ros::Timer opttimer = n.createTimer(ros::Duration(1), optimizeCallback);
   initialEstimate.print("\nInitial Estimate:\n"); // print
 
-
+  ros::Timer viztimer = n.createTimer(ros::Duration(60), vizCallback);
 
   // Calculate and print marginal covariances for all variables
   // Marginals marginals(graph, result);
