@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy, os, cv2
+import numpy as np
 from fleet_planning.graph_search import GraphSearchProblem
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -21,6 +22,7 @@ class graph_search_server():
         self.map_img_path = self.map_path + '_map'
         self.tiles_dir = os.path.abspath(
             self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
+        self.customer_icon = os.path.abspath(self.script_dir + '../gui_images/customer_duckie.jpg')
 
         # build and init graphs
         gc = graph_creator()
@@ -38,6 +40,8 @@ class graph_search_server():
         mc = MapImageCreator(self.tiles_dir)
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
 
+        self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 1), dtype = np.uint8)
+        
         overlay = self.prepImage()
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
@@ -58,11 +62,33 @@ class graph_search_server():
         self.publishImage(req, path)
 
         return GraphSearchResponse(path.actions)        
+    
+    def draw_icons(self, trips):
+        """
+        Draw start, customer and target icons next to each 
+        corresponding graph node along with the respective name 
+        of the duckiebot. 
+        Input:
+            - trips: list of trips, where each trip is a list containing
+                     [start location, customer location, target location]
+        
+        Returns:
+            - opencv image with the icons at the correct positions
+        """
+        print "Size of map: ", self.icon_image.shape
+        # loop through all trips currently in existence. For each trip,
+        # draw the start, customer and target icons next to the corresponding 
+        # label of the graph node. 
+        for trip in trips:
+            print "drawing trip's icons..."
+        
 
     def publishImage(self, req, path):
         if path:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name=self.map_name,
                                        highlight_nodes=[req.source_node, req.target_node])
+            # add icons
+            self.icon_image = self.draw_icons([req.source_node, req.source_node, req.target_node])  # TODO: implement real trip list generation
         else:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
