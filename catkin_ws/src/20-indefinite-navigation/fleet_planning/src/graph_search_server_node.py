@@ -83,8 +83,8 @@ class graph_search_server():
         for trip in trips:
             print "drawing trip's icons..."
             # self.icon_image = 
-        for nodes in self.duckietown_graph.node_locations:
-            print nodes
+        for node in self.duckietown_graph._nodes:
+            print self.duckietown_graph.get_node_pos(node)
         # self.duckietown_graph.graph.get_node_posi
         
 
