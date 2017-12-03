@@ -41,7 +41,7 @@ class graph_search_server():
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
 
         # image used to store all start, customer and target icons at their positions
-        self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 1), dtype = np.uint8)
+        self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 3), dtype = np.uint8)
         
         overlay = self.prepImage()
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
@@ -77,6 +77,7 @@ class graph_search_server():
             - opencv image with the icons at the correct positions
         """
         print "Size of map: ", self.icon_image.shape
+
         # loop through all trips currently in existence. For each trip,
         # draw the start, customer and target icons next to the corresponding 
         # label of the graph node. 
@@ -84,7 +85,10 @@ class graph_search_server():
             print "drawing trip's icons..."
             # self.icon_image = 
         for node in self.duckietown_graph._nodes:
-            print self.duckietown_graph.get_node_pos(node)
+            node_location = np.round(self.duckietown_graph.get_node_pos(node) * 80)  # tile_length = 80 pixels
+            self.icon_image[node_location[0], node_location[1], 0] = 255  # R
+            self.icon_image[node_location[0], node_location[1], 1] = 0  # G
+            self.icon_image[node_location[0], node_location[1], 2] = 0  # B
         # self.duckietown_graph.graph.get_node_posi
         
 
@@ -103,12 +107,14 @@ class graph_search_server():
 
     def prepImage(self):
         """takes the graph image and map image and overlays them"""
+        # TODO: add the icon image and merge it as well
         inverted_graph_img = 255 - self.graph_image
         # bring to same size
         inverted_graph_img = cv2.resize(inverted_graph_img, (self.map_img.shape[1], self.map_img.shape[0]))
 
         # overlay images
         overlay = cv2.addWeighted(inverted_graph_img, 1, self.map_img, 0.5, 0)
+        overlay = cv2.addWeighted(self.icon_image, 1, overlay, 0.5, 0)
 
         # make the image bright enough for display again
         hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV)
