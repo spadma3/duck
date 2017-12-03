@@ -3,7 +3,9 @@
 #include <fstream>
 
 #include "ros/ros.h"
+#include <visualization_msgs/Marker.h>
 #include "std_msgs/String.h"
+#include <tf/LinearMath/Quaternion.h>
 #include "duckietown_msgs/AprilTagsWithInfos.h"
 #include "duckietown_msgs/Twist2DStamped.h"
 
@@ -37,6 +39,8 @@ float curx = 0;
 float cury = 0;
 float curtheta = 0;
 double lastTimeSecs;
+
+ros::Publisher marker_pub;
 
 void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
 {
@@ -82,6 +86,54 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
   curtheta = fmod(curtheta + delta_theta,M_PI);
   initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
 
+  // Visualize
+  visualization_msgs::Marker marker;
+
+  marker.header.frame_id = "misteur";
+  marker.header.stamp = ros::Time::now();
+
+  // Set the namespace and id for this marker.  This serves to create a unique ID
+  // Any marker sent with the same namespace and id will overwrite the old one
+  marker.ns = "basic_shapes";
+  marker.id = curposeindex;
+  marker.type = visualization_msgs::Marker::ARROW;
+
+  // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
+  marker.action = visualization_msgs::Marker::ADD;
+
+  // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
+  marker.pose.position.x = curx;
+  marker.pose.position.y = cury;
+  marker.pose.position.z = 0;
+
+  const tfScalar yaw = 0.0; // angle around Y
+  const tfScalar pitch = 0.0; // angle around X
+  // Note: curtheta is the theta after the rotation (i.e. we assume rotation is
+  // done already)
+  const tfScalar roll = curtheta; //angle around Z
+  tf::Quaternion q_tf;
+  q_tf.setEuler(yaw, pitch, roll);
+
+  marker.pose.orientation.x = q_tf.getX();
+  marker.pose.orientation.y = q_tf.getY();
+  marker.pose.orientation.z = q_tf.getZ();
+  marker.pose.orientation.w = q_tf.getW();
+
+  // Set the scale of the marker
+  marker.scale.x = 0.2; // Arrow length
+  marker.scale.y = 0.13; // Arrow width
+  marker.scale.z = 0.1; // Arrow height
+
+  // Set the color -- be sure to set alpha to something non-zero!
+  // TODO: Set a color before optimization, and another one after
+  marker.color.r = 0.0f;
+  marker.color.g = 1.0f;
+  marker.color.b = 0.0f;
+  marker.color.a = 1.0;
+
+  marker.lifetime = ros::Duration(0); // forever
+
+  marker_pub.publish(marker);
 }
 
 void optimizeCallback(const ros::TimerEvent&)
@@ -103,7 +155,7 @@ int main(int argc, char **argv)
 
   ros::init(argc, argv, "listener");
   ros::NodeHandle n;
- 
+
   lastTimeSecs = ros::Time::now().toSec();
 
   // Prior on the first pose, set at the origin
@@ -111,10 +163,12 @@ int main(int argc, char **argv)
   graph.add(PriorFactor<Pose2>(0, Pose2(0, 0, 0), priorNoise));
   initialEstimate.insert(0, Pose2(0.0, 0.0, 0.0));
 
+  marker_pub = n.advertise<visualization_msgs::Marker>("graph_visualization", 1);
+
   // Listen to apriltags
-  ros::Subscriber aprilsub = n.subscribe("/mrgoobers/apriltags_postprocessing_node/apriltags_out", 1000, aprilcallback);
+  ros::Subscriber aprilsub = n.subscribe("/misteur/apriltags_postprocessing_node/apriltags_out", 1000, aprilcallback);
   // Listen to velocity msgs
-  ros::Subscriber velsub = n.subscribe("/mrgoobers/joy_mapper_node/car_cmd", 1000, velcallback);
+  ros::Subscriber velsub = n.subscribe("/misteur/joy_mapper_node/car_cmd", 1000, velcallback);
 
 
   // Optimize using Levenberg-Marquardt optimization. The optimizer
@@ -125,9 +179,11 @@ int main(int argc, char **argv)
   // documentation for the full set of parameters.
 
   ros::Timer opttimer = n.createTimer(ros::Duration(1), optimizeCallback);
-  initialEstimate.print("\nInitial Estimate:\n"); // print
+  initialEstimate.print("\nInitial Estimate:\n");
 
-  ros::Timer viztimer = n.createTimer(ros::Duration(60), vizCallback);
+//  ros::Timer viztimer = n.createTimer(ros::Duration(60), vizCallback);
+
+
 
   // Calculate and print marginal covariances for all variables
   // Marginals marginals(graph, result);
