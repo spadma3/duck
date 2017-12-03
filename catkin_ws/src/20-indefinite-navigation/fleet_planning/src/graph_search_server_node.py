@@ -40,6 +40,7 @@ class graph_search_server():
         mc = MapImageCreator(self.tiles_dir)
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
 
+        # image used to store all start, customer and target icons at their positions
         self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 1), dtype = np.uint8)
         
         overlay = self.prepImage()
@@ -81,14 +82,19 @@ class graph_search_server():
         # label of the graph node. 
         for trip in trips:
             print "drawing trip's icons..."
+            # self.icon_image = 
+        for nodes in self.duckietown_graph.node_locations:
+            print nodes
+        # self.duckietown_graph.graph.get_node_posi
         
 
-    def publishImage(self, req, path):
+    def     (self, req, path):
         if path:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name=self.map_name,
                                        highlight_nodes=[req.source_node, req.target_node])
             # add icons
-            self.icon_image = self.draw_icons([req.source_node, req.source_node, req.target_node])  # TODO: implement real trip list generation
+            self.draw_icons([[req.source_node, req.source_node, req.target_node]])
+            # self.icon_image = self.draw_icons([req.source_node, req.source_node, req.target_node])  # TODO: implement real trip list generation
         else:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
