@@ -85,7 +85,7 @@ class graph_search_server():
             # self.icon_image = 
         for nodes in self.duckietown_graph.node_locations:
             print nodes
-        self.duckietown_graph.graph.get_node_posi
+        # self.duckietown_graph.graph.get_node_posi
         
 
     def publishImage(self, req, path):
