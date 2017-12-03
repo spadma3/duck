@@ -1,9 +1,11 @@
+#include <stdint.h>
 #include <set>
 #include <math.h>
 #include <fstream>
 
 #include "ros/ros.h"
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include "std_msgs/String.h"
 #include <tf/LinearMath/Quaternion.h>
 #include "duckietown_msgs/AprilTagsWithInfos.h"
@@ -41,6 +43,72 @@ float curtheta = 0;
 double lastTimeSecs;
 
 ros::Publisher marker_pub;
+ros::Publisher marker_arr_pub;
+
+#define ADD_ACTION 0
+#define OPTIMIZE_ACTION 1
+
+visualization_msgs::Marker make_marker(int marker_id, uint8_t action, double x, double y, double theta)
+{
+	visualization_msgs::Marker marker;
+
+	marker.header.frame_id = "misteur";
+	marker.header.stamp = ros::Time::now();
+
+	// Set the namespace and id for this marker.  This serves to create a unique ID
+	// Any marker sent with the same namespace and id will overwrite the old one
+	marker.ns = "multislam";
+	marker.id = marker_id;
+	marker.type = visualization_msgs::Marker::ARROW;
+
+	// Both ADD and MODIFY have the same value
+	// TODO: we might have to explicitly send a command to DELETE the
+	// markers when calling modify
+	marker.action = visualization_msgs::Marker::ADD;
+
+	// Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
+	marker.pose.position.x = x;
+	marker.pose.position.y = y;
+	marker.pose.position.z = 0;
+
+	const tfScalar yaw = 0.0; // angle around Y
+	const tfScalar pitch = 0.0; // angle around X
+	// Note: curtheta is the theta after the rotation (i.e. we assume rotation is
+	// done already)
+	const tfScalar roll = curtheta; //angle around Z
+	tf::Quaternion q_tf;
+	q_tf.setEuler(yaw, pitch, roll);
+
+	marker.pose.orientation.x = q_tf.getX();
+	marker.pose.orientation.y = q_tf.getY();
+	marker.pose.orientation.z = q_tf.getZ();
+	marker.pose.orientation.w = q_tf.getW();
+
+	// Set the scale of the marker
+	marker.scale.x = 0.2; // Arrow length
+	marker.scale.y = 0.13; // Arrow width
+	marker.scale.z = 0.1; // Arrow height
+
+	if (action == ADD_ACTION)
+	{
+		// Set new markers red (they haven't been optimized yet)
+		marker.color.r = 1.0f;
+		marker.color.g = 0.0f;
+		marker.color.b = 0.0f;
+		marker.color.a = 1.0;
+	} else {
+		// Set modified (i.e. optimized) markers green
+		marker.color.r = 0.0f;
+		marker.color.g = 1.0f;
+		marker.color.b = 0.0f;
+		marker.color.a = 1.0;
+	}
+
+	marker.lifetime = ros::Duration(120); // 2 mins
+
+	return marker;
+}
+
 
 void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
 {
@@ -87,53 +155,7 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
   initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
 
   // Visualize
-  visualization_msgs::Marker marker;
-
-  marker.header.frame_id = "misteur";
-  marker.header.stamp = ros::Time::now();
-
-  // Set the namespace and id for this marker.  This serves to create a unique ID
-  // Any marker sent with the same namespace and id will overwrite the old one
-  marker.ns = "basic_shapes";
-  marker.id = curposeindex;
-  marker.type = visualization_msgs::Marker::ARROW;
-
-  // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
-  marker.action = visualization_msgs::Marker::ADD;
-
-  // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
-  marker.pose.position.x = curx;
-  marker.pose.position.y = cury;
-  marker.pose.position.z = 0;
-
-  const tfScalar yaw = 0.0; // angle around Y
-  const tfScalar pitch = 0.0; // angle around X
-  // Note: curtheta is the theta after the rotation (i.e. we assume rotation is
-  // done already)
-  const tfScalar roll = curtheta; //angle around Z
-  tf::Quaternion q_tf;
-  q_tf.setEuler(yaw, pitch, roll);
-
-  marker.pose.orientation.x = q_tf.getX();
-  marker.pose.orientation.y = q_tf.getY();
-  marker.pose.orientation.z = q_tf.getZ();
-  marker.pose.orientation.w = q_tf.getW();
-
-  // Set the scale of the marker
-  marker.scale.x = 0.2; // Arrow length
-  marker.scale.y = 0.13; // Arrow width
-  marker.scale.z = 0.1; // Arrow height
-
-  // Set the color -- be sure to set alpha to something non-zero!
-  // TODO: Set a color before optimization, and another one after
-  marker.color.r = 0.0f;
-  marker.color.g = 1.0f;
-  marker.color.b = 0.0f;
-  marker.color.a = 1.0;
-
-  marker.lifetime = ros::Duration(0); // forever
-
-  marker_pub.publish(marker);
+  marker_pub.publish(make_marker(curposeindex, ADD_ACTION, curx, cury, curtheta));
 }
 
 void optimizeCallback(const ros::TimerEvent&)
@@ -141,6 +163,23 @@ void optimizeCallback(const ros::TimerEvent&)
   LevenbergMarquardtOptimizer optimizer(graph, initialEstimate);
   result = optimizer.optimize();
   result.print("Final Result:\n");
+
+  visualization_msgs::MarkerArray ma;
+
+  // TODO: When we'll have april tags, we might have to differentiate in the
+  // loop (to cast for a Pose2 or Point2)
+  // maybe look at https://github.com/devbharat/gtsam/blob/5f15d264ed639cb0add335e2b089086141127fff/gtsam/nonlinear/tests/testValues.cpp
+  BOOST_FOREACH(const Values::KeyValuePair& key_val, result)
+  {
+	  visualization_msgs::Marker marker;
+	  const Pose2 &val = dynamic_cast<const Pose2&>(key_val.value);
+	  marker = make_marker(key_val.key, OPTIMIZE_ACTION,
+			       val.x(), val.y(), val.theta());
+	  ma.markers.push_back(marker);
+  }
+
+  marker_arr_pub.publish(ma);
+
 }
 
 void vizCallback(const ros::TimerEvent&)
@@ -164,6 +203,7 @@ int main(int argc, char **argv)
   initialEstimate.insert(0, Pose2(0.0, 0.0, 0.0));
 
   marker_pub = n.advertise<visualization_msgs::Marker>("graph_visualization", 1);
+  marker_arr_pub = n.advertise<visualization_msgs::MarkerArray>("graph_visualization_arr", 1);
 
   // Listen to apriltags
   ros::Subscriber aprilsub = n.subscribe("/misteur/apriltags_postprocessing_node/apriltags_out", 1000, aprilcallback);
@@ -182,7 +222,6 @@ int main(int argc, char **argv)
   initialEstimate.print("\nInitial Estimate:\n");
 
 //  ros::Timer viztimer = n.createTimer(ros::Duration(60), vizCallback);
-
 
 
   // Calculate and print marginal covariances for all variables
