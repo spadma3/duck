@@ -58,8 +58,8 @@ class LaneFollowerNode(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header.stamp = image_delay_stamp
-        car_control_msg.v = v_from_tf
-        car_control_msg.omega = omega_from_tf
+        car_control_msg.v = 1.
+        car_control_msg.omega = 0.5
 
         self.pub_car_cmd(car_control_msg)
 
