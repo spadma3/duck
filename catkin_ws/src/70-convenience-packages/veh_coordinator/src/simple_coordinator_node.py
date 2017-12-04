@@ -266,7 +266,7 @@ class VehicleCoordinator():
 
     #approach 1
     #SIGNAL_A = RIGHT_OCCUPIED, SIGNAL_B = ABOUT TO GO or GOING
-    def reconsider(self):
+    def reconsider1(self):
         if self.state == State.LANE_FOLLOWING:
             if self.mode == 'COORDINATION':
                 self.reset_signals_detection()
