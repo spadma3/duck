@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 from random import random
+from random import randint
 import rospy
 from duckietown_msgs.msg import CoordinationClearance, FSMState, BoolStamped, Twist2DStamped
 from duckietown_msgs.msg import SignalsDetection, CoordinationSignal
@@ -22,7 +23,10 @@ class State:
     INTERSECTION_NAVIGATION = 'INTERSECTION_NAVIGATION'
     
     #approach 1
-    #todo
+    #LANE_FOLLOWING, GO, TL_SENSING, AT_STOP_CLEARING
+    WAIT_FOR_RIGHT = 'WAIT_FOR_RIGHT'
+    WAIT_FOR_OPPOSITE = 'WAIT_FOR_OPPOSITE'
+
 
     #approach 2
     #LANE_FOLLOWING, GO, TL_SENSING
@@ -126,7 +130,26 @@ class VehicleCoordinator():
 
 
     #approach 1
-    #todo
+    def set_state1(self, state):
+        self.state = state
+        self.last_state_transition = time()
+
+        if self.state == State.AT_STOP_CLEARING:
+            self.reset_signals_detection()
+            self.roof_light = CoordinationSignal.OFF
+        elif (self.state == State.WAIT_FOR_RIGHT or
+            self.state == State.WAIT_FOR_OPPOSITE):
+            self.roof_light = CoordinationSignal.OFF
+        else:
+            self.roof_light = CoordinationSignal.OFF
+        
+        if self.state == State.GO:
+            self.clearance_to_go = CoordinationClearance.GO
+        else:
+            self.clearance_to_go = CoordinationClearance.WAIT
+
+        rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
+
 
     #approach 2
     def set_state(self, state):
@@ -239,8 +262,47 @@ class VehicleCoordinator():
             if self.traffic_light == SignalsDetection.GO:
                 self.set_state(State.GO)
 
+
+
     #approach 1
-    #todo
+    #SIGNAL_A = RIGHT_OCCUPIED, SIGNAL_B = ABOUT TO GO or GOING
+    def reconsider(self):
+        if self.state == State.LANE_FOLLOWING:
+            if self.mode == 'COORDINATION':
+                self.reset_signals_detection()
+                if self.traffic_light_intersection:
+                    self.set_state(State.TL_SENSING)
+                else:
+                    self.set_state(State.AT_STOP_CLEARING)
+        elif self.state == AT_STOP_CLEARING:
+            if (self.right_veh == SignalsDetection.NO_CAR and
+                self.opposite_veh == SignalsDetection.SIGNAL_A):
+                self.roof_light = CoordinationSignal.SIGNAL_B
+                self.set_state(State.GO)
+            elif ((self.right_veh == SignalsDetection.SIGNAL_A or
+                self.right_veh == SignalsDetection.SIGNAL_B) and
+                (self.opposite_veh == SignalsDetection.SIGNAL_A) or
+                self.opposite_veh == SignalsDetection.SIGNAL_B):
+                if(randint(1,4) == 4):
+                    self.set_state(State.WAIT_FOR_RIGHT)
+                else:
+                    self.set_state(State.AT_STOP_CLEARING)
+            elif (self.right_veh == SignalsDetection.NO_CAR and
+                self.opposite_veh == SignalsDetection.SIGNAL_B):
+                if(randint(1,2) == 2):
+                    self.set_state(WAIT_FOR_OPPOSITE)
+        elif (self.state == State.WAIT_FOR_RIGHT or
+            self.state == State.WAIT_FOR_OPPOSITE):
+            rospy.sleep(self.T_CROSS + self.T_SENSE)
+            self.set_state(State.AT_STOP_CLEARING)
+        elif self.state == State.GO:
+            if self.mode == 'LANE_FOLLOWING':
+                self.set_state(State.LANE_FOLLOWING)
+        elif self.state == State.TL_SENSING:
+            if self.traffic_light == SignalsDetection.GO:
+                self.set_state(State.GO)
+
+
 
     #approach 2
     #SIGNAL_A = YELLOW, SIGNAL_B = GREEN, SIGNAL_C = RED
