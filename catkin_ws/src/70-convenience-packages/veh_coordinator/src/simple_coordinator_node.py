@@ -114,12 +114,12 @@ class VehicleCoordinator():
 
         if self.state == State.GO:
             self.clearance_to_go = CoordinationClearance.GO
-            rospy.loginfo("GOOOOOOOO pls")
+            #rospy.loginfo("GOOOOOOOO pls")
         else:
             self.clearance_to_go = CoordinationClearance.WAIT
 
         #rospy.loginfo("[%s] Shutting down." %(self.node_name))
-        rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
+        #rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
 
         rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
 
