@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Path planing algorithm
-# Version 1
-# fast, colors are wrong
-# Samuel Nyffenegger
+"""
+if 'python path_plannning_v1.py' works, but './path_planning_v1.py' does not, use this in terminal:
+sed -i -e 's/\r$//' scriptname.sh
+"""
 
 """
 Functions
