@@ -244,8 +244,14 @@ class VehicleCoordinator():
                 else:
                     rospy.sleep(self.T_CROSS + self.T_SENSE)
                     self.set_state(State.NEGOTIATION_QUEUE)
+        
+        elif self.state == State.GO:
+            if self.mode == 'LANE_FOLLOWING':
+                self.set_state(State.LANE_FOLLOWING)
 
-
+        elif self.state == State.TL_SENSING:
+            if self.traffic_light == SignalsDetection.GO:
+                self.set_state(State.GO)
         '''
         elif self.state == State.AT_STOP_CLEARING:
             if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
@@ -269,13 +275,6 @@ class VehicleCoordinator():
                 self.set_state(State.AT_STOP_CLEAR)
         '''
 
-        elif self.state == State.GO:
-            if self.mode == 'LANE_FOLLOWING':
-                self.set_state(State.LANE_FOLLOWING)
-
-        elif self.state == State.TL_SENSING:
-            if self.traffic_light == SignalsDetection.GO:
-                self.set_state(State.GO)
 
 if __name__ == '__main__':
     car = VehicleCoordinator()
