@@ -5,6 +5,7 @@ import thread
 
 sub = []
 
+# same interface as in pubtest.py
 sub1 = commlibs.duckie0mq(type = 'sub', port = "5555")
 sub2 = commlibs2.duckie0mq(interface = "wlp1s0", type = 'sub')
 
