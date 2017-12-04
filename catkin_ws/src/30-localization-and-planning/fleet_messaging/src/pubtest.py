@@ -1,11 +1,12 @@
 # Testing
-import commlibs as commlibs
+import commlibs
+import commlibs2
 
-pub = commlibs.duckie0mq(type = 'pub')
-pub.send_string('yoyoyoyo')
+pub0 = commlibs.duckie0mq(subip = "192.168.40.10", port = "5555", type = 'pub')
+pub0.send_string('hi from yoga to omon')
 
-pub2 = commlibs.duckie0mq(port = "tcp://127.0.0.1:2233", type = 'pub')
-pub2.send_string('yoyoyoyi')
+pub1 = commlibs.duckie0mq(subip = "192.168.40.2", port = "5555", type = 'pub')
+pub1.send_string('yo from yoga to yoga')
 
-#pub2 = commlibs.duckie0mq(port = "pgm://192.168.1.1;239.192.1.1:5555", type = 'pub')
-#pub2.send_string('yoyoyoyi')
+pub2 = commlibs2.duckie0mq(interface = "wlp1s0", type = 'pub')
+pub2.send_string('yeah from yoga to everyone but yoga')
