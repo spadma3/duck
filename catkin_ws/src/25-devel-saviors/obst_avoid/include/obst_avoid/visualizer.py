@@ -49,8 +49,7 @@ class Visualizer():
                 #marker.scale.y = 0.2
 	   	marker.pose.position.x = obst_list.poses[i].position.x
 	   	marker.pose.position.y = obst_list.poses[i].position.y
-	   	marker.pose.position.y = 0.2
-                marker.pose.position.z = 0 
+	   	marker.pose.position.z = 0 
 	   	marker_list.markers.append(marker)
 
     	#print marker_list.markers.__len__()

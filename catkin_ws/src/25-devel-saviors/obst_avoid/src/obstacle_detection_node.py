@@ -56,6 +56,7 @@ class ObstDetectNode(object):
         #1. EXTRACT OBSTACLES and return the pose array
         obst_list = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
         obst_list.header.stamp = image.header.stamp #for synchronization
+        #interessant um zu schauen ob stau oder nicht!!!!
         #print image.header.stamp.to_sec()
         self.publisher_arr.publish(obst_list)
         #EXPLANATION: (x,y) is world coordinates of obstacle, z is radius of obstacle
