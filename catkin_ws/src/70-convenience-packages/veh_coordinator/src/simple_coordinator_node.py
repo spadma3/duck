@@ -119,7 +119,7 @@ class VehicleCoordinator():
             self.clearance_to_go = CoordinationClearance.WAIT
 
         #rospy.loginfo("[%s] Shutting down." %(self.node_name))
-        rospy.loginfo("I AM CHANGING STATE TO: [%s] AT TIME: [%s]" %(state, str(self.last_state_transition)))
+        rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
 
         rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
 
@@ -240,9 +240,9 @@ class VehicleCoordinator():
             else:#no negotiators about to go(yellow)
                 self.roof_light = CoordinationSignal.SIGNAL_A
                 rospy.sleep(self.T_CROSS + self.T_SENSE)
-                if(self.right_veh == SignalsDetection.SIGNAL_A or 
-                    self.opposite_veh == SignalsDetection.SIGNAL_A or
-                    self.left_veh == SignalsDetection.SIGNAL_A):
+                if(self.right_veh != SignalsDetection.SIGNAL_A or 
+                    self.opposite_veh != SignalsDetection.SIGNAL_A or
+                    self.left_veh != SignalsDetection.SIGNAL_A):
 
                     self.set_state(State.GO)
                 else:
