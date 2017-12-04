@@ -104,9 +104,9 @@ class VehicleCoordinator():
         
         if self.state == State.NO_COLOR_QUEUE:
             self.roof_light = CoordinationSignal.OFF
-        elif self.state == RED_QUEUE:
+        elif self.state == State.RED_QUEUE:
             self.roof_light = CoordinationSignal.SIGNAL_C
-        elif self.state == NEGOTIATION_QUEUE:
+        elif self.state == State.NEGOTIATION_QUEUE:
             self.roof_light = CoordinationSignal.SIGNAL_B
         else:
             self.roof_light = CoordinationSignal.OFF
