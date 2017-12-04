@@ -1,6 +1,6 @@
 <launch>
     <arg name="veh"  doc="Name of vehicle. ex: megaman"/>
-    <arg name="pkg_name" value="dt_filtering_$(arg veh)"/>
+    <arg name="pkg_name" value="dt_imitation_learning_$(arg veh)"/>
     <arg name="node_name" default="lane_filter_node"/>
     <arg name="local" default="1"/>
 
