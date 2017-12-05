@@ -430,7 +430,7 @@ class VehicleCoordinator():
                 else:
                     self.set_state(State.CHECKING)
         elif self.state == State.CHECKING:
-            if(False)#anyone in the intersection(??? how do we check this?)
+            if(False):#anyone in the intersection(??? how do we check this?)
                 self.set_state(State.WAIT)
             elif(self.right_veh != CoordinationSignal.SIGNAL_A and
                 self.opposite_veh != CoordinationSignal.SIGNAL_A):
