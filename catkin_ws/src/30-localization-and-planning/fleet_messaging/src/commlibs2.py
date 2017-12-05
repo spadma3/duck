@@ -7,22 +7,26 @@ import netifaces as ni
 # zeroMQ
 class duckie0mq(object):
     # Constructor
-    def __init__(self, subip = "192.168.40.10", port = "5555", type = 'sub'):
+    def __init__(self, interface = "wlan0", port = "5554", type = 'sub'):
+
         self.context = zmq.Context()
         self.type = type
-        self.subip = subip
         self.port = port
+
+        self.ip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
+        self.endpoint = "epgm://" + self.ip + ":" + self.port
+
         if type=='pub':
-            self.endpoint = "tcp://" + self.subip + ":" + self.port
             self.socket = self.context.socket(zmq.PUB)
-            self.socket.connect(self.endpoint)
-            print('publisher initialized on port ' + self.endpoint)
+            self.socket.connect(self.endpoint) #should connect
+            print('publisher initialized on '+self.endpoint)
+
         elif type=='sub':
-            self.endpoint = "tcp://*" + ":" + str(self.port)
             self.socket = self.context.socket (zmq.SUB)
             self.socket.setsockopt(zmq.SUBSCRIBE, '')
-            self.socket.bind(self.endpoint)
-            print('subscriber initialized on port ' + self.endpoint)
+            self.socket.connect(self.endpoint)
+            print('subscriber initialized on '+self.endpoint)
+
         else:
             self.type = 'none'
             print('no known type')
@@ -35,15 +39,6 @@ class duckie0mq(object):
             print('set filter: \"'+filter+'\" on '+self.endpoint)
         else:
             print("socket not of type subscriber, no filter changed")
-
-    # connect to additional ports
-    def connect(self, port):
-        if self.type == 'sub':
-            self.endpoint = self.endpoint +', '+ "tcp://*" + ":" + port
-            self.socket.bind("tcp://*" + ":" + port)
-            print('connected to port: \"' + port)
-        else:
-            print("socket not of type subscriber, no port opened")
 
     # send
     def send_string(self, msg):

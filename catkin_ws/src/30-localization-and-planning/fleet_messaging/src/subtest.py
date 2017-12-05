@@ -1,8 +1,24 @@
 # Testing
-import commlibs as commlibs
+import commlibs
+import commlibs2
+import thread
 
-testtype = 'sub'
-sub = commlibs.duckie0mq(type = 'sub')
-sub.connect("tcp://127.0.0.1:2233")
+sub = []
+
+# same interface as in pubtest.py
+sub1 = commlibs.duckie0mq(type = 'sub', port = "5555")
+sub2 = commlibs2.duckie0mq(interface = "wlp1s0", type = 'sub')
+
+def recieve(sub):
+    while True:
+        print(sub.rcv_string())
+    return
+
+try:
+    thread.start_new_thread(recieve, (sub1,))
+    thread.start_new_thread(recieve, (sub2,))
+except:
+    print("Error on spawning threads")
+
 while True:
-    print(sub.rcv_string())
+    pass
