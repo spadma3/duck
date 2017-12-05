@@ -8,6 +8,7 @@ from cv_bridge import CvBridge
 
 from fleet_planning.srv import *
 from fleet_planning.generate_duckietown_map import graph_creator, MapImageCreator
+from fleet_planning.transformation import Transformer
 
 class graph_search_server():
     def __init__(self):
@@ -64,7 +65,7 @@ class graph_search_server():
 
         return GraphSearchResponse(path.actions)        
     
-    def draw_icons(self, trips):
+    def draw_icons(self, map_image, trips ):
         """
         Draw start, customer and target icons next to each 
         corresponding graph node along with the respective name 
@@ -90,19 +91,29 @@ class graph_search_server():
             self.icon_image[node_location[0], node_location[1], 1] = 0  # G
             self.icon_image[node_location[0], node_location[1], 2] = 0  # B
         # self.duckietown_graph.graph.get_node_posi
+         # mask = cv2.cvtColor(self.icon_image, cv2.COLOR_BGR2GRAY)
+        # ret, mask = cv2.threshold(mask, 10, 255, cv2.THRESH_BINARY)
+        # mask_inv = cv2.bitwise_not(mask)
+        # final_image_bg = cv2.bitwise_and(overlay, overlay, mask = mask_inv)
+        # final_image_fg = cv2.bitwise_and(self.icon_image, self.icon_image, mask = mask)
+        # final_image = cv2.add(final_image_bg, final_image_fg)
+
+        # add all customer logos where desired
+        tf = Transformer(80, self.map_img.shape[1] / 80)  # TODO: better way to get the map dimensions?
         
+
+        # overlay = cv2.addWeighted(self.icon_image, 1, overlay, 0.5, 0)
+        return map_image
 
     def publishImage(self, req, path):
         if path:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name=self.map_name,
                                        highlight_nodes=[req.source_node, req.target_node])
-            # add icons
-            self.draw_icons([[req.source_node, req.source_node, req.target_node]])
-            # self.icon_image = self.draw_icons([req.source_node, req.source_node, req.target_node])  # TODO: implement real trip list generation
         else:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
         overlay = self.prepImage()
+        overlay = self.draw_icons(overlay, trips = [2, 2, 2])
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def prepImage(self):
@@ -114,15 +125,6 @@ class graph_search_server():
 
         # overlay images
         overlay = cv2.addWeighted(inverted_graph_img, 1, self.map_img, 0.5, 0)
-        mask = cv2.cvtColor(self.icon_image, cv2.COLOR_BGR2GRAY)
-        ret, mask = cv2.threshold(mask, 10, 255, cv2.THRESH_BINARY)
-        mask_inv = cv2.bitwise_not(mask)
-        final_image_bg = cv2.bitwise_and(overlay, overlay, mask = mask_inv)
-        final_image_fg = cv2.bitwise_and(self.icon_image, self.icon_image,mask = mask)
-        final_image = cv2.add(final_image_bg, final_image_fg)
-
-
-        overlay = cv2.addWeighted(self.icon_image, 1, overlay, 0.5, 0)
 
         # make the image bright enough for display again
         hsv = cv2.cvtColor(overlay, cv2.COLOR_BGR2HSV)
