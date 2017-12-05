@@ -114,6 +114,14 @@ class graph_search_server():
 
         # overlay images
         overlay = cv2.addWeighted(inverted_graph_img, 1, self.map_img, 0.5, 0)
+        mask = cv2.cvtColor(self.icon_image, cv2.COLOR_BGR2GRAY)
+        ret, mask = cv2.threshold(mask, 10, 255, cv2.THRESH_BINARY)
+        mask_inv = cv2.bitwise_not(mask)
+        final_image_bg = cv2.bitwise_and(overlay, overlay, mask = mask_inv)
+        final_image_fg = cv2.bitwise_and(self.icon_image, self.icon_image,mask = mask)
+        final_image = cv2.add(final_image_bg, final_image_fg)
+
+
         overlay = cv2.addWeighted(self.icon_image, 1, overlay, 0.5, 0)
 
         # make the image bright enough for display again
