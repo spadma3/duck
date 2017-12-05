@@ -1,7 +1,6 @@
 from collections import OrderedDict
-
-from duckietown_utils.fuzzy import Spec
 from duckietown_utils import indent
+from duckietown_utils.fuzzy import Spec
 
 
 class MakeTimeSlice(Spec):
@@ -44,8 +43,15 @@ class MakeTimeSlice(Spec):
         return log._replace(t0=new_start, t1=new_end, length=length)
     
 def slice_time(m, spec):
-    t0 = float(m.group('t0'))
-    t1 = float(m.group('t1'))
+    if m.group('t0') is not None:
+        t0 = float(m.group('t0'))
+    else:
+        t0 = None
+        
+    if m.group('t1') is not None:
+        t1 = float(m.group('t1'))
+    else:
+        t1 = None
     return MakeTimeSlice(spec, t0, t1)
 
 # float = "[-+]?[0-9]*\.?[0-9]+"
