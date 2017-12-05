@@ -23,7 +23,7 @@ class graph_search_server():
         self.map_img_path = self.map_path + '_map'
         self.tiles_dir = os.path.abspath(
             self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
-        self.customer_icon = os.path.abspath(self.script_dir + '../gui_images/customer_duckie.jpg')
+        self.customer_icon_path = os.path.abspath(self.script_dir + '../gui_images/customer_duckie.jpg')
 
         # build and init graphs
         gc = graph_creator()
@@ -42,7 +42,8 @@ class graph_search_server():
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
 
         # image used to store all start, customer and target icons at their positions
-        self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 3), dtype = np.uint8)
+        #self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 3), dtype = np.uint8)
+        self.customer_icon = cv2.resize(cv2.imread(self.customer_icon_path), (30, 30, 3))
         
         overlay = self.prepImage()
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
@@ -77,13 +78,22 @@ class graph_search_server():
         Returns:
             - opencv image with the icons at the correct positions
         """
-        print "Size of map: ", self.icon_image.shape
+        #print "Size of map: ", self.map_image.shape
 
         # loop through all trips currently in existence. For each trip,
         # draw the start, customer and target icons next to the corresponding 
         # label of the graph node. 
+        tf = Transformer(80, self.map_img.shape[1] / 80)  # TODO: better way to get the map dimensions?
         for trip in trips:
             print "drawing trip's icons..."
+            
+            x_start = 50
+            x_end = x_start + self.customer_icon.shape[0]
+            y_start = 50
+            y_end = y_start + self.customer_icon.shape[1]
+
+        map_image[x_start:x_end, y_start:y_end, :] = self.customer_icon
+
             # self.icon_image = 
         for node in self.duckietown_graph._nodes:
             node_location = np.round(self.duckietown_graph.get_node_pos(node) * 80)  # tile_length = 80 pixels
@@ -99,7 +109,6 @@ class graph_search_server():
         # final_image = cv2.add(final_image_bg, final_image_fg)
 
         # add all customer logos where desired
-        tf = Transformer(80, self.map_img.shape[1] / 80)  # TODO: better way to get the map dimensions?
         
 
         # overlay = cv2.addWeighted(self.icon_image, 1, overlay, 0.5, 0)
