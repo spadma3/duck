@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckietown_demos
+
+Name: duckietown_demos
+Description: Description of duckietown_demos
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckietown_demos/lib 
+Requires: 

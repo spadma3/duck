@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/rgb_led
+
+Name: rgb_led
+Description: Description of rgb_led
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/rgb_led/lib 
+Requires: 

@@ -1,0 +1,6 @@
+set(duckietown_description_SETUP_PY_VERSION "1.0.0")
+set(duckietown_description_SETUP_PY_SCRIPTS "")
+set(duckietown_description_SETUP_PY_PACKAGES "duckietown_description")
+set(duckietown_description_SETUP_PY_PACKAGE_DIRS "include/duckietown_description")
+set(duckietown_description_SETUP_PY_MODULES "")
+set(duckietown_description_SETUP_PY_MODULE_DIRS "")

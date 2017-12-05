@@ -1,0 +1,6 @@
+set(pkg_name_SETUP_PY_VERSION "1.0.0")
+set(pkg_name_SETUP_PY_SCRIPTS "")
+set(pkg_name_SETUP_PY_PACKAGES "pkg_name")
+set(pkg_name_SETUP_PY_PACKAGE_DIRS "include/pkg_name")
+set(pkg_name_SETUP_PY_MODULES "")
+set(pkg_name_SETUP_PY_MODULE_DIRS "")

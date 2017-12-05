@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/yunfantang/duckietown/catkin_ws/devel_isolated/dt_filtering_swaggyduck/setup.sh

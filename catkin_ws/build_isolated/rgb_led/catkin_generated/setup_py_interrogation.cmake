@@ -1,0 +1,6 @@
+set(rgb_led_SETUP_PY_VERSION "1.0.0")
+set(rgb_led_SETUP_PY_SCRIPTS "")
+set(rgb_led_SETUP_PY_PACKAGES "rgb_led")
+set(rgb_led_SETUP_PY_PACKAGE_DIRS "include/rgb_led")
+set(rgb_led_SETUP_PY_MODULES "")
+set(rgb_led_SETUP_PY_MODULE_DIRS "")

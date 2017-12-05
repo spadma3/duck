@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/parallel_autonomy
+
+Name: parallel_autonomy
+Description: Description of parallel_autonomy
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/parallel_autonomy/lib 
+Requires: 

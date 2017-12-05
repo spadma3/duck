@@ -26,6 +26,7 @@ class InverseKinematicsNode(object):
         self.trim = self.setup_parameter("~trim", 0.0)
         self.baseline = self.setup_parameter("~baseline", 0.1)
         self.radius = self.setup_parameter("~radius", 0.0318)
+        #self.radius = self.setup_parameter("~radius", 0.01)
         self.k = self.setup_parameter("~k", 27.0)
         self.limit = self.setup_parameter("~limit", 1.0)
         self.limit_max = 1.0

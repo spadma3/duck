@@ -1,0 +1,6 @@
+set(intersection_control_SETUP_PY_VERSION "1.0.0")
+set(intersection_control_SETUP_PY_SCRIPTS "")
+set(intersection_control_SETUP_PY_PACKAGES "intersection_control")
+set(intersection_control_SETUP_PY_PACKAGE_DIRS "include/intersection_control")
+set(intersection_control_SETUP_PY_MODULES "")
+set(intersection_control_SETUP_PY_MODULE_DIRS "")

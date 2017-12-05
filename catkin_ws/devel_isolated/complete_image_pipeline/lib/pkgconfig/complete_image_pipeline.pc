@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/complete_image_pipeline
+
+Name: complete_image_pipeline
+Description: Description of complete_image_pipeline
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/complete_image_pipeline/lib 
+Requires: 

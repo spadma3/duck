@@ -1,0 +1,6 @@
+set(dt_augmented_reality_swaggyduck_SETUP_PY_VERSION "1.0.0")
+set(dt_augmented_reality_swaggyduck_SETUP_PY_SCRIPTS "")
+set(dt_augmented_reality_swaggyduck_SETUP_PY_PACKAGES "dt_augmented_reality_swaggyduck")
+set(dt_augmented_reality_swaggyduck_SETUP_PY_PACKAGE_DIRS "include/dt_augmented_reality_swaggyduck")
+set(dt_augmented_reality_swaggyduck_SETUP_PY_MODULES "")
+set(dt_augmented_reality_swaggyduck_SETUP_PY_MODULE_DIRS "")

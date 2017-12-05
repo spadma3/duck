@@ -1,0 +1,6 @@
+set(veh_coordinator_SETUP_PY_VERSION "0.0.1")
+set(veh_coordinator_SETUP_PY_SCRIPTS "")
+set(veh_coordinator_SETUP_PY_PACKAGES "vehcoordinator")
+set(veh_coordinator_SETUP_PY_PACKAGE_DIRS "include/vehcoordinator")
+set(veh_coordinator_SETUP_PY_MODULES "")
+set(veh_coordinator_SETUP_PY_MODULE_DIRS "")

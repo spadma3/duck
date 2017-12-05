@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/install_isolated
+
+Name: led_joy_mapper
+Description: Description of led_joy_mapper
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/install_isolated/lib 
+Requires: 

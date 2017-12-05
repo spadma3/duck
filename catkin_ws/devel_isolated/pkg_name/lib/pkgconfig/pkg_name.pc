@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/pkg_name
+
+Name: pkg_name
+Description: Description of pkg_name
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/pkg_name/lib 
+Requires: 

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<package>
+  <name>what_the_duck</name>
+  <version>1.0.0</version>
+  <description>
+
+`what-the-duck` is a program that tests *dozens* of configuration
+inconsistencies that can happen on a Duckiebot.
+
+### The `what-the-duck` program {#what-the-duck}
+
+The proper usage of `what-the-duck` to debug an environment problem is the following
+sequence:
+
+
+    $ # open a new terminal
+    $ cd ![Duckietown root]
+    $ git checkout master
+    $ git pull
+    $ source environment.sh
+    $ ./dependencies_for_duckiebot.sh # if you are on a Duckiebot
+    $ ./dependencies_for_laptop.sh    # if you are on a laptop
+    $ make build-clean
+    $ make build-catkin
+    $ ./what-the-duck
+
+Note: you have to do all the steps in the precise order.
+
+
+### Seeing the fleet results
+
+The telemetry is collected and available [at this URL][stats].
+
+
+[stats]: http://frankfurt.co-design.science/~duckietown/fleet-fall2017.html
+
+
+</description>
+  <author email="acensi@idsc.mavt.ethz.ch">Andrea Censi</author>
+  <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
+
+  <license>GPLv3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+  </export>
+</package>

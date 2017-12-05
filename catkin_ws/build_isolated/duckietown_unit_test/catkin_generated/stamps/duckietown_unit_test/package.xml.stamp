@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+  <name>duckietown_unit_test</name>
+  <version>1.0.0</version>
+  <description>The `duckietown_unit_test` meta package contains all the unit test launch files for Duckietown.</description>
+
+  <maintainer email="mack@duckietown.org">Mack</maintainer>
+
+  <license>GPLv3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+  </export>
+</package>

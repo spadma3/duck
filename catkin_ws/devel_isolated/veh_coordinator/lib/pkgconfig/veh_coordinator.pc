@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/veh_coordinator
+
+Name: veh_coordinator
+Description: Description of veh_coordinator
+Version: 0.0.1
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/veh_coordinator/lib 
+Requires: 

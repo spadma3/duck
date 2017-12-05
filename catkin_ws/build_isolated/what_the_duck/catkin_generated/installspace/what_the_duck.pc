@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/install_isolated
+
+Name: what_the_duck
+Description: Description of what_the_duck
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/install_isolated/lib 
+Requires: 

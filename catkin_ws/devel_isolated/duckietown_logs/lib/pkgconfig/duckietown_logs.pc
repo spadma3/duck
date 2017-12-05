@@ -1,0 +1,8 @@
+prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckietown_logs
+
+Name: duckietown_logs
+Description: Description of duckietown_logs
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckietown_logs/lib 
+Requires: 
