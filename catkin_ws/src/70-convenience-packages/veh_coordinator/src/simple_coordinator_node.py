@@ -441,8 +441,6 @@ class VehicleCoordinator():
         elif self.state == State.WAIT:
             rospy.sleep(random() * self.T_MAX_RANDOM)
             self.set_state(State.CHECKING)
-
-
         elif self.state == State.GO:
             if self.mode == 'LANE_FOLLOWING':
                 self.set_state(State.LANE_FOLLOWING)
