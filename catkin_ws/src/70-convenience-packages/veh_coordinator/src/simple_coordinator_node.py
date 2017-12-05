@@ -103,7 +103,7 @@ class VehicleCoordinator():
 #adjust reconsider methods below accordingly
 
     #approach 0(last year's code)
-    def set_state(self, state):
+    def set_state0(self, state):
         if self.state != state:
             self.last_state_transition = time()
         self.state = state
@@ -157,7 +157,7 @@ class VehicleCoordinator():
 
 
     #approach 2
-    def set_state2(self, state):
+    def set_state(self, state):
         self.state = state
         self.last_state_transition = time()
         if self.state == State.NO_COLOR_QUEUE:
@@ -226,7 +226,7 @@ class VehicleCoordinator():
 #vvvvvvvvv different reconsider methods for different approaches vvvvvvvvvvvvvvv
 
     #approach 0(last year's code)
-    def reconsider(self):
+    def reconsider0(self):
         if self.state == State.LANE_FOLLOWING:
             if self.mode == 'COORDINATION':
                 self.reset_signals_detection()
@@ -321,7 +321,7 @@ class VehicleCoordinator():
 
     #approach 2
     #SIGNAL_A = YELLOW, SIGNAL_B = GREEN, SIGNAL_C = RED
-    def reconsider2(self):
+    def reconsider(self):
         if self.state == State.LANE_FOLLOWING:
             if self.mode == 'COORDINATION':
                 self.reset_signals_detection()
