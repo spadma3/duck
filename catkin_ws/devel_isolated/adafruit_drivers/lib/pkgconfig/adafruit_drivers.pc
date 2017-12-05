@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/adafruit_drivers
-
-Name: adafruit_drivers
-Description: Description of adafruit_drivers
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/adafruit_drivers/lib 
-Requires: 

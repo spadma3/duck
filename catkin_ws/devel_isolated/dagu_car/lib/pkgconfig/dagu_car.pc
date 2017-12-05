@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/dagu_car
-
-Name: dagu_car
-Description: Description of dagu_car
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/dagu_car/lib 
-Requires: 

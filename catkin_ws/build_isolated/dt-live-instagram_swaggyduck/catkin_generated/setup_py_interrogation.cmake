@@ -1,6 +1,0 @@
-set(dt-live-instagram_swaggyduck_SETUP_PY_VERSION "1.0.0")
-set(dt-live-instagram_swaggyduck_SETUP_PY_SCRIPTS "")
-set(dt-live-instagram_swaggyduck_SETUP_PY_PACKAGES "dt-live-instagram_swaggyduck")
-set(dt-live-instagram_swaggyduck_SETUP_PY_PACKAGE_DIRS "include/dt-live-instagram_swaggyduck/dt-live-instagram_swaggyduck")
-set(dt-live-instagram_swaggyduck_SETUP_PY_MODULES "")
-set(dt-live-instagram_swaggyduck_SETUP_PY_MODULE_DIRS "")

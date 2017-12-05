@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/localization
-
-Name: localization
-Description: Description of localization
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/localization/lib 
-Requires: 

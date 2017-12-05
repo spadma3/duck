@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckiebot_visualizer
-
-Name: duckiebot_visualizer
-Description: Description of duckiebot_visualizer
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckiebot_visualizer/lib 
-Requires: 

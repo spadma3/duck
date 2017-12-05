@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/navigation
-
-Name: navigation
-Description: Description of navigation
-Version: 1.0.0
-Cflags: -I/home/yunfantang/duckietown/catkin_ws/devel_isolated/navigation/include
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/navigation/lib 
-Requires: message_runtime

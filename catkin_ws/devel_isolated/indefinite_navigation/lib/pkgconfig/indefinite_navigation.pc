@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/indefinite_navigation
-
-Name: indefinite_navigation
-Description: Description of indefinite_navigation
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/indefinite_navigation/lib 
-Requires: 

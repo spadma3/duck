@@ -1,6 +1,0 @@
-set(traffic_light_SETUP_PY_VERSION "1.0.0")
-set(traffic_light_SETUP_PY_SCRIPTS "")
-set(traffic_light_SETUP_PY_PACKAGES "traffic_light")
-set(traffic_light_SETUP_PY_PACKAGE_DIRS "include/traffic_light")
-set(traffic_light_SETUP_PY_MODULES "")
-set(traffic_light_SETUP_PY_MODULE_DIRS "")

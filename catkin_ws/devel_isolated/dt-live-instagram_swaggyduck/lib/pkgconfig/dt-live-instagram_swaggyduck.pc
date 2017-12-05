@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/dt-live-instagram_swaggyduck
-
-Name: dt-live-instagram_swaggyduck
-Description: Description of dt-live-instagram_swaggyduck
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/dt-live-instagram_swaggyduck/lib 
-Requires: 

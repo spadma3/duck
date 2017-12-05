@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/easy_logs
-
-Name: easy_logs
-Description: Description of easy_logs
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/easy_logs/lib 
-Requires: 

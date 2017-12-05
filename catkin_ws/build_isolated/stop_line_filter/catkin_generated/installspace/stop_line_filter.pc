@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/install_isolated
-
-Name: stop_line_filter
-Description: Description of stop_line_filter
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/install_isolated/lib 
-Requires: 

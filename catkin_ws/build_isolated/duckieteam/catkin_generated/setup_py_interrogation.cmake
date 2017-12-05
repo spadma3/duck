@@ -1,6 +1,0 @@
-set(duckieteam_SETUP_PY_VERSION "1.0.0")
-set(duckieteam_SETUP_PY_SCRIPTS "")
-set(duckieteam_SETUP_PY_PACKAGES "duckieteam;duckieteam_tests")
-set(duckieteam_SETUP_PY_PACKAGE_DIRS "include/duckieteam;include/duckieteam_tests")
-set(duckieteam_SETUP_PY_MODULES "")
-set(duckieteam_SETUP_PY_MODULE_DIRS "")

@@ -1,6 +1,0 @@
-set(what_the_duck_SETUP_PY_VERSION "1.0.0")
-set(what_the_duck_SETUP_PY_SCRIPTS "")
-set(what_the_duck_SETUP_PY_PACKAGES "what_the_duck;what_the_duck_tests")
-set(what_the_duck_SETUP_PY_PACKAGE_DIRS "include/what_the_duck;include/what_the_duck_tests")
-set(what_the_duck_SETUP_PY_MODULES "")
-set(what_the_duck_SETUP_PY_MODULE_DIRS "")

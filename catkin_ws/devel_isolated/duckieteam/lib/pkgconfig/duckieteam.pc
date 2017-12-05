@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckieteam
-
-Name: duckieteam
-Description: Description of duckieteam
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckieteam/lib 
-Requires: 

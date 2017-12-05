@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckie_rr_bridge
-
-Name: duckie_rr_bridge
-Description: Description of duckie_rr_bridge
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/duckie_rr_bridge/lib 
-Requires: RobotRaconteur duckietown_msgs rospy std_msgs sensor_msgs

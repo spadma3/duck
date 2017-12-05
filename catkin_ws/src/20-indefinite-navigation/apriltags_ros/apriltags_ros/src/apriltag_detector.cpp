@@ -103,6 +103,8 @@ namespace apriltags_ros{
       tag_detection.pose = tag_pose;
       tag_detection.id = detection.id;
       tag_detection.size = tag_size;
+      tag_detection.center_x = detection.cxy.first;
+      tag_detection.center_y = detection.cxy.second;
       tag_detection_array.detections.push_back(tag_detection);
       tag_pose_array.poses.push_back(tag_pose.pose);
 

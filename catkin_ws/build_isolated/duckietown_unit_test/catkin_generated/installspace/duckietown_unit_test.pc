@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/install_isolated
-
-Name: duckietown_unit_test
-Description: Description of duckietown_unit_test
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/install_isolated/lib 
-Requires: 

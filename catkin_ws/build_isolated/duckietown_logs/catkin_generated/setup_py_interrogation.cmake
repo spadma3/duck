@@ -1,6 +1,0 @@
-set(duckietown_logs_SETUP_PY_VERSION "1.0.0")
-set(duckietown_logs_SETUP_PY_SCRIPTS "")
-set(duckietown_logs_SETUP_PY_PACKAGES "duckietown_logs")
-set(duckietown_logs_SETUP_PY_PACKAGE_DIRS "include/duckietown_logs")
-set(duckietown_logs_SETUP_PY_MODULES "")
-set(duckietown_logs_SETUP_PY_MODULE_DIRS "")

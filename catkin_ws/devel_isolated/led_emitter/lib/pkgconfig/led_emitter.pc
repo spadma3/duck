@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/led_emitter
-
-Name: led_emitter
-Description: Description of led_emitter
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/led_emitter/lib 
-Requires: 

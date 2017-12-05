@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/led_interpreter
-
-Name: led_interpreter
-Description: Description of led_interpreter
-Version: 1.0.0
-Cflags: -I/home/yunfantang/duckietown/catkin_ws/src/40-coordination/led_interpreter/include
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/led_interpreter/lib -lled_interpreter
-Requires: duckietown_msgs roscpp rospy

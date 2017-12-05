@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/dt_augmented_reality_swaggyduck
-
-Name: dt_augmented_reality_swaggyduck
-Description: Description of dt_augmented_reality_swaggyduck
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/dt_augmented_reality_swaggyduck/lib 
-Requires: 

@@ -1,6 +1,0 @@
-set(dt_filtering_swaggyduck_SETUP_PY_VERSION "1.0.0")
-set(dt_filtering_swaggyduck_SETUP_PY_SCRIPTS "")
-set(dt_filtering_swaggyduck_SETUP_PY_PACKAGES "dt_filtering_swaggyduck")
-set(dt_filtering_swaggyduck_SETUP_PY_PACKAGE_DIRS "include/dt_filtering_swaggyduck")
-set(dt_filtering_swaggyduck_SETUP_PY_MODULES "")
-set(dt_filtering_swaggyduck_SETUP_PY_MODULE_DIRS "")

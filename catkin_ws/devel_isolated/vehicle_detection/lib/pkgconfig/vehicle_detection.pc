@@ -1,8 +1,0 @@
-prefix=/home/yunfantang/duckietown/catkin_ws/devel_isolated/vehicle_detection
-
-Name: vehicle_detection
-Description: Description of vehicle_detection
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/yunfantang/duckietown/catkin_ws/devel_isolated/vehicle_detection/lib 
-Requires: 
