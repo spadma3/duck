@@ -342,7 +342,7 @@ class VehicleCoordinator():
 
 
 
-    #approach 2
+    #approach 2(left bot visible)
     #SIGNAL_A = YELLOW, SIGNAL_B = GREEN, SIGNAL_C = RED
     def reconsider(self):
         if self.state == State.LANE_FOLLOWING:
