@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "ros/ros.h"
+#include <ros/console.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include "std_msgs/String.h"
@@ -16,6 +17,7 @@
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
+#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <gtsam/nonlinear/Marginals.h>
 #include <gtsam/nonlinear/Values.h>
 #include <gtsam/inference/Symbol.h>
@@ -30,8 +32,8 @@ using namespace gtsam;
 NonlinearFactorGraph graph;
 Values initialEstimate;
 Values result;
-noiseModel::Diagonal::shared_ptr measurementNoise = noiseModel::Diagonal::Sigmas((Vector(2) << 0.1, 0.2));
-noiseModel::Diagonal::shared_ptr odomNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.2, 0.2, 0.3));
+noiseModel::Diagonal::shared_ptr measurementNoise = noiseModel::Diagonal::Sigmas((Vector(2) << 0.05, 0.05));
+noiseModel::Diagonal::shared_ptr odomNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.05, 0.01, 0.5));
 set<int> tagsSeen;
 
 // current pose will change every odometry measurement.
@@ -45,13 +47,15 @@ double lastTimeSecs;
 ros::Publisher marker_pub;
 ros::Publisher marker_arr_pub;
 
+
 #define ADD_ACTION 0
 #define OPTIMIZE_ACTION 1
 
-visualization_msgs::Marker make_marker(int marker_id, uint8_t action, double x, double y, double theta)
+visualization_msgs::Marker make_pose_marker(int marker_id, uint8_t action, double x, double y, double theta)
 {
 	visualization_msgs::Marker marker;
 
+	// TODO: Change for <veh name>
 	marker.header.frame_id = "misteur";
 	marker.header.stamp = ros::Time::now();
 
@@ -62,8 +66,6 @@ visualization_msgs::Marker make_marker(int marker_id, uint8_t action, double x, 
 	marker.type = visualization_msgs::Marker::ARROW;
 
 	// Both ADD and MODIFY have the same value
-	// TODO: we might have to explicitly send a command to DELETE the
-	// markers when calling modify
 	marker.action = visualization_msgs::Marker::ADD;
 
 	// Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
@@ -109,6 +111,59 @@ visualization_msgs::Marker make_marker(int marker_id, uint8_t action, double x, 
 	return marker;
 }
 
+visualization_msgs::Marker make_april_marker(int marker_id, uint8_t action, double x, double y)
+{
+	visualization_msgs::Marker marker;
+
+	// TODO: Change for <veh name>
+	marker.header.frame_id = "misteur";
+	marker.header.stamp = ros::Time::now();
+
+	// Set the namespace and id for this marker.  This serves to create a unique ID
+	// Any marker sent with the same namespace and id will overwrite the old one
+	marker.ns = "multislam";
+	marker.id = marker_id;
+	marker.type = visualization_msgs::Marker::CUBE;
+
+	// Both ADD and MODIFY have the same value
+	marker.action = visualization_msgs::Marker::ADD;
+
+	// Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
+	marker.pose.position.x = x;
+	marker.pose.position.y = y;
+	marker.pose.position.z = 0;
+
+	marker.pose.orientation.x = 0.0;
+	marker.pose.orientation.y = 0.0;
+	marker.pose.orientation.z = 0.0;
+	marker.pose.orientation.w = 0.0;
+
+	// Set the scale of the marker
+	marker.scale.x = 0.2;
+	marker.scale.y = 0.2;
+	marker.scale.z = 0.2;
+
+	if (action == ADD_ACTION)
+	{
+		// Set new markers red (they haven't been optimized yet)
+		marker.color.r = 1.0f;
+		marker.color.g = 0.0f;
+		marker.color.b = 0.0f;
+		marker.color.a = 1.0;
+	} else {
+		// Set modified (i.e. optimized) markers green
+		marker.color.r = 0.0f;
+		marker.color.g = 1.0f;
+		marker.color.b = 0.0f;
+		marker.color.a = 1.0;
+	}
+
+	marker.lifetime = ros::Duration(120); // 2 mins
+
+	return marker;
+}
+
+
 
 void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
 {
@@ -118,6 +173,7 @@ void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
     float x = it->pose.pose.position.x;
     float y = it->pose.pose.position.y;
     float range = std::sqrt(x*x + y*y);
+    // TODO: Check that this makes sense
     Rot2 bearing = Rot2::atan2(y,x);
     graph.add(BearingRangeFactor<Pose2, Point2>(curposeindex, l, bearing, range, measurementNoise));
 
@@ -138,15 +194,16 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
   // float32 v
   // float32 omega
   curposeindex += 1;
-  printf("%d", curposeindex);
 
   double timeNowSecs = ros::Time::now().toSec();
   double delta_t = timeNowSecs - lastTimeSecs;
+  printf("delta_t: %f    ", delta_t);
   lastTimeSecs = timeNowSecs;
 
   // maybe msg.omega needs to be switched to degrees/radians?
   double delta_d = delta_t * msg->v;
   double delta_theta = delta_t * msg->omega;
+  printf("delta_theta: %f\n", delta_theta);
   graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
 
   curx += cos(curtheta) * delta_d;
@@ -155,31 +212,38 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
   initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
 
   // Visualize
-  marker_pub.publish(make_marker(curposeindex, ADD_ACTION, curx, cury, curtheta));
+  marker_pub.publish(make_pose_marker(curposeindex, ADD_ACTION, curx, cury, curtheta));
 }
 
 void optimizeCallback(const ros::TimerEvent&)
 {
   LevenbergMarquardtOptimizer optimizer(graph, initialEstimate);
   result = optimizer.optimize();
-  result.print("Final Result:\n");
+  //result.print("Final Result:\n");
+  printf("Error: %f\n", optimizer.state().error);
 
   visualization_msgs::MarkerArray ma;
 
-  // TODO: When we'll have april tags, we might have to differentiate in the
-  // loop (to cast for a Pose2 or Point2)
-  // maybe look at https://github.com/devbharat/gtsam/blob/5f15d264ed639cb0add335e2b089086141127fff/gtsam/nonlinear/tests/testValues.cpp
   BOOST_FOREACH(const Values::KeyValuePair& key_val, result)
   {
 	  visualization_msgs::Marker marker;
-	  const Pose2 &val = dynamic_cast<const Pose2&>(key_val.value);
-	  marker = make_marker(key_val.key, OPTIMIZE_ACTION,
-			       val.x(), val.y(), val.theta());
+	  if (typeid(key_val.value) == typeid(Pose2))
+	  {
+		  const Pose2 &val = dynamic_cast<const Pose2&>(key_val.value);
+		  marker = make_pose_marker(key_val.key, OPTIMIZE_ACTION,
+		  		       val.x(), val.y(), val.theta());
+	  } else if (typeid(key_val.value) == typeid(Point2)) {
+		  const Point2 &val = dynamic_cast<const Point2&>(key_val.value);
+		  marker = make_april_marker(key_val.key, OPTIMIZE_ACTION,
+					     val.x(), val.y());
+	  } else {
+		  ROS_WARN_ONCE("optimizeCallback: Unknown value type");
+	  }
+
 	  ma.markers.push_back(marker);
   }
 
   marker_arr_pub.publish(ma);
-
 }
 
 void vizCallback(const ros::TimerEvent&)
@@ -198,7 +262,7 @@ int main(int argc, char **argv)
   lastTimeSecs = ros::Time::now().toSec();
 
   // Prior on the first pose, set at the origin
-  noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.3, 0.3, 0.1));
+  noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas((Vector(3) << 0.0001, 0.0001, 0.0001));
   graph.add(PriorFactor<Pose2>(0, Pose2(0, 0, 0), priorNoise));
   initialEstimate.insert(0, Pose2(0.0, 0.0, 0.0));
 
@@ -208,7 +272,7 @@ int main(int argc, char **argv)
   // Listen to apriltags
   ros::Subscriber aprilsub = n.subscribe("/misteur/apriltags_postprocessing_node/apriltags_out", 1000, aprilcallback);
   // Listen to velocity msgs
-  ros::Subscriber velsub = n.subscribe("/misteur/joy_mapper_node/car_cmd", 1000, velcallback);
+  ros::Subscriber velsub = n.subscribe("/misteur/car_cmd_switch_node/cmd", 1000, velcallback);
 
 
   // Optimize using Levenberg-Marquardt optimization. The optimizer
