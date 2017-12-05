@@ -103,7 +103,7 @@ class VehicleCoordinator():
 #adjust reconsider methods below accordingly
 
     #approach 0(last year's code)
-    def set_state0(self, state):
+    def set_state(self, state):
         self.state = state
         self.last_state_transition = time()
 
@@ -152,7 +152,7 @@ class VehicleCoordinator():
 
 
     #approach 2
-    def set_state(self, state):
+    def set_state2(self, state):
         self.state = state
         self.last_state_transition = time()
         if self.state == State.NO_COLOR_QUEUE:
@@ -221,7 +221,7 @@ class VehicleCoordinator():
 #vvvvvvvvv different reconsider methods for different approaches vvvvvvvvvvvvvvv
 
     #approach 0(last year's code)
-    def reconsider0(self):
+    def reconsider(self):
         if self.state == State.LANE_FOLLOWING:
             if self.mode == 'COORDINATION':
                 self.reset_signals_detection()
@@ -230,13 +230,17 @@ class VehicleCoordinator():
                 else:
                     self.set_state(State.AT_STOP_CLEARING)
         elif self.state == State.AT_STOP_CLEARING:
-            if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
+            if (self.right_veh != SignalsDetection.NO_CAR or 
+                self.opposite_veh == SignalsDetection.SIGNAL_B or 
+                self.opposite_veh == SignalsDetection.SIGNAL_C):
                 self.set_state(State.AT_STOP_CLEARING)
             elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
                 self.set_state(State.AT_STOP_CLEAR)
 
         elif self.state == State.AT_STOP_CLEAR:
-            if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
+            if (self.right_veh != SignalsDetection.NO_CAR or 
+                self.opposite_veh == SignalsDetection.SIGNAL_B or 
+                self.opposite_veh == SignalsDetection.SIGNAL_C):
                 self.set_state(State.AT_STOP_CLEARING)
             else:
                 self.set_state(State.RESERVING)
@@ -254,7 +258,9 @@ class VehicleCoordinator():
             if self.mode == 'LANE_FOLLOWING':
                 self.set_state(State.LANE_FOLLOWING)
         elif self.state == State.CONFLICT:
-            if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
+            if (self.right_veh != SignalsDetection.NO_CAR or 
+                self.opposite_veh == SignalsDetection.SIGNAL_B or 
+                self.opposite_veh == SignalsDetection.SIGNAL_C):
                 self.set_state(State.AT_STOP_CLEARING)
             elif self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEAR)
@@ -306,7 +312,7 @@ class VehicleCoordinator():
 
     #approach 2
     #SIGNAL_A = YELLOW, SIGNAL_B = GREEN, SIGNAL_C = RED
-    def reconsider(self):
+    def reconsider2(self):
         if self.state == State.LANE_FOLLOWING:
             if self.mode == 'COORDINATION':
                 self.reset_signals_detection()
@@ -330,7 +336,7 @@ class VehicleCoordinator():
                 #?? can if statement here go into a very long loop ??
             else:
                 self.set_state(State.NEGOTIATION_QUEUE)
-        elif self.state == State.RED_QUEUE:#you are in the red queue, meaning waiting for current negotiation to end
+        elif self.state == State.RED_QUEUE:#you are in the red queue, waiting for current negotiation to end
             if(self.right_veh == SignalsDetection.SIGNAL_A or 
                 self.right_veh == SignalsDetection.SIGNAL_B or 
                 self.opposite_veh == SignalsDetection.SIGNAL_A or 
@@ -347,9 +353,11 @@ class VehicleCoordinator():
                     self.roof_light = CoordinationSignal.SIGNAL_A
                     self.set_state(State.GO)
             #todo: if two reds waiting for yellow, and yellow is gone:
-            #   if one red turns green before second can catch its red color, bots from no_color_queue will join the red
+            #   if one red turns green before second can catch its red color, 
+            #bots from no_color_queue will join the red
             #   this might lead to starvation
-            #   maybe keep track of spots of old green/yellow bots so that red seeing a new green can still turn green?
+            #   maybe keep track of spots of old green/yellow bots so that red 
+            #seeing a new green can still turn green?
         elif self.state == State.NEGOTIATION_QUEUE:
             #self.random_delay = random() * self.T_MAX_RANDOM
             rospy.sleep(random() * self.T_MAX_RANDOM)
@@ -357,7 +365,8 @@ class VehicleCoordinator():
                 self.opposite_veh == SignalsDetection.SIGNAL_A or
                 self.left_veh == SignalsDetection.SIGNAL_A):
                 rospy.sleep(self.T_CROSS + self.T_SENSE)
-                #or set state to negotiation_queue and do: if self.time_at_current_state() > self.T_CROSS + self.T_SENSE:         
+                #or set state to negotiation_queue and do: 
+                #if self.time_at_current_state() > self.T_CROSS + self.T_SENSE:         
                 self.set_state(State.NEGOTIATION_QUEUE)
             else:#no negotiators about to go(yellow)
                 self.roof_light = CoordinationSignal.SIGNAL_A
