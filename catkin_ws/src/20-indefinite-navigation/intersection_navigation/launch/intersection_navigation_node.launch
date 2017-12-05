@@ -1,0 +1,7 @@
+<launch>
+	<arg name="robot_name" default="daisy" />
+	<node name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~robot_name" value="$(arg robot_name)"/>
+	</node>
+</launch>
