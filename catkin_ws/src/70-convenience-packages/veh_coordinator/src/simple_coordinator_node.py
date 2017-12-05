@@ -104,8 +104,9 @@ class VehicleCoordinator():
 
     #approach 0(last year's code)
     def set_state(self, state):
+        if self.state != state:
+            self.last_state_transition = time()
         self.state = state
-        self.last_state_transition = time()
 
         if self.state == State.AT_STOP_CLEARING:
             self.reset_signals_detection()
@@ -238,12 +239,12 @@ class VehicleCoordinator():
                 self.opposite_veh == SignalsDetection.SIGNAL_B or 
                 self.opposite_veh == SignalsDetection.SIGNAL_C):
                 self.set_state(State.AT_STOP_CLEARING)
-                rospy.loginfo("entered clearing")
-                rospy.loginfo("time at current step is [%s]" % str(self.time_at_current_state()))
-                
+                #rospy.loginfo("entered clearing")
+                #rospy.loginfo("time at current step is [%s]" % str(self.time_at_current_state()))
+
             elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
                 self.set_state(State.AT_STOP_CLEAR)
-                rospy.loginfo("entered other branch")
+                #rospy.loginfo("entered other branch")
 
         elif self.state == State.AT_STOP_CLEAR:
             if (self.right_veh != SignalsDetection.NO_CAR or 
