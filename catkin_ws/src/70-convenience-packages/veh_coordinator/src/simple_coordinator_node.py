@@ -123,9 +123,11 @@ class VehicleCoordinator():
 
         if self.state == State.GO:
             self.clearance_to_go = CoordinationClearance.GO
+            rospy.loginfo("I GOOOOOOOO ")
         else:
             self.clearance_to_go = CoordinationClearance.WAIT
 
+        rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
         rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
 
 
@@ -145,9 +147,11 @@ class VehicleCoordinator():
         
         if self.state == State.GO:
             self.clearance_to_go = CoordinationClearance.GO
+            rospy.loginfo("I GOOOOOOOO ")
         else:
             self.clearance_to_go = CoordinationClearance.WAIT
 
+        rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
         rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
 
 
@@ -165,11 +169,11 @@ class VehicleCoordinator():
             self.roof_light = CoordinationSignal.OFF
         if self.state == State.GO:
             self.clearance_to_go = CoordinationClearance.GO
-            #rospy.loginfo("GOOOOOOOO pls")
+            rospy.loginfo("I GOOOOOOOO ")
         else:
             self.clearance_to_go = CoordinationClearance.WAIT
 
-        #rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
+        rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
         rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
 
     #approach 3
