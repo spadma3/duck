@@ -238,8 +238,12 @@ class VehicleCoordinator():
                 self.opposite_veh == SignalsDetection.SIGNAL_B or 
                 self.opposite_veh == SignalsDetection.SIGNAL_C):
                 self.set_state(State.AT_STOP_CLEARING)
+                rospy.loginfo("entered clearing")
+                rospy.loginfo("time at current step is [%s]" % str(self.time_at_current_state()))
+                
             elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
                 self.set_state(State.AT_STOP_CLEAR)
+                rospy.loginfo("entered other branch")
 
         elif self.state == State.AT_STOP_CLEAR:
             if (self.right_veh != SignalsDetection.NO_CAR or 
@@ -389,8 +393,30 @@ class VehicleCoordinator():
             if self.traffic_light == SignalsDetection.GO:
                 self.set_state(State.GO)
 
+
+
     #approach 3
-    #todo
+    #SIGNAL_A, SIGNAL_B, SIGNAL_C
+    # def reconsider3(self):
+    #     if self.state == State.LANE_FOLLOWING:
+    #         if self.mode == 'COORDINATION':
+    #             self.reset_signals_detection()
+    #             if self.traffic_light_intersection:
+    #                 self.set_state(State.TL_SENSING)
+    #             else:
+    #                 self.set_state(State.AT_STOP_CLEARING)
+    #     elif self.state == ...
+
+
+
+
+    #     elif self.state == State.GO:
+    #         if self.mode == 'LANE_FOLLOWING':
+    #             self.set_state(State.LANE_FOLLOWING)
+    #     elif self.state == State.TL_SENSING:
+    #         if self.traffic_light == SignalsDetection.GO:
+    #             self.set_state(State.GO)
+
 
 #^^^^^^^^^^^^^^^^ end of reconsider methods ^^^^^^^^^^^^^^^^^^^^66
 
