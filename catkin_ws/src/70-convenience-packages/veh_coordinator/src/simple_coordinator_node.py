@@ -240,7 +240,7 @@ class VehicleCoordinator():
                 self.opposite_veh == SignalsDetection.SIGNAL_C):
                 self.set_state(State.AT_STOP_CLEARING)
                 #rospy.loginfo("entered clearing")
-                #rospy.loginfo("time at current step is [%s]" % str(self.time_at_current_state()))
+                rospy.loginfo("time at current step is [%s]" % str(self.time_at_current_state()))
 
             elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
                 self.set_state(State.AT_STOP_CLEAR)
