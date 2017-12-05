@@ -35,7 +35,9 @@ class State:
     NEGOTIATION_QUEUE = 'NEGOTIATION_QUEUE'
 
     #approach 3
-    #todo
+    #LANE_FOLLOWING, GO, TL_SENSING
+    CHECKING = 'CHECKING'
+    WAIT = 'WAIT'
 
 
 class VehicleCoordinator():
@@ -177,8 +179,29 @@ class VehicleCoordinator():
         rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
         rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
 
-    #approach 3
-    #todo
+
+    #approach 3(exponential backoff)
+    def set_state3(self, state):
+        if self.state != state:
+            self.last_state_transition = time()
+        self.state = state
+
+        if self.state == State.CHECKING:
+            self.roof_light = CoordinationSignal.SIGNAL_A
+        elif self.state == State.WAIT:
+            self.roof_light = CoordinationSignal.SIGNAL_B
+        else:
+            self.roof_light = CoordinationSignal.OFF
+
+        if self.state == State.GO:
+            self.clearance_to_go = CoordinationClearance.GO
+            rospy.loginfo("I GOOOOOOOO ")
+        else:
+            self.clearance_to_go = CoordinationClearance.WAIT
+
+        rospy.loginfo("I AM CHANGING STATE TO: [%s]" %(state))
+        rospy.logdebug('[simple_coordination_node] Transitioned to state' + self.state)
+
 
 #^^^^^^^^^^^^^^ end of set_state methods ^^^^^^^^^^^^^^^^^^^^^ 
 
@@ -397,26 +420,35 @@ class VehicleCoordinator():
 
 
     #approach 3
-    #SIGNAL_A, SIGNAL_B, SIGNAL_C
-    # def reconsider3(self):
-    #     if self.state == State.LANE_FOLLOWING:
-    #         if self.mode == 'COORDINATION':
-    #             self.reset_signals_detection()
-    #             if self.traffic_light_intersection:
-    #                 self.set_state(State.TL_SENSING)
-    #             else:
-    #                 self.set_state(State.AT_STOP_CLEARING)
-    #     elif self.state == ...
+    #SIGNAL_A = CHECKING, SIGNAL_B = WAIT
+    def reconsider3(self):
+        if self.state == State.LANE_FOLLOWING:
+            if self.mode == 'COORDINATION':
+                self.reset_signals_detection()
+                if self.traffic_light_intersection:
+                    self.set_state(State.TL_SENSING)
+                else:
+                    self.set_state(State.CHECKING)
+        elif self.state == State.CHECKING:
+            if(False)#anyone in the intersection(??? how do we check this?)
+                self.set_state(State.WAIT)
+            elif(self.right_veh != CoordinationSignal.SIGNAL_A and
+                self.opposite_veh != CoordinationSignal.SIGNAL_A):
+                self.set_state(State.GO)
+            elif(self.right_veh == CoordinationSignal.SIGNAL_A or
+                self.opposite_veh == CoordinationSignal.SIGNAL_A):
+                self.set_state(State.WAIT)
+        elif self.state == State.WAIT:
+            rospy.sleep(random() * self.T_MAX_RANDOM)
+            self.set_state(State.CHECKING)
 
 
-
-
-    #     elif self.state == State.GO:
-    #         if self.mode == 'LANE_FOLLOWING':
-    #             self.set_state(State.LANE_FOLLOWING)
-    #     elif self.state == State.TL_SENSING:
-    #         if self.traffic_light == SignalsDetection.GO:
-    #             self.set_state(State.GO)
+        elif self.state == State.GO:
+            if self.mode == 'LANE_FOLLOWING':
+                self.set_state(State.LANE_FOLLOWING)
+        elif self.state == State.TL_SENSING:
+            if self.traffic_light == SignalsDetection.GO:
+                self.set_state(State.GO)
 
 
 #^^^^^^^^^^^^^^^^ end of reconsider methods ^^^^^^^^^^^^^^^^^^^^66
