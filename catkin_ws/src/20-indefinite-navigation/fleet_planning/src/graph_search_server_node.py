@@ -23,7 +23,7 @@ class graph_search_server():
         self.map_img_path = self.map_path + '_map'
         self.tiles_dir = os.path.abspath(
             self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
-        self.customer_icon_path = os.path.abspath(self.script_dir + '../gui_images/customer_duckie.jpg')
+        self.customer_icon_path = os.path.abspath(self.script_dir + '/../include/gui_images/customer_duckie.jpg')
 
         # build and init graphs
         gc = graph_creator()
@@ -43,6 +43,7 @@ class graph_search_server():
 
         # image used to store all start, customer and target icons at their positions
         #self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 3), dtype = np.uint8)
+        print(self.customer_icon_path)
         self.customer_icon = cv2.resize(cv2.imread(self.customer_icon_path), (30, 30))
         
         overlay = self.prepImage()
@@ -83,23 +84,26 @@ class graph_search_server():
         # loop through all trips currently in existence. For each trip,
         # draw the start, customer and target icons next to the corresponding 
         # label of the graph node. 
+        
         tf = Transformer(80, self.map_img.shape[1] / 80)  # TODO: better way to get the map dimensions?
         for trip in trips:
             print "drawing trip's icons..."
-            
-            x_start = 50
+
+            customer_location = tf.map_to_image(trip[1])
+            print("customer location: ", customer_location)
+            x_start = customer_location[0]
             x_end = x_start + self.customer_icon.shape[0]
-            y_start = 50
+            y_start = customer_location[1]
             y_end = y_start + self.customer_icon.shape[1]
 
         map_image[x_start:x_end, y_start:y_end, :] = self.customer_icon
 
             # self.icon_image = 
-        for node in self.duckietown_graph._nodes:
-            node_location = np.round(self.duckietown_graph.get_node_pos(node) * 80)  # tile_length = 80 pixels
-            self.icon_image[node_location[0], node_location[1], 0] = 255  # R
-            self.icon_image[node_location[0], node_location[1], 1] = 0  # G
-            self.icon_image[node_location[0], node_location[1], 2] = 0  # B
+        # for node in self.duckietown_graph._nodes:
+        #     node_location = np.round(self.duckietown_graph.get_node_pos(node) * 80)  # tile_length = 80 pixels
+        #     self.icon_image[node_location[0], node_location[1], 0] = 255  # R
+        #     self.icon_image[node_location[0], node_location[1], 1] = 0  # G
+        #     self.icon_image[node_location[0], node_location[1], 2] = 0  # B
         # self.duckietown_graph.graph.get_node_posi
          # mask = cv2.cvtColor(self.icon_image, cv2.COLOR_BGR2GRAY)
         # ret, mask = cv2.threshold(mask, 10, 255, cv2.THRESH_BINARY)
@@ -122,7 +126,7 @@ class graph_search_server():
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
         overlay = self.prepImage()
-        overlay = self.draw_icons(overlay, trips = [2, 2, 2])
+        overlay = self.draw_icons(overlay, trips = [[0, 1], [2, 1], [3, 3]])
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def prepImage(self):
