@@ -43,7 +43,7 @@ class graph_search_server():
 
         # image used to store all start, customer and target icons at their positions
         #self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 3), dtype = np.uint8)
-        self.customer_icon = cv2.resize(cv2.imread(self.customer_icon_path), (30, 30, 3))
+        self.customer_icon = cv2.resize(cv2.imread(self.customer_icon_path), (30, 30))
         
         overlay = self.prepImage()
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
