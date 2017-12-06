@@ -111,6 +111,9 @@ class lane_controller(object):
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
+        curvature = 1 / (43.5 - 20.5/2) # TODO: change! Should come from a message from e.g. lane_filter_node!
+        omega_feedforward = self.v_bar * curvature * 2 * math.pi
+
         cross_track_err = lane_pose_msg.d - self.d_offset
         heading_err = lane_pose_msg.phi
 
@@ -120,7 +123,7 @@ class lane_controller(object):
 
         if math.fabs(cross_track_err) > self.d_thres:
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
-        car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err #*self.steer_gain #Right stick H-axis. Right is negative
+        car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err + omega_feedforward #*self.steer_gain #Right stick H-axis. Right is negative
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
