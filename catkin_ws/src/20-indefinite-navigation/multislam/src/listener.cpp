@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <set>
 #include <math.h>
-#include <fstream>
 
 #include "ros/ros.h"
 #include <ros/console.h>
@@ -246,13 +245,6 @@ void optimizeCallback(const ros::TimerEvent&)
   marker_arr_pub.publish(ma);
 }
 
-void vizCallback(const ros::TimerEvent&)
-{
-  ofstream os("/home/samlaf/winning.dot");
-  graph.saveGraph(os, result);
-  printf("\n\n\n printed graph to os gogo \n\n\n");
-}
-
 int main(int argc, char **argv)
 {
 
@@ -266,31 +258,16 @@ int main(int argc, char **argv)
   graph.add(PriorFactor<Pose2>(0, Pose2(0, 0, 0), priorNoise));
   initialEstimate.insert(0, Pose2(0.0, 0.0, 0.0));
 
+  // Publishers
   marker_pub = n.advertise<visualization_msgs::Marker>("graph_visualization", 1);
   marker_arr_pub = n.advertise<visualization_msgs::MarkerArray>("graph_visualization_arr", 1);
 
-  // Listen to apriltags
+  // Subscribers
   ros::Subscriber aprilsub = n.subscribe("/misteur/apriltags_postprocessing_node/apriltags_out", 1000, aprilcallback);
-  // Listen to velocity msgs
   ros::Subscriber velsub = n.subscribe("/misteur/car_cmd_switch_node/cmd", 1000, velcallback);
-
-
-  // Optimize using Levenberg-Marquardt optimization. The optimizer
-  // accepts an optional set of configuration parameters, controlling
-  // things like convergence criteria, the type of linear system solver
-  // to use, and the amount of information displayed during optimization.
-  // Here we will use the default set of parameters.  See the
-  // documentation for the full set of parameters.
 
   ros::Timer opttimer = n.createTimer(ros::Duration(1), optimizeCallback);
   initialEstimate.print("\nInitial Estimate:\n");
-
-//  ros::Timer viztimer = n.createTimer(ros::Duration(60), vizCallback);
-
-
-  // Calculate and print marginal covariances for all variables
-  // Marginals marginals(graph, result);
-  // print(marginals.marginalCovariance(1), "1 covariance");
 
   ros::spin();
   return 0;
