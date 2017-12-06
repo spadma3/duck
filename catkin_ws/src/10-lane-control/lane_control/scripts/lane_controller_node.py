@@ -120,6 +120,12 @@ class lane_controller(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
+
+        # if ~isempty(self.stop_line_reading):
+        #     x_0=0.015 # Set Distance in metre before stop line where we want to stop.
+        #     v_deacc=(stop_line_reading.x-x0)*self.v_bar
+        #     self.v_bar = self.setupParameter("~v_bar",v_deacc)
+
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(cross_track_err) > self.d_thres:
