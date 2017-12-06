@@ -38,21 +38,4 @@ subscriptions:
         topic: ~lane_pose
         type: duckietown_msgs/LanePose
         queue_size: 1
-
-    #  lane_reading_intersection_navigation:
-    #      type: duckietown_msgs/LanePose
-          #      topic: ~lane_pose_intersection_navigation
-    #      queue_size:                 1
-
-#      lane_reading_obstacle_avoidance:
-#          topic: ~lane_pose_obstacle_avoidance
-#          type: duckietown_msgs/LanePose
-#          queue_size:         1
-
-#      lane_reading_parking:
-#          topic: ~lane_pose_parking
-#          type:  duckietown_msgs/LanePose
-#          queue_size: 1
-
-
-#contracts: {}
+contracts: {}
