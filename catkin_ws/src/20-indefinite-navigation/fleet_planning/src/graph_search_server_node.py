@@ -87,7 +87,7 @@ class graph_search_server():
         
         tf = Transformer(80, self.map_img.shape[1] / 80)  # TODO: better way to get the map dimensions?
         for trip in trips:
-            print "drawing trip's icons..."
+            print "drawing trip's icons...", trip
 
             customer_location = tf.map_to_image(trip[1])
             print "customer location: ", customer_location
