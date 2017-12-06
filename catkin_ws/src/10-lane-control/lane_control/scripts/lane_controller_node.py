@@ -123,7 +123,7 @@ class lane_controller(object):
         car_control_msg.header = lane_pose_msg.header
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
-        print("self.v_bar = ", self.v_bar, "\n")
+        # print("self.v_bar = ", self.v_bar, "\n") # only to show that self.v_var is set by an external file (probably Software/catkin_ws/src/00-infrastructure/duckietown/config/baseline/lane_control/lane_controller_node/default.yaml)
 
         if math.fabs(cross_track_err) > self.d_thres:
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
