@@ -13,6 +13,94 @@ from picamera.array import PiRGBArray
 from duckietown_utils import get_duckiefleet_root
 from duckietown_msgs.msg import BoolStamped
 
+def colorFilter(img, color, thresh=None):
+    # threshold colors in HSV space
+    '''TODO: use the previous kmeans estimate +- some range to be the threshold colors'''
+    if thresh is not None:
+        thresh = np.resize(np.uint8(thresh), (thresh.shape[0], 1, 3))
+        thresh = cv2.cvtColor(thresh, cv2.COLOR_BGR2HSV)
+        t1, t2 = thresh[0:2, ...]
+    if color == 'white':
+        if thresh is None:
+            t1, t2 = hsv_white1, hsv_white2
+        bw = cv2.inRange(img, t1, t2)
+    elif color == 'yellow':
+        if thresh is None:
+            t1, t2 = hsv_yellow1, hsv_yellow2
+        bw = cv2.inRange(img, t1, t2)
+    elif color == 'red':
+        if thresh is None:
+            t1, t2, t3, t4 = hsv_red1, hsv_red2, hsv_red3, hsv_red4
+        else:
+            t3, t4 = thresh[2:4, ...]
+        bw1 = cv2.inRange(img, t1, t2)
+        bw2 = cv2.inRange(img, t3, t4)
+        bw = cv2.bitwise_or(bw1, bw2)
+    else:
+        raise Exception('Error: Undefined color strings...')
+
+    # binary dilation
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    bw = cv2.dilate(bw, kernel)
+    return bw
+
+
+def processGeom(img, viz=False):
+    # first narrow scope to surface of lane to avoid extraneous info
+    surf = identifyLaneSurface(img, use_hsv=False, grad_thresh=30)
+    img = np.expand_dims(surf, -1) * img
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    colors = ['white', 'yellow', 'red']
+    masks = {}
+    for color in colors:
+        # filter colors to get binary mask
+        bw = colorFilter(hsv, color, thresh=None)
+
+        # find contours based on binary mask, filter out small noise
+        _, contours, _ = cv2.findContours(bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours = [contour for contour in contours if contour.shape[0] >= 30]
+
+        # create the masks, store only when nonempty
+        mask = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
+        cv2.drawContours(mask, contours, -1, 1, -1)
+        if len(np.unique(mask)) > 1:
+            masks[color] = mask
+
+    if viz:
+        tot = np.zeros_like(img)
+        for col in masks:
+            mimg = np.expand_dims(masks[col], -1) * img
+            tot += mimg
+
+    return tot
+
+
+# this has problems with specular reflections
+def identifyLaneSurface(img, use_hsv=False, visualize=False, grad_thresh=30):
+    h, w = img.shape[:2]
+    img_for_grad = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) if use_hsv else img
+    dx = cv2.Sobel(img_for_grad, cv2.CV_32F, 1, 0)
+    dy = cv2.Sobel(img_for_grad, cv2.CV_32F, 0, 1)
+    grad = (np.sqrt(np.mean(dx ** 2 + dy ** 2, 2)) > grad_thresh).astype(np.uint8)
+    mask = np.zeros((h + 2, w + 2), np.uint8)
+    y = int(h / 2.0 * 1)
+    for x in range(w):
+        if not (grad[y, x] or mask[y + 1, x + 1]):
+            cv2.floodFill(grad, mask, (x, y), 0,
+                          flags=cv2.FLOODFILL_MASK_ONLY)
+    mask[y + 1:, :] = 1
+    mask[0, :] = 0
+    mask = mask[:, 1:-1]
+    mask_ = np.zeros((h + 4, w + 2), np.uint8)
+    cv2.floodFill(mask, mask_, (0, 0), 0, flags=cv2.FLOODFILL_MASK_ONLY)
+    mask = 1 - mask_[2:-2, 1:-1]
+
+    # added to get rid of wall artifacts post filling
+    m = np.zeros_like(mask)
+    m[mask.shape[0] / 3:, :] = 1
+    mask *= m
+    return mask
+
 class CameraNode(object):
     def __init__(self):
         self.node_name = rospy.get_name()
@@ -87,6 +175,8 @@ class CameraNode(object):
             stamp = rospy.Time.now()
             stream.seek(0)
             stream_data = stream.getvalue()
+            print (stream_data.type)
+            stream_data = processGeom(stream_data,viz=True)
             # Generate compressed image
             image_msg = CompressedImage()
             image_msg.format = "jpeg"
