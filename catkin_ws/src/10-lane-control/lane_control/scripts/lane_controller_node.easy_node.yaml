@@ -38,21 +38,54 @@ subscriptions:
         topic: ~lane_pose
         type: duckietown_msgs/LanePose
         queue_size: 1
+    lane_reading_intersection_navigation:
+          topic: ~lane_pose_intersection_navigation
+          type: duckietown_msgs/ControlMessage
+          queue_size: 1
+    lane_reading_obstacle_avoidance:
+        topic: ~lane_pose_obstacle_avoidance
+        type: duckietown_msgs/ControlMessage
+        queue_size: 1
+    lane_reading_parking:
+        topic: ~lane_pose_parking
+        type: duckietown_msgs/ControlMessage
+        queue_size: 1
+    velocity_command:
+        topic: ~implicit_coordination_velocity
+        type: duckietown_msgs/ControlVelocity
+        queue_size: 1
+    stop_line_reading:
+        topic: ~stop_line_reading
+        type: duckietown_msgs/StopLineReading
+        queue_size: 1
+    flag_at_stop_line:
+        topic: ~flag_at_stop_line
+        type: BoolStamped
+        queue_size: 1
+    flag_stop_line_detected:
+        topic: ~flag_stop_line_detected
+        type: BoolStamped
+        queue_size: 1
+    flag_at_intersection:
+        topic: ~flag_at_intersection
+        type: BoolStamped
+        queue_size: 1
+    flag_obstacle_detected:
+        topic: ~flag_obstacle_detected
+        type: BoolStamped
+        queue_size: 1
+    flag_obstacle_emergency_stop:
+        topic: ~flag_obstacle_emergency_stop
+        type: BoolStamped
+        queue_size: 1
+    flag_at_parking_lot:
+        topic: ~flag_at_parking_lot
+        type: BoolStamped
+        queue_size: 1
+    flag_at_parking_lot:
+        topic: ~flag_at_parking_lot
+        type: BoolStamped
+        queue_size: 1
 
-    #  lane_reading_intersection_navigation:
-    #      type: duckietown_msgs/LanePose
-          #      topic: ~lane_pose_intersection_navigation
-    #      queue_size:                 1
 
-#      lane_reading_obstacle_avoidance:
-#          topic: ~lane_pose_obstacle_avoidance
-#          type: duckietown_msgs/LanePose
-#          queue_size:         1
-
-#      lane_reading_parking:
-#          topic: ~lane_pose_parking
-#          type:  duckietown_msgs/LanePose
-#          queue_size: 1
-
-
-#contracts: {}
+contracts: {}

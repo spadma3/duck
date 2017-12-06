@@ -26,6 +26,9 @@ class lane_controller(object):
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
+        # Integrator
+        self.integrator=0
+
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
@@ -121,6 +124,8 @@ class lane_controller(object):
         if math.fabs(cross_track_err) > self.d_thres:
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
         car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err #*self.steer_gain #Right stick H-axis. Right is negative
+
+
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
