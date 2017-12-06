@@ -1,0 +1,74 @@
+#!/usr/bin/python
+import sys
+import rosbag
+import argparse
+import anti_instagram
+import duckietown_utils as dtu
+import cv2
+from complete_image_pipeline.pipeline import run_pipeline
+
+# Parse input arguments
+parser = argparse.ArgumentParser(description='Read images from a given bag \
+    and parse them through the image processing pipeline \
+    to determine performance of the pose_estimator and lane_controller')
+# parser.add_argument('rosbag', type=str, help='Input rosbag file')
+parser.add_argument('imgIn', type=str, help='Input image file')
+parser.add_argument('output', type=str, help='Output folder where logs are being stored')
+
+# Initialize variables
+args = parser.parse_args()
+# rosbagIN = args.rosbag
+imgIn = args.imageIn
+output = args.output
+ai = AntiInstagram()
+
+# Perform file check
+if not isfile(imgIN):
+    print('The file "%s" does not exist' % imgIN)
+    exit(2)
+
+# Check image integrity
+input = None
+try:
+    input = cv2.imread(imgIN)
+except:
+    print('The file "%s" cannot be decoded' % file)
+    exit(3)
+if img is None:
+    exit(3)
+
+# # Perform file check
+# from os.path import isfile
+# if not isfile(rosbagIN):
+#     print('The file "%s" does not exist' % rosbagIN)
+#     exit(2)
+
+# # Instantiate rosbag Object
+# bag = rosbag.Bag(rosbagIN)
+
+# # Loop through images
+# print('\tCreating thumbnails for rosbag: "%s"' % rosbagIN)
+# messages = list(bag.read_messages(topic))
+# for i in range(len(messages)):
+
+#     img = dtu.rgb_from_ros(messages[i][1])
+#     dtu.write_image_as_jpg(img, '%s/%05d.jpg' % (output, i))
+
+# bag.close()
+
+# Create missing folders
+from os import makedirs
+try:
+    makedirs(output)
+except:
+    pass
+
+detector = 'baseline'
+image_prep = 'prep_200_100'
+
+print("Running image pipeline with %s line_detector and %s" % (detector, image_prep))
+
+# Run image pipeline
+result = run_pipeline(image_cv, line_detector, image_prep)
+cv2.imshow('Input', input)
+cv2.imshow('Result', result)
