@@ -11,8 +11,13 @@
 	<arg name="param_file_name" default="default" />
 	<arg name="line_detector_param_file_name" default="default" />
    	<arg name="anti_instagram" default="true" />
-    <arg name="LED" default="true" /> 
+   	<arg name="LED" default="true" /> 
 	<arg name="intersectionType" value="stopSign" /> 
-    <arg name="coordination" default="true" />     
+    	<arg name="coordination" default="true" />     
+
+	<arg name="/LED/detector" value="true" />
+	<arg name="/LED/interpreter" value="true" />
+	<!-- <arg name="/LED/pattern_switch" value="true" /> -->
+	
 	</include>
 </launch>

@@ -23,8 +23,8 @@ class VehicleCoordinator():
     """The Vehicle Coordination Module for Duckiebot"""
 
     T_MAX_RANDOM = 2.0 # seconds
-    T_CROSS = 6.0  # seconds
-    T_SENSE = 2.0      # seconds
+    T_CROSS = 10  # 6 seconds
+    T_SENSE = 5      # 2 seconds
 
     def __init__(self):
         rospy.loginfo('Coordination Mode Started')
@@ -71,8 +71,12 @@ class VehicleCoordinator():
             rospy.sleep(0.1)
 
     def set_state(self, state):
+	if self.state != state:
+	   self.last_state_transition = time()
+
         self.state = state
-        self.last_state_transition = time()
+        #self.last_state_transition = time()
+	print(self.state)
 
         if self.state == State.AT_STOP_CLEARING:
             self.reset_signals_detection()
@@ -142,7 +146,11 @@ class VehicleCoordinator():
                     self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.AT_STOP_CLEARING:
+	    print(self.right_veh)
+	    print(self.opposite_veh)
+	    print(self.time_at_current_state())
             if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
+		print('Always here!')
                 self.set_state(State.AT_STOP_CLEARING)
             elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
                 self.set_state(State.AT_STOP_CLEAR)
