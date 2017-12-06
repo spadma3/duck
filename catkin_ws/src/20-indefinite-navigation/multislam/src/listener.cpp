@@ -76,7 +76,7 @@ visualization_msgs::Marker make_pose_marker(int marker_id, uint8_t action, doubl
 	const tfScalar pitch = 0.0; // angle around X
 	// Note: curtheta is the theta after the rotation (i.e. we assume rotation is
 	// done already)
-	const tfScalar roll = curtheta; //angle around Z
+	const tfScalar roll = theta; //angle around Z
 	tf::Quaternion q_tf;
 	q_tf.setEuler(yaw, pitch, roll);
 
@@ -172,7 +172,6 @@ void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
     float x = it->pose.pose.position.x;
     float y = it->pose.pose.position.y;
     float range = std::sqrt(x*x + y*y);
-    // TODO: Check that this makes sense
     Rot2 bearing = Rot2::atan2(y,x);
     graph.add(BearingRangeFactor<Pose2, Point2>(curposeindex, l, bearing, range, measurementNoise));
 
@@ -207,7 +206,7 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
 
   curx += cos(curtheta) * delta_d;
   cury += sin(curtheta) * delta_d;
-  curtheta = fmod(curtheta + delta_theta,M_PI);
+  curtheta = fmod(curtheta + delta_theta,2 * M_PI);
   initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
 
   // Visualize
