@@ -370,8 +370,9 @@
 	
 	<!-- Start April Tags -->
 	<group if="$(arg apriltags)">
-		<!-- AprilTags Detections -->
+		<!-- AprilTags Detections -->	
 		<remap from="image_rect" to="camera_node/image/rect" />
+		<!-- <remap from="camera_node/image/rect" to="camera_node/image/compressed" /> -->
 		<remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
 		<remap from="apriltags_detector_node/image_raw" to="camera_node/image/rect"/>
 		<remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>

@@ -17,6 +17,7 @@
 
 	<arg name="/LED/detector" value="true" />
 	<arg name="/LED/interpreter" value="true" />
+	<arg name="/navigation/random_sr_turns" value="true" />
 	<!-- <arg name="/LED/pattern_switch" value="true" /> -->
 	
 	</include>

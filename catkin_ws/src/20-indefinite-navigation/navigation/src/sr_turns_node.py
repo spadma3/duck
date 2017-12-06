@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy
-from duckietown_msgs.msg import FSMState, AprilTags, BoolStamped
+from duckietown_msgs.msg import FSMState, AprilTagDetection, AprilTagDetectionArray, BoolStamped
 from std_msgs.msg import String, Int16 #Imports msg
 
 class SRTurnsNode(object):
