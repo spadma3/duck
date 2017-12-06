@@ -142,6 +142,7 @@ class CameraNode(object):
 
         self.has_published = False
         self.pub_img= rospy.Publisher("~image/compressed",CompressedImage,queue_size=1)
+        self.pub_img_black = rospy.Publisher("~image/black_backgroud",CompressedImage, queue_size=1)
         self.sub_switch_high = rospy.Subscriber("~framerate_high_switch", BoolStamped, self.cbSwitchHigh, queue_size=1)
 
         # Create service (for camera_calibration)
@@ -169,7 +170,7 @@ class CameraNode(object):
     def startCapturing(self):
         rospy.loginfo("[%s] Start capturing." %(self.node_name))
         while not self.is_shutdown and not rospy.is_shutdown():
-            gen =  self.grabAndPublish(self.stream,self.pub_img)
+            gen =  self.grabAndPublish(self.stream,self.pub_img, self.pub_img_black)
             try:
                 self.camera.capture_sequence(gen,'jpeg',use_video_port=True,splitter_port=0)
             except StopIteration:
@@ -181,7 +182,7 @@ class CameraNode(object):
         self.camera.close()
         rospy.loginfo("[%s] Capture Ended." %(self.node_name))
 
-    def grabAndPublish(self,stream,publisher):
+    def grabAndPublish(self,stream,publisher, publisher_black):
         while not self.update_framerate and not self.is_shutdown and not rospy.is_shutdown(): 
             yield stream
             # Construct image_msg
@@ -193,9 +194,16 @@ class CameraNode(object):
             output = processGeom(img_cv,True)
             temp_meg = d8_compressed_image_from_cv_image(output)
             # Generate compressed image
+            image_msg_black = CompressedImage()
+            image_msg_black.format="jpg"
+            image_msg_black.data = temp_meg.data
+            image_msg_black.header.stamp = stamp
+            image_msg_black.header.frame_id = self.frame_id
+            publisher_black.publish(image_msg_black)
+
             image_msg = CompressedImage()
             image_msg.format = "jpeg"
-            image_msg.data = temp_meg.data
+            image_msg.data = stream_data
 
             image_msg.header.stamp = stamp
             image_msg.header.frame_id = self.frame_id
