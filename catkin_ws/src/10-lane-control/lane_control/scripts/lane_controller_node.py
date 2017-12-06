@@ -112,6 +112,7 @@ class lane_controller(object):
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
         velocity_to_m_per_s = 0.67 # TODO: change according to information from team System ID!
+        omega_to_rad_per_s = 0.45 # TODO: change according to information from team System ID!
         curvature = 1 / (0.435 - 0.205/2) # TODO: change! Should come from a message from e.g. lane_filter_node!
         omega_feedforward = self.v_bar * velocity_to_m_per_s * curvature * 2 * math.pi
 
