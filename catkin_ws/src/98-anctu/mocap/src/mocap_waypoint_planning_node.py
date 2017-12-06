@@ -4,7 +4,7 @@ import roscpp
 import numpy as np
 import math
 from duckietown_msgs.msg import  Twist2DStamped, BoolStamped
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PoseArray, Point
 import tf
 import sys
 import time
@@ -20,9 +20,13 @@ class MocapWaypointPlanningNode(object):
         self.waypoint_index = 0
         self.X = [0, 1.5]
         self.Y = [0, 1.5]
+
+        # vehicle point pair
         self.vehicle_yaw_pre = 0
+        self.vehicle_front_point = Point()
+        self.vehicle_back_point = Point()
         # the previous vehicle point of last moment
-        self.pre_vehicle_point = Point()
+        #self.pre_vehicle_point = Point()
 
         self.kd = 0.04
         self.kp = 0.08
@@ -30,9 +34,9 @@ class MocapWaypointPlanningNode(object):
         self.switch = True
 
         # Publicaiton
-        self.pub_car_cmd_ = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
+        self.pub_car_cmd = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
         # Subscription
-        self.sub_vehicle_point_ = rospy.Subscriber("~vehicle_point", Point, self.cbPoint, queue_size=1)
+        self.sub_vehicle_pose_pair = rospy.Subscriber("~vehicle_pose_pair", PoseArray, self.cbPoseArray, queue_size=1)
 
         # safe shutdown
         rospy.on_shutdown(self.onShutdown)
@@ -40,17 +44,25 @@ class MocapWaypointPlanningNode(object):
         # timer
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
-    def cbPoint(self, point_msg):
+    def cbPoseArray(self, point_array_msg):
         if not(self.start):
             return
+        # assign vehicle point pair 
+        self.vehicle_front_point = point_array_msg.poses[0].position
+        self.vehicle_back_point = point_array_msg.poses[1].position
+
         # set target waypoint position
         target_point = self.set_target_point(self.waypoint_index)
+
         # calculate yaw angle from vehicle to target waypoint
-        target_yaw = self.get_yaw_two_point(point_msg, target_point)
+        target_yaw = self.get_yaw_two_point(self.vehicle_back_point, target_point)
+
         # calculate yaw angle from vehicle to previous vehicle
-        vehicle_yaw = self.get_yaw_two_point(self.pre_vehicle_point, point_msg)
-        dist = self.get_dist_two_point(point_msg, target_point)
-        self.set_pre_vehicle_point(point_msg)
+        vehicle_yaw = self.get_yaw_two_point(self.vehicle_back_point, self.vehicle_front_point)
+
+        dist = self.get_dist_two_point(self.vehicle_back_point, target_point)
+
+        #self.set_pre_vehicle_point(point_msg)
         print "yaw from vehicle to waypoint: ", target_yaw
         print "yaw from previous vehicle to vehicle: ", vehicle_yaw
         print "distance between vehicle and waypoint", dist
@@ -121,12 +133,12 @@ class MocapWaypointPlanningNode(object):
         car_cmd_msg = Twist2DStamped()
         car_cmd_msg.v = v
         car_cmd_msg.omega = omega
-        self.pub_car_cmd_.publish(car_cmd_msg)
+        self.pub_car_cmd.publish(car_cmd_msg)
         rospy.sleep(duration)
         # stop 1s
         car_cmd_msg.v = 0
         car_cmd_msg.omega = 0
-        self.pub_car_cmd_.publish(car_cmd_msg)
+        self.pub_car_cmd.publish(car_cmd_msg)
         rospy.sleep(0)      
 
     def onShutdown(self):
