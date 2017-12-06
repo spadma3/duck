@@ -125,8 +125,8 @@ class lane_controller(object):
 
         if math.fabs(cross_track_err) > self.d_thres:
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
-        car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err + omega_feedforward #*self.steer_gain #Right stick H-axis. Right is negative
-        car_control_msg.omega = omega_feedforward # TODO: delete! (was only to see the direct influence of the feed forward)
+        car_control_msg.omega = ( self.k_d * cross_track_err + self.k_theta * heading_err + omega_feedforward ) * omega_to_rad_per_s #*self.steer_gain #Right stick H-axis. Right is negative
+        car_control_msg.omega = omega_feedforward * omega_to_rad_per_s # TODO: delete! (was only to see the direct influence of the feed forward)
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
