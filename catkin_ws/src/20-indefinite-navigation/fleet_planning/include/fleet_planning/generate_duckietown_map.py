@@ -264,7 +264,7 @@ class graph_creator():
 class MapImageCreator:
 
 	def __init__(self, tiles_dir):
-		self.tile_length = 80
+		self.tile_length = 101
 		self.tile_midpoint = (self.tile_length/2,self.tile_length/2)
 		self.turn_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/turn.png'))
 		self.three_way_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/3way.png'))
@@ -276,7 +276,7 @@ class MapImageCreator:
 		tmp = cv2.imread(path,cv2.IMREAD_COLOR)
 		return cv2.resize(tmp,(self.tile_length,self.tile_length),interpolation=cv2.INTER_AREA)
 
-	def build_map_from_csv(self,script_dir,csv_filename,graph_width,graph_height):
+	def build_map_from_csv(self,script_dir,csv_filename):
 		map_path = os.path.abspath(script_dir + '/maps/' + csv_filename + '.csv')
 		num_tiles_y = -1
 		num_tiles_x = -1
