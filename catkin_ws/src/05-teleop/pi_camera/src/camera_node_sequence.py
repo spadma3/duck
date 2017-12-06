@@ -16,6 +16,17 @@ from picamera.array import PiRGBArray
 from duckietown_utils import get_duckiefleet_root, image_cv_from_jpg, d8_compressed_image_from_cv_image
 from duckietown_msgs.msg import BoolStamped
 
+# threshold values for the colorFilter, taken from line_detector and then tweaked
+hsv_white1 = np.array([0, 0, 150])
+hsv_white2 = np.array([180, 90, 255])
+hsv_yellow1 = np.array([20, 120, 150])
+hsv_yellow2 = np.array([45, 255, 255])
+hsv_red1 = np.array([0, 120, 100])
+hsv_red2 = np.array([12, 255, 255])
+hsv_red3 = np.array([165, 120, 100])
+hsv_red4 = np.array([180, 255, 255])
+
+
 def colorFilter(img, color, thresh=None):
     # threshold colors in HSV space
     '''TODO: use the previous kmeans estimate +- some range to be the threshold colors'''
