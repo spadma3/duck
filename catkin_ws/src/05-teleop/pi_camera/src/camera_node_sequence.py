@@ -175,7 +175,7 @@ class CameraNode(object):
             stamp = rospy.Time.now()
             stream.seek(0)
             stream_data = stream.getvalue()
-            print (stream_data.type)
+            print (stream_data)
             stream_data = processGeom(stream_data,viz=True)
             # Generate compressed image
             image_msg = CompressedImage()
