@@ -21,6 +21,6 @@ filter:
       linewidth_yellow: 0.025
       lanewidth: 0.23
       min_max: 0.1
-      sigma_d_mask: 0.5
-      sigma_phi_mask: 1.0
+      sigma_d_mask: 1.0
+      sigma_phi_mask: 2.0
 
