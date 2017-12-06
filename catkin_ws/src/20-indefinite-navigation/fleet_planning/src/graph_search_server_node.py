@@ -90,14 +90,14 @@ class graph_search_server():
             print "drawing trip's icons..."
 
             customer_location = tf.map_to_image(trip[1])
-            print("customer location: ", customer_location)
+            print "customer location: ", customer_location
             x_start = customer_location[0]
             x_end = x_start + self.customer_icon.shape[0]
-            y_start = customer_location[1]
+            y_start = customer_location[1]  
             y_end = y_start + self.customer_icon.shape[1]
 
         map_image[x_start:x_end, y_start:y_end, :] = self.customer_icon
-
+        print "displayed all trips"
             # self.icon_image = 
         # for node in self.duckietown_graph._nodes:
         #     node_location = np.round(self.duckietown_graph.get_node_pos(node) * 80)  # tile_length = 80 pixels
