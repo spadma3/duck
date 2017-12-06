@@ -172,9 +172,9 @@ class LineDetectorNode(object):
 
         # Detect lines and normals
 
-        white = self.detector.detectLines('white')
-        yellow = self.detector.detectLines('yellow')
-        red = self.detector.detectLines('red')
+        white = self.detector.detectLines('white') # color 0
+        yellow = self.detector.detectLines('yellow') # color 1
+        red = self.detector.detectLines('red') # color 2
 
         tk.completed('detected')
      
