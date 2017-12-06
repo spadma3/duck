@@ -17,7 +17,7 @@ class lane_controller(object):
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1) #Get the estimated pose of the duckiebot
 
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
@@ -78,7 +78,7 @@ class lane_controller(object):
         self.sub_lane_reading.unregister()
 
         # Send stop command
-        car_control_msg = Twist2DStamped()
+        car_control_msg = Twist2DStamped() #Set the msg type
         car_control_msg.v = 0.0
         car_control_msg.omega = 0.0
         self.publishCmd(car_control_msg)

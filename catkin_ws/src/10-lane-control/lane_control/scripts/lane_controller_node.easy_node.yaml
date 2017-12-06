@@ -38,5 +38,4 @@ subscriptions:
         topic: ~lane_pose
         type: duckietown_msgs/LanePose
         queue_size: 1
-
 contracts: {}
