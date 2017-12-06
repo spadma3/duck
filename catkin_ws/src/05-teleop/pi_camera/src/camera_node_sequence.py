@@ -4,13 +4,16 @@ import rospy
 import yaml
 import thread
 import io
+import numpy as np
+import cv2
+
 
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, CompressedImage, CameraInfo
 from sensor_msgs.srv import SetCameraInfo, SetCameraInfoResponse
 from picamera import PiCamera
 from picamera.array import PiRGBArray
-from duckietown_utils import get_duckiefleet_root
+from duckietown_utils import get_duckiefleet_root, image_cv_from_jpg, d8_compressed_image_from_cv_image
 from duckietown_msgs.msg import BoolStamped
 
 def colorFilter(img, color, thresh=None):
@@ -175,12 +178,14 @@ class CameraNode(object):
             stamp = rospy.Time.now()
             stream.seek(0)
             stream_data = stream.getvalue()
-            print (stream_data)
+            img_cv = image_cv_from_jpg(stream_data)
+            output = processGeom(img_cv,True)
+            temp_meg = d8_compressed_image_from_cv_image(output)
             stream_data = processGeom(stream_data,viz=True)
             # Generate compressed image
             image_msg = CompressedImage()
             image_msg.format = "jpeg"
-            image_msg.data = stream_data
+            image_msg.data = temp_meg.data
 
             image_msg.header.stamp = stamp
             image_msg.header.frame_id = self.frame_id
