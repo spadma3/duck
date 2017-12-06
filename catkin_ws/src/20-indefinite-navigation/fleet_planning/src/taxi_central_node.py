@@ -1,10 +1,14 @@
+#!/usr/bin/env python
+
 from enum import Enum
+import os
 import rospy
 import tf
 import tf2_ros
-from std_msgs import Int16MultiArray, String, Bool
+from std_msgs.msg import Bool, String, Int16MultiArray
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 import numpy as np
+from fleet_planning.generate_duckietown_map import graph_creator
 
 class TaxiState(Enum):
     GOING_TO_CUSTOMER = 0
@@ -57,7 +61,7 @@ class Duckiebot:
                 picked up or customer target location has been reached.
         """
         if node_number is None:
-            return
+            return None
 
         self._last_known_location = node_number
         self._last_time_seen_alive = rospy.get_time()
@@ -66,17 +70,16 @@ class Duckiebot:
         if self._customer_request is not None:
             if node_number == self._customer_request.start_location:
                 self._taxi_state = TaxiState.WITH_CUSTOMER
-                self._customer_request.time_pickup = rospy.now()
+                self._customer_request.time_pickup = rospy.get_time()
                 return self._taxi_state
 
             elif node_number == self._customer_request.target_location:
-                self._taxi_state == TaxiState.IDLE
+                self._taxi_state = TaxiState.IDLE
                 self._customer_request.time_drop_off = rospy.get_time()
                 return self._taxi_state
 
             else:
                 return None
-
 
     def has_timed_out(self, criterium):
         if rospy.get_time() - self._last_time_seen_alive > criterium:
@@ -114,8 +117,8 @@ class Duckiebot:
         
 class CustomerRequest:
 
-    _start_location = None # node number
-    _target_location = None # node number
+    start_location = None # node number
+    target_location = None # node number
 
     # for the metrics. Use ropy.time() to set timestamp
     time_registered = None
@@ -123,8 +126,8 @@ class CustomerRequest:
     time_drop_off = None
 
     def __init__(self, start_node, target_node):
-        self._start_location = start_node
-        self._target_location = target_node
+        self.start_location = start_node
+        self.target_location = target_node
 
         self.time_registered = rospy.get_time()
 
@@ -145,20 +148,20 @@ class TaxiCentralNode:
     _world_frame = 'world'
     _target_frame = 'duckiebot'
 
-    def __init__(self, map_drawing, map_graph, graph_creator):
+    def __init__(self, graph_creator):
         """
         subscribe to location", customer_requests. Publish to transportation status, target location.
         Init time_out timer.
         Specification see intermediate report document
-        :param map_drawing: class that handles the drawing of the map
-        :param map_graph: graph structure to do the duckiebot assignment graph search
         """
         self._graph_creator = graph_creator
-
         # location listener
-        self._listener_transform = tf.Transformlistener()
+        self._listener_transform = tf.TransformListener()
         # wait for listener setup to complete
-        self._listener_transform.waitForTransform(self._world_frame,self._target_frame, rospy.Time(), rospy.Duration(4.0))
+        try:
+            self._listener_transform.waitForTransform(self._world_frame,self._target_frame, rospy.Time(), rospy.Duration(4.0))
+        except tf2_ros.TransformException:
+            rospy.logwarn('The duckiebot location is not being published! No location updates possible.')
 
         # subscribers
         self._sub_customer_requests = rospy.Subscriber('~customer_requests', Int16MultiArray, self._register_customer_request, queue_size = 1)
@@ -170,7 +173,7 @@ class TaxiCentralNode:
         self._time_out_timer = rospy.Timer(rospy.Duration.from_sec(self.TIME_OUT_CRITERIUM), self._check_time_out())
 
         # mapping: location -> node number
-        self._location_to_node_mapper = IntersectionMapper(self.graph_creator)
+        self._location_to_node_mapper = IntersectionMapper(self._graph_creator)
 
     def _create_and_register_duckiebot(self, robot_name, location):
         """
@@ -290,3 +293,21 @@ class TaxiCentralNode:
     def save_metrics(self): # implementation has rather low priority
         """ gather timestamps from customer requests, calculate metrics, save to json file"""
         pass
+
+    def on_shutdown(self):
+        rospy.loginfo("[TaxiCentralNode] Shutdown.")
+
+if __name__ == '__main__':
+    # startup node
+    rospy.init_node('taxi_central_node')
+
+    script_dir = os.path.dirname(__file__)
+    map_path = os.path.abspath(script_dir)
+    csv_filename = 'tiles_lab'
+
+    gc = graph_creator()
+    gc.build_graph_from_csv(map_path, csv_filename)
+    taxi_central_node = TaxiCentralNode(gc)
+
+    rospy.on_shutdown(taxi_central_node.on_shutdown)
+    rospy.spin()

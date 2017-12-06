@@ -6,11 +6,13 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
   duckietown_msgs
+  rostest
 
 ## -- UNCOMMENT BELOW LINE FOR LAPTOP BUILD -- ##
 ##rqt_gui_py
 )
 
+add_rostest(test/taxi_central.test)
 
 catkin_python_setup()
 
