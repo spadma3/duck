@@ -142,7 +142,7 @@ class CameraNode(object):
 
         self.has_published = False
         self.pub_img= rospy.Publisher("~image/compressed",CompressedImage,queue_size=1)
-        self.pub_img_black = rospy.Publisher("~image/black_backgroud",CompressedImage, queue_size=1)
+        self.pub_img_black = rospy.Publisher("~image/black_backgroud",CompressedImage, queue_size=2)
         self.sub_switch_high = rospy.Subscriber("~framerate_high_switch", BoolStamped, self.cbSwitchHigh, queue_size=1)
 
         # Create service (for camera_calibration)
