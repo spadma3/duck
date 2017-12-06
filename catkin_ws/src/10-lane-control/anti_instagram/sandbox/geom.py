@@ -22,6 +22,7 @@ hsv_red4 = np.array([180, 255, 255])
 def processGeom(img, viz=False):
     # first narrow scope to surface of lane to avoid extraneous info
     surf = identifyLaneSurface(img, use_hsv=False, grad_thresh=30)
+    orig = img
     img = np.expand_dims(surf, -1) * img
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     colors = ['white', 'yellow', 'red']
@@ -41,12 +42,22 @@ def processGeom(img, viz=False):
             masks[color] = mask
 
     if viz:
+        cols = {'white': (255, 255, 255), 'yellow': (0, 255, 255), 'red': (0, 0, 255)}
+        cv2.imshow('img', orig)
+        cv2.waitKey(0)
+        cv2.imshow('img', img)
+        cv2.waitKey(0)
         tot = np.zeros_like(img)
         for col in masks:
             mimg = np.expand_dims(masks[col], -1) * img
             tot += mimg
+            cv2.imshow('img', mimg)
+            cv2.waitKey(0)
+        cv2.imshow('img', tot)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
-    return tot
+    return masks
 
 
 # this has problems with specular reflections
