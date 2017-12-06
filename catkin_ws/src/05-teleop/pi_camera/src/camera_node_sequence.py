@@ -192,7 +192,6 @@ class CameraNode(object):
             img_cv = image_cv_from_jpg(stream_data)
             output = processGeom(img_cv,True)
             temp_meg = d8_compressed_image_from_cv_image(output)
-            stream_data = processGeom(stream_data,viz=True)
             # Generate compressed image
             image_msg = CompressedImage()
             image_msg.format = "jpeg"
