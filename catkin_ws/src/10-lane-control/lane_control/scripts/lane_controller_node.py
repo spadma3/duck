@@ -123,6 +123,8 @@ class lane_controller(object):
         car_control_msg.header = lane_pose_msg.header
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
+        echo("self.v_bar = ", self.v_bar, "\n")
+
         if math.fabs(cross_track_err) > self.d_thres:
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
         car_control_msg.omega = ( self.k_d * cross_track_err + self.k_theta * heading_err + omega_feedforward ) * omega_to_rad_per_s #*self.steer_gain #Right stick H-axis. Right is negative
