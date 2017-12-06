@@ -272,7 +272,16 @@ def visualize(summary):
             else:
                 td.attrs['class']  = d['status']
                 
-                out = " ||| ".join([str(d['out_short']), str(d['out_long'])])
+                out_short = d['out_short']
+                out_long = d['out_long']
+#                 
+#                 out_short = out_short.encode('utf8', 'ignore')
+#                 out_long = out_long.encode('utf8', 'ignore')
+                
+#                 print out_short.__repr__()
+#                 print out_long.__repr__()
+                
+                out = u" ||| ".join([out_short, out_long])
                 td.attrs['title'] = out
                 upload_date = d['upload_event_date']
                 elapsedTime = datetime.datetime.now() - upload_date

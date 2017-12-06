@@ -136,8 +136,6 @@ class kMeanClass:
 
 
 
-
-
 def main():
     # define and parse command line arguments
     parser = argparse.ArgumentParser(
