@@ -19,6 +19,9 @@
 	<arg name="/LED/interpreter" value="true" />
 	<arg name="/navigation/random_sr_turns" value="true" />
 	<!-- <arg name="/LED/pattern_switch" value="true" /> -->
+	<arg name="/apriltags/local" value="true" />
+
+	<arg name="/camera/raw/rect" value="true" />
 	
 	</include>
 </launch>
