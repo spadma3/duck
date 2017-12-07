@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+import os
+import numpy as np
+from generate_duckietown_map import graph_creator
+import tf
+import rospy
+import tf2_ros
+
 
 class MappingTile:
     tile_length = 0.595  # TODO: retrieve this from parameter file in duckietown/00-infrastructure/config/baseline/duckeitown_description
@@ -64,13 +71,6 @@ class IntersectionMapper:
 
 if __name__ == '__main__':
     # for testing
-    import os
-    import numpy as np
-    from generate_duckietown_map import graph_creator
-    import tf
-    import rospy
-    import tf2_ros
-
     rospy.init_node('location_to_graph_mapping')
     listener = tf.TransformListener()
 
@@ -81,7 +81,6 @@ if __name__ == '__main__':
 
     gc = graph_creator()
     gc.build_graph_from_csv(map_path, csv_filename)
-
 
     rospy.loginfo('started!!')
     mapper = IntersectionMapper(gc)
