@@ -96,7 +96,7 @@ class graph_search_server():
             y_start = customer_location[1]  
             y_end = y_start + self.customer_icon.shape[1]
 
-        map_image[x_start:x_end, y_start:y_end, :] = self.customer_icon
+            map_image[x_start:x_end, y_start:y_end, :] = self.customer_icon
         print "displayed all trips"
             # self.icon_image = 
         # for node in self.duckietown_graph._nodes:
