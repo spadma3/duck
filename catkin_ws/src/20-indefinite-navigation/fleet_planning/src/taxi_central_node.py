@@ -5,7 +5,8 @@ import os
 import rospy
 import tf
 import tf2_ros
-from std_msgs.msg import Bool, String, Int16MultiArray
+from std_msgs.msg import String, Int16MultiArray
+from duckietown_msgs.msg import BoolStamped
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 import numpy as np
 from fleet_planning.generate_duckietown_map import graph_creator
@@ -40,7 +41,7 @@ class Duckiebot:
     _customer_request = None # instance of CustomerRequest, only not None if on duty
 
     def __init__(self, robot_name, map_graph):
-        self._duckiebot_name = robot_name
+        self._name = robot_name
         self._map_graph = map_graph
 
     @property
@@ -80,6 +81,8 @@ class Duckiebot:
 
             else:
                 return None
+        else:
+            return None
 
     def has_timed_out(self, criterium):
         if rospy.get_time() - self._last_time_seen_alive > criterium:
@@ -112,8 +115,6 @@ class Duckiebot:
         self._customer_request = None
         return tmp
 
-    def get_taxi_state(self):
-        return self._taxi_state
         
 class CustomerRequest:
 
@@ -164,28 +165,26 @@ class TaxiCentralNode:
             rospy.logwarn('The duckiebot location is not being published! No location updates possible.')
 
         # subscribers
-        self._sub_customer_requests = rospy.Subscriber('~customer_requests', Int16MultiArray, self._register_customer_request, queue_size = 1)
-        self._sub_intersection = rospy.Subscriber('~at_stop_line', Bool, self._location_update)
+        self._sub_customer_requests = rospy.Subscriber('~customer_requests', Int16MultiArray, self._register_customer_request, queue_size=1)
+        self._sub_intersection = rospy.Subscriber('~/paco/stop_line_filter_node/at_stop_line', BoolStamped, self._location_update)
         # publishers
         self._pub_duckiebot_target_location = rospy.Publisher('~target_location', String, queue_size=1)
         self._pub_duckiebot_transportation_status = rospy.Publisher('~transportation_status', String, queue_size=1, latch=True)
         # timers
-        self._time_out_timer = rospy.Timer(rospy.Duration.from_sec(self.TIME_OUT_CRITERIUM), self._check_time_out())
+        self._time_out_timer = rospy.Timer(rospy.Duration.from_sec(self.TIME_OUT_CRITERIUM), self._check_time_out)
 
         # mapping: location -> node number
         self._location_to_node_mapper = IntersectionMapper(self._graph_creator)
 
-    def _create_and_register_duckiebot(self, robot_name, location):
+    def _create_and_register_duckiebot(self, robot_name):
         """
         Whenever a new duckiebot is detected, this method is called. Create Duckiebot instance and append to _registered_duckiebots
         E.g. an unknown duckiebot publishes a location -> register duckiebot
         :param robot_name: string
-        :param location: node number as int
         """
-        duckiebot = Duckiebot(robot_name)
+        duckiebot = Duckiebot(robot_name, self._map_graph)
         if robot_name not in self._registered_duckiebots:
-            duckiebot.update_location_check_target_reached(location)
-            self._registered_duckiebots[duckiebot] = duckiebot
+            self._registered_duckiebots[robot_name] = duckiebot
 
         else:
             rospy.logwarn('Failed to register new duckiebot. A duckiebot with the same name has already been registered.')
@@ -193,12 +192,16 @@ class TaxiCentralNode:
     def _unregister_duckiebot(self, duckiebot):
         """unregister given duckiebot, remove from map drawing. If it currently has been assigned a customer,
         put customer request back to _pending_customer_requests"""
-        # check for unfulfilled customer request
+
         request = duckiebot.pop_customer_request
         if request is not None:
             self._pending_customer_requests.append(duckiebot.pop_customer_request())
 
-        del self._registered_duckiebots[duckiebot.name]
+        try:
+            del self._registered_duckiebots[duckiebot.name]
+            rospy.logwarn('Unregistered and removed from map Duckiebot {}'.format(duckiebot.name))
+        except KeyError:
+            rospy.logwarn('Failure when unregistering duckiebot. {} had already been unregistered.'.format(duckiebot.name))
         # TODO: tell map to remove icon
 
     def _register_customer_request(self, request_msg):
@@ -219,7 +222,7 @@ class TaxiCentralNode:
         """
 
         if self._fleet_planning_strategy == FleetPlanningStrategy.CLOSEST_DUCKIEBOT:
-            self.fleet_planning_closest_duckiebot()
+            self._fleet_planning_closest_duckiebot()
         else:
             raise NotImplementedError('Chosen strategy has not yet been implemented.')
 
@@ -232,7 +235,7 @@ class TaxiCentralNode:
         """
         pass
 
-    def _location_update(self, duckiebot_name):
+    def _location_update(self, at_stop_line):
         """
         Callback function for location subscriber. Message contains location and robot name.  If duckiebot
         is not yet known, register it first. Location is first mapped from 2d coordinates to graph node, then call
@@ -242,47 +245,61 @@ class TaxiCentralNode:
          if it has changed.
         :param location_msg: contains location and robot name
         """
-        node = None
-        trans, rot = None
 
+        duckiebot_name = 'paco' # TODO get this from message!!!!
+
+        node = None
         # how to make sure we get the tf of the right duckiebot???
         start_time = rospy.get_time()
-        while not node or rospy.get_time() - start_time < 5.0: # TODO: is this good to do?
+        # TODO: this whole loop here is done locally
+        while not node and rospy.get_time() - start_time < 5.0: # TODO: tune this
             try:
-                (trans,rot) =self._listener_transform.lookupTransform(self._world_frame, self._target_frame, rospy.Time(0))
-            except tf2_ros.LookupException:
-                rospy.logwart('Duckiebot location transform not found.')
+                (trans, rot) =self._listener_transform.lookupTransform(self._world_frame, self._target_frame, rospy.Time(0))
 
-            if trans and rot:
-                rot = tf.transformations.euler_from_quaternion(rot)[2]
-                node = self._location_to_node_mapper.get_node_name(trans[:2], np.degrees(rot))
+                if trans[2] != 1000: # the localization package uses this to encode that no information about the location exists. (here == 1 km in the air)
+                    rot = tf.transformations.euler_from_quaternion(rot)[2]
+                    node = self._location_to_node_mapper.get_node_name(trans[:2], np.degrees(rot))
+                    rospy.logwarn(node)
+
+            except tf2_ros.LookupException:
+                rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(duckiebot_name))
+
+        if not node:
+            rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(duckiebot_name))
+            return
 
         if duckiebot_name not in self._registered_duckiebots:
-            self._create_and_register_duckiebot(duckiebot_name, node)
+            self._create_and_register_duckiebot(duckiebot_name)
+            duckiebot = self._registered_duckiebots[duckiebot_name]
+            new_duckiebot_state = duckiebot.update_location_check_target_reached(node)
 
         else:
             duckiebot = self._registered_duckiebots[duckiebot_name]
             new_duckiebot_state = duckiebot.update_location_check_target_reached(node)
 
-        if new_duckiebot_state == TaxiState.IDLE:
+        if new_duckiebot_state == TaxiState.IDLE: # mission accomplished
             request = duckiebot.pop_customer_request()
             self._fulfilled_customer_requests.append(request)
             self._handle_customer_requests() # bcs duckiebot is available again
             self._pub_duckiebot_transportation_status(duckiebot)
             # TODO: remove customer icon from map
 
-        elif new_duckiebot_state == TaxiState.WITH_CUSTOMER:
+        elif new_duckiebot_state == TaxiState.WITH_CUSTOMER: # reached customer
             self._publish_duckiebot_transportation_status(duckiebot)
             # TODO: make customer icon move with duckiebot icon
 
+        else: # nothing special happened, just location update
+            pass
+
         # TODO draw duckiebot location
 
-    def _check_time_out(self):
+    def _check_time_out(self, msg):
         """callback function from some timer, ie. every 30 seconds. Checks for every duckiebot whether it has been
         seen since the last check_time_out call. If not, unregister duckiebot"""
 
         for duckiebot in self._registered_duckiebots.values():
             if duckiebot.has_timed_out(self.TIME_OUT_CRITERIUM):
+                rospy.logwarn('Duckiebot {} has timed out.'.format(duckiebot.name))
                 self._unregister_duckiebot(duckiebot)
 
     def _publish_duckiebot_transportation_status(self, duckiebot):
