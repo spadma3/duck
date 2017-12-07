@@ -119,9 +119,9 @@ class graph_search_server():
             map_image[x_start:x_end, y_start:y_end, :] = self.target_icon
         print "displayed all trips"
             # self.icon_image = 
-        for node in self.duckietown_graph._nodes:
-            node_location = np.round(self.duckietown_graph.get_node_pos(node) * 80)  # tile_length = 80 pixels
-            print(node, node_location)
+        # for node in self.duckietown_graph._nodes:
+        #     node_location = np.round(self.duckietown_graph.get_node_pos(node) * 80)  # tile_length = 80 pixels
+        #     print(node, node_location)
         #     self.icon_image[node_location[0], node_location[1], 0] = 255  # R
         #     self.icon_image[node_location[0], node_location[1], 1] = 0  # G
         #     self.icon_image[node_location[0], node_location[1], 2] = 0  # B
@@ -146,6 +146,7 @@ class graph_search_server():
         else:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
+        print req.source_node, req.target_node
         overlay = self.prepImage()
         overlay = self.draw_icons(overlay, trips = [[[0, 1], [2, 1], [3, 3]], [[0, 0], [1, 1], [2.5, 2.5]]])
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
