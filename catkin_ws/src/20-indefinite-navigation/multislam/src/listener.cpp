@@ -42,6 +42,7 @@ int curposeindex = 0;
 float curx = 0;
 float cury = 0;
 float curtheta = 0;
+float imutheta = 0;
 double lastTimeSecs;
 
 ros::Publisher marker_pub;
@@ -187,12 +188,12 @@ void imucallback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   // imu publishes every 8 ms. (125 hz)
   double delta_t = .008;
-  curtheta += msg->angular_velocity.z * delta_t; 
+  imutheta = fmod(imutheta + msg->angular_velocity.z * delta_t, 2 * M_PI);
 }
 
 void printcallback(const ros::TimerEvent&)
 {
-  printf("curtheta: %f\n", curtheta);
+  printf("imutheta: %f\n", imutheta);
 }
 
 void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
