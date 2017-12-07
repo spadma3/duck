@@ -121,7 +121,7 @@ class graph_search_server():
             # self.icon_image = 
         for node in self.duckietown_graph._nodes:
             node_location = np.round(self.duckietown_graph.get_node_pos(node) * 80)  # tile_length = 80 pixels
-            print(node_location)
+            print(node, node_location)
         #     self.icon_image[node_location[0], node_location[1], 0] = 255  # R
         #     self.icon_image[node_location[0], node_location[1], 1] = 0  # G
         #     self.icon_image[node_location[0], node_location[1], 2] = 0  # B
