@@ -10,6 +10,7 @@
 #include <tf/LinearMath/Quaternion.h>
 #include "duckietown_msgs/AprilTagsWithInfos.h"
 #include "duckietown_msgs/Twist2DStamped.h"
+#include "sensor_msgs/Imu.h"
 
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/slam/PriorFactor.h>
@@ -41,6 +42,7 @@ int curposeindex = 0;
 float curx = 0;
 float cury = 0;
 float curtheta = 0;
+float imutheta = 0;
 double lastTimeSecs;
 
 ros::Publisher marker_pub;
@@ -55,7 +57,7 @@ visualization_msgs::Marker make_pose_marker(int marker_id, uint8_t action, doubl
 	visualization_msgs::Marker marker;
 
 	// TODO: Change for <veh name>
-	marker.header.frame_id = "misteur";
+	marker.header.frame_id = "mrgoobers";
 	marker.header.stamp = ros::Time::now();
 
 	// Set the namespace and id for this marker.  This serves to create a unique ID
@@ -115,7 +117,7 @@ visualization_msgs::Marker make_april_marker(int marker_id, uint8_t action, doub
 	visualization_msgs::Marker marker;
 
 	// TODO: Change for <veh name>
-	marker.header.frame_id = "misteur";
+	marker.header.frame_id = "mrgoobers";
 	marker.header.stamp = ros::Time::now();
 
 	// Set the namespace and id for this marker.  This serves to create a unique ID
@@ -182,6 +184,18 @@ void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
   }
 }
 
+void imucallback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  // imu publishes every 8 ms. (125 hz)
+  double delta_t = .008;
+  imutheta = fmod(imutheta + msg->angular_velocity.z * delta_t, 2 * M_PI);
+}
+
+void printcallback(const ros::TimerEvent&)
+{
+  printf("imutheta: %f\n", imutheta);
+}
+
 void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
 {
   // Twist2DStamped msg type:
@@ -195,13 +209,13 @@ void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
 
   double timeNowSecs = ros::Time::now().toSec();
   double delta_t = timeNowSecs - lastTimeSecs;
-  printf("delta_t: %f    ", delta_t);
+  // printf("delta_t: %f    ", delta_t);
   lastTimeSecs = timeNowSecs;
 
   // maybe msg.omega needs to be switched to degrees/radians?
   double delta_d = delta_t * msg->v;
   double delta_theta = delta_t * msg->omega;
-  printf("delta_theta: %f\n", delta_theta);
+  // printf("delta_theta: %f\n", delta_theta);
   graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
 
   curx += cos(curtheta) * delta_d;
@@ -244,6 +258,18 @@ void optimizeCallback(const ros::TimerEvent&)
   marker_arr_pub.publish(ma);
 }
 
+void testOptimizer()
+{
+  Symbol l('l', 1);  
+  graph.add(BetweenFactor<Pose2>(0, 1, Pose2(1, 0, 0), odomNoise));
+  graph.add(BetweenFactor<Pose2>(1, 2, Pose2(1, 0, 0), odomNoise));
+  graph.add(BearingRangeFactor<Pose2, Point2>(0, l, Rot2::atan2(1,1.5), std::sqrt(1.5*1.5 + 1), measurementNoise));
+  graph.add(BearingRangeFactor<Pose2, Point2>(1, l, Rot2::atan2(1.,0.5), std::sqrt(0.5*0.5 + 1), measurementNoise));
+  initialEstimate.insert(1, Pose2(1.0, 0.0, 0.0));
+  initialEstimate.insert(2, Pose2(2.0, 0.0, 0.0));
+  initialEstimate.insert(l, Point2(1.5, 1.0));
+}
+
 int main(int argc, char **argv)
 {
 
@@ -262,8 +288,13 @@ int main(int argc, char **argv)
   marker_arr_pub = n.advertise<visualization_msgs::MarkerArray>("graph_visualization_arr", 1);
 
   // Subscribers
-  ros::Subscriber aprilsub = n.subscribe("/misteur/apriltags_postprocessing_node/apriltags_out", 1000, aprilcallback);
-  ros::Subscriber velsub = n.subscribe("/misteur/car_cmd_switch_node/cmd", 1000, velcallback);
+  ros::Subscriber aprilsub = n.subscribe("/mrgoobers/apriltags_postprocessing_node/apriltags_out", 1000, aprilcallback);
+  ros::Subscriber velsub = n.subscribe("/mrgoobers/car_cmd_switch_node/cmd", 1000, velcallback);
+
+  ros::Subscriber imusub = n.subscribe("/imu/data_raw", 1000, imucallback);
+  ros::Timer imutimer = n.createTimer(ros::Duration(1), printcallback);
+
+  // testOptimizer();
 
   ros::Timer opttimer = n.createTimer(ros::Duration(1), optimizeCallback);
   initialEstimate.print("\nInitial Estimate:\n");
