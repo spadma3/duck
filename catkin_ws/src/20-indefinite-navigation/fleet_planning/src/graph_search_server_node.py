@@ -89,7 +89,7 @@ class graph_search_server():
         for trip in trips:
             print "drawing trip's icons...", trip
 
-            customer_location = tf.map_to_image(trip[1])
+            customer_location = tf.map_to_image(trip)
             print "customer location: ", customer_location
             x_start = customer_location[0]
             x_end = x_start + self.customer_icon.shape[0]
@@ -126,7 +126,7 @@ class graph_search_server():
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
         overlay = self.prepImage()
-        overlay = self.draw_icons(overlay, trips = [[0, 1], [2, 1], [3, 3]])
+        overlay = self.draw_icons(overlay, trips = [[[0, 1], [2, 1], [3, 3]], [[0, 0], [1, 1], [2.5, 2.5]]])
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def prepImage(self):
