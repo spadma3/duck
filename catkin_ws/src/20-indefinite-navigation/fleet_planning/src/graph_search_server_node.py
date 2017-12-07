@@ -24,6 +24,8 @@ class graph_search_server():
         self.tiles_dir = os.path.abspath(
             self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
         self.customer_icon_path = os.path.abspath(self.script_dir + '/../include/gui_images/customer_duckie.jpg')
+        self.start_icon_path = os.path.abspath(self.script_dir + '/../include/gui_images/duckie.jpg')
+        self.target_icon_path = os.path.abspath(self.script_dir + '/../include/gui_images/location-icon.png')
 
         # build and init graphs
         gc = graph_creator()
@@ -45,6 +47,8 @@ class graph_search_server():
         #self.icon_image = np.zeros((self.map_img.shape[1], self.map_img.shape[0], 3), dtype = np.uint8)
         print(self.customer_icon_path)
         self.customer_icon = cv2.resize(cv2.imread(self.customer_icon_path), (30, 30))
+        self.start_icon = cv2.resize(cv2.imread(self.start_icon_path), (30, 30))
+        self.target_icon = cv2.resize(cv2.imread(self.target_icon_path), (30, 30))
         
         overlay = self.prepImage()
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
@@ -89,14 +93,30 @@ class graph_search_server():
         for trip in trips:
             print "drawing trip's icons...", trip
 
+            # draw start location of duckiebot
+            start_location = tf.map_to_image(trip[0])
+            print "start location: ", start_location
+            x_start = start_location[0]
+            x_end = x_start + self.start_icon.shape[0]
+            y_start = start_location[1]  
+            y_end = y_start + self.start_icon.shape[1]
+            map_image[x_start:x_end, y_start:y_end, :] = self.start_icon
+
             customer_location = tf.map_to_image(trip[1])
             print "customer location: ", customer_location
             x_start = customer_location[0]
             x_end = x_start + self.customer_icon.shape[0]
             y_start = customer_location[1]  
             y_end = y_start + self.customer_icon.shape[1]
-
             map_image[x_start:x_end, y_start:y_end, :] = self.customer_icon
+
+            target_location = tf.map_to_image(trip[2])
+            print "target location: ", target_location
+            x_start = target_location[0]
+            x_end = x_start + self.target_icon.shape[0]
+            y_start = target_location[1]  
+            y_end = y_start + self.target_icon.shape[1]
+            map_image[x_start:x_end, y_start:y_end, :] = self.target_icon
         print "displayed all trips"
             # self.icon_image = 
         # for node in self.duckietown_graph._nodes:
