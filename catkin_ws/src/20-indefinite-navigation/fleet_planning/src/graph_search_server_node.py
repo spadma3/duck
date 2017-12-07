@@ -89,7 +89,7 @@ class graph_search_server():
         for trip in trips:
             print "drawing trip's icons...", trip
 
-            customer_location = tf.map_to_image(trip)
+            customer_location = tf.map_to_image(trip[1])
             print "customer location: ", customer_location
             x_start = customer_location[0]
             x_end = x_start + self.customer_icon.shape[0]
