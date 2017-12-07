@@ -27,16 +27,17 @@ class MappingTile:
 
         # following the convention of how nodes are numbered at intersections, this holds. Yes, not very good design.
         try:
-            if diff_rotation == 0:
-                return self._tile.node5.name
-            elif diff_rotation == 90:
-                return self._tile.node3.name
-            elif diff_rotation == 180:
+            if diff_rotation == 180:
                 return self._tile.node1.name
             elif diff_rotation == 270:
+                return self._tile.node3.name
+            elif diff_rotation == 90:
                 return self._tile.node7.name
+            elif diff_rotation == 0:
+                return self._tile.node5.name
         except AttributeError:
             rospy.logwarn('Robot was located at illegal part of the intersection, localization ignored.')
+
 
 class IntersectionMapper:
     mapping_tiles = []
@@ -58,9 +59,6 @@ class IntersectionMapper:
         for intersection in self.mapping_tiles:
             if intersection.distance_to(position_2d_m) < self.max_radius * intersection.tile_length:
                 return intersection.node_from_duckiebot_rotation(rotation_deg)
-            else:
-                rospy.logwarn('Robot was located too far from intersection. Localization ignored.')
-
         return None
 
 
@@ -75,16 +73,20 @@ if __name__ == '__main__':
 
     rospy.init_node('location_to_graph_mapping')
     listener = tf.TransformListener()
-    # load csv
+
+    # build graph from csv. This should be available in your class.
     script_dir = os.path.dirname(__file__)
     csv_filename = 'tiles_lab'
     map_path = os.path.abspath(script_dir + '/../../src/')
 
     gc = graph_creator()
     gc.build_graph_from_csv(map_path, csv_filename)
+
+
     rospy.loginfo('started!!')
     mapper = IntersectionMapper(gc)
 
+    # localization mapping starts here. First get location message (=Transform). Then map to node name.
     rate = rospy.Rate(5.0)
     while not rospy.is_shutdown():
         try:
@@ -99,8 +101,9 @@ if __name__ == '__main__':
 
         rot = tf.transformations.euler_from_quaternion(rot)[2]
 
+        # do mapping from 2d position + rotation to node number.
         node = mapper.get_node_name(trans[:2], np.degrees(rot))
-
+        print(node)
         rate.sleep()
 
 
