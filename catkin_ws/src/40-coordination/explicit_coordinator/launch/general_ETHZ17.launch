@@ -7,7 +7,7 @@
     <arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
     <arg name="config" default="baseline" doc="Specify a config."/>
     <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
-
+    <arg name="continuous" default="True"/> 
     <arg name="intersectionType" default="trafficLight" />
 
     <!-- run local -->
@@ -21,7 +21,7 @@
             <!-- Input to coordination node -->
             <remap from="~signals_detection" to="led_detector_node/led_detection" unless="$(arg joystick)"/>
         </node>
-<!--------------------------------------------->
+
         <!-- Run with detection node (Giulia)-->
         <node  if="$(arg local)" pkg="led_detection" type="led_detector_node_ETHZ17.py"  name="led_detector_node" output="screen" clear_params="true" required="true">
             <!-- other -->
@@ -31,7 +31,7 @@
             <!-- remap -->
             <!--<remap from="~led_detection" to=""/>-->
         </node>
-<!--------------------------------------------->
+
         <!-- Run with emitter node (Giulia) -->
         <node if="$(arg local)" pkg="led_emitter" type="led_emitter_node_ETHZ17.py"  name="led_emitter_node" output="screen" clear_params="true" required="true">
             <!-- other -->
@@ -39,7 +39,7 @@
             <!-- Input from coordination node -->
           	<!--<remap from="~change_color_pattern" to="coordinator_node/change_color_pattern" unless="$(arg joystick)"/>-->
         </node>
-<!--------------------------------------------->
+
 
       <!-- run on vehicle -->
       <node unless="$(arg local)" machine="$(arg veh)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17.py" output="screen" clear_params="true" required="true">
@@ -47,7 +47,7 @@
           <param name="verbose" value="false"/>
           <param name="intersectionType" value="trafficLight"/>
       </node>
-<!--------------------------------------------->
+
       <!-- Run with detection node (Giulia)-->
       <node  unless="$(arg local)" machine="$(arg veh)" pkg="led_detection" type="led_detector_node_ETHZ17.py"  name="led_detector_node" output="screen" clear_params="true" required="true">
           <!-- other -->
@@ -57,7 +57,7 @@
           <!-- remap -->
           <!--<remap from="~led_detection" to="led_detection/led_detection"/>-->
       </node>
-<!--------------------------------------------->
+
       <!-- Run with emitter node (Giulia) -->
       <node unless="$(arg local)" machine="$(arg veh)" pkg="led_emitter" type="led_emitter_node_ETHZ17.py"  name="led_emitter_node" output="screen" clear_params="true" required="true">
           <!-- other -->
