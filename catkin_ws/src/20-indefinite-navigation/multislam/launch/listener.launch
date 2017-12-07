@@ -18,11 +18,11 @@
 	</include>
 
 	<group ns="$(arg veh)">
-		<node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" >
+		<node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name)" output="screen" clear_params="true" >
 		</node>
 
 		<!-- run remote -->
-		<node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true">
+		<node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name)" output="screen" clear_params="true">
 		</node>
 
 	</group>
