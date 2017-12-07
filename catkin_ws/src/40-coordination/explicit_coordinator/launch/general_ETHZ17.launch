@@ -18,6 +18,8 @@
             <!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/$(arg node_name)/$(arg param_file_name).yaml"/> -->
             <param name="verbose" value="false"/>
             <param name="intersectionType" value="trafficLight"/>
+            <!-- Input to coordination node -->
+            <remap from="~signals_detection" to="led_detector_node/led_detection" unless="$(arg joystick)"/>
         </node>
 <!--------------------------------------------->
         <!-- Run with detection node (Giulia)-->
@@ -27,17 +29,15 @@
 		        <rosparam command="load" file="$(find duckietown)/config/baseline/led_detection/LED_detector_node/default.yaml"/>
 		        <param name="continuous" type="bool" value="$(arg continuous)" />
             <!-- remap -->
-            <remap from="~led_detection" to="led_detection/led_detection"/>
+            <!--<remap from="~led_detection" to=""/>-->
         </node>
 <!--------------------------------------------->
         <!-- Run with emitter node (Giulia) -->
         <node if="$(arg local)" pkg="led_emitter" type="led_emitter_node_ETHZ17.py"  name="led_emitter_node" output="screen" clear_params="true" required="true">
             <!-- other -->
             <rosparam command="load" file="$(find duckietown)/config/baseline/led_interpreter/LED_protocol.yaml"/>
-            <!-- remap -->
-            <remap from="~current_led_state" to="led_emitter/current_led_state"/>
-            <!-- Run with coordination node -->
-          	<remap from="~change_color_pattern" to="explicit_coordination/change_color_pattern" unless="$(arg joystick)"/>
+            <!-- Input from coordination node -->
+          	<!--<remap from="~change_color_pattern" to="coordinator_node/change_color_pattern" unless="$(arg joystick)"/>-->
         </node>
 <!--------------------------------------------->
 
@@ -55,7 +55,7 @@
           <rosparam command="load" file="$(find duckietown)/config/baseline/led_detection/LED_detector_node/default.yaml"/>
           <param name="continuous" type="bool" value="$(arg continuous)" />
           <!-- remap -->
-          <remap from="~led_detection" to="led_detection/led_detection"/>
+          <!--<remap from="~led_detection" to="led_detection/led_detection"/>-->
       </node>
 <!--------------------------------------------->
       <!-- Run with emitter node (Giulia) -->
@@ -63,7 +63,7 @@
           <!-- other -->
           <rosparam command="load" file="$(find duckietown)/config/baseline/led_interpreter/LED_protocol.yaml"/>
           <!-- remap -->
-          <remap from="~current_led_state" to="led_emitter/current_led_state"/>
+          <!--<remap from="~current_led_state" to="led_emitter/current_led_state"/>-->
           <!-- Run with coordination node -->
           <remap from="~change_color_pattern" to="explicit_coordination/change_color_pattern" unless="$(arg joystick)"/>
       </node>
