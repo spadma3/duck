@@ -174,7 +174,7 @@ class graph_search_server():
         # or figure out some other way to get the location. 
         overlay = self.prepImage()
 
-        overlay = self.draw_icons(overlay, trips = [[[0, 1], [2, 1], [3, 3]], [[0, 0], [1, 1], [2.5, 2.5]]])
+        overlay = self.draw_icons(overlay, "customer", location = 9) #trips = [[[0, 1], [2, 1], [3, 3]], [[0, 0], [1, 1], [2.5, 2.5]]])
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def prepImage(self):
