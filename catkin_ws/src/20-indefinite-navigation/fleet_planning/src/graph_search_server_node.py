@@ -76,7 +76,7 @@ class graph_search_server():
         """
         Convert a graph node number to a 2d image pixel location
         """
-         return #graph.node_positions[node]
+        return #graph.node_positions[node]
 
 
 
