@@ -1,0 +1,44 @@
+name: node1
+
+desc: >
+
+    Node 1 of a series of test nodes, to test the yaml description
+
+properties:
+    #    These are some properties that are internal to the node
+    #    They can be either constant values,
+    #    or a function of the input and other node property values.
+    property1:
+        desc: This is property 1
+        type: constant
+        value: 25
+
+    property2:
+      desc: This is property 2
+      type: function
+      value: input1
+
+inputs:    
+    #   These are the input requirements to the node. 
+    #    They can be either min, max or exact values.
+    apples:
+        desc: This is the first input, which can have a max value of 100
+        type: max
+        value: 100
+    bananas:
+        desc: This is the second input, which can have a min value of 2
+        type: min
+        value: 15
+
+outputs:
+    #    These are the output performance values.
+    #    They can be either constant values, 
+    #    or a function of the input and node property values.
+    output1:
+        desc: This is the first output, which is a constant value
+        type: constant
+        value: 30
+    output2:
+        desc: This is the second output, which is a function
+        type: function
+        value: 2*input1+3*input2-property1 
