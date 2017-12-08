@@ -127,8 +127,6 @@ class lane_controller(object):
         #                 # By definition the distance from the center of the red line to the point A should be 0.10 to 0.16 metre
             # v_deacc=(stop_line_reading.stop_line_point.x-x0)
 
-        self.v_bar = self.setupParameter("~v_bar",v_deacc)
-
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(cross_track_err) > self.d_thres:
