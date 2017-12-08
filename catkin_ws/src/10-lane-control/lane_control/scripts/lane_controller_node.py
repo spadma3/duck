@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose, ControlMessage, StopLineReading, ControlVelocity
+from duckietown_msgs.msg import Twist2DStamped, LanePose, StopLineReading
 
 class lane_controller(object):
     def __init__(self):
