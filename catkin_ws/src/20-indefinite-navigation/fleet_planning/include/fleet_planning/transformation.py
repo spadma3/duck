@@ -1,7 +1,7 @@
 class Transformer():
-    def __init__(self,tile_size,number_of_tiles_y):
+    def __init__(self,tile_size,image_height):
         self.tile_size = float(tile_size) # to prevent python from rounding prematurely
-        self.tiles_y = number_of_tiles_y
+        self.tiles_y = int(float(image_height)/self.tile_size)
 
     # this maps a zero-based tile location to a tile-midpoint in pixel coordinates
     def map_to_image(self, point_on_map):
