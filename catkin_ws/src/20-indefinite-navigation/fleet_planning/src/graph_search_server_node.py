@@ -9,7 +9,7 @@ from cv_bridge import CvBridge
 from fleet_planning.srv import *
 from fleet_planning.generate_duckietown_map import graph_creator, MapImageCreator
 from fleet_planning.transformation import Transformer
-from location_to_graph_mapping import IntersectionMapper
+from fleet_planning.location_to_graph_mapping import IntersectionMapper
 
 class graph_search_server():
     def __init__(self):
