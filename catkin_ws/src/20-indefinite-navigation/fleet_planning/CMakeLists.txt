@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 ##rqt_gui_py
 )
 
+add_rostest(test/message_serialization.test)
 
 catkin_python_setup()
 
