@@ -1,4 +1,4 @@
-stop#!/usr/bin/env python
+#!/usr/bin/env python
 import rospy
 import copy
 from duckietown_msgs.msg import FSMState, BoolStamped
@@ -28,7 +28,7 @@ class FSMNode(object):
         # Setup publisher and publish initial state
         self.pub_state = rospy.Publisher("~mode",FSMState,queue_size=1,latch=True)
 
-        # Pstoprovide service
+        # Provide service
         self.srv_state = rospy.Service("~set_state",SetFSMState,self.cbSrvSetState)
 
         # Construct publishers
