@@ -15,7 +15,7 @@ class StopLineFilterNode(object):
         self.lane_pose = LanePose()
 
         ## params
-        self.stop_distance = self.setupParam("~stop_distance", 5) # TODO change back to 0.25 distance from the stop line that we should stop
+        self.stop_distance = self.setupParam("~stop_distance", 0.25) # distance from the stop line that we should stop
         self.min_segs      = self.setupParam("~min_segs", 2) # minimum number of red segments that we should detect to estimate a stop
         self.off_time      = self.setupParam("~off_time", 2)
 
@@ -103,11 +103,11 @@ class StopLineFilterNode(object):
         stop_line_reading_msg.stop_line_point = stop_line_point
         stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < 0.5
         self.pub_stop_line_reading.publish(stop_line_reading_msg)
-        if stop_line_reading_msg.at_stop_line:
-            msg = BoolStamped()
-            msg.header.stamp = stop_line_reading_msg.header.stamp
-            msg.data = True
-            self.pub_at_stop_line.publish(msg)
+        # if stop_line_reading_msg.at_stop_line:
+        #     msg = BoolStamped()
+        #     msg.header.stamp = stop_line_reading_msg.header.stamp
+        #     msg.data = True
+        #     self.pub_at_stop_line.publish(msg)
 
     def to_lane_frame(self, point):
         p_homo = np.array([point.x,point.y,1])
