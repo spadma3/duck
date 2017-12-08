@@ -9,7 +9,7 @@ class lane_controller(object):
         self.lane_reading = None
 
         self.pub_counter = 0
-        self.stop_line_reading = 0
+        #self.stop_line_reading = 0
 
         # Setup parameters
         self.setGains()
