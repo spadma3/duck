@@ -1,0 +1,32 @@
+name: Lane control
+
+desc: >
+
+    The ability to control the robot to stay in a lane with a certain d_ref.
+
+    The steady-state error is less than max_d_err.
+
+    The performance is such that it is possible for the robot to move
+    from d0 to d0 + delta d in a time that is
+
+        delta t <= alpha + beta * delta d
+
+    The robot can travel at least at v_min velocity
+
+quantification:
+
+    max_d_err:
+        unit: m
+        desc: Maximum deviation from d_ref.
+
+    alpha:
+        unit: s
+        desc: Allowed delay
+
+    beta:
+        unit: s/m
+        desc: time allowed for each unit of displacement
+
+    v_min:
+        unit: m/s
+        desc: Velocity of the robot

@@ -1,0 +1,7 @@
+functionality: image_acquisition
+
+parameters:
+    resolution: 1 pixel/deg
+    fov_horizontal: 120 deg
+    fov_vertical: 100 deg
+    frequency: 30 fps

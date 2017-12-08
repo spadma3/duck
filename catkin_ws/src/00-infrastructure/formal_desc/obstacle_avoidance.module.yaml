@@ -1,0 +1,12 @@
+desc: Obstacle avoidance
+
+
+provide:
+    
+
+require:
+    lane_control:
+        max_d_err:
+        v_min:
+        alpha:
+        beta:
