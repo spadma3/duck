@@ -5,7 +5,7 @@
 	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
 	<arg name="pkg_name" value="pi_camera"/>
 	<arg name="node_name" default="cam_info_reader_node"/>
-	<arg name="image_type" default="compressed" />
+	<arg name="image_type" default="rectified" />
     <arg name="cali_file_name" default="$(arg veh)" />
 
 	<!-- Run on local (laptop) -->
