@@ -126,7 +126,8 @@ class lane_controller(object):
         #     x_0=0.12 # Set Distance in metre before stop line where we want to stop.
         #                 # By definition the distance from the center of the red line to the point A should be 0.10 to 0.16 metre
             # v_deacc=(stop_line_reading.stop_line_point.x-x0)
-            self.v_bar = self.setupParameter("~v_bar",v_deacc)
+
+        self.v_bar = self.setupParameter("~v_bar",v_deacc)
 
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
@@ -154,7 +155,8 @@ class lane_controller(object):
         self.stop_line_reading = stopline_msg
         x0=0.12
         rospy.loginfo(stopline_msg)
-        self.v_bar = self.setupParameter("~v_bar",(stopline_msg.stop_line_point.x-x0)*self.v_bar)
+        if stopline_msg.stop_line_point.x<0.5:
+            self.v_bar = self.setupParameter("~v_bar",(stopline_msg.stop_line_point.x-x0)*self.v_bar)
 
         # rospy.loginfo(stopline_msg.stop_line_point.x)
         # rospy.loginfo(stopline_msg.stop_line_point.y)
