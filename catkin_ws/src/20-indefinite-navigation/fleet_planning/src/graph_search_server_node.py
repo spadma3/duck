@@ -110,7 +110,7 @@ class graph_search_server():
             print "invalid icon type"
             # return
 
-        convert graph number to 2D image pixel coords
+        # convert graph number to 2D image pixel coords
         point = self.graph_node_to_image_location(graph = self.duckietown_graph, node = location)
         print "POint received is: ", point
         # map_image[x_start:x_end, y_start:y_end, :] = icon
