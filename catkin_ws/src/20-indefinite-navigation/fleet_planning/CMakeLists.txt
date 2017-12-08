@@ -19,6 +19,7 @@ catkin_python_setup()
 add_service_files(
   FILES
   GraphSearch.srv
+  VirtualDuckiebotLocation.srv
 )
 
 
