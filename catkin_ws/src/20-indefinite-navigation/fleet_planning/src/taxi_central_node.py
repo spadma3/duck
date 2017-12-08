@@ -109,7 +109,7 @@ class Duckiebot:
         self._taxi_state = TaxiState.GOING_TO_CUSTOMER
 
     def pop_customer_request(self):
-        self._taxi_state == TaxiState.IDLE
+        self._taxi_state = TaxiState.IDLE
 
         tmp = self._customer_request
         self._customer_request = None
@@ -149,13 +149,17 @@ class TaxiCentralNode:
     _world_frame = 'world'
     _target_frame = 'duckiebot'
 
-    def __init__(self, graph_creator):
+    def __init__(self, map_dir, map_csv):
         """
         subscribe to location", customer_requests. Publish to transportation status, target location.
         Init time_out timer.
         Specification see intermediate report document
         """
-        self._graph_creator = graph_creator
+
+        gc = graph_creator()
+        self._graph = gc.build_graph_from_csv(map_dir, map_csv)
+        self._graph_creator = gc
+
         # location listener
         self._listener_transform = tf.TransformListener()
         # wait for listener setup to complete
@@ -175,6 +179,12 @@ class TaxiCentralNode:
 
         # mapping: location -> node number
         self._location_to_node_mapper = IntersectionMapper(self._graph_creator)
+
+    def _idle_duckiebots(self):
+        """
+        :return: A list of all IDLE duckiebots.
+        """
+        return filter(lambda bot: bot.taxi_state == TaxiState.IDLE, self._registered_duckiebots.values())
 
     def _create_and_register_duckiebot(self, robot_name):
         """
@@ -233,7 +243,45 @@ class TaxiCentralNode:
         (Maybe if # pending_customer requests > number idle duckiebots, assign the ones with the shortest path.)
         For every assigned duckiebot, publish to target location. Publish transportation status.
         """
-        pass
+
+        # For now quickly find the closest duckiebot
+        for pending_request in self._pending_customer_requests:
+            idle_duckiebots = self._idle_duckiebots()
+            if len(idle_duckiebots) == 0:
+                rospy.loginfo("No duckiebot available for pending transport request")
+                return
+
+            # Get the start node
+            start_node = self._graph.get_node(pending_request.start_location)
+
+            nodes_to_visit = [start_node]
+
+            # Find the closest duckiebot via breadth first search
+            duckiebot = None
+            while len(nodes_to_visit) > 0 and duckiebot is None:
+                current_node = nodes_to_visit.pop(0)
+
+                # Check if there's a duckiebot on that node
+                for db in idle_duckiebots:
+                    if str(db.name) == current_node.name:
+                        # We found one!
+                        duckiebot = db
+                        break
+
+                # Add all the neighboring nodes to the list of nodes we still have to visit
+                edges = self._graph.node_edges(current_node)
+                for edge in edges:
+                    nodes_to_visit.append(edge.target)
+
+            if duckiebot is None:
+                rospy.logwarn("There are IDLE duckiebots but they were not found in the graph")
+
+            # Assign the request to that duckiebot
+            duckiebot.assign_customer_request(pending_request)
+
+
+
+
 
     def _location_update(self, at_stop_line):
         """
@@ -322,9 +370,7 @@ if __name__ == '__main__':
     map_path = os.path.abspath(script_dir)
     csv_filename = 'tiles_lab'
 
-    gc = graph_creator()
-    gc.build_graph_from_csv(map_path, csv_filename)
-    taxi_central_node = TaxiCentralNode(gc)
+    taxi_central_node = TaxiCentralNode(map_path, csv_filename)
 
     rospy.on_shutdown(taxi_central_node.on_shutdown)
     rospy.spin()

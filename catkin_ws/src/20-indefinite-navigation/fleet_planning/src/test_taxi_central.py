@@ -53,9 +53,7 @@ class TestTaxiCentral(unittest.TestCase):
         map_path = os.path.abspath(script_dir)
         csv_filename = 'tiles_lab'
 
-        gc = graph_creator()
-        gc.build_graph_from_csv(map_path, csv_filename)
-        taxi_central_node = TaxiCentralNode(gc)
+        taxi_central_node = TaxiCentralNode(map_path, csv_filename)
 
         request = Int16MultiArray()
         request.data=[5, 17]
