@@ -1,11 +1,28 @@
 #!/usr/bin/python
 import sys
+import rospy
 import rosbag
 import argparse
-import anti_instagram
-import duckietown_utils as dtu
 import cv2
-from complete_image_pipeline.pipeline import run_pipeline
+import numpy as np
+import duckietown_utils as dtu
+
+from anti_instagram.AntiInstagram import AntiInstagram
+from ground_projection.GroundProjection import GroundProjection
+from os.path import isfile
+from collections import OrderedDict
+from easy_algo.algo_db import get_easy_algo_db
+from duckietown_msgs.msg import (Segment, SegmentList)
+from line_detector.visual_state_fancy_display import vs_fancy_display
+from line_detector2.run_programmatically import FakeContext
+
+def rectify(image, K, D, R, P, height, width):
+        # Undistort
+        image_rectified = np.zeros(np.shape(image))
+        mapx = np.ndarray(shape=(height, width, 1), dtype='float32')
+        mapy = np.ndarray(shape=(height, width, 1), dtype='float32')
+        mapx, mapy = cv2.initUndistortRectifyMap(K, D, R, P, (width, height), cv2.CV_32FC1, mapx, mapy)
+        return cv2.remap(image, mapx, mapy, cv2.INTER_CUBIC, image_rectified)
 
 # Parse input arguments
 parser = argparse.ArgumentParser(description='Read images from a given bag \
@@ -18,24 +35,53 @@ parser.add_argument('output', type=str, help='Output folder where logs are being
 # Initialize variables
 args = parser.parse_args()
 # rosbagIN = args.rosbag
-imgIn = args.imageIn
+imgIn = args.imgIn
 output = args.output
-ai = AntiInstagram()
+
+robot = 'yaf'
+detector = 'baseline'
+preparer = 'prep_200_100'
+context = FakeContext()
+
+algo_db = get_easy_algo_db()
+line_detector = algo_db.create_instance('line_detector', detector)
+image_preparer = algo_db.create_instance('image_prep', preparer)
+# c = rospy.get_param('~filter')
+# dtu.instantiate_utils.instantiate()
+
+# iterate over all possible line_detectors
+available = algo_db.query('line_detector', '*')
+print('Available line_detector interfaces:')
+for name in available:
+    print(name)
+
+# iterate over all possible image_preps
+available = algo_db.query('image_prep', '*')
+print('Available image_prep interfaces:')
+for name in available:
+    print(name)
 
 # Perform file check
-if not isfile(imgIN):
-    print('The file "%s" does not exist' % imgIN)
+if not isfile(imgIn):
+    print('The file "%s" does not exist' % imgIn)
     exit(2)
 
 # Check image integrity
 input = None
 try:
-    input = cv2.imread(imgIN)
+    input = cv2.imread(imgIn)
 except:
     print('The file "%s" cannot be decoded' % file)
     exit(3)
-if img is None:
+if input is None:
     exit(3)
+
+# Create missing folders
+from os import makedirs
+try:
+    makedirs(output)
+except:
+    pass
 
 # # Perform file check
 # from os.path import isfile
@@ -56,19 +102,44 @@ if img is None:
 
 # bag.close()
 
-# Create missing folders
-from os import makedirs
-try:
-    makedirs(output)
-except:
-    pass
-
-detector = 'baseline'
-image_prep = 'prep_200_100'
-
-print("Running image pipeline with %s line_detector and %s" % (detector, image_prep))
+print("Running image pipeline with %s line_detector and %s" % (detector, preparer))
 
 # Run image pipeline
-result = run_pipeline(image_cv, line_detector, image_prep)
-cv2.imshow('Input', input)
-cv2.imshow('Result', result)
+ai = AntiInstagram()
+ai.calculateTransform(input)
+
+gp = GroundProjection(robot)
+ci = gp.load_camera_info()
+
+# lf = LaneFilterHistogramm()
+
+# Transform image
+input_transformed = ai.applyTransform(input)
+input_transformed = np.clip(input_transformed, 0, 255).astype(np.uint8)
+
+# Undistort image
+input_rectified = rectify(input_transformed, ci.K, ci.D, ci.R, ci.P, ci.height, ci.width)
+
+# Get SegmentList from rectified image
+segment_list_transformed = SegmentList()
+segment_list_transformed = image_preparer.process(context, input_rectified, line_detector, transform=None)
+result = vs_fancy_display(input_rectified, segment_list_transformed)
+
+# Get Estimation
+# lf.update(segment_list_transformed.segments)
+
+# [d_max, phi_max] = lf.getEstimate()
+# max_val = lf.getMax()
+# in_lane = max_val > lf.min_max 
+
+# print('distance:\t %f', d_max)
+# print('angle:\t %f', phi_max)
+# print('in_lane:\t %b', in_lane)
+
+# Show results
+cv2.imshow("Input image", input)
+cv2.imshow("Resulting image", input_transformed)
+cv2.imshow("Rectified image", input_rectified)
+cv2.imshow("Rectified with segmets", result)
+
+cv2.waitKey(0)
