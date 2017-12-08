@@ -72,6 +72,14 @@ class graph_search_server():
 
         return GraphSearchResponse(path.actions)        
     
+    def graph_node_to_image_location(self, graph, node):
+        """
+        Convert a graph node number to a 2d image pixel location
+        """
+         return #graph.node_positions[node]
+
+
+
     def draw_icons(self, map_image, icon_type, location ):
         """
         Draw start, customer and target icons next to each 
@@ -102,9 +110,9 @@ class graph_search_server():
             print "invalid icon type"
             return
 
-        
-
-        map_image[x_start:x_end, y_start:y_end, :] = icon
+        # convert graph number to 2D image pixel coords
+        # point = self.graph_node_to_image_location(location)
+        # map_image[x_start:x_end, y_start:y_end, :] = icon
         # for trip in trips:
         #     print "drawing trip's icons...", trip
 
