@@ -2,11 +2,11 @@
 initial_state: "JOYSTICK_CONTROL"
 
 events: #Maps from subscribing topic to signal ids
-  joystick_override_on: 
+  joystick_override_on:
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
     trigger: True
-  joystick_override_off: 
+  joystick_override_off:
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
     trigger: False
@@ -81,7 +81,7 @@ global_transitions:
   parallel_autonomy_on: "PARALLEL_AUTONOMY"
   parallel_autonomy_off: "JOYSTICK_CONTROL"
 
-# Define nodes 
+# Define nodes
 nodes:
   decoder_node: "decoder_node/switch"
 # anti_instagram_node: "anti_instagram/switch"
@@ -123,7 +123,7 @@ states:
     lights: ["parallel_autonomy"]
   LANE_FOLLOWING:
     transitions:
-      at_stop_line: "COORDINATION"
+#     at_stop_line: "COORDINATION"
 #      lost_lane: "LANE_RECOVERY"
     active_nodes:
       - lane_filter_node
