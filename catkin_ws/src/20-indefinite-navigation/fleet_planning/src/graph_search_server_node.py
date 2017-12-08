@@ -108,7 +108,7 @@ class graph_search_server():
             icon = self.target_icon
         else: 
             print "invalid icon type"
-            return
+            # return
 
         # convert graph number to 2D image pixel coords
         # point = self.graph_node_to_image_location(location)
