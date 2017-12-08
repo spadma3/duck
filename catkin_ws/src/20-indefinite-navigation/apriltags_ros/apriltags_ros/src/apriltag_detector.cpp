@@ -22,9 +22,9 @@ namespace apriltags_ros{
     }
     else{
       try{
-	descriptions_ = parse_tag_descriptions(april_tag_descriptions);
+  descriptions_ = parse_tag_descriptions(april_tag_descriptions);
       } catch(XmlRpc::XmlRpcException e){
-	ROS_ERROR_STREAM("Error loading tag descriptions: "<<e.getMessage());
+  ROS_ERROR_STREAM("Error loading tag descriptions: "<<e.getMessage());
       }
     }
     
@@ -37,7 +37,6 @@ namespace apriltags_ros{
     image_sub_ = it_.subscribeCamera("image_rect", 1, &AprilTagDetector::imageCb, this);
     switch_sub_ = nh.subscribe("switch",1,&AprilTagDetector::switchCB, this);
     image_pub_ = it_.advertise("tag_detections_image", 1);
-    image_pub_org = it_.advertise("tag_detections_image_original", 1);
     detections_pub_ = nh.advertise<duckietown_msgs::AprilTagDetectionArray>("tag_detections", 1);
     pose_pub_ = nh.advertise<geometry_msgs::PoseArray>("tag_detections_pose", 1);
     on_switch=true;
@@ -61,7 +60,7 @@ namespace apriltags_ros{
     }
     cv::Mat gray;
     cv::cvtColor(cv_ptr->image, gray, CV_BGR2GRAY);
-    std::vector<AprilTags::TagDetection>	detections = tag_detector_->extractTags(gray);
+    std::vector<AprilTags::TagDetection>  detections = tag_detector_->extractTags(gray);
     ROS_DEBUG("%d tag detected", (int)detections.size());
     
     double fx = cam_info->K[0];
@@ -79,8 +78,8 @@ namespace apriltags_ros{
     BOOST_FOREACH(AprilTags::TagDetection detection, detections){
       std::map<int, AprilTagDescription>::const_iterator description_itr = descriptions_.find(detection.id);
       if(description_itr == descriptions_.end()){
-	ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
-	continue;
+  ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
+  continue;
       }
       AprilTagDescription description = description_itr->second;
       double tag_size = description.size();
@@ -104,8 +103,6 @@ namespace apriltags_ros{
       tag_detection.pose = tag_pose;
       tag_detection.id = detection.id;
       tag_detection.size = tag_size;
-      tag_detection.center_x = detection.cxy.first;
-      tag_detection.center_y = detection.cxy.second;
       tag_detection_array.detections.push_back(tag_detection);
       tag_pose_array.poses.push_back(tag_pose.pose);
 
@@ -116,7 +113,6 @@ namespace apriltags_ros{
     detections_pub_.publish(tag_detection_array);
     pose_pub_.publish(tag_pose_array);
     image_pub_.publish(cv_ptr->toImageMsg());
-    image_pub_org.publish(msg);
   }
 
 
@@ -134,13 +130,13 @@ namespace apriltags_ros{
 
       std::string frame_name;
       if(tag_description.hasMember("frame_id")){
-	ROS_ASSERT(tag_description["frame_id"].getType() == XmlRpc::XmlRpcValue::TypeString);
-	frame_name = (std::string)tag_description["frame_id"];
+  ROS_ASSERT(tag_description["frame_id"].getType() == XmlRpc::XmlRpcValue::TypeString);
+  frame_name = (std::string)tag_description["frame_id"];
       }
       else{
-	std::stringstream frame_name_stream;
-	frame_name_stream << "tag_" << id;
-	frame_name = frame_name_stream.str();
+  std::stringstream frame_name_stream;
+  frame_name_stream << "tag_" << id;
+  frame_name = frame_name_stream.str();
       }
       AprilTagDescription description(id, size, frame_name);
       ROS_INFO_STREAM("Loaded tag config: "<<id<<", size: "<<size<<", frame_name: "<<frame_name);
