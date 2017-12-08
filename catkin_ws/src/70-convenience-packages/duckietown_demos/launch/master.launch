@@ -47,7 +47,7 @@
 	<arg name="/lane_following/stop_line_filter" default="true"/>
 	<arg name="/lane_following/lane_controller" default="true"/>
 
-	<arg name="fsm" default="false"/>
+	<arg name="fsm" default="true"/>
 
 	<arg name="obstacle_avoidance" default="false"/>
 	<arg name="/obstacle_avoidance/simple_stop" default="true"/>
