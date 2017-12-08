@@ -51,7 +51,7 @@ class GraphSearchProblem(object):
 
 	def h_to_Goal(self,search_node):
 		"""Returns heuristics from search_node state to goal state"""
-		# print "self.goal", self.goal, "self.graph.node_positions[self.goal]", self.graph.node_positions[self.goal]
+		print "self.goal", self.goal, "self.graph.node_positions[self.goal]", self.graph.node_positions[self.goal]
 		return self.eucl_dist(self.graph.node_positions[search_node.state],
 			             self.graph.node_positions[self.goal])
 
