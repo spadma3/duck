@@ -15,7 +15,7 @@ class StopLineFilterNode(object):
         self.lane_pose = LanePose()
 
         ## params
-        self.stop_distance = self.setupParam("~stop_distance", 0.25) # distance from the stop line that we should stop
+        self.stop_distance = self.setupParam("~stop_distance", 5) # TODO change back to 0.25 distance from the stop line that we should stop
         self.min_segs      = self.setupParam("~min_segs", 2) # minimum number of red segments that we should detect to estimate a stop
         self.off_time      = self.setupParam("~off_time", 2)
 
