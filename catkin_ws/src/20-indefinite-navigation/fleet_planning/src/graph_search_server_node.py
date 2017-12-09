@@ -114,6 +114,7 @@ class graph_search_server():
 
         # convert graph number to 2D image pixel coords
         point = self.graph_node_to_image_location(graph = self.duckietown_graph, node = location)
+        print "Point received is: ", point
         point = transf.map_to_image(point)
         print "Point received is: ", point
         x_start = point[1]
