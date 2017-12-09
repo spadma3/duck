@@ -37,8 +37,7 @@ visualization_msgs::Marker make_pose_marker(int marker_id, uint8_t action, doubl
 {
     visualization_msgs::Marker marker;
 
-    // TODO: Change for <veh name>
-    marker.header.frame_id = "mrgoobers";
+    marker.header.frame_id = "slam";
     marker.header.stamp = ros::Time::now();
 
     // Set the namespace and id for this marker.  This serves to create a unique ID
@@ -97,8 +96,7 @@ visualization_msgs::Marker make_april_marker(int marker_id, uint8_t action, doub
 {
     visualization_msgs::Marker marker;
 
-    // TODO: Change for <veh name>
-    marker.header.frame_id = "mrgoobers";
+    marker.header.frame_id = "slam";
     marker.header.stamp = ros::Time::now();
 
     // Set the namespace and id for this marker.  This serves to create a unique ID
