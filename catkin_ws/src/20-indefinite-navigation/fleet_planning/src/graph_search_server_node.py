@@ -113,8 +113,12 @@ class graph_search_server():
 
         # convert graph number to 2D image pixel coords
         point = self.graph_node_to_image_location(graph = self.duckietown_graph, node = location)
-        print "POint received is: ", point
-        # map_image[x_start:x_end, y_start:y_end, :] = icon
+        print "Point received is: ", point
+        x_start = point[0]
+        x_end = x_start + icon.shape[0]
+        y_start = point[1]  
+        y_end = y_start + icon.shape[1]
+        map_image[x_start:x_end, y_start:y_end, :] = icon
         # for trip in trips:
         #     print "drawing trip's icons...", trip
 
@@ -176,6 +180,7 @@ class graph_search_server():
         # or figure out some other way to get the location. 
         overlay = self.prepImage()
         print "req: ", req.source_node, req.target_node
+        # draw request if initialized, i.e. nonzero
         if req.target_node != '0':
             overlay = self.draw_icons(overlay, "customer", location = req.target_node) #trips = [[[0, 1], [2, 1], [3, 3]], [[0, 0], [1, 1], [2.5, 2.5]]])
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
