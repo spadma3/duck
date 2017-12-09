@@ -174,6 +174,7 @@ class graph_search_server():
         # TODO: either pass the name of the nodes here and use the  self.duckietown_graph.get_node_oos(node) function
         # or figure out some other way to get the location. 
         overlay = self.prepImage()
+        print "req: " req.source_node, req.target_node
         if req.target_node != 0:
             overlay = self.draw_icons(overlay, "customer", location = req.target_node) #trips = [[[0, 1], [2, 1], [3, 3]], [[0, 0], [1, 1], [2.5, 2.5]]])
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
