@@ -30,35 +30,56 @@ class Detector():
 
 	#define where to cut the image, color range,...
 	self.crop=crop_rate #default value=150 see above!!!
-	self.lower_yellow = np.array([20,75,100])
-	self.upper_yellow = np.array([40,255,255])
-	
+	self.lower_yellow = np.array([20,100,150])
+	self.upper_yellow = np.array([35,255,255])
+	self.img_width = 0 #to be set in init_inv_homography
+	self.img_height = 0 #to be set in init_inv_homography
+	self.M = self.init_inv_homography()
+	self.inv_M = inv(self.M)
 
-	# initialize second publisher, later i think we should put this in the "front" file
-	# currently we publish the "bottom" center of the obstacle!!!
-	#self.pub_topic2 = '/{}/obst_coordinates'.format(robot_name)
-    	#self.publisher2 = rospy.Publisher(self.pub_topic2, Point, queue_size=1)
-	
+
+    def init_inv_homography(self):
+    	x0=0
+	x1=640
+	y0=50
+	y1=350
+	pts1 = np.float32([[x0,y0],[x0,y1],[x1,y1],[x1,y0]])
+	pts1_h = np.float32([[x0,y0+self.crop,1],[x0,y1+self.crop,1],[x1,y1+self.crop,1],[x1,y0+self.crop,1]])
+	#add the crop offset to being able to calc real world coordinates correctly!!!
+	pts2_h = np.dot(self.H,np.transpose(pts1_h))
+
+	pts2 = np.float32((pts2_h[0:2,:]/pts2_h[2,:]*1000))
+	maximum_height = np.max([pts2[0,:]])
+	maximum_left = np.max([pts2[1,:]])
+	#print pts2
+	#determine points number 2!!!
+	pts2 = np.flipud(np.float32((np.float32([[maximum_height],[maximum_left]])-pts2)))
+	#flipud only cause world frame is flipped,..
+
+	self.img_width = int(np.max(pts2[0]))
+	self.img_height = int(np.max(pts2[1]))
+	return cv2.getPerspectiveTransform(pts1,np.transpose(pts2))
+
+		
     def process_image(self, image):
     	obst_list = PoseArray()
 	# FILTER CROPPED IMAGE
 	# Convert BGR to HSV
 	hsv = cv2.cvtColor(image[self.crop:,:,:], cv2.COLOR_RGB2HSV)
 	# Threshold the HSV image to get only yellow colors
-	mask = cv2.inRange(hsv, self.lower_yellow, self.upper_yellow)
-	#die Randpixel auf null setzen sonst unten probleme mit den boundaries
-	mask[0,:]=0
-	mask[np.size(mask,0)-1,:]=0
-	mask[:,0]=0
-	mask[:,np.size(mask,1)-1]=0
+	im_test = cv2.warpPerspective(hsv,self.M,(self.img_width,self.img_height)) 
+
+	mask = cv2.inRange(im_test, self.lower_yellow, self.upper_yellow)
+
 		
 	if(np.sum(mask!=0)!=0): #there were segment detected then
 		#SEGMENT IMAGE
 		segmented_image=self.segment_img(mask)
-
+		props=measure.regionprops(segmented_image)
+		no_elements = np.max(segmented_image)
 		#apply filter on elements-> only obstacles remain and mark them in original picture
 		#in the future: might be separated in 2 steps 1)extract objects 2)visualisation		
-		obst_list = self.object_filter(segmented_image)
+		obst_list = self.object_filter(props,no_elements)
 
 	return obst_list
 
@@ -69,65 +90,19 @@ class Detector():
 
 
 
-    def object_filter(self,segmented_img):
+    def object_filter(self,props,no_elements):
 	#for future: filter has to become adaptive to depth
 	obst_list = PoseArray()
    	obst_list.header.frame_id=self.robot_name
-	i=np.max(segmented_img)
-	for k in range(1,i+1): #iterate through all segmented numbers
+	for k in range(1,no_elements+1): #iterate through all segmented numbers
 		#first only keep large elements then eval their shape
-		if (np.sum((segmented_img == k))<100): #skip all those who were merged away or have not enough pixels tiefenabh???
-		    segmented_img[(segmented_img == k)]=0
-		else:
-		    
-		    B=np.copy(segmented_img)
-		    B[(B != k)]=0
-		    C=np.nonzero(B)
-		    ITER=np.reshape(C, (2,-1))
-		    #print C 
-		    top=np.min(C[0])
-		    bottom=np.max(C[0])
-		    left=np.min(C[1])
-		    right=np.max(C[1])
-		    height=bottom-top #indices are counted from top to down
-		    total_width=right-left
-		    
-		    # Now finidng the width on the same height
-		    height_left=np.max(ITER[0,(C[1]==left)]) 
-		    width_height_left = np.max(ITER[1,(C[0]==height_left)])
-		    #WIDTH AT HEIGHT OF LEFT POSITION
-		    width_left= width_height_left-left
+		if (props[k-1]['area']>self.img_width): #skip all those who were merged away or have not enough pixels tiefenabh???
+		    	top=props[k-1]['bbox'][0]
+			bottom=props[k-1]['bbox'][2]
+		      	left=props[k-1]['bbox'][1]
+		        right=props[k-1]['bbox'][3]
+		        total_width = right-left
 
-		    height_right=np.max(ITER[0,(C[1]==right)]) #ACHTUNG:kann mehrere WERTE HABEN
-		    width_height_right = np.min(ITER[1,(C[0]==height_right)])
-		    #WIDTH AT HEIGHT OF RIGHT POSITION
-		    width_right= right-width_height_right
-
-		    #print width_right
-		    #print width_left
-		    #print width_right
-		    #print height_left
-		    #print height_right
-
-		    #print "NEW OBJECT:"
-		    #print bottom
-		    #print width_right
-		    #print 1.0*width_right/bottom
-
-		    #WIDTH AT TOP
-		    #MUSS NOCH ABFRAGE HIN DAMIT MAN NICHT OUT OF BOUNDS LAEUFT
-		    #width_top = np.max(ITER[1,(C[0]==top+int(0.5*height))])-np.min(ITER[1,(C[0]==top+int(0.5*height))])
-
-		    #if (abs(height_left-height_right)>10): #FILTER 1
-		    #    final[(final == k)]=0
-		    #if (abs(width_top-width_right)<20): #FILTER 2
-		    #    final[(final == k)]=0
-
-		    if (1.0*width_right/bottom<0.25): #FILTER 3
-		        segmented_img[(segmented_img == k)]=0
-
-		    else:
-		        #UEBERGABE?
 		        obst_object = Pose()
 			point_calc=np.zeros((3,1),dtype=np.float)
 			point_calc=self.pixel2ground([[left+0.5*total_width],[bottom+self.crop]])
@@ -140,10 +115,10 @@ class Detector():
 			obst_object.position.z = point_calc2[1]-point_calc[1] #this is the radius!
 
 			#fill in the pixel boundaries
-			obst_object.orientation.x = left
-			obst_object.orientation.y = top+self.crop
-			obst_object.orientation.z = right
-			obst_object.orientation.w = bottom+self.crop
+			obst_object.orientation.x = top
+			obst_object.orientation.y = bottom
+			obst_object.orientation.z = left
+			obst_object.orientation.w = right
 
 			obst_list.poses.append(obst_object)
 		 

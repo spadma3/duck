@@ -19,7 +19,7 @@ class ObstDetectNode(object):
         self.show_marker = (rospy.get_param("~show_marker", ""))
         self.show_image = (rospy.get_param("~show_image", ""))
         self.crop = 150
-        self.r = rospy.Rate(2) # Rate in Hz
+        self.r = rospy.Rate(5) # Rate in Hz
 
         self.detector = Detector(robot_name=robot_name,crop_rate=self.crop)
         self.visualizer = Visualizer(robot_name=robot_name)
