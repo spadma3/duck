@@ -20,9 +20,9 @@ if os.path.exists(dir):
 
 os.makedirs(dir)
 i = 0
-j = 60 #take a pic each 2seconds
+j = 15 #take a pic each half second since node runs at 30Hz
 for topic, msg, t in bag.read_messages(topics=topic_interest):
-	if j!=60:
+	if j!=15:
 		j=j+1
 	else:
 		im1=rgb_from_ros(msg)
