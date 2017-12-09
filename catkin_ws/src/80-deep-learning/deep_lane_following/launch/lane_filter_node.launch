@@ -1,0 +1,16 @@
+<launch>
+    <arg name="veh"  doc="Name of vehicle. ex: megaman"/>
+    <arg name="pkg_name" value="deep_lane_following"/>
+    <arg name="node_name" default="lane_filter_node"/>
+    <arg name="local" default="1"/>
+
+    <group ns="$(arg veh)">
+        <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
+            <rosparam command="load" file="$(eval find(pkg_name) + '/default.yaml')"/>
+            <param name="veh" value="$(arg veh)"/>
+        </node>
+
+    </group>
+
+
+</launch>

@@ -1,0 +1,23 @@
+# default parameters for lane_filter/lane_filter_node
+
+filter:
+  - deep_lane_following.LaneFilterPF
+  - configuration:
+     d_max: 0.5
+     d_min: -0.7
+     phi_max: 1.5707
+     phi_min: -1.5707
+     linewidth_white: 0.04
+     linewidth_yellow: 0.02
+     lanewidth: 0.22
+     sigma_d: .05
+     sigma_phi: .1
+     n_particles: 100
+     lik_dist: .1
+    # fill in params here
+
+#uncomment below and comment above if you are doing EKF
+#  - dt_filtering_$ROBOTNAME.LaneFilterEKF
+#  - configuration:
+#      example2: 0.3
+#     # fill in params here
