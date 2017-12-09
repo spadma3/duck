@@ -101,7 +101,7 @@ class graph_search_server():
         # draw the start, customer and target icons next to the corresponding 
         # label of the graph node. 
         print "self.map_img.shape: ", self.map_img.shape
-        transf = Transformer(self.tile_length, self.map_img.shape[1] / self.tile_length)  # TODO: better way to get the map dimensions?
+        transf = Transformer(self.tile_length, self.map_img.shape[0] / self.tile_length)  # TODO: better way to get the map dimensions?
         if icon_type == "customer":
             icon = self.customer_icon
         elif icon_type == "start":
