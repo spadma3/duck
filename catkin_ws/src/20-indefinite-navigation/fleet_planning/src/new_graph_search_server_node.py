@@ -8,23 +8,20 @@ from cv_bridge import CvBridge
 from fleet_planning.srv import *
 from fleet_planning.generate_duckietown_map import graph_creator, MapImageCreator
 
+
 class graph_search_server():
     def __init__(self):
         print 'Graph Search Service Started'
 
         # Input: csv file
         self.map_name = rospy.get_param('/map_name')
-
         # Loading paths
         self.script_dir = os.path.dirname(__file__)
-        self.map_path = self.script_dir + '/maps/' + self.map_name
-        self.map_img_path = self.map_path + '_map'
 
         # build and init graphs
         gc = graph_creator()
         self.duckietown_graph = gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
         self.duckietown_problem = GraphSearchProblem(self.duckietown_graph, None, None)
-    
         print "Graph loaded successfully!\n"
 
     def handle_graph_search(self, req):
