@@ -81,30 +81,30 @@ map = np.empty((lot_height,lot_width))
 
 # red stopping lines
 length_red_line = int( (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0 )
-map[lanes_length-wide_tape_width:lanes_length,wide_tape_width:wide_tape_width+length_red_line] = map_keys["red lane"]
-map[0:wide_tape_width,wide_tape_width+length_red_line+narrow_tape_width:lot_width/2.0-wide_tape_width] = map_keys["red lane"]
+map[lanes_length-wide_tape_width:lanes_length, wide_tape_width:wide_tape_width+length_red_line] = map_keys["red lane"]
+map[0:wide_tape_width, int(wide_tape_width+length_red_line+narrow_tape_width):int(lot_width/2.0-wide_tape_width)] = map_keys["red lane"]
 
 # white lanes
 map[0:lanes_length,0:wide_tape_width] = map_keys["white lane"]
-map[0:lanes_length,lot_width/2.0-wide_tape_width:lot_width/2.0] = map_keys["white lane"]
+map[0:lanes_length,int(lot_width/2.0-wide_tape_width):int(lot_width/2.0)] = map_keys["white lane"]
 
 # yellow lanes
 map[0:lanes_length,wide_tape_width+length_red_line:wide_tape_width+length_red_line+narrow_tape_width] = map_keys["yellow lane"]
 
 map[lot_height-space_length:lot_height,0:narrow_tape_width] = map_keys["yellow lane"]
-map[lot_height-space_length:lot_height,lot_height/4.0-narrow_tape_width/2.0:lot_height/4.0+narrow_tape_width/2.0] = map_keys["yellow lane"]
-map[lot_height-space_length:lot_height,lot_height/2.0-narrow_tape_width/2.0:lot_height/2.0+narrow_tape_width/2.0] = map_keys["yellow lane"]
-map[lot_height-space_length:lot_height,lot_height*3.0/4.0-narrow_tape_width/2.0:lot_height*3.0/4.0+narrow_tape_width/2.0] = map_keys["yellow lane"]
+map[lot_height-space_length:lot_height,int(lot_height/4.0-narrow_tape_width/2.0):int(lot_height/4.0+narrow_tape_width/2.0)] = map_keys["yellow lane"]
+map[lot_height-space_length:lot_height,int(lot_height/2.0-narrow_tape_width/2.0):int(lot_height/2.0+narrow_tape_width/2.0)] = map_keys["yellow lane"]
+map[lot_height-space_length:lot_height,int(lot_height*3.0/4.0-narrow_tape_width/2.0):int(lot_height*3.0/4.0+narrow_tape_width/2.0)] = map_keys["yellow lane"]
 map[lot_height-space_length:lot_height,lot_width-narrow_tape_width:lot_width] = map_keys["yellow lane"]
-map[0:space_length,lot_height*3.0/4.0-narrow_tape_width/2.0:lot_height*3.0/4.0+narrow_tape_width/2.0] = map_keys["yellow lane"]
+map[0:space_length,int(lot_height*3.0/4.0-narrow_tape_width/2.0):int(lot_height*3.0/4.0+narrow_tape_width/2.0)] = map_keys["yellow lane"]
 
 
 """
 path planing problem
 """
 # start and endpose
-pose_duckiebot = pose_from_key("space 3")
-pose_parking_space = pose_from_key("exit")
+pose_duckiebot = pose_from_key("space 1")
+pose_parking_space = pose_from_key("entrance")
 
 # 2d configuration space: (no heading, no minimum curvature condition)
 
