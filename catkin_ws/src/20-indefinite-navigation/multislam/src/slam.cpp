@@ -148,6 +148,8 @@ visualization_msgs::Marker make_april_marker(int marker_id, uint8_t action, doub
 class GraphSlam
 {
     ros::NodeHandle nh_;
+    ros::Subscriber apriltags_sub;
+    ros::Subscriber carcmd_sub;
     NonlinearFactorGraph graph;
     Values initialEstimate;
     Values result;
@@ -180,17 +182,16 @@ public:
 	    marker_arr_pub = nh_.advertise<visualization_msgs::MarkerArray>("graph_visualization_arr", 1);
 
 	    // Subscribers
-	    ros::Subscriber aprilsub = nh_.subscribe("/mrgoobers/apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
-	    ros::Subscriber velsub = nh_.subscribe("/mrgoobers/car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
+	    apriltags_sub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
+	    carcmd_sub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
 
 //  ros::Subscriber imusub = nh_.subscribe("/imu/data_raw", 1000, imucallback);
 //  ros::Timer imutimer = nh_.createTimer(ros::Duration(1), printcallback);
 
 	    // testOptimizer();
 
-	    ros::Timer opttimer = nh_.createTimer(ros::Duration(1), &GraphSlam::optimizeCallback, this);
+	    nh_.createTimer(ros::Duration(1), &GraphSlam::optimizeCallback, this);
 	    initialEstimate.print("\nInitial Estimate:\n");
-
 	}
 
     void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
@@ -300,11 +301,9 @@ public:
 
 };
 
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "slam");
-
 
     GraphSlam gs;
 
