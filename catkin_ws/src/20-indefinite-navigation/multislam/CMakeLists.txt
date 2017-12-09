@@ -122,10 +122,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(listener src/listener.cpp)
+add_executable(slam src/slam.cpp)
 #message("${catkin_LIBRARIES}")    empty variable!! problem!
-target_link_libraries(listener ${catkin_LIBRARIES} gtsam)
-# add_dependencies(listener)
+target_link_libraries(slam ${catkin_LIBRARIES} gtsam)
+# add_dependencies(slam)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}

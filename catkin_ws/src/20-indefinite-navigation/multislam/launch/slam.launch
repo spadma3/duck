@@ -1,7 +1,7 @@
 <launch>
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
 	<arg name="pkg_name" value="multislam"/>
-	<arg name="node_name" default="listener"/>
+	<arg name="node_name" default="slam"/>
 	<arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
 
 	<!-- start basic args -->
