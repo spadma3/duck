@@ -42,6 +42,7 @@ class graph_search_server():
         self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name = self.map_name)
 
         mc = MapImageCreator(self.tiles_dir)
+        self.tile_length = mc.tile_length
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
 
         # image used to store all start, customer and target icons at their positions
@@ -100,7 +101,7 @@ class graph_search_server():
         # draw the start, customer and target icons next to the corresponding 
         # label of the graph node. 
         
-        transf = Transformer(80, self.map_img.shape[1] / 80)  # TODO: better way to get the map dimensions?
+        transf = Transformer(self.tile_length, self.map_img.shape[1] / self.tile_length)  # TODO: better way to get the map dimensions?
         if icon_type == "customer":
             icon = self.customer_icon
         elif icon_type == "start":
