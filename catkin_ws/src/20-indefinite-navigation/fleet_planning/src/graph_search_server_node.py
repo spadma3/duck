@@ -117,9 +117,9 @@ class graph_search_server():
         point = transf.map_to_image(point)
         print "Point received is: ", point
         x_start = point[1]
-        x_end = x_start + icon.shape[1]
+        x_end = x_start + icon.shape[0]
         y_start = point[0]  
-        y_end = y_start + icon.shape[0]
+        y_end = y_start + icon.shape[1]
         map_image[x_start:x_end, y_start:y_end, :] = icon
         # for trip in trips:
         #     print "drawing trip's icons...", trip
