@@ -22,7 +22,7 @@
 	<remap from="vehicle_filter_node/corners" to="vehicle_detection_node/corners" />
 	<remap from="vehicle_avoidance_control_node/vehicle_pose" to="vehicle_filter_node/pose"/>
 	<remap from="vehicle_avoidance_control_node/detection" to="vehicle_detection_node/detection"/>
-	<remap from="vehicle_avoidance_control_node/car_cmd" to="joy_mapper_node/car_cmd"/>
+	<remap from="vehicle_avoidance_control_node/car_cmd_in" to="joy_mapper_node/car_cmd"/>
 	
 	<!-- Vehicle Detection Node -->
 	<include file="$(find vehicle_detection)/launch/vehicle_detection_node.launch">
@@ -60,7 +60,7 @@
     </include>
 
     <!-- run inverse_kinematics_node -->
-    <remap from="inverse_kinematics_node/car_cmd" to="vehicle_avoidance_control_node/car_cmd_update"/>
+    <remap from="inverse_kinematics_node/car_cmd" to="vehicle_avoidance_control_node/car_cmd"/>
     <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
     <include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
         <arg name="veh" value="$(arg veh)"/>
