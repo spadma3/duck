@@ -3,6 +3,7 @@ import rospy
 from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseArray
 from visualization_msgs.msg import MarkerArray
+import time
 
 ### note you need to change the name of the robot to yours here
 from obst_avoid.detector import Detector
@@ -56,7 +57,12 @@ class ObstDetectNode(object):
     
         # pass RECTIFIED IMAGE TO DETECTOR MODULE
         #1. EXTRACT OBSTACLES and return the pose array
+        start = time.time()
         obst_list = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
+        end = time.time()
+        print "GOING THROUGH OBJECT TOOK: s"
+        print(end - start)
+
         obst_list.header.stamp = image.header.stamp #for synchronization
         #interessant um zu schauen ob stau oder nicht!!!!
         #print image.header.stamp.to_sec()

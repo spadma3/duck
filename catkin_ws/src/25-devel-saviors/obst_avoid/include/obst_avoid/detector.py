@@ -37,6 +37,8 @@ class Detector():
 	self.img_height = 0 #to be set in init_inv_homography
 	self.maximum_height = 0 #to be set in ground2bird_view_pixel_init
 	self.maximum_left = 0
+	self.factor = 1.0 #to be set in ground2bird_view_pixel_init
+	self.obst_thres = 150 #to be set in init_inv_homography, this is default
 	self.M = self.init_inv_homography()
 	self.inv_M = inv(self.M)
 
@@ -58,6 +60,7 @@ class Detector():
 	#ATTENTION: bird view pixel with (x,y)
 	self.img_width = int(np.max(bird_view_pixel[0]))
 	self.img_height = int(np.max(bird_view_pixel[1]))
+	self.obst_thres = self.obst_thres*(self.img_height/218.0) #adaptive threshold
 	return cv2.getPerspectiveTransform(pts1,np.transpose(bird_view_pixel))
 
 		
@@ -96,7 +99,7 @@ class Detector():
    	obst_list.header.frame_id=self.robot_name
 	for k in range(1,no_elements+1): #iterate through all segmented numbers
 		#first only keep large elements then eval their shape
-		if (props[k-1]['area']>2*self.img_width): #skip all those who were merged away or have not enough pixels tiefenabh???
+		if (props[k-1]['area']>self.obst_thres): #skip all those who are too small
 		    	top=props[k-1]['bbox'][0]
 			bottom=props[k-1]['bbox'][2]
 		      	left=props[k-1]['bbox'][1]
@@ -155,7 +158,14 @@ class Detector():
     	#input: real world coordinate (3byN)
     	#output: bird view pixel (column,row) <-> (x,y)
     	#this is initialisation function to set the class parameters!!!!
-    	ground = np.float32((ground[0:2,:]/ground[2,:]*1000))
+    	#goal: find correct factor:
+    	min_width=np.min([ground[1,:]])
+    	max_width=np.max([ground[1,:]])
+    	total_width = max_width - min_width
+    	#this width should be 640 pixel, since image is 640pix wide!!!
+    	self.factor = 640.0/total_width
+
+    	ground = np.float32((ground[0:2,:]/ground[2,:]*self.factor))
 	self.maximum_height = np.max([ground[0,:]])
 	self.maximum_left = np.max([ground[1,:]])
 	return np.flipud((np.float32((np.float32([[self.maximum_height],[self.maximum_left]])-ground))))
@@ -163,7 +173,7 @@ class Detector():
     def ground2bird_view_pixel(self,ground):
      	#input: real world coordinate (3byN)
     	#output: bird view pixel (column,row) <-> (x,y) (2byN)
-    	ground = np.float32((ground[0:2,:]/ground[2,:]*1000))
+    	ground = np.float32((ground[0:2,:]/ground[2,:]*self.factor))
 	return np.flipud((np.float32((np.float32([[self.maximum_height],[self.maximum_left]])-ground))))
 
     def bird_view_pixel2ground(self,bird_view_pixel):
@@ -171,7 +181,7 @@ class Detector():
      	#output: real world coordinate (3byN)
     	bird_view_pixel = np.flipud(bird_view_pixel)
     	bird_view_pixel = np.float32((np.float32([[self.maximum_height],[self.maximum_left]]))-bird_view_pixel)
-    	return np.concatenate((bird_view_pixel/1000, np.ones((1,np.shape(bird_view_pixel)[1]))), axis=0)
+    	return np.concatenate((bird_view_pixel/self.factor, np.ones((1,np.shape(bird_view_pixel)[1]))), axis=0)
 
     def bird_view_pixel2real_pic_pixel(self,bird_view_pixel):
      	#input: bird view pixel (column,row) <-> (x,y) (2byN)
