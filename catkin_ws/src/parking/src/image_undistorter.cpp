@@ -22,10 +22,13 @@ ImageUndistorter::~ImageUndistorter()
 
 void ImageUndistorter::imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
+    cv_bridge::CvImagePtr cv_ptr_distorted;
     cv_bridge::CvImagePtr cv_ptr_undistorted;
+
 
     try
     {
+        cv_ptr_distorted = cv_bridge::toCvCopy(msg);
         cv_ptr_undistorted = cv_bridge::toCvCopy(msg);
 
     }
@@ -35,8 +38,10 @@ void ImageUndistorter::imageCallback(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
+    cv::Mat distorted_img = cv_ptr_distorted->image;
     cv::Mat undistorted_img = cv_ptr_undistorted->image;
-    cv::undistort(undistorted_img, undistorted_img, intrinsic_, distCoeffs_);
+
+    cv::undistort(distorted_img, undistorted_img, intrinsic_, distCoeffs_);
     undistorted_image_pub_.publish(cv_ptr_undistorted->toImageMsg());
 }
 
