@@ -55,7 +55,7 @@ class CamInfoReader(object):
 
     def cbRectifiedImage(self,msg):
         if self.camera_info_msg is not None:
-            self.camera_info_msg_header.stamp = msg.header.stamp
+            self.camera_info_msg.header.stamp = msg.header.stamp
             self.pub_camera_info.publish(self.camera_info_msg)
 
 

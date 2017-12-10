@@ -9,7 +9,7 @@
     <include file="$(find duckietown)/machines"/>
     <group ns="$(arg veh)">
 
-        <node if="$(arg local)" name="decoder_node" type="republish" pkg="image_transport" output="screen" args="compressed in:=/$(arg veh)/camera_node/image raw out:=/$(arg veh)/camera_node/image" />
+        <node if="$(arg local)" name="decoder_node" type="republish" pkg="image_transport" output="screen" args="compressed in:=/$(arg veh)/camera_node/image raw out:=/$(arg veh)/camera_node/image/raw" />
 
         <node unless="$(arg local)" machine="$(arg veh)" name="decoder_node" type="republish" pkg="image_transport" output="screen" args="compressed in:=/$(arg veh)/camera_node/image raw out:=/$(arg veh)/camera_node/image/raw" />
      </group>
