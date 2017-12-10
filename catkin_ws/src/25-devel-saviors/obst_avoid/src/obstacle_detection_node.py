@@ -70,9 +70,6 @@ class ObstDetectNode(object):
         # pass RECTIFIED IMAGE TO DETECTOR MODULE
         #1. EXTRACT OBSTACLES and return the pose array
         obst_list = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
-        end = time.time()
-        print "GOING THROUGH OBJECT TOOK: s"
-        print(end - start)
 
         obst_list.header.stamp = image.header.stamp #for synchronization
         #interessant um zu schauen ob stau oder nicht!!!!

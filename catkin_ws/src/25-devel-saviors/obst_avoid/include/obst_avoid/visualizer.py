@@ -43,7 +43,7 @@ class Visualizer():
                 marker.color.g = 0.0
                 marker.color.b = 1.0
                 marker.pose.orientation.w = 1.0
-                marker.lifetime = rospy.Time(2.0) 
+                marker.lifetime = rospy.Time(1.0) 
                 #each marker if not replaced earlier by same id will dissapear after max 1 second
    		marker.id = i
 	   	marker.scale.x = obst_list.poses[i].position.z
