@@ -17,7 +17,7 @@ class TaxiState(Enum):
     IDLE = 2
 
 
-class Insctruction(Enum):
+class Instruction(Enum):
     LEFT = 'l'
     RIGHT = 'r'
     STRAIGHT = 's'
