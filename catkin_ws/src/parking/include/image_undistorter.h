@@ -16,23 +16,26 @@
 #include <iostream>
 #include <string>
 
-class ImageUndistorter
+namespace parking
 {
-public:
-    ImageUndistorter();
-    ~ImageUndistorter();
-    void imageCallback(const sensor_msgs::ImageConstPtr& msg);
+    class ImageUndistorter {
+    public:
+        ImageUndistorter();
+        ~ImageUndistorter();
 
-protected:
-    ros::NodeHandle nh_;
-    image_transport::ImageTransport it_;
+        void imageCallback(const sensor_msgs::ImageConstPtr &msg);
 
-    image_transport::Subscriber distorted_image_sub_;
-    image_transport::Publisher undistorted_image_pub_;
+    protected:
+        ros::NodeHandle nh_;
+        image_transport::ImageTransport it_;
 
-private:
-    cv::Mat intrinsic_;
-    cv::Mat distCoeffs_;
-};
+        image_transport::Subscriber distorted_image_sub_;
+        image_transport::Publisher undistorted_image_pub_;
+
+    private:
+        cv::Mat intrinsic_;
+        cv::Mat distCoeffs_;
+    };
+}
 
 #endif //IMAGE_UNDIST_IMAGE_UNDISTORTER_H

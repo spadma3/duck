@@ -4,7 +4,8 @@
 
 #include "image_undistorter.h"
 
-namespace parking {
+namespace parking
+{
     ImageUndistorter::ImageUndistorter()
             : it_(nh_) {
         distorted_image_sub_ = it_.subscribe("/schumi/camera_node/image", 1, &ImageUndistorter::imageCallback, this);
