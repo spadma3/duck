@@ -28,7 +28,7 @@ class FleetPlanningStrategy(Enum): # for future expansion
 
 
 class Duckiebot:
-    """tracks state and mission of every duckiebot, handles the global customer and location assignments"""
+    """tracks state and mission of one duckiebot, handles the global customer and location assignments"""
 
     _name = None
 
@@ -170,7 +170,7 @@ class TaxiCentralNode:
 
         # subscribers
         self._sub_customer_requests = rospy.Subscriber('~customer_requests', Int16MultiArray, self._register_customer_request, queue_size=1)
-        self._sub_intersection = rospy.Subscriber('~/paco/stop_line_filter_node/at_stop_line', BoolStamped, self._location_update)
+        self._sub_intersection = rospy.Subscriber('~/jeff/stop_line_filter_node/at_stop_line', BoolStamped, self._location_update)
         # publishers
         self._pub_duckiebot_target_location = rospy.Publisher('~target_location', String, queue_size=1)
         self._pub_duckiebot_transportation_status = rospy.Publisher('~transportation_status', String, queue_size=1, latch=True)
@@ -294,7 +294,7 @@ class TaxiCentralNode:
         :param location_msg: contains location and robot name
         """
 
-        duckiebot_name = 'paco' # TODO get this from message!!!!
+        duckiebot_name = 'jeff' # TODO get this from message!!!!
 
         node = None
         # how to make sure we get the tf of the right duckiebot???
@@ -307,7 +307,7 @@ class TaxiCentralNode:
                 if trans[2] != 1000: # the localization package uses this to encode that no information about the location exists. (here == 1 km in the air)
                     rot = tf.transformations.euler_from_quaternion(rot)[2]
                     node = self._location_to_node_mapper.get_node_name(trans[:2], np.degrees(rot))
-                    rospy.logwarn(node)
+                    rospy.logwarn("Current location ({},{}) corresponds to node {}.".format(trans[0], trans[1], node))
 
             except tf2_ros.LookupException:
                 rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(duckiebot_name))
