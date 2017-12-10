@@ -133,13 +133,12 @@
 
 			<!-- Raw camera_info_reader node -->
 			<remap from="raw_cam_info_reader_node/camera_info" to="camera_node/raw_camera_info"/>
-			<remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
+			<remap from="raw_cam_info_reader_node/image" to="camera_node/image/raw"/>
 			<include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="local" value="$(arg /camera/local)" />
 				<arg name="config" value="$(arg config)"/>
 				<arg name="param_file_name" value="$(arg param_file_name)"/>
-                <arg name="cali_file_name" value="$(arg veh)_rect" />
 				<arg name="node_name" value="raw_cam_info_reader_node" />
 				<arg name="image_type" value="raw" />
 			</include>
@@ -147,11 +146,23 @@
 			<group if="$(arg /camera/raw/rect)">
 				<!-- Rectification -->
 				<remap from="image_raw" to="camera_node/image/raw"/>
-				<remap from="camera_info" to="camera_node/raw_camera_info"/>
-				<remap from="image_rect_color" to="camera_node/image/rect" />
+				<remap from="camera_info" to="camera_node/camera_info"/>
+				<remap from="image_rect" to="image_proc/image_rect" />
 				<include file="$(find pi_camera)/launch/image_proc_node.launch">
 					<arg name="veh" value="$(arg veh)"/>
 					<arg name="local" value="$(arg /camera/local)" />
+				</include>
+				
+				<!-- Raw camera_info_reader node -->
+  				<remap from="rect_cam_info_reader_node/camera_info" to="image_proc/camera_info"/>
+				<remap from="rect_cam_info_reader_node/image" to="image_proc/image_rect"/>
+				<include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
+				  <arg name="veh" value="$(arg veh)"/>
+				  <arg name="local" value="$(arg /camera/local)"/>
+				  <arg name="config" value="$(arg config)"/>
+				  <arg name="param_file_name" value="$(arg param_file_name)"/>
+				  <arg name="node_name" value="rect_cam_info_reader_node" />
+				  <arg name="image_type" value="rectified" />
 				</include>
 			</group>
 		</group>
@@ -274,7 +285,8 @@
 	
 		<!-- Lane Filter -->
 		<group if="$(arg /lane_following/lane_filter)">
-			<remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
+		  <remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
+		  <remap from="lane_filter_node/car_cmd" to="car_cmd_switch_node/cmd"/>
 			<include file="$(find lane_filter)/launch/lane_filter_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -371,10 +383,10 @@
 	<!-- Start April Tags -->
 	<group if="$(arg apriltags)">
 		<!-- AprilTags Detections -->
-		<remap from="image_rect" to="camera_node/image/rect" />
-		<remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
-		<remap from="apriltags_detector_node/image_raw" to="camera_node/image/rect"/>
-		<remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
+		<remap from="image_rect" to="image_proc/image_rect" />
+		<remap from="camera_node/image/camera_info" to="image_proc/camera_info" />
+		<remap from="apriltags_detector_node/image_raw" to="image_proc/image_rect"/>
+		<remap from="apriltags_detector_node/camera_info" to="image_proc/camera_info"/>
 		<include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="local" value="$(arg /apriltags/local)"/>
