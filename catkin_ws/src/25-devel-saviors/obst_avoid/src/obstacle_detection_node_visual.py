@@ -23,10 +23,11 @@ class ObstDetectNodeVisual(object):
         self.show_image = (rospy.get_param("~show_image", ""))
         #self.show_image=True
 
-        self.visualizer = Visualizer(robot_name=robot_name)
-
         # Load camera calibration parameters
 	self.intrinsics = load_camera_intrinsics(robot_name)
+
+        if (self.show_marker or self.show_image):
+                self.visualizer = Visualizer(robot_name=robot_name)
 
         # Create Publishers
         if (self.show_marker):

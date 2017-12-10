@@ -22,7 +22,6 @@ class ObstDetectNode(object):
         self.r = rospy.Rate(2) # Rate in Hz
 
         self.detector = Detector(robot_name=robot_name)
-        self.visualizer = Visualizer(robot_name=robot_name)
 
         # Load camera calibration parameters
 	self.intrinsics = load_camera_intrinsics(robot_name)
@@ -30,6 +29,9 @@ class ObstDetectNode(object):
         # Create a Publisher
         self.pub_topic_arr = '/{}/obst_detect/posearray'.format(robot_name)
         self.publisher_arr = rospy.Publisher(self.pub_topic_arr, PoseArray, queue_size=1)
+
+        if (self.show_marker or self.show_image):
+                self.visualizer = Visualizer(robot_name=robot_name)
 
         if (self.show_marker):
                 self.pub_topic_marker = '/{}/obst_detect/visualize_obstacles'.format(robot_name)

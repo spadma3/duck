@@ -29,7 +29,7 @@ class Detector():
 	self.H = load_homography(self.robot_name)
 
 	#define where to cut the image, color range,...
-	self.crop = 150 #default value=150 see above!!!
+	self.crop = 150 #crop where we see 50cm in the middle (x=0.9m,y=0), default=150
 	self.lower_yellow = np.array([20,100,150])
 	self.upper_yellow = np.array([35,255,255])
 	self.img_width = 0 #to be set in init_inv_homography
@@ -41,10 +41,14 @@ class Detector():
 
 
     def init_inv_homography(self):
-    	x0=0
-	x1=640
-	y0=50
-	y1=350
+    	reference_world_point = np.float32([[0.9],[0.0],[1.0]]) #adaptive cropping is dangerous
+    	real_pix_of_ref_point = self.ground2real_pic_pixel(reference_world_point)
+    	image_height = 480 #default height of image
+    	self.crop = int(real_pix_of_ref_point[1])
+    	x0=0 #take full width of image
+	x1=640 #take full width of image
+	y0=0 #take top of cropped image!
+	y1=image_height-self.crop
 	pts1 = np.float32([[x0,y0],[x0,y1],[x1,y1],[x1,y0]])
 	pts1_h = np.float32([[x0,y0+self.crop,1],[x0,y1+self.crop,1],[x1,y1+self.crop,1],[x1,y0+self.crop,1]])
 	#add the crop offset to being able to calc real world coordinates correctly!!!
@@ -135,7 +139,15 @@ class Detector():
 	point_calc=np.zeros(np.shape(real_pic_pixel),dtype=np.float32)
 	point_calc= np.dot(self.H,real_pic_pixel) #calculating realWorldcoords
 	point_calc= np.concatenate(([(point_calc[0,:])/point_calc[2,:],(point_calc[1,:])/point_calc[2,:]], np.ones((1,np.shape(real_pic_pixel)[1]))), axis=0)
-	return point_calc	
+	return point_calc
+
+    def ground2real_pic_pixel(self,ground):
+    	#input: real world coordinates (z-component is equal to 1!!!) 
+    	#output: pixel coordinates of real picture in homogeneous coords (3byN) 
+    	#taking real world coordinates and returning (column,row) <-> (x,y) of real_pic_pixels! (2byN)
+	point_calc=np.zeros(np.shape(ground),dtype=np.float32)
+	point_calc= np.dot(inv(self.H),ground) #calculating realWorldcoords
+	return ([(point_calc[0,:])/point_calc[2,:],(point_calc[1,:])/point_calc[2,:]])	
 
 
     def ground2bird_view_pixel_init(self,ground):
