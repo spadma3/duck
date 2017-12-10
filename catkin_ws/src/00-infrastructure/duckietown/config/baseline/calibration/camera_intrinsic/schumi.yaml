@@ -1,0 +1,23 @@
+camera_matrix:
+  cols: 3
+  data: [354.0060025160083, 0.0, 335.38704906950056, 0.0, 349.1284844223939, 241.60692139487122,
+    0.0, 0.0, 1.0]
+  rows: 3
+camera_name: schumi/camera_node
+distortion_coefficients:
+  cols: 5
+  data: [-0.3287717896028588, 0.08996069454049395, 0.0004112232266272803, 0.0023349788695020213,
+    0.0]
+  rows: 1
+distortion_model: plumb_bob
+image_height: 480
+image_width: 640
+projection_matrix:
+  cols: 4
+  data: [257.30816650390625, 0.0, 336.8768513950854, 0.0, 0.0, 282.50439453125, 242.9454819211096,
+    0.0, 0.0, 0.0, 1.0, 0.0]
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+  rows: 3
