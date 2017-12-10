@@ -32,12 +32,14 @@ using namespace gtsam;
 
 ros::Publisher marker_pub;
 ros::Publisher marker_arr_pub;
+std::string veh_name;
+
 
 visualization_msgs::Marker make_pose_marker(int marker_id, uint8_t action, double x, double y, double theta)
 {
     visualization_msgs::Marker marker;
 
-    marker.header.frame_id = "slam";
+    marker.header.frame_id = veh_name;
     marker.header.stamp = ros::Time::now();
 
     // Set the namespace and id for this marker.  This serves to create a unique ID
@@ -96,7 +98,7 @@ visualization_msgs::Marker make_april_marker(int marker_id, uint8_t action, doub
 {
     visualization_msgs::Marker marker;
 
-    marker.header.frame_id = "slam";
+    marker.header.frame_id = veh_name;
     marker.header.stamp = ros::Time::now();
 
     // Set the namespace and id for this marker.  This serves to create a unique ID
@@ -146,8 +148,9 @@ visualization_msgs::Marker make_april_marker(int marker_id, uint8_t action, doub
 class GraphSlam
 {
     ros::NodeHandle nh_;
-    ros::Subscriber apriltags_sub;
-    ros::Subscriber carcmd_sub;
+    ros::Subscriber apriltagsSub;
+    ros::Subscriber carcmdSub;
+    ros::Timer optimizerTimer;
     NonlinearFactorGraph graph;
     Values initialEstimate;
     Values result;
@@ -168,6 +171,8 @@ public:
 	  odomNoise(noiseModel::Diagonal::Sigmas((Vector(3) << 0.05, 0.01, 0.5))),
 	  curposeindex(0), curx(0.0f), cury(0.0f), curtheta(0.0f), imutheta(0.0f)
 	{
+	    nh_.getParam("duckiebot_visualizer/veh_name", veh_name);
+
 	    lastTimeSecs = ros::Time::now().toSec();
 
 	    // Prior on the first pose, set at the origin
@@ -180,15 +185,15 @@ public:
 	    marker_arr_pub = nh_.advertise<visualization_msgs::MarkerArray>("graph_visualization_arr", 1);
 
 	    // Subscribers
-	    apriltags_sub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
-	    carcmd_sub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
+	    //apriltagsSub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
+	    //carcmdSub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
 
 //  ros::Subscriber imusub = nh_.subscribe("/imu/data_raw", 1000, imucallback);
 //  ros::Timer imutimer = nh_.createTimer(ros::Duration(1), printcallback);
 
-	    // testOptimizer();
+	    testOptimizer();
 
-	    nh_.createTimer(ros::Duration(1), &GraphSlam::optimizeCallback, this);
+	    optimizerTimer = nh_.createTimer(ros::Duration(1), &GraphSlam::optimizeCallback, this);
 	    initialEstimate.print("\nInitial Estimate:\n");
 	}
 
@@ -224,24 +229,15 @@ public:
 
     void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
 	{
-	    // Twist2DStamped msg type:
-	    // std_msgs/Header header
-	    //   uint32 seq
-	    //   time stamp
-	    //   string frame_id
-	    // float32 v
-	    // float32 omega
 	    curposeindex += 1;
 
 	    double timeNowSecs = ros::Time::now().toSec();
 	    double delta_t = timeNowSecs - lastTimeSecs;
-	    // printf("delta_t: %f    ", delta_t);
 	    lastTimeSecs = timeNowSecs;
 
 	    // maybe msg.omega needs to be switched to degrees/radians?
 	    double delta_d = delta_t * msg->v;
 	    double delta_theta = delta_t * msg->omega;
-	    // printf("delta_theta: %f\n", delta_theta);
 	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
 
 	    curx += cos(curtheta) * delta_d;
@@ -258,7 +254,7 @@ public:
 	    LevenbergMarquardtOptimizer optimizer(graph, initialEstimate);
 	    result = optimizer.optimize();
 	    //result.print("Final Result:\n");
-	    printf("Error: %f\n", optimizer.state().error);
+	    //printf("Error: %f\n", optimizer.state().error);
 
 	    visualization_msgs::MarkerArray ma;
 
@@ -267,7 +263,7 @@ public:
 		visualization_msgs::Marker marker;
 		if (typeid(key_val.value) == typeid(Pose2))
 		{
-		    const Pose2 &val = dynamic_cast<const Pose2&>(key_val.value);
+	    const Pose2 &val = dynamic_cast<const Pose2&>(key_val.value);
 		    marker = make_pose_marker(key_val.key, OPTIMIZE_ACTION,
 					      val.x(), val.y(), val.theta());
 		} else if (typeid(key_val.value) == typeid(Point2)) {
@@ -289,13 +285,20 @@ public:
 	    Symbol l('l', 1);
 	    graph.add(BetweenFactor<Pose2>(0, 1, Pose2(1, 0, 0), odomNoise));
 	    graph.add(BetweenFactor<Pose2>(1, 2, Pose2(1, 0, 0), odomNoise));
-	    graph.add(BearingRangeFactor<Pose2, Point2>(0, l, Rot2::atan2(1,1.5), std::sqrt(1.5*1.5 + 1), measurementNoise));
-	    graph.add(BearingRangeFactor<Pose2, Point2>(1, l, Rot2::atan2(1.,0.5), std::sqrt(0.5*0.5 + 1), measurementNoise));
 	    initialEstimate.insert(1, Pose2(1.0, 0.0, 0.0));
 	    initialEstimate.insert(2, Pose2(2.0, 0.0, 0.0));
-	    initialEstimate.insert(l, Point2(1.5, 1.0));
-	}
 
+
+	    graph.add(BetweenFactor<Pose2>(3, 4, Pose2(1, 0, 0), odomNoise));
+	    graph.add(BetweenFactor<Pose2>(4, 5, Pose2(1, 0, 0), odomNoise));
+	    initialEstimate.insert(3, Pose2(0.0, 1.0, 0.0));
+	    initialEstimate.insert(4, Pose2(1.0, 1.0, 0.0));
+	    initialEstimate.insert(5, Pose2(2.0, 1.0, 0.0));
+
+	    graph.add(BearingRangeFactor<Pose2, Point2>(2, l, Rot2::atan2(0.5,1), std::sqrt(0.5*0.5 + 1), measurementNoise));
+	    graph.add(BearingRangeFactor<Pose2, Point2>(5, l, Rot2::atan2(-0.5,1), std::sqrt(0.5*0.5 + 1), measurementNoise));
+	    initialEstimate.insert(l, Point2(3.0, 0.5));
+	}
 
 };
 
