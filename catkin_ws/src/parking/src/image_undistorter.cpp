@@ -8,7 +8,7 @@
 ImageUndistorter::ImageUndistorter()
         : it_(nh_)
 {
-    distorted_image_sub_ = it_.subscribe("/schumi/camera_node/image/raw", 1, &ImageUndistorter::imageCallback, this);
+    distorted_image_sub_ = it_.subscribe("/schumi/camera_node/image", 1, &ImageUndistorter::imageCallback, this);
     undistorted_image_pub_ = it_.advertise("/schumi/undistorted_image", 1);
 
     intrinsic_ = (cv::Mat_<double>(3,3)<<353.32880109224254, 0.0, 340.6187776422325, 0.0, 350.03231511108174, 256.42403699758046, 0.0, 0.0, 1.0);
