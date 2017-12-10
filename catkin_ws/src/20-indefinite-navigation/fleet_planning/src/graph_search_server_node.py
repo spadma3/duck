@@ -80,8 +80,6 @@ class graph_search_server():
         print "graph.node_positions", graph.node_positions
         return graph.node_positions[node]
 
-
-
     def draw_icons(self, map_image, icon_type, location ):
         """
         Draw start, customer and target icons next to each 
