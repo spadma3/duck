@@ -27,6 +27,7 @@ class Detector():
         # Load camera calibration parameters
 	self.intrinsics = load_camera_intrinsics(robot_name)
 	self.H = load_homography(self.robot_name)
+	self.inv_H = inv(self.H)
 
 	#define where to cut the image, color range,...
 	self.crop = 150 #crop where we see 50cm in the middle (x=0.9m,y=0), default=150
@@ -146,7 +147,7 @@ class Detector():
     	#output: pixel coordinates of real picture in homogeneous coords (3byN) 
     	#taking real world coordinates and returning (column,row) <-> (x,y) of real_pic_pixels! (2byN)
 	point_calc=np.zeros(np.shape(ground),dtype=np.float32)
-	point_calc= np.dot(inv(self.H),ground) #calculating realWorldcoords
+	point_calc= np.dot(self.inv_H,ground) #calculating realWorldcoords
 	return ([(point_calc[0,:])/point_calc[2,:],(point_calc[1,:])/point_calc[2,:]])	
 
 
