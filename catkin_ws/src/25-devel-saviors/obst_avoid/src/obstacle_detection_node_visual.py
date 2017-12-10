@@ -26,7 +26,7 @@ class ObstDetectNodeVisual(object):
         # Load camera calibration parameters
 	self.intrinsics = load_camera_intrinsics(robot_name)
 
-        if (self.show_marker or self.show_image):
+        if (self.show_marker and self.show_image):
                 self.visualizer = Visualizer(robot_name=robot_name)
 
         # Create Publishers
@@ -52,7 +52,7 @@ class ObstDetectNodeVisual(object):
         if (self.show_marker and not(self.show_image)):
                 self.subscriber_arr.registerCallback(self.callback)
         if (self.show_marker and self.show_image):
-                self.ts = message_filters.TimeSynchronizer([self.subscriber_arr,self.subscriber],500)
+                self.ts = message_filters.TimeSynchronizer([self.subscriber_arr,self.subscriber],10)
                 self.ts.registerCallback(self.callback)
 
     def callback(self,obst_list,image):

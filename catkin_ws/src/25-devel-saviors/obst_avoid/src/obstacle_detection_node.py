@@ -4,6 +4,7 @@ from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseArray
 from visualization_msgs.msg import MarkerArray
 import time
+import threading
 
 ### note you need to change the name of the robot to yours here
 from obst_avoid.detector import Detector
@@ -21,6 +22,7 @@ class ObstDetectNode(object):
         self.show_image = (rospy.get_param("~show_image", ""))
         
         self.r = rospy.Rate(2) # Rate in Hz
+        self.thread_lock = threading.Lock()
 
         self.detector = Detector(robot_name=robot_name)
 
@@ -46,18 +48,27 @@ class ObstDetectNode(object):
 
         # Create a Subscriber
         self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
-        self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback,queue_size=1, buff_size=2**24)
+        self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback_img,queue_size=1, buff_size=2**24)
         #buff size to approximately close to 2^24 such that always most recent pic is taken
         #essentail 
 
-    def callback(self, image):
+    def callback_img(self, image):
+        thread = threading.Thread(target=self.callback,args=(image,))
+        thread.setDaemon(True)
+        thread.start()
 
+
+
+    def callback(self, image):
+        if not self.thread_lock.acquire(False):
+            return
+
+        start = time.time()
         obst_list = PoseArray()
         marker_list = MarkerArray()
     
         # pass RECTIFIED IMAGE TO DETECTOR MODULE
         #1. EXTRACT OBSTACLES and return the pose array
-        start = time.time()
         obst_list = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
         end = time.time()
         print "GOING THROUGH OBJECT TOOK: s"
@@ -89,7 +100,11 @@ class ObstDetectNode(object):
                 #the visualizer.py modular!!!
                 self.publisher_img.publish(obst_image.data)
 
+        end = time.time()
+        print "GOING THROUGH TOOK: s"
+        print(end - start)
         self.r.sleep()
+        self.thread_lock.release()
 
     def onShutdown(self):
         rospy.loginfo('Shutting down Obstacle Detection, back to unsafe mode')
