@@ -20,7 +20,7 @@ from duckietown_utils import load_map, load_camera_intrinsics, load_homography, 
 
 class Detector():
     '''class for detecting obstacles'''
-    def __init__(self, robot_name='',crop_rate=150):
+    def __init__(self, robot_name=''):
         # Robot name
     	self.robot_name = robot_name
 
@@ -29,11 +29,13 @@ class Detector():
 	self.H = load_homography(self.robot_name)
 
 	#define where to cut the image, color range,...
-	self.crop=crop_rate #default value=150 see above!!!
+	self.crop = 150 #default value=150 see above!!!
 	self.lower_yellow = np.array([20,100,150])
 	self.upper_yellow = np.array([35,255,255])
 	self.img_width = 0 #to be set in init_inv_homography
 	self.img_height = 0 #to be set in init_inv_homography
+	self.maximum_height = 0 #to be set in ground2bird_view_pixel_init
+	self.maximum_left = 0
 	self.M = self.init_inv_homography()
 	self.inv_M = inv(self.M)
 
@@ -46,19 +48,12 @@ class Detector():
 	pts1 = np.float32([[x0,y0],[x0,y1],[x1,y1],[x1,y0]])
 	pts1_h = np.float32([[x0,y0+self.crop,1],[x0,y1+self.crop,1],[x1,y1+self.crop,1],[x1,y0+self.crop,1]])
 	#add the crop offset to being able to calc real world coordinates correctly!!!
-	pts2_h = np.dot(self.H,np.transpose(pts1_h))
-
-	pts2 = np.float32((pts2_h[0:2,:]/pts2_h[2,:]*1000))
-	maximum_height = np.max([pts2[0,:]])
-	maximum_left = np.max([pts2[1,:]])
-	#print pts2
-	#determine points number 2!!!
-	pts2 = np.flipud(np.float32((np.float32([[maximum_height],[maximum_left]])-pts2)))
-	#flipud only cause world frame is flipped,..
-
-	self.img_width = int(np.max(pts2[0]))
-	self.img_height = int(np.max(pts2[1]))
-	return cv2.getPerspectiveTransform(pts1,np.transpose(pts2))
+	pts2_h = self.real_pic_pixel2ground(np.transpose(pts1_h))
+	bird_view_pixel = self.ground2bird_view_pixel_init(pts2_h)
+	#ATTENTION: bird view pixel with (x,y)
+	self.img_width = int(np.max(bird_view_pixel[0]))
+	self.img_height = int(np.max(bird_view_pixel[1]))
+	return cv2.getPerspectiveTransform(pts1,np.transpose(bird_view_pixel))
 
 		
     def process_image(self, image):
@@ -96,25 +91,27 @@ class Detector():
    	obst_list.header.frame_id=self.robot_name
 	for k in range(1,no_elements+1): #iterate through all segmented numbers
 		#first only keep large elements then eval their shape
-		if (props[k-1]['area']>self.img_width): #skip all those who were merged away or have not enough pixels tiefenabh???
+		if (props[k-1]['area']>2*self.img_width): #skip all those who were merged away or have not enough pixels tiefenabh???
 		    	top=props[k-1]['bbox'][0]
 			bottom=props[k-1]['bbox'][2]
 		      	left=props[k-1]['bbox'][1]
 		        right=props[k-1]['bbox'][3]
 		        total_width = right-left
+		        #those are the coordinates in the bird view!!!!
 
 		        obst_object = Pose()
-			point_calc=np.zeros((3,1),dtype=np.float)
-			point_calc=self.pixel2ground([[left+0.5*total_width],[bottom+self.crop]])
-			#take care cause image was cropped,..
-			obst_object.position.x = point_calc[0] #obstacle coord x
-			obst_object.position.y = point_calc[1] #obstacle coord y
-			#calculate radius:
-			point_calc2=np.zeros((3,1),dtype=np.float)
-			point_calc2=self.pixel2ground([[left],[bottom+self.crop]])
-			obst_object.position.z = point_calc2[1]-point_calc[1] #this is the radius!
 
-			#fill in the pixel boundaries
+
+		        #geht jetzt auch effizienter!!, nicht auf 2 Mal,....!!!
+			point_calc=np.zeros((3,2),dtype=np.float)
+			point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
+			#take care cause image was cropped,..
+			obst_object.position.x = point_calc[0,0] #obstacle coord x
+			obst_object.position.y = point_calc[1,0] #obstacle coord y
+			#calculate radius:
+			obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
+
+			#fill in the pixel boundaries of bird view image!!!
 			obst_object.orientation.x = top
 			obst_object.orientation.y = bottom
 			obst_object.orientation.z = left
@@ -131,9 +128,41 @@ class Detector():
 	    
 	return obst_list
 
-    def pixel2ground(self,pixel):
-    	#taking pixel coordinates with (column,row) and returning real world coordinates!!!
-	point_calc=np.zeros((3,1),dtype=np.float)
-	point_calc= np.dot(self.H,[pixel[0],pixel[1],[1]]) #calculating realWorldcoords
-	point_calc=[(point_calc[0])/point_calc[2],(point_calc[1])/point_calc[2],1]
-	return point_calc
+    def real_pic_pixel2ground(self,real_pic_pixel):
+    	#input: pixel coordinates of real picture in homogeneous coords (3byN)
+    	#output: real world coordinates (z-component is equal to 1!!!)
+    	#taking pixel coordinates with (column,row) <-> (x,y) and returning real world coordinates!!! (3byN)
+	point_calc=np.zeros(np.shape(real_pic_pixel),dtype=np.float32)
+	point_calc= np.dot(self.H,real_pic_pixel) #calculating realWorldcoords
+	point_calc= np.concatenate(([(point_calc[0,:])/point_calc[2,:],(point_calc[1,:])/point_calc[2,:]], np.ones((1,np.shape(real_pic_pixel)[1]))), axis=0)
+	return point_calc	
+
+
+    def ground2bird_view_pixel_init(self,ground):
+    	#input: real world coordinate (3byN)
+    	#output: bird view pixel (column,row) <-> (x,y)
+    	#this is initialisation function to set the class parameters!!!!
+    	ground = np.float32((ground[0:2,:]/ground[2,:]*1000))
+	self.maximum_height = np.max([ground[0,:]])
+	self.maximum_left = np.max([ground[1,:]])
+	return np.flipud((np.float32((np.float32([[self.maximum_height],[self.maximum_left]])-ground))))
+     
+    def ground2bird_view_pixel(self,ground):
+     	#input: real world coordinate (3byN)
+    	#output: bird view pixel (column,row) <-> (x,y) (2byN)
+    	ground = np.float32((ground[0:2,:]/ground[2,:]*1000))
+	return np.flipud((np.float32((np.float32([[self.maximum_height],[self.maximum_left]])-ground))))
+
+    def bird_view_pixel2ground(self,bird_view_pixel):
+     	#input: bird view pixel (column,row) <-> (x,y) (2byN)
+     	#output: real world coordinate (3byN)
+    	bird_view_pixel = np.flipud(bird_view_pixel)
+    	bird_view_pixel = np.float32((np.float32([[self.maximum_height],[self.maximum_left]]))-bird_view_pixel)
+    	return np.concatenate((bird_view_pixel/1000, np.ones((1,np.shape(bird_view_pixel)[1]))), axis=0)
+
+    def bird_view_pixel2real_pic_pixel(self,bird_view_pixel):
+     	#input: bird view pixel (column,row) <-> (x,y) (2byN)
+     	#output: real pic pixel (2byN)!!! uncropped!!!	
+     	points = np.transpose(np.float32(bird_view_pixel))
+     	trans_points = np.float32(cv2.perspectiveTransform(np.array([points]),self.inv_M))
+        return np.concatenate((np.reshape(trans_points[:,:,0],(1,-1)), np.reshape(trans_points[:,:,1]+self.crop,(1,-1))), axis=0)

@@ -18,10 +18,10 @@ class ObstDetectNode(object):
         robot_name = rospy.get_param("~robot_name", "")
         self.show_marker = (rospy.get_param("~show_marker", ""))
         self.show_image = (rospy.get_param("~show_image", ""))
-        self.crop = 150
-        self.r = rospy.Rate(5) # Rate in Hz
+        
+        self.r = rospy.Rate(10) # Rate in Hz
 
-        self.detector = Detector(robot_name=robot_name,crop_rate=self.crop)
+        self.detector = Detector(robot_name=robot_name)
         self.visualizer = Visualizer(robot_name=robot_name)
 
         # Load camera calibration parameters
@@ -76,7 +76,7 @@ class ObstDetectNode(object):
                 obst_image.data = self.visualizer.visualize_image(rectify(rgb_from_ros(image),self.intrinsics),obst_list)
                 #here i want to display cropped image
                 image=rgb_from_ros(obst_image.data)
-                obst_image.data = d8_compressed_image_from_cv_image(image[self.crop:,:,::-1])
+                obst_image.data = d8_compressed_image_from_cv_image(image[self.detector.crop:,:,::-1])
                 #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
                 #the visualizer.py modular!!!
                 self.publisher_img.publish(obst_image.data)
