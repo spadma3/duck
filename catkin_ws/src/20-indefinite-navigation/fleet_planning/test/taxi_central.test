@@ -1,0 +1,4 @@
+<launch>
+
+  <test test-name="test_taxi_central" pkg="fleet_planning" type="test_taxi_central.py" />
+</launch>
