@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 add_rostest(test/taxi_central.test)
+add_rostest(test/message_serialization.test)
 
 catkin_python_setup()
 
@@ -20,6 +21,7 @@ catkin_python_setup()
 add_service_files(
   FILES
   GraphSearch.srv
+  VirtualDuckiebotLocation.srv
 )
 
 
