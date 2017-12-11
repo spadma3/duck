@@ -9,7 +9,9 @@ import duckietown_utils as dtu
 
 from anti_instagram.AntiInstagram import AntiInstagram
 from ground_projection.GroundProjection import GroundProjection
+from lane_filter.lane_filter import *
 from os.path import isfile
+from os import makedirs
 from collections import OrderedDict
 from easy_algo.algo_db import get_easy_algo_db
 from duckietown_msgs.msg import (Segment, SegmentList)
@@ -23,6 +25,21 @@ def rectify(image, K, D, R, P, height, width):
         mapy = np.ndarray(shape=(height, width, 1), dtype='float32')
         mapx, mapy = cv2.initUndistortRectifyMap(K, D, R, P, (width, height), cv2.CV_32FC1, mapx, mapy)
         return cv2.remap(image, mapx, mapy, cv2.INTER_CUBIC, image_rectified)
+
+def load_filter_config(filename=''):
+        '''Load lane_filter configuration'''
+        if not isfile(filename):
+            filename = dtu.path_utils.get_ros_package_path('duckietown') + '/config/baseline/lane_filter/lane_filter_node/default.yaml'
+        filter_config = dtu.yaml_wrap.yaml_load_file(filename)
+        # configuration = {
+        #     'name': filter_config['filter'][0],
+        #     'config': filter_config['filter'][1]['configuration'].items(),
+        # }
+        configuration = [];
+        configuration.append(filter_config['filter'][0])
+        configuration.append(filter_config['filter'][1]['configuration'])
+        dtu.logger.info("Loaded lane_filter configuration")
+        return configuration
 
 # Parse input arguments
 parser = argparse.ArgumentParser(description='Read images from a given bag \
@@ -77,7 +94,6 @@ if input is None:
     exit(3)
 
 # Create missing folders
-from os import makedirs
 try:
     makedirs(output)
 except:
@@ -104,14 +120,18 @@ except:
 
 print("Running image pipeline with %s line_detector and %s" % (detector, preparer))
 
-# Run image pipeline
+# Instantiate needed classes
 ai = AntiInstagram()
 ai.calculateTransform(input)
 
 gp = GroundProjection(robot)
 ci = gp.load_camera_info()
 
-# lf = LaneFilterHistogramm()
+lf_config = load_filter_config()
+assert isinstance(lf_config, list) and len(lf_config) == 2, lf_config
+lf = dtu.instantiate_utils.instantiate(lf_config[0], lf_config[1])
+dtu.logger.info('Created new lane_filter instance: %s' % str(lf_config[0]))
+# lf = dtu.instantiate_utils.instantiate(lf_config['name'], lf_config['config'])
 
 # Transform image
 input_transformed = ai.applyTransform(input)
