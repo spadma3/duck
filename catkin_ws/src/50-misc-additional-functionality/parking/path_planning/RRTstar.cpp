@@ -120,8 +120,8 @@ int main() {
 // planning time
     ob::PlannerStatus solved = optimizingPlanner->solve(1.0);
 
-    if (solved)
-        ss.getSolutionPath().printAsMatrix(std::cout);
+    //if (solved)
+    //    ss.getSolutionPath().printAsMatrix(std::cout);
 
     return 0;
 }
