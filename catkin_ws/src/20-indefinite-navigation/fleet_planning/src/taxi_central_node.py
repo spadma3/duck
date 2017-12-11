@@ -5,11 +5,12 @@ import os
 import rospy
 import tf
 import tf2_ros
-from std_msgs.msg import String, Int16MultiArray
+from std_msgs.msg import String, Int16MultiArray, ByteMultiArray
 from duckietown_msgs.msg import BoolStamped
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 import numpy as np
 from fleet_planning.generate_duckietown_map import graph_creator
+from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
 
 class TaxiState(Enum):
     GOING_TO_CUSTOMER = 0
@@ -181,8 +182,9 @@ class TaxiCentralNode:
         # subscribers
         self._sub_customer_requests = rospy.Subscriber('~customer_requests', Int16MultiArray, self._register_customer_request, queue_size=1)
         self._sub_intersection = rospy.Subscriber('~/paco/stop_line_filter_node/at_stop_line', BoolStamped, self._location_update)
+        self._sub_taxi_location = rospy.Subscriber('/taxi/location', ByteMultiArray, self._location_update)
         # publishers
-        self._pub_duckiebot_target_location = rospy.Publisher('~target_location', String, queue_size=1)
+        self._pub_duckiebot_target_location = rospy.Publisher('/taxi/commands', ByteMultiArray, queue_size=1)
         self._pub_duckiebot_transportation_status = rospy.Publisher('~transportation_status', String, queue_size=1, latch=True)
         # timers
         self._time_out_timer = rospy.Timer(rospy.Duration.from_sec(self.TIME_OUT_CRITERIUM), self._check_time_out)
@@ -294,7 +296,7 @@ class TaxiCentralNode:
             self._publish_duckiebot_mission(duckiebot)
             self._publish_duckiebot_transportation_status(duckiebot)
 
-    def _location_update(self, at_stop_line):
+    def _location_update(self, message):
         """
         Callback function for location subscriber. Message contains location and robot name.  If duckiebot
         is not yet known, register it first. Location is first mapped from 2d coordinates to graph node, then call
@@ -305,27 +307,8 @@ class TaxiCentralNode:
         :param location_msg: contains location and robot name
         """
 
-        duckiebot_name = 'paco' # TODO get this from message!!!!
-
-        node = None
-        # how to make sure we get the tf of the right duckiebot???
-        start_time = rospy.get_time()
-        # TODO: this whole loop here is done locally
-        while not node and rospy.get_time() - start_time < 5.0: # TODO: tune this
-            try:
-                (trans, rot) =self._listener_transform.lookupTransform(self._world_frame, self._target_frame, rospy.Time(0))
-
-                if trans[2] != 1000: # the localization package uses this to encode that no information about the location exists. (here == 1 km in the air)
-                    rot = tf.transformations.euler_from_quaternion(rot)[2]
-                    node = self._location_to_node_mapper.get_node_name(trans[:2], np.degrees(rot))
-                    rospy.logwarn(node)
-
-            except tf2_ros.LookupException:
-                rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(duckiebot_name))
-
-        if not node:
-            rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(duckiebot_name))
-            return
+        duckiebot_name, node = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
+        # TODO: Use the localization from the message
 
         if duckiebot_name not in self._registered_duckiebots: # new duckiebot detected
             self._create_and_register_duckiebot(duckiebot_name)
@@ -368,10 +351,10 @@ class TaxiCentralNode:
         """ create message that sends duckiebot to its next location, according to the customer request that had been
         assigned to it"""
 
-        message = (duckiebot.name, duckiebot.target_location)
-        msg_serialized = None  # TODO serialize message
+        # TODO: Taxistate may not be hardcoded to going_to_customer
+        serializedMessage = InstructionMessageSerializer.serialize(duckiebot.name, duckiebot.target_location, TaxiState.GOING_TO_CUSTOMER)
 
-        self._pub_duckiebot_target_location(msg_serialized)
+        self._pub_duckiebot_target_location.publish(ByteMultiArray(data=serializedMessage))
 
     def _publish_duckiebot_transportation_status(self, duckiebot):
         """ is called whenever the taxi_state of a duckiebot changes, publish this information to
