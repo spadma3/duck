@@ -10,7 +10,7 @@ class LocalizationMessageSerializer:
         serialized_name = NameSerializer.serialize(robotName)
         serialized_tile = IntegerSerializer.serialize(tile)
 
-        return serialized_tile + serialized_name
+        return bytearray(serialized_tile + serialized_name)
 
     @staticmethod
     def deserialize(bytes):
@@ -34,7 +34,7 @@ class InstructionMessageSerializer:
         serializedTargetNode = IntegerSerializer.serialize(targetNode)
         serializedCommand = IntegerSerializer.serialize(command)
 
-        return serializedTargetNode + serializedCommand + serializedName
+        return bytearray(serializedTargetNode + serializedCommand + serializedName)
 
     @staticmethod
     def deserialize(bytes):
