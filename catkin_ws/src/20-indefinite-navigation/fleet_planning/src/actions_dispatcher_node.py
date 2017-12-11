@@ -79,10 +79,12 @@ class ActionsDispatcherNode():
     def graph_search(self, data):
         print 'Requesting map for src: ', data.source_node, ' and target: ', data.target_node
         rospy.wait_for_service('graph_search')
+        print "Found service..."
         try:
             graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
             resp = graph_search(data.source_node, data.target_node)
             self.actions = resp.actions
+            print "checking for actions..."
             if self.actions:
                 # remove 'f' (follow line) from actions and add wait action in the end of queue
                 self.actions = [x for x in self.actions if x != 'f']

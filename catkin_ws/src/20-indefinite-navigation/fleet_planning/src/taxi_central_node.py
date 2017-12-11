@@ -178,6 +178,7 @@ class graph_search_server():
 
     def handle_graph_search(self, req):
         """takes request, calculates path and creates corresponding graph image. returns path"""
+        print "handling graph search"
         # Checking if nodes exists
         if (req.source_node not in self._duckietown_graph) or (req.target_node not in self._duckietown_graph):
             print "Source or target node do not exist."
@@ -190,7 +191,7 @@ class graph_search_server():
         path = self._duckietown_problem.astar_search()
 
         # Publish graph solution
-        self.publishImage(req, path)
+        self.map_draw.publishImage(req, path)
 
         return GraphSearchResponse(path.actions)        
     
@@ -265,7 +266,7 @@ class mapDraw():
             - opencv image with the icons at the correct positions
         """
         #print "Size of map: ", self.map_image.shape
-
+        print "draw_icons()"
         # loop through all trips currently in existence. For each trip,
         # draw the start, customer and target icons next to the corresponding 
         # label of the graph node. 
@@ -295,6 +296,7 @@ class mapDraw():
         return map_image
 
     def publishImage(self, req, path):
+        print "publishImage"
         if path:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(), map_name=self.map_name,
                                        highlight_nodes=[req.source_node, req.target_node])
@@ -360,11 +362,14 @@ class TaxiCentralNode:
 
 
         rospy.loginfo('Starting graph search server...')
-        self._gss = graph_search_server()
-        self._s = rospy.Service('graph_search', GraphSearch, self._gss.handle_graph_search) 
+        # self._gss = graph_search_server()
 
-        self._graph_creator = self._gss.gc #graph_creator()
-        self._graph = self._gss._duckietown_graph#self._graph_creator.build_graph_from_csv(map_dir, map_csv)
+        # self._s = rospy.Service('graph_search', GraphSearch, self._gss.handle_graph_search) 
+
+        # self._graph_creator = self._gss.gc #graph_creator()
+        self._graph_creator = graph_creator()
+        # self._graph = self._gss._duckietown_graph
+        self._graph = self._graph_creator.build_graph_from_csv(map_dir, map_csv)
         # self._graph_creator = gc
 
         # # location listener
@@ -377,7 +382,7 @@ class TaxiCentralNode:
 
         # subscribers
         self._sub_customer_requests = rospy.Subscriber('~customer_requests', Int16MultiArray, self._register_customer_request, queue_size=1)
-        self._sub_intersection = rospy.Subscriber('~/jeff/stop_line_filter_node/at_stop_line', BoolStamped, self._location_update)
+        self._sub_intersection = rospy.Subscriber('~/localhost/stop_line_filter_node/at_stop_line', BoolStamped, self._location_update)
         self._sub_taxi_location = rospy.Subscriber('/taxi/location', ByteMultiArray, self._location_update)
         # publishers
         self._pub_duckiebot_target_location = rospy.Publisher('/taxi/commands', ByteMultiArray, queue_size=1)
@@ -596,11 +601,12 @@ if __name__ == '__main__':
     map_path = os.path.abspath(script_dir)
     csv_filename = 'tiles_lab'
 
+
     taxi_central_node = TaxiCentralNode(map_path, csv_filename)
     
     # gss = graph_search_server()
     # print 'Starting server...\n'
-    # s = rospy.Service('graph_search', GraphSearch, gss.handle_graph_search)    
+    # s = rospy.Service('graph_search', GraphSearch, taxi_central_node._gss.handle_graph_search)    
 
     rospy.on_shutdown(TaxiCentralNode.on_shutdown)
     rospy.spin()
