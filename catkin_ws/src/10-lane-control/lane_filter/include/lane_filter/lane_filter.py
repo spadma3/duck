@@ -119,6 +119,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             j = int(floor((phi_i - self.phi_min)/self.delta_phi))
             measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1
 
+            # only use segments inside range of curvature interest
             if x_avg > self.curverange_x:
                 continue
             if abs(y_avg) > self.curverange_y:
