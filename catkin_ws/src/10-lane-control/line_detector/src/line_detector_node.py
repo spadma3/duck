@@ -150,16 +150,16 @@ class LineDetectorNode(object):
 
         tk.completed('decoded')
 
-        # Resize and crop image
-        hei_original, wid_original = image_cv.shape[0:2]
+        # # Resize and crop image
+        # hei_original, wid_original = image_cv.shape[0:2]
+        #
+        # if self.image_size[0] != hei_original or self.image_size[1] != wid_original:
+        #     # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
+        #     image_cv = cv2.resize(image_cv, (self.image_size[1], self.image_size[0]),
+        #                            interpolation=cv2.INTER_NEAREST)
+        # image_cv = image_cv[self.top_cutoff:,:,:]
 
-        if self.image_size[0] != hei_original or self.image_size[1] != wid_original:
-            # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
-            image_cv = cv2.resize(image_cv, (self.image_size[1], self.image_size[0]),
-                                   interpolation=cv2.INTER_NEAREST)
-        image_cv = image_cv[self.top_cutoff:,:,:]
-
-        tk.completed('resized')
+        # tk.completed('resized')
 
         # apply color correction: AntiInstagram
         image_cv_corr = self.ai.applyTransform(image_cv)

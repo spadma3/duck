@@ -10,8 +10,9 @@ from sensor_msgs.msg import Image, CompressedImage, CameraInfo
 from sensor_msgs.srv import SetCameraInfo, SetCameraInfoResponse
 from picamera import PiCamera
 from picamera.array import PiRGBArray
-from duckietown_utils import get_duckiefleet_root
+from duckietown_utils import get_duckiefleet_root, image_cv_from_jpg, d8_compressed_image_from_cv_image
 from duckietown_msgs.msg import BoolStamped
+import cv2
 
 class CameraNode(object):
     def __init__(self):
@@ -87,10 +88,16 @@ class CameraNode(object):
             stamp = rospy.Time.now()
             stream.seek(0)
             stream_data = stream.getvalue()
+
+            img_cv = image_cv_from_jpg(stream_data)
+            output = cv2.resize(img_cv, (120,160),interpolation=cv2.INTER_NEAREST)
+            output = output[40:,:,:]
+            temp_meg = d8_compressed_image_from_cv_image(output)
+
             # Generate compressed image
             image_msg = CompressedImage()
             image_msg.format = "jpeg"
-            image_msg.data = stream_data
+            image_msg.data = temp_meg.data
 
             image_msg.header.stamp = stamp
             image_msg.header.frame_id = self.frame_id
