@@ -38,7 +38,7 @@ class Detector():
 	self.maximum_height = 0 #to be set in ground2bird_view_pixel_init
 	self.maximum_left = 0
 	self.factor = 1.0 #to be set in ground2bird_view_pixel_init
-	self.obst_thres = 150 #to be set in init_inv_homography, this is default
+	self.obst_thres = 200 #to be set in init_inv_homography, this is default
 	self.M = self.init_inv_homography()
 	self.inv_M = inv(self.M)
 
