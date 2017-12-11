@@ -307,18 +307,25 @@ class TaxiCentralNode:
         :param location_msg: contains location and robot name
         """
 
-        duckiebot_name, node = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
+        duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
+        # Find the next node
+        next_node = -1
+        for n in range(len(route)):
+            if route[n] == node:
+                if n + 1 < len(route):
+                    next_node = route[n+1]
+
         # TODO: Use the localization from the message
 
         if duckiebot_name not in self._registered_duckiebots: # new duckiebot detected
             self._create_and_register_duckiebot(duckiebot_name)
             duckiebot = self._registered_duckiebots[duckiebot_name]
-            new_duckiebot_state = duckiebot.update_location_check_target_reached(node)
+            new_duckiebot_state = duckiebot.update_location_check_target_reached(node, next_node)
             self._handle_customer_requests()
 
         else:
             duckiebot = self._registered_duckiebots[duckiebot_name]
-            new_duckiebot_state = duckiebot.update_location_check_target_reached(node)
+            new_duckiebot_state = duckiebot.update_location_check_target_reached(node, next_node)
 
         if new_duckiebot_state == TaxiState.IDLE: # mission accomplished
             rospy.loginfo('Duckiebot {} has dropped off its happy customer.'.format(duckiebot.name))

@@ -28,7 +28,7 @@ class VirtualDuckiebotNode:
         rospy.loginfo("Will send location information")
 
         # Serialize Message and send it
-        serialized_message = LocalizationMessageSerializer.serialize(req.duckie_name, req.location)
+        serialized_message = LocalizationMessageSerializer.serialize(req.duckie_name, req.location,[])
         message = ByteMultiArray(data=serialized_message)
 
         self._pub_localization_topic.publish(message)

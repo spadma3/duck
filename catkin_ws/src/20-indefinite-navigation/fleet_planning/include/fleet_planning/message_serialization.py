@@ -6,21 +6,30 @@ class LocalizationMessageSerializer:
     Serializes and deserializes the localization message to be sent over the network.
     """
     @staticmethod
-    def serialize(robotName, tile):
+    def serialize(robotName, tile, route):
         serialized_name = NameSerializer.serialize(robotName)
         serialized_tile = IntegerSerializer.serialize(tile)
+        serialized_route = IntegerListSerializer.serialize(route)
 
-        return bytearray(serialized_tile + serialized_name)
+        return bytearray(serialized_tile + serialized_route + serialized_name )
 
     @staticmethod
     def deserialize(bytes):
         """
         :return: Returns a 3-tuple: (robotName, tile, route)
         """
-        tile_size = IntegerSerializer.size()
-        tile = IntegerSerializer.deserialize(bytes[0:tile_size])
-        name = NameSerializer.deserialize(bytes[tile_size:])
-        return name, tile
+        integer_size = IntegerSerializer.size()
+        tile = IntegerSerializer.deserialize(bytes[0:integer_size])
+
+        # Deserialize the list
+        route_length = IntegerSerializer.deserialize(bytes[integer_size:2*integer_size])
+        route_start = 2 * integer_size
+        route_end = route_start + route_length * integer_size
+        route = IntegerListSerializer.deserialize(bytes[route_start:route_start + route_end], route_length)
+
+        name = NameSerializer.deserialize(bytes[route_end:])
+
+        return name, tile, route
 
 
 
