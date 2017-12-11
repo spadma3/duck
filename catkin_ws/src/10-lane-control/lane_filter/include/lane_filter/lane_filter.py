@@ -31,6 +31,11 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             'min_max',
             'sigma_d_mask',
             'sigma_phi_mask',
+            'curverange_x',
+            'curverange_y',
+            'curveres_x',
+            'curveres_y',
+            'curve_phi_thresh'
         ]
         configuration = copy.deepcopy(configuration)
         Configurable.__init__(self,param_names,configuration)
@@ -44,12 +49,15 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         # Parameters for curvature detection
         # where points in [0, curverange_x] and [-curverange_y, curverange_y] are considered
         # and points on a mesh with resolution of curveres_x, curveres_y are averaged
-        self.curverange_x = 0.3
-        self.curverange_y = 0.3
-        self.curveres_x = 0.05
-        self.curveres_y = 0.05
+        #self.curverange_x = 0.3
+        #self.curverange_y = 0.3
+        #self.curveres_x = 0.05
+        #self.curveres_y = 0.05
 
-        self.julien = 0
+        # 0 stands for straight, -1 for left and 1 for right
+        self.curvetype = 0
+
+        self.curvature = 0
 
         self.initialize()
 
@@ -155,12 +163,16 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         curvature_map_d = curvature_map_d.astype(float)
         curvature_map_phi = curvature_map_phi.astype(float)
 
-        # DEBUGGING REASONS
-        d_sum = np.sum(curvature_map_d)
-        phi_sum = np.sum(curvature_map_phi)
-        d_avg = np.average(curvature_map_d)
         phi_avg = np.average(curvature_map_phi)
-        self.julien = phi_avg
+
+        # finally, determine curve type
+        if abs(phi_avg) < self.curve_phi_thresh:
+            self.curvetype = 0
+        else:
+            self.curvetype = np.sign(phi_avg)
+
+        self.curvature = phi_avg
+
 
 
         if np.linalg.norm(measurement_likelihood) == 0:
@@ -173,8 +185,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         d_max = self.d_min + maxids[0]*self.delta_d
         phi_max = self.phi_min + maxids[1]*self.delta_phi
 
-        # DEBUGGING REASONS
-        print(round(1000*(self.julien),0))
         return [d_max,phi_max]
 
     def getMax(self):

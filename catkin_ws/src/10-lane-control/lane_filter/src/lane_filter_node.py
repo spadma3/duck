@@ -3,7 +3,7 @@ import rospy
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32
-from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
+from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped, LaneCurvature
 from duckietown_utils.instantiate_utils import instantiate
 
 class LaneFilterNode(object):
@@ -12,10 +12,10 @@ class LaneFilterNode(object):
         self.active = True
         self.filter = None
         self.updateParams(None)
-        
+
         self.t_last_update = rospy.get_time()
         self.velocity = Twist2DStamped()
-        
+
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
@@ -27,6 +27,7 @@ class LaneFilterNode(object):
         self.pub_ml_img = rospy.Publisher("~ml_img",Image,queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
+        self.pub_curvature  = rospy.Publisher("~curvature", LaneCurvature, queue_size=1)
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -39,7 +40,7 @@ class LaneFilterNode(object):
 
             self.loginfo('new filter config: %s' % str(c))
             self.filter = instantiate(c[0], c[1])
-            
+
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
@@ -58,13 +59,13 @@ class LaneFilterNode(object):
         if ml is not None:
             ml_img = self.getDistributionImage(ml,segment_list_msg.header.stamp)
             self.pub_ml_img.publish(ml_img)
-        
+
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
         max_val = self.filter.getMax()
-        in_lane = max_val > self.filter.min_max 
+        in_lane = max_val > self.filter.min_max
 
-        
+
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
@@ -84,12 +85,20 @@ class LaneFilterNode(object):
         in_lane_msg.data = in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
+        # publish curvature
+        lane_curve_msg = LaneCurvature()
+        lane_curve_msg.header.stamp = segment_list_msg.header.stamp
+        lane_curve_msg.in_curve = (self.filter.curvetype != 0)
+        lane_curve_msg.curve_type = self.filter.curvetype
+        lane_curve_msg.curvature = self.filter.curvature
+        self.pub_curvature.publish(lane_curve_msg)
+
     def getDistributionImage(self,mat,stamp):
         bridge = CvBridge()
         img = bridge.cv2_to_imgmsg((255*mat).astype('uint8'), "mono8")
         img.header.stamp = stamp
         return img
-        
+
     def updateVelocity(self,twist_msg):
         self.velocity = twist_msg
 
