@@ -129,6 +129,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             c_i = int(floor(x_avg/self.curveres_x))
             c_j = curvature_map_d.shape[1]/2 + int(floor(y_avg/self.curveres_y))
 
+
             # add each segment in the range to our curvature map matrices
             if curvature_map_d[c_i, c_j] == None:
                 curvature_map_d[c_i,c_j] = d_i
@@ -144,10 +145,15 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         for i in range(curvature_map_d.shape[0]):
             for j in range(curvature_map_d.shape[1]):
                 if curvature_map_d[i,j] == None:
-                    curvature_map_d[i,j] = 0
+                    curvature_map_d[i,j] = 0.0
+                    curvature_map_phi[i,j] = 0.0
                 else:
                     curvature_map_d[i,j] = np.average(curvature_map_d[i,j])
                     curvature_map_phi[i,j] = np.average(curvature_map_phi[i,j])
+
+        # change type from object (since we used arrays in our matrix) to float
+        curvature_map_d = curvature_map_d.astype(float)
+        curvature_map_phi = curvature_map_phi.astype(float)
 
         # DEBUGGING REASONS
         d_sum = np.sum(curvature_map_d)
