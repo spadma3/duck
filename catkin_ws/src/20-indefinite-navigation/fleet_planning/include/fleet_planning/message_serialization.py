@@ -15,7 +15,7 @@ class LocalizationMessageSerializer:
     @staticmethod
     def deserialize(bytes):
         """
-        :return: Returns a 5-tuple: (robotName, x, y, z, rot)
+        :return: Returns a 3-tuple: (robotName, tile, route)
         """
         tile_size = IntegerSerializer.size()
         tile = IntegerSerializer.deserialize(bytes[0:tile_size])
@@ -90,6 +90,31 @@ class TransformationSerializer(object):
     @staticmethod
     def size():
         return calcsize(TransformationSerializer.serialization_format)
+
+
+class IntegerListSerializer:
+    """
+    A list is serialized by first serializing the number of elements that follow.
+    """
+    @staticmethod
+    def serialize(integer_list):
+        data = ""
+        data += IntegerSerializer.serialize(len(integer_list))
+
+        for i in integer_list:
+            data += IntegerSerializer.serialize(i)
+
+        return data
+
+    @staticmethod
+    def deserialize(bytes, length):
+        size = IntegerSerializer.size()
+        integer_list = []
+        for i in range(length):
+            entry_data = bytes[i*size:(i+1)*size]
+            integer_list.append(IntegerSerializer.deserialize(entry_data))
+
+        return integer_list
 
 
 class IntegerSerializer:

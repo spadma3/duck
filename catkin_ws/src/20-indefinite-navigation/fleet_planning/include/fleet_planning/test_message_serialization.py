@@ -43,6 +43,14 @@ class TestMessageSerialization(unittest.TestCase):
         self.assertEqual(tile, new_tile)
         self.assertEqual(name, new_name)
 
+    def test_list_serilaliztaion(self):
+        integer_list = [1, 2, 3]
+        serialized = IntegerListSerializer.serialize(integer_list)
+        length = IntegerSerializer.deserialize(serialized[0:IntegerSerializer.size()])
+        self.assertEqual(length, 3)
+
+        deserialized_list = IntegerListSerializer.deserialize(serialized[IntegerSerializer.size():], length)
+        self.assertEqual(integer_list, deserialized_list)
 
 if __name__ == '__main__':
     import rostest
