@@ -39,14 +39,15 @@ public:
         //double theta = state3D->getYaw();
 
         // build lane rectangles: {min_x, max_x, min_y, max_y} in mm
-        double line_one[4] = {900,1170,0,25};
-        double line_two[4] = {900,1170,280,305};
+        double line_one[4] = {1145,1170,900,1170};
+        double line_two[4] = {865,890,900,1170};
 
         // dx = max(min_x-x, 0 ,x-max_x)
         // dy = max(min_y-y, 0, y-max_y)
         // dist = sqrt(dx*dx+dy*dy)
         double base = 0;
 
+        // terrible solution for calculating dx,dy and dist, but works for now
         double dx_one_temp =  std::max(line_one[0]-x,base);
         double dx_one = std::max(dx_one_temp,x-line_one[1]);
         double dy_one_temp =  std::max(line_one[2]-y,base);
@@ -90,18 +91,17 @@ int main() {
     si->setStateValidityChecker(ob::StateValidityCheckerPtr(new ValidityChecker(si)));
     si->setup();
 
-// Set our robot's starting state to be (0,0,0).
+// Set our robot's starting state
     ob::ScopedState<> start(space);
-    start->as<ob::SE2StateSpace::StateType>()->setX(0.0);
-    start->as<ob::SE2StateSpace::StateType>()->setY(0.0);
-    start->as<ob::SE2StateSpace::StateType>()->setYaw(0.0);
+    start->as<ob::SE2StateSpace::StateType>()->setX(1030);
+    start->as<ob::SE2StateSpace::StateType>()->setY(155);
+    start->as<ob::SE2StateSpace::StateType>()->setYaw(3.1415926535897/2);
 
-// Set our robot's goal state to be the top-right corner of the
-// environment, or (1.17,1.17,0).
+// Set our robot's goal state
     ob::ScopedState<> goal(space);
-    goal->as<ob::SE2StateSpace::StateType>()->setX(1.0);
-    goal->as<ob::SE2StateSpace::StateType>()->setY(1.0);
-    goal->as<ob::SE2StateSpace::StateType>()->setYaw(0.0);
+    goal->as<ob::SE2StateSpace::StateType>()->setX(1017.5);
+    goal->as<ob::SE2StateSpace::StateType>()->setY(1035);
+    goal->as<ob::SE2StateSpace::StateType>()->setYaw(3.1415926535897/2);
 
 // Create a problem instance
     ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
@@ -119,6 +119,9 @@ int main() {
 // attempt to solve the planning problem within one second of
 // planning time
     ob::PlannerStatus solved = optimizingPlanner->solve(1.0);
+
+    if (solved)
+        ss.getSolutionPath().printAsMatrix(std::cout);
 
     return 0;
 }
