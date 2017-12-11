@@ -1,22 +1,17 @@
 #!/usr/bin/env python
 
-import sys
-import rospy
-import os
-from taxi_central_node import CustomerRequest, Duckiebot, TaxiCentralNode, TaxiState
+from taxi_central_node import *
 from std_msgs.msg import Int16MultiArray
 from duckietown_msgs.msg import BoolStamped
-from fleet_planning.generate_duckietown_map import graph_creator
-PKG = 'fleet_planning'
-
 import unittest
+
 
 class TestTaxiCentral(unittest.TestCase):
 
     def test_duckiebot_location_update(self):
         rospy.init_node('test_node')
 
-        duckiebot = Duckiebot('paco', None)
+        duckiebot = Duckiebot('paco')
         start = 5
         stop = 12
         other = 7
@@ -32,15 +27,15 @@ class TestTaxiCentral(unittest.TestCase):
         self.assertEqual(duckiebot.taxi_state, TaxiState.GOING_TO_CUSTOMER)
 
         # now duckiebot is at customer start location
-        self.assertEqual(duckiebot.update_location_check_target_reached(start), TaxiState.WITH_CUSTOMER)
+        self.assertEqual(duckiebot.update_location_check_target_reached(start, other), TaxiState.WITH_CUSTOMER)
         self.assertEqual(duckiebot.taxi_state, TaxiState.WITH_CUSTOMER)
 
         # now duckiebot is at any other location
-        self.assertEqual(duckiebot.update_location_check_target_reached(other), None)
+        self.assertEqual(duckiebot.update_location_check_target_reached(other, stop), None)
         self.assertEqual(duckiebot.taxi_state, TaxiState.WITH_CUSTOMER)
 
         # now duckiebot is at customer target location
-        self.assertEqual(duckiebot.update_location_check_target_reached(stop), TaxiState.IDLE)
+        self.assertEqual(duckiebot.update_location_check_target_reached(stop, other), TaxiState.IDLE)
         self.assertEqual(duckiebot.taxi_state, TaxiState.IDLE)
 
         # customer request removed
@@ -54,7 +49,7 @@ class TestTaxiCentral(unittest.TestCase):
         csv_filename = 'tiles_lab'
 
         taxi_central_node = TaxiCentralNode(map_path, csv_filename)
-
+        taxi_central_node._fleet_planning_strategy = FleetPlanningStrategy.DEACTIVATED
         request = Int16MultiArray()
         request.data=[5, 17]
 
@@ -72,7 +67,7 @@ class TestTaxiCentral(unittest.TestCase):
 
         # make new duckiebot, assign a customer request to it
         taxi_central_node._create_and_register_duckiebot(robot_name)
-        taxi_central_node._registered_duckiebots[robot_name].update_location_check_target_reached(5)
+        taxi_central_node._registered_duckiebots[robot_name].update_location_check_target_reached(5, 9)
         taxi_central_node._register_customer_request(request)
         request_new = taxi_central_node._pending_customer_requests.pop()
         taxi_central_node._registered_duckiebots[robot_name]._customer_request = request_new
@@ -93,6 +88,8 @@ class TestTaxiCentral(unittest.TestCase):
         rospy.logwarn(request_new)
         self.assertTrue(request_new in taxi_central_node._pending_customer_requests)
 
+
 if __name__ == '__main__':
     import rostest
+    PKG = 'fleet_planning'
     rostest.rosrun(PKG, 'test_taxi_central', TestTaxiCentral)

@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 import tf
 import tf2_ros
-from std_msgs.msg import String, Int16MultiArray
 from cv_bridge import CvBridge
+from std_msgs.msg import String, Int16MultiArray, ByteMultiArray
 from duckietown_msgs.msg import BoolStamped
 from fleet_planning.graph_search import GraphSearchProblem
 from sensor_msgs.msg import Image
@@ -16,6 +16,7 @@ from fleet_planning.srv import *
 from fleet_planning.generate_duckietown_map import graph_creator, MapImageCreator
 from fleet_planning.transformation import Transformer
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
+from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
 
 class TaxiState(Enum):
     GOING_TO_CUSTOMER = 0
@@ -30,25 +31,23 @@ class Instruction(Enum):
 
 
 class FleetPlanningStrategy(Enum): # for future expansion
-    CLOSEST_DUCKIEBOT = 0
+    DEACTIVATED = 0
+    CLOSEST_DUCKIEBOT = 1
 
 
 class Duckiebot:
     """tracks state and mission of one duckiebot, handles the global customer and location assignments"""
 
-    _name = None
-
-    _taxi_state = TaxiState.IDLE
-    _last_known_location = None # number of the node the localization lastly reported
-    _last_time_seen_alive = None # timestamp. updated every time a location or similar was reported. Duckiebot is removed from map if this becomes too far away from now
-    _last_instruction = None  # e.g. Instruction.LEFT
-
-    _target_location = None
-    _customer_request = None # instance of CustomerRequest, only not None if on duty
-
-    def __init__(self, robot_name, map_graph):
+    def __init__(self, robot_name):
         self._name = robot_name
-        self._map_graph = map_graph
+        self._taxi_state = TaxiState.IDLE
+
+        self._last_known_location = None  # number of the node the localization lastly reported
+        self._next_expected_location = None
+        self._last_time_seen_alive = None  # timestamp. updated every time a location or similar was reported. Duckiebot is removed from map if this becomes too far in the past
+
+        self._target_location = None
+        self._customer_request = None  # instance of CustomerRequest, only not None if on duty
 
     @property
     def taxi_state(self):
@@ -58,29 +57,62 @@ class Duckiebot:
     def name(self):
         return self._name
 
-    def update_location_check_target_reached(self, node_number):
+    @property
+    def customer_request(self):
+        return self._customer_request
+
+    @property
+    def location(self): # This can be adapted to take into account some between-intersections location estimation
+        """
+        :return: node number of last known location of duckiebot
+        """
+        return self._last_known_location
+
+    @property
+    def next_location(self):
+        """
+        :return: node number of expected next duckiebot location
+        """
+        return self._next_expected_location
+
+    @property
+    def target_location(self):
+        """returns target location of Duckiebots current mission,
+        depending on the status of the customer request it is handling."""
+
+        if self._taxi_state == TaxiState.IDLE:
+            return None
+
+        if self.taxi_state == TaxiState.GOING_TO_CUSTOMER:
+            return self._customer_request.start_location
+
+        if self.taxi_state == TaxiState.WITH_CUSTOMER:
+            return self._customer_request.target_location
+
+    def update_location_check_target_reached(self, reported_location, next_location):
         """
         updates member _last_known_location. If duckiebot is now at target location and has a customer request,
         it checks whether current location is customer start location or customer target location.
         It updates its _taxi_state correspondingly and updates sets _last_time_seen_alive and CustomerRequest time stamps.
-        :param node_number: reported from localization
-        :return: None if status has not changed. Returns self_taxi state if customer has been
+        :param reported_location: reported from localization
+        :param next_location: where duckiebot is expected to show up next
+        :return: None if status has not changed, or duckiebot is new. Returns self_taxi state if customer has been
                 picked up or customer target location has been reached.
         """
-        if node_number is None:
+        if reported_location is None:
             return None
 
-        self._last_known_location = node_number
+        self._last_known_location = reported_location
+        self._next_expected_location = next_location
         self._last_time_seen_alive = rospy.get_time()
-        # TODO: update last instruction
 
         if self._customer_request is not None:
-            if node_number == self._customer_request.start_location:
+            if reported_location == self._customer_request.start_location:
                 self._taxi_state = TaxiState.WITH_CUSTOMER
                 self._customer_request.time_pickup = rospy.get_time()
                 return self._taxi_state
 
-            elif node_number == self._customer_request.target_location:
+            elif reported_location == self._customer_request.target_location:
                 self._taxi_state = TaxiState.IDLE
                 self._customer_request.time_drop_off = rospy.get_time()
                 return self._taxi_state
@@ -96,18 +128,8 @@ class Duckiebot:
         else:
             return False
 
-    @property
-    def next_location(self):
-        """
-        takes _last_known_location, and combines it with _last_instruction to predict where a duckiebot is going
-        to be next. necessary for customer assignment search.
-        :return: node number of expected next duckiebot location
-        """
-        # unclear where to get _last_instruction from. Since the GUI does the path planning as well,
-        # maybe get it from there?
-        pass
-
     def assign_customer_request(self, customer_request):
+        """ assign customer request to this duckiebot"""
         if self._customer_request is not None:
             raise ValueError('Forbidden customer assignment. This Duckiebot has beed assigned a customer already.')
 
@@ -124,19 +146,14 @@ class Duckiebot:
         
 class CustomerRequest:
 
-    start_location = None # node number
-    target_location = None # node number
-
-    # for the metrics. Use ropy.time() to set timestamp
-    time_registered = None
-    time_pickup = None
-    time_drop_off = None
-
     def __init__(self, start_node, target_node):
-        self.start_location = start_node
-        self.target_location = target_node
+        self.start_location = start_node # node number
+        self.target_location = target_node # node number
 
+        # for the metrics. Use ropy.time() to set timestamp
         self.time_registered = rospy.get_time()
+        self.time_pickup = None
+        self.time_drop_off = None
 
 
 class graph_search_server():
@@ -318,7 +335,6 @@ class mapDraw():
 
 class TaxiCentralNode:
     TIME_OUT_CRITERIUM = 60.0
-
     _fleet_planning_strategy = FleetPlanningStrategy.CLOSEST_DUCKIEBOT # for now there is just this. gives room for future expansions
 
     _registered_duckiebots = {} # dict of instances of class Duckiebot. populated by register_duckiebot(). duckiebot name is key
@@ -338,6 +354,9 @@ class TaxiCentralNode:
         Init time_out timer.
         Specification see intermediate report document
         """
+        self._registered_duckiebots = {}  # dict of instances of class Duckiebot. populated by register_duckiebot(). duckiebot name is key
+        self._pending_customer_requests = []
+        self._fulfilled_customer_requests = []  # for analysis purposes
 
         self._graph_creator = graph_creator()
         self._graph = self._graph_creator.build_graph_from_csv(map_dir, map_csv)
@@ -354,8 +373,9 @@ class TaxiCentralNode:
         # subscribers
         self._sub_customer_requests = rospy.Subscriber('~customer_requests', Int16MultiArray, self._register_customer_request, queue_size=1)
         self._sub_intersection = rospy.Subscriber('~/jeff/stop_line_filter_node/at_stop_line', BoolStamped, self._location_update)
+        self._sub_taxi_location = rospy.Subscriber('/taxi/location', ByteMultiArray, self._location_update)
         # publishers
-        self._pub_duckiebot_target_location = rospy.Publisher('~target_location', String, queue_size=1)
+        self._pub_duckiebot_target_location = rospy.Publisher('/taxi/commands', ByteMultiArray, queue_size=1)
         self._pub_duckiebot_transportation_status = rospy.Publisher('~transportation_status', String, queue_size=1, latch=True)
         # timers
         self._time_out_timer = rospy.Timer(rospy.Duration.from_sec(self.TIME_OUT_CRITERIUM), self._check_time_out)
@@ -375,7 +395,7 @@ class TaxiCentralNode:
         E.g. an unknown duckiebot publishes a location -> register duckiebot
         :param robot_name: string
         """
-        duckiebot = Duckiebot(robot_name, self._map_graph)
+        duckiebot = Duckiebot(robot_name)
         if robot_name not in self._registered_duckiebots:
             self._registered_duckiebots[robot_name] = duckiebot
 
@@ -388,14 +408,14 @@ class TaxiCentralNode:
 
         request = duckiebot.pop_customer_request
         if request is not None:
-            self._pending_customer_requests.append(duckiebot.pop_customer_request())
+            self._pending_customer_requests[:0] = [duckiebot.pop_customer_request()]  # prepend, high priority
 
         try:
             del self._registered_duckiebots[duckiebot.name]
             rospy.logwarn('Unregistered and removed from map Duckiebot {}'.format(duckiebot.name))
         except KeyError:
-            rospy.logwarn('Failure when unregistering duckiebot. {} had already been unregistered.'.format(duckiebot.name))
-        # TODO: tell map to remove icon
+            rospy.logwarn('Failure when unregistering Duckiebot. {} had already been unregistered.'.format(duckiebot.name))
+        # TODO: redraw map
 
     def _register_customer_request(self, request_msg):
         """callback function for request subscriber. appends CustomerRequest instance to _pending_customer_requests,
@@ -407,7 +427,7 @@ class TaxiCentralNode:
         request = CustomerRequest(start, target)
         self._pending_customer_requests.append(request)
 
-        self._handle_customer_requests() # TODO: or better call this timer based, to assign customers in batches?
+        self._handle_customer_requests()
 
     def _handle_customer_requests(self):
         """
@@ -416,6 +436,10 @@ class TaxiCentralNode:
 
         if self._fleet_planning_strategy == FleetPlanningStrategy.CLOSEST_DUCKIEBOT:
             self._fleet_planning_closest_duckiebot()
+
+        elif self._fleet_planning_strategy == FleetPlanningStrategy.DEACTIVATED:
+            # do nothing. used mainly for unit tests
+            pass
         else:
             raise NotImplementedError('Chosen strategy has not yet been implemented.')
 
@@ -424,7 +448,6 @@ class TaxiCentralNode:
         E.g. for every pending customer request do breadth first search to find closest idle duckiebot.
         Make sure to use Duckiebot.next_location for the search. Finally assign customer request to best duckiebot.
         (Maybe if # pending_customer requests > number idle duckiebots, assign the ones with the shortest path.)
-        For every assigned duckiebot, publish to target location. Publish transportation status.
         """
 
         # For now quickly find the closest duckiebot
@@ -446,7 +469,7 @@ class TaxiCentralNode:
 
                 # Check if there's a duckiebot on that node
                 for db in idle_duckiebots:
-                    if str(db.name) == current_node.name:
+                    if str(db.name) == current_node.name: # TODO: @sandro use db.next_location, not db.name
                         # We found one!
                         duckiebot = db
                         break
@@ -461,8 +484,10 @@ class TaxiCentralNode:
 
             # Assign the request to that duckiebot
             duckiebot.assign_customer_request(pending_request)
+            self._publish_duckiebot_mission(duckiebot)
+            self._publish_duckiebot_transportation_status(duckiebot)
 
-    def _location_update(self, at_stop_line):
+    def _location_update(self, message):
         """
         Callback function for location subscriber. Message contains location and robot name.  If duckiebot
         is not yet known, register it first. Location is first mapped from 2d coordinates to graph node, then call
@@ -473,52 +498,55 @@ class TaxiCentralNode:
         :param location_msg: contains location and robot name
         """
 
-        duckiebot_name = 'jeff' # TODO get this from message!!!!
+        duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
+        # Find the next node
+        next_node = -1
+        for n in range(len(route)):
+            if route[n] == node:
+                if n + 1 < len(route):
+                    next_node = route[n+1]
 
-        node = None
-        # how to make sure we get the tf of the right duckiebot???
-        start_time = rospy.get_time()
-        # TODO: this whole loop here is done locally
-        while not node and rospy.get_time() - start_time < 5.0: # TODO: tune this
-            try:
-                (trans, rot) =self._listener_transform.lookupTransform(self._world_frame, self._target_frame, rospy.Time(0))
+        # TODO: Use the localization from the message
 
-                if trans[2] != 1000: # the localization package uses this to encode that no information about the location exists. (here == 1 km in the air)
-                    rot = tf.transformations.euler_from_quaternion(rot)[2]
-                    node = self._location_to_node_mapper.get_node_name(trans[:2], np.degrees(rot))
-                    rospy.logwarn("Current location ({},{}) corresponds to node {}.".format(trans[0], trans[1], node))
+        #         if trans[2] != 1000: # the localization package uses this to encode that no information about the location exists. (here == 1 km in the air)
+        #             rot = tf.transformations.euler_from_quaternion(rot)[2]
+        #             node = self._location_to_node_mapper.get_node_name(trans[:2], np.degrees(rot))
+        #             rospy.logwarn("Current location ({},{}) corresponds to node {}.".format(trans[0], trans[1], node))
 
-            except tf2_ros.LookupException:
-                rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(duckiebot_name))
+        #     except tf2_ros.LookupException:
+        #         rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(duckiebot_name))
 
-        if not node:
-            rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(duckiebot_name))
-            return
+        # if not node:
+        #     rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(duckiebot_name))
+        #     return
 
         if duckiebot_name not in self._registered_duckiebots:
             self._create_and_register_duckiebot(duckiebot_name)
             duckiebot = self._registered_duckiebots[duckiebot_name]
-            new_duckiebot_state = duckiebot.update_location_check_target_reached(node)
+            new_duckiebot_state = duckiebot.update_location_check_target_reached(node, next_node)
+            self._handle_customer_requests()
 
         else:
             duckiebot = self._registered_duckiebots[duckiebot_name]
-            new_duckiebot_state = duckiebot.update_location_check_target_reached(node)
+            new_duckiebot_state = duckiebot.update_location_check_target_reached(node, next_node)
 
         if new_duckiebot_state == TaxiState.IDLE: # mission accomplished
+            rospy.loginfo('Duckiebot {} has dropped off its happy customer.'.format(duckiebot.name))
             request = duckiebot.pop_customer_request()
             self._fulfilled_customer_requests.append(request)
             self._handle_customer_requests() # bcs duckiebot is available again
             self._pub_duckiebot_transportation_status(duckiebot)
-            # TODO: remove customer icon from map
 
         elif new_duckiebot_state == TaxiState.WITH_CUSTOMER: # reached customer
+            rospy.loginfo('Duckiebot {} has reached its customer.'.format(duckiebot.name))
+            self._publish_duckiebot_mission(duckiebot)
             self._publish_duckiebot_transportation_status(duckiebot)
-            # TODO: make customer icon move with duckiebot icon
+            # TODO raise flag to make duckiebot go around randomly. or create random targets
 
         else: # nothing special happened, just location update
             pass
 
-        # TODO draw duckiebot location
+        # TODO redraw map
 
     def _check_time_out(self, msg):
         """callback function from some timer, ie. every 30 seconds. Checks for every duckiebot whether it has been
@@ -529,16 +557,28 @@ class TaxiCentralNode:
                 rospy.logwarn('Duckiebot {} has timed out.'.format(duckiebot.name))
                 self._unregister_duckiebot(duckiebot)
 
+    def _publish_duckiebot_mission(self, duckiebot):
+        """ create message that sends duckiebot to its next location, according to the customer request that had been
+        assigned to it"""
+
+        # TODO: Taxistate may not be hardcoded to going_to_customer
+        serializedMessage = InstructionMessageSerializer.serialize(duckiebot.name, duckiebot.target_location, TaxiState.GOING_TO_CUSTOMER)
+
+        self._pub_duckiebot_target_location.publish(ByteMultiArray(data=serializedMessage))
+
     def _publish_duckiebot_transportation_status(self, duckiebot):
         """ is called whenever the taxi_state of a duckiebot changes, publish this information to
         transportatkion status topic"""
-        self._pub_duckiebot_transportation_status(duckiebot.name + 'status' + str(duckiebot.taxi_state))
+        message = (duckiebot.name, duckiebot.taxi_state)
+        message_serialized = None # TODO serialize message
+        self._pub_duckiebot_transportation_status(message_serialized)
 
     def save_metrics(self): # implementation has rather low priority
         """ gather timestamps from customer requests, calculate metrics, save to json file"""
         pass
 
-    def on_shutdown(self):
+    @staticmethod
+    def on_shutdown():
         rospy.loginfo("[TaxiCentralNode] Shutdown.")
 
 
@@ -552,9 +592,9 @@ if __name__ == '__main__':
 
     taxi_central_node = TaxiCentralNode(map_path, csv_filename)
     
-    gss = graph_search_server()
-    print 'Starting server...\n'
-    s = rospy.Service('graph_search', GraphSearch, gss.handle_graph_search)    
+    # gss = graph_search_server()
+    # print 'Starting server...\n'
+    # s = rospy.Service('graph_search', GraphSearch, gss.handle_graph_search)    
 
-    rospy.on_shutdown(taxi_central_node.on_shutdown)
+    rospy.on_shutdown(TaxiCentralNode.on_shutdown)
     rospy.spin()
