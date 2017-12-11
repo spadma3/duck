@@ -90,7 +90,7 @@ class CameraNode(object):
             stream_data = stream.getvalue()
 
             img_cv = image_cv_from_jpg(stream_data)
-            output = cv2.resize(img_cv, (120,160),interpolation=cv2.INTER_NEAREST)
+            output = cv2.resize(img_cv, (160,120),interpolation=cv2.INTER_NEAREST)
             output = output[40:,:,:]
             temp_meg = d8_compressed_image_from_cv_image(output)
 
