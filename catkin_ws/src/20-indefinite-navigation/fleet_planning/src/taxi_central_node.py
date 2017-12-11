@@ -168,26 +168,26 @@ class graph_search_server():
             self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
 
         # build and init graphs
-        gc = graph_creator()
-        self.duckietown_graph = gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
-        self.duckietown_problem = GraphSearchProblem(self.duckietown_graph, None, None)
+        self.gc = graph_creator()
+        self._duckietown_graph = self.gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
+        self._duckietown_problem = GraphSearchProblem(self._duckietown_graph, None, None)
     
         print "Map loaded successfully!\n"
 
-        map_draw = mapDraw(self.duckietown_graph, self.duckietown_problem)
+        self.map_draw = mapDraw(self._duckietown_graph, self._duckietown_problem)
 
     def handle_graph_search(self, req):
         """takes request, calculates path and creates corresponding graph image. returns path"""
         # Checking if nodes exists
-        if (req.source_node not in self.duckietown_graph) or (req.target_node not in self.duckietown_graph):
+        if (req.source_node not in self._duckietown_graph) or (req.target_node not in self._duckietown_graph):
             print "Source or target node do not exist."
             self.publishImage(req, [])
             return GraphSearchResponse([])
 
         # Running A*
-        self.duckietown_problem.start = req.source_node
-        self.duckietown_problem.goal = req.target_node
-        path = self.duckietown_problem.astar_search()
+        self._duckietown_problem.start = req.source_node
+        self._duckietown_problem.goal = req.target_node
+        path = self._duckietown_problem.astar_search()
 
         # Publish graph solution
         self.publishImage(req, path)
@@ -358,17 +358,22 @@ class TaxiCentralNode:
         self._pending_customer_requests = []
         self._fulfilled_customer_requests = []  # for analysis purposes
 
-        self._graph_creator = graph_creator()
-        self._graph = self._graph_creator.build_graph_from_csv(map_dir, map_csv)
+
+        rospy.loginfo('Starting graph search server...')
+        self._gss = graph_search_server()
+        self._s = rospy.Service('graph_search', GraphSearch, self._gss.handle_graph_search) 
+
+        self._graph_creator = self._gss.gc #graph_creator()
+        self._graph = self._gss._duckietown_graph#self._graph_creator.build_graph_from_csv(map_dir, map_csv)
         # self._graph_creator = gc
 
-        # location listener
-        self._listener_transform = tf.TransformListener()
-        # wait for listener setup to complete
-        try:
-            self._listener_transform.waitForTransform(self._world_frame,self._target_frame, rospy.Time(), rospy.Duration(4.0))
-        except tf2_ros.TransformException:
-            rospy.logwarn('The duckiebot location is not being published! No location updates possible.')
+        # # location listener
+        # self._listener_transform = tf.TransformListener()
+        # # wait for listener setup to complete
+        # try:
+        #     self._listener_transform.waitForTransform(self._world_frame,self._target_frame, rospy.Time(), rospy.Duration(4.0))
+        # except tf2_ros.TransformException:
+        #     rospy.logwarn('The duckiebot location is not being published! No location updates possible.')
 
         # subscribers
         self._sub_customer_requests = rospy.Subscriber('~customer_requests', Int16MultiArray, self._register_customer_request, queue_size=1)
@@ -382,6 +387,7 @@ class TaxiCentralNode:
 
         # mapping: location -> node number
         self._location_to_node_mapper = IntersectionMapper(self._graph_creator)
+ 
 
     def _idle_duckiebots(self):
         """
