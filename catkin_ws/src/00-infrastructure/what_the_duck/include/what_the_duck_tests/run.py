@@ -1,6 +1,6 @@
-from comptests import comptest, run_module_tests
-
 from duckietown_utils.system_cmd_imp import system_cmd_result
+
+from comptests import comptest, run_module_tests
 from what_the_duck.check import Check, CheckFailed, CheckError
 from what_the_duck.entry import Diagnosis
 from what_the_duck.list_of_checks import Manager

@@ -1,6 +1,8 @@
+from duckietown_utils import logger
 import time
 
-from duckietown_utils import logger
+import numpy as np
+
 from .exceptions import DTBadData
 
 
@@ -27,6 +29,10 @@ class BagReadProxy():
         self.read_to_absolute = read_to
         self.bag = bag
         
+        seen = read_to -read_from
+        total = bag_absolute_t1 - bag_absolute_t0
+        self.fraction = seen / total
+        
     def get_type_and_topic_info(self):
         return self.bag.get_type_and_topic_info()
     
@@ -35,6 +41,13 @@ class BagReadProxy():
     def get_end_time(self):
         return self.read_to_absolute 
             
+    def get_message_count(self, topic_filters=None):
+        """ Returns approximate message count, compensating with ratio. """
+        n = self.bag.get_message_count(topic_filters)
+        n1 = int(np.ceil(self.fraction * n))
+        print('n = %s  fraction = %s  n1 = %s' % (n, self.fraction, n1) )
+        return n1 
+    
     def read_messages(self, *args, **kwargs):
         for topic, msg, _t in self.bag.read_messages(*args,**kwargs):
             t = _t.to_sec()
@@ -46,6 +59,7 @@ class BagReadProxy():
             
     def close(self):
         self.bag.close()
+     
 
 def d8n_bag_read_with_progress(bag, topic):
     bag_t0 = bag.get_start_time()
