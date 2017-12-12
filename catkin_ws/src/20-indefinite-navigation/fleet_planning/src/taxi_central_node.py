@@ -250,7 +250,7 @@ class mapDraw():
         Convert a graph node number to a 2d image pixel location
         """
         print "graph.node_positions", graph.node_positions
-        return graph.node_positions[node]
+        return graph.node_positions[str(node)]
 
     def draw_icons(self, map_image, icon_type, location ):
         """
@@ -261,7 +261,7 @@ class mapDraw():
             - map_image: the base map image onto which to draw the icons
             - icon_type: string, either customer, start or target
             - location: where to draw the icon, as a graph node number
-        
+
         Returns:
             - opencv image with the icons at the correct positions
         """
@@ -334,6 +334,22 @@ class mapDraw():
 
         overlay = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
         return overlay
+    
+    def publishMap(self, duckiebots):
+        """
+        New function to draw map independent of GUI calls. Draw all duckiebots
+        and their customers, if they have any. 
+        Input:
+            - duckiebots: all duckiebots that should be drawn
+        """
+        overlay = self.prepImage()
+        for name, bot in duckiebots.iteritems():
+            overlay = self.draw_icons(overlay, "start", location = bot._last_known_location)
+            if bot._customer_request:
+                overlay = self.draw_icons(overlay, "customer", location = bot._customer_request.start_location) # TODO(ben): figure out a unambiguous set of icons and assign the correct ones
+                overlay = self.draw_icons(overlay, "target", location = bot._customer_request.target_location) 
+
+        self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
 class TaxiCentralNode:
     TIME_OUT_CRITERIUM = 60.0
@@ -561,10 +577,8 @@ class TaxiCentralNode:
         # TODO redraw map
         # draw duckiebot location if IDLE
         # draw duckiebot + customer if WITH_CUSTOMER
-        if new_duckiebot_state == TaxiState.IDLE:
-            draw_duckiebot()
-        elif new_duckiebot_state === TaxiState.WITH_CUSTOMER:
-            draw_duckiebot_and_customer()
+        print self._registered_duckiebots
+        self._gss.map_draw.publishMap(self._registered_duckiebots)
 
 
     def _check_time_out(self, msg):
