@@ -305,6 +305,12 @@ def get_checks():
             'Good path for "%s"' % prog,
             CommandOutputContains('which %s' % prog, '/opt/ros/kinetic'),
             Diagnosis('The program `%s` is not resolved to the one in /opt/ros' % prog))
+
+    add(None,
+        'Good path for python',
+        CommandOutputContains('which python', '/usr/bin/python'),
+        Diagnosis('The program `python` is not resolved to the one in /usr/bin. '))
+    
  
 
     machines_exists = add(None,

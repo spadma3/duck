@@ -13,7 +13,7 @@ all:
 	@$(MAKE) -s hw-test
 	@$(MAKE) -s maintenance
 	@$(MAKE) -s openhouse
-
+	@$(MAKE) -s log
 
 sep="\\n\\n\#\#\# "
 
@@ -27,3 +27,4 @@ include Makefiles/Makefile.demos.mk
 include Makefiles/Makefile.hw_test.mk
 include Makefiles/Makefile.maintenance.mk
 include Makefiles/Makefile.openhouse.mk
+include Makefiles/Makefile.log.mk
