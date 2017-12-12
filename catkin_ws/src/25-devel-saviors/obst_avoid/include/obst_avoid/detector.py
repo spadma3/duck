@@ -38,13 +38,13 @@ class Detector():
 	self.maximum_height = 0 #to be set in ground2bird_view_pixel_init
 	self.maximum_left = 0
 	self.factor = 1.0 #to be set in ground2bird_view_pixel_init
-	self.obst_thres = 200 #to be set in init_inv_homography, this is default
+	self.obst_thres = 50 #to be set in init_inv_homography, this is default
 	self.M = self.init_inv_homography()
 	self.inv_M = inv(self.M)
 
 
     def init_inv_homography(self):
-    	reference_world_point = np.float32([[0.9],[0.0],[1.0]]) #adaptive cropping is dangerous
+    	reference_world_point = np.float32([[1.4],[0.0],[1.0]]) #adaptive cropping is dangerous
     	real_pix_of_ref_point = self.ground2real_pic_pixel(reference_world_point)
     	image_height = 480 #default height of image
     	self.crop = int(real_pix_of_ref_point[1])
@@ -61,6 +61,7 @@ class Detector():
 	self.img_width = int(np.max(bird_view_pixel[0]))
 	self.img_height = int(np.max(bird_view_pixel[1]))
 	self.obst_thres = self.obst_thres*(self.img_height/218.0) #adaptive threshold
+	print self.obst_thres
 	return cv2.getPerspectiveTransform(pts1,np.transpose(bird_view_pixel))
 
 		
@@ -105,34 +106,36 @@ class Detector():
 		      	left=props[k-1]['bbox'][1]
 		        right=props[k-1]['bbox'][3]
 		        total_width = right-left
+		        print total_width
 		        #those are the coordinates in the bird view!!!!
+		        if (total_width > 10):
 
-		        obst_object = Pose()
+			        obst_object = Pose()
 
 
-		        #geht jetzt auch effizienter!!, nicht auf 2 Mal,....!!!
-			point_calc=np.zeros((3,2),dtype=np.float)
-			point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
-			#take care cause image was cropped,..
-			obst_object.position.x = point_calc[0,0] #obstacle coord x
-			if (point_calc[0,0]<0.5):
-				print "DANGEROUS OBSTACLE:"
-				print  point_calc[0:2,0]
-			obst_object.position.y = point_calc[1,0] #obstacle coord y
-			#calculate radius:
-			obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
+			        #geht jetzt auch effizienter!!, nicht auf 2 Mal,....!!!
+				point_calc=np.zeros((3,2),dtype=np.float)
+				point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
+				#take care cause image was cropped,..
+				obst_object.position.x = point_calc[0,0] #obstacle coord x
+				if (point_calc[0,0]<0.5):
+					print "DANGEROUS OBSTACLE:"
+					print  point_calc[0:2,0]
+				obst_object.position.y = point_calc[1,0] #obstacle coord y
+				#calculate radius:
+				obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
 
-			#fill in the pixel boundaries of bird view image!!!
-			obst_object.orientation.x = top
-			obst_object.orientation.y = bottom
-			obst_object.orientation.z = left
-			obst_object.orientation.w = right
+				#fill in the pixel boundaries of bird view image!!!
+				obst_object.orientation.x = top
+				obst_object.orientation.y = bottom
+				obst_object.orientation.z = left
+				obst_object.orientation.w = right
 
-			obst_list.poses.append(obst_object)
-		 
-			#explanation: those parameters published here are seen from the !center of the axle! in direction
-			#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
-			#cv2.rectangle(orig_img,(np.min(C[1]),np.min(C[0])),(np.max(C[1]),np.max(C[0])),(0,255,0),3)
+				obst_list.poses.append(obst_object)
+			 
+				#explanation: those parameters published here are seen from the !center of the axle! in direction
+				#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
+				#cv2.rectangle(orig_img,(np.min(C[1]),np.min(C[0])),(np.max(C[1]),np.max(C[0])),(0,255,0),3)
 
 	    #eig box np.min breite und hoehe!! if they passed the test!!!!
 	    #print abc
