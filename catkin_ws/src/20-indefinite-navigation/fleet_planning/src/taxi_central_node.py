@@ -350,7 +350,7 @@ class TaxiCentralNode:
     _world_frame = 'world'
     _target_frame = 'duckiebot'
 
-    def __init__(self, map_dir, map_csv):
+    def __init__(self, map_dir, map_csv, gss):
         """
         subscribe to location", customer_requests. Publish to transportation status, target location.
         Init time_out timer.
@@ -362,14 +362,14 @@ class TaxiCentralNode:
 
 
         rospy.loginfo('Starting graph search server...')
-        # self._gss = graph_search_server()
+        self._gss = gss #graph_search_server()
 
         # self._s = rospy.Service('graph_search', GraphSearch, self._gss.handle_graph_search) 
 
-        # self._graph_creator = self._gss.gc #graph_creator()
-        self._graph_creator = graph_creator()
-        # self._graph = self._gss._duckietown_graph
-        self._graph = self._graph_creator.build_graph_from_csv(map_dir, map_csv)
+        self._graph_creator = self._gss.gc #graph_creator()
+        # self._graph_creator = graph_creator()
+        self._graph = self._gss._duckietown_graph
+        # self._graph = self._graph_creator.build_graph_from_csv(map_dir, map_csv)
         # self._graph_creator = gc
 
         # # location listener
@@ -536,6 +536,7 @@ class TaxiCentralNode:
             duckiebot = self._registered_duckiebots[duckiebot_name]
             new_duckiebot_state = duckiebot.update_location_check_target_reached(node, next_node)
             self._handle_customer_requests()
+            rospy.loginfo("Created duckiebot {}.".format(duckiebot_name))
 
         else:
             duckiebot = self._registered_duckiebots[duckiebot_name]
@@ -558,6 +559,13 @@ class TaxiCentralNode:
             pass
 
         # TODO redraw map
+        # draw duckiebot location if IDLE
+        # draw duckiebot + customer if WITH_CUSTOMER
+        if new_duckiebot_state == TaxiState.IDLE:
+            draw_duckiebot()
+        elif new_duckiebot_state === TaxiState.WITH_CUSTOMER:
+            draw_duckiebot_and_customer()
+
 
     def _check_time_out(self, msg):
         """callback function from some timer, ie. every 30 seconds. Checks for every duckiebot whether it has been
@@ -601,12 +609,12 @@ if __name__ == '__main__':
     map_path = os.path.abspath(script_dir)
     csv_filename = 'tiles_lab'
 
-
-    taxi_central_node = TaxiCentralNode(map_path, csv_filename)
+    gss = graph_search_server()
+    taxi_central_node = TaxiCentralNode(map_path, csv_filename, gss)
     
-    # gss = graph_search_server()
-    # print 'Starting server...\n'
-    # s = rospy.Service('graph_search', GraphSearch, taxi_central_node._gss.handle_graph_search)    
+    
+    print 'Starting server...\n'
+    s = rospy.Service('graph_search', GraphSearch, taxi_central_node._gss.handle_graph_search)    
 
     rospy.on_shutdown(TaxiCentralNode.on_shutdown)
     rospy.spin()
