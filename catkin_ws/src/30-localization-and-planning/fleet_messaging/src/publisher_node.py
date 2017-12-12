@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ros#!/usr/bin/env python
 import rospy
 from std_msgs.msg import String #Imports msg
 # Initialize the node with rospy
