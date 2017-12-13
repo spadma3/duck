@@ -103,11 +103,11 @@ class StopLineFilterNode(object):
         stop_line_reading_msg.stop_line_point = stop_line_point
         stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < 0.5
         self.pub_stop_line_reading.publish(stop_line_reading_msg)
-        # if stop_line_reading_msg.at_stop_line:
-        #     msg = BoolStamped()
-        #     msg.header.stamp = stop_line_reading_msg.header.stamp
-        #     msg.data = True
-        #     self.pub_at_stop_line.publish(msg)
+        if stop_line_reading_msg.at_stop_line:
+            msg = BoolStamped()
+            msg.header.stamp = stop_line_reading_msg.header.stamp
+            msg.data = True
+            self.pub_at_stop_line.publish(msg)
 
     def to_lane_frame(self, point):
         p_homo = np.array([point.x,point.y,1])

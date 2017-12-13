@@ -153,8 +153,8 @@ class lane_controller(object):
         self.stop_line_reading = stopline_msg
         x0=0.12
         rospy.loginfo(str(stopline_msg))
-        if stopline_msg.stop_line_point.x<0.7:
-            self.v_bar = self.setupParameter("~v_bar",(stopline_msg.stop_line_point.x-x0)*self.v_bar)
+        # if stopline_msg.stop_line_point.x<0.7:
+        #     self.v_bar = self.setupParameter("~v_bar",(stopline_msg.stop_line_point.x-x0)*self.v_bar)
 
         # rospy.loginfo(stopline_msg.stop_line_point.x)
         # rospy.loginfo(stopline_msg.stop_line_point.y)
