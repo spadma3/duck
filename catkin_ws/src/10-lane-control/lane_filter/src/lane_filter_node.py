@@ -60,7 +60,7 @@ class LaneFilterNode(object):
         #     ml_img = self.getDistributionImage(ml,segment_list_msg.header.stamp)
         #     self.pub_ml_img.publish(ml_img)
         
-        range_max = 1  # range to consider edges in general
+        range_max = 1.5  # range to consider edges in general
         range_min = 0.14
         self.filter.update(segment_list_msg.segments, range_min, range_max)
 
