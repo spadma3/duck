@@ -73,15 +73,15 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             self.beliefArray[k] = s_belief/np.sum(s_belief)
 
 
-    def update(self, segments):
-        measurement_likelihood = self.generate_measurement_likelihood(segments)
-        if measurement_likelihood is not None:
-            self.belief = np.multiply(self.belief,measurement_likelihood)
-            if np.sum(self.belief) == 0:
-                self.belief = measurement_likelihood
-            else:
-                self.belief = self.belief/np.sum(self.belief)
-        return measurement_likelihood
+    # def update(self, segments):
+    #     measurement_likelihood = self.generate_measurement_likelihood(segments)
+    #     if measurement_likelihood is not None:
+    #         self.belief = np.multiply(self.belief,measurement_likelihood)
+    #         if np.sum(self.belief) == 0:
+    #             self.belief = measurement_likelihood
+    #         else:
+    #             self.belief = self.belief/np.sum(self.belief)
+    #     return measurement_likelihood
 
     def generate_measurement_likelihood(self, segments):
         for k in range(self.num_belief):
