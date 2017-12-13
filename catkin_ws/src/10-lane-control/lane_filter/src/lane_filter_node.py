@@ -55,10 +55,10 @@ class LaneFilterNode(object):
 
         # Step 2: update
 
-        ml = self.filter.update(segment_list_msg.segments)
-        if ml is not None:
-            ml_img = self.getDistributionImage(ml,segment_list_msg.header.stamp)
-            self.pub_ml_img.publish(ml_img)
+        # ml = self.filter.update(segment_list_msg.segments)
+        # if ml is not None:
+        #     ml_img = self.getDistributionImage(ml,segment_list_msg.header.stamp)
+        #     self.pub_ml_img.publish(ml_img)
         
         range_max = 1  # range to consider edges in general
         range_min = 0.14
