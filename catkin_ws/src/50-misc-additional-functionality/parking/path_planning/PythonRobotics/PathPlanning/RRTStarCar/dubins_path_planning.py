@@ -90,22 +90,36 @@ def LSR(alpha, beta, d):
 
 
 def RSL(alpha, beta, d):
-    sa = math.sin(alpha)
-    sb = math.sin(beta)
-    ca = math.cos(alpha)
-    cb = math.cos(beta)
-    c_ab = math.cos(alpha - beta)
-
+    from math import sin, cos, sqrt, atan2, degrees, pi
+    sa = sin(alpha)
+    sb = sin(beta)
+    ca = cos(alpha)
+    cb = cos(beta)
+    c_ab = cos(alpha - beta)
+    
     p_squared = (d * d) - 2 + (2 * c_ab) - (2 * d * (sa + sb))
     mode = ["R", "S", "L"]
     if p_squared < 0:
         return None, None, None, mode
-    p = math.sqrt(p_squared)
-    tmp2 = math.atan2((ca + cb), (d - sa - sb)) - math.atan2(2.0, p)
+    p = sqrt(p_squared)
+    tmp2 = atan2((ca + cb), (d - sa - sb)) - atan2(2.0, p)
     t = mod2pi(alpha - tmp2)
     q = mod2pi(beta - tmp2)
 
-    return t, p, q, mode
+    # mode - captial letters: forward, small lettres: backwards
+    allow_backwards_on_circle = True
+    if allow_backwards_on_circle:
+        if t > pi:
+            t = t - 2*pi
+            mode[0] = "r"
+        if q > pi:
+            q = q - 2*pi
+            mode[2] = "l"
+        print(degrees(t),p,degrees(q),mode)
+        return t, p, q, mode
+
+    else:
+        return t, p, q, mode
 
 
 def RLR(alpha, beta, d):
@@ -237,48 +251,78 @@ def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c):
 
 
 def generate_course(length, mode, c):
-
+    from math import cos, sin, radians, degrees
+    from numpy import sign
+    
+    # length = [t, p, q], mode = ["r","S","l"]
     px = [0.0]
     py = [0.0]
     pyaw = [0.0]
-
+    
     for m, l in zip(mode, length):
         pd = 0.0
         if m is "S":
+            # straight plotting resolution
             d = 1.0 / c
         else:  # turning couse
-            d = math.radians(3.0)
-
-        while pd < abs(l - d):
-            #  print(pd, l)
-            px.append(px[-1] + d * c * math.cos(pyaw[-1]))
-            py.append(py[-1] + d * c * math.sin(pyaw[-1]))
-
-            if m is "L":  # left turn
+            # radial plotting resolution
+            d = radians(1.0)
+        
+        while pd < abs(l - d*sign(l)):
+            # print(pd, l)
+            if m is "L":  # left turn forward
+                px.append(px[-1] + d * c * cos(pyaw[-1]))
+                py.append(py[-1] + d * c * sin(pyaw[-1]))
                 pyaw.append(pyaw[-1] + d)
-            elif m is "S":  # Straight
+            elif m is "l":  # left turn backwards
+                px.append(px[-1] - d * c * cos(pyaw[-1]))
+                py.append(py[-1] - d * c * sin(pyaw[-1]))
+                pyaw.append(pyaw[-1] - (+d))
+            elif m is "S":  # Straight forward
+                px.append(px[-1] + d * c * cos(pyaw[-1]))
+                py.append(py[-1] + d * c * sin(pyaw[-1]))
                 pyaw.append(pyaw[-1])
-            elif m is "R":  # right turn
+            elif m is "R":  # right turn forward
+                px.append(px[-1] + d * c * cos(pyaw[-1]))
+                py.append(py[-1] + d * c * sin(pyaw[-1]))
                 pyaw.append(pyaw[-1] - d)
+            elif m is "r":  # right turn backwards
+                px.append(px[-1] - d * c * cos(pyaw[-1]))
+                py.append(py[-1] - d * c * sin(pyaw[-1]))
+                pyaw.append(pyaw[-1] - (-d))
             pd += d
         else:
-            d = l - pd
-            px.append(px[-1] + d * c * math.cos(pyaw[-1]))
-            py.append(py[-1] + d * c * math.sin(pyaw[-1]))
-
-            if m is "L":  # left turn
+            # difference (|d| < resolution)
+            d = l - pd*sign(l)
+            if m is "L":  # left turn forward
+                px.append(px[-1] + d * c * cos(pyaw[-1]))
+                py.append(py[-1] + d * c * sin(pyaw[-1]))
                 pyaw.append(pyaw[-1] + d)
-            elif m is "S":  # Straight
+            elif m is "l":  # left turn backwards
+                d = -d
+                px.append(px[-1] - d * c * cos(pyaw[-1]))
+                py.append(py[-1] - d * c * sin(pyaw[-1]))
+                pyaw.append(pyaw[-1] - (+d))
+            elif m is "S":  # Straight forward
+                px.append(px[-1] + d * c * cos(pyaw[-1]))
+                py.append(py[-1] + d * c * sin(pyaw[-1]))
                 pyaw.append(pyaw[-1])
-            elif m is "R":  # right turn
+            elif m is "R":  # right turn forward
+                px.append(px[-1] + d * c * cos(pyaw[-1]))
+                py.append(py[-1] + d * c * sin(pyaw[-1]))
                 pyaw.append(pyaw[-1] - d)
+            elif m is "r":  # right turn backwards
+                d = -d
+                px.append(px[-1] - d * c * cos(pyaw[-1]))
+                py.append(py[-1] - d * c * sin(pyaw[-1]))
+                pyaw.append(pyaw[-1] - (-d))
             pd += d
 
     return px, py, pyaw
 
 
 def plot_arrow(x, y, yaw, length=0.1, width=0.06, fc="k", ec="k"):
-    u"""
+    """
     Plot arrow
     """
     import matplotlib.pyplot as plt
@@ -293,6 +337,8 @@ def plot_arrow(x, y, yaw, length=0.1, width=0.06, fc="k", ec="k"):
 
 
 if __name__ == '__main__':
+    
+    
     print("Dubins path planner sample start!!")
     import matplotlib.pyplot as plt
 
@@ -315,8 +361,8 @@ if __name__ == '__main__':
     plot_arrow(start_x, start_y, start_yaw)
     plot_arrow(end_x, end_y, end_yaw)
 
-    #  for (ix, iy, iyaw) in zip(px, py, pyaw):
-    #  plot_arrow(ix, iy, iyaw, fc="b")
+#    for (ix, iy, iyaw) in zip(px, py, pyaw):
+#        plot_arrow(ix, iy, iyaw, fc="b")
 
     plt.legend()
     plt.grid(True)
