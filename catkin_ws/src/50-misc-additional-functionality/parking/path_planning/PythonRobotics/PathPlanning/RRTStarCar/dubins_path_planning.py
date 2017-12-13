@@ -11,6 +11,10 @@ License MIT
 
 """
 
+# global variables
+plot_all_dubins_pathes = True # only valid if start is origin
+
+
 import math
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from numpy import sign
@@ -229,8 +233,9 @@ def dubins_path_planning_from_origin(ex, ey, eyaw, c, allow_backwards_on_circle=
             bcost = cost
 
         # plot all paths (only correct if start pose is origin)
-        px, py, pyaw = generate_course([t, p, q], mode, c)
-        plt.plot(px, py, label="".join(mode))
+        if plot_all_dubins_pathes:
+            px, py, pyaw = generate_course([t, p, q], mode, c)
+            plt.plot(px, py, label="".join(mode))
 
     # print(bt, math.degrees(bp), math.degrees(bq), bmode)
     px, py, pyaw = generate_course([bt, bp, bq], bmode, c)
@@ -382,8 +387,8 @@ if __name__ == '__main__':
     start_y = 0.0  # [m]
     start_yaw = math.radians(0.0)  # [rad]
 
-    end_x = 0.0  # [m]
-    end_y = -0.5  # [m]
+    end_x = 0.3  # [m]
+    end_y = -0.3  # [m]
     end_yaw = math.radians(0.0)  # [rad]
 
     curvature = 0.25
