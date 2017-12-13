@@ -15,6 +15,7 @@ class ImagePrep():
         """ Returns SegmentList """
         
         self.image_cv = image_cv
+	print ('hi')
         with context.phase('resizing'):
             # Resize and crop image
             h0, w0 = image_cv.shape[0:2]
