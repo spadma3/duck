@@ -42,18 +42,16 @@ class CamInfoReader(object):
 
         img_type = CompressedImage if self.image_type == "compressed" else Image
         if self.image_type == "compressed":
-            print "subscribing to compresed"
             self.sub_img_compressed = rospy.Subscriber("~compressed_image",img_type,self.cbCompressedImage,queue_size=1)
-        elif self.image_type == "rectified":
-            print "subscribing to rectified"
-            self.sub_img_rectified = rospy.Subscriber("~image_rect",img_type,self.cbRectifiedImage,queue_size=1)
+        else: 
+            self.sub_img = rospy.Subscriber("~image",img_type,self.cbImage,queue_size=1)
             
     def cbCompressedImage(self,msg):
         if self.camera_info_msg is not None:
             self.camera_info_msg.header.stamp = msg.header.stamp
             self.pub_camera_info.publish(self.camera_info_msg)
 
-    def cbRectifiedImage(self,msg):
+    def cbImage(self,msg):
         if self.camera_info_msg is not None:
             self.camera_info_msg.header.stamp = msg.header.stamp
             self.pub_camera_info.publish(self.camera_info_msg)
