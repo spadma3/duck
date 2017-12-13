@@ -54,7 +54,7 @@ class TrafficLight(object):
                 self.traffic_light_state[light]=False
             else:
                 self.led.setRGB(light,[1,0,0])
-                self.traffic_light_state[light]=True
+                self.traffic_light_state[light]=False
         for light in self.yellowlightlist:
             if self.traffic_light_state[light]==True:
                 self.led.setRGB(light,[0,0,0])
