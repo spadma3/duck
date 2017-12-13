@@ -82,8 +82,6 @@ class NewActionsDispatcherNode:
         location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node)
         self.pub_location_node.publish(ByteMultiArray, location_message)
 
-        self.find_path_and_execute(node)
-
         if self.target_node is None or self.target_node == node:
             self.localize_at_red_line(None) # repeat until new duckiebot mission was published
 
