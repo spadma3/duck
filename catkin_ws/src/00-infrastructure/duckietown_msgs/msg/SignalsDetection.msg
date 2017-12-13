@@ -23,10 +23,10 @@ string CARS   ='cars_detected'
 
 # for the moment we assume that no traffic light exists
 
-#string traffic_light_state
+string traffic_light_state
 
-#string NO_TRAFFIC_LIGHT='no_traffic_light'
-#string STOP='tl_stop'
+string NO_TRAFFIC_LIGHT='no_traffic_light'
+string STOP='tl_stop'
 string GO='tl_go'
-#string YIELD='tl_yield'
+string YIELD='tl_yield'
 
