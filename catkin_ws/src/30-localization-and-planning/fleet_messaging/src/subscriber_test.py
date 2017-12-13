@@ -1,8 +1,9 @@
 # Testing
-import commlibs2
 import thread
 
-sub1 = commlibs2.duckiemq(interface="wlp1s0", socktype='sub')
+from include.fleet_messaging import commlibs2
+
+sub1 = commlibs2.duckiemq(interface="wlp1s0", socktype='sub', port = "5532")
 sub2 = commlibs2.duckiemq(interface="wlp1s0", socktype='sub')
 sub2.setfilter('ERROR')
 

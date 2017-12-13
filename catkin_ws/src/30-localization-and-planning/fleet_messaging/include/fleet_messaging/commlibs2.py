@@ -4,7 +4,7 @@ from __future__ import print_function
 import time
 import netifaces as ni
 import zmq
-#import seriallibs #import the correct seriallibs, see usage below
+import libserialize #import the correct seriallibs, see usage below
 
 class duckiemq(object):
     """ZMQ implementation for communication between Duckiebots"""
@@ -78,7 +78,7 @@ class duckiemq(object):
     def send_serialized(self, msg):
         """serialize message with seriallibs.serialize and send"""
         if self.socktype == 'pub':
-            self.socket.send_serialized(msg, seriallibs.serialize, flags=0, copy=True)
+            self.socket.send_serialized(msg, libserialize.serialize, flags=0, copy=True)
         else:
             print("socket not of type publisher, no message sent")
 
@@ -92,6 +92,6 @@ class duckiemq(object):
     def rcv_serialized(self):
         """receive message and deserialize with seriallibs.deserialize"""
         if self.socktype == 'sub':
-            return self.socket.recv_serialized(seriallibs.deserialize, flags=0, copy=True)
+            return self.socket.recv_serialized(libserialize.parse, flags=0, copy=True)
         else:
             print("socket not of type subscriber, no message will be recieved")

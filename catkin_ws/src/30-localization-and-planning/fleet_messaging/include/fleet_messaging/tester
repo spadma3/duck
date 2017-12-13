@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source $DUCKIETOWN_ROOT/environment.sh
+
+python tester.py
