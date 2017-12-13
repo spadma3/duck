@@ -1,114 +1,133 @@
 #!/usr/bin/env python
 
-import sys
 import rospy
-from navigation.srv import *
-from duckietown_msgs.msg import FSMState, SourceTargetNodes, BoolStamped, Twist2DStamped
-from std_msgs.msg import Int16, String
+from fleet_planning.srv import *
+from std_msgs.msg import Int16, ByteMultiArray
+from duckietown_msgs.msg import BoolStamped
+import numpy as np
+import os
+import tf
+import tf2_ros
+from fleet_planning.generate_duckietown_map import graph_creator
+from fleet_planning.location_to_graph_mapping import IntersectionMapper
+from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
 
-class ActionsDispatcherNode():
-    def __init__(self):
+
+class NewActionsDispatcherNode:
+    _world_frame = 'world'
+    _target_frame = 'duckiebot'
+
+    def __init__(self, map_dir, map_csv):
         self.node_name = rospy.get_name()
-
-        #adding logic because FSM publishes our state at a high rate
-        #not just everytime the mode changes but multiple times in each mode
-        self.first_update = True
+        self.duckiebot_name = self.setup_parameter('veh', None)
 
         self.actions = []
-
-        # Parameters:
-        self.fsm_mode = self.setupParameter("~initial_mode","JOYSTICK_CONTROL")
-        self.localization_mode = self.setupParameter("~localization_mode","LOCALIZATION")
-        self.trigger_mode = self.setupParameter("~trigger_mode","INTERSECTION_CONTROL")
-        self.reset_mode = self.setupParameter("~reset_mode","JOYSTICK_CONTROL")
-        self.stop_line_wait_time = self.setupParameter("~stop_line_wait_time",2.0)
+        self.target_node = None
 
         # Subscribers:
-        self.sub_mode = rospy.Subscriber("~fsm_mode", FSMState, self.updateMode, queue_size = 1)
-        self.sub_plan_request = rospy.Subscriber("~plan_request", SourceTargetNodes, self.graph_search)
+        self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.graph_search)
+        self.sub_red_line = rospy.Subscriber("~/paco/stop_line_filter_node/at_stop_line", BoolStamped, self.at_red_line)
+
+        # location listener
+        self.listener_transform = tf.TransformListener()
+
+        # wait for listener setup to complete
+        try:
+            self.listener_transform.waitForTransform(self._world_frame, self._target_frame, rospy.Time(),
+                                                     rospy.Duration(4.0))
+        except tf2_ros.TransformException:
+            rospy.logwarn('The duckiebot location is not being published! No location updates possible.')
 
         # Publishers:
-        self.pub = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
-        self.pubList = rospy.Publisher("~turn_plan", String, queue_size=1, latch=True)
-        self.pub_localized = rospy.Publisher("~localized", BoolStamped, queue_size=1, latch=True)
+        self.pub_action = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
+        self.pub_location_node = rospy.Publisher("/taxi/location", ByteMultiArray, queue_size=1)
 
-    def setupParameter(self,param_name,default_value):
-        value = rospy.get_param(param_name,default_value)
-        rospy.set_param(param_name,value) #Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
+        # mapping: location -> node number
+        self.graph_creator = graph_creator()
+        self.graph_creator.build_graph_from_csv(map_dir, map_csv)
+        self.location_to_node_mapper = IntersectionMapper(self.graph_creator)
+
+    def setup_parameter(self, param_name, default_value):
+        value = rospy.get_param(param_name, default_value)
+
+        rospy.set_param(param_name,value)  # Write to parameter server for transparency
+        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def updateMode(self, data):
-        self.fsm_mode = data.state
-        if self.fsm_mode == self.reset_mode:
-            self.actions = []
-            rospy.wait_for_service('graph_search')
-            graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
-            graph_search('0', '0')
-        elif self.localization_mode != "none" and self.fsm_mode == self.localization_mode:
-            self.pubLocalized()
-        self.dispatcher()
+    def at_red_line(self, message):
+        # TODO CAUTION: this executed EVERY TIME a stop line is detected. no checks whether we're at the next intersection already
 
-    def dispatcher(self):
-        if self.first_update == False and self.fsm_mode != self.trigger_mode:
-            self.first_update = True
+        start_time = rospy.get_time()
+        while not node and rospy.get_time() - start_time < 5.0:  # TODO: tune this
 
-        if self.first_update == True and self.fsm_mode == self.trigger_mode and self.actions:
-            # Allow time for open loop controller to update state and allow duckiebot to stop at redline:
-            rospy.sleep(self.stop_line_wait_time)
-        
-            # Proceed with action dispatching:
-            action = self.actions.pop(0)
-            print 'Dispatched:', action
-            if action == 's':
-                self.pub.publish(Int16(1))
-            elif action == 'r':
-                self.pub.publish(Int16(2))
-            elif action == 'l':
-                self.pub.publish(Int16(0))
-            elif action == 'w':
-                self.pub.publish(Int16(-1))    
-    
-            action_str = ''
-            for letter in self.actions:
-                action_str += letter
+            try:
+                (trans, rot) = self.listener_transform.lookupTransform(self._world_frame, self._target_frame,
+                                                                       rospy.Time(0))
+                rot = tf.transformations.euler_from_quaternion(rot)[2]
+                node = self.location_to_node_mapper.get_node_name(trans[:2], np.degrees(rot))
 
-            self.pubList.publish(action_str)
-            self.firstUpdate = False
+            except tf2_ros.LookupException:
+                rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(self.duckiebot_name))
 
-    def graph_search(self, data):
-        print 'Requesting map for src: ', data.source_node, ' and target: ', data.target_node
+        if not node:
+            rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(self.duckiebot_name))
+            return
+
+        rospy.loginfo('Duckiebot {} located at node {}'.format(self.duckiebot_name, node))
+
+        location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.actions)
+        self.pub_location_node(location_message)
+        self.graph_search(node, self.target_node)
+        self.dispatch_action()
+
+    def new_duckiebot_mission(self, message):
+        duckiebot_name, target_node, taxi_state = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
+        if duckiebot_name != self.duckiebot_name:
+            return
+        self.target_node = target_node
+
+    def graph_search(self, source_node, target_node):
+
+        print 'Requesting map for src: ', source_node, ' and target: ', target_node
         rospy.wait_for_service('graph_search')
         try:
             graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
-            resp = graph_search(data.source_node, data.target_node)
-            self.actions = resp.actions
-            if self.actions:
-                # remove 'f' (follow line) from actions and add wait action in the end of queue
-                self.actions = [x for x in self.actions if x != 'f']
-                self.actions.append('w')
+            resp = graph_search(source_node, target_node)
+            actions = resp.actions
+
+            if actions:
+                # remove 'f' (follow line) from actions
+                self.actions = [x for x in actions if x != 'f']
                 print 'Actions to be executed:', self.actions
-                action_str = ''
-                for letter in self.actions:
-                    action_str += letter
-                self.pubList.publish(action_str)
-                self.dispatcher()
             else:
-                print 'Actions to be executed:', self.actions
+                print 'No actions to be executed'
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
 
-    def pubLocalized(self):
-        msg = BoolStamped()
-        msg.data = True
-        self.pub_localized.publish(msg)
+    def dispatch_action(self):
+            action = self.actions.pop(0)
+            print 'Dispatched action:', action
+            if action == 's':
+                self.pub_action.publish(Int16(1))
+            elif action == 'r':
+                self.pub_action.publish(Int16(2))
+            elif action == 'l':
+                self.pub_action.publish(Int16(0))
+            elif action == 'w':
+                self.pub_action.publish(Int16(-1))
 
-    def onShutdown(self):
+    def on_shutdown(self):
         rospy.loginfo("[ActionsDispatcherNode] Shutdown.")
+
 
 if __name__ == "__main__":
     rospy.init_node('actions_dispatcher_node')
-    actions_dispatcher_node = ActionsDispatcherNode()
-    rospy.on_shutdown(actions_dispatcher_node.onShutdown)
+
+    script_dir = os.path.dirname(__file__)
+    map_path = os.path.abspath(script_dir)
+    csv_filename = 'tiles_lab'
+
+    actions_dispatcher_node = NewActionsDispatcherNode(map_path, csv_filename)
+    rospy.on_shutdown(actions_dispatcher_node.on_shutdown)
     rospy.spin()
