@@ -54,18 +54,16 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
-<<<<<<< HEAD
+
         ml = self.filter.update(segment_list_msg.segments)
         if ml is not None:
             ml_img = self.getDistributionImage(ml,segment_list_msg.header.stamp)
             self.pub_ml_img.publish(ml_img)
         
-=======
         range_max = 1  # range to consider edges in general
         range_min = 0.14
         self.filter.update(segment_list_msg.segments, range_min, range_max)
 
->>>>>>> 94cdabb912e5086543420487c2d30e1a0901f2bf
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
         print "d_max = ", d_max
@@ -87,14 +85,13 @@ class LaneFilterNode(object):
         lanePose.status = lanePose.NORMAL
 
         # publish the belief image
-<<<<<<< HEAD
+
         belief_img = self.getDistributionImage(self.filter.belief,segment_list_msg.header.stamp)
-=======
         bridge = CvBridge()
         belief_img = bridge.cv2_to_imgmsg((255*self.filter.beliefArray[0]).astype('uint8'), "mono8")
         belief_img.header.stamp = segment_list_msg.header.stamp
         
->>>>>>> 94cdabb912e5086543420487c2d30e1a0901f2bf
+
         self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
 

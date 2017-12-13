@@ -52,7 +52,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         d_t = self.d + v*delta_t*np.sin(self.phi)
         phi_t = self.phi + w*delta_t
 
-<<<<<<< HEAD
+
         p_belief = np.zeros(self.belief.shape)
 
         # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
@@ -84,7 +84,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         return measurement_likelihood
 
     def generate_measurement_likelihood(self, segments):
-=======
         for k in range(self.num_belief):
             p_belief = np.zeros(self.beliefArray[k].shape)
 
@@ -123,7 +122,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                     self.beliefArray[i] = self.beliefArray[i]/np.sum(self.beliefArray[i])
 
     def generate_measurement_likelihood(self, segments, range_min, range_max):
->>>>>>> 94cdabb912e5086543420487c2d30e1a0901f2bf
+
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segments:
