@@ -4,7 +4,8 @@ string signal
 
 # these must match with LED_protocol.yaml
 string OFF=light_off
-string ON = light_on
+#string ON = light_on
+string ON=traffic_light_go
 string SIGNAL_A=CAR_SIGNAL_A
 string SIGNAL_B=CAR_SIGNAL_B
 string SIGNAL_C=CAR_SIGNAL_C
