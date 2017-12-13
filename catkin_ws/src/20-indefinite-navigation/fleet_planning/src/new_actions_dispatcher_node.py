@@ -78,6 +78,7 @@ class NewActionsDispatcherNode:
 
         location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node)
         self.pub_location_node.publish(ByteMultiArray, location_message)
+        self.target_node = 15 # TODO remove this line
         self.graph_search(node, self.target_node)
         self.dispatch_action()
 
@@ -107,6 +108,7 @@ class NewActionsDispatcherNode:
             print "Service call failed: %s"%e
 
     def dispatch_action(self):
+        if len(self.actions) > 0:
             action = self.actions.pop(0)
             print 'Dispatched action:', action
             if action == 's':
