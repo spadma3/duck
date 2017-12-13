@@ -23,6 +23,7 @@ class NewActionsDispatcherNode:
 
         self.actions = []
         self.target_node = None
+        self.last_red_line = rospy.get_time()
 
         # Subscribers:
         self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.graph_search)
@@ -55,7 +56,10 @@ class NewActionsDispatcherNode:
         return value
 
     def at_red_line(self, message):
-        # TODO CAUTION: this executed EVERY TIME a stop line is detected. no checks whether we're at the next intersection already
+        if self.last_red_line - rospy.get_time() < 5.0:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
+            rospy.logwarn('Location not updated, red line too soon detected after last one.')
+            return
+
         rospy.loginfo('At intersection. Localizing.')
         start_time = rospy.get_time()
         node = None
@@ -73,6 +77,7 @@ class NewActionsDispatcherNode:
         if not node:
             rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(self.duckiebot_name))
             return
+
         node = int(node)
         rospy.loginfo('Duckiebot {} located at node {}'.format(self.duckiebot_name, node))
 
