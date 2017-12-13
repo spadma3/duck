@@ -14,8 +14,7 @@
 	</include>
 
         <arg name="pkg_name" default="dt_imitation_learning_$(arg veh)" />
-        <remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
-        <include file="$(eval find(pkg_name) + '/launch/lane_filter_node.launch')">
+        <include file="$(eval find(pkg_name) + '/launch/imitation_learning_node.launch')">
                  <arg name="veh" value="$(arg veh)"/>
         </include>
 
