@@ -93,7 +93,7 @@ class NewActionsDispatcherNode:
         rospy.wait_for_service('graph_search')
         try:
             graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
-            resp = graph_search(source_node, target_node)
+            resp = graph_search(str(source_node), str(target_node))
             actions = resp.actions
 
             if actions:
