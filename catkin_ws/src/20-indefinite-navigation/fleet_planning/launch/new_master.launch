@@ -5,7 +5,6 @@
 	<arg name="config" default="baseline" />
 	<arg name="param_file_name" default="default" />
 	<arg name="apriltags_param_file_name" default="$(arg param_file_name)" />
-	<arg name="fsm_file_name" default="default" />
 	<arg name="visualization" default="true" />
 	<arg name="verbose" default="false" />
 	<arg name="statistics" default="false"/>
@@ -43,8 +42,6 @@
 	<arg name="/lane_following/lane_filter" default="true"/>
 	<arg name="/lane_following/stop_line_filter" default="true"/>
 	<arg name="/lane_following/lane_controller" default="true"/>
-
-	<arg name="fsm" default="true"/>
 
     <arg name="coordination" default="false"/>
 
@@ -159,35 +156,6 @@
 		</include>
 	</group>
 	<!-- End Joystick -->
-
-	<!-- Start FSM -->
-	<group if="$(arg fsm)">
-		<!-- FSM -->
-		<!-- no remapping for FSM - full topic names specified in params yaml -->
-		<include file="$(find fsm)/launch/fsm_node.launch">
-			<arg name="veh" value="$(arg veh)"/>        
-			<arg name="config" value="$(arg config)"/>        
-			<arg name="param_file_name" value="$(arg fsm_file_name)"/>        
-		</include>
-
-		<!-- car_cmd_switch_node -->
-		<!-- no remappings for car_cmd_switch - full topic names specified in params yaml -->
-		<remap from="car_cmd_switch_node/cmd_lane_following" to="lane_controller_node/lane_control"/> 
-		<!-- need either lots more of these or none of these -->
-		<include file="$(find dagu_car)/launch/car_cmd_switch_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-
-		<include file="$(find fsm)/launch/logic_gate_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-	</group>
-
-	<!--End FSM -->
 
     <!-- Start Coordination -->
     <group unless="$(arg coordination)">
