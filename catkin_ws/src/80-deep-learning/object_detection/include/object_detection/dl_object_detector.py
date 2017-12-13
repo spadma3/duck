@@ -52,14 +52,14 @@ class ObjectDetector:
                 self.image_tensor: image_tensor_input
             })
 
-        normalized_boxes = np.squeeze(boxes)
-        normalized_scores = np.squeeze(scores)
-        normalized_classes = np.squeeze(classes)
+        n_boxes = np.squeeze(boxes)
+        n_scores = np.squeeze(scores)
+        n_classes = np.squeeze(classes)
 
         image_shape = image.shape
         bounding_boxes = []
-        for index, box in enumerate(normalized_boxes):
-            if normalized_scores[index] <= self.score_threshold:
+        for index, box in enumerate(n_boxes):
+            if n_scores[index] >= self.score_threshold:
                 ymin, xmin, ymax, xmax = box
 
                 if self.de_normalize:
@@ -70,8 +70,8 @@ class ObjectDetector:
 
                 bounding_boxes.append({
                     'class_label': 'bot',  # TODO: load this from configuration
-                    'class_id': normalized_classes[index],
-                    'score': normalized_scores[index],
+                    'class_id': n_classes[index],
+                    'score': n_scores[index],
                     'xmin': xmin,
                     'xmax': xmax,
                     'ymin': ymin,
