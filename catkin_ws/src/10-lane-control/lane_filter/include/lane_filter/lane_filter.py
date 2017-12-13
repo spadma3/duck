@@ -108,6 +108,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     
     def update(self, segments, range_min, range_max):
         #range_delta = (range_max - range_min)/self.num_belief
+        range_delta= []
         range_delta[0]= 0
         range_delta[1]= (range_max-range_min)/6
         range_delta[2]= (range_max-range_min)/6*2 + range_delta[1]
