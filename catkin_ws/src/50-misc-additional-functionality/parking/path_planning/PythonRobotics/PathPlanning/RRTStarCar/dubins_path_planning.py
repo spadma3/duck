@@ -10,7 +10,8 @@ License MIT
 
 """
 import math
-
+from math import sin, cos, sqrt, atan2, degrees, radians, pi
+from numpy import sign
 
 def mod2pi(theta):
     return theta - 2.0 * math.pi * math.floor(theta / 2.0 / math.pi)
@@ -26,7 +27,7 @@ def pi_2_pi(angle):
     return angle
 
 
-def LSL(alpha, beta, d):
+def LSL(alpha, beta, d, allow_backwards_on_circle=False):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -45,10 +46,18 @@ def LSL(alpha, beta, d):
     q = mod2pi(beta - tmp1)
     #  print(math.degrees(t), p, math.degrees(q))
 
+    if allow_backwards_on_circle:
+        if t > pi:
+            t = t - 2*pi
+            mode[0] = "r"
+        if q > pi:
+            q = q - 2*pi
+            mode[2] = "l"
+
     return t, p, q, mode
 
 
-def RSR(alpha, beta, d):
+def RSR(alpha, beta, d, allow_backwards_on_circle=False):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -66,11 +75,18 @@ def RSR(alpha, beta, d):
     q = mod2pi(-beta + tmp1)
     # print(math.degrees(t), p, math.degrees(q))
 
+    if allow_backwards_on_circle:
+        if t > pi:
+            t = t - 2*pi
+            mode[0] = "r"
+        if q > pi:
+            q = q - 2*pi
+            mode[2] = "l"
+
     return t, p, q, mode
 
 
-def LSR(alpha, beta, d):
-    from math import sin, cos, atan2, sqrt, degrees
+def LSR(alpha, beta, d, allow_backwards_on_circle=False):
     sa = sin(alpha)
     sb = sin(beta)
     ca = cos(alpha)
@@ -85,12 +101,19 @@ def LSR(alpha, beta, d):
     tmp2 = atan2((-ca - cb), (d + sa + sb)) - atan2(-2.0, p)
     t = mod2pi(-alpha + tmp2)
     q = mod2pi(-mod2pi(beta) + tmp2)
-    
+
+    if allow_backwards_on_circle:
+        if t > pi:
+            t = t - 2*pi
+            mode[0] = "r"
+        if q > pi:
+            q = q - 2*pi
+            mode[2] = "l"
+
     return t, p, q, mode
 
 
-def RSL(alpha, beta, d):
-    from math import sin, cos, sqrt, atan2, degrees, pi
+def RSL(alpha, beta, d, allow_backwards_on_circle=False):
     sa = sin(alpha)
     sb = sin(beta)
     ca = cos(alpha)
@@ -106,8 +129,6 @@ def RSL(alpha, beta, d):
     t = mod2pi(alpha - tmp2)
     q = mod2pi(beta - tmp2)
 
-    # mode - captial letters: forward, small lettres: backwards
-    allow_backwards_on_circle = True
     if allow_backwards_on_circle:
         if t > pi:
             t = t - 2*pi
@@ -115,14 +136,11 @@ def RSL(alpha, beta, d):
         if q > pi:
             q = q - 2*pi
             mode[2] = "l"
-        print(degrees(t),p,degrees(q),mode)
-        return t, p, q, mode
 
-    else:
-        return t, p, q, mode
+    return t, p, q, mode
 
 
-def RLR(alpha, beta, d):
+def RLR(alpha, beta, d, allow_backwards_on_circle=False):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -138,10 +156,18 @@ def RLR(alpha, beta, d):
     t = mod2pi(alpha - math.atan2(ca - cb, d - sa + sb) + mod2pi(p / 2.0))
     q = mod2pi(alpha - beta - t + mod2pi(p))
 
+    if allow_backwards_on_circle:
+        if t > pi:
+            t = t - 2*pi
+            mode[0] = "r"
+        if q > pi:
+            q = q - 2*pi
+            mode[2] = "l"
+
     return t, p, q, mode
 
 
-def LRL(alpha, beta, d):
+def LRL(alpha, beta, d, allow_backwards_on_circle=False):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -156,11 +182,18 @@ def LRL(alpha, beta, d):
     t = mod2pi(-alpha - math.atan2(ca - cb, d + sa - sb) + p / 2.)
     q = mod2pi(mod2pi(beta) - alpha - t + mod2pi(p))
 
+    if allow_backwards_on_circle:
+        if t > pi:
+            t = t - 2*pi
+            mode[0] = "r"
+        if q > pi:
+            q = q - 2*pi
+            mode[2] = "l"
+
     return t, p, q, mode
 
 
-def dubins_path_planning_from_origin(ex, ey, eyaw, c):
-    from math import sqrt, degrees, atan2
+def dubins_path_planning_from_origin(ex, ey, eyaw, c, allow_backwards_on_circle=False):
     
     # nomalize
     dx = ex
@@ -180,7 +213,7 @@ def dubins_path_planning_from_origin(ex, ey, eyaw, c):
     bt, bp, bq, bmode = None, None, None, None
 
     for planner in planners:
-        t, p, q, mode = planner(alpha, beta, d)
+        t, p, q, mode = planner(alpha, beta, d, allow_backwards_on_circle)
         if t is None:
             print("".join(mode) + " cannot generate path")
             continue
@@ -200,7 +233,7 @@ def dubins_path_planning_from_origin(ex, ey, eyaw, c):
     return px, py, pyaw, bmode, bcost
 
 
-def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c):
+def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c, dubins_path_planning=False):
     """
     Dubins path plannner
 
@@ -231,7 +264,7 @@ def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c):
     # print(lex,ley,math.degrees(leyaw))
 
     lpx, lpy, lpyaw, mode, clen = dubins_path_planning_from_origin(
-        lex, ley, leyaw, c)
+        lex, ley, leyaw, c, dubins_path_planning)
 
     px = [math.cos(-syaw) * x + math.sin(-syaw) *
           y + sx for x, y in zip(lpx, lpy)]
@@ -251,9 +284,6 @@ def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c):
 
 
 def generate_course(length, mode, c):
-    from math import cos, sin, radians, degrees
-    from numpy import sign
-    
     # length = [t, p, q], mode = ["r","S","l"]
     px = [0.0]
     py = [0.0]
@@ -352,8 +382,11 @@ if __name__ == '__main__':
 
     curvature = 0.25
 
+    allow_backwards_on_circle = True
+
     px, py, pyaw, mode, clen = dubins_path_planning(start_x, start_y, start_yaw,
-                                                    end_x, end_y, end_yaw, curvature)
+                                                    end_x, end_y, end_yaw, curvature,
+                                                    allow_backwards_on_circle)
 
     plt.plot(px, py, label="final course " + "".join(mode))
 
