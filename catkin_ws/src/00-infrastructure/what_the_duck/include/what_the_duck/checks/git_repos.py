@@ -24,6 +24,8 @@ def assert_is_git_repository(dirname, ExceptionName):
 
 def get_repo_age(dirname):
     fn = os.path.join(dirname, '.git', 'FETCH_HEAD')
+    if not os.path.exists(fn):
+        fn = dirname
     mtime = os.stat(fn).st_mtime
     now = time.time()
     diff = now-mtime
