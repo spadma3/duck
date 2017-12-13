@@ -22,7 +22,6 @@ class ObjectDetectionNode:
         self.sub_image = rospy.Subscriber("~image_compressed", CompressedImage, self.on_image_received, queue_size=1)
 
         # Publishers
-
         self.pub_detection = rospy.Publisher("~detections", ObjectDetectionList, queue_size=1)
 
         # timer for updating the params
@@ -31,19 +30,20 @@ class ObjectDetectionNode:
     def on_image_received(self, compressed_image):
         detections = self.object_detector.detect(rgb_from_ros(compressed_image))
 
-        detection_list_msg = ObjectDetectionList()
+        if len(detections) > 0:
+            detection_list_msg = ObjectDetectionList()
 
-        for detection in detections:
-            detection_msg = Detection(class_label=detection['class_label'],
-                                      class_id=detection['class_id'],
-                                      xmin=detection['xmin'],
-                                      xmax=detection['xmax'],
-                                      ymin=detection['ymin'],
-                                      ymax=detection['ymax'],
-                                      score=detection['score'])
-            detection_list_msg.detections.append(detection_msg)
+            for detection in detections:
+                detection_msg = Detection(class_label=detection['class_label'],
+                                          class_id=detection['class_id'],
+                                          xmin=detection['xmin'],
+                                          xmax=detection['xmax'],
+                                          ymin=detection['ymin'],
+                                          ymax=detection['ymax'],
+                                          score=detection['score'])
+                detection_list_msg.detections.append(detection_msg)
 
-        self.pub_detection.publish(detection_list_msg)
+            self.pub_detection.publish(detection_list_msg)
 
     def onShutdown(self):
         self.object_detector.finalize()
