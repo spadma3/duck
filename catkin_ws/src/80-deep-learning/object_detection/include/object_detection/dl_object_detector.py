@@ -4,7 +4,7 @@ import tensorflow as tf
 
 class ObjectDetector:
 
-    def __init__(self, inference_graph_path, score_threshold=0.2, de_normalize_bounding_boxes=True):
+    def __init__(self, inference_graph_path, score_threshold=0.2, denormalize_boundingbox=True):
         # Inference Attributes
         self.inference_graph = None
         self.tf_session = None
@@ -16,29 +16,30 @@ class ObjectDetector:
 
         # Detection Attributes
         self.score_threshold = score_threshold
-        self.de_normalize = de_normalize_bounding_boxes
+        self.de_normalize = denormalize_boundingbox
 
         self.initialize_inference_engine(inference_graph_path)
 
     def load_inference_graph(self, inference_graph_path):
         if self.inference_graph is None:
             self.inference_graph = tf.Graph()
+            with self.inference_graph.as_default():
+                graph_definition = tf.GraphDef()
+                with tf.gfile.GFile(inference_graph_path, 'rb') as fid:
+                    serialized_graph = fid.read()
+                    graph_definition.ParseFromString(serialized_graph)
+                    tf.import_graph_def(graph_definition, name='')
+
+    def initialize_inference_engine(self, inference_graph_path):
+        if self.tf_session is None:
+            self.load_inference_graph(inference_graph_path)
             self.inference_graph.as_default()
-            od_graph_def = tf.GraphDef()
-            with tf.gfile.GFile(inference_graph_path, 'rb') as fid:
-                serialized_graph = fid.read()
-                od_graph_def.ParseFromString(serialized_graph)
-                tf.import_graph_def(od_graph_def, name='')
+            self.tf_session = tf.InteractiveSession(graph=self.inference_graph)
             self.image_tensor = self.inference_graph.get_tensor_by_name('image_tensor:0')
             self.detection_boxes = self.inference_graph.get_tensor_by_name('detection_boxes:0')
             self.detection_scores = self.inference_graph.get_tensor_by_name('detection_scores:0')
             self.detection_classes = self.inference_graph.get_tensor_by_name('detection_classes:0')
             self.num_detections = self.inference_graph.get_tensor_by_name('num_detections:0')
-
-    def initialize_inference_engine(self, inference_graph_path):
-        if self.tf_session is None:
-            self.load_inference_graph(inference_graph_path)
-            self.tf_session = tf.InteractiveSession(graph=self.inference_graph)
 
     def detect(self, image):
         image_tensor_input = np.expand_dims(image, axis=0)
@@ -70,10 +71,11 @@ class ObjectDetector:
                 bounding_boxes.append({
                     'class_label': 'bot',  # TODO: load this from configuration
                     'class_id': normalized_classes[index],
+                    'score': normalized_scores[index],
                     'xmin': xmin,
                     'xmax': xmax,
                     'ymin': ymin,
-                    'ymax': ymax
+                    'ymax': ymax,
                 })
 
         return bounding_boxes
