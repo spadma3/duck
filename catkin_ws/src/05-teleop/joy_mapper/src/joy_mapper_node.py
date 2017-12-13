@@ -26,6 +26,8 @@ class JoyMapper(object):
         # Publications
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
         self.pub_joy_override = rospy.Publisher("~joystick_override", BoolStamped, queue_size=1)
+        self.pub_imitation = rospy.Publisher(
+            "~imitation_mode", BoolStamped, queue_size=1)
         self.pub_parallel_autonomy = rospy.Publisher("~parallel_autonomy",BoolStamped, queue_size=1)
         self.pub_anti_instagram = rospy.Publisher("anti_instagram_node/click",BoolStamped, queue_size=1)
         self.pub_e_stop = rospy.Publisher("wheels_driver_node/emergency_stop",BoolStamped,queue_size=1)
@@ -113,7 +115,13 @@ class JoyMapper(object):
             anti_instagram_msg.data = True
             rospy.loginfo('anti_instagram message')
             self.pub_anti_instagram.publish(anti_instagram_msg)
-        elif (joy_msg.buttons[8] == 1): #power button (middle)
+        elif (joy_msg.buttons[2] == 1):
+            imitation_msg = BoolStamped()
+            imitation_msg.header.stamp = self.joy.header.stamp
+            imitation_msg.data = True
+            rospy.loginfo('imitation mode setting message')
+            self.pub_imitation.publish(imitation_msg)
+        elif (joy_msg.buttons[8] == 1):  # power button (middle)
             e_stop_msg = BoolStamped()
             e_stop_msg.header.stamp = self.joy.header.stamp
             e_stop_msg.data = True # note that this is toggle (actual value doesn't matter)
