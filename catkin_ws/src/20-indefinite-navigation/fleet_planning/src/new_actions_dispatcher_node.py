@@ -19,7 +19,7 @@ class NewActionsDispatcherNode:
 
     def __init__(self, map_dir, map_csv):
         self.node_name = rospy.get_name()
-        self.duckiebot_name = self.setup_parameter('veh', 'susi')
+        self.duckiebot_name = self.setup_parameter('~veh', 'no_duckiebot')
 
         self.actions = []
         self.target_node = None
@@ -73,7 +73,7 @@ class NewActionsDispatcherNode:
         if not node:
             rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(self.duckiebot_name))
             return
-
+        node = int(node)
         rospy.loginfo('Duckiebot {} located at node {}'.format(self.duckiebot_name, node))
 
         location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node)
