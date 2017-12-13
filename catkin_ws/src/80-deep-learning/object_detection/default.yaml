@@ -2,7 +2,7 @@
 
 # change to your robot name below
 object_detector:
-  inference_graph_path: /home/linuxpotter/research/classes/ift6080/software/duckietown/catkin_ws/src/80-deep-learning/object_detection/model/mobilenets_ssd.pb
+  inference_graph_path: models/mobilenets_ssd.pb
   score_threshold: 0.2
   denormalize_boundingbox: True
 

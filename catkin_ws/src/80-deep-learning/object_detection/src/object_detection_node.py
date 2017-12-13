@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+from os import path
 import rospy
+import rospkg
 from sensor_msgs.msg import CompressedImage
-from duckietown_utils import get_base_name, rgb_from_ros
+from duckietown_utils import rgb_from_ros
 from object_detection.msg import ObjectDetectionList, Detection
 from object_detection import ObjectDetector
 
@@ -10,13 +12,16 @@ class ObjectDetectionNode:
     def __init__(self):
         self.node_name = "Object Detection"
         self.active = True
+
+        # Detector Configuration
+        rospack = rospkg.RosPack()
         self.configuration = rospy.get_param('~object_detector')  # TODO: On-the-fly reconfiguration
+        # TODO: Fix after a place is established
         self.object_detector = ObjectDetector(
-            self.configuration['inference_graph_path'],
+            path.join(rospack.get_path('object_detection'), self.configuration['inference_graph_path']),
             float(self.configuration['score_threshold']),
             bool(self.configuration['denormalize_boundingbox'])
         )
-        # self.t_last_update = rospy.get_time()
 
         # Subscribers
         self.sub_image = rospy.Subscriber("~image_compressed", CompressedImage, self.on_image_received, queue_size=1)
