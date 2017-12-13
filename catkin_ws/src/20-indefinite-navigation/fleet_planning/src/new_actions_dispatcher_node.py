@@ -56,9 +56,11 @@ class NewActionsDispatcherNode:
         return value
 
     def at_red_line(self, message):
-        if self.last_red_line - rospy.get_time() < 5.0:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
+        if rospy.get_time() - self.last_red_line < 5.0:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
             rospy.logwarn('Location not updated, red line too soon detected after last one.')
             return
+        
+        self.last_red_line = rospy.get_time()
 
         rospy.loginfo('At intersection. Localizing.')
         start_time = rospy.get_time()
