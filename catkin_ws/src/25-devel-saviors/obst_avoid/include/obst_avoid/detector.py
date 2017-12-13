@@ -24,13 +24,16 @@ class Detector():
         # Robot name
     	self.robot_name = robot_name
 
+    	# Array which safes known obstacles to track them better 
+    	self.track_array = np.int_([])
+
         # Load camera calibration parameters
 	self.intrinsics = load_camera_intrinsics(robot_name)
 	self.H = load_homography(self.robot_name)
 	self.inv_H = inv(self.H)
 
 	#define where to cut the image, color range,...
-	self.crop = 150 #crop where we see 50cm in the middle (x=0.9m,y=0), default=150
+	#self.crop = 150 #crop where we see 50cm in the middle (x=0.9m,y=0), default=150
 	self.lower_yellow = np.array([20,100,150])
 	self.upper_yellow = np.array([35,255,255])
 	self.img_width = 0 #to be set in init_inv_homography
@@ -98,6 +101,7 @@ class Detector():
 	#for future: filter has to become adaptive to depth
 	obst_list = PoseArray()
    	obst_list.header.frame_id=self.robot_name
+        new_track_array = np.array([])
 	for k in range(1,no_elements+1): #iterate through all segmented numbers
 		#first only keep large elements then eval their shape
 		if (props[k-1]['area']>self.obst_thres): #skip all those who are too small
@@ -130,7 +134,13 @@ class Detector():
 				obst_object.orientation.y = bottom
 				obst_object.orientation.z = left
 				obst_object.orientation.w = right
-
+				new_position = np.array([[obst_object.position.x],[obst_object.position.y]])
+                 		if k == 1:
+                 			new_track_array = new_position
+                 		else: 
+					new_track_array = np.append(new_track_array,new_position,axis=1)
+				
+				print new_track_array
 				obst_list.poses.append(obst_object)
 			 
 				#explanation: those parameters published here are seen from the !center of the axle! in direction
@@ -139,7 +149,7 @@ class Detector():
 
 	    #eig box np.min breite und hoehe!! if they passed the test!!!!
 	    #print abc
-	    
+	self.track_array = new_track_array    
 	return obst_list
 
     def real_pic_pixel2ground(self,real_pic_pixel):
