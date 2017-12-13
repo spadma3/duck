@@ -19,7 +19,7 @@ class NewActionsDispatcherNode:
 
     def __init__(self, map_dir, map_csv):
         self.node_name = rospy.get_name()
-        self.duckiebot_name = self.setup_parameter('veh', None)
+        self.duckiebot_name = self.setup_parameter('veh', 'susi')
 
         self.actions = []
         self.target_node = None
