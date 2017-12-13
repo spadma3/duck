@@ -58,6 +58,7 @@ class NewActionsDispatcherNode:
         # TODO CAUTION: this executed EVERY TIME a stop line is detected. no checks whether we're at the next intersection already
 
         start_time = rospy.get_time()
+        node = None
         while not node and rospy.get_time() - start_time < 5.0:  # TODO: tune this
 
             try:
