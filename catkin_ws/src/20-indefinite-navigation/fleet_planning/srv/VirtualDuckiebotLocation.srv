@@ -1,0 +1,4 @@
+string duckie_name
+uint8 location
+---
+string result
