@@ -20,7 +20,6 @@
  - wheels stack
  - joystick stack
  - lane_following stack (old version of line detector only)
- - fsm
 -->
 
 <!-- general convention on remappings is that we remap the "subscribers" -->
@@ -42,8 +41,6 @@
 	<arg name="/lane_following/lane_filter" default="true"/>
 	<arg name="/lane_following/stop_line_filter" default="true"/>
 	<arg name="/lane_following/lane_controller" default="true"/>
-
-    <arg name="coordination" default="false"/>
 
 	<arg name="apriltags" default="true"/>
 	<arg name="/apriltags/local" default="true" />
@@ -157,20 +154,6 @@
 	</group>
 	<!-- End Joystick -->
 
-    <!-- Start Coordination -->
-    <group unless="$(arg coordination)">
-	  <!-- Vehicle Coordinator-->
-	  <remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
-	  <include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
-	    <arg name="veh" value="$(arg veh)"/>
-	    <arg name="config" value="$(arg config)"/>
-	    <arg name="param_file_name" value="$(arg param_file_name)"/>
-	  </include>
-	  <!-- Extra Remapping to make the fake coordination car cmds look real -->
-	  <remap from="fake_coordinator_node/car_cmd" to="simple_coordinator_node/car_cmd"/>
-	</group>
-    <!-- End Coordination -->
-
 
 	<!-- Start Lane Following -->
 	<group if="$(arg lane_following)">
@@ -272,7 +255,6 @@
 	<group if="$(arg fleet_planning)">
 		<group if="$(arg /fleet_planning/intersection_control)">
 			<!-- open loop intersection_controller -->
-			<remap from="open_loop_intersection_control_node/mode" to="fsm_node/mode"/>
 			<remap from="open_loop_intersection_control_node/lane_pose" to="lane_filter_node/lane_pose"/>
 			<remap from="open_loop_intersection_control_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading"/>
 			<remap from="open_loop_intersection_control_node/in_lane" to="lane_filter_node/in_lane"/>
@@ -284,9 +266,9 @@
 		</group>
 
 		<group if="$(arg /fleet_planning/graph_planner)">
-			<remap from="actions_dispatcher_node/fsm_mode" to="fsm_node/mode" />
+
 			<!-- remapping outputs since there are two different possible turn types -->
-			<remap from="actions_dispatcher_node/turn_type" to="open_loop_intersection_control_node/turn_type" /> 
+			<remap from="new_actions_dispatcher_node/turn_type" to="open_loop_intersection_control_node/turn_type" />
 
 			<include file="$(find fleet_planning)/launch/new_graph_search_server_node.launch">
 				<arg name="map_name" value="$(arg map_name)"/>        
@@ -295,8 +277,7 @@
 
 	        <include file="$(find fleet_planning)/launch/new_actions_dispatcher_node.launch">
  				<arg name="veh" value="$(arg veh)"/>        
-				<arg name="config" value="$(arg config)"/>        
-				<arg name="param_file_name" value="$(arg fsm_file_name)"/>        
+				<arg name="config" value="$(arg config)"/>
         	</include>
 		</group>
 	</group>
