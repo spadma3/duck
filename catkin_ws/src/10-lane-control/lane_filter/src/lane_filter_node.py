@@ -5,7 +5,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Float32
 from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
 from duckietown_utils.instantiate_utils import instantiate
-
+from  math import fabs
 class LaneFilterNode(object):
     def __init__(self):
         self.node_name = "Lane Filter"
@@ -70,10 +70,12 @@ class LaneFilterNode(object):
         print "phi_max = ", phi_max
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
-        if (d_max[2] - d_max[0] > 0.2 and phi_max[2] - phi_max[0] < -0.8):
+        if (d_max[5] - d_max[0] > 0.2 and phi_max[5] - phi_max[0] < -0.8):
             print "I see a left curve"
         #elif (d_max[2] - d_max[0] > 0.1 and phi_max[2] - phi_max[0] < -0.5 and phi_max[2] - phi_max[0] > -1.0 ):
             #print "I am in a left curve"
+        elif (math.fabs((d_max[0] +d_max[1] +d_max[4])/3 ) < 0.04  and math.fabs(phi_max[5] - phi_max[0] )< 0.2): 
+            print "I am on a straigh line"
         else:
             print "I don't know where I am"
         
