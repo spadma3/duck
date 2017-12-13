@@ -76,7 +76,7 @@ class NewActionsDispatcherNode:
 
         rospy.loginfo('Duckiebot {} located at node {}'.format(self.duckiebot_name, node))
 
-        location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.actions)
+        location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node)
         self.pub_location_node(location_message)
         self.graph_search(node, self.target_node)
         self.dispatch_action()
