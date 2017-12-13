@@ -27,17 +27,10 @@ class NewActionsDispatcherNode:
 
         # Subscribers:
         self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.graph_search)
-        self.sub_red_line = rospy.Subscriber("~/paco/stop_line_filter_node/at_stop_line", BoolStamped, self.at_red_line)
+        self.sub_red_line = rospy.Subscriber("~/paco/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
 
         # location listener
         self.listener_transform = tf.TransformListener()
-
-        # wait for listener setup to complete
-        try:
-            self.listener_transform.waitForTransform(self._world_frame, self._target_frame, rospy.Time(),
-                                                     rospy.Duration(4.0))
-        except tf2_ros.TransformException:
-            rospy.logwarn('The duckiebot location is not being published! No location updates possible.')
 
         # Publishers:
         self.pub_action = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
@@ -55,16 +48,17 @@ class NewActionsDispatcherNode:
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def at_red_line(self, message):
-        if rospy.get_time() - self.last_red_line < 5.0:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
+    def localize_at_red_line(self, message):
+        if rospy.get_time() - self.last_red_line < 5.0 and message is not None:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
             rospy.logwarn('Location not updated, red line too soon detected after last one.')
             return
-        
         self.last_red_line = rospy.get_time()
 
-        rospy.loginfo('At intersection. Localizing.')
+        rospy.loginfo('Localizing.')
+
         start_time = rospy.get_time()
         node = None
+        rate = rospy.Rate(5)
         while not node and rospy.get_time() - start_time < 5.0:  # TODO: tune this
 
             try:
@@ -76,6 +70,8 @@ class NewActionsDispatcherNode:
             except tf2_ros.LookupException:
                 rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(self.duckiebot_name))
 
+            rate.sleep()
+
         if not node:
             rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(self.duckiebot_name))
             return
@@ -85,9 +81,15 @@ class NewActionsDispatcherNode:
 
         location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node)
         self.pub_location_node.publish(ByteMultiArray, location_message)
-        self.target_node = 15 # TODO remove this line
-        self.graph_search(node, self.target_node)
-        self.dispatch_action()
+
+        self.find_path_and_execute(node)
+
+        if self.target_node is None or self.target_node == node:
+            self.localize_at_red_line(None) # repeat until new duckiebot mission was published
+
+        else:
+            self.graph_search(node, self.target_node)
+            self.dispatch_action()
 
     def new_duckiebot_mission(self, message):
         duckiebot_name, target_node, taxi_state = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
