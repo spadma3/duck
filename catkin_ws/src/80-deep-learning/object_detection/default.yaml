@@ -1,6 +1,4 @@
-# default parameters for lane_filter/lane_filter_node
-
-# change to your robot name below
+# Deep Learning Object Detector Parameter
 object_detector:
   inference_graph_path: models/mobilenets_ssd.pb
   score_threshold: 0.2
