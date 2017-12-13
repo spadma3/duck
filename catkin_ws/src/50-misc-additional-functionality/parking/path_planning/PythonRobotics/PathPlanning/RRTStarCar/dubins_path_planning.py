@@ -141,7 +141,6 @@ def RSL(alpha, beta, d, allow_backwards_on_circle=False):
 
     return t, p, q, mode
 
-# not tested when driving backwards
 def RLR(alpha, beta, d, allow_backwards_on_circle=False):
     sa = math.sin(alpha)
     sb = math.sin(beta)
@@ -162,13 +161,15 @@ def RLR(alpha, beta, d, allow_backwards_on_circle=False):
         if t > pi:
             t = t - 2*pi
             mode[0] = "r"
+        if p > pi:
+            p = p - 2*pi
+            mode[1] = "l"
         if q > pi:
             q = q - 2*pi
             mode[2] = "r"
 
     return t, p, q, mode
 
-# not tested when driving backwards
 def LRL(alpha, beta, d, allow_backwards_on_circle=False):
     sa = math.sin(alpha)
     sb = math.sin(beta)
@@ -183,11 +184,13 @@ def LRL(alpha, beta, d, allow_backwards_on_circle=False):
     p = mod2pi(2 * math.pi - math.acos(tmp_lrl))
     t = mod2pi(-alpha - math.atan2(ca - cb, d + sa - sb) + p / 2.)
     q = mod2pi(mod2pi(beta) - alpha - t + mod2pi(p))
-
     if allow_backwards_on_circle:
         if t > pi:
             t = t - 2*pi
             mode[0] = "l"
+        if p > pi:
+            p = p - 2*pi
+            mode[1] = "r"
         if q > pi:
             q = q - 2*pi
             mode[2] = "l"
@@ -299,7 +302,7 @@ def generate_course(length, mode, c):
             d = 1.0 / c /10.0
         else:  # turning couse
             # radial plotting resolution
-            d = radians(3.0)
+            d = radians(1.0)
         
         while pd < abs(l - d*sign(l)):
             # print(pd, l)
@@ -380,7 +383,7 @@ if __name__ == '__main__':
     start_yaw = math.radians(0.0)  # [rad]
 
     end_x = 0.0  # [m]
-    end_y = 0.1  # [m]
+    end_y = -0.5  # [m]
     end_yaw = math.radians(0.0)  # [rad]
 
     curvature = 0.25
