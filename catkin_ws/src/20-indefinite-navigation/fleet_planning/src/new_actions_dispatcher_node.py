@@ -19,7 +19,7 @@ class NewActionsDispatcherNode:
 
     def __init__(self, map_dir, map_csv):
         self.node_name = rospy.get_name()
-        self.duckiebot_name = self.setup_parameter('~veh', 'no_duckiebot')
+        self.duckiebot_name = self.setup_parameter('/veh', 'no_duckiebot')
 
         self.actions = []
         self.target_node = None
@@ -56,7 +56,7 @@ class NewActionsDispatcherNode:
 
     def at_red_line(self, message):
         # TODO CAUTION: this executed EVERY TIME a stop line is detected. no checks whether we're at the next intersection already
-
+        rospy.loginfo('At intersection. Localizing.')
         start_time = rospy.get_time()
         node = None
         while not node and rospy.get_time() - start_time < 5.0:  # TODO: tune this
@@ -77,7 +77,7 @@ class NewActionsDispatcherNode:
         rospy.loginfo('Duckiebot {} located at node {}'.format(self.duckiebot_name, node))
 
         location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node)
-        self.pub_location_node.publish(location_message)
+        self.pub_location_node.publish(ByteMultiArray, location_message)
         self.graph_search(node, self.target_node)
         self.dispatch_action()
 
