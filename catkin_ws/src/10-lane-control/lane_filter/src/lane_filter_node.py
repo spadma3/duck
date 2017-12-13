@@ -70,7 +70,6 @@ class LaneFilterNode(object):
         print "phi_max = ", phi_max
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
-
         if (d_max[2] - d_max[0] > 0.2 and phi_max[2] - phi_max[0] < -1.0):
             print "I see a left curve"
         elif (d_max[2] - d_max[0] > 0.1 and phi_max[2] - phi_max[0] < -0.5 and phi_max[2] - phi_max[0] > -1.0 ):
