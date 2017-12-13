@@ -35,8 +35,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         configuration = copy.deepcopy(configuration)
         Configurable.__init__(self,param_names,configuration)
 
+        # number of ranges the ground plane image is divided into 
         self.num_belief = 3
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
+        # creates an array to store the belief d of the 3 ranges
         self.beliefArray = []
         for i in range(self.num_belief):
             self.beliefArray.append(np.empty(self.d.shape))
@@ -52,10 +54,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         d_t = self.d + v*delta_t*np.sin(self.phi)
         phi_t = self.phi + w*delta_t
 
+        # predict for each image range 
         for k in range(self.num_belief):
             p_belief = np.zeros(self.beliefArray[k].shape)
 
             # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
+            
             for i in range(self.beliefArray[k].shape[0]):
                 for j in range(self.beliefArray[k].shape[1]):
                     if self.beliefArray[k][i,j] > 0:
@@ -75,8 +79,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     
     def update(self, segments, range_min, range_max):
+        # divided the image into 3 image range :  near, middle, far
         range_delta = (range_max - range_min)/self.num_belief
         for i in range(self.num_belief):
+            # calls the function to check the pose (d) of the each range
             measurement_likelihood = self.generate_measurement_likelihood(segments, i * range_delta, (i+1) * range_delta)
             if measurement_likelihood is not None:
                 self.beliefArray[i] = np.multiply(self.beliefArray[i],measurement_likelihood)
