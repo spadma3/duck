@@ -62,7 +62,7 @@ class LaneFilterNode(object):
         #     self.pub_ml_img.publish(ml_img)
         
         range_max = 1.2  # range to consider edges in general
-        range_min = 0.14
+        range_min = 0.3
         self.filter.update(segment_list_msg.segments, range_min, range_max)
 
         # Step 3: build messages and publish things
