@@ -10,6 +10,7 @@
 #include <tf/LinearMath/Quaternion.h>
 #include "duckietown_msgs/AprilTagsWithInfos.h"
 #include "duckietown_msgs/Twist2DStamped.h"
+#include "nav_msgs/Odometry.h"
 #include "sensor_msgs/Imu.h"
 
 #include <gtsam/geometry/Pose2.h>
@@ -150,6 +151,7 @@ class GraphSlam
     ros::NodeHandle nh_;
     ros::Subscriber apriltagsSub;
     ros::Subscriber carcmdSub;
+    ros::Subscriber odomSub;
     ros::Timer optimizerTimer;
     NonlinearFactorGraph graph;
     Values initialEstimate;
@@ -185,13 +187,14 @@ public:
 	    marker_arr_pub = nh_.advertise<visualization_msgs::MarkerArray>("graph_visualization_arr", 1);
 
 	    // Subscribers
-	    //apriltagsSub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
+	    apriltagsSub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
 	    //carcmdSub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
+	    odomSub = nh_.subscribe("/mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
 
 //  ros::Subscriber imusub = nh_.subscribe("/imu/data_raw", 1000, imucallback);
 //  ros::Timer imutimer = nh_.createTimer(ros::Duration(1), printcallback);
 
-	    testOptimizer();
+//	    testOptimizer();
 
 	    optimizerTimer = nh_.createTimer(ros::Duration(1), &GraphSlam::optimizeCallback, this);
 	    initialEstimate.print("\nInitial Estimate:\n");
@@ -214,6 +217,12 @@ public:
 		}
 	    }
 	}
+
+    void odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
+	{
+
+	}
+
 
     void imucallback(const sensor_msgs::Imu::ConstPtr& msg)
 	{
