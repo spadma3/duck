@@ -37,16 +37,16 @@ class ObjectDetectionNode:
 
         if len(detections) > 0:
             detection_list_msg = ObjectDetectionList()
-
             for detection in detections:
-                detection_msg = Detection(class_label=detection['class_label'],
-                                          class_id=detection['class_id'],
-                                          xmin=detection['xmin'],
-                                          xmax=detection['xmax'],
-                                          ymin=detection['ymin'],
-                                          ymax=detection['ymax'],
-                                          score=detection['score'])
-                detection_list_msg.detections.append(detection_msg)
+                detection_list_msg.detections.append(
+                    Detection(class_label=detection['class_label'],
+                              class_id=detection['class_id'],
+                              xmin=detection['xmin'],
+                              xmax=detection['xmax'],
+                              ymin=detection['ymin'],
+                              ymax=detection['ymax'],
+                              score=detection['score'])
+                )
 
             self.pub_detection.publish(detection_list_msg)
 
