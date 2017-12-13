@@ -5,10 +5,12 @@
 Dubins path planner sample code
 
 author Atsushi Sakai(@Atsushi_twi)
+adapted Samuel Nyffenegger (samueln@ethz.ch)
 
 License MIT
 
 """
+
 import math
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from numpy import sign
@@ -49,7 +51,7 @@ def LSL(alpha, beta, d, allow_backwards_on_circle=False):
     if allow_backwards_on_circle:
         if t > pi:
             t = t - 2*pi
-            mode[0] = "r"
+            mode[0] = "l"
         if q > pi:
             q = q - 2*pi
             mode[2] = "l"
@@ -81,7 +83,7 @@ def RSR(alpha, beta, d, allow_backwards_on_circle=False):
             mode[0] = "r"
         if q > pi:
             q = q - 2*pi
-            mode[2] = "l"
+            mode[2] = "r"
 
     return t, p, q, mode
 
@@ -105,10 +107,10 @@ def LSR(alpha, beta, d, allow_backwards_on_circle=False):
     if allow_backwards_on_circle:
         if t > pi:
             t = t - 2*pi
-            mode[0] = "r"
+            mode[0] = "l"
         if q > pi:
             q = q - 2*pi
-            mode[2] = "l"
+            mode[2] = "r"
 
     return t, p, q, mode
 
@@ -139,7 +141,7 @@ def RSL(alpha, beta, d, allow_backwards_on_circle=False):
 
     return t, p, q, mode
 
-
+# not tested when driving backwards
 def RLR(alpha, beta, d, allow_backwards_on_circle=False):
     sa = math.sin(alpha)
     sb = math.sin(beta)
@@ -162,11 +164,11 @@ def RLR(alpha, beta, d, allow_backwards_on_circle=False):
             mode[0] = "r"
         if q > pi:
             q = q - 2*pi
-            mode[2] = "l"
+            mode[2] = "r"
 
     return t, p, q, mode
 
-
+# not tested when driving backwards
 def LRL(alpha, beta, d, allow_backwards_on_circle=False):
     sa = math.sin(alpha)
     sb = math.sin(beta)
@@ -185,7 +187,7 @@ def LRL(alpha, beta, d, allow_backwards_on_circle=False):
     if allow_backwards_on_circle:
         if t > pi:
             t = t - 2*pi
-            mode[0] = "r"
+            mode[0] = "l"
         if q > pi:
             q = q - 2*pi
             mode[2] = "l"
@@ -223,7 +225,7 @@ def dubins_path_planning_from_origin(ex, ey, eyaw, c, allow_backwards_on_circle=
             bt, bp, bq, bmode = t, p, q, mode
             bcost = cost
 
-        # plot all paths
+        # plot all paths (only correct if start pose is origin)
         px, py, pyaw = generate_course([t, p, q], mode, c)
         plt.plot(px, py, label="".join(mode))
 
@@ -233,7 +235,7 @@ def dubins_path_planning_from_origin(ex, ey, eyaw, c, allow_backwards_on_circle=
     return px, py, pyaw, bmode, bcost
 
 
-def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c, dubins_path_planning=False):
+def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c, allow_backwards_on_circle=False):
     """
     Dubins path plannner
 
@@ -264,7 +266,7 @@ def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c, dubins_path_planning=Fal
     # print(lex,ley,math.degrees(leyaw))
 
     lpx, lpy, lpyaw, mode, clen = dubins_path_planning_from_origin(
-        lex, ley, leyaw, c, dubins_path_planning)
+        lex, ley, leyaw, c, allow_backwards_on_circle)
 
     px = [math.cos(-syaw) * x + math.sin(-syaw) *
           y + sx for x, y in zip(lpx, lpy)]
@@ -284,19 +286,20 @@ def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c, dubins_path_planning=Fal
 
 
 def generate_course(length, mode, c):
+    px=[0.0]
+    py=[0.0]
+    pyaw=[0.0]
+    
     # length = [t, p, q], mode = ["r","S","l"]
-    px = [0.0]
-    py = [0.0]
-    pyaw = [0.0]
     
     for m, l in zip(mode, length):
         pd = 0.0
         if m is "S":
             # straight plotting resolution
-            d = 1.0 / c
+            d = 1.0 / c /10.0
         else:  # turning couse
             # radial plotting resolution
-            d = radians(1.0)
+            d = radians(3.0)
         
         while pd < abs(l - d*sign(l)):
             # print(pd, l)
@@ -376,9 +379,9 @@ if __name__ == '__main__':
     start_y = 0.0  # [m]
     start_yaw = math.radians(0.0)  # [rad]
 
-    end_x = -1.0  # [m]
-    end_y = 1.5  # [m]
-    end_yaw = math.radians(90.0)  # [rad]
+    end_x = 0.0  # [m]
+    end_y = 0.1  # [m]
+    end_yaw = math.radians(0.0)  # [rad]
 
     curvature = 0.25
 
@@ -391,8 +394,8 @@ if __name__ == '__main__':
     plt.plot(px, py, label="final course " + "".join(mode))
 
     # plotting
-    plot_arrow(start_x, start_y, start_yaw)
-    plot_arrow(end_x, end_y, end_yaw)
+    plot_arrow(start_x, start_y, start_yaw, 0.1, 0.06, fc="r", ec="r")
+    plot_arrow(end_x, end_y, end_yaw, 0.1, 0.06, fc="g", ec="g")
 
 #    for (ix, iy, iyaw) in zip(px, py, pyaw):
 #        plot_arrow(ix, iy, iyaw, fc="b")
