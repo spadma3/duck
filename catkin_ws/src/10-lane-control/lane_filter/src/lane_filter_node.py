@@ -24,7 +24,6 @@ class LaneFilterNode(object):
         # Publishers
         self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
-        self.pub_ml_img = rospy.Publisher("~ml_img",Image,queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
 
@@ -61,10 +60,14 @@ class LaneFilterNode(object):
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
         print "d_max = ", d_max
-        # print "phi_max = ", phi_max
+        print "phi_max = ", phi_max
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
 
+        #if (d_max[1] - d_max[0] > 0.1 and phi_max[1] - phi_max[0] < -0.03):
+        #    print "I see a left curve"
+        #else:
+        #    print "I don't know where I am"
         
         # build lane pose message to send
         lanePose = LanePose()
@@ -88,12 +91,6 @@ class LaneFilterNode(object):
         in_lane_msg.data = in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
-    def getDistributionImage(self,mat,stamp):
-        bridge = CvBridge()
-        img = bridge.cv2_to_imgmsg((255*mat).astype('uint8'), "mono8")
-        img.header.stamp = stamp
-        return img
-        
     def updateVelocity(self,twist_msg):
         self.velocity = twist_msg
 
