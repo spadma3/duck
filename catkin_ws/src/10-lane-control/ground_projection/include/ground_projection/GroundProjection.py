@@ -33,7 +33,7 @@ class GroundProjection():
     def initialize_pinhole_camera_model(self,camera_info):
         self.ci_= camera_info
         self.pcm_.fromCameraInfo(camera_info)
-        print("pinhole camera model initialized")
+        logger.info("Initialized pinhole camera model")
 
     def vector2pixel(self, vec):
         pixel = Pixel()
@@ -91,6 +91,7 @@ class GroundProjection():
         else:
             pixel.u = image_point[0]
             pixel.v = image_point[1]
+        return pixel
 
     def rectify(self, cv_image_raw):
         '''Undistort image'''

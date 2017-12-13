@@ -1,6 +1,6 @@
 import cv2
 
-from duckietown_msgs.msg import (Segment)  # @UnresolvedImport
+from duckietown_msgs.msg import Segment  # @UnresolvedImport
 import numpy as np
 
 
@@ -16,7 +16,8 @@ def vs_fancy_display(image_cv, segment_list):
     """
     colors = {Segment.WHITE: BGR_WHITE,
               Segment.RED: BGR_RED,
-              Segment.YELLOW: BGR_YELLOW}
+              Segment.YELLOW: BGR_YELLOW,
+              3: BGR_GREEN}
     
     ground = np.copy(image_cv)
     shape = ground.shape[:2]
