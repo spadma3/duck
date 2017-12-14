@@ -12,7 +12,7 @@ License MIT
 """
 
 # global variables
-plot_all_dubins_pathes = True # only valid if start is origin
+plot_all_dubins_pathes = False # only valid if start is origin
 
 
 import math
@@ -125,7 +125,7 @@ def RSL(alpha, beta, d, allow_backwards_on_circle=False):
     ca = cos(alpha)
     cb = cos(beta)
     c_ab = cos(alpha - beta)
-    
+
     p_squared = (d * d) - 2 + (2 * c_ab) - (2 * d * (sa + sb))
     mode = ["R", "S", "L"]
     if p_squared < 0:
@@ -203,7 +203,7 @@ def LRL(alpha, beta, d, allow_backwards_on_circle=False):
 
 
 def dubins_path_planning_from_origin(ex, ey, eyaw, c, allow_backwards_on_circle=False):
-    
+
     # nomalize
     dx = ex
     dy = ey
@@ -224,7 +224,7 @@ def dubins_path_planning_from_origin(ex, ey, eyaw, c, allow_backwards_on_circle=
     for planner in planners:
         t, p, q, mode = planner(alpha, beta, d, allow_backwards_on_circle)
         if t is None:
-            print("".join(mode) + " cannot generate path")
+            # print("".join(mode) + " cannot generate path")
             continue
 
         cost = (abs(t) + abs(p) + abs(q)) # cost is either normalized distance or angle in rad
@@ -270,7 +270,7 @@ def dubins_path_planning(sx, sy, syaw, ex, ey, eyaw, c, allow_backwards_on_circl
     lex = math.cos(syaw) * ex + math.sin(syaw) * ey
     ley = - math.sin(syaw) * ex + math.cos(syaw) * ey
     leyaw = eyaw - syaw
-    
+
     # print(lex,ley,math.degrees(leyaw))
 
     lpx, lpy, lpyaw, mode, clen = dubins_path_planning_from_origin(
@@ -297,9 +297,9 @@ def generate_course(length, mode, c):
     px=[0.0]
     py=[0.0]
     pyaw=[0.0]
-    
+
     # length = [t, p, q], mode = ["r","S","l"]
-    
+
     for m, l in zip(mode, length):
         pd = 0.0
         if m is "S":
@@ -308,7 +308,7 @@ def generate_course(length, mode, c):
         else:  # turning couse
             # radial plotting resolution
             d = radians(1.0)
-        
+
         while pd < abs(l - d*sign(l)):
             # print(pd, l)
             if m is "L":  # left turn forward
@@ -378,8 +378,8 @@ def plot_arrow(x, y, yaw, length=0.1, width=0.06, fc="k", ec="k"):
 
 
 if __name__ == '__main__':
-    
-    
+
+
     print("Dubins path planner sample start!!")
     import matplotlib.pyplot as plt
 
@@ -393,11 +393,10 @@ if __name__ == '__main__':
 
     curvature = 0.25
 
-    allow_backwards_on_circle = True
+    allow_backwards_on_circle = False
 
     px, py, pyaw, mode, clen = dubins_path_planning(start_x, start_y, start_yaw,
-                                                    end_x, end_y, end_yaw, curvature,
-                                                    allow_backwards_on_circle)
+                                                    end_x, end_y, end_yaw, curvature, allow_backwards_on_circle)
 
     plt.plot(px, py, label="final course " + "".join(mode))
 
