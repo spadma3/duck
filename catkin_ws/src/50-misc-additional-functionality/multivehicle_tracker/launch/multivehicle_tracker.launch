@@ -1,0 +1,17 @@
+<launch>
+    <arg name="veh"  doc="Name of vehicle. ex: megaman"/>
+    <arg name="pkg_name" value="multivehicle_tracker"/>
+    <arg name="node_name" default="multivehicle_tracker_node"/>
+    <arg name="local" default="1"/>
+    <arg name="debug" default="false"/>
+
+    <group ns="$(arg veh)">
+        <remap from="$(arg node_name)/object_detections" to="object_detection_node/detections"/>
+        <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
+            <rosparam command="load" file="$(eval find(pkg_name) + '/default.yaml')"/>
+            <param name="vehicle_name" value="$(arg veh)"/>
+        </node>
+    </group>
+</launch>
+
+<!--launch-prefix="xterm -e python -m pdb"-->
