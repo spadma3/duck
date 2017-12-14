@@ -33,7 +33,7 @@ class LEDPatternNode:
     def _list_pattern_service_callback(self, req):
         pattern_names = DuckietownLights.patterns.keys()
         rospy.loginfo("Returning all available patterns: %s", pattern_names)
-        return pattern_names
+        return {'patterns': pattern_names}
 
     def play_pattern(self, pattern_name, duration=None):
         """
