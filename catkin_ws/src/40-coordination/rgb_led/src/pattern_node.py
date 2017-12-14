@@ -2,6 +2,7 @@
 import rospy
 from rgb_led import RGB_LED
 from rgb_led.srv import PlayLEDPattern
+from rgb_led.duckietown_lights import DuckietownLights
 
 
 class LEDPatternNode:
@@ -22,25 +23,29 @@ class LEDPatternNode:
 
         self._update_timer = None
 
-        self._rgb = RGB_LED()
+        self._rgb_led = RGB_LED()
 
     def _play_pattern_service_callback(self, req):
         rospy.loginfo("Playing LED Pattern %s for %f seconds", req.pattern_name, req.duration)
         self.play_pattern(req.pattern_name, req.duration)
-
-        self._rgb.setRGB(2, [1, 0, 0])
-
         return []
 
-    def play_pattern(self, pattern_name, duration):
+    def play_pattern(self, pattern_name, duration=None):
         """
         Play the pattern with the given time for the given duration.
+        If duration is None, then the duration is extracted from the pattern.
         """
 
         # TODO: Check that the given pattern actually exists.
+        if pattern_name not in DuckietownLights.patterns:
+            rospy.logwarn("Tried to play pattern %s. But no pattern with that name was found", pattern_name)
+            return
 
-        self._current_pattern = pattern_name
-        self._current_duration = duration
+        self._current_pattern = DuckietownLights.patterns[pattern_name]
+        if duration is not None:
+            self._current_duration = duration
+        else:
+            self._current_duration = self._current_pattern.get_duration()
         self._current_pattern_start_time = rospy.get_rostime()
 
         # Start the timer that updates the LEDS.
@@ -58,11 +63,21 @@ class LEDPatternNode:
             self._current_duration = 0.0
             self._current_pattern_start_time = 0.0
             self._update_timer.shutdown()
-            # TODO: Turn off all LEDs
+
+            # Turn off all LEDs
+            for led in LED.DUCKIEBOT_LEDS:
+                self._rgb_led.setRGB(led, COLORS.OFF)
+
             rospy.loginfo("Finished playing pattern on LEDs")
             return
 
-        # TODO: Perform the actual LED update
+        # Perform the actual LED update
+        current_configuration = self._current_pattern.get_configuration(elapsedTime)
+        for led in LED.DUCKIEBOT_LEDS:
+            if led in current_configuration:
+                self._rgb_led.setRGB(led, COLORS.OFF)
+            else:
+                self._rgb_led.setRGB(led, current_configuration[led])
 
 
 if __name__ == '__main__':
