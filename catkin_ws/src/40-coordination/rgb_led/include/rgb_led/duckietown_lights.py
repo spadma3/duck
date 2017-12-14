@@ -3,6 +3,7 @@ import time
 from rgb_led import RGB_LED, LED, COLORS
 
 from patterns.blinking import Blinking
+from patterns.blinking1 import Blinking1
 
 
 class DuckietownLights():
@@ -26,7 +27,9 @@ class DuckietownLights():
         """
         DuckietownLights.patterns[pattern.get_identifier()] = pattern
 
+
 DuckietownLights.add_pattern(Blinking())
+DuckietownLights.add_pattern(Blinking1())
 
 
 def add_pattern(name, pattern):
@@ -173,6 +176,7 @@ def create_patterns():
         for freq in frequencies:
             comb = 'all-%s-%1.1f' % (color, freq)
             add_pattern(comb, blink_all(rgb, 1.0 / freq))
+
 
 create_patterns()
 
