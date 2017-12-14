@@ -113,7 +113,9 @@ DuckietownLights.add_pattern(Blinking1())
 DuckietownLights.add_pattern(Blinking2())
 DuckietownLights.add_pattern(Blinking3())
 DuckietownLights.add_pattern(Fancy1())
-create_color_patterns()
+
+# Enable this to create all kinds of single color blinking patterns.
+#create_color_patterns()
 
 
 def cycle_LEDs_named(sequence_name):
