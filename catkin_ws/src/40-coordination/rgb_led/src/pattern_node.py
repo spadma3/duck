@@ -8,7 +8,7 @@ from rgb_led.duckietown_lights import DuckietownLights
 class LEDPatternNode:
 
     # Number of times the LEDs get updated per second
-    LED_update_rate = 20
+    LED_update_rate = 40
 
     def __init__(self):
         self.node = rospy.init_node('LEDPatternNode')
