@@ -14,6 +14,7 @@ class State:
     AT_STOP_CLEARING = 'AT_STOP_CLEARING'
     #AT_STOP_CLEAR = 'AT_STOP_CLEAR'
     RESERVING = 'RESERVING'
+    SOLVING_UNKNOWN = 'SOLVING_UNKNOWN'
     CONFLICT = 'CONFLICT'
     GO = 'GO'
     TL_SENSING = 'TL_SENSING'
@@ -25,6 +26,7 @@ class VehicleCoordinator():
     T_MAX_RANDOM = 4.0 # seconds
     T_CROSS = 6.0  # seconds
     T_SENSE = 2.0      # seconds
+    T_UNKNOWN = 1.0 # seconds
 
 # We communicate that the coordination mode has started
     def __init__(self):
@@ -87,11 +89,12 @@ class VehicleCoordinator():
 
 #############################################################################################################
     def set_state(self, state):
-        self.state = state
-        self.last_state_transition = time()
+        if self.state != state:
+            self.last_state_transition = time()
+            self.state = state
 
         if self.state == State.AT_STOP_CLEARING:
-   	    self.reset_signals_detection()
+   	   # self.reset_signals_detection()
            # self.roof_light = CoordinationSignalETHZ17.SIGNAL_A
 
 	   #after setting everything to unknown, we turn on the light
