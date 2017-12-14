@@ -26,7 +26,6 @@ class LEDPatternNode:
         self._rgb_led = RGB_LED()
 
     def _play_pattern_service_callback(self, req):
-        rospy.loginfo("Playing LED Pattern %s for %f seconds", req.pattern_name, req.duration)
         self.play_pattern(req.pattern_name, req.duration)
         return []
 
@@ -59,6 +58,8 @@ class LEDPatternNode:
             self._update_timer = None
         update_duration = 1 / float(LEDPatternNode.LED_update_rate)
         self._update_timer = rospy.Timer(rospy.Duration.from_sec(update_duration), self._update_leds)
+
+        rospy.loginfo("Playing LED Pattern %s for %f seconds", pattern_name, self._current_duration)
 
     def _update_leds(self, event):
         rospy.logdebug("Updating LEDs")
