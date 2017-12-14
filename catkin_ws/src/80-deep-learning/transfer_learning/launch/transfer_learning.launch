@@ -25,7 +25,9 @@
     <arg name="rect" value="$(arg rect)"/>
   </include>
 
-  <include file="$(find pi_camera)/launch/image_resize_node.launch">
+
+<include file="$(find pi_camera)/launch/image_resize_node.launch">
+    <remap from="img_resize_node/image_rect" to="
     <arg name="veh" value="$(arg veh)"/>
     <arg name="local" value="$(arg local)"/>
   </include>

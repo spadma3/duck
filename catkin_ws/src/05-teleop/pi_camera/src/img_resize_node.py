@@ -2,7 +2,7 @@
 import rospy
 import cv2
 import numpy as np
-from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import Image
 from duckietown_utils.image_rescaling import d8_image_resize_no_interpolation
 
 
