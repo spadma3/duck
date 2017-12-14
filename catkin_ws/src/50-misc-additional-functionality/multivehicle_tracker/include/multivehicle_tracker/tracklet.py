@@ -17,6 +17,7 @@ class Tracklet:
 
     def get_tracklet_info(self):
         return {
+            'id' : self.id,
             'x'  : self.estimator.mu[0],
             'y'  : self.estimator.mu[2],
             'v'  : sqrt(self.estimator.mu[1] ** 2 + self.estimator.mu[3] ** 2),

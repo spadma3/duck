@@ -3,7 +3,7 @@
 import numpy as np
 import rospy
 from object_detection.msg import ObjectDetectionList
-from multivehicle_tracker.msg import Tracklet
+from multivehicle_tracker.msg import Tracklet, TrackletList
 from multivehicle_tracker import NaiveMultitargetTracker
 from duckietown_utils import load_homography
 
@@ -25,13 +25,13 @@ class MultiVehicleTrackerNode:
         self.sub_detections = rospy.Subscriber("~object_detections", ObjectDetectionList, self.on_detections_received, queue_size=1)
 
         # Publishers
-        self.pub_tracklet = rospy.Publisher("~tracking", Tracklet, queue_size=1)
+        self.pub_tracklet = rospy.Publisher("~tracking", TrackletList, queue_size=1)
 
         # timer for updating the params
         self.continuous_prediction = rospy.Timer(rospy.Duration.from_sec(0.1), self.on_delta_t)
 
     def on_delta_t(self, event):
-        self.multivehicle_tracker.time_elapsed(timestamp=event.current_real)
+        self.multivehicle_tracker.time_elapsed(timestamp=rospy.get_time())
 
     def pixel2ground(self, x, y):
         u, v, w = np.dot(self.groundplane_homography, (x, y, 1))
@@ -57,14 +57,20 @@ class MultiVehicleTrackerNode:
             position = self.closest_groundplane_point(bot_detection)
             self.multivehicle_tracker.add_detection(position[0], position[1], bot_detection.score, current_time)
 
+        tracklet_list_msg = TrackletList()
         for tracklet_info in self.multivehicle_tracker.get_tracklets_info():
-            tracklet_msg = Tracklet()
-            tracklet_msg.x = tracklet_info['x']
-            tracklet_msg.y = tracklet_info['y']
-            tracklet_msg.heading = tracklet_info['phi']
-            tracklet_msg.velocity = tracklet_info['v']
-            tracklet_msg.status = Tracklet.STATUS_TRACKING  # TODO: grab it
-            self.pub_tracklet.publish(tracklet_msg)
+            tracklet_list_msg.tracklets.append(
+                Tracklet(
+                    id=str(tracklet_info['id']),
+                    status=Tracklet.STATUS_TRACKING,  # TODO: grab it
+                    x=tracklet_info['x'],
+                    y=tracklet_info['y'],
+                    heading=tracklet_info['phi'],
+                    velocity=tracklet_info['v']
+                )
+            )
+
+        self.pub_tracklet.publish(tracklet_list_msg)
 
     def onShutdown(self):
         rospy.loginfo("[MultiVehicleTracker] Shutdown.")
