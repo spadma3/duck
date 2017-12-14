@@ -6,7 +6,8 @@ class GoingToCustomer(SequencePattern):
         return "fleet_planning/going_to_customer"
 
     def get_sequence(self):
-        color = COLORS.YELLOW
+        # low intensity yellow
+        color = [0.3, 0.3, 0]
         return [
             (0.1, {LED.FRONT_RIGHT: color}),
             (0.1, {LED.TOP: color}),

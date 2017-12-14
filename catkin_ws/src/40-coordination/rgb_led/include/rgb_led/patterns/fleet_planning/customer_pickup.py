@@ -6,7 +6,8 @@ class CustomerPickUp(SequencePattern):
         return "fleet_planning/customer_pickup"
 
     def get_sequence(self):
-        color = COLORS.BLUE
+        # low intensity blue
+        color = [0, 0, 0.3]
         return [
             (0.1, {LED.FRONT_RIGHT: color}),
             (0.1, {LED.TOP: color}),

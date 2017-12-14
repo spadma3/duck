@@ -6,7 +6,8 @@ class CustomerDropOff(SequencePattern):
         return "fleet_planning/customer_dropoff"
 
     def get_sequence(self):
-        color = COLORS.GREEN
+        # Low intensity green
+        color = [0, 0.3, 0]
         return [
             (0.1, {LED.FRONT_RIGHT: color}),
             (0.1, {LED.TOP: color}),
