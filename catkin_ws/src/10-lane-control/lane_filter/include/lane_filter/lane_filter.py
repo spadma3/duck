@@ -4,7 +4,7 @@ import numpy as np
 from .lane_filter_interface import LaneFilterInterface
 from scipy.stats import multivariate_normal
 from scipy.ndimage.filters import gaussian_filter
-from math import floor, pi, sqrt
+from math import floor, pi, sqrt, isnan
 import copy
 
 
@@ -60,7 +60,13 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.curvature = 0.0
 
         self.phi_avg = 0.0
-        self.avg_factor = 1.0/1.0
+        self.d_avg = 0.0
+        self.avg_factor = 1.0/3.0
+
+        self.curvemin_x = 0.15
+        # visualization
+        self.curve_seg_list = np.array([], dtype=object)
+
 
         self.initialize()
 
@@ -107,8 +113,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         measurement_likelihood = np.zeros(self.d.shape)
 
         # define two empty matrices
-        curvature_map_d = np.empty([2*self.curverange_x/self.curveres_x,2*self.curverange_y/self.curveres_y],dtype=object)
-        curvature_map_phi = curvature_map_d
+        curvature_map_d = np.empty([2*self.curverange_x/self.curveres_x,2*self.curverange_y/self.curveres_y],dtype=np.object)
+        curvature_map_d.fill(np.nan)
+        curvature_map_phi = np.empty([2*self.curverange_x/self.curveres_x,2*self.curverange_y/self.curveres_y],dtype=np.object)
+        curvature_map_d.fill(np.nan)
+
+        self.curve_seg_list = np.array([], dtype=object)
 
         for segment in segments:
             # we don't care about RED ones for now
@@ -134,25 +144,27 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             # Curvature detection #
 
             # only use segments inside range of curvature interest
-            if x_avg > self.curverange_x:
+            if x_avg > self.curverange_x or x_avg < self.curvemin_x:
                 continue
             if abs(y_avg) > self.curverange_y:
                 continue
-            if segment.color != segment.WHITE:
-                continue
+            #if segment.color != segment.WHITE:
+            #    continue
+
+            self.curve_seg_list = np.append(self.curve_seg_list, segment)
             # find indices for curvature map matrices
             c_i = int(floor(x_avg/self.curveres_x))
             c_j = curvature_map_d.shape[1]/2 + int(floor(y_avg/self.curveres_y))
 
 
             # add each segment in the range to our curvature map matrices
-            if curvature_map_d[c_i, c_j] == None:
-                curvature_map_d[c_i,c_j] = d_i
-                curvature_map_phi[c_i,c_j] = phi_i
+            if not type(curvature_map_d[c_i, c_j]) is np.ndarray:
+                curvature_map_d[c_i,c_j] = np.array([d_i])
+                curvature_map_phi[c_i,c_j] = np.array([phi_i])
             else:
+
                 curvature_map_d[c_i,c_j] = np.append(curvature_map_d[c_i,c_j], d_i)
                 curvature_map_phi[c_i,c_j] = np.append(curvature_map_phi[c_i,c_j], phi_i)
-
 
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
@@ -160,14 +172,13 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         # average each element in the map matrices such that no matter how near
         # a point was to our camera, that point is weighted equally to any other
         # point in our observable field
+
         for i in range(curvature_map_d.shape[0]):
             for j in range(curvature_map_d.shape[1]):
-                if curvature_map_d[i,j] == None:
-                    curvature_map_d[i,j] = np.nan
-                    curvature_map_phi[i,j] = np.nan
-                else:
-                    curvature_map_d[i,j] = np.average(curvature_map_d[i,j])
-                    curvature_map_phi[i,j] = np.average(curvature_map_phi[i,j])
+                if type(curvature_map_d[i,j]) is np.ndarray:
+                    curvature_map_d[i,j] = np.nanmean(curvature_map_d[i,j])
+                if type(curvature_map_phi[i,j]) is np.ndarray:
+                    curvature_map_phi[i,j] = np.nanmean(curvature_map_phi[i,j])
 
         # change type from object (since we used arrays in our matrix) to float
         curvature_map_d = curvature_map_d.astype(float)
@@ -175,7 +186,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         # calculate the average angle of all segments
         self.phi_avg = np.nanmean(curvature_map_phi)
+        self.d_avg = np.nanmean(curvature_map_d)
 
+        if isnan(self.phi_avg):
+            self.phi_avg = 0.0
+        if isnan(self.d_avg):
+            self.d_avg = 0.0
 
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
         return measurement_likelihood
@@ -194,11 +210,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def estimateCurvature(self, d_max, phi_max):
 
         # filter the curvature such that it doesn't oszillate that hard
-        self.curvature = (1.0-self.avg_factor)*self.curvature + self.avg_factor*(phi_max - self.phi_avg)
+        if self.d_avg != 0.0:
+            #self.curvature = (1.0-self.avg_factor)*self.curvature + self.avg_factor*(d_max - self.d_avg)
+            self.curvature = (1.0-self.avg_factor)*self.curvature + self.avg_factor*(phi_max - self.phi_avg)
 
         self.curvature = round(self.curvature,3)
         print(self.curvature)
-
         # check if curve or straight
         if abs(self.curvature) < self.curve_phi_thresh:
             self.curvetype = 0

@@ -28,6 +28,7 @@ class LaneFilterNode(object):
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
         self.pub_curvature  = rospy.Publisher("~curvature", LaneCurvature, queue_size=1)
+        self.pub_curve_seg  = rospy.Publisher("~curve_segs", SegmentList, queue_size=1)
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -92,6 +93,13 @@ class LaneFilterNode(object):
         lane_curve_msg.curve_type = self.filter.curvetype
         lane_curve_msg.curvature = self.filter.curvature
         self.pub_curvature.publish(lane_curve_msg)
+
+        # publish curvature segments
+        lane_curve_seg_msg = SegmentList()
+        lane_curve_seg_msg.header.stamp = segment_list_msg.header.stamp
+        lane_curve_seg_msg.segments = self.filter.curve_seg_list
+        self.pub_curve_seg.publish(lane_curve_seg_msg)
+
 
     def getDistributionImage(self,mat,stamp):
         bridge = CvBridge()
