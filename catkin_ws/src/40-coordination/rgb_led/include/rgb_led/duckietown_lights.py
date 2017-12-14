@@ -32,10 +32,6 @@ DuckietownLights.add_pattern(Blinking())
 DuckietownLights.add_pattern(Blinking1())
 
 
-def add_pattern(name, pattern):
-    DuckietownLights.patterns[name] = pattern
-
-
 def create_patterns():
     GREEN2 = [0, 0.3, 0]
     WHITE2 = [0.8, 0.8, 0.8]
