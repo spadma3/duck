@@ -12,7 +12,7 @@ class Fancy2(Pattern):
         self._speed = speed
 
     def get_identifier(self):
-        return "fancy1"
+        return "fancy2"
 
     def get_configuration(self, time):
         slow = 0.00005 * time
