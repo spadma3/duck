@@ -46,6 +46,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
 
+
         # Parameters for curvature detection
         # where points in [0, curverange_x] and [-curverange_y, curverange_y] are considered
         # and points on a mesh with resolution of curveres_x, curveres_y are averaged
@@ -56,8 +57,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         # 0 stands for straight, -1 for left and 1 for right
         self.curvetype = 0
+        self.curvature = 0.0
 
-        self.curvature = 0
+        self.phi_avg = 0.0
+        self.avg_factor = 1.0/1.0
 
         self.initialize()
 
@@ -127,12 +130,16 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             j = int(floor((phi_i - self.phi_min)/self.delta_phi))
             measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1
 
+
+            # Curvature detection #
+
             # only use segments inside range of curvature interest
             if x_avg > self.curverange_x:
                 continue
             if abs(y_avg) > self.curverange_y:
                 continue
-
+            if segment.color != segment.WHITE:
+                continue
             # find indices for curvature map matrices
             c_i = int(floor(x_avg/self.curveres_x))
             c_j = curvature_map_d.shape[1]/2 + int(floor(y_avg/self.curveres_y))
@@ -147,14 +154,17 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 curvature_map_phi[c_i,c_j] = np.append(curvature_map_phi[c_i,c_j], phi_i)
 
 
+        if np.linalg.norm(measurement_likelihood) == 0:
+            return None
+
         # average each element in the map matrices such that no matter how near
         # a point was to our camera, that point is weighted equally to any other
         # point in our observable field
         for i in range(curvature_map_d.shape[0]):
             for j in range(curvature_map_d.shape[1]):
                 if curvature_map_d[i,j] == None:
-                    curvature_map_d[i,j] = 0.0
-                    curvature_map_phi[i,j] = 0.0
+                    curvature_map_d[i,j] = np.nan
+                    curvature_map_phi[i,j] = np.nan
                 else:
                     curvature_map_d[i,j] = np.average(curvature_map_d[i,j])
                     curvature_map_phi[i,j] = np.average(curvature_map_phi[i,j])
@@ -163,20 +173,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         curvature_map_d = curvature_map_d.astype(float)
         curvature_map_phi = curvature_map_phi.astype(float)
 
-        phi_avg = np.average(curvature_map_phi)
-
-        # finally, determine curve type
-        if abs(phi_avg) < self.curve_phi_thresh:
-            self.curvetype = 0
-        else:
-            self.curvetype = np.sign(phi_avg)
-
-        self.curvature = phi_avg
+        # calculate the average angle of all segments
+        self.phi_avg = np.nanmean(curvature_map_phi)
 
 
-
-        if np.linalg.norm(measurement_likelihood) == 0:
-            return None
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
         return measurement_likelihood
 
@@ -185,7 +185,26 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         d_max = self.d_min + maxids[0]*self.delta_d
         phi_max = self.phi_min + maxids[1]*self.delta_phi
 
+        # update the curvature estimation variable
+        self.estimateCurvature(d_max, phi_max)
+
         return [d_max,phi_max]
+
+
+    def estimateCurvature(self, d_max, phi_max):
+
+        # filter the curvature such that it doesn't oszillate that hard
+        self.curvature = (1.0-self.avg_factor)*self.curvature + self.avg_factor*(phi_max - self.phi_avg)
+
+        self.curvature = round(self.curvature,3)
+        print(self.curvature)
+
+        # check if curve or straight
+        if abs(self.curvature) < self.curve_phi_thresh:
+            self.curvetype = 0
+        else:
+            self.curvetype = np.sign(self.curvature)
+
 
     def getMax(self):
         return self.belief.max()
