@@ -1,2 +1,5 @@
 Duckietown_ROS_Diagram.pdf
 Duckietown_ROS_Diagram.dot
+backup*
+*.pdf
+*.png
