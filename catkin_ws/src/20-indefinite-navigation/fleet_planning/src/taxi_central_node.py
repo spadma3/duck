@@ -202,6 +202,8 @@ class mapDraw():
     """
     Used to generate the map from a csv file, draw the graph on top 
     of that and draw the icons for each duckiebot.
+    TODO(ben): add a counter of number of icons at each node and make sure
+          to draw overlapping icons next to each other. 
     """
     def __init__(self, duckietown_graph, duckietown_problem):
         print 'mapDraw initializing...'
