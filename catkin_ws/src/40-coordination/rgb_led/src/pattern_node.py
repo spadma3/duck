@@ -54,6 +54,9 @@ class LEDPatternNode:
         self._current_pattern_start_time = rospy.get_rostime()
 
         # Start the timer that updates the LEDS.
+        if self._update_timer is not None:
+            self._update_timer.shutdown()
+            self._update_timer = None
         update_duration = 1 / float(LEDPatternNode.LED_update_rate)
         self._update_timer = rospy.Timer(rospy.Duration.from_sec(update_duration), self._update_leds)
 
@@ -68,6 +71,7 @@ class LEDPatternNode:
             self._current_duration = 0.0
             self._current_pattern_start_time = 0.0
             self._update_timer.shutdown()
+            self._update_timer = None
 
             # Turn off all LEDs
             for led in LED.DUCKIEBOT_LEDS:
@@ -86,11 +90,16 @@ class LEDPatternNode:
             else:
                 self._rgb_led.setRGB(led_port, current_configuration[led])
 
+    def on_shutdown(self):
+        if self._update_timer is not None:
+            self._update_timer.shutdown()
+            self._update_timer = None
 
 
 if __name__ == '__main__':
     rospy.init_node('LEDPatternNode')
     ledPatternNode = LEDPatternNode()
+    rospy.on_shutdown(ledPatternNode.on_shutdown)
 
     # Setup the provided service
     play_pattern_service = rospy.Service(
