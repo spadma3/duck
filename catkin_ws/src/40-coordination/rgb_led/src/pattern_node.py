@@ -30,6 +30,11 @@ class LEDPatternNode:
         self.play_pattern(req.pattern_name, req.duration)
         return []
 
+    def _list_pattern_service_callback(self, req):
+        pattern_names = DuckietownLights.patterns.keys()
+        rospy.loginfo("Returning all available patterns: %s", pattern_names)
+        return pattern_names
+
     def play_pattern(self, pattern_name, duration=None):
         """
         Play the pattern with the given time for the given duration.
@@ -82,6 +87,7 @@ class LEDPatternNode:
                 self._rgb_led.setRGB(led_port, current_configuration[led])
 
 
+
 if __name__ == '__main__':
     rospy.init_node('LEDPatternNode')
     ledPatternNode = LEDPatternNode()
@@ -91,6 +97,11 @@ if __name__ == '__main__':
         'LEDPatternNode/play_pattern',
         PlayLEDPattern,
         ledPatternNode._play_pattern_service_callback
+    )
+    list_pattern_service = rospy.Service(
+        'LEDPatternNode/list_patterns',
+        ListLEDPatterns,
+        ledPatternNode._list_pattern_service_callback
     )
 
     rospy.loginfo("Finished startup of LEDPatternNode")

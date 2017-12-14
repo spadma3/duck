@@ -7,10 +7,23 @@ class SequencePattern(Pattern):
     This class is meant to be subclasses.
     """
 
-    def __init__(self):
+    def __init__(self, sequence=None, identifier=""):
+        """
+        :param sequence: The sequence
+        """
         # The duration of the current sequence. Use get_duration to make sure
         # you get the duration.
         self._duration = None
+
+        if sequence is None:
+            self._sequence = []
+        else:
+            self._sequence = sequence
+
+        self._identifier = identifier
+
+    def get_identifier(self):
+        return self._identifier
 
     def get_sequence(self):
         """
@@ -18,7 +31,7 @@ class SequencePattern(Pattern):
         of that state and a dictionary with the colors for the LEDs.
         This method is meant to be overriden in subclasses.
         """
-        return []
+        return self._sequence
 
     def get_configuration(self, time):
         # Let's first ensure that time is within the duration of the sequence.

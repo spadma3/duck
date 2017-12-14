@@ -3,6 +3,9 @@ from rgb_led import LED, COLORS
 
 
 class Blinking(Pattern):
+    """
+    General class for a blinking pattern with all LEDs with variable color and frequency.
+    """
 
     def __init__(self, color=COLORS.WHITE, duration=2):
         self._color = color
