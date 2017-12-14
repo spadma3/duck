@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 import time
-from rgb_led.duckietown_lights import DuckietownLights
 from rgb_led import RGB_LED, LED
+from math import sin, cos
 
 
 def cycle_LEDs_fancy2(speed=1):
     led = RGB_LED()
-
-    from math import sin, cos
 
     def get_config(t):
         slow = 0.00005*t
@@ -33,7 +31,7 @@ def cycle_LEDs_fancy2(speed=1):
         t = time.time()
         config = get_config(t)
         for name, col in config.items():
-            k = DuckietownLights.name2port[name]
+            k = RGB_LED.PORT_MAPPING[name]
             led.setRGB(k, col)
         time.sleep(0.01)
 
