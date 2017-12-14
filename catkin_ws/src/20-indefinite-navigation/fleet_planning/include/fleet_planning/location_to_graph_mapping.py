@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os
+import os, sys
 import numpy as np
 from generate_duckietown_map import graph_creator
 import tf
@@ -47,13 +47,20 @@ class MappingTile:
 
 
 class IntersectionMapper:
-    mapping_tiles = []
-    max_radius = 1  # in tile lenghts. If the 2d position is within this radius, it will be assign to this intersection. Must be <= 1.
 
-    def __init__(self, graph_creator):
+    def __init__(self, graph_creator, duckietown_graph):
+        self.mapping_tiles = []
+        self.max_radius = 1  # in tile lenghts. If the 2d position is within this radius, it will be assign to this intersection. Must be <= 1.
+        self.duckietown_graph = dict()
         for tile in graph_creator.tile_map:
             if 'way' in tile.type:
                 self.mapping_tiles.append(MappingTile(tile))
+
+        for node_name, node_pos in duckietown_graph.node_positions.iteritems():
+            if (node_name[0:4] == "turn" or  int(node_name) % 2 == 0):
+                continue
+            else:
+                self.duckietown_graph.update({node_name: node_pos})
 
     def get_node_name(self, position_2d_m, rotation_deg):
         """
@@ -68,6 +75,15 @@ class IntersectionMapper:
                 return intersection.node_from_duckiebot_rotation(rotation_deg)
         return None
 
+    def get_closest_node(self, map_position):
+        min_distance = sys.float_info.max
+        closest_node = -1
+        for node_name, node_pos in self.duckietown_graph.iteritems():
+            manhattan_dis = abs(node_pos[0] - map_position[0]) + abs(node_pos[1] - map_position[1])
+            if (manhattan_dis < min_distance):
+                min_distance = manhattan_dis
+                closest_node = node_name
+        return closest_node
 
 if __name__ == '__main__':
     # for testing

@@ -1,7 +1,6 @@
 import graphviz
 import cv2
 
-
 class NodeNotInGraph(Exception):
     def __init__(self, node):
         self.node = node
@@ -73,6 +72,11 @@ class Graph(object):
         if not node in self:
             raise NodeNotInGraph(node)
         return self._edges.get(node, set())        
+
+    def get_node_number(self, node):
+        if not node in self:
+            raise NodeNotInGraph(node)
+        return self.node_label_fn(node)
 
     def draw(self, script_dir, highlight_edges=None, show_weights=None, map_name = 'duckietown', highlight_nodes = None):
         if highlight_nodes:        
