@@ -50,9 +50,6 @@ if __name__ == "__main__":
     rospy.init_node('virtual_duckiebot_node')
     virtual_duckiebot_node = VirtualDuckiebotNode()
 
-    mes = InstructionMessageSerializer.serialize("harpy", 3, 1)
-    for s in mes:
-        rospy.loginfo("%d", s)
     send_location_service = rospy.Service(
         'send_location_information',
         VirtualDuckiebotLocation,
