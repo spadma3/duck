@@ -7,6 +7,7 @@ from patterns.blinking import Blinking
 from patterns.blinking1 import Blinking1
 from patterns.blinking2 import Blinking2
 from patterns.blinking3 import Blinking3
+from patterns.fancy1 import Fancy1
 
 
 class DuckietownLights():
@@ -111,6 +112,7 @@ DuckietownLights.add_pattern(Blinking())
 DuckietownLights.add_pattern(Blinking1())
 DuckietownLights.add_pattern(Blinking2())
 DuckietownLights.add_pattern(Blinking3())
+DuckietownLights.add_pattern(Fancy1())
 create_color_patterns()
 
 
