@@ -157,6 +157,7 @@ class CustomerRequest:
 
 
 class graph_search_server():
+    """ handles A* route planning """
     def __init__(self):
         print 'Graph Search Service Started'
         self.map_name = rospy.get_param('/map_name')
@@ -238,6 +239,9 @@ class mapDraw():
         self.tile_length = mc.tile_length
         self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
 
+        # keep track of how many icons are being drawn at each node
+        self.num_duckiebots_per_node = {node : 0 for node in self.duckietown_graph._nodes}
+
         # image used to store all start, customer and target icons at their positions
         print(self.customer_icon_path)
         self.customer_icon = cv2.resize(cv2.imread(self.customer_icon_path), (30, 30))
@@ -254,18 +258,19 @@ class mapDraw():
         print "graph.node_positions", graph.node_positions
         return graph.node_positions[str(node)]
 
-    def draw_icons(self, map_image, icon_type, location ):
+    def draw_icons(self, map_image, icon_type, location, icon_number):
         """
         Draw start, customer and target icons next to each 
         corresponding graph node along with the respective name 
         of the duckiebot. 
-        Input:
-            - map_image: the base map image onto which to draw the icons
-            - icon_type: string, either customer, start or target
-            - location: where to draw the icon, as a graph node number
+        :param map_image: the base map image onto which to draw the icons
+        :param icon_type: string, either customer, start or target
+        :param location: where to draw the icon, as a graph node number
+        :param icon_number: keeps track of how many icons have already
+                            been drawn at this location; adjust position
+                            accordingly
 
-        Returns:
-            - opencv image with the icons at the correct positions
+        :return opencv image with the icons at the correct positions
         """
         #print "Size of map: ", self.map_image.shape
         print "draw_icons()"
@@ -291,7 +296,7 @@ class mapDraw():
         print "Point received is: ", point
         x_start = point[1]
         x_end = x_start + icon.shape[0]
-        y_start = point[0]  
+        y_start = point[0] + (icon_number - 1) * (icon.shape[1] + 5)  # TODO: check to make sure icons aren't outside of image boundaries
         y_end = y_start + icon.shape[1]
         map_image[x_start:x_end, y_start:y_end, :] = icon
 
@@ -346,11 +351,18 @@ class mapDraw():
         """
         overlay = self.prepImage()
         for name, bot in duckiebots.iteritems():
-            overlay = self.draw_icons(overlay, "start", location = bot._last_known_location)
+            self.num_duckiebots_per_node[str(bot._last_known_location)] += 1
+            print "Node ", bot._last_known_location, " visited ", self.num_duckiebots_per_node[str(bot._last_known_location)], " times."
+            overlay = self.draw_icons(overlay, "start", location = bot._last_known_location, icon_number = self.num_duckiebots_per_node[str(bot._last_known_location)])
             if bot._customer_request:
                 overlay = self.draw_icons(overlay, "customer", location = bot._customer_request.start_location) # TODO(ben): figure out a unambiguous set of icons and assign the correct ones
                 overlay = self.draw_icons(overlay, "target", location = bot._customer_request.target_location) 
 
+        # set num_duckiebots_per_node back to zero
+        for node, num in self.num_duckiebots_per_node.iteritems():
+            self.num_duckiebots_per_node[node] = 0
+            print "Node ", node, " set to zero.", self.num_duckiebots_per_node[node]
+       
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
 class TaxiCentralNode:
