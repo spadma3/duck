@@ -1,0 +1,18 @@
+<launch>
+    <arg name="veh"  doc="Name of vehicle. ex: patito"/>
+    <arg name="pkg_name" value="multivehicle_tracking_visualizer"/>
+    <arg name="node_name" default="multivehicle_tracking_visualizer_node"/>
+    <arg name="local" default="1"/>
+    <arg name="debug" default="false"/>
+
+    <group ns="$(arg veh)">
+        <remap from="$(arg node_name)/tracking" to="multivehicle_tracker_node/tracking"/>
+        <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
+            <rosparam command="load" file="$(eval find(pkg_name) + '/default.yaml')"/>
+            <param name="vehicle_name" value="$(arg veh)"/>
+        </node>
+    </group>
+    <node pkg="tf" type="static_transform_publisher" name="$(arg veh)_to_map" args = "0 0 0 0 0 0 1 map $(arg veh) 10" />
+</launch>
+
+<!--launch-prefix="xterm -e python -m pdb"-->
