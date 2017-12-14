@@ -165,13 +165,14 @@ class GraphSlam
     float cury;
     float curtheta;
     float imutheta;
+    float oldimutheta;
     double lastTimeSecs;
 
 public:
     GraphSlam()
 	: nh_(), measurementNoise(noiseModel::Diagonal::Sigmas((Vector(2) << 0.05, 0.05))),
 	  odomNoise(noiseModel::Diagonal::Sigmas((Vector(3) << 0.05, 0.01, 0.5))),
-	  curposeindex(0), curx(0.0f), cury(0.0f), curtheta(0.0f), imutheta(0.0f)
+	  curposeindex(0), curx(0.0f), cury(0.0f), curtheta(0.0f), imutheta(0.0f), oldimutheta(0.0f)
 	{
 	    nh_.getParam("duckiebot_visualizer/veh_name", veh_name);
 
@@ -188,11 +189,11 @@ public:
 
 	    // Subscribers
 	    apriltagsSub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
-	    //carcmdSub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
-	    odomSub = nh_.subscribe("/mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
+	    carcmdSub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
+	    //odomSub = nh_.subscribe("/mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
 
-//  ros::Subscriber imusub = nh_.subscribe("/imu/data_raw", 1000, imucallback);
-//  ros::Timer imutimer = nh_.createTimer(ros::Duration(1), printcallback);
+	    ros::Subscriber imusub = nh_.subscribe("/imu/data_raw", 1000, &GraphSlam::imucallback, this);
+	    ros::Timer imutimer = nh_.createTimer(ros::Duration(1), &GraphSlam::printcallback, this);
 
 //	    testOptimizer();
 
@@ -228,7 +229,9 @@ public:
 	{
 	    // imu publishes every 8 ms. (125 hz)
 	    double delta_t = .008;
-	    imutheta = fmod(imutheta + msg->angular_velocity.z * delta_t, 2 * M_PI);
+	    //imutheta = fmod(imutheta + msg->angular_velocity.z *
+	    //delta_t, 2 * M_PI);
+	    imutheta = imutheta + msg->angular_velocity.z * delta_t;
 	}
 
     void printcallback(const ros::TimerEvent&)
@@ -246,7 +249,9 @@ public:
 
 	    // maybe msg.omega needs to be switched to degrees/radians?
 	    double delta_d = delta_t * msg->v;
-	    double delta_theta = delta_t * msg->omega;
+	    // double delta_theta = delta_t * msg->omega;
+	    double delta_theta = imutheta - oldimutheta;
+	    oldimutheta = imutheta;
 	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
 
 	    curx += cos(curtheta) * delta_d;
