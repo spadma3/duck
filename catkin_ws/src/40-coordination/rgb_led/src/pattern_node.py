@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import rospy
 from rgb_led import RGB_LED, LED, COLORS
-from rgb_led.srv import PlayLEDPattern
+from rgb_led.srv import PlayLEDPattern, ListLEDPatterns
 from rgb_led.duckietown_lights import DuckietownLights
 
 
