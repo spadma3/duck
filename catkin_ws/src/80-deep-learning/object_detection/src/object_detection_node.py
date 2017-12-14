@@ -16,7 +16,7 @@ class ObjectDetectionNode:
         # Detector Configuration
         rospack = rospkg.RosPack()
         self.configuration = rospy.get_param('~object_detector')  # TODO: On-the-fly reconfiguration
-        # TODO: Fix after a place is established
+        # TODO: Fix after a place for inference models is established
         self.object_detector = ObjectDetector(
             path.join(rospack.get_path('object_detection'), self.configuration['inference_graph_path']),
             float(self.configuration['score_threshold']),

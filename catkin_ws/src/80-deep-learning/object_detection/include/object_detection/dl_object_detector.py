@@ -35,6 +35,7 @@ class ObjectDetector:
             self.load_inference_graph(inference_graph_path)
             self.inference_graph.as_default()
             self.tf_session = tf.InteractiveSession(graph=self.inference_graph)
+            # TODO: add as part of the detector configuration
             self.image_tensor = self.inference_graph.get_tensor_by_name('image_tensor:0')
             self.detection_boxes = self.inference_graph.get_tensor_by_name('detection_boxes:0')
             self.detection_scores = self.inference_graph.get_tensor_by_name('detection_scores:0')
