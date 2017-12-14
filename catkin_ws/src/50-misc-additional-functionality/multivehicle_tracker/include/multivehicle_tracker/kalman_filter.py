@@ -4,7 +4,7 @@ import numpy as np
 class KalmanFilter:
     def __init__(self, x, y, e):
         self.mu = [x, 0.0, y, 0.0]
-        self.sigma = np.diag([e, 1, e, 1])
+        self.sigma = np.diag([e, 0.15, e, 0.15])
         self.Q = np.diag([e, e])
         self.H = np.array([[1, 0, 0, 0],
                           [0, 0, 1, 0]])
