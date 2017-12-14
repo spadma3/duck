@@ -8,6 +8,8 @@ class SequencePattern(Pattern):
     """
 
     def __init__(self):
+        # The duration of the current sequence. Use get_duration to make sure
+        # you get the duration.
         self._duration = None
 
     def get_sequence(self):
@@ -20,7 +22,7 @@ class SequencePattern(Pattern):
 
     def get_configuration(self, time):
         # Let's first ensure that time is within the duration of the sequence.
-        relative_time = time % self._duration
+        relative_time = time % self.get_duration()
 
         # Find the current state
         current_end_time = 0
