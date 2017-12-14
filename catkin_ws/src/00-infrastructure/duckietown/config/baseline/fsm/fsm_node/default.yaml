@@ -2,20 +2,20 @@
 initial_state: "JOYSTICK_CONTROL"
 
 events: #Maps from subscribing topic to signal ids
-  imitation_mode_on:
-    topic: "joy_mapper_node/imitation_mode"
-    msg_type: "BoolStamped"
-    trigger: True
-  imitation_mode_off:
-    topic: "joy_mapper_node/imitation_mode"
-    msg_type: "BoolStamped"
-    trigger: False
   joystick_override_on: 
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
     trigger: True
   joystick_override_off: 
     topic: "joy_mapper_node/joystick_override"
+    msg_type: "BoolStamped"
+    trigger: False
+  imitation_mode_on:
+    topic: "joy_mapper_node/imitation_mode"
+    msg_type: "BoolStamped"
+    trigger: True
+  imitation_mode_off:
+    topic: "joy_mapper_node/imitation_mode"
     msg_type: "BoolStamped"
     trigger: False
   parallel_autonomy_on:
@@ -108,8 +108,8 @@ states:
   JOYSTICK_CONTROL:
     transitions:
       joystick_override_off: "LANE_FOLLOWING"
-      imitation_mode_on: "IMITATION"
       start_avoidance: "LANE_FOLLOWING_AVOID"
+      imitation_mode_on: "IMITATION"
     active_nodes:
       - lane_filter_node
       - line_detector_node
@@ -118,6 +118,7 @@ states:
       - decoder_node
       - apriltag_node
     lights: ["joystick"]
+  IMITATION:
   PARALLEL_AUTONOMY:
     transitions:
       vehicle_detection: "AVOID_VEHICLE"
@@ -138,10 +139,6 @@ states:
       - lane_filter_node
       - line_detector_node
       - stop_line_filter_node
-    lights: ["lane_following"]
-  IMITATION:
-    transitions:
-    active_nodes:
     lights: ["lane_following"]
   LANE_FOLLOWING_AVOID:
     transitions:

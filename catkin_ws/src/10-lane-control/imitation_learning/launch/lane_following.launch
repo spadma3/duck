@@ -6,31 +6,13 @@
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="visualization" default="true" />
 		<arg name="verbose" default="false" />
-		<!-- <arg name="param_file_name" default="default" /> -->
-		<!-- <arg name="line_detector_param_file_name" default="default" /> -->
-		<arg name="anti_instagram" default="false" />
-
-		<arg name="lane_following" default="false"/>
-		<arg name="/lane_following/line_detection" default="false"/>
-		<arg name="/lane_following/ground_projection" default="false"/>
-		<arg name="/lane_following/lane_filter" default="false"/>
-		<arg name="/lane_following/stop_line_filter" default="false"/>
-		<arg name="/lane_following/lane_controller" default="false"/>
-
-		<arg name="/obstacle_avoidance/simple_stop" default="false"/>
-		<arg name="/obstacle_avoidance/detection" default="false"/>
-		<arg name="/obstacle_avoidance/safety" default="false"/>
-
-		<arg name="/vehicle_avoidance/detection" default="false" />
-		<arg name="/vehicle_avoidance/control" default="false"/>
-		<arg name="LED" default="false" />
-		<arg name="/odometry_learning/kinematics" default="false"/>
-		<arg name="/navigation/intersection_control" default="false"/>
-		<arg name="/navigation/apriltags_random" default="false"/>
-
+		<arg name="param_file_name" default="default" />
+		<arg name="line_detector_param_file_name" default="default" />
+		<arg name="anti_instagram" default="true" />
+		<arg name="/lane_following/stop_line_filter" default="false" /> <!-- will not ever allow a transition into COORDINATION mode -->
+                <arg name="/lane_following/lane_filter" default="false" /> <!-- don't run the normal histgram filter -->
 	</include>
-
-        <arg name="pkg_name" default="dt_imitation_learning_$(arg veh)" />
+        <arg name="pkg_name" default="imitation_learning" />
         <include file="$(eval find(pkg_name) + '/launch/imitation_learning_node.launch')">
                  <arg name="veh" value="$(arg veh)"/>
         </include>
