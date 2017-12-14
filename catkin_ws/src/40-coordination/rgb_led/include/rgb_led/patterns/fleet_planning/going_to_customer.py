@@ -1,4 +1,4 @@
-from sequence_pattern import SequencePattern
+from patterns.sequence_pattern import SequencePattern
 from rgb_led import LED, COLORS
 
 class GoingToCustomer(SequencePattern):
