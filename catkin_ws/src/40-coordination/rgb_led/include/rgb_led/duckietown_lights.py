@@ -9,6 +9,7 @@ from patterns.blinking2 import Blinking2
 from patterns.blinking3 import Blinking3
 from patterns.fancy1 import Fancy1
 from patterns.fancy2 import Fancy2
+from patterns.fleet_planning.going_to_customer import GoingToCustomer
 
 
 class DuckietownLights():
@@ -115,6 +116,9 @@ DuckietownLights.add_pattern(Blinking2())
 DuckietownLights.add_pattern(Blinking3())
 DuckietownLights.add_pattern(Fancy1())
 DuckietownLights.add_pattern(Fancy2())
+
+# Fleet planning related patterns
+DuckietownLights.add_pattern(GoingToCustomer())
 
 # Enable this to create all kinds of single color blinking patterns.
 #create_color_patterns()

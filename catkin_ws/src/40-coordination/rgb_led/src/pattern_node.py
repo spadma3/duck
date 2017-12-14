@@ -35,7 +35,7 @@ class LEDPatternNode:
         rospy.loginfo("Returning all available patterns: %s", pattern_names)
         return {'patterns': pattern_names}
 
-    def play_pattern(self, pattern_name, duration=None):
+    def play_pattern(self, pattern_name, duration=-1):
         """
         Play the pattern with the given time for the given duration.
         If duration is None, then the duration is extracted from the pattern.
@@ -47,7 +47,7 @@ class LEDPatternNode:
             return
 
         self._current_pattern = DuckietownLights.patterns[pattern_name]
-        if duration is not None:
+        if duration > 0:
             self._current_duration = duration
         else:
             self._current_duration = self._current_pattern.get_duration()
