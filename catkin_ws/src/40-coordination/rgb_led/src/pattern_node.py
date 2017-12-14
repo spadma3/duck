@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import rospy
-#from rgb_led import RGB_LED
+from rgb_led import RGB_LED
 from rgb_led.srv import PlayLEDPattern
 
 
@@ -22,11 +22,14 @@ class LEDPatternNode:
 
         self._update_timer = None
 
-        #self._rgb = RGB_LED()
+        self._rgb = RGB_LED()
 
     def _play_pattern_service_callback(self, req):
         rospy.loginfo("Playing LED Pattern %s for %f seconds", req.pattern_name, req.duration)
         self.play_pattern(req.pattern_name, req.duration)
+
+        self._rgb.setRGB(2, [1, 0, 0])
+
         return []
 
     def play_pattern(self, pattern_name, duration):
