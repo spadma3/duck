@@ -72,7 +72,7 @@ class LEDPatternNode:
             return
 
         # Perform the actual LED update
-        current_configuration = self._current_pattern.get_configuration(elapsedTime)
+        current_configuration = self._current_pattern.get_configuration(elapsedTime.to_sec())
         for led in LED.DUCKIEBOT_LEDS:
             if led in current_configuration:
                 self._rgb_led.setRGB(led, COLORS.OFF)
