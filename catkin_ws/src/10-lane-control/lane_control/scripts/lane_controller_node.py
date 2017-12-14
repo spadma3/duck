@@ -73,6 +73,13 @@ class lane_controller(object):
         params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi)
         params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi)
 
+        if self.k_Id != k_Id:
+            rospy.loginfo("ADJUSTED I GAIN")
+            self.cross_track_integral = 0
+            self.k_Id = k_Id
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id)
+
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
             #rospy.loginfo("old gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_old))
@@ -130,6 +137,17 @@ class lane_controller(object):
 
         cross_track_err = lane_pose_msg.d - self.d_offset
         heading_err = lane_pose_msg.phi
+
+        if self.cross_track_integral > 4:
+            rospy.loginfo("you're greater 5")
+            self.cross_track_integral = 4
+        if self.cross_track_integral < -4:
+            rospy.loginfo("youre smaller -5")
+            self.cross_track_integral = -4
+
+        self.cross_track_integral += cross_track_err
+        self.heading_integral += heading_err
+
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
