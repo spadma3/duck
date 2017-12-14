@@ -76,7 +76,7 @@ class LEDPatternNode:
         current_configuration = self._current_pattern.get_configuration(elapsedTime.to_sec())
         for led in LED.DUCKIEBOT_LEDS:
             led_port = RGB_LED.PORT_MAPPING[led]
-            if led in current_configuration:
+            if led not in current_configuration:
                 self._rgb_led.setRGB(led_port, COLORS.OFF)
             else:
                 self._rgb_led.setRGB(led_port, current_configuration[led])
