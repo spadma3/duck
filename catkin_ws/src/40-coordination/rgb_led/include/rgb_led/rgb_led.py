@@ -12,7 +12,13 @@ class LED():
     FRONT_LEFT = 'fl'
     FRONT_RIGHT = 'fr'
 
-    DUCKIEBOT_LEDS = [TOP, BACK_LEFT, BACK_RIGHT, FRONT_LEFT, FRONT_RIGHT]
+    DUCKIEBOT_LEDS = [
+        TOP,
+        BACK_LEFT,
+        BACK_RIGHT,
+        FRONT_LEFT,
+        FRONT_RIGHT
+    ]
 
 
 class COLORS():

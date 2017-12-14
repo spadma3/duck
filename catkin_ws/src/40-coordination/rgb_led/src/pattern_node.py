@@ -36,7 +36,7 @@ class LEDPatternNode:
         If duration is None, then the duration is extracted from the pattern.
         """
 
-        # TODO: Check that the given pattern actually exists.
+        # Check that the given pattern actually exists.
         if pattern_name not in DuckietownLights.patterns:
             rospy.logwarn("Tried to play pattern %s. But no pattern with that name was found", pattern_name)
             return
@@ -66,7 +66,8 @@ class LEDPatternNode:
 
             # Turn off all LEDs
             for led in LED.DUCKIEBOT_LEDS:
-                self._rgb_led.setRGB(led, COLORS.OFF)
+                led_port = RGB_LED.PORT_MAPPING[led]
+                self._rgb_led.setRGB(led_port, COLORS.OFF)
 
             rospy.loginfo("Finished playing pattern on LEDs")
             return
@@ -74,10 +75,11 @@ class LEDPatternNode:
         # Perform the actual LED update
         current_configuration = self._current_pattern.get_configuration(elapsedTime.to_sec())
         for led in LED.DUCKIEBOT_LEDS:
+            led_port = RGB_LED.PORT_MAPPING[led]
             if led in current_configuration:
-                self._rgb_led.setRGB(led, COLORS.OFF)
+                self._rgb_led.setRGB(led_port, COLORS.OFF)
             else:
-                self._rgb_led.setRGB(led, current_configuration[led])
+                self._rgb_led.setRGB(led_port, current_configuration[led])
 
 
 if __name__ == '__main__':
