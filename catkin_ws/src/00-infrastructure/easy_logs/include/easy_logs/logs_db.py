@@ -3,12 +3,10 @@ import copy
 import os
 
 from duckietown_utils import (
-    format_time_as_YYYY_MM_DD,
-    friendly_path, fuzzy_match, filters0, get_cached, rosbag_info_cached,
-    get_duckietown_root, logger,
-    look_everywhere_for_bag_files, yaml_load_file, yaml_write_to_file)
-from duckietown_utils import check_isinstance
-from duckietown_utils import require_resource
+    format_time_as_YYYY_MM_DD, friendly_path, fuzzy_match, filters0, 
+    get_cached, rosbag_info_cached, get_duckietown_root, logger,
+    look_everywhere_for_bag_files, yaml_load_file, 
+    yaml_write_to_file, check_isinstance, require_resource)
 
 from .logs_structure import PhysicalLog
 from .time_slice import filters_slice

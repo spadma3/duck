@@ -1,7 +1,7 @@
 from ruamel import yaml
 
-from duckietown_utils import format_table_plus, remove_table_field,\
-    make_row_red, friendly_path,  indent
+from duckietown_utils import (format_table_plus, remove_table_field,
+    make_row_red, friendly_path,  indent)
 from easy_logs.logs_db import get_easy_logs_db
 
 

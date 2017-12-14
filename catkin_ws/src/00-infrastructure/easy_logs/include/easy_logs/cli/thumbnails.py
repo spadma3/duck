@@ -1,17 +1,13 @@
 from collections import OrderedDict
-from duckietown_utils.bag_info import d8n_get_all_images_topic_bag
-from duckietown_utils.bag_logs import d8n_read_all_images_from_bag
-from duckietown_utils.bag_reading import BagReadProxy
-from duckietown_utils.cli import D8AppWithLogs
-from duckietown_utils.exceptions import DTUserError
-from duckietown_utils.image_composition import make_images_grid
-from duckietown_utils.image_operations import bgr_from_rgb
-from duckietown_utils.image_writing import write_image_as_jpg
-from duckietown_utils.logging_logger import logger
 import os
 
 from quickapp import QuickApp
 
+from duckietown_utils import (BagReadProxy, DTUserError, bgr_from_rgb,
+                              d8n_get_all_images_topic_bag,
+                              d8n_read_all_images_from_bag,
+                              make_images_grid, write_image_as_jpg, logger)
+from duckietown_utils.cli import D8AppWithLogs
 from easy_logs.cli.easy_logs_summary_imp import format_logs
 
 
@@ -64,6 +60,7 @@ class MakeThumbnails(D8AppWithLogs, QuickApp):
             
 def work(log, outd, max_images):
     filename = log.filename
+    logger.info(filename)
     t0 = log.t0
     t1 = log.t1
 
@@ -71,9 +68,14 @@ def work(log, outd, max_images):
     bag = rosbag.Bag(filename)
     topics = [_ for _, __ in d8n_get_all_images_topic_bag(bag)]
     bag.close()
-    
+    logger.debug('%s - topics: %s' % (filename, topics))
     for topic in topics:
-        bag = rosbag.Bag(filename)
+        try:
+            bag = rosbag.Bag(filename)
+        except:
+            msg = 'Cannot read Bag file %s' % filename
+            logger.error(msg)
+            raise
         topics = [_ for _, __ in d8n_get_all_images_topic_bag(bag)]
         bag_proxy = BagReadProxy(bag, t0, t1)
         res = d8n_read_all_images_from_bag(bag_proxy, topic, max_images=max_images)
@@ -89,19 +91,11 @@ def work(log, outd, max_images):
         
         for i in range(len(res)):
             rgb = res[i]['rgb']
-            filename = os.path.join(d0, ('image-%05d' % i) +'.jpg')
-#             logger.info(filename)
-            write_image_as_jpg(bgr_from_rgb(rgb), filename)
+            fn = os.path.join(d0, ('image-%05d' % i) +'.jpg')
+            write_image_as_jpg(bgr_from_rgb(rgb), fn)
     
         images = [_['rgb'] for _ in res]
         grid = make_images_grid(images)
-        filename = os.path.join(d0, 'grid.jpg')
-        write_image_as_jpg(bgr_from_rgb(grid), filename)
-            
-#         logger.info('done')
-        
-    
-        
-        
-        
-    
+        fn = os.path.join(d0, 'grid.jpg')
+        write_image_as_jpg(bgr_from_rgb(grid), fn)
+

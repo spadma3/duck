@@ -29,13 +29,15 @@ def yaml_write_to_file(ob, filename):
     write_data_to_file(s, filename)
     
     
-def yaml_load_file(filename):
+def yaml_load_file(filename,plain_yaml=False):
     if not os.path.exists(filename):
         msg = 'File does not exist: %s' % friendly_path(filename)
         raise ValueError(msg)
     with open(filename) as f:
         contents = f.read()
-    return interpret_yaml_file(filename, contents, lambda _filename, data: data)
+    return interpret_yaml_file(filename, contents, 
+                               f=lambda _filename, data: data,
+                               plain_yaml=plain_yaml)
 
 def interpret_yaml_file(filename, contents, f, plain_yaml=False):
     """ 
