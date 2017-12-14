@@ -278,7 +278,7 @@ class TaxiCentralNode:
 
                 # Check if there's a duckiebot on that node
                 for db in idle_duckiebots:
-                    if str(db.name) == current_node.name: # TODO: @sandro use db.next_location, not db.name
+                    if str(db.next_location) == current_node.name: # TODO: @sandro use db.next_location, not db.name
                         # We found one!
                         duckiebot = db
                         break
@@ -314,8 +314,7 @@ class TaxiCentralNode:
             if route[n] == node:
                 if n + 1 < len(route):
                     next_node = route[n+1]
-
-        # TODO: Use the localization from the message
+                    break
 
         if duckiebot_name not in self._registered_duckiebots: # new duckiebot detected
             self._create_and_register_duckiebot(duckiebot_name)
