@@ -58,7 +58,6 @@ class RQTFleetPlanning(Plugin):
         self._widget.label_image.mousePressEvent = self.getPos
 
     def setTransformer(self):
-        print('transformer image height ' + str(self.image.height()))
         self.image_to_map_transformer = Transformer(self.tile_size, self.image.height())
 
     def getPos(self , event):
@@ -93,6 +92,7 @@ class RQTFleetPlanning(Plugin):
             return False
 
     def requestPlan(self):
+        print('Requesting plan from ' + self.request_start_node + ' to ' + self.request_destination_node)
         self.pub.publish(SourceTargetNodes(self.request_start_node, self.request_destination_node))
 
     def clearRequest(self):
@@ -102,7 +102,6 @@ class RQTFleetPlanning(Plugin):
         self._widget.label_dest_tiles.setText("")
 
     def shutdown_plugin(self):
-        # TODO unregister all publishers here
         self.pub.unregister()
         self.subscriber.unregister()
         pass
@@ -128,40 +127,3 @@ class RQTFleetPlanning(Plugin):
         self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
         self._widget.label_image.setPixmap(self.image)
         self.setTransformer()
-
-class ImageListener:
-    def __init__(self):
-        rospy.init_node("test")
-        app = QApplication(sys.argv)
-        w = QWidget()
-        self.label = QLabel(w)
-        self.image = QPixmap()
-        self.subscriber = rospy.Subscriber('/espresso/graph_search_server_node/map_graph', Image,
-                                      self.image_callback,  queue_size = 1)
-        rospy.wait_for_message('/espresso/graph_search_server_node/map_graph', Image)
-        print(self.image.width())
-        print(self.image.height())
-
-    def image_callback(self, ros_data):
-        print('callback entered')
-        bridge = CvBridge()
-        image_np = bridge.imgmsg_to_cv2(ros_data, "bgr8")
-        self.image = QPixmap(QImage(image_np, image_np.shape[0],image_np.shape[1],QImage.Format_RGB32))
-        self.label.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
-        self.label.setPixmap(self.image)
-
-if __name__ == '__main__':
-     super_script_dir = "/home/nico/duckietown/catkin_ws/src/20-indefinite-navigation/fleet_planning/src"
-     map_name = "tiles_lab"
-     tile_size = 101
-     # all those transformations
-     duckietown_graph_creator = graph_creator()
-     duckietown_graph = duckietown_graph_creator.build_graph_from_csv(super_script_dir, map_name)
-     map_to_graph_transformer = IntersectionMapper(duckietown_graph_creator, duckietown_graph)
-     #image_to_map_transformer = Transformer(tile_size, 606)
-     tile_position = (1,1)
-     graph = Graph()
-     graph_node_number = map_to_graph_transformer.get_closest_node(tile_position)
-     print(tile_position)
-     print(graph_node_number)
-

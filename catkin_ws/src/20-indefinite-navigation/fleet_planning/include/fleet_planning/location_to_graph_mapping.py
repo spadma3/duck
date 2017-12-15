@@ -60,7 +60,6 @@ class IntersectionMapper:
             if (node_name[0:4] == "turn" or  int(node_name) % 2 == 0):
                 continue
             else:
-                print('adding node ' + node_name + ' at pos : ' + str(node_pos))
                 self.duckietown_graph.update({node_name: node_pos})
 
     def get_node_name(self, position_2d_m, rotation_deg):
