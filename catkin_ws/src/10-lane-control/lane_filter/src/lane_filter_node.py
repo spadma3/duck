@@ -79,13 +79,11 @@ class LaneFilterNode(object):
         print "current pose phi and d", phi_cur , d_cur
         sum_phi_l=np.sum(phi_max[3:6])
         sum_d_l =np.sum(d_max[3:6])
-        avg_phi =np.average(phi_max[3:6])
-        print "avg_phi ", avg_phi
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
-        if (sum_phi_l<-1.6 and sum_d_l>0.4):
+        if (sum_phi_l<-1.6 and sum_d_l>0.2):
             print "I see a left curve"
-        elif (sum_phi_l>1.6 and sum_d_l <-0.4):
+        elif (sum_phi_l>1.6 and sum_d_l <-0.2):
             print "I see a right curve"
         else:
             print "I am on a straight line" 
