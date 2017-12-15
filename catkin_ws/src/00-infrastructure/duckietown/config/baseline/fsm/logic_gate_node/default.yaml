@@ -13,6 +13,15 @@ gates:
   at_stop_line_and_velocity_zero:
     gate_type: "AND"
     inputs:
+<<<<<<< HEAD
+=======
+      - intersection_done
+      - parallel_autonomy_off
+    output_topic: "~intersection_done_and_not_parallel_autonomy"
+  at_stop_line_and_velocity_zero:
+    gate_type: "AND"
+    inputs:
+>>>>>>> 182ba52d7bd96c0f8d93973d264fbd268ef3d5d3
       - at_stop_line
       - velocity_zero
       output_topic: "~at_stop_line_and_velocity_zero"
