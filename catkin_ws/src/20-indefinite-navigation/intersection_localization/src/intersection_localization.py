@@ -3,6 +3,7 @@ import rospy
 import cv2
 from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import IntersectionPose
+import numpy as np
 import duckietown_utils as dt
 
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
@@ -32,6 +33,7 @@ class IntersectionLocalization(object):
 
         # temp
         self.at_intersection = 1
+        self.init = 0
 
     '''def ModeCallback(self,msg):
         # TODO
@@ -42,31 +44,43 @@ class IntersectionLocalization(object):
         if self.at_intersection:
             # process raw image
             img_processed = self.localizer.ProcessRawImage(msg_img)
+            cv2.imshow('img_processed', img_processed)
 
             # get pose estimation
-            '''msg_pose_pred = rospy.wait_for_message('~intersection_pose_pred', IntersectionPose)
+            '''msg_pose_pred = rospy.wait_for_message('~intersection_pose_pred', IntersectionPose)'''
+            # TODO: also add type of intersection in above message!
+
+            if not self.init:
+                x_pred = 0.415
+                y_pred = -0.18
+                theta_pred = np.pi / 2.0
+
+            else:
+                x_pred = self.x_meas
+                y_pred = self.y_meas
+                theta_pred = self.theta_meas
 
             # compute the Duckiebot's pose
-            pos_meas, theta_meas = self.localizer.ComputePose(img_processed, msg_pose_pred.x, msg_pose_pred.y,
-                                                              msg_pose_pred.theta)
-'''
-            x_meas = 0
-            y_meas = 0
-            theta_meas = 0
+            # pos_meas, theta_meas = self.localizer.ComputePose(img_processed, msg_pose_pred.x, msg_pose_pred.y, msg_pose_pred.theta)
+            valid_meas, x_meas, y_meas, theta_meas = self.localizer.ComputePose(img_processed, x_pred, y_pred, theta_pred, 'THREE_WAY_INTERSECTION')
 
-            # publish results
-            msg_pose_meas = IntersectionPose()
-            msg_pose_meas.header.stamp = msg_img.header.stamp
-            msg_pose_meas.x = x_meas
-            msg_pose_meas.y = y_meas
-            msg_pose_meas.theta = theta_meas
-            self.pub_intersection_pose_meas.publish(msg_pose_meas)
+            if valid_meas:
+                # publish results
+                msg_pose_meas = IntersectionPose()
+                msg_pose_meas.header.stamp = msg_img.header.stamp
+                msg_pose_meas.x = x_meas
+                msg_pose_meas.y = y_meas
+                msg_pose_meas.theta = theta_meas
+                self.pub_intersection_pose_meas.publish(msg_pose_meas)
 
-            # TODO
-            # do localization here
-
-            '''cv2.imshow('img',img_processed)
-            cv2.waitKey(1)'''
+            # debugging
+            if 1:
+                self.x_meas = x_meas
+                self.y_meas = y_meas
+                self.theta_meas = theta_meas
+                self.localizer.Draw(img_processed, x_meas, y_meas, theta_meas, 'THREE_WAY_INTERSECTION')
+                cv2.imshow('img_model', img_processed)
+                cv2.waitKey(1)
         else:
             return
 
@@ -78,7 +92,7 @@ class IntersectionLocalization(object):
 
     def OnShutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
-        '''cv2.destroyAllWindows()'''
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
