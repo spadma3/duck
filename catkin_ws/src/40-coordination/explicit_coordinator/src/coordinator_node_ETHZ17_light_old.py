@@ -26,7 +26,7 @@ class VehicleCoordinator():
     T_MAX_RANDOM = 4.0 # seconds
     T_CROSS = 6.0  # seconds
     T_SENSE = 2.0      # seconds
-    T_UNKNOWN = 1.0 # seconds
+    T_UNKNOWN = 1.0 # seconds
 
 # We communicate that the coordination mode has started
     def __init__(self):
@@ -181,13 +181,13 @@ class VehicleCoordinator():
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
 	    print(self.right_veh)
 	    print(self.opposite_veh)
-	    if self.right_veh = UNKNOWN or self.opposite_veh = UNKNOWN: #if first measurement not seen yet 
+	    if self.right_veh == UNKNOWN or self.opposite_veh == UNKNOWN: #if first measurement not seen yet 
                 self.roof_light = CoordinationSignal.OFF
-	        self.random_delay = random() * self.T_UNKNOWN
+	        self.random_delay = 1+random() * self.T_UNKNOWN
 	        self.set_state(State.SOLVING_UNKNOWN)
 	    elif self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
 		self.roof_light = CoordinationSignal.OFF
- 		self.random_delay = random() * self.T_MAX_RANDOM
+ 		self.random_delay = 1+ random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
                 self.set_state(State.CONFLICT)
             
@@ -199,7 +199,7 @@ class VehicleCoordinator():
  	#    if self.veh_detected == SignalsDetection.CARS:  # if we are seeing other cars (i.e. we cannot go)
          #       self.set_state(State.AT_STOP_CLEARING)
             else:
-                self.set_state(State.GO)
+                 self.set_state(State.GO)
 
         #elif self.state == State.RESERVING:
           #  if self.right_veh != SignalsDetection.NO_CAR:
@@ -213,8 +213,10 @@ class VehicleCoordinator():
                 #    self.set_state(State.GO)
 
         elif self.state == State.GO:
-            if self.mode == 'LANE_FOLLOWING':
-                self.set_state(State.LANE_FOLLOWING)
+	    self.random_delay = 2
+            if self.time_at_current_state() > self.random_delay:
+            	if self.mode == 'LANE_FOLLOWING':
+		    self.set_state(State.LANE_FOLLOWING)
 
         elif self.state == State.CONFLICT:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
@@ -223,7 +225,7 @@ class VehicleCoordinator():
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
         elif self.state == State.SOLVING_UNKNOWN:
-        if self.time_at_current_state() > self.random_delay:
+            if self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
         elif self.state == State.TL_SENSING:
