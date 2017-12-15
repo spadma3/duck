@@ -3,8 +3,9 @@ import numpy as np
 from qt_gui.plugin import Plugin
 from cv_bridge import CvBridge
 from python_qt_binding import loadUi
-from PyQt5 import QtCore, QtGui
-from python_qt_binding.QtWidgets import QWidget
+from PyQt5 import QtCore
+from PyQt5.QtGui import *
+from python_qt_binding.QtWidgets import *
 from sensor_msgs.msg import Image
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.transformation import Transformer
@@ -22,6 +23,7 @@ class RQTFleetPlanning(Plugin):
         # flags for the UI input control states
         self.request_start_node = ""
         self.request_destination_node = ""
+        self.image_np = []
 
         # Create QWidget
         self._widget = QWidget()
@@ -39,10 +41,11 @@ class RQTFleetPlanning(Plugin):
         # Add widget to the user interface
         context.add_widget(self._widget)
 
-        image_path = os.path.abspath(self.super_script_dir + '/maps/' + self.map_name + '_map.png')
-        self.image = QtGui.QPixmap(image_path)
-        self._widget.label_image.setPixmap(self.image)
-        self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
+        self.image = QPixmap()
+        self.duckietown_graph_creator = graph_creator()
+        self.duckietown_graph = self.duckietown_graph_creator.build_graph_from_csv(self.super_script_dir, self.map_name)
+        self.map_to_graph_transformer = IntersectionMapper(self.duckietown_graph_creator, self.duckietown_graph)
+        self.setTransformer()
 
         # ROS stuff
         self.veh = rospy.get_param('/veh')
@@ -52,27 +55,16 @@ class RQTFleetPlanning(Plugin):
         self._widget.buttonClear.clicked.connect(self.clearRequest)
         self.subscriber = rospy.Subscriber('/espresso/graph_search_server_node/map_graph', Image,
                                       self.image_callback,  queue_size = 1)
-
-        self.duckietown_graph_creator = graph_creator()
-        self.duckietown_graph = self.duckietown_graph_creator.build_graph_from_csv(self.super_script_dir, self.map_name)
-        rospy.wait_for_message('/espresso/graph_search_server_node/map_graph', Image)
-        self.setTransformer()
-
-        #generate the label
         self._widget.label_image.mousePressEvent = self.getPos
-        #todo: for some reason this segfaults, fix it!
-        #self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
-        #self._widget.label_image.setPixmap(self.image)
 
     def setTransformer(self):
-        self.map_to_graph_transformer = IntersectionMapper(self.duckietown_graph_creator, self.duckietown_graph)
+        print('transformer image height ' + str(self.image.height()))
         self.image_to_map_transformer = Transformer(self.tile_size, self.image.height())
 
     def getPos(self , event):
         tile_position = self.image_to_map_transformer.image_to_map((event.pos().x(), event.pos().y()))
         graph_node_number = self.map_to_graph_transformer.get_closest_node(tile_position)
         self.drawRequestState(tile_position, graph_node_number)
-     # todo: change to node number
 
     def drawRequestState(self, tile_position, graph_node_number):
         if (self.isRequestStartSet() and self.isRequestDestinationSet()):
@@ -125,12 +117,37 @@ class RQTFleetPlanning(Plugin):
         pass
 
     def image_callback(self, ros_data):
+        bridge = CvBridge()
+        image_np = bridge.imgmsg_to_cv2(ros_data, "bgr8")
+        cvImg = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        height, width, channel = cvImg.shape
+        bytesPerLine = 3 * width
+        self.test_image = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        self.image = QPixmap(self.test_image)
+        self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
+        self._widget.label_image.setPixmap(self.image)
+        self.setTransformer()
+
+class ImageListener:
+    def __init__(self):
+        rospy.init_node("test")
+        app = QApplication(sys.argv)
+        w = QWidget()
+        self.label = QLabel(w)
+        self.image = QPixmap()
+        self.subscriber = rospy.Subscriber('/espresso/graph_search_server_node/map_graph', Image,
+                                      self.image_callback,  queue_size = 1)
+        rospy.wait_for_message('/espresso/graph_search_server_node/map_graph', Image)
+        print(self.image.width())
+        print(self.image.height())
+
+    def image_callback(self, ros_data):
         print('callback entered')
         bridge = CvBridge()
         image_np = bridge.imgmsg_to_cv2(ros_data, "bgr8")
-        print(image_np.shape)
-        self.image = QtGui.QPixmap(QtGui.QImage(image_np, image_np.shape[0],image_np.shape[1],QtGui.QImage.Format_RGB32))
-        self.subscriber.unregister()
+        self.image = QPixmap(QImage(image_np, image_np.shape[0],image_np.shape[1],QImage.Format_RGB32))
+        self.label.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
+        self.label.setPixmap(self.image)
 
 if __name__ == '__main__':
      super_script_dir = "/home/nico/duckietown/catkin_ws/src/20-indefinite-navigation/fleet_planning/src"
@@ -146,3 +163,4 @@ if __name__ == '__main__':
      graph_node_number = map_to_graph_transformer.get_closest_node(tile_position)
      print(tile_position)
      print(graph_node_number)
+
