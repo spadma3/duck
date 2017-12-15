@@ -137,15 +137,18 @@ class lane_controller(object):
         #     print car_control_msg
 
     def deacceleration(self, stopline_msg):
+        v_bar = rospy.get_param("~v_bar")
         self.stopline_msg = stopline_msg
-        rospy.loginfo(stopline_msg)
         x0 = 0.20   # Distance in cm where we want to stop.
         x_thr =0.7     # starting deaccleration here
         x = stopline_msg.stop_line_point.x
         if x<x0:
             self.v_bar=0
         elif x<x_thr:
-            self.v_bar = self.setupParameter("~v_bar",self.v_bar*(x-x0)/(x_thr-x0))
+            self.v_bar = self.setupParameter("~v_bar",v_bar*(x-x0)/(x_thr-x0))
+
+        rospy.loginfo(str(stopline_msg))
+        rospy.loginfo(str(self.v_bar))
 
 
 if __name__ == "__main__":
