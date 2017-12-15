@@ -1,7 +1,14 @@
+import copy
 
-class Configurable():
+__all__ = ['Configurable']
+
+class Configurable(object):
+    """ Utility class to read configuration """
     
     def __init__(self, param_names, configuration0):
+
+        configuration0 = copy.deepcopy(configuration0)
+
         if not isinstance(configuration0, dict):
             msg = 'Expecting a dict, obtained %r' % configuration0
             raise ValueError(msg)
@@ -35,3 +42,5 @@ class Configurable():
             setattr(self, p, configuration[p])
             
         return configuration
+    
+    

@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import os
 
+from .constants import DuckietownConstants
 from .exception_utils import check_isinstance
 from .file_utils import write_data_to_file
 from .image_composition import make_images_grid
@@ -36,18 +37,18 @@ def write_jpgs_to_dir(name2image, dirname):
         
     images = []
     for i, (filename, image) in enumerate(res.items()):
-        s =  filename
+        s = filename
         res[filename] = add_header_to_image(image, s)
         images.append(res[filename])
-        
-    res['all'] = make_images_grid(images)
-        
+
+    bgcolor = DuckietownConstants.DUCKIETOWN_YELLOW_BGR
+    res['all'] = make_images_grid(images, bgcolor=bgcolor)
+
     for i, (filename, image) in enumerate(res.items()):
         if filename == 'all':
             basename = 'all'
         else:
             basename = ('step%02d-'%i)+filename
-        
+            
         fn = os.path.join(dirname,basename+'.jpg')
         write_jpg_to_file(image, fn)
-        

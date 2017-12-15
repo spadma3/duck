@@ -1,5 +1,7 @@
 import numpy as np
 
+__all__ = ['make_images_grid']
+
 # @contract(images='list[>=1](array)')
 def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
     n = len(images)

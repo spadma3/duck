@@ -6,7 +6,7 @@ from .locate_files_impl import locate_files
 from .path_utils import expand_all
 
 
-class DuckietownConstants():
+class DuckietownConstants(object):
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
     DUCKIEFLEET_ROOT_variable = 'DUCKIEFLEET_ROOT'
     
@@ -31,6 +31,9 @@ class DuckietownConstants():
     # The rules for good readmes do not apply to these packages
     good_readme_exceptions = ['apriltags_ros', 'apriltags', 'duckietown', 'isam']
 
+    
+    DUCKIETOWN_YELLOW_RGB = [1, 204.0/255, 0]
+    DUCKIETOWN_YELLOW_BGR = [0, 204.0/255, 1]
     
 def get_duckietown_root():
     """ Returns the path of DUCKIETOWN_ROOT and checks it exists """

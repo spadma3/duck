@@ -13,10 +13,11 @@ from .file_utils import write_data_to_file
 from .image_composition import make_images_grid  # @UnusedImport
 
 
-def jpg_from_image_cv(image):
+def jpg_from_bgr(image):
     import cv2
     return cv2.imencode('.jpg', image)[1].tostring()
-     
+
+jpg_from_image_cv = jpg_from_bgr 
 
 def image_cv_from_jpg(data):
     """ Returns an OpenCV BGR image from a string """

@@ -1,6 +1,5 @@
 from comptests.registrar import run_module_tests, comptest
-
-from duckietown_utils.disk_hierarchy import dir_from_data
+import duckietown_utils as dtu
 from easy_algo.algo_db import EasyAlgoDB
 from easy_algo.formatting import format_db
 
@@ -12,7 +11,7 @@ def test_validity1():
     description: desc
     interface: does.not_exist
 """
-    d = dir_from_data(data)
+    d = dtu.dir_from_data(data)
     sources = [d]
     db = EasyAlgoDB(sources)
     
@@ -48,7 +47,7 @@ def test_instance():
     parameters:
 
 """
-    d = dir_from_data(data)
+    d = dtu.dir_from_data(data)
     sources = [d]
     db = EasyAlgoDB(sources)
      
