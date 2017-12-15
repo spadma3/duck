@@ -15,6 +15,7 @@ class State:
     SACRIFICE = 'SACRIFICE'
     SOLVING_UNKNOWN = 'SOLVING_UNKNOWN'
     GO = 'GO'
+    KEEP_CALM = 'KEEP_CALM'	
     TL_SENSING = 'TL_SENSING'
     INTERSECTION_NAVIGATION = 'INTERSECTION_NAVIGATION'
 
@@ -107,12 +108,14 @@ class VehicleCoordinator():
         elif self.state == State.SACRIFICE:
             #self.roof_light = CoordinationSignal.SIGNAL_A
 	    self.roof_light = CoordinationSignal.OFF
+        elif self.state == State.KEEP_CALM:
+	     self.roof_light = CoordinationSignal.SIGNAL_A	
         elif self.state == State.GO and not self.traffic_light_intersection:
             #self.roof_light = CoordinationSignal.ON
 	     self.roof_light = CoordinationSignal.SIGNAL_A
-	     self.random_delay = 5
-             while self.time_at_current_state() < self.random_delay:
-	      
+	    # self.random_delay = 5
+            # while self.time_at_current_state() < self.random_delay:
+	    #    continue
        # else:
            # self.roof_light = CoordinationSignal.OFF
 
@@ -167,7 +170,7 @@ class VehicleCoordinator():
 
     # definition of the loop
     def loop(self):
-	print(self.time_at_current_state())
+	#print(self.time_at_current_state())
         self.reconsider()
         self.publish_topics()
 
@@ -189,7 +192,7 @@ class VehicleCoordinator():
                 self.roof_light = CoordinationSignal.OFF
 	        self.random_delay = 1+random() * self.T_UNKNOWN
 	        self.set_state(State.SOLVING_UNKNOWN)
-	    elif self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
+            elif self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
 		self.roof_light = CoordinationSignal.OFF
  		self.random_delay = self.T_MIN_RANDOM + random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
@@ -216,10 +219,12 @@ class VehicleCoordinator():
                 #    self.set_state(State.GO)
 
         elif self.state == State.GO:
-	   
-            	if self.mode == 'LANE_FOLLOWING':
-		    self.set_state(State.LANE_FOLLOWING)
-
+	    self.set_state(State.KEEP_CALM)
+        elif self.state == State.KEEP_CALM:
+            print(self.time_at_current_state()) 	   	
+            if self.time_at_current_state() > 5 and self.mode == 'LANE_FOLLOWING':
+            	self.set_state(State.LANE_FOLLOWING)
+ 
         elif self.state == State.SACRIFICE:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
                # self.set_state(State.AT_STOP_CLEARING)
