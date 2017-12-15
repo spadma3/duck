@@ -2,6 +2,7 @@ import random
 import time
 from rgb_led import RGB_LED, LED, COLORS
 
+# Import all the available patterns
 from patterns.sequence_pattern import SequencePattern
 from patterns.blinking import Blinking
 from patterns.blinking1 import Blinking1
@@ -14,8 +15,10 @@ from patterns.fleet_planning.customer_dropoff import CustomerDropOff
 from patterns.fleet_planning.customer_pickup import CustomerPickUp
 
 
-
 class DuckietownLights():
+    """
+    Class that manages all available LED patterns.
+    """
     # All the available patterns
     patterns = {}
 
@@ -35,6 +38,26 @@ class DuckietownLights():
         :param pattern: An object that is of type Pattern.
         """
         DuckietownLights.patterns[pattern.get_identifier()] = pattern
+
+    @staticmethod
+    def load_patterns():
+        # Add all patterns we know
+        DuckietownLights.add_pattern(Blinking())
+        DuckietownLights.add_pattern(Blinking1())
+        DuckietownLights.add_pattern(Blinking2())
+        DuckietownLights.add_pattern(Blinking3())
+        DuckietownLights.add_pattern(Fancy1())
+        DuckietownLights.add_pattern(Fancy2())
+
+        # Fleet planning related patterns
+        DuckietownLights.add_pattern(GoingToCustomer())
+        DuckietownLights.add_pattern(CustomerPickUp())
+        DuckietownLights.add_pattern(CustomerDropOff())
+
+# Load the patterns
+DuckietownLights.load_patterns()
+
+
 
 
 def create_color_patterns():
@@ -111,81 +134,5 @@ def create_color_patterns():
             pattern = SequencePattern(blink_all(rgb, 1.0 / freq), comb)
             DuckietownLights.add_pattern(pattern)
 
-
-# Add all patterns we know
-DuckietownLights.add_pattern(Blinking())
-DuckietownLights.add_pattern(Blinking1())
-DuckietownLights.add_pattern(Blinking2())
-DuckietownLights.add_pattern(Blinking3())
-DuckietownLights.add_pattern(Fancy1())
-DuckietownLights.add_pattern(Fancy2())
-
-# Fleet planning related patterns
-DuckietownLights.add_pattern(GoingToCustomer())
-DuckietownLights.add_pattern(CustomerPickUp())
-DuckietownLights.add_pattern(CustomerDropOff())
-
 # Enable this to create all kinds of single color blinking patterns.
 #create_color_patterns()
-
-
-def cycle_LEDs_named(sequence_name):
-    if sequence_name not in DuckietownLights.patterns:
-        msg = 'Could not find the sequence %r.' % sequence_name
-        msg += '\n\nThese are some I know:'
-        avail = list(DuckietownLights.patterns)
-        random.shuffle(avail)
-        N = 20
-        if len(avail) > N:
-            avail = avail[:N]
-
-        msg += ' ' + ", ".join(avail) + '.'
-        raise ValueError(msg)
-    sequence = DuckietownLights.patterns[sequence_name]
-    cycle_LEDs(sequence)
-
-
-def get_current_step(t, t0, sequence):
-    """ returns i, (period, color) """
-    period = sum(s[0] for s in sequence)
-
-    tau = t - t0
-    while tau - period > 0:
-        tau -= period
-    i = 0
-    while True:
-        current = sequence[i][0]
-        if tau < current:
-            break
-        else:
-            i += 1
-            tau -= current
-
-    return i, sequence[i]
-
-
-def cycle_LEDs(sequence):
-    led = RGB_LED()
-
-    t0 = time.time()
-    # last = all_off
-    last = {
-        LED.TOP: None,
-        LED.BACK_LEFT: None,
-        LED.BACK_RIGHT: None,
-        LED.FRONT_LEFT: None,
-        LED.FRONT_RIGHT: None,
-    }
-    while True:
-        t = time.time()
-        _, (_, config) = get_current_step(t, t0, sequence)
-
-        for name, col in config.items():
-            k = DuckietownLights.name2port[name]
-
-            if last[name] != col:
-                led.setRGB(k, col)
-                print(name, k, col)
-                last[name] = col
-
-        time.sleep(0.01)

@@ -93,6 +93,15 @@ class RGB_LED():
         """
         self.setRGBvint8(led, map(lambda f: int(f * 255), color))
 
+    def turnOff(self):
+        """
+        Turn off all LEDs
+        :return:
+        """
+        for led in LED.DUCKIEBOT_LEDS:
+            led_port = RGB_LED.PORT_MAPPING[led]
+            self.setRGB(led, COLORS.OFF)
+
     def __del__(self):
         for i in range(15):
             self.pwm.setPWM(i, 0, 4095)
