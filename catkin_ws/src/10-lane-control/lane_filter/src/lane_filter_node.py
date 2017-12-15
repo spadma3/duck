@@ -76,7 +76,7 @@ class LaneFilterNode(object):
         print "gradient " , linefit_1[0]
         #d_cur =np.average(d_max[0])
         #phi_cur =np.average(phi_max[0])
-        print "current pose phi and d", phi_cur[0], d_cur[0]
+        print "current pose phi and d", phi_max[0], d_max[0]
         #sum_phi_l=np.sum(phi_max[1:3])
         #sum_d_l =np.sum(d_max[1:3])
         #av_phi_l=np.average(phi_max[1:3])
