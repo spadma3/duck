@@ -76,8 +76,8 @@ class LaneFilterNode(object):
         in_lane = max_val > self.filter.min_max 
         if (sum_phi_l<-0.6):
             print "I see a left curve"
-        elif(sum_phi_l>0.6):
-            print " I see a right curve"
+        elif (sum_phi_l>0.6):
+            print "I see a right curve"
         else:
             print "I dunno" 
         # #elif (d_max[2] - d_max[0] > 0.1 and phi_max[2] - phi_max[0] < -0.5 and phi_max[2] - phi_max[0] > -1.0 ):
