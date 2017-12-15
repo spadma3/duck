@@ -189,11 +189,12 @@ public:
 
 	    // Subscribers
 	    apriltagsSub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
-	    carcmdSub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
-	    //odomSub = nh_.subscribe("/mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
+	    //carcmdSub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
+	    // TODO: do it right.
+	    odomSub = nh_.subscribe("/misteur/mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
 
-	    ros::Subscriber imusub = nh_.subscribe("/imu/data_raw", 1000, &GraphSlam::imucallback, this);
-	    ros::Timer imutimer = nh_.createTimer(ros::Duration(1), &GraphSlam::printcallback, this);
+//	    ros::Subscriber imusub = nh_.subscribe("/imu/data_raw", 1000, &GraphSlam::imucallback, this);
+//	    ros::Timer imutimer = nh_.createTimer(ros::Duration(1), &GraphSlam::printcallback, this);
 
 //	    testOptimizer();
 
@@ -221,7 +222,20 @@ public:
 
     void odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 	{
+	    curposeindex += 1;
 
+	    // maybe msg.omega needs to be switched to degrees/radians?
+	    double delta_d = msg->twist.twist.linear.x;
+	    double delta_theta = msg->twist.twist.angular.z;
+	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
+
+	    curx += cos(curtheta) * delta_d;
+	    cury += sin(curtheta) * delta_d;
+	    curtheta = fmod(curtheta + delta_theta,2 * M_PI);
+	    initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
+
+	    // Visualize
+	    marker_pub.publish(make_pose_marker(curposeindex, ADD_ACTION, curx, cury, curtheta));
 	}
 
 
