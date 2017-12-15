@@ -95,6 +95,14 @@ class LaneFilterNode(object):
         self.d_median.append(delta_dmax)
         self.phi_median.append(delta_phimax)
 
+        # build lane pose message to send
+        lanePose = LanePose()
+        lanePose.header.stamp = segment_list_msg.header.stamp
+        lanePose.d = d_max[0]
+        lanePose.phi = phi_max[0]
+        lanePose.in_lane = in_lane
+        lanePose.status = lanePose.NORMAL
+
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
         if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
