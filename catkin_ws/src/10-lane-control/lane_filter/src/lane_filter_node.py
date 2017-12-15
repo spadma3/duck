@@ -99,17 +99,17 @@ class LaneFilterNode(object):
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
-        lanePose.d = d_cur
-        lanePose.phi=phi_cur
+        lanePose.d =d_max[0]
+        lanePose.phi=phi_max[0]
         #lanePose.d = d_max[0]
         #lanePose.phi = phi_max[0]
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
         lanePose.curvature= 12.0
-        if (me_phi_l<-0.3 and  me_d_l>0.05):
+        if (me_phi_l<-0.2 and  me_d_l>0.01):
             print "I see a left curve"
             lanePose.curvature =0.025
-        elif (me_phi_l>0.3 and me_d_l<-0.05):
+        elif (me_phi_l>0.2 and me_d_l<-0.01):
             print "I see a right curve"
             lanePose.curvature=0.054
         else:
