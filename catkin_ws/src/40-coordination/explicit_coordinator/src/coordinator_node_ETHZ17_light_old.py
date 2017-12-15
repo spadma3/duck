@@ -104,7 +104,7 @@ class VehicleCoordinator():
            #self.roof_light = CoordinationSignal.SIGNAL_A
         #elif self.state == State.RESERVING:
             #self.roof_light = CoordinationSignal.SIGNAL_B
-        elif self.state == State.CONFLICT:
+        elif self.state == State.SACRIFICE:
             #self.roof_light = CoordinationSignal.SIGNAL_A
 	    self.roof_light = CoordinationSignal.OFF
         elif self.state == State.GO and not self.traffic_light_intersection:
@@ -190,7 +190,7 @@ class VehicleCoordinator():
 		self.roof_light = CoordinationSignal.OFF
  		self.random_delay = 1+ random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
-                self.set_state(State.CONFLICT)
+                self.set_state(State.SACRIFICE)
             
            # elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
             #    self.set_state(State.AT_STOP_CLEAR)
@@ -209,7 +209,7 @@ class VehicleCoordinator():
             #    if self.opposite_veh == SignalsDetection.SIGNAL_B:
              #       self.random_delay = random() * self.T_MAX_RANDOM
               #      print ("Other vehicle reserving as well. Will wait for %.2f s" % self.random_delay)
-               #     self.set_state(State.CONFLICT)
+               #     self.set_state(State.SACRIFICE)
                # else:
                 #    self.set_state(State.GO)
 
@@ -219,7 +219,7 @@ class VehicleCoordinator():
             	if self.mode == 'LANE_FOLLOWING':
 		    self.set_state(State.LANE_FOLLOWING)
 
-        elif self.state == State.CONFLICT:
+        elif self.state == State.SACRIFICE:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
                # self.set_state(State.AT_STOP_CLEARING)
             if self.time_at_current_state() > self.random_delay:
