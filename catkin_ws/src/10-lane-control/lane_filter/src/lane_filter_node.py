@@ -72,8 +72,8 @@ class LaneFilterNode(object):
         [d_max,phi_max] = self.filter.getEstimate()
         print "d_max = ", d_max
         print "phi_max = ", phi_max
-        linefit_1=np.polyfit(phi_max[3:6],d_max[3:6],1)
-        print "gradient " , linefit_1[0]
+        #linefit_1=np.polyfit(phi_max[3:6],d_max[3:6],1)
+        #print "gradient " , linefit_1[0]
         d_cur =np.average(d_max[0:2])
         phi_cur =np.average(phi_max[0:2])
         print "current pose phi and d", phi_cur , d_cur
@@ -106,13 +106,15 @@ class LaneFilterNode(object):
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
         lanePose.curvature= 12.0
-        if (me_phi_l<-0.3 ):
+        if (me_phi_l<-0.3 and  me_d_l>0):
             print "I see a left curve"
             lanePose.curvature =0.025
-        elif (me_phi_l>0.3 ):
+        elif (me_phi_l>0.3 and me_d_l<0):
             print "I see a right curve"
+            lanePose.curvature=0.054
         else:
             print "I am on a straight line" 
+            lanePose.curvature=0
         print "curv ", lanePose.curvature
         # publish the belief image
 
