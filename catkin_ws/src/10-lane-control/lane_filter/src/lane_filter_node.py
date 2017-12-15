@@ -81,6 +81,7 @@ class LaneFilterNode(object):
         #sum_d_l =np.sum(d_max[1:3])
         #av_phi_l=np.average(phi_max[1:3])
         av_d_l =np.average(d_max[1:3])
+        print "av_dl", av_d_l
         me_phi_l=np.median(phi_max[1:3])
         me_d_l =np.median(d_max[1:3])
         print "median phi d ", me_phi_l , me_d_l
