@@ -100,7 +100,6 @@ class VehicleCoordinator():
 
 	   #after setting everything to unknown, we turn on the light
 	    #self.roof_light = CoordinationSignal.ON
-        #elif self.state == State.AT_STOP_CLEAR:
 	   #self.roof_light = CoordinationSignal.ON	
            #self.roof_light = CoordinationSignal.SIGNAL_A
         #elif self.state == State.RESERVING:
@@ -111,6 +110,9 @@ class VehicleCoordinator():
         elif self.state == State.GO and not self.traffic_light_intersection:
             #self.roof_light = CoordinationSignal.ON
 	     self.roof_light = CoordinationSignal.SIGNAL_A
+	     self.random_delay = 5
+             while self.time_at_current_state() < self.random_delay:
+	      
        # else:
            # self.roof_light = CoordinationSignal.OFF
 
@@ -194,7 +196,6 @@ class VehicleCoordinator():
                 self.set_state(State.SACRIFICE)
             
            # elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
-            #    self.set_state(State.AT_STOP_CLEAR)
 
        # elif self.state == State.AT_STOP_CLEAR:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
@@ -215,8 +216,7 @@ class VehicleCoordinator():
                 #    self.set_state(State.GO)
 
         elif self.state == State.GO:
-	    self.random_delay = 10
-            if self.time_at_current_state() > self.random_delay:
+	   
             	if self.mode == 'LANE_FOLLOWING':
 		    self.set_state(State.LANE_FOLLOWING)
 
