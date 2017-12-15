@@ -9,9 +9,11 @@ class lane_controller(object):
         self.lane_reading = None
 
         self.pub_counter = 0
+        self.stopline_counter = 0
 
         # Setup parameters
         self.setGains()
+
 
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
@@ -41,9 +43,9 @@ class lane_controller(object):
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
 
-        if ~self.stopline_msg.stop_line_detected:
+        if self.stopline_counter>0 and ~self.stopline_msg.stop_line_detected:
             self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
-        
+
         # FIXME: AC aug'17: are these inverted?
         self.k_d = self.setupParameter("~k_d",k_theta) # P gain for theta
         self.k_theta = self.setupParameter("~k_theta",k_d) # P gain for d
@@ -139,6 +141,7 @@ class lane_controller(object):
         #     print car_control_msg
 
     def deacceleration(self, stopline_msg):
+        self.stopline_counter += 1
         v_bar = rospy.get_param("~v_bar")
         self.stopline_msg = stopline_msg
         x0 = 0.20   # Distance in cm where we want to stop.
