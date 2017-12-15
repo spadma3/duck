@@ -80,7 +80,7 @@ class LaneFilterNode(object):
         #sum_phi_l=np.sum(phi_max[1:3])
         #sum_d_l =np.sum(d_max[1:3])
         #av_phi_l=np.average(phi_max[1:3])
-        #av_d_l =np.average(d_max[1:3])
+        av_d_l =np.average(d_max[1:3])
         me_phi_l=np.median(phi_max[1:3])
         me_d_l =np.median(d_max[1:3])
         print "median phi d ", me_phi_l , me_d_l
@@ -106,10 +106,10 @@ class LaneFilterNode(object):
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
         lanePose.curvature= 12.0
-        if (me_phi_l<-0.2 and  me_d_l>0.01):
+        if (me_phi_l<-0.2 and  av_d_l>0.03):
             print "I see a left curve"
             lanePose.curvature =0.025
-        elif (me_phi_l>0.2 and me_d_l<-0.01):
+        elif (me_phi_l>0.2 and av_d_l<-0.03):
             print "I see a right curve"
             lanePose.curvature=0.054
         else:
