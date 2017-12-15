@@ -72,7 +72,7 @@ class LaneFilterNode(object):
         [d_max,phi_max] = self.filter.getEstimate()
         print "d_max = ", d_max
         print "phi_max = ", phi_max
-        linefit_1=np.linefit(d_max,phi_max,1)
+        linefit_1=np.polyfit(d_max,phi_max,1)
         print "gradient " , linefit_1[0]
         sum_phi_l=np.sum(phi_max)
         max_val = self.filter.getMax()
