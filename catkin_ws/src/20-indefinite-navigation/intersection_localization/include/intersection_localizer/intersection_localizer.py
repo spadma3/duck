@@ -38,11 +38,17 @@ class IntersectionLocalizer(object):
         self.mask_width = 2
 
         # localization algorithm parameters
+<<<<<<< HEAD
         self.line_search_length = 30
         self.max_num_iter = 20
         self.ctrl_pts_density = 0.05  # number of control points per edge length (in pixels)
         self.min_num_ctrl_pts = 5
         self.max_num_ctrl_pts = 100
+=======
+        self.line_search_length = 20
+        self.max_num_iter = 10
+        self.ctrl_pts_density = 0.05  # number of control points per edge length (in pixels)
+>>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 
         # edge templates
         self.three_way_intersection = em.EdgeModel('THREE_WAY_INTERSECTION', self.ppm, self.ctrl_pts_density)
@@ -97,6 +103,7 @@ class IntersectionLocalizer(object):
     def ApplyHomography(self, src):
         dst = np.zeros(shape=(2), dtype=float)
         dst[0] = (self.homography_01[0, 0] * src[0] + self.homography_01[0, 1] * src[1] + self.homography_01[0, 2]) / (
+<<<<<<< HEAD
             self.homography_01[2, 0] * src[0] + self.homography_01[2, 1] * src[1] + self.homography_01[2, 2])
         dst[1] = (self.homography_01[1, 0] * src[0] + self.homography_01[1, 1] * src[1] + self.homography_01[1, 2]) / (
             self.homography_01[2, 0] * src[0] + self.homography_01[2, 1] * src[1] + self.homography_01[2, 2])
@@ -105,10 +112,23 @@ class IntersectionLocalizer(object):
 
     def ComputePose(self, img, x_init, y_init, theta_init, object_type):
         # initialize solution
+=======
+        self.homography_01[2, 0] * src[0] + self.homography_01[2, 1] * src[1] + self.homography_01[2, 2])
+        dst[1] = (self.homography_01[1, 0] * src[0] + self.homography_01[1, 1] * src[1] + self.homography_01[1, 2]) / (
+        self.homography_01[2, 0] * src[0] + self.homography_01[2, 1] * src[1] + self.homography_01[2, 2])
+
+        return dst
+
+    def ComputePose(self, img_processed, x_init, y_init, theta_init):
+        for k in range(0, self.max_num_inter):
+            pass
+
+>>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
         x_sol = x_init
         y_sol = y_init
         theta_sol = theta_init
 
+<<<<<<< HEAD
         # iterative least squares problem
         for k in range(0, self.max_num_iter):
             # compute locations of control points
@@ -259,6 +279,9 @@ class IntersectionLocalizer(object):
                       self.line_search_length + self.height_px])
 
         return not any(np.dot(A,pt_img_homogeneous) - b > 0.0)
+=======
+        return x_sol, y_sol, theta_sol
+>>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 
     def SetupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
