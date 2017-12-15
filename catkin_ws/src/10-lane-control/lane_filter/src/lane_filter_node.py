@@ -72,19 +72,19 @@ class LaneFilterNode(object):
         [d_max,phi_max] = self.filter.getEstimate()
         print "d_max = ", d_max
         print "phi_max = ", phi_max
-        linefit_1=np.polyfit(phi_max,d_max,1)
+        linefit_1=np.polyfit(phi_max[3:6],d_max[3:6],1)
         print "gradient " , linefit_1[0]
         d_cur =np.average(d_max[0:2])
         phi_cur =np.average(phi_max[0:2])
-        print "current pose phi %d and d %d", phi_cur , d_cur
+        print "current pose phi and d", phi_cur , d_cur
         sum_phi_l=np.sum(phi_max[3:6])
         avg_phi =np.average(phi_max[3:6])
         print "avg_phi ", avg_phi
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
-        if (sum_phi_l<-0.6):
+        if (sum_phi_l<-1.5):
             print "I see a left curve"
-        elif (sum_phi_l>0.6):
+        elif (sum_phi_l>1.6):
             print "I see a right curve"
         else:
             print "I dunno" 
