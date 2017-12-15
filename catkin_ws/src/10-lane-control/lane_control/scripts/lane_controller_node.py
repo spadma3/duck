@@ -24,7 +24,7 @@ class lane_controller(object):
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
+        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(30.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
     def setupParameter(self,param_name,default_value):
@@ -139,6 +139,14 @@ class lane_controller(object):
     def deacceleration(self, stopline_msg):
         self.stopline_msg = stopline_msg
         rospy.loginfo(stopline_msg)
+        x0 = 0.20   # Distance in cm where we want to stop.
+        x_thr =0.7     # starting deaccleration here
+        x = stopline_msg.stop_line_point.x
+        if x<x0:
+            self.v_bar=0;
+        else x<x_thr:
+            self.v_bar = self.setupParameter("~v_bar",self.v_bar*(x-x0)/(x_thr-x0))
+
 
 if __name__ == "__main__":
     rospy.init_node("lane_controller",anonymous=False)
