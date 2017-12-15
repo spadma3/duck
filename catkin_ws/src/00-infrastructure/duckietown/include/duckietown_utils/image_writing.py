@@ -8,9 +8,11 @@ from .image_composition import make_images_grid
 from .image_rescaling import d8_image_resize_no_interpolation
 from .image_timestamps import add_header_to_image
 from .jpg import jpg_from_image_cv, write_jpg_to_file
+from .deprecation import deprecated
+from duckietown_utils.jpg import write_bgr_to_file_as_jpg
 
 
-def write_image_as_jpg(image, filename):
+def write_bgr_as_jpg(image, filename):
     import numpy as np
     if not isinstance(image, np.ndarray):
         # XXX
@@ -18,11 +20,19 @@ def write_image_as_jpg(image, filename):
     jpg = jpg_from_image_cv(image)
     write_data_to_file(jpg, filename)
     
+@deprecated('use write_bgr_as_jpg')
+def write_image_as_jpg(image, filename):
+    return write_bgr_as_jpg(image, filename)
+
+@deprecated('use write_bgr_images_as_jpgs')
 def write_jpgs_to_dir(name2image, dirname):
+    return write_bgr_images_as_jpgs(name2image, dirname)
+    
+def write_bgr_images_as_jpgs(name2image, dirname):
     """ 
         Write a set of images to a directory.
         
-        name2image is a dictionary of name -> image 
+        name2image is a dictionary of name -> BGR mage 
         
         Images are assumed to be BGR, [H,W,3] uint8.
     """
@@ -50,5 +60,5 @@ def write_jpgs_to_dir(name2image, dirname):
         else:
             basename = ('step%02d-'%i)+filename
             
-        fn = os.path.join(dirname,basename+'.jpg')
-        write_jpg_to_file(image, fn)
+        fn = os.path.join(dirname, basename+'.jpg')
+        write_bgr_to_file_as_jpg(image, fn)

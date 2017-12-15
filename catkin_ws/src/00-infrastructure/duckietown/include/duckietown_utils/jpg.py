@@ -11,15 +11,28 @@ from duckietown_utils import logger
 
 from .file_utils import write_data_to_file
 from .image_composition import make_images_grid  # @UnusedImport
+from duckietown_utils.deprecation import deprecated
 
 
 def jpg_from_bgr(image):
     import cv2
     return cv2.imencode('.jpg', image)[1].tostring()
 
-jpg_from_image_cv = jpg_from_bgr 
+@deprecated('Use jpg_from_bgr()')
+def jpg_from_image_cv(image):
+    return jpg_from_bgr(image) 
 
+@deprecated('Use bgr_from_jpg()')
 def image_cv_from_jpg(data):
+    return bgr_from_jpg(data)
+
+def bgr_from_png(data):
+    return _bgr_from_file_data(data)
+    
+def bgr_from_jpg(data):
+    return _bgr_from_file_data(data)
+
+def _bgr_from_file_data(data):
     """ Returns an OpenCV BGR image from a string """
     import cv2
     import numpy as np
@@ -40,9 +53,13 @@ def image_cv_from_jpg_fn(fn):
     with open(fn) as f:
         return image_cv_from_jpg(f.read())
 
+@deprecated("Use more precise write_bgr_to_file_as_jpg")
 def write_jpg_to_file(image_cv, fn):
+    return write_bgr_to_file_as_jpg(image_cv, fn)
+
+def write_bgr_to_file_as_jpg(image_cv, fn):
     """ Assuming image_cv is a BGR image, write to the file fn. """
-    data = jpg_from_image_cv(image_cv)
+    data = jpg_from_bgr(image_cv)
     write_data_to_file(data, fn)
 
 
