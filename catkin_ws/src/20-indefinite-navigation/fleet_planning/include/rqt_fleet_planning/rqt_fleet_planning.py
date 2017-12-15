@@ -8,10 +8,9 @@ from PyQt5.QtGui import *
 from python_qt_binding.QtWidgets import *
 from sensor_msgs.msg import Image
 from duckietown_msgs.msg import SourceTargetNodes
-from fleet_planning.transformation import Transformer
+from fleet_planning.transformation import PixelAndMapTransformer, MapToGraphTransformer
 from fleet_planning.generate_duckietown_map import graph_creator
 from fleet_planning.graph import Graph
-from fleet_planning.location_to_graph_mapping import IntersectionMapper
 
 class RQTFleetPlanning(Plugin):
 
@@ -20,7 +19,8 @@ class RQTFleetPlanning(Plugin):
         # Give QObjects reasonable names
         self.setObjectName('Fleet-Planning')
 
-        # flags for the UI input control states
+        # initializing
+        self.image = QPixmap()
         self.request_start_node = ''
         self.request_destination_node = ''
         self.image_np = []
@@ -31,8 +31,9 @@ class RQTFleetPlanning(Plugin):
         loadUi(ui_file, self._widget)
         self._widget.setObjectName('rqt_fleet_planning')
 
-        #Load parameters
+        # Load parameters
         self.map_name = rospy.get_param('/map_name', 'tiles_lab')
+        self.veh = rospy.get_param('/veh')
         self.script_dir = os.path.dirname(__file__)
         self.super_script_dir = self.script_dir + '/../../src/'
         self.tile_size = rospy.get_param('tile_size',101)
@@ -41,24 +42,25 @@ class RQTFleetPlanning(Plugin):
         # Add widget to the user interface
         context.add_widget(self._widget)
 
-        self.image = QPixmap()
+        # transformations
         self.duckietown_graph_creator = graph_creator()
         self.duckietown_graph = self.duckietown_graph_creator.build_graph_from_csv(self.super_script_dir, self.map_name)
-        self.map_to_graph_transformer = IntersectionMapper(self.duckietown_graph_creator, self.duckietown_graph)
-        self.setTransformer()
+        self.map_to_graph_transformer = MapToGraphTransformer(self.duckietown_graph)
+        self.setImageToMapTransformer()
 
-        # ROS stuff
-        self.veh = rospy.get_param('/veh')
+        # ROS publishers/subscribers
         self.topic_name = '/' + self.veh + '/actions_dispatcher_node/plan_request'
         self.pub = rospy.Publisher(self.topic_name,SourceTargetNodes, queue_size=1, latch=True)
+        self.subscriber = rospy.Subscriber('/' + self.veh + '/graph_search_server_node/map_graph', Image,
+                                      self.image_callback,  queue_size = 1)
+
+        # event handling
         self._widget.buttonFindPlan.clicked.connect(self.requestPlan)
         self._widget.buttonClear.clicked.connect(self.clearRequest)
-        self.subscriber = rospy.Subscriber('/espresso/graph_search_server_node/map_graph', Image,
-                                      self.image_callback,  queue_size = 1)
         self._widget.label_image.mousePressEvent = self.getPos
 
-    def setTransformer(self):
-        self.image_to_map_transformer = Transformer(self.tile_size, self.image.height())
+    def setImageToMapTransformer(self):
+        self.image_to_map_transformer = PixelAndMapTransformer(self.tile_size, self.image.height())
 
     def getPos(self , event):
         tile_position = self.image_to_map_transformer.image_to_map((event.pos().x(), event.pos().y()))
@@ -100,6 +102,7 @@ class RQTFleetPlanning(Plugin):
         self.request_destination_node = ""
         self._widget.label_start_tiles.setText("")
         self._widget.label_dest_tiles.setText("")
+        #todo send out message to clear node highlighting
 
     def shutdown_plugin(self):
         self.pub.unregister()
@@ -126,4 +129,4 @@ class RQTFleetPlanning(Plugin):
         self.image = QPixmap(self.test_image)
         self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
         self._widget.label_image.setPixmap(self.image)
-        self.setTransformer()
+        self.setImageToMapTransformer()
