@@ -14,7 +14,7 @@ from fleet_planning.graph_search import GraphSearchProblem
 from sensor_msgs.msg import Image
 from fleet_planning.srv import *
 from fleet_planning.generate_duckietown_map import graph_creator, MapImageCreator
-from fleet_planning.transformation import Transformer
+from fleet_planning.transformation import PixelAndMapTransformer
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
 
@@ -278,7 +278,7 @@ class mapDraw():
         # draw the start, customer and target icons next to the corresponding 
         # label of the graph node. 
         print "self.map_img.shape: ", self.map_img.shape
-        transf = Transformer(self.tile_length, self.map_img.shape[0] / self.tile_length)  # TODO: better way to get the map dimensions?
+        transf = PixelAndMapTransformer(self.tile_length, self.map_img.shape[0] / self.tile_length)  # TODO: better way to get the map dimensions?
         if icon_type == "customer":
             icon = self.customer_icon
         elif icon_type == "start":
