@@ -35,7 +35,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         configuration = copy.deepcopy(configuration)
         Configurable.__init__(self,param_names,configuration)
 
-        self.num_belief = 7
+        self.num_belief = 4
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
         self.beliefArray = []
         for i in range(self.num_belief):
@@ -109,7 +109,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def update(self, segments, range_min, range_max):
         #range_delta = (range_max - range_min)/self.num_belief
         #range_delta =np.array([0,(range_max-range_min)/6,(range_max-range_min)/2,(range_max-range_min)])
-        range_delta =np.array([0,(range_max-range_min)/12,(range_max-range_min)/6, (range_max-range_min)/4, (range_max-range_min)*5/12, (range_max-range_min)*7/12,(range_max-range_min)*9/12,range_max-range_min])
+        delta=range_max-range_min
+        range_delta =np.array([0,delta/6,delta/3,delta*2/3, delta])
+        #range_delta =np.array([0,(range_max-range_min)/12,(range_max-range_min)/6, (range_max-range_min)/4, (range_max-range_min)*5/12, (range_max-range_min)*7/12,(range_max-range_min)*9/12,range_max-range_min])
         #range_delta[0]= 0
         # range_delta[1]= (range_max-range_min)/6
         #print "range 1 ",range_delta[1]
