@@ -78,16 +78,17 @@ class LaneFilterNode(object):
         phi_cur =np.average(phi_max[0:2])
         print "current pose phi and d", phi_cur , d_cur
         sum_phi_l=np.sum(phi_max[3:6])
+        sum_d_l =np.sum(d_max[3:6])
         avg_phi =np.average(phi_max[3:6])
         print "avg_phi ", avg_phi
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
-        if (sum_phi_l<-1.5):
+        if (sum_phi_l<-1.6 and sum_d_l>0.4):
             print "I see a left curve"
-        elif (sum_phi_l>1.6):
+        elif (sum_phi_l>1.6 and sum_d_l <-0.4):
             print "I see a right curve"
         else:
-            print "I dunno" 
+            print "I am on a straight line" 
         # #elif (d_max[2] - d_max[0] > 0.1 and phi_max[2] - phi_max[0] < -0.5 and phi_max[2] - phi_max[0] > -1.0 ):
         #     #print "I am in a left curve"
         # elif (abs((d_max[1] +d_max[2] +d_max[4])/3 ) < 0.04  and abs(phi_max[5] - phi_max[1] )< 0.2): 
@@ -100,8 +101,10 @@ class LaneFilterNode(object):
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
-        lanePose.d = d_max[0]
-        lanePose.phi = phi_max[0]
+        lanePose.d = d_cur
+        lanePose.phi=phi_cur
+        #lanePose.d = d_max[0]
+        #lanePose.phi = phi_max[0]
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
 
