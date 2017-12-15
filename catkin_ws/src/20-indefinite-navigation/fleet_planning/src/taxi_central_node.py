@@ -349,13 +349,14 @@ class mapDraw():
         Input:
             - duckiebots: all duckiebots that should be drawn
         """
+        # TODO: figure out best way to visualize duckiebot with customer
         overlay = self.prepImage()
         for name, bot in duckiebots.iteritems():
             self.num_duckiebots_per_node[str(bot._last_known_location)] += 1
             print "Node ", bot._last_known_location, " visited ", self.num_duckiebots_per_node[str(bot._last_known_location)], " times."
             overlay = self.draw_icons(overlay, "start", location = bot._last_known_location, icon_number = self.num_duckiebots_per_node[str(bot._last_known_location)])
             if bot._customer_request:
-                overlay = self.draw_icons(overlay, "customer", location = bot._customer_request.start_location) # TODO(ben): figure out a unambiguous set of icons and assign the correct ones
+                overlay = self.draw_icons(overlay, "customer", location = bot._customer_request.start_location) # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
                 overlay = self.draw_icons(overlay, "target", location = bot._customer_request.target_location) 
 
         # set num_duckiebots_per_node back to zero
