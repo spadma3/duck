@@ -19,7 +19,7 @@ class Implicit(object):
         self.pub_implicit_coordination = rospy.Publisher("~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
         # Setup subscriber
         self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection", BoolStamped, self.cbStop)
-        self.sub_detector = rospy.Subscriber("~detector", PoseStamped, self.cbPose)
+        self.sub_detector = rospy.Subscriber("~vehicle_detection_node", PoseStamped, self.cbPose)
 
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
 
