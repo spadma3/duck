@@ -76,10 +76,10 @@ class LaneFilterNode(object):
         print "gradient " , linefit_1[0]
         sum_phi_l=np.sum(phi_max)
         avg_phi =np.average(phi_max)
-        print 
+        print "avg_phi ", avg_phi
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
-        if (sum_phi_l/length_phi<-0.6):
+        if (sum_phi_l<-0.6):
             print "I see a left curve"
         elif (sum_phi_l>0.6):
             print "I see a right curve"
