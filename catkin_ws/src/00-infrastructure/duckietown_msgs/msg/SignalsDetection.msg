@@ -1,9 +1,9 @@
 Header header
 
 # this is what we can see at the intersection:
-#string front
-#string right
-#string left 
+string front
+string right
+string left 
 
 # For the first backoff approach
 string led_detected
