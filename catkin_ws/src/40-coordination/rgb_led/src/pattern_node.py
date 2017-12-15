@@ -26,10 +26,16 @@ class LEDPatternNode:
         self._rgb_led = RGB_LED()
 
     def _play_pattern_service_callback(self, req):
+        """
+        Method that is called when a call to the service "play_pattern" is made
+        """
         self.play_pattern(req.pattern_name, req.duration)
         return []
 
     def _list_pattern_service_callback(self, req):
+        """
+        Method that is called when a call to the service "list_patterns" is made
+        """
         pattern_names = DuckietownLights.patterns.keys()
         rospy.loginfo("Returning all available patterns: %s", pattern_names)
         return {'patterns': pattern_names}
@@ -37,7 +43,7 @@ class LEDPatternNode:
     def play_pattern(self, pattern_name, duration=-1):
         """
         Play the pattern with the given time for the given duration.
-        If duration is None, then the duration is extracted from the pattern.
+        If duration is negative, then the duration is extracted from the pattern.
         """
 
         # Check that the given pattern actually exists.
@@ -62,11 +68,14 @@ class LEDPatternNode:
         rospy.loginfo("Playing LED Pattern %s for %f seconds", pattern_name, self._current_duration)
 
     def _update_leds(self, event):
+        """
+        Method that is called periodiclly by a timer if the LEDs need to be updated.
+        """
         rospy.logdebug("Updating LEDs")
 
-        currentTime = rospy.get_rostime()
-        elapsedTime = currentTime - self._current_pattern_start_time
-        if elapsedTime.to_sec() > self._current_duration:
+        current_time = rospy.get_rostime()
+        elapsed_time = current_time - self._current_pattern_start_time
+        if elapsed_time.to_sec() > self._current_duration:
             # Stop the pattern and turn LEDs off
             self._current_pattern = None
             self._current_duration = 0.0
@@ -83,7 +92,7 @@ class LEDPatternNode:
             return
 
         # Perform the actual LED update
-        current_configuration = self._current_pattern.get_configuration(elapsedTime.to_sec())
+        current_configuration = self._current_pattern.get_configuration(elapsed_time.to_sec())
         for led in LED.DUCKIEBOT_LEDS:
             led_port = RGB_LED.PORT_MAPPING[led]
             if led not in current_configuration:
@@ -92,6 +101,10 @@ class LEDPatternNode:
                 self._rgb_led.setRGB(led_port, current_configuration[led])
 
     def on_shutdown(self):
+        """
+        Method that is run by ROS when this node is shutdown.
+        """
+        # Ensure all timers are invalidated.
         if self._update_timer is not None:
             self._update_timer.shutdown()
             self._update_timer = None
