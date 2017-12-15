@@ -18,6 +18,7 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1) #Get the estimated pose of the duckiebot
+        self.sub_stop_line_reading = rospy.Subscriber("~stop_line_reading", StopLineReading, self.cbPose, queue_size=1) #Get the estimated pose of the duckiebot
 
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)

@@ -38,4 +38,10 @@ subscriptions:
         topic: ~lane_pose
         type: duckietown_msgs/LanePose
         queue_size: 1
+
+    stop_line_reading:
+        topic: ~stop_line_reading
+        type: duckietown_msgs/StopLineReading
+        queue_size: 1
+
 contracts: {}
