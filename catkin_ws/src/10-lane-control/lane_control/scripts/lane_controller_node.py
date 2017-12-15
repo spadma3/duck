@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose, StopLineReading
+from duckietown_msgs.msg import Twist2DStamped, LanePose
 
 class lane_controller(object):
     def __init__(self):
@@ -9,7 +9,6 @@ class lane_controller(object):
         self.lane_reading = None
 
         self.pub_counter = 0
-        #self.stop_line_reading = 0
 
         # Setup parameters
         self.setGains()
@@ -19,17 +18,14 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1) #Get the estimated pose of the duckiebot
-        self.sub_stop_line_reading = rospy.Subscriber("~stop_line_reading", StopLineReading, self.deacceleration , queue_size=1) #Get the estimated pose of the duckiebot
+        self.sub_lane_reading = rospy.Subscriber("~stop_line_reading", StopLineReading, self.deacceleration, queue_size=1) #Get the StopLineReading and deaccelerate
 
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
+        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(10.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
-
-        # Integrator
-        self.integrator = 0
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
@@ -121,19 +117,11 @@ class lane_controller(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
-
-        # if self.stop_line_reading:
-        #     x_0=0.12 # Set Distance in metre before stop line where we want to stop.
-        #                 # By definition the distance from the center of the red line to the point A should be 0.10 to 0.16 metre
-            # v_deacc=(stop_line_reading.stop_line_point.x-x0)
-
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(cross_track_err) > self.d_thres:
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
         car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err #*self.steer_gain #Right stick H-axis. Right is negative
-
-
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
@@ -148,17 +136,11 @@ class lane_controller(object):
         #     print "lane_controller publish"
         #     print car_control_msg
 
+        def deacceleration(self, stop_line_reading_msg):
 
-    def deacceleration(self,stopline_msg):
-        self.stop_line_reading = stopline_msg
-        x0=0.12
-        rospy.loginfo(str(stopline_msg))
-        # if stopline_msg.stop_line_point.x<0.7:
-        #     self.v_bar = self.setupParameter("~v_bar",(stopline_msg.stop_line_point.x-x0)*self.v_bar)
+            self.stop_line_reading_msg = stop_line_reading_msg
+            rospy.loginfo(str(stop_line_reading_msg))
 
-        # rospy.loginfo(stopline_msg.stop_line_point.x)
-        # rospy.loginfo(stopline_msg.stop_line_point.y)
-        # rospy.loginfo(stopline_msg.stop_line_point.z)
 
 
 if __name__ == "__main__":
