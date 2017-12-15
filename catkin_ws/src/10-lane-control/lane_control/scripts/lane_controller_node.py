@@ -144,7 +144,7 @@ class lane_controller(object):
         x = stopline_msg.stop_line_point.x
         if x<x0:
             self.v_bar=0;
-        elif x<x_thr
+        elif x<x_thr:
             self.v_bar = self.setupParameter("~v_bar",self.v_bar*(x-x0)/(x_thr-x0))
 
 
