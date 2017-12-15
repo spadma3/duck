@@ -43,7 +43,7 @@ class lane_controller(object):
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
 
-        if self.stopline_counter>0 and ~self.stopline_msg.stop_line_detected:
+        if self.stopline_counter>0 and not self.stopline_msg.stop_line_detected:
             self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
 
         # FIXME: AC aug'17: are these inverted?
@@ -145,7 +145,7 @@ class lane_controller(object):
         v_bar = rospy.get_param("~v_bar")
         self.stopline_msg = stopline_msg
         x0 = 0.20   # Distance in cm where we want to stop.
-        x_thr =0.4     # starting deaccleration here
+        x_thr =0.3     # starting deaccleration here
         x = stopline_msg.stop_line_point.x
         if x<x0 and stopline_msg.stop_line_detected:
             self.v_bar=0.1
