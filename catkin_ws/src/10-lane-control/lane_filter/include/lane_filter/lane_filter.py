@@ -118,8 +118,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         # range_delta[2]= (range_max-range_min)/6*3 + range_delta[1]
         #print"range 2 " , range_delta[2]
         # range_delta[3]= (range_max-range_min)/6*3 + range_delta[2]
+   
         for i in range(self.num_belief):
-            measurement_likelihood = self.generate_measurement_likelihood(segments, range_delta[i], range_delta[i+1])
+            if i == 0:
+                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[self.num_belief])    
+            else:
+                measurement_likelihood = self.generate_measurement_likelihood(segments, range_delta[i], range_delta[i+1])
             if measurement_likelihood is not None:
                 self.beliefArray[i] = np.multiply(self.beliefArray[i],measurement_likelihood)
                 if np.sum(self.beliefArray[i]) == 0:
