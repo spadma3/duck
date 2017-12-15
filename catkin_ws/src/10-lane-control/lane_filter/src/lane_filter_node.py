@@ -107,7 +107,8 @@ class LaneFilterNode(object):
         #lanePose.phi = phi_max[0]
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
-
+        lanePose.curvature= 12.0
+        print "curv", lanePose.curvature
         # publish the belief image
 
         bridge = CvBridge()
