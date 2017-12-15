@@ -18,7 +18,7 @@ digraph {
 	INTERSECTION_RECOVERY -> JOYSTICK_CONTROL [label=intersection_recovery_timeout_reached]
 	INTERSECTION_RECOVERY -> LANE_FOLLOWING [label=found_lane]
 	PARKING -> ARRIVE_AT_STOP_LINE [label=at_stop_line]
-	LANE_FOLLOWING -> ARRIVE_AT_STOP_LINE [label=at_stop_line]
+	LANE_FOLLOWING -> ARRIVE_AT_STOP_LINE [label=at_stop_line_and_velocity_zero]
 	ALL_STATES [label="All States" style=dashed]
 	ALL_STATES -> JOYSTICK_CONTROL [label=joystick_override_on concentrate=false style=dashed]
 }

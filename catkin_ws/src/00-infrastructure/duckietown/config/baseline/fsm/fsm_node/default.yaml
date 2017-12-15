@@ -71,7 +71,9 @@ nodes:
   stop_line_filter_node: "stop_line_filter_node/switch"
   framerate_high: "camera_node/framerate_high_switch"
   # extras added
-
+  obstacle_node: "obstacle_detection_node/switch"
+  obstacle_node: "obstacle_detection_node/switch"
+  
 # TODOs:
 # - add extra nodes and check names
 
@@ -135,6 +137,8 @@ states:
     active_nodes:
       - lane_filter_node
       - line_detector_node
+      - parking_node
+      - controller_node
   ARRIVE_AT_STOP_LINE:
     transitions:
       apriltag_intersection: "INTERSECTION_COORDINATION"
