@@ -1,4 +1,7 @@
 <launch>
+
+  <node ns="raspicam" pkg="image_proc" type="image_proc" name="image_proc"/>
+  
   <arg name="veh" doc="Name of vehicle. ex: megaman"/>
   <arg name="cam_name" value="raspicam"/>
   <env name="GSCAM_CONFIG" value="udpsrc port=9000 ! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264 ! videoconvert"/>
