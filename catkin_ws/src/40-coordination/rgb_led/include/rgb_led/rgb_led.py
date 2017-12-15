@@ -100,7 +100,7 @@ class RGB_LED():
         """
         for led in LED.DUCKIEBOT_LEDS:
             led_port = RGB_LED.PORT_MAPPING[led]
-            self.setRGB(led, COLORS.OFF)
+            self.setRGB(led_port, COLORS.OFF)
 
     def __del__(self):
         for i in range(15):
