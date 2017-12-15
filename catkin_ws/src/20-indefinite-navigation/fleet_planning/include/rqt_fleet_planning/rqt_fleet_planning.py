@@ -21,8 +21,8 @@ class RQTFleetPlanning(Plugin):
         self.setObjectName('Fleet-Planning')
 
         # flags for the UI input control states
-        self.request_start_node = ""
-        self.request_destination_node = ""
+        self.request_start_node = ''
+        self.request_destination_node = ''
         self.image_np = []
 
         # Create QWidget
@@ -67,17 +67,18 @@ class RQTFleetPlanning(Plugin):
         self.drawRequestState(tile_position, graph_node_number)
 
     def drawRequestState(self, tile_position, graph_node_number):
+        tile_x = "{:.2f}".format(tile_position[0])
+        tile_y = "{:.2f}".format(tile_position[1])
         if (self.isRequestStartSet() and self.isRequestDestinationSet()):
             pass
         elif (self.isRequestStartSet()):
-            self.request_destination_node = "(" + str(tile_position[0]) + ", " + str(tile_position[1]) + ")" + " #" + graph_node_number
+            self._widget.label_dest_tiles.setText("(" + tile_x + ", " + tile_y + ")" + " #" + graph_node_number)
+            self.request_destination_node = graph_node_number
             # todo: actually draw start and end into the image
         else:
-            self.request_start_node = "(" + str(tile_position[0]) + ", " + str(tile_position[1]) + ")" + " #" + graph_node_number
+            self._widget.label_start_tiles.setText("(" + tile_x + ", " + tile_y + ")" + " #" + graph_node_number)
+            self.request_start_node = graph_node_number
             # todo: actually draw start only
-
-        self._widget.label_start_tiles.setText(self.request_start_node)
-        self._widget.label_dest_tiles.setText(self.request_destination_node)
 
     def isRequestStartSet(self):
         if (self.request_start_node):
@@ -97,8 +98,8 @@ class RQTFleetPlanning(Plugin):
     def clearRequest(self):
         self.request_start_node = ""
         self.request_destination_node = ""
-        self._widget.label_start_tiles.setText(self.request_start_node)
-        self._widget.label_dest_tiles.setText(self.request_destination_node)
+        self._widget.label_start_tiles.setText("")
+        self._widget.label_dest_tiles.setText("")
 
     def shutdown_plugin(self):
         # TODO unregister all publishers here

@@ -11,5 +11,5 @@ class Transformer():
     # this maps a pixel point to the zero-based tile location the pixel is in
     def image_to_map(self, point_on_image):
         y_temp = self.tiles_y - float((point_on_image[1] + 1) / self.tile_size)
-        x_temp = int(point_on_image[0] / self.tile_size)
-        return (x_temp,int(y_temp))
+        x_temp = float(point_on_image[0] / self.tile_size)
+        return (x_temp,y_temp)
