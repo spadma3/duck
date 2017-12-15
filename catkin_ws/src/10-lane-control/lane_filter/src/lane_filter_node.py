@@ -62,17 +62,24 @@ class LaneFilterNode(object):
         #     self.pub_ml_img.publish(ml_img)
         
         range_max = 1.0  # range to consider edges in general
-        range_min = 0.5 # tuned range
+        range_min = 0.3 # tuned range
         self.filter.update(segment_list_msg.segments, range_min, range_max)
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
         print "d_max = ", d_max
         print "phi_max = ", phi_max
+        linefit_1=np.linefit(d_max,phi_max,1)
+        print "gradient " , linefit_1[0]
+        sum_phi_l=np.sum(phi_max)
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
-        # if ((d_max[5] + d_max[0]) > 0.2 and (phi_max[5] - phi_max[0]) < -0.8):
-        #     print "I see a left curve"
+        if (sum_phi_l<-0.6):
+            print "I see a left curve"
+        elif(sum_phi_l>0.6):
+            print " I see a right curve"
+        else
+            print "I dunno" 
         # #elif (d_max[2] - d_max[0] > 0.1 and phi_max[2] - phi_max[0] < -0.5 and phi_max[2] - phi_max[0] > -1.0 ):
         #     #print "I am in a left curve"
         # elif (abs((d_max[1] +d_max[2] +d_max[4])/3 ) < 0.04  and abs(phi_max[5] - phi_max[1] )< 0.2): 
