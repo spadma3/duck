@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose
+from duckietown_msgs.msg import Twist2DStamped, LanePose, StopLineReading
 
 class lane_controller(object):
     def __init__(self):
@@ -138,6 +138,7 @@ class lane_controller(object):
 
     def deacceleration(self, stopline_msg):
         self.stopline_msg = stopline_msg
+        rospy.loginfo(stopline_msg)
 
 if __name__ == "__main__":
     rospy.init_node("lane_controller",anonymous=False)
