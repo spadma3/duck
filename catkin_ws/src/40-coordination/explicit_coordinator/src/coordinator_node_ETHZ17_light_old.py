@@ -111,8 +111,8 @@ class VehicleCoordinator():
             #self.roof_light = CoordinationSignal.ON
 	     self.roof_light = CoordinationSignal.SIGNAL_A
 	     self.random_delay = 5
-             while self.time_at_current_state() < self.random_delay:
-	      
+             if self.time_at_current_state() > self.random_delay:
+
        # else:
            # self.roof_light = CoordinationSignal.OFF
 
@@ -196,6 +196,7 @@ class VehicleCoordinator():
                 self.set_state(State.SACRIFICE)
             
            # elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
+            #    self.set_state(State.AT_STOP_CLEAR)
 
        # elif self.state == State.AT_STOP_CLEAR:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
