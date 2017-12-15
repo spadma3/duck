@@ -25,6 +25,7 @@ class VehicleCoordinator():
     T_CROSS = 6.0      # seconds
     T_SENSE = 2.0      # seconds
     T_UNKNOWN = 1.0    # seconds
+    T_MIN_RANDOM = 1.0 # seconds
 
 # We communicate that the coordination mode has started
     def __init__(self):
@@ -188,7 +189,7 @@ class VehicleCoordinator():
 	        self.set_state(State.SOLVING_UNKNOWN)
 	    elif self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
 		self.roof_light = CoordinationSignal.OFF
- 		self.random_delay = 1+ random() * self.T_MAX_RANDOM
+ 		self.random_delay = self.T_MIN_RANDOM + random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
                 self.set_state(State.SACRIFICE)
             
@@ -214,7 +215,7 @@ class VehicleCoordinator():
                 #    self.set_state(State.GO)
 
         elif self.state == State.GO:
-	    self.random_delay = 2
+	    self.random_delay = 10
             if self.time_at_current_state() > self.random_delay:
             	if self.mode == 'LANE_FOLLOWING':
 		    self.set_state(State.LANE_FOLLOWING)
