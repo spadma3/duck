@@ -106,10 +106,10 @@ class LaneFilterNode(object):
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
         lanePose.curvature= 12.0
-        if (me_phi_l<-0.3 and  me_d_l>0):
+        if (me_phi_l<-0.3 and  me_d_l>0.05):
             print "I see a left curve"
             lanePose.curvature =0.025
-        elif (me_phi_l>0.3 and me_d_l<0):
+        elif (me_phi_l>0.3 and me_d_l<-0.05):
             print "I see a right curve"
             lanePose.curvature=0.054
         else:
