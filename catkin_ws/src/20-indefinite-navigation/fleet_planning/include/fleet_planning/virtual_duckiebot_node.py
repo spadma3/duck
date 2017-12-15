@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy
 from std_msgs.msg import ByteMultiArray
 from fleet_planning.srv import *
@@ -28,7 +29,8 @@ class VirtualDuckiebotNode:
         rospy.loginfo("Will send location information")
 
         # Serialize Message and send it
-        serialized_message = LocalizationMessageSerializer.serialize(req.duckie_name, req.location)
+        route = map(int, req.route.split(','))
+        serialized_message = LocalizationMessageSerializer.serialize(req.duckie_name, req.location, route)
         message = ByteMultiArray(data=serialized_message)
 
         self._pub_localization_topic.publish(message)
@@ -50,9 +52,6 @@ if __name__ == "__main__":
     rospy.init_node('virtual_duckiebot_node')
     virtual_duckiebot_node = VirtualDuckiebotNode()
 
-    mes = InstructionMessageSerializer.serialize("harpy", 3, 1)
-    for s in mes:
-        rospy.loginfo("%d", s)
     send_location_service = rospy.Service(
         'send_location_information',
         VirtualDuckiebotLocation,

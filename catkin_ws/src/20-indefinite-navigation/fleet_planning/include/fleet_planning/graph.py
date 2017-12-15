@@ -63,6 +63,17 @@ class Graph(object):
             raise NodeNotInGraph(node)
         self.node_positions[node] = pos
 
+    def get_node(self, node_number):
+        """
+        Get the node with a given number
+        """
+        for n in self._nodes:
+            if n.name == str(node_number):
+                return n
+
+        # No node with the given number was found...
+        return None
+
     def get_node_pos(self, node):
         if not node in self:
             raise NodeNotInGraph(node)
