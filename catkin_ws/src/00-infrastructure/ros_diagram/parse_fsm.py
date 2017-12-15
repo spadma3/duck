@@ -38,6 +38,7 @@ for state_name in all_state_dict.keys():
 for state_name,state_dict in all_state_dict.items():
 	transition_dict = state_dict.get("transitions")
 	if transition_dict is not None:
+		print transition_dict
 		for event_name, next_state in transition_dict.items():
 			dot.edge(state_name,next_state,label=event_name)
 			print "Transition: %s -- %s --> %s " %(state_name, event_name, next_state)
