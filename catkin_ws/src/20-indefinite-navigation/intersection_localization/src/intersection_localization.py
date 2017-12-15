@@ -3,10 +3,7 @@ import rospy
 import cv2
 from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import IntersectionPose
-<<<<<<< HEAD
 import numpy as np
-=======
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 import duckietown_utils as dt
 
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
@@ -36,10 +33,7 @@ class IntersectionLocalization(object):
 
         # temp
         self.at_intersection = 1
-<<<<<<< HEAD
         self.init = 0
-=======
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 
     '''def ModeCallback(self,msg):
         # TODO
@@ -50,7 +44,6 @@ class IntersectionLocalization(object):
         if self.at_intersection:
             # process raw image
             img_processed = self.localizer.ProcessRawImage(msg_img)
-<<<<<<< HEAD
             cv2.imshow('img_processed', img_processed)
 
             # get pose estimation
@@ -88,33 +81,7 @@ class IntersectionLocalization(object):
                 self.localizer.Draw(img_processed, x_meas, y_meas, theta_meas, 'THREE_WAY_INTERSECTION')
                 cv2.imshow('img_model', img_processed)
                 cv2.waitKey(1)
-=======
 
-            # get pose estimation
-            '''msg_pose_pred = rospy.wait_for_message('~intersection_pose_pred', IntersectionPose)
-
-            # compute the Duckiebot's pose
-            pos_meas, theta_meas = self.localizer.ComputePose(img_processed, msg_pose_pred.x, msg_pose_pred.y,
-                                                              msg_pose_pred.theta)
-'''
-            x_meas = 0
-            y_meas = 0
-            theta_meas = 0
-
-            # publish results
-            msg_pose_meas = IntersectionPose()
-            msg_pose_meas.header.stamp = msg_img.header.stamp
-            msg_pose_meas.x = x_meas
-            msg_pose_meas.y = y_meas
-            msg_pose_meas.theta = theta_meas
-            self.pub_intersection_pose_meas.publish(msg_pose_meas)
-
-            # TODO
-            # do localization here
-
-            '''cv2.imshow('img',img_processed)
-            cv2.waitKey(1)'''
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
         else:
             return
 
@@ -126,11 +93,7 @@ class IntersectionLocalization(object):
 
     def OnShutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
-<<<<<<< HEAD
         cv2.destroyAllWindows()
-=======
-        '''cv2.destroyAllWindows()'''
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 
 
 if __name__ == '__main__':

@@ -13,11 +13,7 @@ class Edge(object):
 
         # auxiliary variables
         self.length = np.linalg.norm(ptB - ptA)
-<<<<<<< HEAD
         self.n_par = (ptB - ptA) / self.length
-=======
-        self.n_par = (ptA - ptB) / self.length
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
         self.n_perp = np.array([self.n_par[1], -self.n_par[0]])
 
 
@@ -26,16 +22,13 @@ class EdgeModel(object):
 
     def __init__(self, object_type, pixels_per_meter, ctrl_pts_density):
         # edge model parameters
-        self.tile_width = 0.6096  # in meters
+        self.tile_width = 0.5842 # in meters (23in)
         self.tile_overlap = 0.0254
         self.white_tape_width = 0.0508
         self.red_tape_width = 0.0508
         self.yellow_tape_width = 0.0254
         self.lane_length = 0.1254
-<<<<<<< HEAD
         self.ppm = 1
-=======
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 
         # generate edges
         if object_type == 'FOUR_WAY_INTERSECTION':
@@ -49,12 +42,8 @@ class EdgeModel(object):
             return
 
         # generate control points
-<<<<<<< HEAD
         self.ctrl_pts, self.ctrl_pts_homogeneous, self.ctrl_pts_n_perp, self.num_ctrl_pts = self.GenerateControlPoints(
             ctrl_pts_density)
-=======
-        self.ctrl_pts, self.ctrl_pts_n_perp, self.num_ctrl_pts = self.GenerateControlPoints(ctrl_pts_density)
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 
     def GenerateControlPoints(self, ctrl_pts_density):
         # computer number of control points
@@ -66,10 +55,7 @@ class EdgeModel(object):
 
         # generate control points
         ctrl_pts = np.zeros(shape=(2, num_ctrl_pts), dtype=float)
-<<<<<<< HEAD
         ctrl_pts_homogeneous = np.zeros(shape=(3, num_ctrl_pts), dtype=float)
-=======
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
         ctrl_pts_n_perp = np.zeros(shape=(2, num_ctrl_pts), dtype=float)
         k = 0
         for i in range(0, self.num_edges):
@@ -81,7 +67,6 @@ class EdgeModel(object):
                 ctrl_pts_n_perp[:, k] = self.edges[i].n_perp
                 k += 1
 
-<<<<<<< HEAD
         ctrl_pts_homogeneous[0:2, :] = ctrl_pts[:, :]
         ctrl_pts_homogeneous[2, :] = 1
 
@@ -95,40 +80,15 @@ class EdgeModel(object):
 
         return np.dot(M, self.ctrl_pts_homogeneous), np.dot(R, self.ctrl_pts_n_perp)
 
-=======
-        return ctrl_pts, ctrl_pts_n_perp, num_ctrl_pts
 
-    def ComputeControlPointsLocation(self, t, theta):
-        # generate motion matrix
-        M = np.array([[np.cos(theta), -np.sin(theta), t[0]], [np.sin(theta), np.cos(theta), t[1]]])
-        R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
-
-        return np.dot(M, self.ctrl_pts_homogeneous), np.dot(R, self.ctrl_pts_n_perp)
-
-    def Draw(self, t, theta):
-        #TODO
-        img = np.zeros(shape=(800,800,1), dtype=np.uint8)
-
-        R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
-        for edge in self.edges:
-            ptA = np.dot(R,edge.ptA) + t
-            ptB = np.dot(R,edge.ptB) + t
-            cv2.line(img,(int(ptA[0]),int(800-ptA[1])),(int(ptB[0]),int(800-ptB[1])),255,1)
-
-        return img
-
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
     def GenerateIntersection(self, num_exits, pixels_per_meter):
         if not (num_exits == 3 or num_exits == 4):
             # TODO throw error
             return
 
-<<<<<<< HEAD
-        # update to compute correct control point locations
+        # update pixels per meter to compute correct control point locations
         self.ppm = pixels_per_meter
 
-=======
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
         # create auxiliary points
         pt1 = np.array([-self.lane_length, 0.5 * (self.tile_width - self.tile_overlap) + 0.5 * self.yellow_tape_width],
                        dtype=float)
@@ -197,7 +157,6 @@ class EdgeModel(object):
             for k in range(0, 4):
                 # compute translation
                 if k == 0:
-<<<<<<< HEAD
                     t = np.array([0.0, 0.0], dtype=float) * pixels_per_meter
                 elif k == 1:
                     t = np.array([self.tile_width - self.tile_overlap, 0.0], dtype=float) * pixels_per_meter
@@ -206,16 +165,6 @@ class EdgeModel(object):
                                  dtype=float) * pixels_per_meter
                 else:
                     t = np.array([0.0, self.tile_width - self.tile_overlap]) * pixels_per_meter
-=======
-                    t = np.array([0.0, 0.0], dtype=float)* pixels_per_meter
-                elif k == 1:
-                    t = np.array([self.tile_width - self.tile_overlap, 0.0], dtype=float)* pixels_per_meter
-                elif k == 2:
-                    t = np.array([self.tile_width - self.tile_overlap, self.tile_width - self.tile_overlap],
-                                 dtype=float)* pixels_per_meter
-                else:
-                    t = np.array([0.0, self.tile_width - self.tile_overlap])* pixels_per_meter
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 
                 # compute rotation
                 theta = k * 0.5 * np.pi
@@ -231,7 +180,6 @@ class EdgeModel(object):
             for k in range(0, 3):
                 # compute translation
                 if k == 0:
-<<<<<<< HEAD
                     t = np.array([0.0, 0.0], dtype=float) * pixels_per_meter
                 elif k == 1:
                     t = np.array([self.tile_width - self.tile_overlap, 0.0], dtype=float) * pixels_per_meter
@@ -240,16 +188,6 @@ class EdgeModel(object):
                                  dtype=float) * pixels_per_meter
                 else:
                     t = np.array([0.0, self.tile_width - self.tile_overlap]) * pixels_per_meter
-=======
-                    t = np.array([0.0, 0.0], dtype=float)* pixels_per_meter
-                elif k == 1:
-                    t = np.array([self.tile_width - self.tile_overlap, 0.0], dtype=float)* pixels_per_meter
-                elif k == 2:
-                    t = np.array([self.tile_width - self.tile_overlap, self.tile_width - self.tile_overlap],
-                                 dtype=float)* pixels_per_meter
-                else:
-                    t = np.array([0.0, self.tile_width - self.tile_overlap])* pixels_per_meter
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
 
                 # compute rotation
                 theta = k * 0.5 * np.pi
@@ -268,18 +206,3 @@ class EdgeModel(object):
                         edges.append(Edge(ptA_rot, ptB_rot))
 
         return edges, len(edges)
-<<<<<<< HEAD
-=======
-
-
-'''if __name__ == '__main__':
-    four_way_intersection = EdgeModel('THREE_WAY_INTERSECTION', 800, 0.05)
-
-    t = np.array([200,200], dtype=float)
-    theta = 0.0
-    img = four_way_intersection.Draw(t,theta)
-    cv2.imshow('img',img)
-    cv2.waitKey(10000)
-    cv2.destroyAllWindows()'''
-
->>>>>>> b3aa25fdf370a7e9d48f154aa190740b54c6dc8e
