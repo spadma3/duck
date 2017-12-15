@@ -6,7 +6,9 @@ from std_msgs.msg import Float32
 from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
 from duckietown_utils.instantiate_utils import instantiate
 import sys
+import os
 import numpy as np
+from matplotlib import pyplot as plt
 
 class LaneFilterNode(object):
     def __init__(self):
