@@ -72,8 +72,8 @@ class LaneFilterNode(object):
         [d_max,phi_max] = self.filter.getEstimate()
         print "d_max = ", d_max
         print "phi_max = ", phi_max
-        linefit_1=np.polyfit(phi_max[1:3],d_max[1:3],1)
-        print "gradient " , linefit_1[0]
+        #linefit_1=np.polyfit(phi_max[1:3],d_max[1:3],1)
+        #print "gradient " , linefit_1[0]
         #d_cur =np.average(d_max[0])
         #phi_cur =np.average(phi_max[0])
         print "current pose phi and d", phi_max[0], d_max[0]
