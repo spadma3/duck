@@ -24,7 +24,7 @@ class lane_controller(object):
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(30.0), self.getGains_event)
+        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(2.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
     def setupParameter(self,param_name,default_value):
@@ -41,7 +41,9 @@ class lane_controller(object):
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
 
-        self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
+        if ~self.stopline_msg.stop_line_detected:
+            self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
+        
         # FIXME: AC aug'17: are these inverted?
         self.k_d = self.setupParameter("~k_d",k_theta) # P gain for theta
         self.k_theta = self.setupParameter("~k_theta",k_d) # P gain for d
