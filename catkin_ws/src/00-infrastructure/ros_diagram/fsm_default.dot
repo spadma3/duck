@@ -1,0 +1,20 @@
+// default.yaml
+digraph {
+	JOYSTICK_CONTROL [label=JOYSTICK_CONTROL]
+	INTERSECTION_CONTROL [label=INTERSECTION_CONTROL]
+	INTERSECTION_RECOVERY [label=INTERSECTION_RECOVERY]
+	LANE_RECOVERY [label=LANE_RECOVERY]
+	LANE_FOLLOWING [label=LANE_FOLLOWING]
+	COORDINATION [label=COORDINATION]
+	JOYSTICK_CONTROL -> LANE_FOLLOWING_AVOID [label=start_avoidance]
+	JOYSTICK_CONTROL -> LANE_FOLLOWING [label=joystick_override_off]
+	INTERSECTION_CONTROL -> LANE_FOLLOWING [label=intersection_done]
+	INTERSECTION_RECOVERY -> JOYSTICK_CONTROL [label=intersection_recovery_timeout_reached]
+	INTERSECTION_RECOVERY -> LANE_FOLLOWING [label=found_lane]
+	LANE_RECOVERY -> JOYSTICK_CONTROL [label=lane_recovery_timeout_reached]
+	LANE_RECOVERY -> LANE_FOLLOWING [label=found_lane]
+	LANE_FOLLOWING -> COORDINATION [label=at_stop_line]
+	COORDINATION -> INTERSECTION_CONTROL [label=intersection_go]
+	ALL_STATES [label="All States" style=dashed]
+	ALL_STATES -> JOYSTICK_CONTROL [label=joystick_override_on concentrate=false style=dashed]
+}

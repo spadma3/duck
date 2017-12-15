@@ -1,0 +1,16 @@
+// parallel_autonomy.yaml
+digraph {
+	LANE_FOLLOWING [label=LANE_FOLLOWING]
+	JOYSTICK_CONTROL [label=JOYSTICK_CONTROL]
+	WAITING_ON_TURN_DIRECTION [label=WAITING_ON_TURN_DIRECTION]
+	INTERSECTION_CONTROL [label=INTERSECTION_CONTROL]
+	LANE_FOLLOWING -> INTERSECTION_CONTROL [label=at_stop_line]
+	LANE_FOLLOWING -> JOYSTICK_CONTROL [label=joystick_control_on]
+	JOYSTICK_CONTROL -> LANE_FOLLOWING [label=out_of_lane]
+	JOYSTICK_CONTROL -> LANE_FOLLOWING [label=joystick_control_off]
+	JOYSTICK_CONTROL -> INTERSECTION_CONTROL [label=at_stop_line]
+	WAITING_ON_TURN_DIRECTION -> INTERSECTION_CONTROL [label=intersection_go]
+	INTERSECTION_CONTROL -> LANE_FOLLOWING [label=intersection_done]
+	ALL_STATES [label="All States" style=dashed]
+	ALL_STATES -> JOYSTICK_CONTROL [label=joystick_override_on concentrate=false style=dashed]
+}
