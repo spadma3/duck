@@ -48,7 +48,6 @@ class RRT():
 
         self.nodeList = [self.start]
         for i in range(self.maxIter):
-            print(i)
             rnd = self.get_random_point()
             nind = self.GetNearestListIndex(self.nodeList, rnd)
 
