@@ -100,7 +100,7 @@ states:
   JOYSTICK_CONTROL:
     transitions:
       joystick_override_off: "LANE_FOLLOWING"
-      start_avoidance: "LANE_FOLLOWING_AVOID"
+      # start_avoidance: "LANE_FOLLOWING_AVOID"
     active_nodes:
       - lane_filter_node
       - line_detector_node
