@@ -18,7 +18,7 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1) #Get the estimated pose of the duckiebot
-        self.sub_lane_reading = rospy.Subscriber("~stop_line_reading", StopLineReading, self.deacceleration, queue_size=1) #Get the StopLineReading and deaccelerate
+        self.sub_stop_line_reading = rospy.Subscriber("~stop_line_reading", StopLineReading, self.deacceleration, queue_size=1) #Get the StopLineReading and deaccelerate
 
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
@@ -50,7 +50,7 @@ class lane_controller(object):
         self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
 
     def getGains_event(self, event):
-        v_bar = rospy.get_param("~v_bar")
+        #v_bar = rospy.get_param("~v_bar")
         k_d = rospy.get_param("~k_d")
         k_theta = rospy.get_param("~k_theta")
         d_thres = rospy.get_param("~d_thres")
@@ -64,7 +64,7 @@ class lane_controller(object):
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
             rospy.loginfo("old gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_old))
             rospy.loginfo("new gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_new))
-            self.v_bar = v_bar
+            #self.v_bar = v_bar
             self.k_d = k_d
             self.k_theta = k_theta
             self.d_thres = d_thres
@@ -140,6 +140,10 @@ class lane_controller(object):
 
             self.stop_line_reading_msg = stop_line_reading_msg
             rospy.loginfo(str(stop_line_reading_msg))
+            x0=0.12
+
+            # if stopline_msg.stop_line_point.x<0.7:
+            #     self.v_bar = self.setupParameter("~v_bar",(stopline_msg.stop_line_point.x-x0)*self.v_bar)
 
 
 
