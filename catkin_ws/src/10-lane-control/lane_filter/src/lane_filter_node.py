@@ -86,12 +86,7 @@ class LaneFilterNode(object):
         print "median phi d ", me_phi_l , me_d_l
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
-        if (sum_phi_l<-1.6 and av_d_l>0.05):
-            print "I see a left curve"
-        elif (sum_phi_l>1.6 and av_d_l <-0.05):
-            print "I see a right curve"
-        else:
-            print "I am on a straight line" 
+
         # #elif (d_max[2] - d_max[0] > 0.1 and phi_max[2] - phi_max[0] < -0.5 and phi_max[2] - phi_max[0] > -1.0 ):
         #     #print "I am in a left curve"
         # elif (abs((d_max[1] +d_max[2] +d_max[4])/3 ) < 0.04  and abs(phi_max[5] - phi_max[1] )< 0.2): 
@@ -111,7 +106,14 @@ class LaneFilterNode(object):
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
         lanePose.curvature= 12.0
-        print "curv", lanePose.curvature
+        if (me_phi_l<-0.3 ):
+            print "I see a left curve"
+            lanePose.curvature =0.025
+        elif (me_phi_l>0.3 ):
+            print "I see a right curve"
+        else:
+            print "I am on a straight line" 
+        print "curv ", lanePose.curvature
         # publish the belief image
 
         bridge = CvBridge()
