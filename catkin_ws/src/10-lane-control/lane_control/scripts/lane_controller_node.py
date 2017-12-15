@@ -146,7 +146,7 @@ class lane_controller(object):
             self.v_bar=0.1
         elif x<x_thr and stopline_msg.stop_line_detected:
             self.v_bar = self.setupParameter("~v_bar",v_bar*(x-x0)/(x_thr-x0))
-            rospy.loginfo(str(deacceleration triggered))
+            rospy.loginfo("deaccleration triggered. Velocity now:"+str(self.v_bar) )
 
 
         rospy.loginfo(str(stopline_msg))
