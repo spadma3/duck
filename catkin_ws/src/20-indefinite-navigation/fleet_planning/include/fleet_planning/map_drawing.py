@@ -141,7 +141,7 @@ class MapDraw():
         overlay = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
         return overlay
 
-    def publishMap(self, duckiebots):
+    def drawMap(self, duckiebots):
         """
         New function to draw map independent of GUI calls. Draw all duckiebots
         and their customers, if they have any.

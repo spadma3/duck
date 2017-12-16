@@ -12,7 +12,7 @@ class TestTaxiCentral(unittest.TestCase):
     def test_duckiebot_location_update(self):
         rospy.init_node('test_node')
 
-        duckiebot = Duckiebot('paco')
+        duckiebot = Duckiebot('jeff')
         start = 5
         stop = 12
         other = 7
@@ -59,7 +59,7 @@ class TestTaxiCentral(unittest.TestCase):
         self.assertTrue(isinstance(taxi_central_node._pending_customer_requests[0], CustomerRequest))
 
         # location update handling
-        robot_name = 'paco'
+        robot_name = 'jeff'
 
         message = LocalizationMessageSerializer.serialize(robot_name, 9, [11, 13, 15])
         taxi_central_node._location_update(ByteMultiArray(ByteMultiArray,message))

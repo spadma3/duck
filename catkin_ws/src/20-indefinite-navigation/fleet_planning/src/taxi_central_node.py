@@ -190,7 +190,7 @@ class TaxiCentralNode:
 
         # map drawing
         self.map_drawing = MapDraw(self._graph, map_dir, gui_img_dir, map_name)
-        self.image_pub.publish(self.map_drawing.publishMap({}))
+        self.image_pub.publish(self.map_drawing.drawMap({}))
 
     def _idle_duckiebots(self):
         """
@@ -226,7 +226,7 @@ class TaxiCentralNode:
         except KeyError:
             rospy.logwarn('Failure when unregistering Duckiebot. {} had already been unregistered.'.format(duckiebot.name))
 
-        self.map_drawing.publishMap(self._registered_duckiebots)
+        self.image_pub.publish(self.map_drawing.drawMap(self._registered_duckiebots))
 
     def _register_customer_request(self, request_msg):
         """callback function for request subscriber. appends CustomerRequest instance to _pending_customer_requests,
@@ -341,7 +341,8 @@ class TaxiCentralNode:
         else: # nothing special happened, just location update
             pass
         rospy.logwarn('registered duckieboouts: {}'.format(self._registered_duckiebots))
-        self.map_drawing.publishMap(self._registered_duckiebots)
+        print "location_update"
+        self.image_pub.publish(self.map_drawing.drawMap(self._registered_duckiebots))
 
     def _check_time_out(self, msg):
         """callback function from some timer, ie. every 30 seconds. Checks for every duckiebot whether it has been
