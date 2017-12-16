@@ -227,10 +227,10 @@ class VehicleCoordinator():
        # elif self.state == State.KEEP_CALM:
 	#	print(self.time_at_current_state())
                #	if self.time_at_current_state() > 5:
-			self.clearance_to_go = CoordinationClearance.GO
+		self.clearance_to_go = CoordinationClearance.GO
            # if self.time_at_current_state() > 5 and self.mode == 'LANE_FOLLOWING':
 		if self.mode == 'LANE_FOLLOWING': 	
-			self.set_state(State.LANE_FOLLOWING)
+				self.set_state(State.LANE_FOLLOWING)
 
         elif self.state == State.SACRIFICE:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
