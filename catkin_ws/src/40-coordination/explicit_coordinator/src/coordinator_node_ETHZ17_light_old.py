@@ -225,7 +225,7 @@ class VehicleCoordinator():
         elif self.state == State.GO:
 	#    self.set_state(State.KEEP_CALM)
        # elif self.state == State.KEEP_CALM:
-		print(self.time_at_current_state())
+	#	print(self.time_at_current_state())
                	if self.time_at_current_state() > 5:
 			self.clearance_to_go = CoordinationClearance.GO
            # if self.time_at_current_state() > 5 and self.mode == 'LANE_FOLLOWING':
@@ -239,11 +239,12 @@ class VehicleCoordinator():
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
 	elif self.state == State.KEEP_CALM:
-		if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
-			self.roof_light = CoordinationSignal.OFF
-			self.set_state(State.SACRIFICE)
-		else:
-			self.set_state(State.GO)
+		if self.time_at_current_state() > 4:
+			if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
+		#		self.roof_light = CoordinationSignal.OFF
+				self.set_state(State.SACRIFICE)
+			else:
+				self.set_state(State.GO)
 
         elif self.state == State.SOLVING_UNKNOWN:
             if self.time_at_current_state() > self.random_delay:
