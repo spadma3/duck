@@ -20,6 +20,8 @@ class ActionsDispatcherNode:
     def __init__(self, map_dir, map_csv):
         self.node_name = rospy.get_name()
         self.duckiebot_name = self.setup_parameter('/veh', 'no_duckiebot')
+        map_dir = rospy.get_param('/map_dir')
+        map_name = rospy.get_param('/map_name')
 
         self.actions = []
         self.target_node = None
@@ -38,7 +40,7 @@ class ActionsDispatcherNode:
 
         # mapping: location -> node number
         self.graph_creator = graph_creator()
-        self.graph_creator.build_graph_from_csv(map_dir, map_csv)
+        self.graph_creator.build_graph_from_csv(map_dir, map_name)
         self.location_to_node_mapper = IntersectionMapper(self.graph_creator)
 
     def setup_parameter(self, param_name, default_value):
@@ -134,10 +136,6 @@ class ActionsDispatcherNode:
 if __name__ == "__main__":
     rospy.init_node('actions_dispatcher_node')
 
-    script_dir = os.path.dirname(__file__)
-    map_path = os.path.abspath(script_dir)
-    csv_filename = 'tiles_lab'
-
-    actions_dispatcher_node = ActionsDispatcherNode(map_path, csv_filename)
+    actions_dispatcher_node = ActionsDispatcherNode()
     rospy.on_shutdown(actions_dispatcher_node.on_shutdown)
     rospy.spin()
