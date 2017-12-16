@@ -195,7 +195,7 @@ class VehicleCoordinator():
                 self.roof_light = CoordinationSignal.OFF
 	        self.random_delay = 1+random() * self.T_UNKNOWN
 	        self.set_state(State.SOLVING_UNKNOWN)
-            elif self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
+            elif self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:  # if we are seeing other cars (i.e. we cannot go)
 		self.roof_light = CoordinationSignal.OFF
  		self.random_delay = self.T_MIN_RANDOM + random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
