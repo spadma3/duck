@@ -7,6 +7,7 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include "std_msgs/String.h"
+#include <tf/tf.h>
 #include <tf/LinearMath/Quaternion.h>
 #include "duckietown_msgs/AprilTagsWithInfos.h"
 #include "duckietown_msgs/Twist2DStamped.h"
@@ -72,8 +73,8 @@ visualization_msgs::Marker make_pose_marker(int marker_id, uint8_t action, doubl
 
     // Set the scale of the marker
     marker.scale.x = 0.2; // Arrow length
-    marker.scale.y = 0.13; // Arrow width
-    marker.scale.z = 0.1; // Arrow height
+    marker.scale.y = 0.03; // Arrow width
+    marker.scale.z = 0.03; // Arrow height
 
     if (action == ADD_ACTION)
     {
@@ -168,6 +169,7 @@ class GraphSlam
     float oldimutheta;
     double lastTimeSecs;
 
+    // TODO: Check if the noises are okay
 public:
     GraphSlam()
 	: nh_(), measurementNoise(noiseModel::Diagonal::Sigmas((Vector(2) << 0.05, 0.05))),
@@ -224,14 +226,40 @@ public:
 	{
 	    curposeindex += 1;
 
-	    // maybe msg.omega needs to be switched to degrees/radians?
-	    double delta_d = msg->twist.twist.linear.x;
-	    double delta_theta = msg->twist.twist.angular.z;
-	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
+	    double timeNowSecs = ros::Time::now().toSec();
+	    double delta_t = timeNowSecs - lastTimeSecs;
+	    lastTimeSecs = timeNowSecs;
 
+	    // Make sure that you set the speed gain to CURRENT_SPEEDGAIN
+	    // rosparam set /<veh>/joy_mapper_node/speed_gain CURRENT_SPEEDGAIN
+#define CURRENT_SPEEDGAIN 0.41
+	    double delta_d = delta_t * CURRENT_SPEEDGAIN;
+	    // We don't use "==" with floating-point numbers
+	    if (msg->twist.twist.linear.x < 0.0001)
+		delta_d = 0;
+
+	    // OLD METHOD: Take the delta_theta from twist.angular.z, and
+	    // *************
+	    // double delta_theta = msg->twist.twist.angular.z;
+	    // graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
+	    // curx += cos(curtheta) * delta_d;
+	    // cury += sin(curtheta) * delta_d;
+	    // curtheta = fmod(curtheta + delta_theta,2 * M_PI);
+	    // initialEstimate.insert(curposeindex, Pose2(curx, cury,
+	    // curtheta));
+
+	    tf::Quaternion q_tf(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y,
+				msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
+	    tf::Matrix3x3 m(q_tf);
+	    double roll, pitch, yaw;
+	    m.getRPY(roll, pitch, yaw);
+	    //printf("roll: %f\tpitch: %f\tyaw: %f\n", roll, pitch, yaw);
+	    // TODO: DEAL WITH yaw going from -2.87 to 3.0 in one shot (in the curtheta-old_theta)
+	    double old_theta = curtheta;
+	    curtheta = yaw;
+	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, curtheta - old_theta), odomNoise));
 	    curx += cos(curtheta) * delta_d;
 	    cury += sin(curtheta) * delta_d;
-	    curtheta = fmod(curtheta + delta_theta,2 * M_PI);
 	    initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
 
 	    // Visualize

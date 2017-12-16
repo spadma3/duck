@@ -15,13 +15,18 @@
 		</include>
 	</group>
 
+	<include file="$(find duckiebot_visualizer)/launch/duckiebot_visualizer.launch">
+		<arg name="veh" value="$(arg veh)" />
+	</include>
+
 	<group ns="$(arg veh)">
-		<node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name)" output="screen" clear_params="true" >
-		</node>
+		<node if="$(arg local)" name="$(arg node_name)"
+		      pkg="$(arg pkg_name)" type="$(arg node_name)"
+		      output="screen" clear_params="true" />
+
 
 		<!-- run remote -->
-		<node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name)" output="screen" clear_params="true">
-		</node>
+		<node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name)" output="screen" clear_params="true"/>
 
 	</group>
 </launch>
