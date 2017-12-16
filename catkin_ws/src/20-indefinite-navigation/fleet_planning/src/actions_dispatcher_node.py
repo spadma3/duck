@@ -29,7 +29,7 @@ class ActionsDispatcherNode:
 
         # Subscribers:
         self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.graph_search)
-        self.sub_red_line = rospy.Subscriber("~/paco/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
+        self.sub_red_line = rospy.Subscriber("~/localhost/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
 
         # location listener
         self.listener_transform = tf.TransformListener()
