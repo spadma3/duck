@@ -341,7 +341,6 @@ class TaxiCentralNode:
         else: # nothing special happened, just location update
             pass
         rospy.logwarn('registered duckieboouts: {}'.format(self._registered_duckiebots))
-        print "location_update"
         self.image_pub.publish(self.map_drawing.drawMap(self._registered_duckiebots))
 
     def _check_time_out(self, msg):
