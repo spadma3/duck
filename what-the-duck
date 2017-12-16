@@ -4,11 +4,11 @@ NC='\033[0m' # No Color
 
 if ! [ -x "$(command -v rospack)" ]; then
   echo -e "${RED}rospack is not accessible${NC}." >&2
-  echo -e "You need to activate ROS and compile the repo." >&2
+  echo -e "You need to activate ROS using environment.sh and compile the repo." >&2
   exit 1
 fi
 
-rospack find what_the_duck
+rospack find what_the_duck >/dev/null
 
 if [ $? -eq 0 ]; then
     echo
@@ -16,4 +16,5 @@ else
     echo -e "Error: ${RED}Package what_the_duck not compiled.${NC}" >&2
 fi
 
+export DISABLE_CONTRACTS=1
 rosrun what_the_duck what-the-duck

@@ -1,9 +1,10 @@
-
-
-def jobs_comptests(context):  
-    
-    from . import run 
+from . import run 
+from . import repo_age 
  
-    from comptests.registrar import jobs_registrar_simple
-    jobs_registrar_simple(context)
+# 
+# def jobs_comptests(context):  
+#     
+#     
+#     from comptests.registrar import jobs_registrar_simple
+#     jobs_registrar_simple(context)
     

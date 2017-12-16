@@ -1,5 +1,6 @@
 import os
 
+from . import logger
 from .exceptions import DTConfigException
 from .locate_files_impl import locate_files
 from .path_utils import expand_all
@@ -8,11 +9,18 @@ from .path_utils import expand_all
 class DuckietownConstants():
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
     DUCKIEFLEET_ROOT_variable = 'DUCKIEFLEET_ROOT'
+    
+    # If the environment variable is not set, use these: 
+    duckiefleet_root_defaults = [
+        '~/duckiefleet',
+        '~/duckiefleet-fall2017',
+    ]
+    
     DUCKIETOWN_DATA_variable = 'DUCKIETOWN_DATA'
     DUCKIETOWN_CONFIG_SEQUENCE_variable = 'DUCKIETOWN_CONFIG_SEQUENCE'
     
     # inside DUCKIEFLEET_ROOT
-    scuderia_filename = 'scuderia.yaml'
+#     scuderia_filename = 'scuderia.yaml'
     machines_path_rel_to_root = 'catkin_ws/src/00-infrastructure/duckietown/machines'
     
     use_cache_for_algos =  False
@@ -28,9 +36,41 @@ def get_duckietown_root():
     """ Returns the path of DUCKIETOWN_ROOT and checks it exists """
     return _get_dir(DuckietownConstants.DUCKIETOWN_ROOT_variable)
 
+
 def get_duckiefleet_root():
-    """ Returns the path of DUCKIETOWN_ROOT and checks it exists """
-    return _get_dir(DuckietownConstants.DUCKIEFLEET_ROOT_variable)
+    """ 
+        Returns the path of DUCKIEFLEET_ROOT and checks it exists.
+        Raises DTConfigException. 
+    """
+
+    # If the environment variable is set:    
+    vname = DuckietownConstants.DUCKIEFLEET_ROOT_variable
+    if vname in os.environ:
+        return _get_dir(vname)
+    else:
+        msg = 'The environment variable %s is not defined,' % vname
+        msg += ' so I will look for the default directories.'  
+        logger.info(msg)
+        
+        defaults =  DuckietownConstants.duckiefleet_root_defaults
+        found = []
+        for d in defaults:
+            d2 = expand_all(d)
+            if os.path.exists(d2):
+                found.append(d2)
+        if not found:
+            msg = 'Could not find any of the default directories:'
+            for d in defaults:
+                msg += '\n- %s' % d
+            raise DTConfigException(msg)
+        
+        if len(found) > 1:
+            msg = 'I found more than one match for the default directories:'
+            for d in found:
+                msg += '\n- %s' % d
+            raise DTConfigException(msg)
+        
+        return found[0]        
 
 def get_duckietown_data():
     """ Returns the path of DUCKIETOWN_DATA and checks it exists """
@@ -107,6 +147,9 @@ def get_scuderia_path():
 
 
 def _get_dir(variable_name):
+    """ 
+        Raises DTConfigException if it does not exist or the environment variable is not set.
+    """
     if not variable_name in os.environ:
         msg = 'Environment variable %r not defined.' % variable_name
         raise DTConfigException(msg)

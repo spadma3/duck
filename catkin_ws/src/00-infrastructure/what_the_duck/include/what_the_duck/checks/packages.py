@@ -14,8 +14,12 @@ def is_package_installed(package_name):
                   raise_on_error=False,
                   capture_keyboard_interrupt=False,
                   env=None)
-
-    return (res.ret == 0) and ('installed' in res.stdout)
+    is_installed = (res.ret == 0) and ('installed' in res.stdout)
+    
+    if is_installed:
+        return True
+    else:
+        return False
 
 
 class CheckPackageNotInstalled(Check):
