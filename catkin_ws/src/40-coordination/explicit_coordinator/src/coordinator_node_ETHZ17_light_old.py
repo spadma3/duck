@@ -240,6 +240,7 @@ class VehicleCoordinator():
 
 	elif self.state == State.KEEP_CALM:
 		if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
+			self.roof_light = CoordinationSignal.OFF
 			self.set_state(State.SACRIFICE)
 		else:
 			self.set_state(State.GO)
