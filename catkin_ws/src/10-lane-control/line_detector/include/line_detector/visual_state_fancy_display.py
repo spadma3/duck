@@ -22,7 +22,7 @@ def vs_fancy_display(image_cv, segment_list):
     ground = np.copy(image_cv)
     shape = ground.shape[:2]
     
-    ground = ground / 4 + 120
+    ground = ground / 4 + 60
      
     for segment in segment_list.segments:
         
