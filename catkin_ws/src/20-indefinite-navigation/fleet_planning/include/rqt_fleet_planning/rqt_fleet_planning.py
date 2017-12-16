@@ -35,7 +35,7 @@ class RQTFleetPlanning(Plugin):
         self.map_name = rospy.get_param('/map_name', 'tiles_lab')
         self.veh = rospy.get_param('/veh')
         self.script_dir = os.path.dirname(__file__)
-        self.super_script_dir = self.script_dir + '/../../src/'
+        self.super_script_dir = self.script_dir + '/../../src/maps/'
         self.tile_size = rospy.get_param('tile_size',101)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
@@ -49,8 +49,7 @@ class RQTFleetPlanning(Plugin):
         self.setImageToMapTransformer()
 
         # ROS publishers/subscribers
-        self.topic_name = '/' + self.veh + '/actions_dispatcher_node/plan_request'
-        self.pub = rospy.Publisher(self.topic_name,SourceTargetNodes, queue_size=1, latch=True)
+        self.pub = rospy.Publisher('~/customer_requests', SourceTargetNodes, queue_size=1, latch=True)
         self.subscriber = rospy.Subscriber('/taxi_central_node/map_graph', Image,
                                       self.image_callback,  queue_size = 1)
 

@@ -158,7 +158,7 @@ class TaxiCentralNode:
 
     _graph_creator = None
 
-    def __init__(self, map_dir, map_csv):
+    def __init__(self):
         """
         subscribe to location", customer_requests. Publish to transportation status, target location.
         Init time_out timer.
@@ -207,6 +207,7 @@ class TaxiCentralNode:
         duckiebot = Duckiebot(robot_name)
         if robot_name not in self._registered_duckiebots:
             self._registered_duckiebots[robot_name] = duckiebot
+            rospy.loginfo('Created and registered Duckiebot {}'.format(robot_name))
 
         else:
             rospy.logwarn('Failed to register new duckiebot. A duckiebot with the same name has already been registered.')
@@ -224,26 +225,25 @@ class TaxiCentralNode:
             rospy.logwarn('Unregistered and removed from map Duckiebot {}'.format(duckiebot.name))
         except KeyError:
             rospy.logwarn('Failure when unregistering Duckiebot. {} had already been unregistered.'.format(duckiebot.name))
-        # TODO: redraw map
+
+        self.map_drawing.publishMap(self._registered_duckiebots)
 
     def _register_customer_request(self, request_msg):
         """callback function for request subscriber. appends CustomerRequest instance to _pending_customer_requests,
         Calls handle_customer_requests
 
         """
-        rospy.logwarn('register_request')
         start = request_msg.source_node
         target = request_msg.target_node
         request = CustomerRequest(start, target)
         self._pending_customer_requests.append(request)
-        rospy.logwarn(self._pending_customer_requests)
+        rospy.loginfo('Registered customer request {} -> {}'.format(start, target))
         self._handle_customer_requests()
 
     def _handle_customer_requests(self):
         """
         Switch function. This allows to switch between strategies in the future
         """
-        rospy.logwarn('handling request')
         if self._fleet_planning_strategy == FleetPlanningStrategy.CLOSEST_DUCKIEBOT:
             self._fleet_planning_closest_duckiebot()
 
@@ -259,7 +259,6 @@ class TaxiCentralNode:
         Make sure to use Duckiebot.next_location for the search. Finally assign customer request to best duckiebot.
         (Maybe if # pending_customer requests > number idle duckiebots, assign the ones with the shortest path.)
         """
-        rospy.logwarn('closest duckiebot')
         # For now quickly find the closest duckiebot
         rospy.logwarn(self._pending_customer_requests)
         for pending_request in self._pending_customer_requests:
@@ -307,7 +306,6 @@ class TaxiCentralNode:
          if it has changed.
         :param location_msg: contains location and robot name
         """
-
         duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
 
         # Find the next node
@@ -323,7 +321,6 @@ class TaxiCentralNode:
             duckiebot = self._registered_duckiebots[duckiebot_name]
             new_duckiebot_state = duckiebot.update_location_check_target_reached(node, next_node)
             self._handle_customer_requests()
-            rospy.loginfo("Created duckiebot {}.".format(duckiebot_name))
 
         else:
             duckiebot = self._registered_duckiebots[duckiebot_name]
@@ -343,8 +340,8 @@ class TaxiCentralNode:
 
         else: # nothing special happened, just location update
             pass
-
-        # TODO redraw map
+        rospy.logwarn('registered duckieboouts: {}'.format(self._registered_duckiebots))
+        self.map_drawing.publishMap(self._registered_duckiebots)
 
     def _check_time_out(self, msg):
         """callback function from some timer, ie. every 30 seconds. Checks for every duckiebot whether it has been
@@ -376,12 +373,7 @@ class TaxiCentralNode:
 if __name__ == '__main__':
     # startup node
     rospy.init_node('taxi_central_node')
-
-    script_dir = os.path.dirname(__file__)
-    map_path = os.path.abspath(script_dir)
-    csv_filename = 'tiles_lab'
-
-    taxi_central_node = TaxiCentralNode(map_path, csv_filename)
+    taxi_central_node = TaxiCentralNode()
 
     rospy.on_shutdown(TaxiCentralNode.on_shutdown)
     rospy.spin()

@@ -28,7 +28,6 @@ class MapDraw():
         self.map_img_path = self.map_path + '_map'
         self.tiles_dir = os.path.abspath(
             map_dir + '/../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
-        print(self.tiles_dir)
         self.customer_icon_path = os.path.join(gui_img_dir, 'customer_duckie.jpg')
         self.start_icon_path = os.path.join(gui_img_dir, 'duckie.jpg')
         self.target_icon_path = os.path.join(gui_img_dir, 'location-icon.png')
@@ -50,7 +49,6 @@ class MapDraw():
         self.num_duckiebots_per_node = {node: 0 for node in self.duckietown_graph._nodes}
 
         # image used to store all start, customer and target icons at their positions
-        print(self.customer_icon_path)
         self.customer_icon = cv2.resize(cv2.imread(self.customer_icon_path), (30, 30))
         self.start_icon = cv2.resize(cv2.imread(self.start_icon_path), (30, 30))
         self.target_icon = cv2.resize(cv2.imread(self.target_icon_path), (30, 30))
@@ -61,7 +59,6 @@ class MapDraw():
         """
         Convert a graph node number to a 2d image pixel location
         """
-        print "graph.node_positions", graph.node_positions
         return graph.node_positions[str(node)]
 
     def draw_icons(self, map_image, icon_type, location, icon_number):
@@ -78,12 +75,9 @@ class MapDraw():
 
         :return opencv image with the icons at the correct positions
         """
-        # print "Size of map: ", self.map_image.shape
-        print "draw_icons()"
         # loop through all trips currently in existence. For each trip,
         # draw the start, customer and target icons next to the corresponding
         # label of the graph node.
-        print "self.map_img.shape: ", self.map_img.shape
         transf = PixelAndMapTransformer(self.tile_length, self.map_img.shape[
             0] / self.tile_length)  # TODO: better way to get the map dimensions?
         if icon_type == "customer":
@@ -98,9 +92,7 @@ class MapDraw():
 
         # convert graph number to 2D image pixel coords
         point = self.graph_node_to_image_location(graph=self.duckietown_graph, node=location)
-        print "Point received is: ", point
         point = transf.map_to_image(point)
-        print "Point received is: ", point
         x_start = point[1]
         x_end = x_start + icon.shape[0]
         y_start = point[0] + (icon_number - 1) * (
@@ -111,7 +103,6 @@ class MapDraw():
         return map_image
 
     def publishImage(self, req, path):
-        print "publishImage"
         if path:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=path.edges(),
                                                           map_name=self.map_name,
@@ -119,11 +110,10 @@ class MapDraw():
         else:
             self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
-        print req.source_node, req.target_node
         # TODO: either pass the name of the nodes here and use the  self.duckietown_graph.get_node_oos(node) function
         # or figure out some other way to get the location.
         overlay = self.prepImage()
-        print "req: ", req.source_node, req.target_node
+
         # draw request if initialized, i.e. nonzero
         if req.target_node != '0':
             overlay = self.draw_icons(overlay, "start", location=req.source_node)
@@ -162,8 +152,8 @@ class MapDraw():
         overlay = self.prepImage()
         for name, bot in duckiebots.iteritems():
             self.num_duckiebots_per_node[str(bot._last_known_location)] += 1
-            print "Node ", bot._last_known_location, " visited ", self.num_duckiebots_per_node[
-                str(bot._last_known_location)], " times."
+            #print "Node ", bot._last_known_location, " visited ", self.num_duckiebots_per_node[
+            #    str(bot._last_known_location)], " times."
             overlay = self.draw_icons(overlay, "start", location=bot._last_known_location,
                                       icon_number=self.num_duckiebots_per_node[str(bot._last_known_location)])
             if bot._customer_request:
@@ -174,6 +164,6 @@ class MapDraw():
                 # set num_duckiebots_per_node back to zero
         for node, num in self.num_duckiebots_per_node.iteritems():
             self.num_duckiebots_per_node[node] = 0
-            print "Node ", node, " set to zero.", self.num_duckiebots_per_node[node]
+            #print "Node ", node, " set to zero.", self.num_duckiebots_per_node[node]
 
         return self.bridge.cv2_to_imgmsg(overlay, "bgr8")
