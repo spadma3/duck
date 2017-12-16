@@ -1,14 +1,39 @@
 #!/usr/bin/env python
 import rospy
-
+from include.fleet_messaging import commlibs2
 # Imports message type
-from std_msgs.msg import String 
+from std_msgs.msg import String
+
+# !/usr/bin/env python
+import rospy
+from include.fleet_messaging import commlibs2
+# Imports message type
+from std_msgs.msg import String
+
+
+class Receiver(object):
+    def __index__(self):
+        # Initialize node
+        self.node_name = rospy.get_name()
+        rospy.loginfo("[%s] Initialzing." % (self.node_name))
+
+        # Wireless Interface
+        self.iface = self.setupParameter(self, "iface", "wlan0")
+
+        self.sub = commlibs2.duckiemq(interface=self.iface, socktype='sub')
+        self.sub.setfilter("Hello")
+
+    def setupParameter(self, param_name, default_value):
+        value = rospy.get_param(param_name, default_value)
+        rospy.set_param(param_name, value)  # Write to parameter server for transparancy
+        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+        return value
+
 
 # Initialize the node with rospy
 rospy.init_node('subscriber_node', anonymous=False)
 
-sub1 = commlibs2.duckiemq(interface="wlx18d6c71b665e", socktype='sub')
-sub1.setfilter("Hello")
+receiver = Receiver()
 
 def recieve(sub, name):
     while True:
@@ -16,8 +41,8 @@ def recieve(sub, name):
     return
 
 try:
-    thread.start_new_thread(recieve, (sub1, "sub1", ))
-    thread.start_new_thread(recieve, (sub2, "sub2", ))
+    thread.start_new_thread(recieve, (receiver.sub, "sub", ))
+    #thread.start_new_thread(recieve, (sub2, "sub2", ))
 except:
     print("Error on spawning threads")
 
