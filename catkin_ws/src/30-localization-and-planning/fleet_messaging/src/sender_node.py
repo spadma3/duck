@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 import rospy
 import time
-from fleet_messaging import commlibs2
+import fleet_messaging.commlibs2 as cl
 # Initialize the node with rospy
 
 
 class Sender(object):
-    def __index__(self):
+    def __init__(self):
         # Initialize node
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initialzing." % (self.node_name))
 
         # Wireless Interface
-        self.iface = self.setupParameter(self, "iface", "wlan0")
-
+        self.iface = self.setupParameter("~iface", "wlan0")
         # ZQM Publisher
-        self.pub = commlibs2.duckiemq(interface=self.iface, socktype='pub')
+        self.pub = cl.duckiemq(interface=self.iface, socktype='pub')
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
