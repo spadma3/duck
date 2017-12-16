@@ -12,7 +12,7 @@ from anti_instagram.AntiInstagram import AntiInstagram
 from ground_projection.GroundProjection import GroundProjection
 from lane_filter.lane_filter import *
 from matplotlib import pyplot as plt
-from os.path import isfile
+from os.path import (isfile, dirname, basename)
 from os import (makedirs, environ, path)
 from sensor_msgs.msg import CameraInfo
 from collections import OrderedDict
@@ -139,6 +139,8 @@ def write_Logs(dArray, phiArray):
     logFile.write('\nImage preparer used: %s\n' % preparer)
     logFile.write('\tAverage amount of segments:\t%s\n' % round(np.mean(nSegments),1))
 
+    logFile.write('\nProcessing time: %f' % (toc-tic))
+
     logFile = open(('%s/%s/results.txt' % (output, rosbagIN[:-4])), 'w')
     logFile.write('Distance, Angle:\n')
     for d, phi in zip(dArray, phiArray):
@@ -156,7 +158,7 @@ parser.add_argument('--save_images', help='If to save the processed images from 
 args = parser.parse_args()
 rosbagIN = args.rosbag
 # imgIn = args.imgIn
-output = args.output
+output = ('%s/%s' % (dirname(rosbagIN), args.output))
 save_images = args.save_images
 
 # Perform file check
@@ -173,12 +175,13 @@ except:
 
 # Instantiate rosbag Object
 bag = rosbag.Bag(rosbagIN)
+rosbagIN = basename(rosbagIN)
 
 # Initialize variables
 robot = dtu.bag_info.which_robot(bag)
 topic = ('/' + robot + '/camera_node/image/compressed')
 detector = 'baseline'
-preparer = 'prep_120_40'
+preparer = 'prep_200_70'
 context = FakeContext()
 
 algo_db = get_easy_algo_db()
