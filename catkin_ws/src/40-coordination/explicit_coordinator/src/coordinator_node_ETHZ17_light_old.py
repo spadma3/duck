@@ -239,7 +239,7 @@ class VehicleCoordinator():
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
 	elif self.state == State.KEEP_CALM:
-		if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
+		if self.right_veh == SignalsDetection.SIGNAL_A or self.right_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_B:
 			#self.roof_light = CoordinationSignal.OFF
 			self.set_state(State.SACRIFICE)
 		else:
