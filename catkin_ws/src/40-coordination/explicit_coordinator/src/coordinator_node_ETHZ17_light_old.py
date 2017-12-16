@@ -113,15 +113,10 @@ class VehicleCoordinator():
         elif self.state == State.GO and not self.traffic_light_intersection:
             #self.roof_light = CoordinationSignal.ON
 	     self.roof_light = CoordinationSignal.SIGNAL_A
-<<<<<<< HEAD
+
 	    # self.random_delay = 5
             # while self.time_at_current_state() < self.random_delay:
 	    #    continue
-=======
-	     self.random_delay = 5
-             if self.time_at_current_state() > self.random_delay:
-
->>>>>>> a40574653c1e478d67e7fd343d9ea8f4ae0121b1
        # else:
            # self.roof_light = CoordinationSignal.OFF
 
