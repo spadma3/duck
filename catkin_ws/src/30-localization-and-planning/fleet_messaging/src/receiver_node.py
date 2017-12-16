@@ -1,12 +1,6 @@
-#!/usr/bin/env python
-import rospy
-from include.fleet_messaging import commlibs2
-# Imports message type
-from std_msgs.msg import String
-
 # !/usr/bin/env python
 import rospy
-from include.fleet_messaging import commlibs2
+from fleet_messaging import commlibs2
 # Imports message type
 from std_msgs.msg import String
 
