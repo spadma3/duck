@@ -238,7 +238,7 @@ class VehicleCoordinator():
             if self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
-	elif self.state == State.KEEP_CALM
+	elif self.state == State.KEEP_CALM:
 		if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
 			self.set_state(State.SACRIFICE)
 		else:
