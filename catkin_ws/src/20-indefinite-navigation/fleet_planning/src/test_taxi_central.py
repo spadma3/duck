@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from taxi_central_node import *
+from fleet_planning.srv import *
 from std_msgs.msg import Int16MultiArray
-from duckietown_msgs.msg import BoolStamped
+from duckietown_msgs.msg import SourceTargetNodes
 import unittest
-
+from fleet_planning.message_serialization import LocalizationMessageSerializer
 
 class TestTaxiCentral(unittest.TestCase):
 
@@ -50,29 +51,24 @@ class TestTaxiCentral(unittest.TestCase):
 
         taxi_central_node = TaxiCentralNode(map_path, csv_filename)
         taxi_central_node._fleet_planning_strategy = FleetPlanningStrategy.DEACTIVATED
-        request = Int16MultiArray()
-        request.data=[5, 17]
+
 
         # register customer request
-        taxi_central_node._register_customer_request(request)
+        request_msg = SourceTargetNodes(8, 9)
+        taxi_central_node._register_customer_request(request_msg)
         self.assertTrue(isinstance(taxi_central_node._pending_customer_requests[0], CustomerRequest))
 
         # location update handling
         robot_name = 'paco'
-        at_stop_line = BoolStamped()
-        at_stop_line.data = True
-        taxi_central_node._location_update(at_stop_line)
-        # no locations are published. Thus paco shall not be registered, since unknown location.
-        self.assertFalse(robot_name in taxi_central_node._registered_duckiebots)
 
-        # make new duckiebot, assign a customer request to it
-        taxi_central_node._create_and_register_duckiebot(robot_name)
-        taxi_central_node._registered_duckiebots[robot_name].update_location_check_target_reached(5, 9)
-        taxi_central_node._register_customer_request(request)
-        request_new = taxi_central_node._pending_customer_requests.pop()
-        taxi_central_node._registered_duckiebots[robot_name]._customer_request = request_new
-
+        message = LocalizationMessageSerializer.serialize(robot_name, 9, [11, 13, 15])
+        taxi_central_node._location_update(ByteMultiArray(ByteMultiArray,message))
+        # robot is registered now
         self.assertTrue(robot_name in taxi_central_node._registered_duckiebots)
+        request = taxi_central_node._pending_customer_requests.pop()
+        taxi_central_node._registered_duckiebots[robot_name].assign_customer_request(request)
+        self.assertTrue(taxi_central_node._registered_duckiebots[robot_name].taxi_state == TaxiState.GOING_TO_CUSTOMER)
+        self.assertTrue(len(taxi_central_node._idle_duckiebots()) == 0)
 
         # set timer to shorter period, test robot time out deregistration
         taxi_central_node.TIME_OUT_CRITERIUM = 1.0
@@ -83,10 +79,12 @@ class TestTaxiCentral(unittest.TestCase):
         self.assertTrue(robot_name not in taxi_central_node._registered_duckiebots)
 
         # request shall be pending again
-        rospy.logwarn(taxi_central_node._pending_customer_requests)
+        self.assertTrue(len(taxi_central_node._pending_customer_requests) == 1)
 
-        rospy.logwarn(request_new)
-        self.assertTrue(request_new in taxi_central_node._pending_customer_requests)
+    def test_location_update(self):
+        rospy.wait_for_service('send_location_information')
+        fake_location = rospy.ServiceProxy('send_location_information', VirtualDuckiebotLocation)
+        fake_location('susi', 5, '7,11,13')
 
 
 if __name__ == '__main__':
