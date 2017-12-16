@@ -71,23 +71,28 @@ def d8n_read_all_images_from_bag(bag, topic0, max_images=None):
             interval = 1
         logger.info('Read %s images; interval = %d' % (nfound, interval))
            
-    for j, (topic, msg, t) in enumerate(bag.read_messages()):
-        if topic == topic0:
-            float_time = t.to_sec()
-            if first_timestamp is None:
-                first_timestamp = float_time
+    my_count = 0
+    for j, (topic, msg, t) in enumerate(bag.read_messages(topics=[topic0])):
+    
+        float_time = t.to_sec()
+        if first_timestamp is None:
+            first_timestamp = float_time
+        
+        if interval is not None:
+            add = (my_count % interval == 0)
+            if not add:
+                continue
             
-            if interval is not None:
-                add = (j % interval == 0)
-                if not add:
-                    continue
-                
-            rgb = numpy_from_ros_compressed(msg)
+        rgb = numpy_from_ros_compressed(msg)
 
-            data.append({'timestamp': float_time, 'rgb': rgb})
+        data.append({'timestamp': float_time, 'rgb': rgb})
 
-            if j % 10 == 0:
-                logger.debug('Read %d images from topic %s' % (j, topic))
+        # stop if we have enough
+        if max_images is not None and (len(data) >= max_images):
+            break 
+        
+        if j % 10 == 0:
+            logger.debug('Read %d images from topic %s' % (j, topic))
 
     logger.info('Returned %d images' % len(data))
     if not data:
