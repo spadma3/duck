@@ -239,11 +239,11 @@ class VehicleCoordinator():
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
 	elif self.state == State.KEEP_CALM:
-		if self.time_at_current_state() > 4:
-			if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
-		#		self.roof_light = CoordinationSignal.OFF
-				self.set_state(State.SACRIFICE)
-			else:
+		if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
+			#self.roof_light = CoordinationSignal.OFF
+			self.set_state(State.SACRIFICE)
+		else:
+			if time_at_current_state() > 4:
 				self.set_state(State.GO)
 
         elif self.state == State.SOLVING_UNKNOWN:
