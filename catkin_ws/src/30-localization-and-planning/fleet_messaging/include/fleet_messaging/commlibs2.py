@@ -17,7 +17,6 @@ class duckiemq(object):
         self.socktype = socktype
         self.port = port
         self.interface = interface
-
         self.ownip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
         self.endpoint = "epgm://" + self.ownip + ":" + self.port
         self.def_filter = 0
