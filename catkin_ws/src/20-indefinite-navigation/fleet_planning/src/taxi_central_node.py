@@ -8,7 +8,8 @@ from std_msgs.msg import ByteMultiArray
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
-
+from fleet_planning.map_drawing import MapDraw
+from sensor_msgs.msg import Image
 
 class TaxiState(Enum):
     GOING_TO_CUSTOMER = 0
@@ -156,11 +157,7 @@ class TaxiCentralNode:
     _pending_customer_requests = []
     _fulfilled_customer_requests = [] # for analysis purposes
 
-    _map_graph = None # TODO: necessary ?
     _graph_creator = None
-
-    _world_frame = 'world'
-    _target_frame = 'duckiebot'
 
     def __init__(self, map_dir, map_csv):
         """
@@ -184,13 +181,15 @@ class TaxiCentralNode:
 
         # publishers
         self._pub_duckiebot_target_location = rospy.Publisher('/taxi/commands', ByteMultiArray, queue_size=1)
+        self.image_pub = rospy.Publisher("~map_graph", Image, queue_size=1, latch=True)
 
         # timers
         self._time_out_timer = rospy.Timer(rospy.Duration.from_sec(self.TIME_OUT_CRITERIUM), self._check_time_out)
 
-        # mapping: location -> node number
-        self._location_to_node_mapper = IntersectionMapper(self._graph_creator)
- 
+        # map drawing
+        map_name = rospy.get_param('/map_name')
+        self.map_drawing = MapDraw(self._graph, map_name)
+        self.image_pub.publish(self.map_drawing.publishMap({}))
 
     def _idle_duckiebots(self):
         """

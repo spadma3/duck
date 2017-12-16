@@ -9,7 +9,7 @@ from fleet_planning.generate_duckietown_map import graph_creator, MapImageCreato
 from fleet_planning.transformation import PixelAndMapTransformer
 
 
-class mapDraw():
+class MapDraw():
     """
     Used to generate the map from a csv file, draw the graph on top
     of that and draw the icons for each duckiebot.
@@ -17,38 +17,33 @@ class mapDraw():
           to draw overlapping icons next to each other.
     """
 
-    def __init__(self, duckietown_graph, duckietown_problem):
+    def __init__(self, duckietown_graph, map_name):
         print 'mapDraw initializing...'
 
         # Input: csv file
-        self.map_name = rospy.get_param('/map_name')
+        self.map_name = map_name
 
         # Loading paths
         self.script_dir = os.path.dirname(__file__)
-        self.map_path = self.script_dir + '/maps/' + self.map_name
+        self.map_path = self.script_dir + '/../../src/maps/' + self.map_name
         self.map_img_path = self.map_path + '_map'
         self.tiles_dir = os.path.abspath(
-            self.script_dir + '../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
-        self.customer_icon_path = os.path.abspath(self.script_dir + '/../include/gui_images/customer_duckie.jpg')
-        self.start_icon_path = os.path.abspath(self.script_dir + '/../include/gui_images/duckie.jpg')
-        self.target_icon_path = os.path.abspath(self.script_dir + '/../include/gui_images/location-icon.png')
+            self.script_dir + '../../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
+        self.customer_icon_path = os.path.abspath(self.script_dir + '/../gui_images/customer_duckie.jpg')
+        self.start_icon_path = os.path.abspath(self.script_dir + '/../gui_images/duckie.jpg')
+        self.target_icon_path = os.path.abspath(self.script_dir + '/../gui_images/location-icon.png')
 
         # build and init graphs
-        # gc = graph_creator()
         self.duckietown_graph = duckietown_graph  # gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
-        self.duckietown_problem = duckietown_problem  # GraphSearchProblem(self.duckietown_graph, None, None)
+        self.duckietown_problem = GraphSearchProblem(self.duckietown_graph, None, None)  # GraphSearchProblem(self.duckietown_graph, None, None)
 
-        print "Map loaded successfully!\n"
-
-        self.image_pub = rospy.Publisher("~map_graph", Image, queue_size=1, latch=True)
         self.bridge = CvBridge()
-
         # prepare and send graph image through publisher
         self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
 
         mc = MapImageCreator(self.tiles_dir)
         self.tile_length = mc.tile_length
-        self.map_img = mc.build_map_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
+        self.map_img = mc.build_map_from_csv(script_dir=os.path.abspath(self.script_dir + '/../../src/'), csv_filename=self.map_name)
 
         # keep track of how many icons are being drawn at each node
         self.num_duckiebots_per_node = {node: 0 for node in self.duckietown_graph._nodes}
@@ -59,8 +54,7 @@ class mapDraw():
         self.start_icon = cv2.resize(cv2.imread(self.start_icon_path), (30, 30))
         self.target_icon = cv2.resize(cv2.imread(self.target_icon_path), (30, 30))
 
-        overlay = self.prepImage()
-        self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
+        print "Map loaded successfully!\n"
 
     def graph_node_to_image_location(self, graph, node):
         """
@@ -133,7 +127,7 @@ class mapDraw():
         if req.target_node != '0':
             overlay = self.draw_icons(overlay, "start", location=req.source_node)
             overlay = self.draw_icons(overlay, "target", location=req.target_node)
-        self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
+        return self.bridge.cv2_to_imgmsg(overlay, "bgr8")
 
     def prepImage(self):
         """takes the graph image and map image and overlays them"""
@@ -181,4 +175,4 @@ class mapDraw():
             self.num_duckiebots_per_node[node] = 0
             print "Node ", node, " set to zero.", self.num_duckiebots_per_node[node]
 
-        self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
+        return self.bridge.cv2_to_imgmsg(overlay, "bgr8")

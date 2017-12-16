@@ -5,24 +5,7 @@
 	<arg name="pkg_name" default="fleet_planning" doc="name of the package"/>
 	<arg name="node_name" default="taxi_central_node" doc="name of the node"/>
 	<arg name="map_name" default="tiles_lab"/>
-	<arg name="veh"/>
-	<arg name="localization" default="true"/>
-	<arg name="/localization/local" default="true" />
-	<arg name="/localization/map_name" default="tags_tiles_lab" />
-	<arg name="/localization/gui" default="false"/>
-	<!-- <arg name="param_file_name" value="$(arg param_file_name)"/> -->
 	<param name="map_name" value="$(arg map_name)"/>
-	<param name="veh" value="$(arg veh)"/>
-	<arg name="fsm_file_name" default="default" />
-
-
-	<include file="$(find fleet_planning)/launch/actions_dispatcher_node.launch">
-		<arg name="veh" value="$(arg veh)"/>        
-		<arg name="config" value="$(arg config)"/>   
-		<arg name="local" value="$(arg local)"/>
-		<arg name="param_file_name" value="$(arg fsm_file_name)"/>
-	</include>
-
 	    <!-- Local -->
 	    <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true"></node>
 
