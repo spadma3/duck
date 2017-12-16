@@ -209,7 +209,7 @@ class VehicleCoordinator():
  	#    if self.veh_detected == SignalsDetection.CARS:  # if we are seeing other cars (i.e. we cannot go)
          #       self.set_state(State.AT_STOP_CLEARING)
             else:
-                 self.set_state(State.GO)
+                 self.set_state(State.KEEP_CALM)
 
         #elif self.state == State.RESERVING:
           #  if self.right_veh != SignalsDetection.NO_CAR:
@@ -237,6 +237,12 @@ class VehicleCoordinator():
                # self.set_state(State.AT_STOP_CLEARING)
             if self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
+
+	elif self.state == State.KEEP_CALM
+		if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
+			self.set_state(State.SACRIFICE)
+		else:
+			self.set_state(State.GO)
 
         elif self.state == State.SOLVING_UNKNOWN:
             if self.time_at_current_state() > self.random_delay:
