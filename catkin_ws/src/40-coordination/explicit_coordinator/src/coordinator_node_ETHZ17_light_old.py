@@ -119,10 +119,12 @@ class VehicleCoordinator():
        # else:
            # self.roof_light = CoordinationSignal.OFF
 
-        if self.state == State.GO:
-            self.clearance_to_go = CoordinationClearance.GO
-        else:
-            self.clearance_to_go = CoordinationClearance.WAIT
+       # if self.state == State.GO:
+	#	print(self.time_at_current_state())
+	#	if self.time_at_current_state() > 5:
+	#		self.clearance_to_go = CoordinationClearance.GO
+       # else:
+       #     self.clearance_to_go = CoordinationClearance.WAIT
 
         rospy.logdebug('[coordination_node_ETHZ17] Transitioned to state' + self.state)
 #################################################################################################################
@@ -219,12 +221,15 @@ class VehicleCoordinator():
                 #    self.set_state(State.GO)
 
         elif self.state == State.GO:
-	    self.set_state(State.KEEP_CALM)
-        elif self.state == State.KEEP_CALM:
-            print(self.time_at_current_state()) 	   	
-            if self.time_at_current_state() > 5 and self.mode == 'LANE_FOLLOWING':
-            	self.set_state(State.LANE_FOLLOWING)
- 
+	#    self.set_state(State.KEEP_CALM)
+       # elif self.state == State.KEEP_CALM:
+		print(self.time_at_current_state())
+               	if self.time_at_current_state() > 5:
+			self.clearance_to_go = CoordinationClearance.GO
+           # if self.time_at_current_state() > 5 and self.mode == 'LANE_FOLLOWING':
+			if self.mode == 'LANE_FOLLOWING': 	
+				self.set_state(State.LANE_FOLLOWING)
+
         elif self.state == State.SACRIFICE:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
                # self.set_state(State.AT_STOP_CLEARING)
@@ -238,6 +243,10 @@ class VehicleCoordinator():
         elif self.state == State.TL_SENSING:
             if self.traffic_light == SignalsDetection.GO:
                 self.set_state(State.GO)
+	
+	
+	if self.state != State.GO:
+		self.clearance_to_go = CoordinationClearance.WAIT
 
 if __name__ == '__main__':
     car = VehicleCoordinator()
