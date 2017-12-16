@@ -17,21 +17,22 @@ class MapDraw():
           to draw overlapping icons next to each other.
     """
 
-    def __init__(self, duckietown_graph, map_name):
+    def __init__(self, duckietown_graph, map_dir, gui_img_dir, map_name):
         print 'mapDraw initializing...'
 
         # Input: csv file
         self.map_name = map_name
 
         # Loading paths
-        self.script_dir = os.path.dirname(__file__)
-        self.map_path = self.script_dir + '/../../src/maps/' + self.map_name
+        self.map_path = map_dir + self.map_name
         self.map_img_path = self.map_path + '_map'
         self.tiles_dir = os.path.abspath(
-            self.script_dir + '../../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
-        self.customer_icon_path = os.path.abspath(self.script_dir + '/../gui_images/customer_duckie.jpg')
-        self.start_icon_path = os.path.abspath(self.script_dir + '/../gui_images/duckie.jpg')
-        self.target_icon_path = os.path.abspath(self.script_dir + '/../gui_images/location-icon.png')
+            map_dir + '/../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
+        print(self.tiles_dir)
+        self.customer_icon_path = os.path.join(gui_img_dir, 'customer_duckie.jpg')
+        self.start_icon_path = os.path.join(gui_img_dir, 'duckie.jpg')
+        self.target_icon_path = os.path.join(gui_img_dir, 'location-icon.png')
+        self.script_dir = os.path.dirname(__file__)
 
         # build and init graphs
         self.duckietown_graph = duckietown_graph  # gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
@@ -39,11 +40,11 @@ class MapDraw():
 
         self.bridge = CvBridge()
         # prepare and send graph image through publisher
-        self.graph_image = self.duckietown_graph.draw(self.script_dir, highlight_edges=None, map_name=self.map_name)
+        self.graph_image = self.duckietown_graph.draw(map_dir=map_dir, highlight_edges=None, map_name=self.map_name)
 
         mc = MapImageCreator(self.tiles_dir)
         self.tile_length = mc.tile_length
-        self.map_img = mc.build_map_from_csv(script_dir=os.path.abspath(self.script_dir + '/../../src/'), csv_filename=self.map_name)
+        self.map_img = mc.build_map_from_csv(map_dir=map_dir, csv_filename=self.map_name)
 
         # keep track of how many icons are being drawn at each node
         self.num_duckiebots_per_node = {node: 0 for node in self.duckietown_graph._nodes}

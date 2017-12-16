@@ -1,5 +1,7 @@
 import graphviz
 import cv2
+import os
+
 
 class NodeNotInGraph(Exception):
     def __init__(self, node):
@@ -89,7 +91,7 @@ class Graph(object):
             raise NodeNotInGraph(node)
         return self.node_label_fn(node)
 
-    def draw(self, script_dir, highlight_edges=None, show_weights=None, map_name = 'duckietown', highlight_nodes = None):
+    def draw(self, map_dir, highlight_edges=None, show_weights=None, map_name = 'duckietown', highlight_nodes = None):
         if highlight_nodes:        
             start_node = highlight_nodes[0]
             target_node = highlight_nodes[1]        
@@ -129,14 +131,14 @@ class Graph(object):
                     c  = 'black'
                     p = '1.5'
                     
-                g.edge(self.node_label_fn(src_node), self.node_label_fn(e.target), taillabel=t , color = c, penwidth = p)
+                g.edge(self.node_label_fn(src_node), self.node_label_fn(e.target), taillabel=t, color=c, penwidth = p)
 
-        map_path = script_dir + '/maps/'
+
         g.format = 'png'
-        g.render(filename=map_name, directory=map_path, view=False, cleanup=True)
+        g.render(filename=map_name, directory=map_dir, view=False, cleanup=True)
 
         # crop lower useless title on the bottom of the rendered image
-        image_path = map_path+map_name+'.png'
+        image_path = os.path.join(map_dir, map_name+'.png')
         img = cv2.imread(image_path)
         return img[:-50, :]
 

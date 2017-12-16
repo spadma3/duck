@@ -6,7 +6,6 @@ import rospy
 from fleet_planning.generate_duckietown_map import graph_creator
 from std_msgs.msg import ByteMultiArray
 from duckietown_msgs.msg import SourceTargetNodes
-from fleet_planning.location_to_graph_mapping import IntersectionMapper
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
 from fleet_planning.map_drawing import MapDraw
 from sensor_msgs.msg import Image
@@ -171,7 +170,10 @@ class TaxiCentralNode:
 
         # graph classes for search and drawing
         gc = graph_creator()
-        self._graph = gc.build_graph_from_csv(map_dir, map_csv)
+        map_dir = rospy.get_param('/map_dir')
+        map_name = rospy.get_param('/map_name')
+        gui_img_dir = rospy.get_param('/gui_img_dir')
+        self._graph = gc.build_graph_from_csv(map_dir, map_name)
         self._graph_creator = gc
 
         # subscribers
@@ -187,8 +189,7 @@ class TaxiCentralNode:
         self._time_out_timer = rospy.Timer(rospy.Duration.from_sec(self.TIME_OUT_CRITERIUM), self._check_time_out)
 
         # map drawing
-        map_name = rospy.get_param('/map_name')
-        self.map_drawing = MapDraw(self._graph, map_name)
+        self.map_drawing = MapDraw(self._graph, map_dir, gui_img_dir, map_name)
         self.image_pub.publish(self.map_drawing.publishMap({}))
 
     def _idle_duckiebots(self):

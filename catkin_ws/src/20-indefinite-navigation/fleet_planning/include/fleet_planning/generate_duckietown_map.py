@@ -226,8 +226,8 @@ class graph_creator():
 		pickle.dump([self.edges, self.node_locations], afile)
 		afile.close()		
 
-	def build_graph_from_csv(self, script_dir, csv_filename='tiles_226.csv'):
-		map_path = os.path.abspath(script_dir + '/maps/' + csv_filename + '.csv')
+	def build_graph_from_csv(self, map_dir, csv_filename='tiles_lab'):
+		map_path = os.path.join(map_dir, csv_filename + '.csv')
 		with open(map_path, 'rb') as f:
 			spamreader = csv.reader(f,skipinitialspace=True)
 			for i,row in enumerate(spamreader):
@@ -276,8 +276,8 @@ class MapImageCreator:
 		tmp = cv2.imread(path,cv2.IMREAD_COLOR)
 		return cv2.resize(tmp,(self.tile_length,self.tile_length),interpolation=cv2.INTER_AREA)
 
-	def build_map_from_csv(self,script_dir,csv_filename):
-		map_path = os.path.abspath(script_dir + '/maps/' + csv_filename + '.csv')
+	def build_map_from_csv(self,map_dir, csv_filename):
+		map_path = os.path.join(map_dir,csv_filename + '.csv')
 		num_tiles_y = -1
 		num_tiles_x = -1
 		with open(map_path, 'rb') as f:
@@ -310,7 +310,7 @@ class MapImageCreator:
 					elif row_[2] == 'empty':
 						self.appendTile(row_,self.empty_tile)
 
-		cv2.imwrite(os.path.abspath(script_dir + '/maps/' + csv_filename + '_map.png'), self.map_image)
+		cv2.imwrite(os.path.join(map_dir, csv_filename + '_map.png'), self.map_image)
 		return self.map_image
 
 	def appendTile(self,row,tile):
