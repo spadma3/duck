@@ -17,7 +17,7 @@ class ActionsDispatcherNode:
     _world_frame = 'world'
     _target_frame = 'duckiebot'
 
-    def __init__(self, map_dir, map_csv):
+    def __init__(self):
         self.node_name = rospy.get_name()
         self.duckiebot_name = self.setup_parameter('/veh', 'no_duckiebot')
         map_dir = rospy.get_param('/map_dir')
