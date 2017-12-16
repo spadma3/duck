@@ -22,11 +22,11 @@ class State:
 class VehicleCoordinator():
     """The Vehicle Coordination Module for Duckiebot"""
 
-    T_MAX_RANDOM = 4.0 # seconds
+    T_MAX_RANDOM = 3.0 # seconds
     T_CROSS = 6.0      # seconds
     T_SENSE = 2.0      # seconds
     T_UNKNOWN = 1.0    # seconds
-    T_MIN_RANDOM = 1.0 # seconds
+    T_MIN_RANDOM = 2.0 # seconds
 
 # We communicate that the coordination mode has started
     def __init__(self):
