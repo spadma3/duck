@@ -243,7 +243,7 @@ class VehicleCoordinator():
 			#self.roof_light = CoordinationSignal.OFF
 			self.set_state(State.SACRIFICE)
 		else:
-			if time_at_current_state() > 4:
+			if self.time_at_current_state() > 4:
 				self.set_state(State.GO)
 
         elif self.state == State.SOLVING_UNKNOWN:
