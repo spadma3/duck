@@ -27,3 +27,6 @@ catkin_ws/src/XX-exercises/
 .ipynb_checkpoints
 out-*
 what_the_duck*html
+fleet.html
+last_download.yaml
+roster.html
