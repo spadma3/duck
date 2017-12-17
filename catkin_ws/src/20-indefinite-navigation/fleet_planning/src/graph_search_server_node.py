@@ -35,7 +35,7 @@ class graph_search_server():
         self.duckietown_problem.goal = req.target_node
         path = self.duckietown_problem.astar_search()
 
-        return GraphSearchResponse(path.actions)
+        return GraphSearchResponse(path.actions, path.path)
 
 
 if __name__ == "__main__":

@@ -260,7 +260,6 @@ class TaxiCentralNode:
         (Maybe if # pending_customer requests > number idle duckiebots, assign the ones with the shortest path.)
         """
         # For now quickly find the closest duckiebot
-        rospy.logwarn(self._pending_customer_requests)
         for pending_request in self._pending_customer_requests:
             idle_duckiebots = self._idle_duckiebots()
             if len(idle_duckiebots) == 0:
@@ -279,7 +278,7 @@ class TaxiCentralNode:
 
                 # Check if there's a duckiebot on that node
                 for db in idle_duckiebots:
-                    if str(db.next_location) == current_node.name:
+                    if str(db.next_location) == current_node:
                         # We found one!
                         duckiebot = db
                         break
@@ -340,7 +339,6 @@ class TaxiCentralNode:
 
         else: # nothing special happened, just location update
             pass
-        rospy.logwarn('registered duckieboouts: {}'.format(self._registered_duckiebots))
         self.image_pub.publish(self.map_drawing.drawMap(self._registered_duckiebots))
 
     def _check_time_out(self, msg):
@@ -358,8 +356,9 @@ class TaxiCentralNode:
 
         serialized_message = InstructionMessageSerializer.serialize(duckiebot.name, duckiebot.target_location,
                                                                     duckiebot.taxi_state)
-        rospy.logwarn('publish mission')
         self._pub_duckiebot_target_location.publish(ByteMultiArray(data=serialized_message))
+
+        rospy.loginfo('Duckiebot {} was sent to node {}'.format(duckiebot.name, duckiebot.target_location))
 
     def save_metrics(self): # implementation has rather low priority
         """ gather timestamps from customer requests, calculate metrics, save to json file"""
