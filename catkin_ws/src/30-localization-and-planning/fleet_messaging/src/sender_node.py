@@ -24,10 +24,10 @@ class Sender(object):
 
 
 rospy.init_node('sender_node', anonymous=False)
-
+sender = Sender()
 # Publish every 1 second
 while not rospy.is_shutdown():
-    sender = Sender()
+
     ts = time.time()
     sender.pub.send_string("Hello World at: " + str(ts))
     rospy.sleep(1.0)
