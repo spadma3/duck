@@ -68,6 +68,7 @@ class RQTFleetPlanning(Plugin):
         self._widget.buttonFindPlan.clicked.connect(self.requestPlan)
         self._widget.buttonClear.clicked.connect(self.clearRequest)
         self._widget.label_image.mousePressEvent = self.getPos
+        self._widget.cb_living_duckies.currentIndexChanged.connect(self.handleComboBox)
 
     def setImageToMapTransformer(self):
         self.image_to_map_transformer = PixelAndMapTransformer(self.tile_size, self.image.height())
@@ -137,7 +138,12 @@ class RQTFleetPlanning(Plugin):
         if (self.isRequestDestinationSet()):
             self.map_drawer.draw_icons(basic_map_for_drawing, "target", self.request_destination_node, 1)
         #todo: logic for drawing a plan
-        #todo: draw the selected duckiebot
+        #draw the selected duckiebot
+        if (self._widget.cb_living_duckies.currentIndex() > -1):
+            duckie_to_draw = str(self._widget.cb_living_duckies.currentText())
+            duckie_location = self._all_living_duckiebots[duckie_to_draw]
+            self.map_drawer.draw_icons(basic_map_for_drawing,"start",duckie_location)
+
         #convert the drawing to QPixmap for display
         cvImg = cv2.cvtColor(basic_map_for_drawing, cv2.COLOR_BGR2RGB)
         height, width, channel = cvImg.shape
@@ -148,6 +154,11 @@ class RQTFleetPlanning(Plugin):
         self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
         self._widget.label_image.setPixmap(self.image)
 
+    def updateLivingDuckiebotItems(self):
+        living_duckie_list = [name for name in self._all_living_duckiebots.iterkeys()]
+        #todo: sort the list maybe?
+        self._widget.cb_living_duckies.addItems(living_duckie_list)
+
     def image_callback(self, ros_data):
         bridge = CvBridge()
         self.basic_map_image = bridge.imgmsg_to_cv2(ros_data, "bgr8")
@@ -156,6 +167,10 @@ class RQTFleetPlanning(Plugin):
 
     def _received_duckiebot_update_callback(self, message):
         duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
-        #this adds the duckie if it wasn't in there before, otherwise it updates its location
-        self._all_living_duckiebots.update({duckiebot_name: node})
-        #todo: update the combo_box_items
+        if (duckiebot_name):
+            #this adds the duckie if it wasn't in there before, otherwise it updates its location
+            self._all_living_duckiebots.update({duckiebot_name: node})
+            self.updateLivingDuckiebotItems()
+
+    def handleComboBox(self, string):
+        self.drawCurrentMap()
