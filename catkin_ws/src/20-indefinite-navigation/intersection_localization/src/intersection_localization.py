@@ -43,16 +43,16 @@ class IntersectionLocalization(object):
     def ImageCallback(self, msg_img):
         if self.at_intersection:
             # process raw image
-            img_processed = self.localizer.ProcessRawImage(msg_img)
-            cv2.imshow('img_processed', img_processed)
+            img_processed, img_rect = self.localizer.ProcessRawImage(msg_img)
 
             # get pose estimation
             '''msg_pose_pred = rospy.wait_for_message('~intersection_pose_pred', IntersectionPose)'''
             # TODO: also add type of intersection in above message!
 
             if not self.init:
+                self.init = 1
                 x_pred = 0.415
-                y_pred = -0.18
+                y_pred = -0.16
                 theta_pred = np.pi / 2.0
 
             else:
@@ -62,25 +62,36 @@ class IntersectionLocalization(object):
 
             # compute the Duckiebot's pose
             # pos_meas, theta_meas = self.localizer.ComputePose(img_processed, msg_pose_pred.x, msg_pose_pred.y, msg_pose_pred.theta)
-            valid_meas, x_meas, y_meas, theta_meas = self.localizer.ComputePose(img_processed, x_pred, y_pred, theta_pred, 'THREE_WAY_INTERSECTION')
+            #valid_meas, x_meas, y_meas, theta_meas = self.localizer.ComputePose(img_processed, x_pred, y_pred, theta_pred, 'THREE_WAY_INTERSECTION')
 
-            if valid_meas:
+            '''if valid_meas:
                 # publish results
                 msg_pose_meas = IntersectionPose()
                 msg_pose_meas.header.stamp = msg_img.header.stamp
                 msg_pose_meas.x = x_meas
                 msg_pose_meas.y = y_meas
                 msg_pose_meas.theta = theta_meas
-                self.pub_intersection_pose_meas.publish(msg_pose_meas)
+                self.pub_intersection_pose_meas.publish(msg_pose_meas)'''
 
             # debugging
             if 1:
-                self.x_meas = x_meas
+                '''self.x_meas = x_meas
                 self.y_meas = y_meas
                 self.theta_meas = theta_meas
-                self.localizer.Draw(img_processed, x_meas, y_meas, theta_meas, 'THREE_WAY_INTERSECTION')
-                cv2.imshow('img_model', img_processed)
-                cv2.waitKey(1)
+                self.localizer.Draw(img_processed, x_meas, y_meas, theta_meas, 'THREE_WAY_INTERSECTION')'''
+                dx, dy, dtheta = self.localizer.DrawB2(img_rect, x_pred, y_pred, theta_pred, 'THREE_WAY_INTERSECTION')
+                '''cv2.imshow('img_model', img_processed)'''
+                cv2.imshow('img_B', img_rect)
+                cv2.waitKey(10)
+
+                R_IB = np.array([[np.cos(theta_pred), -np.sin(theta_pred)], [np.sin(theta_pred), np.cos(theta_pred)]])
+                t = np.dot(R_IB,np.array([dx,dy],dtype=float))
+
+
+
+                self.x_meas = x_pred - t[0]
+                self.y_meas = y_pred - t[1]
+                self.theta_meas = theta_pred + dtheta
 
         else:
             return

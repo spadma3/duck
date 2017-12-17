@@ -42,7 +42,7 @@ class EdgeModel(object):
             return
 
         # generate control points
-        self.ctrl_pts, self.ctrl_pts_homogeneous, self.ctrl_pts_n_perp, self.num_ctrl_pts = self.GenerateControlPoints(
+        self.ctrl_pts, self.ctrl_pts_homogeneous, self.ctrl_pts_n_par, self.ctrl_pts_n_perp, self.num_ctrl_pts = self.GenerateControlPoints(
             ctrl_pts_density)
 
     def GenerateControlPoints(self, ctrl_pts_density):
@@ -56,6 +56,7 @@ class EdgeModel(object):
         # generate control points
         ctrl_pts = np.zeros(shape=(2, num_ctrl_pts), dtype=float)
         ctrl_pts_homogeneous = np.zeros(shape=(3, num_ctrl_pts), dtype=float)
+        ctrl_pts_n_par = np.zeros(shape=(2, num_ctrl_pts), dtype=float)
         ctrl_pts_n_perp = np.zeros(shape=(2, num_ctrl_pts), dtype=float)
         k = 0
         for i in range(0, self.num_edges):
@@ -64,13 +65,14 @@ class EdgeModel(object):
             for j in range(0, ctrl_pts_per_edge[i]):
                 ctrl_pts[:, k] = self.edges[i].ptA + (offset + np.float(j) / ctrl_pts_density) * self.edges[
                     i].n_par
+                ctrl_pts_n_par[:, k] = self.edges[i].n_par
                 ctrl_pts_n_perp[:, k] = self.edges[i].n_perp
                 k += 1
 
         ctrl_pts_homogeneous[0:2, :] = ctrl_pts[:, :]
         ctrl_pts_homogeneous[2, :] = 1
 
-        return ctrl_pts, ctrl_pts_homogeneous, ctrl_pts_n_perp, num_ctrl_pts
+        return ctrl_pts, ctrl_pts_homogeneous, ctrl_pts_n_par, ctrl_pts_n_perp, num_ctrl_pts
 
     def ComputeControlPointsLocation(self, x, y, theta):
         # generate motion matrix
