@@ -15,6 +15,7 @@ class Receiver(object):
         self.iface = self.setupParameter("~iface", "wlan0")
         self.sub = cl.duckiemq(interface=self.iface, socktype='sub')
         self.sub.setfilter("Hello")
+        self.publisher = rospy.Publisher("topic",String,queue_size=1)
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -30,11 +31,12 @@ receiver = Receiver()
 
 def receive(sub, name):
     while True:
-        print(name + ": " + sub.rcv_string())
-    return
+        message = name + ": " + sub.rcv_string()
+        rospy.loginfo("[%s] received: %s" % (name, message))
+    return message
 
-while True:
-    receive(receiver.sub, "Grey")
+while not rospy.is_shutdown():
+    receiver.publisher.publish(receive(receiver.sub, receiver.node_name))
 
 # Runs continuously until interrupted
 rospy.spin() 
