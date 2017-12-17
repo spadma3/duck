@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from enum import Enum
+from enum import Enum, IntEnum
 import os
 import rospy
 from fleet_planning.generate_duckietown_map import graph_creator
@@ -10,7 +10,7 @@ from fleet_planning.message_serialization import InstructionMessageSerializer, L
 from fleet_planning.map_drawing import MapDraw
 from sensor_msgs.msg import Image
 
-class TaxiState(Enum):
+class TaxiState(IntEnum):
     GOING_TO_CUSTOMER = 0
     WITH_CUSTOMER = 1
     IDLE = 2
@@ -260,6 +260,7 @@ class TaxiCentralNode:
         (Maybe if # pending_customer requests > number idle duckiebots, assign the ones with the shortest path.)
         """
         # For now quickly find the closest duckiebot
+        rospy.logwarn(self._pending_customer_requests)
         for pending_request in self._pending_customer_requests:
             idle_duckiebots = self._idle_duckiebots()
             if len(idle_duckiebots) == 0:
@@ -306,7 +307,9 @@ class TaxiCentralNode:
         :param location_msg: contains location and robot name
         """
         duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
-
+        rospy.logwarn(duckiebot_name)
+        rospy.logwarn(node)
+        rospy.logwarn(route)
         # Find the next node
         next_node = -1
         for n in range(len(route)):
@@ -353,9 +356,12 @@ class TaxiCentralNode:
     def _publish_duckiebot_mission(self, duckiebot):
         """ create message that sends duckiebot to its next location, according to the customer request that had been
         assigned to it"""
-
-        serialized_message = InstructionMessageSerializer.serialize(duckiebot.name, duckiebot.target_location,
-                                                                    duckiebot.taxi_state)
+        rospy.logwarn('location:{}'.format(duckiebot.target_location))
+        rospy.logwarn('taxi state {}'.format(duckiebot.taxi_state.value))
+        rospy.logwarn(type(duckiebot.target_location))
+        rospy.logwarn(type(duckiebot.taxi_state.value))
+        serialized_message = InstructionMessageSerializer.serialize(duckiebot.name, int(duckiebot.target_location),
+                                                                    duckiebot.taxi_state.value)
         self._pub_duckiebot_target_location.publish(ByteMultiArray(data=serialized_message))
 
         rospy.loginfo('Duckiebot {} was sent to node {}'.format(duckiebot.name, duckiebot.target_location))
