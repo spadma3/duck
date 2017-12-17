@@ -10,7 +10,8 @@ from sensor_msgs.msg import Image
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.transformation import PixelAndMapTransformer, MapToGraphTransformer
 from fleet_planning.generate_duckietown_map import graph_creator
-from fleet_planning.graph import Graph
+from fleet_planning.map_drawing import MapDraw
+#from fleet_planning.graph import Graph
 
 class RQTFleetPlanning(Plugin):
 
@@ -23,7 +24,7 @@ class RQTFleetPlanning(Plugin):
         self.image = QPixmap()
         self.request_start_node = ''
         self.request_destination_node = ''
-        self.image_np = []
+        self.basic_map_image = []
 
         # Create QWidget
         self._widget = QWidget()
@@ -52,6 +53,12 @@ class RQTFleetPlanning(Plugin):
         self.subscriber = rospy.Subscriber('/taxi_central_node/map_graph', Image,
                                       self.image_callback,  queue_size = 1)
 
+        #for drawing stuff
+        self.basic_map_image = []
+        map_dir = rospy.get_param('/map_dir')
+        gui_img_dir = rospy.get_param('/gui_img_dir')
+        self.map_drawer = MapDraw(self.duckietown_graph, map_dir, gui_img_dir, self.map_name)
+
         # event handling
         self._widget.buttonFindPlan.clicked.connect(self.requestPlan)
         self._widget.buttonClear.clicked.connect(self.clearRequest)
@@ -73,11 +80,11 @@ class RQTFleetPlanning(Plugin):
         elif (self.isRequestStartSet()):
             self._widget.label_dest_tiles.setText("(" + tile_x + ", " + tile_y + ")" + " #" + graph_node_number)
             self.request_destination_node = graph_node_number
-            # todo: actually draw start and end into the image
+
         else:
             self._widget.label_start_tiles.setText("(" + tile_x + ", " + tile_y + ")" + " #" + graph_node_number)
             self.request_start_node = graph_node_number
-            # todo: actually draw start only
+        self.drawCurrentMap()
 
     def isRequestStartSet(self):
         if (self.request_start_node):
@@ -100,7 +107,7 @@ class RQTFleetPlanning(Plugin):
         self.request_destination_node = ""
         self._widget.label_start_tiles.setText("")
         self._widget.label_dest_tiles.setText("")
-        #todo send out message to clear node highlighting
+        self.drawCurrentMap()
 
     def shutdown_plugin(self):
         self.pub.unregister()
@@ -117,14 +124,27 @@ class RQTFleetPlanning(Plugin):
         # v = instance_settings.value(k)
         pass
 
-    def image_callback(self, ros_data):
-        bridge = CvBridge()
-        image_np = bridge.imgmsg_to_cv2(ros_data, "bgr8")
-        cvImg = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+    def drawCurrentMap(self):
+        #draw start, end, path, duckie on basic_map_image
+        basic_map_for_drawing = np.copy(self.basic_map_image)
+        if (self.isRequestStartSet()):
+            self.map_drawer.draw_icons(basic_map_for_drawing, "customer", self.request_start_node, 1)
+        if (self.isRequestDestinationSet()):
+            self.map_drawer.draw_icons(basic_map_for_drawing, "target", self.request_destination_node, 1)
+        #todo: logic for drawing a plan
+        #todo: subscribe to duckiebots in system, draw the selected one
+        #convert the drawing to QPixmap for display
+        cvImg = cv2.cvtColor(basic_map_for_drawing, cv2.COLOR_BGR2RGB)
         height, width, channel = cvImg.shape
         bytesPerLine = 3 * width
-        self.test_image = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
-        self.image = QPixmap(self.test_image)
+        q_img_tmp = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        self.image = QPixmap(q_img_tmp)
+        #show it on the GUI
         self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
         self._widget.label_image.setPixmap(self.image)
+
+    def image_callback(self, ros_data):
+        bridge = CvBridge()
+        self.basic_map_image = bridge.imgmsg_to_cv2(ros_data, "bgr8")
+        self.drawCurrentMap()
         self.setImageToMapTransformer()

@@ -4,7 +4,7 @@ import cv2
 from cv_bridge import CvBridge
 from fleet_planning.graph_search import GraphSearchProblem
 from sensor_msgs.msg import Image
-from fleet_planning.srv import *
+#from fleet_planning.srv import *
 from fleet_planning.generate_duckietown_map import graph_creator, MapImageCreator
 from fleet_planning.transformation import PixelAndMapTransformer
 
