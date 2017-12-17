@@ -29,7 +29,7 @@ class ActionsDispatcherNode:
 
         # Subscribers:
         self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.new_duckiebot_mission)
-        self.sub_red_line = rospy.Subscriber("~/jeff/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
+        self.sub_red_line = rospy.Subscriber("~/"+ self.duckiebot_name + "/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
 
         # location listener
         self.listener_transform = tf.TransformListener()
