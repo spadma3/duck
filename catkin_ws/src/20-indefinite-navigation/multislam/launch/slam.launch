@@ -1,5 +1,5 @@
 <launch>
-	<arg name="veh" default="$(env VEHICLE_NAME)"/>
+	<arg name="veh" />
 	<arg name="pkg_name" value="multislam"/>
 	<arg name="node_name" default="slam"/>
 	<arg name="slam_only" default="false"/>

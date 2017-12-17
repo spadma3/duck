@@ -31,7 +31,6 @@
 using namespace std;
 using namespace gtsam;
 
-
 ros::Publisher marker_pub;
 ros::Publisher marker_arr_pub;
 std::string veh_name;
@@ -169,10 +168,9 @@ class GraphSlam
     float oldimutheta;
     double lastTimeSecs;
 
-    // TODO: Check if the noises are okay
 public:
     GraphSlam()
-	: nh_(), measurementNoise(noiseModel::Diagonal::Sigmas((Vector(2) << 0.05, 0.05))),
+	: nh_(), measurementNoise(noiseModel::Diagonal::Sigmas((Vector(2) << 0.1, 0.1))),
 	  odomNoise(noiseModel::Diagonal::Sigmas((Vector(3) << 0.05, 0.01, 0.5))),
 	  curposeindex(0), curx(0.0f), cury(0.0f), curtheta(0.0f), imutheta(0.0f), oldimutheta(0.0f)
 	{
@@ -191,14 +189,9 @@ public:
 
 	    // Subscribers
 	    apriltagsSub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
-	    //carcmdSub = nh_.subscribe("car_cmd_switch_node/cmd", 1000, &GraphSlam::velcallback, this);
+
 	    // TODO: do it right.
 	    odomSub = nh_.subscribe("/misteur/mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
-
-//	    ros::Subscriber imusub = nh_.subscribe("/imu/data_raw", 1000, &GraphSlam::imucallback, this);
-//	    ros::Timer imutimer = nh_.createTimer(ros::Duration(1), &GraphSlam::printcallback, this);
-
-//	    testOptimizer();
 
 	    optimizerTimer = nh_.createTimer(ros::Duration(1), &GraphSlam::optimizeCallback, this);
 	    initialEstimate.print("\nInitial Estimate:\n");
@@ -230,31 +223,21 @@ public:
 	    double delta_t = timeNowSecs - lastTimeSecs;
 	    lastTimeSecs = timeNowSecs;
 
-	    // Make sure that you set the speed gain to CURRENT_SPEEDGAIN
+	    // Make sure that you set the speed gain *on the bot* to CURRENT_SPEEDGAIN
 	    // rosparam set /<veh>/joy_mapper_node/speed_gain CURRENT_SPEEDGAIN
-#define CURRENT_SPEEDGAIN 0.41
+	    const double CURRENT_SPEEDGAIN = 0.41;
 	    double delta_d = delta_t * CURRENT_SPEEDGAIN;
-	    // We don't use "==" with floating-point numbers
-	    if (msg->twist.twist.linear.x < 0.0001)
-		delta_d = 0;
 
-	    // OLD METHOD: Take the delta_theta from twist.angular.z, and
-	    // *************
-	    // double delta_theta = msg->twist.twist.angular.z;
-	    // graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
-	    // curx += cos(curtheta) * delta_d;
-	    // cury += sin(curtheta) * delta_d;
-	    // curtheta = fmod(curtheta + delta_theta,2 * M_PI);
-	    // initialEstimate.insert(curposeindex, Pose2(curx, cury,
-	    // curtheta));
+	    // Note:We don't use "==" with floating-point numbers
+	    if (msg->twist.twist.linear.x < 0.000001)
+		delta_d = 0.0;
 
 	    tf::Quaternion q_tf(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y,
 				msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
 	    tf::Matrix3x3 m(q_tf);
 	    double roll, pitch, yaw;
 	    m.getRPY(roll, pitch, yaw);
-	    //printf("roll: %f\tpitch: %f\tyaw: %f\n", roll, pitch, yaw);
-	    // TODO: DEAL WITH yaw going from -2.87 to 3.0 in one shot (in the curtheta-old_theta)
+
 	    double old_theta = curtheta;
 	    curtheta = yaw;
 	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, curtheta - old_theta), odomNoise));
@@ -262,57 +245,15 @@ public:
 	    cury += sin(curtheta) * delta_d;
 	    initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
 
-	    // Visualize
 	    marker_pub.publish(make_pose_marker(curposeindex, ADD_ACTION, curx, cury, curtheta));
 	}
 
-
-    void imucallback(const sensor_msgs::Imu::ConstPtr& msg)
-	{
-	    // imu publishes every 8 ms. (125 hz)
-	    double delta_t = .008;
-	    //imutheta = fmod(imutheta + msg->angular_velocity.z *
-	    //delta_t, 2 * M_PI);
-	    imutheta = imutheta + msg->angular_velocity.z * delta_t;
-	}
-
-    void printcallback(const ros::TimerEvent&)
-	{
-	    printf("imutheta: %f\n", imutheta);
-	}
-
-    void velcallback(const duckietown_msgs::Twist2DStamped::ConstPtr& msg)
-	{
-	    curposeindex += 1;
-
-	    double timeNowSecs = ros::Time::now().toSec();
-	    double delta_t = timeNowSecs - lastTimeSecs;
-	    lastTimeSecs = timeNowSecs;
-
-	    // maybe msg.omega needs to be switched to degrees/radians?
-	    double delta_d = delta_t * msg->v;
-	    // double delta_theta = delta_t * msg->omega;
-	    double delta_theta = imutheta - oldimutheta;
-	    oldimutheta = imutheta;
-	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, delta_theta), odomNoise));
-
-	    curx += cos(curtheta) * delta_d;
-	    cury += sin(curtheta) * delta_d;
-	    curtheta = fmod(curtheta + delta_theta,2 * M_PI);
-	    initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
-
-	    // Visualize
-	    marker_pub.publish(make_pose_marker(curposeindex, ADD_ACTION, curx, cury, curtheta));
-	}
 
     void optimizeCallback(const ros::TimerEvent&)
 	{
+	    visualization_msgs::MarkerArray ma;
 	    LevenbergMarquardtOptimizer optimizer(graph, initialEstimate);
 	    result = optimizer.optimize();
-	    //result.print("Final Result:\n");
-	    //printf("Error: %f\n", optimizer.state().error);
-
-	    visualization_msgs::MarkerArray ma;
 
 	    BOOST_FOREACH(const Values::KeyValuePair& key_val, result)
 	    {
@@ -322,6 +263,11 @@ public:
 	    const Pose2 &val = dynamic_cast<const Pose2&>(key_val.value);
 		    marker = make_pose_marker(key_val.key, OPTIMIZE_ACTION,
 					      val.x(), val.y(), val.theta());
+
+		    // Bring back odometry to latest estimate
+		    // curx = val.x();
+		    // cury = val.y();
+		    // curtheta = val.theta();
 		} else if (typeid(key_val.value) == typeid(Point2)) {
 		    const Point2 &val = dynamic_cast<const Point2&>(key_val.value);
 		    marker = make_april_marker(key_val.key, OPTIMIZE_ACTION,
@@ -334,26 +280,6 @@ public:
 	    }
 
 	    marker_arr_pub.publish(ma);
-	}
-
-    void testOptimizer()
-	{
-	    Symbol l('l', 1);
-	    graph.add(BetweenFactor<Pose2>(0, 1, Pose2(1, 0, 0), odomNoise));
-	    graph.add(BetweenFactor<Pose2>(1, 2, Pose2(1, 0, 0), odomNoise));
-	    initialEstimate.insert(1, Pose2(1.0, 0.0, 0.0));
-	    initialEstimate.insert(2, Pose2(2.0, 0.0, 0.0));
-
-
-	    graph.add(BetweenFactor<Pose2>(3, 4, Pose2(1, 0, 0), odomNoise));
-	    graph.add(BetweenFactor<Pose2>(4, 5, Pose2(1, 0, 0), odomNoise));
-	    initialEstimate.insert(3, Pose2(0.0, 1.0, 0.0));
-	    initialEstimate.insert(4, Pose2(1.0, 1.0, 0.0));
-	    initialEstimate.insert(5, Pose2(2.0, 1.0, 0.0));
-
-	    graph.add(BearingRangeFactor<Pose2, Point2>(2, l, Rot2::atan2(0.5,1), std::sqrt(0.5*0.5 + 1), measurementNoise));
-	    graph.add(BearingRangeFactor<Pose2, Point2>(5, l, Rot2::atan2(-0.5,1), std::sqrt(0.5*0.5 + 1), measurementNoise));
-	    initialEstimate.insert(l, Point2(3.0, 0.5));
 	}
 
 };
