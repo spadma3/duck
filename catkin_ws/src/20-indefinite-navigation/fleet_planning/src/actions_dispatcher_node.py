@@ -28,7 +28,7 @@ class ActionsDispatcherNode:
         self.last_red_line = rospy.get_time()
 
         # Subscribers:
-        self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.graph_search)
+        self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.new_duckiebot_mission)
         self.sub_red_line = rospy.Subscriber("~/jeff/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
 
         # location listener
@@ -98,7 +98,6 @@ class ActionsDispatcherNode:
         self.target_node = target_node
 
     def graph_search(self, source_node, target_node):
-
         print 'Requesting map for src: ', source_node, ' and target: ', target_node
         rospy.wait_for_service('graph_search')
         try:

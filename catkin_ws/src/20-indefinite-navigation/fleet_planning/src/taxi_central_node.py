@@ -279,7 +279,7 @@ class TaxiCentralNode:
 
                 # Check if there's a duckiebot on that node
                 for db in idle_duckiebots:
-                    if str(db.next_location) == current_node.name:
+                    if str(db.next_location) == current_node:
                         # We found one!
                         duckiebot = db
                         break

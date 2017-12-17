@@ -70,7 +70,7 @@ class Graph(object):
         Get the node with a given number
         """
         for n in self._nodes:
-            if n.name == str(node_number):
+            if n == str(node_number):
                 return n
 
         # No node with the given number was found...
