@@ -11,8 +11,6 @@ class LEDPatternNode:
     LED_update_rate = 40
 
     def __init__(self):
-        self.node = rospy.init_node('LEDPatternNode')
-
         # The name of the pattern that is currently played.
         self._current_pattern = None
         # How long the current pattern should be played.
@@ -126,6 +124,11 @@ if __name__ == '__main__':
         ListLEDPatterns,
         ledPatternNode._list_pattern_service_callback
     )
+
+    # If a pattern was provided via parameters, then just play it
+    pattern = rospy.get_param('led_pattern', None)
+    if pattern is not None:
+        ledPatternNode.play_pattern(pattern, 10000)
 
     rospy.loginfo("Finished startup of LEDPatternNode")
     rospy.spin()
