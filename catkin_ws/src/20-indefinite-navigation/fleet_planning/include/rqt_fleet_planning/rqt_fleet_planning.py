@@ -11,6 +11,8 @@ from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.transformation import PixelAndMapTransformer, MapToGraphTransformer
 from fleet_planning.generate_duckietown_map import graph_creator
 from fleet_planning.map_drawing import MapDraw
+from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
+from std_msgs.msg import ByteMultiArray
 #from fleet_planning.graph import Graph
 
 class RQTFleetPlanning(Plugin):
@@ -25,6 +27,7 @@ class RQTFleetPlanning(Plugin):
         self.request_start_node = ''
         self.request_destination_node = ''
         self.basic_map_image = []
+        self._all_living_duckiebots = dict()
 
         # Create QWidget
         self._widget = QWidget()
@@ -50,8 +53,10 @@ class RQTFleetPlanning(Plugin):
 
         # ROS publishers/subscribers
         self.pub = rospy.Publisher('~/customer_requests', SourceTargetNodes, queue_size=1, latch=True)
-        self.subscriber = rospy.Subscriber('/taxi_central_node/map_graph', Image,
-                                      self.image_callback,  queue_size = 1)
+        self._subscriber_map_graph = rospy.Subscriber('/taxi_central_node/map_graph', Image,
+                                                      self.image_callback, queue_size = 1)
+        self._subscriber_duckiebot_list = rospy.Subscriber('/taxi/location', ByteMultiArray,
+                                                           self._received_duckiebot_update_callback)
 
         #for drawing stuff
         self.basic_map_image = []
@@ -111,7 +116,7 @@ class RQTFleetPlanning(Plugin):
 
     def shutdown_plugin(self):
         self.pub.unregister()
-        self.subscriber.unregister()
+        self._subscriber_map_graph.unregister()
         pass
 
     def save_settings(self, plugin_settings, instance_settings):
@@ -132,7 +137,7 @@ class RQTFleetPlanning(Plugin):
         if (self.isRequestDestinationSet()):
             self.map_drawer.draw_icons(basic_map_for_drawing, "target", self.request_destination_node, 1)
         #todo: logic for drawing a plan
-        #todo: subscribe to duckiebots in system, draw the selected one
+        #todo: draw the selected duckiebot
         #convert the drawing to QPixmap for display
         cvImg = cv2.cvtColor(basic_map_for_drawing, cv2.COLOR_BGR2RGB)
         height, width, channel = cvImg.shape
@@ -148,3 +153,9 @@ class RQTFleetPlanning(Plugin):
         self.basic_map_image = bridge.imgmsg_to_cv2(ros_data, "bgr8")
         self.drawCurrentMap()
         self.setImageToMapTransformer()
+
+    def _received_duckiebot_update_callback(self, message):
+        duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
+        #this adds the duckie if it wasn't in there before, otherwise it updates its location
+        self._all_living_duckiebots.update({duckiebot_name: node})
+        #todo: update the combo_box_items
