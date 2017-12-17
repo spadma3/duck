@@ -125,10 +125,5 @@ if __name__ == '__main__':
         ledPatternNode._list_pattern_service_callback
     )
 
-    # If a pattern was provided via parameters, then just play it
-    pattern = rospy.get_param('led_pattern', None)
-    if pattern is not None:
-        ledPatternNode.play_pattern(pattern, 10000)
-
     rospy.loginfo("Finished startup of LEDPatternNode")
     rospy.spin()
