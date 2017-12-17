@@ -24,12 +24,13 @@ class ActionsDispatcherNode:
         map_name = rospy.get_param('/map_name')
 
         self.actions = []
+        self.path = []
         self.target_node = None
         self.last_red_line = rospy.get_time()
 
         # Subscribers:
         self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.new_duckiebot_mission)
-        self.sub_red_line = rospy.Subscriber("~/"+ self.duckiebot_name + "/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
+        self.sub_red_line = rospy.Subscriber("~/" + self.duckiebot_name + "/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
 
         # location listener
         self.listener_transform = tf.TransformListener()
@@ -81,11 +82,11 @@ class ActionsDispatcherNode:
         node = int(node)
         rospy.loginfo('Duckiebot {} located at node {}'.format(self.duckiebot_name, node))
 
-        location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node)
+        location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
         self.pub_location_node.publish(ByteMultiArray, location_message)
 
         if self.target_node is None or self.target_node == node:
-            self.localize_at_red_line(None) # repeat until new duckiebot mission was published
+            self.localize_at_red_line(None) # repeat until new duckiebot mission was published # TODO: improve this?
 
         else:
             self.graph_search(node, self.target_node)
@@ -103,12 +104,15 @@ class ActionsDispatcherNode:
         try:
             graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
             resp = graph_search(str(source_node), str(target_node))
+
+            self.path = resp.path
             actions = resp.actions
 
             if actions:
                 # remove 'f' (follow line) from actions
                 self.actions = [x for x in actions if x != 'f']
                 print 'Actions to be executed:', self.actions
+                print 'Path to be followed: ', self.path
             else:
                 print 'No actions to be executed'
 
