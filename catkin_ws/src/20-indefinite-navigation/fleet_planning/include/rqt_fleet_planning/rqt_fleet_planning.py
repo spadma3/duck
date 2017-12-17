@@ -33,7 +33,6 @@ class RQTFleetPlanning(Plugin):
 
         # Load parameters
         self.map_name = rospy.get_param('/map_name', 'tiles_lab')
-        self.veh = rospy.get_param('/veh')
         self.script_dir = os.path.dirname(__file__)
         self.super_script_dir = self.script_dir + '/../../src/maps/'
         self.tile_size = rospy.get_param('tile_size',101)
