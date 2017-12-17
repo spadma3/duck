@@ -83,7 +83,7 @@ class ActionsDispatcherNode:
         rospy.loginfo('Duckiebot {} located at node {}'.format(self.duckiebot_name, node))
 
         location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
-        self.pub_location_node.publish(ByteMultiArray, location_message)
+        self.pub_location_node.publish(ByteMultiArray(data=location_message))
 
         if self.target_node is None or self.target_node == node:
             self.localize_at_red_line(None) # repeat until new duckiebot mission was published # TODO: improve this?
