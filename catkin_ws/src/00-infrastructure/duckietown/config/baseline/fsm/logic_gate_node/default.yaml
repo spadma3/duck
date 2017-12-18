@@ -1,10 +1,33 @@
 events:
   at_stop_line:
     topic: "stop_line_filter_node/at_stop_line"
+    msg_type: "BoolStamped"
     trigger: True
   velocity_zero: 
     topic: "car_cmd/V"
+    msg_type: "uint8"
     trigger: 0
+  apriltag_parking:
+    topic: "apriltag_node/ApriltagWithInfo"
+    msg_type: "uint8"
+    trigger: 19
+  apriltag_fourway:
+    topic: "apriltag_node/ApriltagWithInfo"
+    msg_type: "uint8"
+    trigger: 11
+  apriltag_right_t:
+    topic: "apriltag_node/ApriltagWithInfo"
+    msg_type: "uint8"
+    trigger: 12
+  apriltag_left_t:
+    topic: "apriltag_node/ApriltagWithInfo"
+    msg_type: "uint8"
+    trigger: 13
+  apriltag_t:
+    topic: "apriltag_node/ApriltagWithInfo"
+    msg_type: "uint8"
+    trigger: 14
+
 # TODO: 
 # - check whether non-Bool values can be given. 
 # - check correct topic of velocity
@@ -13,15 +36,18 @@ gates:
   at_stop_line_and_velocity_zero:
     gate_type: "AND"
     inputs:
-<<<<<<< HEAD
-=======
-      - intersection_done
-      - parallel_autonomy_off
-    output_topic: "~intersection_done_and_not_parallel_autonomy"
-  at_stop_line_and_velocity_zero:
-    gate_type: "AND"
-    inputs:
->>>>>>> 182ba52d7bd96c0f8d93973d264fbd268ef3d5d3
       - at_stop_line
       - velocity_zero
       output_topic: "~at_stop_line_and_velocity_zero"
+  apriltag_parking_and_parking_active:
+    gate_type: AND
+    inputs:
+      - apriltag_parking
+      - parking_active
+  apriltag_parking:
+    gate_type: OR
+    inputs:
+      - apriltag_fourway
+      - apriltag_right_t
+      - apriltag_left_t
+      - apriltag_t
