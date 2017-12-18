@@ -4,13 +4,14 @@ import fleet_messaging.commlibs2 as cl
 from std_msgs.msg import String
 
 class Receiver(object):
+    """Receives message with a certain filter and publishes to an inbox topic"""
     def __init__(self):
         # Initialize node
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initialzing." % (self.node_name))
         # Wireless Interface
         self.iface = self.setupParameter("~iface", "wlan0")
-        # Instantiating up ZQM subscriber
+        # Instantiating up ZMQ subscriber
         self.sub = cl.duckiemq(interface=self.iface, socktype='sub')
         self.sub.setfilter("Fleet_Planning")
         # Instantiating up ROS
