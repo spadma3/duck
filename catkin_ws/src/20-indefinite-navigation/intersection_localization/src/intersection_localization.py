@@ -49,6 +49,7 @@ class IntersectionLocalization(object):
             '''msg_pose_pred = rospy.wait_for_message('~intersection_pose_pred', IntersectionPose)'''
             # TODO: also add type of intersection in above message!
 
+            # temp
             if not self.init:
                 self.init = 1
                 x_pred = 0.415
@@ -63,14 +64,14 @@ class IntersectionLocalization(object):
             # compute the Duckiebot's pose
             valid_meas, x_meas, y_meas, theta_meas = self.localizer.ComputePose(img_processed, x_pred, y_pred, theta_pred, 'THREE_WAY_INTERSECTION')
 
-            '''if valid_meas:
+            if valid_meas:
                 # publish results
                 msg_pose_meas = IntersectionPose()
                 msg_pose_meas.header.stamp = msg_img.header.stamp
                 msg_pose_meas.x = x_meas
                 msg_pose_meas.y = y_meas
                 msg_pose_meas.theta = theta_meas
-                self.pub_intersection_pose_meas.publish(msg_pose_meas)'''
+                self.pub_intersection_pose_meas.publish(msg_pose_meas)
 
             # debugging
             if 1:

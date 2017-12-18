@@ -26,12 +26,19 @@ class IntersectionLocalizer(object):
         self.A_visible = np.array([[-1.0, 0.0], [1.0, 0.0], [0.0, -1.0], [0.0, 1.0]])
         b_visible = np.array([0.0, 640.0, -160.0, 480.0])
         self.b_visible = b_visible[:, np.newaxis]
+        # TODO:
+        # remove area around border
+        # define area beyond which points are not reliable and assume not visible (x direction!)
+        # for canny image, make everything above outside above area black
 
         self.A_visible_img = np.array([[-1.0, 0.0], [1.0, 0.0], [0.0, -1.0], [0.0, 1.0]])
         self.b_visible_img = np.array([0.0, 640.0, 0.0, 480.0])
 
         # weighting parameters
         self.weight_c = 5.0
+        # TODO:
+        # tune weight
+        # multiple lines
 
         # localization algorithm parameters
         self.line_search_length = 20
@@ -273,6 +280,10 @@ class IntersectionLocalizer(object):
             x_pred = x_pred - t[0]
             y_pred = y_pred - t[1]
             theta_pred = theta_pred + res[2]
+
+            # TODO:
+            # termination criteria
+            # compute "covariance" of pose
 
         # debugging
         if 1:
