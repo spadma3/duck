@@ -43,7 +43,7 @@ for state_name,state_dict in all_state_dict.items():
 	if transition_dict is not None:
 		print transition_dict
 		for event_name, next_state in transition_dict.items():
-			dot.edge(state_name,next_state,label=event_name)
+			dot.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
 			print "Transition: %s -- %s --> %s " %(state_name, event_name, next_state)
 
 # Global transitions
