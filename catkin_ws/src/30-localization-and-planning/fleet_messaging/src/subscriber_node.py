@@ -13,7 +13,7 @@ def callback(msg):
 rospy.init_node('subscriber_node', anonymous=False)
 
 # Create subscriber
-subscriber = rospy.Subscriber("~topic", String, callback)
+subscriber = rospy.Subscriber("topic", String, callback)
 
 # Runs continuously until interrupted
 rospy.spin() 

@@ -23,7 +23,7 @@ class Sender(object):
         return value
 
     def callback(self, msg):
-        ts = rospy.Time(10)
+        ts = rospy.Time.now()
         s = "I heard: %s" % (msg.data)
         sender.pub.send_string(s + " and Hello World at: " + str(ts))
         rospy.loginfo(s)
