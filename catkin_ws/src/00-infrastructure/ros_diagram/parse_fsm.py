@@ -29,31 +29,54 @@ all_state_dict = yaml_dict["states"]
 events_dict = yaml_dict["events"]
 global_trans_dict = yaml_dict["global_transitions"]
 
-dot = Digraph(comment=param_file + ".yaml")
+dot = Digraph(comment=param_file + ".yaml", node_attr={'shape': 'record', 'height': '.1'})
+dot_detailed = Digraph(comment=param_file + "_detailed.yaml", node_attr={'shape': 'record', 'height': '.1'})
 
 # Define state nodes
 for state_name, state_dict in all_state_dict.items():
-	print colours[state_dict["current_status"]]
-	dot.node(state_name,state_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
+
+	if "active_nodes" in state_dict.keys():
+		active_nodes = state_dict["active_nodes"]
+		string = "<{ " + state_name + " | <B> ACTIVE NODES </B>"
+		for node in active_nodes:
+			string += " | " + node
+		string += " }>"
+	else:
+		string = state_name
+
+	if "current_status" in state_dict.keys():
+		dot.node(state_name,state_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
+		dot_detailed.node(state_name,string, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
+	else:
+		dot.node(state_name,state_name)
+		dot_detailed.node(state_name,string)
+
 	print "State: %s" %(state_name)
 
 # Define transitions
 for state_name,state_dict in all_state_dict.items():
 	transition_dict = state_dict.get("transitions")
 	if transition_dict is not None:
-		print transition_dict
 		for event_name, next_state in transition_dict.items():
 			dot.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
+			dot_detailed.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
 			print "Transition: %s -- %s --> %s " %(state_name, event_name, next_state)
 
 # Global transitions
 if global_trans_dict is not None:
 	dot.node("ALL_STATES","All States",style="dashed")
+	dot_detailed.node("ALL_STATES","All States",style="dashed")
 	for event_name, next_state in global_trans_dict.items():
 		dot.edge("ALL_STATES", next_state, label=event_name, style="dashed", concentrate='false')
+		dot_detailed.edge("ALL_STATES", next_state, label=event_name, style="dashed", concentrate='false')
 
 dot_file_name = "fsm_"+param_file+".dot"
+dot_detailed_file_name = "fsm_"+param_file+"_detailed.dot"
 with file(dot_file_name,"w") as f:
 	f.write(dot.source)
 
+with file(dot_detailed_file_name,"w") as f:
+	f.write(dot_detailed.source)
+
 print "Wrote to %s" %(dot_file_name)
+print "Wrote to %s" %(dot_detailed_file_name)
