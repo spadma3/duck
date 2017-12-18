@@ -37,6 +37,12 @@ class Detector():
 	#self.crop = 150 #crop where we see 50cm in the middle (x=0.9m,y=0), default=150
 	self.lower_yellow = np.array([20,100,150])
 	self.upper_yellow = np.array([35,255,255])
+	self.lower_orange = np.array([5,80,80])
+	self.upper_orange = np.array([15,255,255])
+	self.lower_white = np.array([0,0,150])
+	self.upper_white = np.array([255,25,255])
+
+
 	self.img_width = 0 #to be set in init_inv_homography
 	self.img_height = 0 #to be set in init_inv_homography
 	self.maximum_height = 0 #to be set in ground2bird_view_pixel_init
@@ -79,13 +85,14 @@ class Detector():
 	# Threshold the HSV image to get only yellow colors
 	im_test = cv2.warpPerspective(hsv,self.M,(self.img_width,self.img_height)) 
 
-	mask = cv2.inRange(im_test, self.lower_yellow, self.upper_yellow)
-
-		
+	mask1 = cv2.inRange(im_test, self.lower_yellow, self.upper_yellow)
+	mask2 = cv2.inRange(im_test, self.lower_orange, self.upper_orange)
+	mask = np.bitwise_or((mask1/2),mask2)
+	#yellow objects have value 127, orange 255
 	if(np.sum(mask!=0)!=0): #there were segment detected then
 		#SEGMENT IMAGE
 		segmented_image=self.segment_img(mask)
-		props=measure.regionprops(segmented_image)
+		props=measure.regionprops(segmented_image,mask)
 		no_elements = np.max(segmented_image)
 		#apply filter on elements-> only obstacles remain and mark them in original picture
 		#in the future: might be separated in 2 steps 1)extract objects 2)visualisation		
@@ -114,6 +121,8 @@ class Detector():
 		      	left=props[k-1]['bbox'][1]
 		        right=props[k-1]['bbox'][3]
 		        total_width = right-left
+		        #calc center in top view image
+		        color_info = props[k-1]['max_intensity']
 		        
 		        if (total_width > 0):
 
