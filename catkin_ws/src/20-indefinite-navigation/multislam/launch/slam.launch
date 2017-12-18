@@ -1,3 +1,5 @@
+<!-- Command to run on bot: -->
+<!-- raspivid -n -w 640 -h 480 -b 1000000 -fps 40 -t 0 -o - | gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=![YOUR-HOSTNAME].local port=9000 -->
 <launch>
 	<arg name="veh" />
 	<arg name="pkg_name" value="multislam"/>
