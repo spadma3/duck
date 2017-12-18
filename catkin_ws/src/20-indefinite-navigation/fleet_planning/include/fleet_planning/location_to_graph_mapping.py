@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os
+import os, sys
 import numpy as np
 from generate_duckietown_map import graph_creator
 import tf
@@ -47,10 +47,10 @@ class MappingTile:
 
 
 class IntersectionMapper:
-    mapping_tiles = []
-    max_radius = 1  # in tile lenghts. If the 2d position is within this radius, it will be assign to this intersection. Must be <= 1.
-
     def __init__(self, graph_creator):
+        self.mapping_tiles = []
+        self.max_radius = 1  # in tile lenghts. If the 2d position is within this radius, it will be assign to this intersection. Must be <= 1.
+
         for tile in graph_creator.tile_map:
             if 'way' in tile.type:
                 self.mapping_tiles.append(MappingTile(tile))
@@ -67,7 +67,6 @@ class IntersectionMapper:
             if intersection.distance_to(position_2d_m) < self.max_radius * intersection.tile_length:
                 return intersection.node_from_duckiebot_rotation(rotation_deg)
         return None
-
 
 if __name__ == '__main__':
     # for testing

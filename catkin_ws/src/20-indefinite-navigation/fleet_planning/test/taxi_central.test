@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="fleet_planning" type="taxi_central_node.py" name="taxi_central_node" output="screen" clear_params="true" required="true"></node>
+  <node pkg="fleet_planning" type="virtual_duckiebot_node.py" name="virtual_duckiebot_node" output="screen" clear_params="true" required="true"></node>
+  <test test-name="test_taxi_central" pkg="fleet_planning" type="test_taxi_central.py" />
+</launch>

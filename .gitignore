@@ -25,3 +25,5 @@ out-detector-tests/
 catkin_ws/src/00-infrastructure/easy_logs/cloud.yaml
 catkin_ws/src/XX-exercises/
 .ipynb_checkpoints
+
+catkin_ws/src/20-indefinite-navigation/fleet_planning/src/maps/tiles_lab\.png
