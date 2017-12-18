@@ -34,10 +34,10 @@ class Detector():
 	self.inv_H = inv(self.H)
 
 	#define where to cut the image, color range,...
-	#self.crop = 150 #crop where we see 50cm in the middle (x=0.9m,y=0), default=150
+	self.crop = 150 #default value but is overwritten in init_homo
 	self.lower_yellow = np.array([20,100,150])
 	self.upper_yellow = np.array([35,255,255])
-	self.lower_orange = np.array([5,80,80])
+	self.lower_orange = np.array([5,100,150])
 	self.upper_orange = np.array([15,255,255])
 	self.lower_white = np.array([0,0,150])
 	self.upper_white = np.array([255,25,255])
@@ -49,10 +49,17 @@ class Detector():
 	self.maximum_left = 0
 	self.factor = 1.0 #to be set in ground2bird_view_pixel_init
 	self.obst_thres = 50 #to be set in init_inv_homography, this is default
-	self.M = self.init_inv_homography()
-	self.inv_M = inv(self.M)
 	self.minimum_tracking_distance = 60
 	self.new_track_array = np.array([])
+
+	self.M = self.init_inv_homography()
+	self.inv_M = inv(self.M)
+
+	center_world_coords = np.float32([[0.0],[0.0],[1.0]])
+	center_pixels = self.ground2bird_view_pixel(center_world_coords)
+	self.center_x = int(center_pixels[0])
+	self.center_y = int(center_pixels[1])
+	#initializes where the robot is in the bird view image
 
 
     def init_inv_homography(self):
@@ -63,7 +70,9 @@ class Detector():
     	x0=0 #take full width of image
 	x1=640 #take full width of image
 	y0=0 #take top of cropped image!
-	y1=image_height-self.crop
+	y1=image_height-self.crop #complete bottom
+	x_center = 320
+	y_center = image_height-self.crop
 	pts1 = np.float32([[x0,y0],[x0,y1],[x1,y1],[x1,y0]])
 	pts1_h = np.float32([[x0,y0+self.crop,1],[x0,y1+self.crop,1],[x1,y1+self.crop,1],[x1,y0+self.crop,1]])
 	#add the crop offset to being able to calc real world coordinates correctly!!!
@@ -96,7 +105,7 @@ class Detector():
 		no_elements = np.max(segmented_image)
 		#apply filter on elements-> only obstacles remain and mark them in original picture
 		#in the future: might be separated in 2 steps 1)extract objects 2)visualisation		
-		obst_list = self.object_filter(props,no_elements)
+		obst_list = self.object_filter(props,no_elements,im_test)
 
 	return obst_list
 
@@ -107,7 +116,7 @@ class Detector():
 
 
 
-    def object_filter(self,props,no_elements):
+    def object_filter(self,props,no_elements,image):
 	#for future: filter has to become adaptive to depth
 	obst_list = PoseArray()
    	obst_list.header.frame_id=self.robot_name
@@ -128,7 +137,10 @@ class Detector():
 		        print color_info
 		        print total_width
 		        print total_height
-		        if ((color_info == 127 and total_width > 10) or (color_info == 255 and (total_width < 150 and total_height > 32))):
+		        #if ((color_info == 127 and total_width > 10) or (color_info == 255 and (total_width < 150 and total_height > 32))):
+		        #if ((color_info == 127 and total_width > 10) or (color_info == 255 and (props[k-1]['extent']<0.2 or (abs(props[k-1]['orientation'])>1.2) and props[k-1]['minor_axis_length']<10))):
+			if ((color_info == 127 and total_width > 10) or (color_info == 255 and (0.5*props[k-1]['perimeter']/props[k-1]['major_axis_length']<1.0))):
+
 			        obst_object = Pose()
 			        new_position = np.array([[left+0.5*total_width],[bottom]])
 			        # Checks if there is close object from frame before
@@ -143,6 +155,15 @@ class Detector():
 					obst_object.position.y = point_calc[1,0] #obstacle coord y
 					#calculate radius:
 					obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
+					#determine wheter obstacle is out of bounds:
+					if (obst_object.position.y>0): #obstacle is left of me
+						line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,right), linewidth=1, order=1, mode='constant')])
+					else:
+						line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,left), linewidth=1, order=1, mode='constant')])
+            				#bottom,left
+            				line1 =  cv2.inRange(line1, self.lower_white, self.upper_white)
+            				if (np.sum(line1==255)>3):
+            					obst_object.position.z = -1*obst_object.position.z #means it is out of bounds!
 
 					#fill in the pixel boundaries of bird view image!!!
 					obst_object.orientation.x = top

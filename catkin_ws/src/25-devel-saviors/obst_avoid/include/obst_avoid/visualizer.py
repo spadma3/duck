@@ -46,9 +46,9 @@ class Visualizer():
                 marker.lifetime = rospy.Time(1.0) 
                 #each marker if not replaced earlier by same id will dissapear after max 1 second
    		marker.id = i
-	   	marker.scale.x = obst_list.poses[i].position.z
+	   	marker.scale.x = abs(obst_list.poses[i].position.z) #since is negative if not relevant
                 #marker.scale.x = 0.2
-                marker.scale.y = obst_list.poses[i].position.z
+                marker.scale.y = abs(obst_list.poses[i].position.z)
                 #marker.scale.y = 0.2
 	   	marker.pose.position.x = obst_list.poses[i].position.x
 	   	marker.pose.position.y = obst_list.poses[i].position.y
@@ -68,6 +68,9 @@ class Visualizer():
                 right = obst_list.poses[i].orientation.w
                 points = np.float32([[left,left,right,right],[top,bottom,bottom,top]])
                 pts = self.detector.bird_view_pixel2real_pic_pixel(points)
-                cv2.polylines(image,np.int32([np.transpose(pts)]),True,(0,255,0),3)
+                if (obst_list.poses[i].position.z<0):
+                        cv2.polylines(image,np.int32([np.transpose(pts)]),True,(0,255,0),3)
+                else:
+                        cv2.polylines(image,np.int32([np.transpose(pts)]),True,(255,0,0),3)
 	    
 	return d8_compressed_image_from_cv_image(image[:,:,::-1])
