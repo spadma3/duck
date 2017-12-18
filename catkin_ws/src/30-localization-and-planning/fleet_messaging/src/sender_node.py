@@ -9,7 +9,7 @@ class Sender(object):
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initialzing." % (self.node_name))
 
-        self.subscriber = rospy.Subscriber("topic", String, self.callback)
+        self.subscriber = rospy.Subscriber("publisher_node/topic", String, self.callback)
 
         # Wireless Interface
         self.iface = self.setupParameter("~iface", "wlan0")
@@ -22,7 +22,8 @@ class Sender(object):
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def callback(msg):
+    def callback(self, msg):
+        ts = rospy.Time(10)
         s = "I heard: %s" % (msg.data)
         sender.pub.send_string(s + " and Hello World at: " + str(ts))
         rospy.loginfo(s)
@@ -30,4 +31,7 @@ class Sender(object):
 
 rospy.init_node('sender_node', anonymous=False)
 sender = Sender()
+# ts = rospy.Time(10)
+# s = "I heard: %s" % ("Hello Universe")
+# sender.pub.send_string(s + " and Hello World at: " + str(ts))
 rospy.spin() #Keeps the script for exiting
