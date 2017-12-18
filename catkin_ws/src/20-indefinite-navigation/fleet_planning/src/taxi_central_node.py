@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from enum import Enum
+from enum import Enum, IntEnum
 import os
 import rospy
 from fleet_planning.generate_duckietown_map import graph_creator
@@ -10,7 +10,7 @@ from fleet_planning.message_serialization import InstructionMessageSerializer, L
 from fleet_planning.map_drawing import MapDraw
 from sensor_msgs.msg import Image
 
-class TaxiState(Enum):
+class TaxiState(IntEnum):
     GOING_TO_CUSTOMER = 0
     WITH_CUSTOMER = 1
     IDLE = 2
@@ -73,7 +73,7 @@ class Duckiebot:
         depending on the status of the customer request it is handling."""
 
         if self._taxi_state == TaxiState.IDLE:
-            return None
+            return -1
 
         if self.taxi_state == TaxiState.GOING_TO_CUSTOMER:
             return self._customer_request.start_location
@@ -151,12 +151,6 @@ class CustomerRequest:
 class TaxiCentralNode:
     TIME_OUT_CRITERIUM = 60.0
     _fleet_planning_strategy = FleetPlanningStrategy.CLOSEST_DUCKIEBOT # for now there is just this. gives room for future expansions
-
-    _registered_duckiebots = {} # dict of instances of class Duckiebot. populated by register_duckiebot(). duckiebot name is key
-    _pending_customer_requests = []
-    _fulfilled_customer_requests = [] # for analysis purposes
-
-    _graph_creator = None
 
     def __init__(self):
         """
@@ -260,7 +254,9 @@ class TaxiCentralNode:
         (Maybe if # pending_customer requests > number idle duckiebots, assign the ones with the shortest path.)
         """
         # For now quickly find the closest duckiebot
-        for pending_request in self._pending_customer_requests:
+        rospy.logwarn(self._pending_customer_requests)
+        while len(self._pending_customer_requests) > 0:
+            pending_request = self._pending_customer_requests[0]
             idle_duckiebots = self._idle_duckiebots()
             if len(idle_duckiebots) == 0:
                 rospy.loginfo("No duckiebot available for pending transport request")
@@ -270,11 +266,13 @@ class TaxiCentralNode:
             start_node = self._graph.get_node(pending_request.start_location)
 
             nodes_to_visit = [start_node]
+            visited_nodes = []
 
             # Find the closest duckiebot via breadth first search
             duckiebot = None
             while len(nodes_to_visit) > 0 and duckiebot is None:
                 current_node = nodes_to_visit.pop(0)
+                visited_nodes.append(current_node)
 
                 # Check if there's a duckiebot on that node
                 for db in idle_duckiebots:
@@ -286,14 +284,16 @@ class TaxiCentralNode:
                 # Add all the neighboring nodes to the list of nodes we still have to visit
                 edges = self._graph.node_edges(current_node)
                 for edge in edges:
-                    nodes_to_visit.append(edge.target)
+                    if str(edge.target) not in visited_nodes:
+                        nodes_to_visit.append(edge.target)
 
-            if duckiebot is None:
+            if duckiebot is not None:
+                # Assign the request to that duckiebot
+                self._pending_customer_requests.pop(0)
+                duckiebot.assign_customer_request(pending_request)
+                self._publish_duckiebot_mission(duckiebot)
+            else:
                 rospy.logwarn("There are IDLE duckiebots but they were not found in the graph")
-
-            # Assign the request to that duckiebot
-            duckiebot.assign_customer_request(pending_request)
-            self._publish_duckiebot_mission(duckiebot)
 
     def _location_update(self, message):
         """
@@ -306,7 +306,9 @@ class TaxiCentralNode:
         :param location_msg: contains location and robot name
         """
         duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
-
+        rospy.logwarn(duckiebot_name)
+        rospy.logwarn(node)
+        rospy.logwarn(route)
         # Find the next node
         next_node = -1
         for n in range(len(route)):
@@ -314,6 +316,11 @@ class TaxiCentralNode:
                 if n + 1 < len(route):
                     next_node = route[n+1]
                     break
+
+        # The whole taxi_central_node uses strings as node ids. So let's make sure we use strings too
+        # from this point onwards.
+        node = str(node)
+        next_node = str(next_node)
 
         if duckiebot_name not in self._registered_duckiebots:
             self._create_and_register_duckiebot(duckiebot_name)
@@ -353,9 +360,12 @@ class TaxiCentralNode:
     def _publish_duckiebot_mission(self, duckiebot):
         """ create message that sends duckiebot to its next location, according to the customer request that had been
         assigned to it"""
-
-        serialized_message = InstructionMessageSerializer.serialize(duckiebot.name, duckiebot.target_location,
-                                                                    duckiebot.taxi_state)
+        rospy.loginfo('location:{}'.format(duckiebot.target_location))
+        rospy.loginfo('taxi state {}'.format(duckiebot.taxi_state.value))
+        rospy.loginfo(type(duckiebot.target_location))
+        rospy.loginfo(type(duckiebot.taxi_state.value))
+        serialized_message = InstructionMessageSerializer.serialize(duckiebot.name, int(duckiebot.target_location),
+                                                                    duckiebot.taxi_state.value)
         self._pub_duckiebot_target_location.publish(ByteMultiArray(data=serialized_message))
 
         rospy.loginfo('Duckiebot {} was sent to node {}'.format(duckiebot.name, duckiebot.target_location))

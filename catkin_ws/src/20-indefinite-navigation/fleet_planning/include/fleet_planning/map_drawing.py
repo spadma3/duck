@@ -116,8 +116,8 @@ class MapDraw():
 
         # draw request if initialized, i.e. nonzero
         if req.target_node != '0':
-            overlay = self.draw_icons(overlay, "start", location=req.source_node)
-            overlay = self.draw_icons(overlay, "target", location=req.target_node)
+            overlay = self.draw_icons(overlay, "start", location=req.source_node, icon_number=1)
+            overlay = self.draw_icons(overlay, "target", location=req.target_node, icon_number=1)
         return self.bridge.cv2_to_imgmsg(overlay, "bgr8")
 
     def prepImage(self):
@@ -158,8 +158,8 @@ class MapDraw():
                                       icon_number=self.num_duckiebots_per_node[str(bot._last_known_location)])
             if bot._customer_request:
                 overlay = self.draw_icons(overlay, "customer",
-                                          location=bot._customer_request.start_location)  # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
-                overlay = self.draw_icons(overlay, "target", location=bot._customer_request.target_location)
+                                          location=bot._customer_request.start_location, icon_number=1)  # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
+                overlay = self.draw_icons(overlay, "target", location=bot._customer_request.target_location, icon_number=1)
 
                 # set num_duckiebots_per_node back to zero
         for node, num in self.num_duckiebots_per_node.iteritems():
