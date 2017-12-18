@@ -241,7 +241,7 @@ class TaxiCentralNode:
         (Maybe if # pending_customer requests > number idle duckiebots, assign the ones with the shortest path.)
         """
         # For now quickly find the closest duckiebot
-        rospy.logwarn(self._pending_customer_requests)
+
         while len(self._pending_customer_requests) > 0:
             pending_request = self._pending_customer_requests[0]
             idle_duckiebots = self._idle_duckiebots()
@@ -293,9 +293,7 @@ class TaxiCentralNode:
         :param location_msg: contains location and robot name
         """
         duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
-        rospy.logwarn(duckiebot_name)
-        rospy.logwarn(node)
-        rospy.logwarn(route)
+
         # Find the next node
         next_node = -1
         for n in range(len(route)):
