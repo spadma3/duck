@@ -8,23 +8,10 @@ from std_msgs.msg import ByteMultiArray
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
 from fleet_planning.map_drawing import MapDraw
+from fleet_planning.enums import *
 from sensor_msgs.msg import Image
 
-class TaxiState(IntEnum):
-    GOING_TO_CUSTOMER = 0
-    WITH_CUSTOMER = 1
-    IDLE = 2
 
-
-class Instruction(Enum):
-    LEFT = 'l'
-    RIGHT = 'r'
-    STRAIGHT = 's'
-
-
-class FleetPlanningStrategy(Enum): # for future expansion
-    DEACTIVATED = 0
-    CLOSEST_DUCKIEBOT = 1
 
 
 class Duckiebot:
