@@ -12,7 +12,7 @@ class Receiver(object):
         self.iface = self.setupParameter("~iface", "wlan0")
         # Instantiating up ZQM subscriber
         self.sub = cl.duckiemq(interface=self.iface, socktype='sub')
-        self.sub.setfilter("I")
+        self.sub.setfilter("Fleet_Planning")
         # Instantiating up ROS
         self.publisher = rospy.Publisher("fleet_planning_inbox",String,queue_size=1)
 

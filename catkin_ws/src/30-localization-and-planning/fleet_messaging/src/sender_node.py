@@ -23,10 +23,10 @@ class Sender(object):
 
     def to_send_cb(self, msg):
         """A call back that sends out message to communication network"""
-        ts = rospy.Time.now()
-        s = "I heard: %s" % (msg.data)
-        sender.pub.send_string(s + " and Hello World at: " + str(ts))
-        rospy.loginfo(s)
+        flag = "Fleet_Planning:"
+        mail = "%s %s" % (flag, msg.data)
+        sender.pub.send_string(mail)
+        rospy.loginfo("Sending: " + mail)
 
 
 rospy.init_node('sender_node', anonymous=False)
