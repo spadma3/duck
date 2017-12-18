@@ -34,7 +34,6 @@ ros::Publisher marker_pub;
 ros::Publisher marker_arr_pub;
 std::string veh_name;
 
-
 visualization_msgs::Marker make_pose_marker(int marker_id, uint8_t action, double x, double y, double theta)
 {
     visualization_msgs::Marker marker;
@@ -259,11 +258,6 @@ public:
 	    const Pose2 &val = dynamic_cast<const Pose2&>(key_val.value);
 		    marker = make_pose_marker(key_val.key, OPTIMIZE_ACTION,
 					      val.x(), val.y(), val.theta());
-
-		    // Bring back odometry to latest estimate
-		    // curx = val.x();
-		    // cury = val.y();
-		    // curtheta = val.theta();
 		} else if (typeid(key_val.value) == typeid(Point2)) {
 		    const Point2 &val = dynamic_cast<const Point2&>(key_val.value);
 		    marker = make_april_marker(key_val.key, OPTIMIZE_ACTION,
