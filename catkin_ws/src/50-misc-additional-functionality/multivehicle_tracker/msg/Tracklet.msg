@@ -9,3 +9,5 @@ float32 x
 float32 y
 float32 heading
 float32 velocity
+float32 sigma_x
+float32 sigma_y

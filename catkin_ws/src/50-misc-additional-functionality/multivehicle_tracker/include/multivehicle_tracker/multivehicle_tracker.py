@@ -5,7 +5,7 @@ from .tracklet import Tracklet
 
 class NaiveMultitargetTracker:
 
-    def __init__(self, max_nearest_neighbor=0.25):
+    def __init__(self, max_nearest_neighbor=0.20):
         self.lock = threading.Lock()
         self.max_nearest_neighbor = max_nearest_neighbor
         self.targets = {}
@@ -34,6 +34,16 @@ class NaiveMultitargetTracker:
             for tracklet_id in self.targets:
                 tracklet = self.targets[tracklet_id]
                 tracklet.predict(timestamp)
+                confidence = tracklet.confidence()
+                if confidence > 0.05:
+                    tracklet.status = Tracklet.STATUS_LOST
+
+    def clean_dead(self):
+        dead_targets = [tracklet_id for tracklet_id in self.targets
+                         if self.targets[tracklet_id].status == Tracklet.STATUS_LOST]
+        with self.lock:
+            for tracklet_id in dead_targets:
+                self.targets.pop(tracklet_id)
 
     def get_tracklets_info(self, status=Tracklet.STATUS_TRACKING):
         with self.lock:
@@ -43,5 +53,3 @@ class NaiveMultitargetTracker:
                 if self.targets[tracklet_id].status == status
             ]
 
-    def generational_garbage_collect(self):
-        pass
