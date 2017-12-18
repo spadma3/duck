@@ -51,7 +51,7 @@ class Detector():
 	self.obst_thres = 50 #to be set in init_inv_homography, this is default
 	self.M = self.init_inv_homography()
 	self.inv_M = inv(self.M)
-	self.minimum_tracking_distance = 100
+	self.minimum_tracking_distance = 60
 	self.new_track_array = np.array([])
 
 
@@ -120,12 +120,15 @@ class Detector():
 			bottom=props[k-1]['bbox'][2]
 		      	left=props[k-1]['bbox'][1]
 		        right=props[k-1]['bbox'][3]
-		        total_width = right-left
 		        #calc center in top view image
+		        total_width = right - left
+		        total_height = bottom - top
+		        # yellow: 127, orange: 255
 		        color_info = props[k-1]['max_intensity']
-		        
-		        if (total_width > 0):
-
+		        print color_info
+		        print total_width
+		        print total_height
+		        if ((color_info == 127 and total_width > 10) or (color_info == 255 and (total_width < 150 and total_height > 32))):
 			        obst_object = Pose()
 			        new_position = np.array([[left+0.5*total_width],[bottom]])
 			        # Checks if there is close object from frame before
@@ -173,9 +176,7 @@ class Detector():
 		distance_min = np.amin(distances_norms)
 		distance_min_index = np.argmin(distances_norms)
 		y_distance = distances[1,distance_min_index]
-		print y_distance
-		x_distance = distances[0,distance_min_index]
-		if y_distance < 0:
+		if y_distance < -5:
 			distance_min = 2*self.minimum_tracking_distance
 	else:
 		distance_min = 2*self.minimum_tracking_distance
