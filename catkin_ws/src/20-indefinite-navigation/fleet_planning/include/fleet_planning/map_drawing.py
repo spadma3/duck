@@ -7,9 +7,9 @@ from sensor_msgs.msg import Image
 #from fleet_planning.srv import *
 from fleet_planning.generate_duckietown_map import graph_creator, MapImageCreator
 from fleet_planning.transformation import PixelAndMapTransformer
+from fleet_planning.enums import *
 
-
-class MapDraw():
+class MapDraw:
     """
     Used to generate the map from a csv file, draw the graph on top
     of that and draw the icons for each duckiebot.
@@ -151,19 +151,30 @@ class MapDraw():
         # TODO: figure out best way to visualize duckiebot with customer
         overlay = self.prepImage()
         for name, bot in duckiebots.iteritems():
-            self.num_duckiebots_per_node[str(bot._last_known_location)] += 1
-            #print "Node ", bot._last_known_location, " visited ", self.num_duckiebots_per_node[
-            #    str(bot._last_known_location)], " times."
-            overlay = self.draw_icons(overlay, "start", location=bot._last_known_location,
-                                      icon_number=self.num_duckiebots_per_node[str(bot._last_known_location)])
-            if bot._customer_request:
-                overlay = self.draw_icons(overlay, "customer",
-                                          location=bot._customer_request.start_location, icon_number=1)  # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
-                overlay = self.draw_icons(overlay, "target", location=bot._customer_request.target_location, icon_number=1)
+            # draw duckiebot
+            self.num_duckiebots_per_node[str(bot.location)] += 1
+            overlay = self.draw_icons(overlay, "start", location=bot.location,
+                                      icon_number=self.num_duckiebots_per_node[str(bot.location)])
 
-                # set num_duckiebots_per_node back to zero
+            if bot.taxi_state != TaxiState.IDLE:
+                if bot.taxi_state == TaxiState.GOING_TO_CUSTOMER:
+                    customer_location = bot.target_location
+
+                if bot.taxi_state == TaxiState.WITH_CUSTOMER:
+                    customer_location = bot.location
+
+                # draw customer
+                self.num_duckiebots_per_node[str(customer_location)] += 1
+                overlay = self.draw_icons(overlay, "customer",
+                                          location=bot.customer_location, icon_number=self.num_duckiebots_per_node)  # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
+
+                # draw target icon
+                self.num_duckiebots_per_node[str(bot.target_location)] += 1
+                overlay = self.draw_icons(overlay, "target", location=bot.target_location, icon_number=self.num_duckiebots_per_node)
+
+
+         # set num_duckiebots_per_node back to zero
         for node, num in self.num_duckiebots_per_node.iteritems():
             self.num_duckiebots_per_node[node] = 0
-            #print "Node ", node, " set to zero.", self.num_duckiebots_per_node[node]
 
         return self.bridge.cv2_to_imgmsg(overlay, "bgr8")
