@@ -4,6 +4,7 @@ import argparse
 import cv2
 import numpy as np
 from numpy.linalg import inv
+from numpy import linalg as LA
 from os.path import basename, expanduser, isfile, join, splitext
 import socket
 from matplotlib import pyplot as plt
@@ -44,6 +45,8 @@ class Detector():
 	self.obst_thres = 50 #to be set in init_inv_homography, this is default
 	self.M = self.init_inv_homography()
 	self.inv_M = inv(self.M)
+	self.minimum_tracking_distance = 100
+	self.new_track_array = np.array([])
 
 
     def init_inv_homography(self):
@@ -101,56 +104,73 @@ class Detector():
 	#for future: filter has to become adaptive to depth
 	obst_list = PoseArray()
    	obst_list.header.frame_id=self.robot_name
-        new_track_array = np.array([])
+        self.new_track_array = np.array([])
 	for k in range(1,no_elements+1): #iterate through all segmented numbers
 		#first only keep large elements then eval their shape
 		if (props[k-1]['area']>self.obst_thres): #skip all those who are too small
+		    	# Coordinates in the bord view
 		    	top=props[k-1]['bbox'][0]
 			bottom=props[k-1]['bbox'][2]
 		      	left=props[k-1]['bbox'][1]
 		        right=props[k-1]['bbox'][3]
 		        total_width = right-left
-		        print total_width
-		        #those are the coordinates in the bird view!!!!
-		        if (total_width > 10):
+		        
+		        if (total_width > 0):
 
 			        obst_object = Pose()
+			        new_position = np.array([[left+0.5*total_width],[bottom]])
+			        # Checks if there is close object from frame before
+			        distance_min = self.obst_tracker(new_position)
+                 		if distance_min < self.minimum_tracking_distance:
+					point_calc=np.zeros((3,2),dtype=np.float)
+					point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
+					obst_object.position.x = point_calc[0,0] #obstacle coord x
+					if (point_calc[0,0]<0.5):
+						print "DANGEROUS OBSTACLE:"
+						print  point_calc[0:2,0]
+					obst_object.position.y = point_calc[1,0] #obstacle coord y
+					#calculate radius:
+					obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
 
-
-			        #geht jetzt auch effizienter!!, nicht auf 2 Mal,....!!!
-				point_calc=np.zeros((3,2),dtype=np.float)
-				point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
-				#take care cause image was cropped,..
-				obst_object.position.x = point_calc[0,0] #obstacle coord x
-				if (point_calc[0,0]<0.5):
-					print "DANGEROUS OBSTACLE:"
-					print  point_calc[0:2,0]
-				obst_object.position.y = point_calc[1,0] #obstacle coord y
-				#calculate radius:
-				obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
-
-				#fill in the pixel boundaries of bird view image!!!
-				obst_object.orientation.x = top
-				obst_object.orientation.y = bottom
-				obst_object.orientation.z = left
-				obst_object.orientation.w = right
-				new_position = np.array([[obst_object.position.x],[obst_object.position.y]])
-                 		if k == 1:
-                 			new_track_array = new_position
-                 		else: 
-					new_track_array = np.append(new_track_array,new_position,axis=1)
-				
-				print new_track_array
-				obst_list.poses.append(obst_object)
-			 
-				#explanation: those parameters published here are seen from the !center of the axle! in direction
-				#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
-				#cv2.rectangle(orig_img,(np.min(C[1]),np.min(C[0])),(np.max(C[1]),np.max(C[0])),(0,255,0),3)
+					#fill in the pixel boundaries of bird view image!!!
+					obst_object.orientation.x = top
+					obst_object.orientation.y = bottom
+					obst_object.orientation.z = left
+					obst_object.orientation.w = right
+					
+					obst_list.poses.append(obst_object)
+				 
+					#explanation: those parameters published here are seen from the !center of the axle! in direction
+					#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
+					#cv2.rectangle(orig_img,(np.min(C[1]),np.min(C[0])),(np.max(C[1]),np.max(C[0])),(0,255,0),3)
 
 	    #eig box np.min breite und hoehe!! if they passed the test!!!!
 	    #print abc
-	self.track_array = new_track_array    
+	self.track_array = self.new_track_array    
 	return obst_list
+
+    def obst_tracker(self,new_position):
+    	#input: array of the current track_array which will be used in the next frame
+    	#input: new_position in 2D image which has to be checked if it could be tracked from the image before
+    	#outout: minimum distance to an obstacle in the image before, 2*minimum_tracking_distance if there haven't been obstacles in the frame before
+    	if self.new_track_array.size == 0:
+                self.new_track_array = new_position
+        else: 
+		self.new_track_array = np.append(self.new_track_array,new_position,axis=1)
+				
+	if self.track_array.size != 0:
+		distances = -(self.track_array - new_position)
+		distances_norms = LA.norm(distances, axis=0)
+		distance_min = np.amin(distances_norms)
+		distance_min_index = np.argmin(distances_norms)
+		y_distance = distances[1,distance_min_index]
+		print y_distance
+		x_distance = distances[0,distance_min_index]
+		if y_distance < 0:
+			distance_min = 2*self.minimum_tracking_distance
+	else:
+		distance_min = 2*self.minimum_tracking_distance
+	return distance_min
 
     def real_pic_pixel2ground(self,real_pic_pixel):
     	#input: pixel coordinates of real picture in homogeneous coords (3byN)

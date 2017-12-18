@@ -39,12 +39,12 @@ class ObstDetectNode(object):
         if (self.show_marker):
                 self.pub_topic_marker = '/{}/obst_detect/visualize_obstacles'.format(robot_name)
                 self.publisher_marker = rospy.Publisher(self.pub_topic_marker, MarkerArray, queue_size=1)
-                print "YEAH I GIVE YOU THE MARKER"
+                print "show_marker is active: marker will be published as /veh/obst_detect/visualize_obstacles"
 
         if (self.show_image):
                 self.pub_topic_img = '/{}/obst_detect/image_cropped/compressed'.format(robot_name)
                 self.publisher_img = rospy.Publisher(self.pub_topic_img, CompressedImage, queue_size=1)
-                print "YEAH I GIVE YOU THE IMAGE"
+                print "show_image is active: image will be published as /veh/obst_detect/image_cropped/compressed"
 
         # Create a Subscriber
         self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
