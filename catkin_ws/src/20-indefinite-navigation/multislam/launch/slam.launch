@@ -2,31 +2,64 @@
 	<arg name="veh" />
 	<arg name="pkg_name" value="multislam"/>
 	<arg name="node_name" default="slam"/>
-	<arg name="slam_only" default="false"/>
-	<arg name="local" default="true" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
+	<arg name="camera" default="raspicam"/>
+	<env name="GSCAM_CONFIG" value="udpsrc port=9000 ! application/x-rtp,
+					payload=96 ! rtpjitterbuffer !
+					rtph264depay ! avdec_h264 !
+					videoconvert"/>
 
-	<!-- start basic args -->
-	<group unless="$(arg slam_only)">
-		<remap from="image_proc/camera_info" to="raspicam/camera_info"/>
-		<include file="$(find duckietown)/launch/apriltags.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="camera" value="false" />
-			<arg name="local" value="true" />
-		</include>
-	</group>
 
+	<!-- April tags -->
+	<remap from="image_proc/camera_info" to="raspicam/camera_info"/>
+	<include file="$(find duckietown)/launch/apriltags.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="camera" value="false" />
+		<arg name="local" value="true" />
+	</include>
+
+	<!-- Duckiebot visualizer-->
 	<include file="$(find duckiebot_visualizer)/launch/duckiebot_visualizer.launch">
 		<arg name="veh" value="$(arg veh)" />
 	</include>
 
+	<!-- Setup base_link -> camera frame tf-->
+	<node pkg="tf" type="static_transform_publisher"
+	      name="link1_broadcaster" args="0 0 0  -1.5708 0.26 -1.5708   base_link
+					     /camera_frame 100" />
+
 	<group ns="$(arg veh)">
-		<node if="$(arg local)" name="$(arg node_name)"
+		<!-- Slam node -->
+		<node name="$(arg node_name)"
 		      pkg="$(arg pkg_name)" type="$(arg node_name)"
 		      output="screen" clear_params="true" />
 
+		<!-- Image proc -->
+		<remap from="/$(arg veh)/$(arg camera)/image_rect" to="/$(arg veh)/image_proc/image_rect" />
+		<node ns="$(arg camera)" pkg="image_proc" type="image_proc" name="image_proc" />
 
-		<!-- run remote -->
-		<node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name)" output="screen" clear_params="true"/>
+		<!-- Viso2 -->
+		<remap from="/$(arg veh)/image_proc/camera_info" to="/$(arg veh)/raspicam/camera_info"/>
+		<node  pkg="viso2_ros" type="mono_odometer" name="mono_odometer">
+			<remap from="image" to="image_proc/image_rect"/>
+			<param name="camera_height" value="0.10795" />
+			<param name="camera_pitch" value="0.26" />
+			<!--<param name="camera_pitch" value="-0.2594" />-->
+			<param name="sensor_frame_id" value="/camera_frame"/>
+		</node>
 
+		<!-- Gscam -->
+		<node pkg="gscam" type="gscam" name="$(arg camera)">
+			<param name="camera_name" value="$(arg camera)"/>
+			<remap from="camera/image_raw" to="$(arg camera)/image_raw"/>
+			<param name="camera_info_url"
+			       value="file://$(env DUCKIEFLEET_ROOT)/calibrations/camera_intrinsic/$(arg veh).yaml" />
+		</node>
 	</group>
+
+	<!-- Launch joystick on bot -->
+	<include file="$(find duckietown)/launch/joystick.launch">
+		<arg name="veh" value="$(arg veh)" />
+		<arg name="local" value="false" />
+	</include>
+
 </launch>

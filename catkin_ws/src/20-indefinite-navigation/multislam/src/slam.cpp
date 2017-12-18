@@ -12,7 +12,6 @@
 #include "duckietown_msgs/AprilTagsWithInfos.h"
 #include "duckietown_msgs/Twist2DStamped.h"
 #include "nav_msgs/Odometry.h"
-#include "sensor_msgs/Imu.h"
 
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/slam/PriorFactor.h>
@@ -122,8 +121,8 @@ visualization_msgs::Marker make_april_marker(int marker_id, uint8_t action, doub
     marker.pose.orientation.w = 0.0;
 
     // Set the scale of the marker
-    marker.scale.x = 0.2;
-    marker.scale.y = 0.2;
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
     marker.scale.z = 0.2;
 
     if (action == ADD_ACTION)
@@ -171,7 +170,7 @@ class GraphSlam
 public:
     GraphSlam()
 	: nh_(), measurementNoise(noiseModel::Diagonal::Sigmas((Vector(2) << 0.1, 0.1))),
-	  odomNoise(noiseModel::Diagonal::Sigmas((Vector(3) << 0.05, 0.01, 0.5))),
+	  odomNoise(noiseModel::Diagonal::Sigmas((Vector(3) << 0.05, 0.01, 0.1))),
 	  curposeindex(0), curx(0.0f), cury(0.0f), curtheta(0.0f), imutheta(0.0f), oldimutheta(0.0f)
 	{
 	    nh_.getParam("duckiebot_visualizer/veh_name", veh_name);
@@ -189,12 +188,9 @@ public:
 
 	    // Subscribers
 	    apriltagsSub = nh_.subscribe("apriltags_postprocessing_node/apriltags_out", 1000, &GraphSlam::aprilcallback, this);
-
-	    // TODO: do it right.
-	    odomSub = nh_.subscribe("/misteur/mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
+	    odomSub = nh_.subscribe("mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
 
 	    optimizerTimer = nh_.createTimer(ros::Duration(1), &GraphSlam::optimizeCallback, this);
-	    initialEstimate.print("\nInitial Estimate:\n");
 	}
 
     void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
@@ -228,8 +224,7 @@ public:
 	    const double CURRENT_SPEEDGAIN = 0.41;
 	    double delta_d = delta_t * CURRENT_SPEEDGAIN;
 
-	    // Note:We don't use "==" with floating-point numbers
-	    if (msg->twist.twist.linear.x < 0.000001)
+	    if (msg->twist.twist.linear.x == 0.0)
 		delta_d = 0.0;
 
 	    tf::Quaternion q_tf(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y,
@@ -240,7 +235,8 @@ public:
 
 	    double old_theta = curtheta;
 	    curtheta = yaw;
-	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex, Pose2(delta_d, 0, curtheta - old_theta), odomNoise));
+	    graph.add(BetweenFactor<Pose2>(curposeindex-1,curposeindex,
+					   Pose2(delta_d, 0, fmod(curtheta - old_theta, 2 * M_PI)), odomNoise));
 	    curx += cos(curtheta) * delta_d;
 	    cury += sin(curtheta) * delta_d;
 	    initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
