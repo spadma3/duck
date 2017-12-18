@@ -73,7 +73,7 @@ class Duckiebot:
         depending on the status of the customer request it is handling."""
 
         if self._taxi_state == TaxiState.IDLE:
-            return None
+            return -1
 
         if self.taxi_state == TaxiState.GOING_TO_CUSTOMER:
             return self._customer_request.start_location
@@ -317,6 +317,11 @@ class TaxiCentralNode:
                     next_node = route[n+1]
                     break
 
+        # The whole taxi_central_node uses strings as node ids. So let's make sure we use strings too
+        # from this point onwards.
+        node = str(node)
+        next_node = str(next_node)
+
         if duckiebot_name not in self._registered_duckiebots:
             self._create_and_register_duckiebot(duckiebot_name)
             duckiebot = self._registered_duckiebots[duckiebot_name]
@@ -355,10 +360,10 @@ class TaxiCentralNode:
     def _publish_duckiebot_mission(self, duckiebot):
         """ create message that sends duckiebot to its next location, according to the customer request that had been
         assigned to it"""
-        rospy.logwarn('location:{}'.format(duckiebot.target_location))
-        rospy.logwarn('taxi state {}'.format(duckiebot.taxi_state.value))
-        rospy.logwarn(type(duckiebot.target_location))
-        rospy.logwarn(type(duckiebot.taxi_state.value))
+        rospy.loginfo('location:{}'.format(duckiebot.target_location))
+        rospy.loginfo('taxi state {}'.format(duckiebot.taxi_state.value))
+        rospy.loginfo(type(duckiebot.target_location))
+        rospy.loginfo(type(duckiebot.taxi_state.value))
         serialized_message = InstructionMessageSerializer.serialize(duckiebot.name, int(duckiebot.target_location),
                                                                     duckiebot.taxi_state.value)
         self._pub_duckiebot_target_location.publish(ByteMultiArray(data=serialized_message))
