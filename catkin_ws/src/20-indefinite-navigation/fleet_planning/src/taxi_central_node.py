@@ -152,12 +152,6 @@ class TaxiCentralNode:
     TIME_OUT_CRITERIUM = 60.0
     _fleet_planning_strategy = FleetPlanningStrategy.CLOSEST_DUCKIEBOT # for now there is just this. gives room for future expansions
 
-    _registered_duckiebots = {} # dict of instances of class Duckiebot. populated by register_duckiebot(). duckiebot name is key
-    _pending_customer_requests = []
-    _fulfilled_customer_requests = [] # for analysis purposes
-
-    _graph_creator = None
-
     def __init__(self):
         """
         subscribe to location", customer_requests. Publish to transportation status, target location.
@@ -261,7 +255,8 @@ class TaxiCentralNode:
         """
         # For now quickly find the closest duckiebot
         rospy.logwarn(self._pending_customer_requests)
-        for pending_request in self._pending_customer_requests:
+        while len(self._pending_customer_requests) > 0:
+            pending_request = self._pending_customer_requests[0]
             idle_duckiebots = self._idle_duckiebots()
             if len(idle_duckiebots) == 0:
                 rospy.loginfo("No duckiebot available for pending transport request")
@@ -271,11 +266,13 @@ class TaxiCentralNode:
             start_node = self._graph.get_node(pending_request.start_location)
 
             nodes_to_visit = [start_node]
+            visited_nodes = []
 
             # Find the closest duckiebot via breadth first search
             duckiebot = None
             while len(nodes_to_visit) > 0 and duckiebot is None:
                 current_node = nodes_to_visit.pop(0)
+                visited_nodes.append(current_node)
 
                 # Check if there's a duckiebot on that node
                 for db in idle_duckiebots:
@@ -287,14 +284,16 @@ class TaxiCentralNode:
                 # Add all the neighboring nodes to the list of nodes we still have to visit
                 edges = self._graph.node_edges(current_node)
                 for edge in edges:
-                    nodes_to_visit.append(edge.target)
+                    if str(edge.target) not in visited_nodes:
+                        nodes_to_visit.append(edge.target)
 
-            if duckiebot is None:
+            if duckiebot is not None:
+                # Assign the request to that duckiebot
+                self._pending_customer_requests.pop(0)
+                duckiebot.assign_customer_request(pending_request)
+                self._publish_duckiebot_mission(duckiebot)
+            else:
                 rospy.logwarn("There are IDLE duckiebots but they were not found in the graph")
-
-            # Assign the request to that duckiebot
-            duckiebot.assign_customer_request(pending_request)
-            self._publish_duckiebot_mission(duckiebot)
 
     def _location_update(self, message):
         """

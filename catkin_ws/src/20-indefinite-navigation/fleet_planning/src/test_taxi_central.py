@@ -46,10 +46,15 @@ class TestTaxiCentral(unittest.TestCase):
     def test_taxi_central_node(self):
         # startup node
         script_dir = os.path.dirname(__file__)
-        map_path = os.path.abspath(script_dir)
+        map_path = os.path.join(os.path.abspath(script_dir), 'maps')
+        gui_img_dir = os.path.join(os.path.abspath(script_dir), '../include/gui_images')
         csv_filename = 'tiles_lab'
 
-        taxi_central_node = TaxiCentralNode(map_path, csv_filename)
+        rospy.set_param('/map_dir', map_path)
+        rospy.set_param('/map_name', csv_filename)
+        rospy.set_param('/gui_img_dir', gui_img_dir)
+
+        taxi_central_node = TaxiCentralNode()
         taxi_central_node._fleet_planning_strategy = FleetPlanningStrategy.DEACTIVATED
 
 
