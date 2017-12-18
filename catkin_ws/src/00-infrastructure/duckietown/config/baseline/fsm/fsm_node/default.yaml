@@ -90,6 +90,7 @@ states:
       - decoder_node
       - apriltag_node
     lights: ["joystick"]
+    current_status: "implemented"
   LANE_FOLLOWING:
     transitions:
       at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
@@ -98,6 +99,7 @@ states:
       - line_detector_node
       - stop_line_filter_node
     lights: ["lane_following"]
+    current_status: "in_progress"
   INTERSECTION_COORDINATION:
     transitions:
       intersection_go: "INTERSECTION_CONTROL"
@@ -108,6 +110,7 @@ states:
       - decoder_node
       - framerate_high
     lights: ["coordination"]
+    current_status: "in_progress"
   INTERSECTION_CONTROL:
     transitions:
       intersection_done: "LANE_FOLLOWING"
@@ -117,6 +120,7 @@ states:
       - apriltag_node
       - decoder_node
       - led_emitter_node
+    current_status: "in_progress"
   LANE_RECOVERY: # not implemented
     transitions:
       found_lane: "LANE_FOLLOWING"
@@ -124,6 +128,7 @@ states:
     active_nodes:
       - lane_filter_node
       - line_detector_node
+    current_status: "planned"
   INTERSECTION_RECOVERY: # not implemented
     transitions:
       found_lane: "LANE_FOLLOWING"
@@ -131,6 +136,7 @@ states:
     active_nodes:
       - lane_filter_node
       - line_detector_node
+    current_status: "planned"
   PARKING:
     transitions:
       at_stop_line: "ARRIVE_AT_STOP_LINE"
@@ -139,11 +145,13 @@ states:
       - line_detector_node
       - parking_node
       - controller_node
+    current_status: "in_progress"
   ARRIVE_AT_STOP_LINE:
     transitions:
       apriltag_intersection: "INTERSECTION_COORDINATION"
       apriltag_parking: "PARKING"
     active_nodes:
       - apriltag_node
+    current_status: "implemented"
 # TODOs:
 # - check active states
