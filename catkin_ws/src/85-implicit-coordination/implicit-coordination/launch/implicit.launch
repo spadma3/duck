@@ -1,13 +1,14 @@
 <launch>
     <arg name="veh" doc="name of vehicle"/>
 		<arg name="local" default="false"/>
-		<group ns="$(arg veh)"/>
-		<node name="implicit_coordination" pkg="implicit_coord" type="implicit.py" output="screen">
+		<group ns="$(arg veh)">
+			<node name="implicit_coordination" pkg="implicit_coord" type="implicit.py" output="screen">
 
-		<!-- Setup parameters -->
-		<!-- <param name="~pub_timestep" value="0.5"/> -->
-		<!-- Remapping topics -->
-		</node>
+			<!-- Setup parameters -->
+			<!-- <param name="~pub_timestep" value="0.5"/> -->
+			<!-- Remapping topics -->
+			</node>
+		</group>
 		<remap from="vehicle_detection_node/image" to="camera_node//image/compressed" />
 		<include file="$(find vehicle_detection)/launch/vehicle_detection_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
