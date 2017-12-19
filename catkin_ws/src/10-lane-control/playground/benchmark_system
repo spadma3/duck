@@ -110,38 +110,41 @@ def create_Plots(dArray, phiArray):
     fig, ax = plt.subplots(2, sharex=True)
     ax[0].plot(xVal, np.array(dArray)*100, color="blue", label=r'$d_{est}$')
     ax[1].plot(xVal, np.array(phiArray), color="red", label=r'$phi_{est}$')
-    ax[0].set_ylim(-15, 15)
+    ax[0].set_ylim(-30, 30)
     ax[0].set_ylabel('distance [cm]')
     ax[0].set_xlabel('time [frames]')
-    ax[1].set_ylim(-5, 5)
+    ax[1].set_ylim(-3, 3)
     ax[1].set_ylabel('tracking angle [deg]')
+    ax[1].set_xlabel('time [frames]')
     ax[0].legend(loc='upper right')
     ax[1].legend(loc='upper right')
-    ax[0].set_title('Performance evaluation of %s' % rosbagIN[:-4])
+    ax[0].set_title('Performance evaluation of %s using %s' % (rosbagIN[:-4], preparer))
+    fig.set_size_inches(16,9)
+    fig.savefig('%s/results.png' % outputPath, dpi=300)
     plt.show()
-    fig.savefig('%s/%s/results.png' % (output, rosbagIN[:-4]))
 
 def write_Logs(dArray, phiArray):
-    logFile = open(('%s/%s/performance.txt' % (output, rosbagIN[:-4])), 'w')
+    logFile = open(('%s/performance.txt' % outputPath), 'w')
     logFile.write('Benchmark results for %s\n' % rosbagIN[:-4])
     logFile.write('\tdist min:\t%s\n' % d_min)
     logFile.write('\tdist max:\t%s\n' % d_max)
-    logFile.write('\tdist mean:\t%s\n' % d_mean)
+    logFile.write('\tdist mean:\t%s\n' % round(d_mean,2))
     logFile.write('\tdist med:\t%s\n' % d_median)
-    logFile.write('\tdist var:\t%s\n' % round(d_var,1))
+    logFile.write('\tdist var:\t%s\n' % round(d_var,2))
 
     logFile.write('\tphi min:\t%s\n' % phi_min)
     logFile.write('\tphi max:\t%s\n' % phi_max)
-    logFile.write('\tphi mean:\t%s\n' % phi_mean)
+    logFile.write('\tphi mean:\t%s\n' % round(phi_mean,2))
     logFile.write('\tphi med:\t%s\n' % phi_median)
-    logFile.write('\tphi var:\t%s\n' % round(phi_var,1))
+    logFile.write('\tphi var:\t%s\n' % round(phi_var,2))
 
     logFile.write('\nImage preparer used: %s\n' % preparer)
     logFile.write('\tAverage amount of segments:\t%s\n' % round(np.mean(nSegments),1))
 
-    logFile.write('\nProcessing time: %f' % (toc-tic))
+    logFile.write('\nProcessing time: %f\n' % (toc-tic))
+    logFile.write('\tAverage processing time per frame: %f\n' % ((toc-tic)/len(dArray)))
 
-    logFile = open(('%s/%s/results.txt' % (output, rosbagIN[:-4])), 'w')
+    logFile = open(('%s/results.txt' % outputPath), 'w')
     logFile.write('Distance, Angle:\n')
     for d, phi in zip(dArray, phiArray):
         logFile.write('%f, %f\n' % (d, phi))
@@ -154,12 +157,14 @@ parser.add_argument('rosbag', type=str, help='Input rosbag file')
 # parser.add_argument('imgIn', type=str, help='Input image file')
 parser.add_argument('--output', type=str, help='Output folder where logs are being stored', default="output", required=False)
 parser.add_argument('--save_images', help='If to save the processed images from the rosbag', default=True, required=False)
+parser.add_argument('--preparer', help='Lane filter configuration to use', default='prep_120_40', required=False)
 
 args = parser.parse_args()
 rosbagIN = args.rosbag
 # imgIn = args.imgIn
 output = ('%s/%s' % (dirname(rosbagIN), args.output))
 save_images = args.save_images
+preparer = args.preparer
 
 # Perform file check
 from os.path import isfile
@@ -181,8 +186,9 @@ rosbagIN = basename(rosbagIN)
 robot = dtu.bag_info.which_robot(bag)
 topic = ('/' + robot + '/camera_node/image/compressed')
 detector = 'baseline'
-preparer = 'prep_200_70'
+# preparer = 'prep_120_40'
 context = FakeContext()
+outputPath = ('%s/%s_%s' % (output, rosbagIN[:-4], preparer))
 
 algo_db = get_easy_algo_db()
 line_detector = algo_db.create_instance('line_detector', detector)
@@ -229,7 +235,7 @@ for i in range(len(messages)):
     input = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     result = process_image(input, i)
     if (save_images == True):
-        dtu.write_image_as_jpg(result, '%s/%s/%05d.jpg' % (output, rosbagIN[:-4], i))
+        dtu.write_image_as_jpg(result, '%s/%05d.jpg' % (outputPath, i))
 
 bag.close()
 
