@@ -2,6 +2,7 @@
 import rospy
 import fleet_messaging.commlibs2 as cl
 from std_msgs.msg import ByteMultiArray
+from ruamel.yaml  import YAML
 
 class Sender(object):
     """Listens to an outox topic and then sends out msg to communication network"""
@@ -14,7 +15,9 @@ class Sender(object):
 
 
 
-
+        with open("config.yaml", "r") as config_file:
+            yaml_obj = YAML()
+            config_yaml = yaml_obj.load(config_file)
 
 
 
