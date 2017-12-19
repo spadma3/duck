@@ -32,7 +32,7 @@ class Sender(object):
 
                 # Create the subscriber
                 sub_topic = entry["sub"]
-                cb_fun = create_cb(socket)
+                cb_fun = self.create_cb(socket)
                 sub = rospy.Subscriber(sub_topic, ByteMultiArray, cb_fun)
 
                 # Populate the configuration
@@ -56,7 +56,6 @@ class Sender(object):
         return value
 
     def create_cb(self, socket):
-
         def send_cb(self, msg):
             """A call back that sends out message to communication network"""
             # flag = "Fleet_Planning:"
@@ -67,7 +66,7 @@ class Sender(object):
             socket.send_serialized(msg.data)
             rospy.loginfo("Sending msg at time: " + str(ts))
 
-        return to_send_cb
+        return send_cb
 
 rospy.init_node('sender_node', anonymous=False)
 sender = Sender()
