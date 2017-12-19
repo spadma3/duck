@@ -75,7 +75,7 @@ imagestuff = ImageStuff()
 
 rospy.init_node('ros_zmq_bridge', anonymous=True)
 vel_pub = rospy.Publisher('/shamrock/wheels_driver_node/wheels_cmd', WheelsCmdStamped, queue_size=5)
-image_topic = "/raspicam/image_raw"
+image_topic = "/raspicam/image_rect"
 img_sub = rospy.Subscriber(image_topic, Image, imagestuff.image_callback)
 
 
