@@ -1,0 +1,8 @@
+<launch>
+	<node name="receiver_node" pkg="fleet_messaging" type="receiver_node.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~iface" value="wlx18d6c7094a56"/>
+		<!-- Remapping topics -->
+		<!-- <remap from="~topic_b" to="talker/topic_a"/> -->
+	</node>
+</launch>
