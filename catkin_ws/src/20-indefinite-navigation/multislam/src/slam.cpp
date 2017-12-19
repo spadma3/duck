@@ -166,6 +166,8 @@ class GraphSlam
     float oldimutheta;
     double lastTimeSecs;
 
+    double speedGainParam;
+
 public:
     GraphSlam()
 	: nh_(), measurementNoise(noiseModel::Diagonal::Sigmas((Vector(2) << 0.1, 0.1))),
@@ -173,6 +175,8 @@ public:
 	  curposeindex(0), curx(0.0f), cury(0.0f), curtheta(0.0f), imutheta(0.0f), oldimutheta(0.0f)
 	{
 	    nh_.getParam("duckiebot_visualizer/veh_name", veh_name);
+	    nh_.getParam("joy_mapper_node/speed_gain", speedGainParam);
+	    printf("speed gain: %f\n", speedGainParam);
 
 	    lastTimeSecs = ros::Time::now().toSec();
 
@@ -218,10 +222,7 @@ public:
 	    double delta_t = timeNowSecs - lastTimeSecs;
 	    lastTimeSecs = timeNowSecs;
 
-	    // Make sure that you set the speed gain *on the bot* to CURRENT_SPEEDGAIN
-	    // rosparam set /<veh>/joy_mapper_node/speed_gain CURRENT_SPEEDGAIN
-	    const double CURRENT_SPEEDGAIN = 0.41;
-	    double delta_d = delta_t * CURRENT_SPEEDGAIN;
+	    double delta_d = delta_t * speedGainParam;
 
 	    if (msg->twist.twist.linear.x == 0.0)
 		delta_d = 0.0;
