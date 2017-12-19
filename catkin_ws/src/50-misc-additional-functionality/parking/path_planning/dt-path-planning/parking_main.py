@@ -18,8 +18,10 @@ from numpy import sign
 Global parameters
 """
 # control parameters
+choose_random_parking_space_combination = True
 do_talking = True
 do_ploting = True
+
 
 # parking lot parameters
 lot_width = 2*585                   # mm, lot = 2x2 squares
@@ -87,13 +89,27 @@ if __name__ == '__main__':
     problem definition
     """
     # start and endpose
-    start_x, start_y, start_yaw = pose_from_key("space 1")
-    end_x, end_y, end_yaw = pose_from_key("exit")
+    # 0:entrance, 1-6:space x (this is rocket science =) ), 7:exit
+    if choose_random_parking_space_combination:
+        entrance_exit = np.random.random_integers(0, 1)*7;
+        parking_space = np.random.random_integers(1, 6);
+        if entrance_exit == 0:
+            start_pose = entrance_exit
+            end_pose = parking_space
+        else:
+            start_pose = parking_space
+            end_pose = entrance_exit
+    else:
+        start_pose = 0
+        end_pose = 3
+    start_x, start_y, start_yaw = pose_from_key(start_pose)
+    end_x, end_y, end_yaw = pose_from_key(end_pose)
     if do_talking:
-        print("initial pose: \n\tx = {}\n\ty = {} \n\ttheta = {}".format(
-        start_x, start_y, degrees(start_yaw) ))
-        print("end pose: \n\tx = {}\n\ty = {} \n\ttheta = {}".format(
-        end_x, end_y, degrees(end_yaw) ))
+        print("Path from {} to {}".format(start_pose,end_pose))
+        print("start pose ({}): \n\tx = {}\n\ty = {} \n\ttheta = {}".format(
+        start_pose, start_x, start_y, degrees(start_yaw) ))
+        print("end pose ({}): \n\tx = {}\n\ty = {} \n\ttheta = {}".format(
+        end_pose, end_x, end_y, degrees(end_yaw) ))
         print("curvature = {}".format(curvature))
 
 
@@ -115,6 +131,7 @@ if __name__ == '__main__':
         px, py, pyaw, mode, clen = dpp.dubins_path_planning(px_backwards[-1],
         py_backwards[-1], pyaw_backwards[-1], end_x, end_y, end_yaw, curvature,
         allow_backwards_on_circle)
+        asdf = px_backwards
 
     else:
         px, py, pyaw, mode, clen = dpp.dubins_path_planning(start_x, start_y, start_yaw,
@@ -139,5 +156,5 @@ if __name__ == '__main__':
         plt.grid(True)
         plt.axis("equal")
         plt.xlim([-visual_boundairy,lot_height+visual_boundairy])
-        plt.ylim([-visual_boundairy,lot_width+2.5*visual_boundairy])
+        plt.ylim([-visual_boundairy,lot_width+3.0*visual_boundairy])
         plt.show()
