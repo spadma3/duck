@@ -18,10 +18,10 @@ from numpy import sign
 Global parameters
 """
 # control parameters
-choose_random_parking_space_combination = True
+choose_random_parking_space_combination = False
 do_talking = True
 do_ploting = True
-close_itself = True
+close_itself = False
 
 
 # parking lot parameters
@@ -41,7 +41,7 @@ consider_obstacles = True                    #
 primitive_backwards = True          # drive backwards and plan afterwards
 curvature = 120                     # mm minimal turning radius
 allow_backwards_on_circle = False   # use this later together with reeds sheep
-n_nodes_backwards = 50              # -
+n_nodes_primitive = 50              # -
 distance_backwards = 350            # mm
 length_red_line = int( (lot_width/2.0 -
 2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0 )
@@ -106,7 +106,7 @@ if __name__ == '__main__':
             start_pose = parking_space
             end_pose = entrance_exit
     else:
-        start_pose = 4
+        start_pose = 6
         end_pose = 7
     start_x, start_y, start_yaw = pose_from_key(start_pose)
     end_x, end_y, end_yaw = pose_from_key(end_pose)
@@ -145,39 +145,60 @@ if __name__ == '__main__':
     detect_space_14 = (start_y < space_length and  (abs(start_yaw+radians(90))<radians(45)))
     detect_space_56 = lot_height- start_y < space_length and  abs(start_yaw-radians(90))<radians(45) and lot_width/2.0 < start_x
     if primitive_backwards and (detect_space_14 or detect_space_56):
-        dt = distance_backwards/n_nodes_backwards
+        dt = distance_backwards/n_nodes_primitive
         px_backwards = [start_x]
         py_backwards = [start_y]
         pyaw_backwards = [start_yaw]
-        for i in range(n_nodes_backwards):
+        for i in range(n_nodes_primitive):
             px_backwards.append(px_backwards[-1] - dt * cos(pyaw_backwards[-1]))
             py_backwards.append(py_backwards[-1] - dt * sin(pyaw_backwards[-1]))
             pyaw_backwards.append(pyaw_backwards[-1])
+        start_x = px_backwards[-1]
+        start_y = py_backwards[-1]
+        start_yaw = pyaw_backwards[-1]
+        print(start_x,start_y,start_yaw)
 
-        px, py, pyaw, mode, clen = dpp.dubins_path_planning(px_backwards[-1],
-        py_backwards[-1], pyaw_backwards[-1], end_x, end_y, end_yaw, curvature,
-        allow_backwards_on_circle)
+    px, py, pyaw, mode, clen = dpp.dubins_path_planning(start_x,
+    start_y, start_yaw, end_x, end_y, end_yaw, curvature,
+    allow_backwards_on_circle)
+
+
+    if primitive_backwards and (detect_space_14 or detect_space_56):
         px = px_backwards + px
         py = py_backwards + py
         pyaw = pyaw_backwards + pyaw
-    else:
-        px, py, pyaw, mode, clen = dpp.dubins_path_planning(start_x, start_y, start_yaw,
-                        end_x, end_y, end_yaw, curvature, allow_backwards_on_circle)
+
+    start_x, start_y, start_yaw = pose_from_key(start_pose)
+    end_x, end_y, end_yaw = pose_from_key(end_pose)
+
+
 
     """
     Collision check
     """
     if do_collision_check:
         found_path = True
-        for x, y, yaw in zip(px, py, pyaw):
+        crash, out_of_parking_lot = False, False
+        for x, y in zip(px, py):
             for obstacle in obstacles:
                 if not obstacle[5]: # obstacle[5] is boolean value for drievable
+                    # path is inside obstacle
                     if (obstacle[0] < x and x < obstacle[0]+obstacle[2]) and (obstacle[1] < y and y < obstacle[1]+obstacle[3]):
                         found_path = False
+                        crash = True
+                    # path is outside parking lot
+                    if (x <= 0.0 or lot_width <= x or y <= 0.0  or lot_height <= y):
+                        found_path = False
+                        out_of_parking_lot = True
+
         if found_path:
             print("A collision free path was found!")
         else:
             print("No path was found!")
+            if crash:
+                print("The robot will crash into obstacles on this path!")
+            if out_of_parking_lot:
+                print("The robot wants to drive outside the parking lot")
 
     """
     plot results
