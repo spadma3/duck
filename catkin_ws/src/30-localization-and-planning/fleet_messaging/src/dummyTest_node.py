@@ -5,9 +5,9 @@ from std_msgs.msg import ByteMultiArray
 # Define callback function
 def callback(msg):
     s = "Message recieved %s" % (msg.data)
-    rospy.loginfo(s)
+    #rospy.loginfo(s)
 
-def listener()
+def listener():
     #initialize node
     rospy.init_node('dummyTest_node', anonymous=False)
 
@@ -23,7 +23,7 @@ def listener()
         msg.data = count
         pub.publish(msg)
         count = count + 1
-        rospy.loginfo(msg.data)
+        # rospy.loginfo(msg.data)
         rospy.sleep(1.0)
 
 if __name__ == '__main__':
