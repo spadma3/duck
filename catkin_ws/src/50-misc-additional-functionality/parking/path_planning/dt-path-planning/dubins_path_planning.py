@@ -373,7 +373,7 @@ def plot_arrow(x, y, yaw, length=0.1, width=0.06, fc="k", ec="k"):
             plot_arrow(ix, iy, iyaw)
     else:
         plt.arrow(x, y, length * math.cos(yaw), length * math.sin(yaw),
-                  fc=fc, ec=ec, head_width=width, head_length=width)
+                  fc=fc, ec=ec, head_width=0.75*width, head_length=0.8*width, lw=2.0)
         plt.plot(x, y)
 
 

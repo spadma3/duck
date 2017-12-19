@@ -22,8 +22,8 @@ close_itself = True
 
 # simulation parameters
 # 0:entrance, 1-6:space x (this is rocket science =) ), 7:exit, 8:watch
-start_number = 4      # (can be overwritten)
-end_number = 7        # (can be overwritten)
+start_number_manual = 3      # (can be overwritten)
+end_number_manual = 7        # (can be overwritten)
 
 # parking lot parameters
 lot_width = 2*585                   # mm, lot = 2x2 squares
@@ -43,8 +43,7 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-length_red_line = int( (lot_width/2.0 -
-2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0 )
+length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0
 
 # plotting parameters
 visual_boundairy = 100              # mm
@@ -63,6 +62,10 @@ def initialize():
         else:
             start_number = parking_space
             end_number = entrance_exit
+    else:
+        start_number = start_number_manual
+        end_number = end_number_manual
+
     start_x, start_y, start_yaw = pose_from_key(start_number)
     end_x, end_y, end_yaw = pose_from_key(end_number)
     return start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number
@@ -236,9 +239,9 @@ def do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obst
         plt.plot(px, py,'m-',lw=3)
     # plt.plot(px, py, label="final course " + "".join(mode))
     dpp.plot_arrow(start_x, start_y, start_yaw,
-    0.1*lot_width, 0.06*lot_width, fc="r", ec="r")
+    0.11*lot_width, 0.06*lot_width, fc="r", ec="r")
     dpp.plot_arrow(end_x, end_y, end_yaw,
-    0.1*lot_width, 0.06*lot_width, fc="g", ec="g")
+    0.11*lot_width, 0.06*lot_width, fc="g", ec="g")
     ax.add_patch( patches.Rectangle( (0.0, 0.0),
     lot_width, lot_height, fill=False ))
     # plt.legend()
