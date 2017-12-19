@@ -84,15 +84,12 @@ class calcTransform:
 
         self.matrices_A = np.zeros((3, self.num_centers, 2), np.uint8)
         self.vectors_b = np.zeros((3, self.num_centers), np.uint8)
-        self.matrices_Aw = np.zeros((3, self.num_centers, 2), np.uint8)
-        self.vectors_bw = np.zeros((3, self.num_centers), np.uint8)
+
         for channel in range(3):
             # prepare vectors b for each channel
             self.vectors_b[channel] = self.true_centers[:, channel]
             # prepare matrices A for each channel
             self.matrices_A[channel] = np.array(([[self.valueArrayBGR[channel, j], 1] for j in range(self.num_centers)]))
-        self.weights = [1, 0.1]
-        self.weights_MA = np.sqrt(np.diag(self.weights))
         #for j in range(3):
         #    self.matrices_Aw[j] = np.dot(self.matrices_A[j], self.weights_MA)
         #    self.vectors_bw[j] = np.dot(self.vectors_b[j], self.weights_MA)
