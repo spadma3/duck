@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package duckietown.fleet_comms;
+package duckietown.fleet_messaging;
 
 message MultiArrayDimension {
     required string label  = 1;
