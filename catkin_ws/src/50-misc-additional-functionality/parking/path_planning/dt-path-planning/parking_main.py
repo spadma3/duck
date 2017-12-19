@@ -18,10 +18,10 @@ from numpy import sign
 Global parameters
 """
 # control parameters
-choose_random_parking_space_combination = False
+choose_random_parking_space_combination = True
 do_talking = True
 do_ploting = True
-close_itself = False
+close_itself = True
 
 
 # parking lot parameters
@@ -35,6 +35,8 @@ space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
 
 # path planning parameters
+straight_in_parking_space = True    # robot drives last bit straigt (robustness increase)
+do_collision_check = True
 consider_obstacles = True                    #
 primitive_backwards = True          # drive backwards and plan afterwards
 curvature = 120                     # mm minimal turning radius
@@ -55,7 +57,7 @@ Functions
 def pose_from_key(key):
     if key == "entrance" or key == 0:
         return np.array([wide_tape_width+length_red_line/2.0,
-        lot_height-lanes_length/2.0, -pi/2.0])
+        lot_height-lanes_length/4.0*3.0, -pi/2.0])
     elif key == "space 1" or key == 1:
         return np.array([lot_width/8.0, space_length/2.0, -pi/2.0])
     elif key == "space 2" or key == 2:
@@ -75,7 +77,7 @@ def pose_from_key(key):
         lot_height-space_length/2.0, pi/2.0])
     elif key == "exit" or key == 7:
         return np.array([wide_tape_width+narrow_tape_width+3.0/2.0*length_red_line,
-        lot_height-lanes_length/2.0, pi/2.0])
+        lot_height-lanes_length/4.0*3.0, pi/2.0])
     elif key == "watch" or key == 8:
         return np.array([lot_width/2.0, lot_height/2.0, 0.0])
     else:
@@ -118,7 +120,7 @@ if __name__ == '__main__':
         print("curvature = {}".format(curvature))
 
     """
-    Obstacles and lanes
+    Obstacles and lanes definition
     """
     if consider_obstacles:
         # x, y, dx, dy, colour, drivable
@@ -134,7 +136,7 @@ if __name__ == '__main__':
         obstacles.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
         obstacles.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
         obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
-        obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
+        # obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
 
 
     """
@@ -162,6 +164,20 @@ if __name__ == '__main__':
         px, py, pyaw, mode, clen = dpp.dubins_path_planning(start_x, start_y, start_yaw,
                         end_x, end_y, end_yaw, curvature, allow_backwards_on_circle)
 
+    """
+    Collision check
+    """
+    if do_collision_check:
+        found_path = True
+        for x, y, yaw in zip(px, py, pyaw):
+            for obstacle in obstacles:
+                if not obstacle[5]: # obstacle[5] is boolean value for drievable
+                    if (obstacle[0] < x and x < obstacle[0]+obstacle[2]) and (obstacle[1] < y and y < obstacle[1]+obstacle[3]):
+                        found_path = False
+        if found_path:
+            print("A collision free path was found!")
+        else:
+            print("No path was found!")
 
     """
     plot results
@@ -170,7 +186,10 @@ if __name__ == '__main__':
         if close_itself:
             plt.clf()
         fig, ax = plt.subplots(1)
-        plt.plot(px, py,'-')
+        if found_path:
+            plt.plot(px, py,'g-',lw=3)
+        else:
+            plt.plot(px, py,'m-',lw=3)
         # plt.plot(px, py, label="final course " + "".join(mode))
         dpp.plot_arrow(start_x, start_y, start_yaw,
         0.1*lot_width, 0.06*lot_width, fc="r", ec="r")
