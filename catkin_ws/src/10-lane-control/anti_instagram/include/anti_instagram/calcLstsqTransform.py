@@ -48,7 +48,7 @@ class calcTransform:
     centers_BYW = CENTERS_BYW
     centers_BRYW = CENTERS_BRYW
 
-    centers = []            # n x 3 array, containing n 'true' centers in BGR
+    true_centers = []            # n x 3 array, containing n 'true' centers in BGR
     num_centers = -1        # n
     found_centers = []      # n x 3 array, containing n found centers in BGR
     valueArrayBGR = []
@@ -62,15 +62,20 @@ class calcTransform:
     residualNorm = -1
 
     # initialize
-    def __init__(self, numOcenters, found):
+    def __init__(self, numOcenters, found_centers, true_centers = []):
         assert (numOcenters >= 2), "at least two centers needed. Otherwise under constrained"
         self.num_centers = numOcenters
-        if self.num_centers == 4:
-            self.centers = self.centers_BRYW
-        elif self.num_centers == 3:
-            self.centers = self.centers_BYW
+        # if no true centers are provided
+        if true_centers == []:
+            if self.num_centers == 4:
+                self.true_centers = self.centers_BRYW
+            elif self.num_centers == 3:
+                self.true_centers = self.centers_BYW
+        else:
+            self.true_centers = true_centers
 
-        self.found_centers = found
+        self.num_centers = numOcenters
+        self.found_centers = found_centers
         self.scale = np.zeros(3, np.float64)
         self.shift = np.zeros(3, np.float64)
         self.residuals = np.zeros((3, 3), np.float64)
@@ -79,13 +84,22 @@ class calcTransform:
 
         self.matrices_A = np.zeros((3, self.num_centers, 2), np.uint8)
         self.vectors_b = np.zeros((3, self.num_centers), np.uint8)
+        self.matrices_Aw = np.zeros((3, self.num_centers, 2), np.uint8)
+        self.vectors_bw = np.zeros((3, self.num_centers), np.uint8)
         for channel in range(3):
             # prepare vectors b for each channel
-            self.vectors_b[channel] = self.centers[:, channel]
+            self.vectors_b[channel] = self.true_centers[:, channel]
             # prepare matrices A for each channel
             self.matrices_A[channel] = np.array(([[self.valueArrayBGR[channel, j], 1] for j in range(self.num_centers)]))
-        print('matrices A: ' + str(self.matrices_A))
-        print('vectors b: ' + str(self.vectors_b))
+        self.weights = [1, 0.1]
+        self.weights_MA = np.sqrt(np.diag(self.weights))
+        #for j in range(3):
+        #    self.matrices_Aw[j] = np.dot(self.matrices_A[j], self.weights_MA)
+        #    self.vectors_bw[j] = np.dot(self.vectors_b[j], self.weights_MA)
+
+
+        #print('matrices A: ' + str(self.matrices_A))
+        #print('vectors b: ' + str(self.vectors_b))
 
         print('created instance of calcTransform!')
 
@@ -104,3 +118,4 @@ class calcTransform:
         print('shift: ' + str(self.shift))
         self.residualNorm = np.linalg.norm(self.residuals)
         print('residuals: ' + str(self.residualNorm))
+        return self.scale, self.shift
