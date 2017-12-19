@@ -12,7 +12,9 @@ Functions
 # helper function to draw an arrow in the map
 def plot_pose_as_arrow(pose, colour="k", arrow_magnitude=75):
     # this function swaps x,y in pose to generate the arrow
-    plt.arrow( pose[1], pose[0], arrow_magnitude*np.cos(-pose[2]), arrow_magnitude*np.sin(-pose[2]), fc=colour, ec=colour, head_width=arrow_magnitude/5.0, head_length=arrow_magnitude/5.0)
+    plt.arrow( pose[1], pose[0], arrow_magnitude*np.cos(-pose[2]),
+    arrow_magnitude*np.sin(-pose[2]), fc=colour, ec=colour,
+    head_width=arrow_magnitude/5.0, head_length=arrow_magnitude/5.0)
 
 # pose assigenment: entrance, parking space, exit
 def pose_from_key(key):
