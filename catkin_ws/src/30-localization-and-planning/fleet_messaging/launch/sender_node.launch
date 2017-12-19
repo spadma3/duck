@@ -1,8 +1,9 @@
 <launch>
-	<node name="sender_node" pkg="fleet_messaging" type="sender_node.py" output="screen">
-		<!-- Setup parameters -->
-		<param name="~iface" value="bat0"/>
-		<!-- Remapping topics -->
-		<!-- <remap from="~topic_b" to="talker/topic_a"/> -->
-	</node>
+    <arg name="config" default="$(find fleet_messaging)/config/config.yaml" />
+    <node name="sender_node" pkg="fleet_messaging" type="sender_node.py" output="screen">
+        <param name="~config" value="$(arg config)" />
+        <param name="~iface" value="bat0"/>
+        <!-- Remapping topics -->
+        <!-- <remap from="~topic_b" to="talker/topic_a"/> -->
+    </node>
 </launch>

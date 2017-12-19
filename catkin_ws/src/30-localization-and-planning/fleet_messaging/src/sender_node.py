@@ -13,22 +13,24 @@ class Sender(object):
         # Instantiates ROS subscriber
         #self.subscriber = rospy.Subscriber("fleet_planning_outbox", ByteMultiArray, self.to_send_cb)
 
+        # Load the parameters
+        config_path = self.setup_parameter("~config", None)
 
-
-        with open("config.yaml", "r") as config_file:
-            yaml_obj = YAML()
-            config_yaml = yaml_obj.load(config_file)
+        # with open("config.yaml", "r") as config_file:
+        #     yaml_obj = YAML()
+        #     config_yaml = yaml_obj.load(config_file)
 
 
 
 
 
         # Wireless Interface
-        self.iface = self.setupParameter("~iface", "wlan0")
+        # self.iface = self.setup_parameter("~iface", "wlan0")
+        # rospy.loginfo("Interface: %s" %self.iface)
         # ZMQ Publisher
-        self.out_socket = cl.duckiemq(interface=self.iface, socktype='pub')
+        # self.out_socket = cl.Duckiemq(interface=self.iface, socktype='pub')
 
-    def setupParameter(self, param_name, default_value):
+    def setup_parameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))

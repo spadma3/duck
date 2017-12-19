@@ -3,9 +3,9 @@
   <name>fleet_messaging</name>
   <version>1.0.0</version>
   <description>
-The package `fleet_messaging` is needed in duckietown, such that duckiebots
-can communicate with each other through multicast (ZeroMQ epgm).
-</description>
+    The package `fleet_messaging` is needed in duckietown, such that duckiebots
+    can communicate with each other through multicast (ZeroMQ epgm).
+  </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
