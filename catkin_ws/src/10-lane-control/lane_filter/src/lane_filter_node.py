@@ -114,14 +114,6 @@ class LaneFilterNode(object):
         else:
             print "straight line"
             lanePose.curvature = 0.0
-        
-        # build lane pose message to send
-        lanePose = LanePose()
-        lanePose.header.stamp = segment_list_msg.header.stamp
-        lanePose.d = d_max[0]
-        lanePose.phi = phi_max[0]
-        lanePose.in_lane = in_lane
-        lanePose.status = lanePose.NORMAL
 
         # publish the belief image
         bridge = CvBridge()
