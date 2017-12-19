@@ -46,6 +46,12 @@ class DuckieMQ(object):
 
         time.sleep(0.2)  # to guarantee initiaization
 
+    def cleanup(self):
+        """
+        Destroy the sockets.
+        """
+        self.context.destroy()
+
     def removefilter(self, filter_string=''):
         """removes filter_string from filter list, default removes default "" string"""
         if self.socktype == 'sub':
