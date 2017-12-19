@@ -304,10 +304,10 @@ def generate_course(length, mode, c):
         pd = 0.0
         if m is "S":
             # straight plotting resolution
-            d = 1.0 / c /10.0
+            d = 1.0 / c / 10.0
         else:  # turning couse
             # radial plotting resolution
-            d = radians(1.0)
+            d = radians(3.0)
 
         while pd < abs(l - d*sign(l)):
             # print(pd, l)
