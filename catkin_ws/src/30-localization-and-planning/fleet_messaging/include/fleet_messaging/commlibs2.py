@@ -6,7 +6,7 @@ import netifaces as ni
 import zmq
 import libserialize #import the correct seriallibs, see usage below
 
-class Duckiemq(object):
+class DuckieMQ(object):
     """ZMQ implementation for communication between Duckiebots"""
     def __init__(self, interface="wlan0", port="5554", socktype='sub'):
         """Initialzes either a reciever or publisher socket on the specified interface and port.

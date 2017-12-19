@@ -15,17 +15,36 @@ class Sender(object):
 
         # Load the parameters
         config_path = self.setup_parameter("~config", None)
+        self.iface = self.setup_parameter("~iface", None)
 
-        # with open("config.yaml", "r") as config_file:
-        #     yaml_obj = YAML()
-        #     config_yaml = yaml_obj.load(config_file)
+        # Load the configuration
+        with open(config_path, "r") as config_file:
+            # Load the configuration file
+            yaml_obj = YAML()
+            config_yaml = yaml_obj.load(config_file)
+
+            # Loop through the configuration
+            self.config = {}
+            for entry in config_yaml:
+                # Create the socket
+                port = entry["port"]
+                socket = cl.DuckieMQ(self.iface, port, "sub")
+
+                # Create the subscriber
+                sub_topic = entry["sub"]
+                cb_fun = create_cb(socket)
+                sub = rospy.Subscriber(sub_topic, ByteMultiArray, cb_fun)
+
+                # Populate the configuration
+                self.config[entry["name"]] = (
+                    port,
+                    sub_topic
+                )
 
 
 
 
 
-        # Wireless Interface
-        # self.iface = self.setup_parameter("~iface", "wlan0")
         # rospy.loginfo("Interface: %s" %self.iface)
         # ZMQ Publisher
         # self.out_socket = cl.Duckiemq(interface=self.iface, socktype='pub')
@@ -36,16 +55,16 @@ class Sender(object):
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def create_cb(self, msg, out_socket):
+    def create_cb(self, socket):
 
-        def to_send_cb(self, msg):
+        def send_cb(self, msg):
             """A call back that sends out message to communication network"""
             # flag = "Fleet_Planning:"
             # mail = "%s %s" % (flag, msg.data)
             # out_socket.send_string(mail)
             # rospy.loginfo("Sending: " + mail)
             ts = rospy.Time.now()
-            out_socket.send_serialized(msg.data)
+            socket.send_serialized(msg.data)
             rospy.loginfo("Sending msg at time: " + str(ts))
 
         return to_send_cb
