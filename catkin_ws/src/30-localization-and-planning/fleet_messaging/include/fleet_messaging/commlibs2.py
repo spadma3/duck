@@ -6,7 +6,7 @@ import netifaces as ni
 import zmq
 import libserialize #import the correct seriallibs, see usage below
 
-class duckiemq(object):
+class Duckiemq(object):
     """ZMQ implementation for communication between Duckiebots"""
     def __init__(self, interface="wlan0", port="5554", socktype='sub'):
         """Initialzes either a reciever or publisher socket on the specified interface and port.
@@ -15,19 +15,21 @@ class duckiemq(object):
         Communication works over epgm protocol (broadcasting)"""
         self.context = zmq.Context()
         self.socktype = socktype
-        self.port = port
-        self.interface = interface
+        # Uncomment, if needed in future implementations
+        # self.port = port
+        # self.interface = interface
 
         self.ownip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
-        self.endpoint = "epgm://" + self.ownip + ":" + self.port
+        self.endpoint = "epgm://" + self.ownip + ":" + port
         self.def_filter = 0
 
-        #rate = 40*1000
+        # Rate [kbit] can be setup manually (if not, optimal rate is taken)
+        # rate = 40*1000
 
         if socktype == 'pub':
             self.socket = self.context.socket(zmq.PUB)
             self.socket.connect(self.endpoint)  # should connect
-            #self.socket.setsockopt_string(zmq.RATE, rate)
+            # self.socket.setsockopt_string(zmq.RATE, rate)
             print('publisher initialized on ' + self.endpoint)
 
         elif socktype == 'sub':
@@ -41,6 +43,7 @@ class duckiemq(object):
         else:
             self.socktype = 'none'
             print('no known type')
+
         time.sleep(0.2)  # to guarantee initiaization
 
     def removefilter(self, filter_string=''):
