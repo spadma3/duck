@@ -50,7 +50,7 @@ class RQTFleetPlanning(Plugin):
 
         # ROS publishers/subscribers
         self.pub = rospy.Publisher('~/customer_requests', SourceTargetNodes, queue_size=1, latch=True)
-        self.subscriber = rospy.Subscriber('/taxi_central_node/map_graph', Image,
+        self.subscriber = rospy.Subscriber('~/map_graph', Image,
                                       self.image_callback,  queue_size = 1)
 
         # event handling
