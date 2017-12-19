@@ -92,7 +92,6 @@ map[0:lanes_length,int(lot_width/2.0-wide_tape_width):int(lot_width/2.0)] = map_
 
 # yellow lanes
 map[0:lanes_length,wide_tape_width+length_red_line:wide_tape_width+length_red_line+narrow_tape_width] = map_keys["yellow lane"]
-
 map[lot_height-space_length:lot_height,0:narrow_tape_width] = map_keys["yellow lane"]
 map[lot_height-space_length:lot_height,int(lot_height/4.0-narrow_tape_width/2.0):int(lot_height/4.0+narrow_tape_width/2.0)] = map_keys["yellow lane"]
 map[lot_height-space_length:lot_height,int(lot_height/2.0-narrow_tape_width/2.0):int(lot_height/2.0+narrow_tape_width/2.0)] = map_keys["yellow lane"]
