@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import fleet_messaging.commlibs2 as cl
-from std_msgs.msg import String
+from std_msgs.msg import ByteMultiArray
 
 class Sender(object):
     """Listens to an outox topic and then sends out msg to communication network"""
@@ -10,11 +10,20 @@ class Sender(object):
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initialzing." % (self.node_name))
         # Instantiates ROS subscriber
-        self.subscriber = rospy.Subscriber("fleet_planning_outbox", String, self.to_send_cb)
+        #self.subscriber = rospy.Subscriber("fleet_planning_outbox", ByteMultiArray, self.to_send_cb)
+
+
+
+
+
+
+
+
+
         # Wireless Interface
         self.iface = self.setupParameter("~iface", "wlan0")
         # ZMQ Publisher
-        self.pub = cl.duckiemq(interface=self.iface, socktype='pub')
+        self.out_socket = cl.duckiemq(interface=self.iface, socktype='pub')
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -22,13 +31,19 @@ class Sender(object):
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def to_send_cb(self, msg):
-        """A call back that sends out message to communication network"""
-        flag = "Fleet_Planning:"
-        mail = "%s %s" % (flag, msg.data)
-        sender.pub.send_string(mail)
-        rospy.loginfo("Sending: " + mail)
+    def create_cb(self, msg, out_socket):
 
+        def to_send_cb(self, msg):
+            """A call back that sends out message to communication network"""
+            # flag = "Fleet_Planning:"
+            # mail = "%s %s" % (flag, msg.data)
+            # out_socket.send_string(mail)
+            # rospy.loginfo("Sending: " + mail)
+            ts = rospy.Time.now()
+            out_socket.send_serialized(msg.data)
+            rospy.loginfo("Sending msg at time: " + str(ts))
+
+        return to_send_cb
 
 rospy.init_node('sender_node', anonymous=False)
 sender = Sender()
