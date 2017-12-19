@@ -21,7 +21,7 @@ Global parameters
 choose_random_parking_space_combination = False
 do_talking = True
 do_ploting = True
-close_itself = False
+close_itself = True
 
 
 # parking lot parameters
@@ -35,14 +35,15 @@ space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
 
 # path planning parameters
-straight_in_parking_space = True    # robot drives last bit straigt (robustness increase)
+straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
+straight_at_entrance = True    # robot drives last forward bit straigt (robustness increase)
 do_collision_check = True
 consider_obstacles = True                    #
 primitive_backwards = True          # drive backwards and plan afterwards
 curvature = 120                     # mm minimal turning radius
 allow_backwards_on_circle = False   # use this later together with reeds sheep
 n_nodes_primitive = 50              # -
-distance_backwards = 350            # mm
+distance_backwards = 400            # mm
 length_red_line = int( (lot_width/2.0 -
 2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0 )
 
@@ -57,7 +58,7 @@ Functions
 def pose_from_key(key):
     if key == "entrance" or key == 0:
         return np.array([wide_tape_width+length_red_line/2.0,
-        lot_height-lanes_length/4.0*3.0, -pi/2.0])
+        lot_height-lanes_length/4.0*2.0, -pi/2.0])
     elif key == "space 1" or key == 1:
         return np.array([lot_width/8.0, space_length/2.0, -pi/2.0])
     elif key == "space 2" or key == 2:
@@ -77,7 +78,7 @@ def pose_from_key(key):
         lot_height-space_length/2.0, pi/2.0])
     elif key == "exit" or key == 7:
         return np.array([wide_tape_width+narrow_tape_width+3.0/2.0*length_red_line,
-        lot_height-lanes_length/4.0*3.0, pi/2.0])
+        lot_height-lanes_length/4.0*2.0, pi/2.0])
     elif key == "watch" or key == 8:
         return np.array([lot_width/2.0, lot_height/2.0, 0.0])
     else:
@@ -106,7 +107,7 @@ if __name__ == '__main__':
             start_pose = parking_space
             end_pose = entrance_exit
     else:
-        start_pose = 6
+        start_pose = 0
         end_pose = 7
     start_x, start_y, start_yaw = pose_from_key(start_pose)
     end_x, end_y, end_yaw = pose_from_key(end_pose)
@@ -142,6 +143,7 @@ if __name__ == '__main__':
     """
     path calculation
     """
+    # heuristics using path primitives
     detect_space_14 = (start_y < space_length and  (abs(start_yaw+radians(90))<radians(45)))
     detect_space_56 = lot_height- start_y < space_length and  abs(start_yaw-radians(90))<radians(45) and lot_width/2.0 < start_x
     if primitive_backwards and (detect_space_14 or detect_space_56):
@@ -156,18 +158,58 @@ if __name__ == '__main__':
         start_x = px_backwards[-1]
         start_y = py_backwards[-1]
         start_yaw = pyaw_backwards[-1]
-        print(start_x,start_y,start_yaw)
 
+    if straight_at_entrance and start_pose==0:
+        dt = space_length/2.0/n_nodes_primitive
+        px_straight_entrance = [start_x]
+        py_straight_entrance = [start_y]
+        pyaw_straight_entrance = [start_yaw]
+        for i in range(n_nodes_primitive):
+            px_straight_entrance.append(px_straight_entrance[-1] + dt * cos(pyaw_straight_entrance[-1]))
+            py_straight_entrance.append(py_straight_entrance[-1] + dt * sin(pyaw_straight_entrance[-1]))
+            pyaw_straight_entrance.append(pyaw_straight_entrance[-1])
+        start_x = px_straight_entrance[-1]
+        start_y = py_straight_entrance[-1]
+        start_yaw = pyaw_straight_entrance[-1]
+
+    if straight_in_parking_space:
+        dt = space_length/2.0/n_nodes_primitive
+        px_straight = [end_x]
+        py_straight = [end_y]
+        pyaw_straight = [end_yaw]
+        for i in range(n_nodes_primitive):
+            px_straight.append(px_straight[-1] - dt * cos(pyaw_straight[-1]))
+            py_straight.append(py_straight[-1] - dt * sin(pyaw_straight[-1]))
+            pyaw_straight.append(pyaw_straight[-1])
+        end_x = px_straight[-1]
+        end_y = py_straight[-1]
+        end_yaw = pyaw_straight[-1]
+        px_straight.reverse()
+        py_straight.reverse()
+        pyaw_straight.reverse()
+
+    # path plannign
     px, py, pyaw, mode, clen = dpp.dubins_path_planning(start_x,
     start_y, start_yaw, end_x, end_y, end_yaw, curvature,
     allow_backwards_on_circle)
 
-
+    # add path primitives to path
     if primitive_backwards and (detect_space_14 or detect_space_56):
         px = px_backwards + px
         py = py_backwards + py
         pyaw = pyaw_backwards + pyaw
 
+    if straight_at_entrance and start_pose==0:
+        px = px_straight_entrance + px
+        py = py_straight_entrance + py
+        pyaw = pyaw_straight_entrance + pyaw
+
+    if straight_in_parking_space:
+        px = px + px_straight
+        py = py + py_straight
+        pyaw = pyaw + pyaw_straight
+
+    # recover start, end for arrow plots
     start_x, start_y, start_yaw = pose_from_key(start_pose)
     end_x, end_y, end_yaw = pose_from_key(end_pose)
 
