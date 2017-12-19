@@ -35,14 +35,13 @@ class TaxiCentralNode:
         self._graph = gc.build_graph_from_csv(map_dir, map_name)
         self._graph_creator = gc
 
-        # subscribers
-        self._sub_customer_requests = rospy.Subscriber('~/customer_requests', SourceTargetNodes,
-                                                       self._register_customer_request, queue_size=1)
-        self._sub_taxi_location = rospy.Subscriber('/taxi/location', ByteMultiArray, self._location_update)
-
         # publishers
         self._pub_duckiebot_target_location = rospy.Publisher('/taxi/commands', ByteMultiArray, queue_size=1)
         self._pub_draw_command = rospy.Publisher("~/draw_request", String, queue_size=1, latch=True)
+
+        # subscribers
+        self._sub_customer_requests = rospy.Subscriber('~/customer_requests', SourceTargetNodes, self._register_customer_request, queue_size=1)
+        self._sub_taxi_location = rospy.Subscriber('/taxi/location', ByteMultiArray, self._location_update)
 
         # timers
         self._time_out_timer = rospy.Timer(rospy.Duration.from_sec(self.TIME_OUT_CRITERIUM), self._check_time_out)
@@ -95,6 +94,7 @@ class TaxiCentralNode:
         request = CustomerRequest(start, target)
         self._pending_customer_requests.append(request)
         rospy.loginfo('Registered customer request {} -> {}'.format(start, target))
+        self._publish_draw_request()
         self._handle_customer_requests()
 
     def _handle_customer_requests(self):

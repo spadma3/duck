@@ -160,17 +160,17 @@ class MapDrawNode:
                 # draw customer
                 self.num_duckiebots_per_node[str(customer_location)] += 1
                 overlay = self.draw_icons(overlay, "customer",
-                                          location=bot.customer_location, icon_number=self.num_duckiebots_per_node)  # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
+                                          location=customer_location, icon_number=self.num_duckiebots_per_node[str(customer_location)])  # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
 
                 # draw target icon
                 self.num_duckiebots_per_node[str(bot.target_location)] += 1
-                overlay = self.draw_icons(overlay, "target", location=bot.target_location, icon_number=self.num_duckiebots_per_node)
+                overlay = self.draw_icons(overlay, "target", location=bot.target_location, icon_number=self.num_duckiebots_per_node[str(bot.target_location)])
 
         # draw pending customer requests
         for customer in pending_customer_requests:
             self.num_duckiebots_per_node[str(customer.start_location)] += 1
             overlay = self.draw_icons(overlay, "customer",
-                                      location=customer.start_location, icon_number=self.num_duckiebots_per_node)
+                                      location=customer.start_location, icon_number=self.num_duckiebots_per_node[str(customer.start_location)])
 
         # set num_duckiebots_per_node back to zero
         for node, num in self.num_duckiebots_per_node.iteritems():

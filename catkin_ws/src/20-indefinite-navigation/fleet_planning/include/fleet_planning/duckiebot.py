@@ -46,7 +46,7 @@ class CustomerRequest(BaseCustomerRequest):
         self.time_drop_off = None
 
     def to_dict(self):
-        dict = {'target_location': self.target_locattion, 'start_location': self.start_location}
+        dict = {'target_location': self.target_location, 'start_location': self.start_location}
         return dict
 
 class BaseDuckiebot:
@@ -65,7 +65,7 @@ class BaseDuckiebot:
         taxi_state = TaxiState(json_data['taxi_state'])
         last_known_location = json_data['location']
         next_expected_location = json_data['next_location']
-        customer_request_data= json_data['customer_request']
+        customer_request_data = json_data['customer_request']
         customer_request = CustomerRequest.from_json(customer_request_data)
 
         return cls(name, taxi_state, last_known_location, next_expected_location, customer_request)
