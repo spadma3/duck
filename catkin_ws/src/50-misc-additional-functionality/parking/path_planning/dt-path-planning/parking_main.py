@@ -18,7 +18,7 @@ from numpy import sign
 Global parameters
 """
 # control parameters
-choose_random_parking_space_combination = False
+choose_random_parking_space_combination = True
 do_talking = True
 do_ploting = True
 close_itself = True
@@ -36,9 +36,8 @@ lanes_length = 310                  # mm at entrance, exit
 
 # path planning parameters
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
-straight_at_entrance = True    # robot drives last forward bit straigt (robustness increase)
-do_collision_check = True
-consider_obstacles = True                    #
+straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
+do_collision_check = True           # check if path is in parking lot and not through obstacles
 primitive_backwards = True          # drive backwards and plan afterwards
 curvature = 120                     # mm minimal turning radius
 allow_backwards_on_circle = False   # use this later together with reeds sheep
@@ -108,7 +107,7 @@ if __name__ == '__main__':
             end_pose = entrance_exit
     else:
         start_pose = 0
-        end_pose = 7
+        end_pose = 4
     start_x, start_y, start_yaw = pose_from_key(start_pose)
     end_x, end_y, end_yaw = pose_from_key(end_pose)
 
@@ -123,21 +122,20 @@ if __name__ == '__main__':
     """
     Obstacles and lanes definition
     """
-    if consider_obstacles:
-        # x, y, dx, dy, colour, drivable
-        obstacles = [(0.0,0.0, lot_width, lot_height, (0.3,0.3,0.3), True)]
-        obstacles.append((0.0,0.0, narrow_tape_width, space_length, "y", True))
-        obstacles.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
-        obstacles.append((lot_width/2.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
-        obstacles.append((lot_width/4.0*3.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
-        obstacles.append((lot_width-narrow_tape_width,0.0, narrow_tape_width, space_length, "y", True))
-        obstacles.append((lot_width/4.0*3.0-narrow_tape_width/2.0, lot_height-space_length, narrow_tape_width, space_length, "y", True))
-        obstacles.append((wide_tape_width+length_red_line, lot_height-lanes_length, narrow_tape_width, lanes_length, "y", True))
-        obstacles.append((0.0,lot_height-lanes_length, wide_tape_width,lanes_length, "w", True))
-        obstacles.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
-        obstacles.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
-        obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
-        # obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
+    # x, y, dx, dy, colour, drivable
+    obstacles = [(0.0,0.0, lot_width, lot_height, (0.3,0.3,0.3), True)]
+    obstacles.append((0.0,0.0, narrow_tape_width, space_length, "y", True))
+    obstacles.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
+    obstacles.append((lot_width/2.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
+    obstacles.append((lot_width/4.0*3.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
+    obstacles.append((lot_width-narrow_tape_width,0.0, narrow_tape_width, space_length, "y", True))
+    obstacles.append((lot_width/4.0*3.0-narrow_tape_width/2.0, lot_height-space_length, narrow_tape_width, space_length, "y", True))
+    obstacles.append((wide_tape_width+length_red_line, lot_height-lanes_length, narrow_tape_width, lanes_length, "y", True))
+    obstacles.append((0.0,lot_height-lanes_length, wide_tape_width,lanes_length, "w", True))
+    obstacles.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
+    obstacles.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
+    obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
+    # obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
 
 
     """
@@ -268,14 +266,13 @@ if __name__ == '__main__':
         plt.xlim([-visual_boundairy,lot_height+visual_boundairy])
         plt.ylim([-visual_boundairy,lot_width+visual_boundairy])
 
-        if consider_obstacles:
-            for obstacle in obstacles:
-                if obstacle[5]:
-                    ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
-                    obstacle[2], obstacle[3], fc=obstacle[4] ))
-                else:
-                    ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
-                    obstacle[2], obstacle[3], fc=obstacle[4], ec="m", hatch='x'))
+        for obstacle in obstacles:
+            if obstacle[5]:
+                ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
+                obstacle[2], obstacle[3], fc=obstacle[4] ))
+            else:
+                ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
+                obstacle[2], obstacle[3], fc=obstacle[4], ec="m", hatch='x'))
 
 
         if close_itself:
