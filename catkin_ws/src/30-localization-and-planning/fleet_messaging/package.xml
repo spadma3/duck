@@ -3,15 +3,18 @@
   <name>fleet_messaging</name>
   <version>1.0.0</version>
   <description>
-The package `pkg_name` is a template for ROS packages.
-
-For the tutorial, see [](#ros-python-howto).
+The package `fleet_messaging` is needed in duckietown, such that duckiebots
+can communicate with each other through multicast (ZeroMQ epgm).
 </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
-  <author email="syliu@mit.edu">Shih-Yuan Liu</author>
+  <author email="trleonie@ethz.ch">Leonie Traffelet</author>
   <maintainer email="trleonie@ethz.ch">Leonie Traffelet</maintainer>
+  <maintainer email="somml@ethz.ch">Luca Somm</maintainer>
+  <maintainer email="patk@ethz.ch">Napat Karnchanachari</maintainer>
+  <maintainer email="antoine.patru@helbling.ch">Antoine Patru</maintainer>
+  <maintainer email="francesco.ferrara@helbling.ch">Francesco Ferrara</maintainer>
 
 
 
