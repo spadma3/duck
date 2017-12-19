@@ -1,6 +1,36 @@
-<pre><code></code></pre>
+<pre><code>
+<span style="color: red">  ✗  You pulled the Software repo in the last 24 hours </span>
+<span style="color: red">            failure:  The repository has not been pulled for 1d (maximum tolerated 1d).</span>
+          diagnosis:  You did not recently pull the Software repository.
+
+
+<span style="color: red">  ✗  You pulled the Duckiefleet root in the last 24 hours </span>
+<span style="color: red">            failure:  The repository has not been pulled for 21d (maximum tolerated 1d).</span>
+          diagnosis:  You did not recently pull the Duckiefleet repository.
+
+
+<span style="color: red">  ✗  Package fleet_messaging       : Scripts are executable. </span>
+<span style="color: red">            failure:  The file 'subscriber_test.py' is not executable.</span>
+<span style="color: red">            details:  Check failed for file:
+                          /home/napatkarn/duckietown/catkin_ws/src/30-localization-and-planning/fleet_messaging/src/subscriber_test.py</span>
+
+<span style="color: red">  ✗  Package multislam             : README exists </span>
+<span style="color: red">            failure:  The README file for 'multislam' does not exist.</span>
+<span style="color: red">            details:  File does not exist: /home/napatkarn/duckietown/catkin_ws/src/20-indefinite-navigation/multislam/README.md</span>
+
+<span style="color: red">  ✗  Package multislam             : Valid license in "package.xml". </span>
+<span style="color: red">            failure:  Invalid contents in "package.xml": Invalid value of license 'TODO'.</span>
+
+<span style="color: red">  ✗  Package multislam             : Valid version in "package.xml". </span>
+<span style="color: red">            failure:  Invalid contents in "package.xml": Invalid value of version '0.0.0'.</span>
+
+<span style="color: red">  ✗  Package multislam             : No templates cruft in `CMakeLists.txt`. </span>
+<span style="color: red">            failure:  Too many commented out lines in "CMakeLists.txt". Still have contents from template?</span>
+<span style="color: red">            details:  I think you just copied from the template, without deleting the things that you are not using..</span>
+</code></pre>
 
 Summary of results:
-<span style="color: green">* 520 test(s) executed successfully.</span>
+<span style="color: green">* 533 test(s) executed successfully.</span>
 * No tests were skipped.
-<span style="color: green">* All tests executed succeeded.</span>
+<span style="color: red">* 7 test(s) failed
+</span>

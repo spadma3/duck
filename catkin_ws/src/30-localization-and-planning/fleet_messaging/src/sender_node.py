@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 import rospy
-import time
-from include.fleet_messaging import commlibs2
-# Initialize the node with rospy
-
+import fleet_messaging.commlibs2 as cl
+from std_msgs.msg import String
 
 class Sender(object):
-    def __index__(self):
+    """Listens to an outox topic and then sends out msg to communication network"""
+    def __init__(self):
         # Initialize node
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initialzing." % (self.node_name))
-
+        # Instantiates ROS subscriber
+        self.subscriber = rospy.Subscriber("fleet_planning_outbox", String, self.to_send_cb)
         # Wireless Interface
-        self.iface = self.setupParameter(self, "iface", "wlan0")
-
-        # ZQM Publisher
-        self.pub = commlibs2.duckiemq(interface=self.iface, socktype='pub')
+        self.iface = self.setupParameter("~iface", "wlan0")
+        # ZMQ Publisher
+        self.pub = cl.duckiemq(interface=self.iface, socktype='pub')
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -23,14 +22,14 @@ class Sender(object):
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
+    def to_send_cb(self, msg):
+        """A call back that sends out message to communication network"""
+        flag = "Fleet_Planning:"
+        mail = "%s %s" % (flag, msg.data)
+        sender.pub.send_string(mail)
+        rospy.loginfo("Sending: " + mail)
+
 
 rospy.init_node('sender_node', anonymous=False)
-
-# Publish every 1 second
-while not rospy.is_shutdown():
-    sender = Sender()
-    ts = time.time()
-    sender.pub.send_string("Hello World at: " + str(ts))
-    rospy.sleep(1.0)
-
+sender = Sender()
 rospy.spin() #Keeps the script for exiting
