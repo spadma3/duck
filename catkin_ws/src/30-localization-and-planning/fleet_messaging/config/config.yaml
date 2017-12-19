@@ -1,0 +1,8 @@
+- description: "distributed estimation images"
+  port: 12345
+  pub: "pubtopic"
+  sub: "subtopic"
+- description: "fleet planning commands"
+  port: 23456
+  pub: "pubtopic2"
+  sub: "subtopic2"
