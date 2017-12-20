@@ -73,7 +73,7 @@ class MapDrawNode:
         """
         return graph.node_positions[str(node)]
 
-    def draw_icons(self, map_image, icon_type, location, icon_number):
+    def draw_icons(self, map_image, icon_type, location, icon_number=1):
         """
         Draw start, customer and target icons next to each
         corresponding graph node along with the respective name
@@ -99,17 +99,20 @@ class MapDrawNode:
         elif icon_type == "target":
             icon = self.target_icon
         else:
-            print "invalid icon type"
+            rospy.logwarn("{} is an invalid icon type.".format(icon_type))
             # return
 
         # convert graph number to 2D image pixel coords
         point = self.graph_node_to_image_location(graph=self.duckietown_graph, node=location)
         point = transf.map_to_image(point)
+        # check if point is in map
+        if (point[1] > map_image.shape[0] or point[1] < 0 or point[0] > map_image.shape[1] or point[0] < 0):
+            rospy.logwarn("Point ({},{}) is outside of the map!".format(point[1], point[0]))
         x_start = point[1]
-        x_end = x_start + icon.shape[0]
-        y_start = point[0] + (icon_number - 1) * (
-        icon.shape[1] + 5)  # TODO: check to make sure icons aren't outside of image boundaries
-        y_end = y_start + icon.shape[1]
+        x_end = min(self.map_img.shape[1], x_start + icon.shape[0])
+        y_start = point[0] + (icon_number - 1) * (icon.shape[1] + 5)  # TODO: check to make sure icons aren't outside of image boundaries
+        y_end = min(self.map_img.shape[0], y_start + icon.shape[1])
+        icon = icon[0:x_end - x_start, 0:y_end - y_start]
         map_image[x_start:x_end, y_start:y_end, :] = icon
 
         return map_image
