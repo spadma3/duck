@@ -153,17 +153,12 @@ class Duckiebot(BaseDuckiebot):
             return None
 
         # Find the next node
-        next_node = '-1'
+        next_location = '-1'
         for n in range(len(route)):
             if route[n] == reported_location:
                 if n + 1 < len(route):
-                    next_node = route[n + 1]
+                    next_location = route[n + 1]
                     break
-
-        # The whole taxi_central_node uses strings as node ids. So let's make sure we use strings too
-        # from this point onwards.
-        reported_location = str(reported_location)
-        next_location = str(next_node)
 
         self._last_known_location = reported_location
         self._next_expected_location = next_location
