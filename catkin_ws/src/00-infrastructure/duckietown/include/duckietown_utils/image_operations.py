@@ -27,8 +27,19 @@ def rgb_from_bgr(rgb):
     bgr = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
     return bgr
 
+# duplicate of `d8_image_zoom_linear` in image_rescaling.py?
 def zoom_image(im, zoom = 4):
     s = (im.shape[1] * zoom, im.shape[0] * zoom)
     import cv2
     imz = cv2.resize(im, s, interpolation=cv2.INTER_NEAREST)
     return imz
+
+# inputs:
+#   im: the input image
+#   border_sizes: the amount to crop in the order, [left, top, right, bottom] 
+def crop_image(im, border_sizes):
+    """ Crop the amount given by the border sizes"""
+    import cv2
+    H,W,_ = im.shape
+    cropped = im[border_sizes[0]:W-border_sizes[2],border_sizes[1]:H-border_sizes[3]]
+    return cropped

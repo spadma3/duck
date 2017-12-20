@@ -6,7 +6,8 @@ import numpy as np
 from sensor_msgs.msg import Image
 from duckietown_utils.image_conversions import bgr_from_imgmsg, d8n_image_msg_from_cv_image
 from duckietown_utils.image_rescaling import d8_image_resize_no_interpolation
- 
+from duckietown_utils.image_operations import crop_image
+
 
 class ResizeNode(object):
     def __init__(self):
@@ -17,7 +18,9 @@ class ResizeNode(object):
     def cbImg(self,msg):
 
         img=bgr_from_imgmsg(msg)
-        img_resized = d8_image_resize_no_interpolation(img,[64,64])
+        borders = [25, 25, 25, 25]
+        img_cropped = crop_image(img, borders)
+        img_resized = d8_image_resize_no_interpolation(img_cropped,[64,64])
         img_msg = d8n_image_msg_from_cv_image(img_resized,'bgr8')
         self.pub.publish(img_msg)
 

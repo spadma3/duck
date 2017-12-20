@@ -1,6 +1,6 @@
 
 
-
+# duplicate of `zoom_image` in image_operations.py?
 def d8_image_zoom_linear(cv_image, ratio=4):
     """ Zooms up by the given ratio """
     import cv2
