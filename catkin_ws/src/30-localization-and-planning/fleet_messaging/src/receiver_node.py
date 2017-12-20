@@ -20,7 +20,7 @@ class Receiver(object):
     def __init__(self):
         # Initialize node
         self.node_name = rospy.get_name()
-        rospy.loginfo("[%s] Initialzing." %(self.node_name))
+        rospy.loginfo("[%s] Initializing." %(self.node_name))
 
         # Load the parameters
         config_path = self.setup_parameter("~config")
