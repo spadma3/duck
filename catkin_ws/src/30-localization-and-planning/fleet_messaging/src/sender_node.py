@@ -2,7 +2,6 @@
 
 
 # Imports
-import time
 import rospy
 import fleet_messaging.commlibs2 as cl
 from std_msgs.msg import ByteMultiArray
