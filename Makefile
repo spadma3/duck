@@ -13,7 +13,7 @@ all:
 	@$(MAKE) -s hw-test
 	@$(MAKE) -s maintenance
 	@$(MAKE) -s openhouse
-	@#(MAKE) -s log
+	@$(MAKE) -s log
 
 sep="\\n\\n\#\#\# "
 

@@ -2,6 +2,7 @@
     <arg name="veh" doc="name of vehicle"/>
 		<arg name="local" default="false"/>
 		<group ns="$(arg veh)">
+<<<<<<< HEAD
 			<node name="implicit_coordination" pkg="implicit_coord" type="implicit.py" output="screen">	
 			<!-- Setup parameters -->
 			<!-- <param name="~pub_timestep" value="0.5"/> -->
@@ -11,6 +12,17 @@
 		</group>
 		<remap from="vehicle_detection_node/image" to="camera_node/image/compressed" />
 		<remap from="implicit_coordination/vehicle_detection" to="vehicle_filter_node/pose" />
+=======
+			<node name="implicit_coordination" pkg="implicit_coord" type="implicit.py" output="screen">
+
+			<!-- Setup parameters -->
+			<!-- <param name="~pub_timestep" value="0.5"/> -->
+			<!-- Remapping topics -->
+			<remap from="vehicle_detection_node/image" to="camera_node/image/compressed" />
+			<remap from="implicit_coordination/vehicle_detection_node" to="vehicle_filter_node/pose" />
+			</node>
+		</group>
+>>>>>>> abec04ab713bf58af085aa0d8b2334ba8baae790
 		<include file="$(find duckietown)/launch/vehicle_camera_detection_filter_control.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="local" value="$(arg local)"/>
