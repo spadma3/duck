@@ -3,8 +3,8 @@ import numpy as np
 import sys
 
 
-def detectOutlier(centerArray, trueCenters):  # YWRB
-    n_centers, n_channels = centerArray.shape
+def detectOutlier(trainedCenters, trueCenters):  # YWRB
+    n_centers, n_channels = trainedCenters.shape
     # trueCenters = np.vstack([[50, 240, 240], [240, 240, 240], [60, 60, 240], [60, 60, 60]])  # YWRB
     print n_centers
     errors = np.zeros(n_centers)
@@ -12,9 +12,10 @@ def detectOutlier(centerArray, trueCenters):  # YWRB
     # leave one trained center out and estimate transform with the rest of the centers
     for i in range(n_centers):
         # leave out i-th trained center
-        tempArray = np.vstack([centerArray[0:i, :], centerArray[i+1:n_centers, :]])
+        trainedCentersTemp = np.vstack([trainedCenters[0:i, :], trainedCenters[i+1:n_centers, :]])
+        trueCenterstemp = np.vstack([trueCenters[0:i, :], trueCenters[i+1:n_centers, :]])
         # calculate transform with the other centers
-        T = calcTransform(n_centers-1, tempArray, trueCenters)
+        T = calcTransform(n_centers-1, trainedCentersTemp, trueCenterstemp)
         T.calcTransform()
         print "the transform is: shift - " + str(T.shift) + ", scale - " + str(T.scale)
         # print "left out " + str(leaveOut) + ", new centers: " + str(tempArray)
@@ -23,12 +24,12 @@ def detectOutlier(centerArray, trueCenters):  # YWRB
         errorArray = np.zeros(n_centers)
         # estimate the error of the transformed trained centers wrt. the true centers
         for j in range(n_centers):
-            tempTrafoCenter = transformOneCenter(centerArray[j, :], T.shift, T.scale)
+            tempTrafoCenter = transformOneCenter(trainedCenters[j, :], T.shift, T.scale)
             tempTrueCenter = trueCenters[j]
             errorArray[j] = estimateError(tempTrafoCenter, tempTrueCenter)
         errorArrayTotal[i] = np.sum(errorArray)
     errorArraySortedIdx = np.argsort(errorArrayTotal)
-    return errorArraySortedIdx[-1], centerArray[errorArraySortedIdx[-1]]  # return last element.
+    return errorArraySortedIdx[-1], trainedCenters[errorArraySortedIdx[-1]]  # return last element.
     # this element has the biggest error and is therefore the outlier.
 
 
@@ -54,8 +55,11 @@ def main():
     center4 = [250, 250, 250]
 
     centers = np.vstack([center2, center4, center3, center1])
+    print "shape of the n x 3 centers: " + str(centers.shape)
 
     trueCenters = np.vstack([[50, 240, 240], [240, 240, 240], [60, 60, 240], [60, 60, 60]])  # YWRB
+
+    print "shape of the n x 3 centers: " + str(trueCenters.shape)
 
     print "the centers: " + str(centers)
 

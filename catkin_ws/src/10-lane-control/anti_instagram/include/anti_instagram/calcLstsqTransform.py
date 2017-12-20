@@ -91,7 +91,7 @@ class calcTransform:
 
         for channel in range(3):
             # prepare vectors b for each channel
-            self.vectors_b[channel] = self.true_centers[:, channel]
+            self.vectors_b[channel, :] = self.true_centers[:, channel]
             # prepare matrices A for each channel
             self.matrices_A[channel] = np.array(([[self.valueArrayBGR[channel, j], 1] for j in range(self.num_centers)]))
         #for j in range(3):
