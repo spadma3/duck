@@ -1,2 +1,2 @@
 Header header
-int16[2] th
+int16[6] th

@@ -49,11 +49,17 @@ class simpleColorBalanceClass:
             self.ThLow[idx] = flat[int(math.floor(n_cols * self.halfPercent))]
             self.ThHi[idx] = flat[int(math.ceil(n_cols * (1.0 - self.halfPercent)))]
 
+        return self.ThLow, self.ThHi
 
-    def applyTrafo(self, img):
+
+    def applyTrafo(self, img, ThLow = [], ThHi = []):
         #for i in range(3):
         #    assert(self.ThHi[i] >= 0)
         #    assert(self.ThLow[i] >= 0)
+
+        if ThLow == [] and ThHi == []:
+            ThLow = self.ThLow
+            ThHi = self.ThHi
 
         channels = cv2.split(img)
         out_channels = []
@@ -61,7 +67,7 @@ class simpleColorBalanceClass:
         for idx, channel in enumerate(channels):
             #assert len(channel.shape) == 2
             # saturate below the low percentile and above the high percentile
-            thresholded = self.apply_threshold(channel, self.ThLow[idx], self.ThHi[idx])
+            thresholded = self.apply_threshold(channel, ThLow[idx], ThHi[idx])
             # scale the channel
             normalized = cv2.normalize(thresholded, thresholded.copy(), 0, 255, cv2.NORM_MINMAX)
             out_channels.append(normalized)

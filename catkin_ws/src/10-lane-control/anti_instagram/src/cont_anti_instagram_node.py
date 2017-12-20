@@ -5,7 +5,7 @@ from anti_instagram.kmeans_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
-                                 BoolStamped)
+                                 AntiInstagramTransform_CB, BoolStamped)
 from duckietown_utils.jpg import image_cv_from_jpg
 from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
@@ -30,13 +30,15 @@ class ContAntiInstagramNode():
         # Initialize publishers and subscribers
         self.pub_trafo = rospy.Publisher(
             "~transform", AntiInstagramTransform, queue_size=1)
+        self.pub_trafo_CB = rospy.Publisher(
+            "~colorBalanceTrafo", AntiInstagramTransform_CB, queue_size=1)
         self.pub_health = rospy.Publisher(
             "~health", AntiInstagramHealth, queue_size=1, latch=True)
 
         self.sub_image = rospy.Subscriber(
             # "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
-            # "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
-            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            #"~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
 
 
         # TODO verify name of parameter
@@ -57,6 +59,8 @@ class ContAntiInstagramNode():
         # Initialize transform message
         self.transform = AntiInstagramTransform()
         # FIXME: read default from configuration and publish it
+
+        self.transform_CB = AntiInstagramTransform_CB()
 
         self.ai = AntiInstagram()
         self.ai.setupKM(self.n_centers, self.blur, self.resize, self.blur_kernel)
@@ -83,8 +87,6 @@ class ContAntiInstagramNode():
 
 
     def processImage(self, event):
-        print('processImg called!')
-
         # if we have seen an image:
         if self.image_msg is not None:
             rospy.loginfo('ai: Computing color transform...')
@@ -98,8 +100,9 @@ class ContAntiInstagramNode():
 
             tk.completed('converted')
 
+            # milansc: try only color balance
+            """
             self.ai.calculateTransform(cv_image)
-
             tk.completed('calculateTransform')
 
             self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
@@ -107,7 +110,18 @@ class ContAntiInstagramNode():
 
             self.pub_trafo.publish(self.transform)
             rospy.loginfo('ai: Color transform published.')
+            """
 
+
+            # TODO add parameter for percentage
+            self.ai.calculateColorBalanceThreshold(cv_image, 2)
+            tk.completed('calculateTransform')
+
+            self.transform_CB.th[0], self.transform_CB.th[1], self.transform_CB.th[2] = self.ai.ThLow
+            self.transform_CB.th[3], self.transform_CB.th[4], self.transform_CB.th[5] = self.ai.ThHi
+
+            self.pub_trafo_CB.publish(self.transform_CB)
+            rospy.loginfo('ai: Color transform published.')
             # write latest trafo to file
             #self.file.write('shift:\n' + str(self.ai.shift) + '\nscale:\n' + str(self.ai.scale) + '\n \n')
 

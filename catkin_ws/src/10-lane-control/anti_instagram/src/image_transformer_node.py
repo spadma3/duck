@@ -4,7 +4,7 @@ from anti_instagram.AntiInstagram_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
-                                 BoolStamped)
+                                 AntiInstagramTransform_CB, BoolStamped)
 from duckietown_utils.jpg import image_cv_from_jpg
 from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
@@ -31,12 +31,15 @@ class ImageTransformerNode():
 
         self.sub_image = rospy.Subscriber(
             # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            # "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            # "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
 
         self.sub_trafo = rospy.Subscriber(
             "~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
             # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
+
+        self.sub_colorBalance = rospy.Subscriber(
+            "/duckierick/cont_anti_instagram_node/colorBalanceTrafo", AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
 
 
 
@@ -47,6 +50,7 @@ class ImageTransformerNode():
         # Initialize transform message
         self.transform = AntiInstagramTransform()
         # FIXME: read default from configuration and publish it
+        self.transform_CB = AntiInstagramTransform_CB()
 
         self.corrected_image = Image()
         self.ai = AntiInstagram()
@@ -61,7 +65,7 @@ class ImageTransformerNode():
 
 
     def cbNewImage(self, image_msg):
-        print('image received!')
+        #print('image received!')
         # memorize image
         self.image_msg = image_msg
 
@@ -74,18 +78,28 @@ class ImageTransformerNode():
             return
 
         tk.completed('converted')
+
+        # milansc: try only colorBalance
+        """
         corrected_image_cv2 = self.ai.applyTransform(cv_image)
         tk.completed('applyTransform')
 
         self.corrected_image = self.bridge.cv2_to_imgmsg(
             corrected_image_cv2, "bgr8")
         tk.completed('encode')
+        """
+
+        corrected_image_cv2 = self.ai.applyColorBalance(img=cv_image, ThLow=self.ai.ThLow, ThHi=self.ai.ThHi)
+
+        self.corrected_image = self.bridge.cv2_to_imgmsg(
+            corrected_image_cv2, "bgr8")
 
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
 
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
+
 
     def cbNewTrafo(self, trafo_msg):
         # testwise write to file
@@ -100,6 +114,15 @@ class ImageTransformerNode():
         # store transform to the Anti-Instagram instance
         self.ai.shift = trafo_msg.s[0:3]         #copied from line_detector2 ldn.py
         self.ai.scale = trafo_msg.s[3:6]
+
+    def cbNewTrafo_CB(self, th_msg):
+        print('image transformer: received new Color Balance trafo!')
+        if self.verbose:
+            rospy.loginfo('image transformer: received new Color Balance trafo!')
+
+        self.transform_CB = th_msg
+        self.ai.ThLow = th_msg.th[0:3]
+        self.ai.ThHi = th_msg.th[3:6]
 
 
 
