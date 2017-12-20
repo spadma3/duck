@@ -1,106 +1,167 @@
-"""Communication module for Duckiebots"""
+"""
+Communication module for Duckiebots
+"""
 
+# Import modules
 from __future__ import print_function
 import time
+import socket
 import netifaces as ni
+import libserialize
 import zmq
-import libserialize #import the correct seriallibs, see usage below
 
 class DuckieMQ(object):
-    """ZMQ implementation for communication between Duckiebots"""
+    """
+    ZeroMQ class implementation for communication between Duckiebots.
+    """
     def __init__(self, interface="wlan0", port="5554", socktype='sub'):
-        """Initialzes either a reciever or publisher socket on the specified interface and port.
-        Use ifconfig to determin the name of the correct interface.
+        """
+        Initialzes either a reciever or publisher socket on the specified interface and port.
+        Use ifconfig to determine the name of the correct interface.
         On standard Duckiebots the interface is called 'wlan0'.
-        Communication works over epgm protocol (broadcasting)"""
+        Communication works over epgm protocol (broadcasting)
+        Inputs:
+        - interface: Interface used by the socket
+        - port:      Port used by the socket
+        - socktype:  Socket type ("sub"/"pub")
+        Ouptuts:
+        - object: ZeroMQ socket
+        """
         self.context = zmq.Context()
-        self.socktype = socktype
-        # Uncomment, if needed in future implementations
-        # self.port = port
-        # self.interface = interface
-
         self.ownip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
-        self.endpoint = "epgm://" + self.ownip + ":" + port
-        self.def_filter = 0
+        self.port = port
+        self.def_filter = False
+        endpoint = self.build_endpoint()
+        # Uncomment, if needed in future implementations
+        # self.interface = interface
 
         # Rate [kbit] can be setup manually (if not, optimal rate is taken)
         # rate = 40*1000
 
-        if socktype == 'pub':
+        # Configure publisher socket
+        if socktype == "pub":
             self.socket = self.context.socket(zmq.PUB)
-            self.socket.connect(self.endpoint)  # should connect
+            self.socket.connect(endpoint)  # should connect
             # self.socket.setsockopt_string(zmq.RATE, rate)
-            print('publisher initialized on ' + self.endpoint)
+            print("Publisher initialized on " + endpoint)
 
-        elif socktype == 'sub':
+        # Configure subscriber socket
+        elif socktype == "sub":
             self.socket = self.context.socket(zmq.SUB)
             self.socket.setsockopt(zmq.SUBSCRIBE, '')
-            self.def_filter = 1
-            self.socket.connect(self.endpoint)
+            self.def_filter = True
+            self.socket.connect(endpoint)
             #self.socket.setsockopt_string(zmq.RATE, rate)
-            print('subscriber initialized on ' + self.endpoint)
+            print("Subscriber initialized on " + endpoint)
 
         else:
-            self.socktype = 'none'
-            print('no known type')
+            raise socket.error("No known socket type!")
 
+        # Set the socket type
+        self.socktype = socktype
         time.sleep(0.2)  # to guarantee initiaization
 
     def cleanup(self):
         """
-        Destroy the sockets.
+        Destroy the socket.
         """
         self.context.destroy()
 
     def removefilter(self, filter_string=''):
-        """removes filter_string from filter list, default removes default "" string"""
+        """
+        Removes filter_string from filter list, default removes default "" string.
+        Inputs:
+        - filter_string: string filter to be removed
+        Outputs:
+        None
+        """
         if self.socktype == 'sub':
             try:
                 self.socket.setsockopt(zmq.UNSUBSCRIBE, filter_string)
             except TypeError:
                 self.socket.setsockopt_string(zmq.UNSUBSCRIBE, filter_string)
-            print('removed filter: \"' + filter_string + '\" on ' + self.endpoint)
+            print('Removed filter: \"' + filter_string + '\" on ' + self.build_endpoint())
         else:
-            print("socket not of type subscriber, no filter changed")
+            print("Socket not of type subscriber, no filter changed.")
 
     def setfilter(self, filter_string):
-        """set filter to only recieve messages starting with filter_string (string)"""
+        """
+        Set filter to only recieve messages starting with filter_string (string).
+        Inputs:
+        - filter_string: string to be filtered
+        Outputs:
+        None
+        """
         if self.socktype == 'sub':
             if self.def_filter:
                 self.removefilter()
-                self.def_filter = 0
+                self.def_filter = False
             try:
                 self.socket.setsockopt(zmq.SUBSCRIBE, filter_string)
             except TypeError:
                 self.socket.setsockopt_string(zmq.SUBSCRIBE, filter_string)
-            print('set filter: \"' + filter_string + '\" on ' + self.endpoint)
+            print('Set filter: \"' + filter_string + '\" on ' + self.build_endpoint())
         else:
-            print("socket not of type subscriber, no filter changed")
+            print("Socket not of type subscriber, no filter changed.")
 
     def send_string(self, msg):
-        """send string"""
-        if self.socktype == 'pub':
+        """
+        Send a string through the socket.
+        Inputs:
+        - msg: string to be sent through the socket
+        Outputs:
+        None
+        """
+        if self.socktype == "pub":
             self.socket.send_string(msg)
         else:
-            print("socket not of type publisher, no message sent")
+            print("Socket not of type publisher, no message sent.")
 
     def send_serialized(self, msg):
-        """serialize message with seriallibs.serialize and send"""
+        """
+        Serialize message with libserialize.serialize and send it.
+        Inputs:
+        - msg: Message to be serialized and sent
+        Outputs:
+        None
+        """
         if self.socktype == 'pub':
             self.socket.send_serialized(msg, libserialize.serialize, flags=0, copy=True)
         else:
-            print("socket not of type publisher, no message sent")
+            print("Socket not of type publisher, no message sent.")
 
     def rcv_string(self):
-        """receive string"""
+        """
+        Receive string through the socket.
+        Inputs:
+        None
+        Outputs:
+        Received string
+        """
         if self.socktype == 'sub':
             return self.socket.recv_string()
         else:
-            print("socket not of type subscriber, no message will be recieved")
+            print("Socket not of type subscriber, no message will be received.")
 
     def rcv_serialized(self):
-        """receive message and deserialize with seriallibs.deserialize"""
+        """
+        Receive message and deserialize with libserialize.deserialize.
+        Inputs:
+        None
+        Outputs:
+        Received parsed string
+        """
         if self.socktype == 'sub':
             return self.socket.recv_serialized(libserialize.parse, flags=0, copy=True)
         else:
-            print("socket not of type subscriber, no message will be recieved")
+            print("Socket not of type subscriber, no message will be received.")
+
+    def build_endpoint(self):
+        """
+        Build an endpoint string.
+        Inputs:
+        None
+        Outputs:
+        endpoint string
+        """
+        return "epgm://" + self.ownip + ":" + self.port

@@ -2,6 +2,7 @@
 
 
 # Imports
+import thread
 import rospy
 import fleet_messaging.commlibs2 as cl
 from std_msgs.msg import ByteMultiArray
@@ -42,17 +43,15 @@ class Receiver(object):
                 port = entry["port"]
                 socket = cl.DuckieMQ(self.iface, port, "sub")
 
-                # &FEF - Create the publisher
-                # Create the subscriber
-                sub_topic = entry["sub"]
-                cb_fun = self.create_cb(socket)
-                sub = rospy.Subscriber(sub_topic, ByteMultiArray, cb_fun)
+                # Create the publisher
+                pub_topic = entry["pub"]
+                pub = rospy.Publisher(pub_topic, ByteMultiArray, queue_size=1)
 
-                # &FEF Populate the configuration
+                # Populate the configuration
                 self.config[entry["name"]] = (
                     port,
-                    sub_topic,
-                    sub,
+                    pub_topic,
+                    pub,
                     socket
                 )
         except TypeError:
@@ -87,10 +86,9 @@ class Receiver(object):
         # Loop through the configuration
         for key in self.config:
             # &FEF - Stop the threads
-            
+
             # Destroy the sockets
             self.config[key][3].cleanup()
-
 
     # &FEF - Do we need this callback function?
     def create_cb(self, socket):
@@ -115,6 +113,28 @@ class Receiver(object):
             rospy.loginfo("Sending msg at time: %s" %str(timestamp))
 
         return send_cb
+
+
+def publish_msg(socket, pub, evnt, timeout):
+    """
+    Receive a ZeroMQ message and publish it as a ROS topic.
+    This function is going to be called in a thread.
+    Inputs:
+    - socket:  ZeroMQ socket
+    - pub:     ROS publisher
+    - evnt:    Event
+    - timeout: Timeout
+    Outputs:
+    None
+    """
+    # Loop until the event fires
+    while not evnt.isSet():
+        # &FEF - Receive and process the message
+
+
+    while not e.isSet():
+        logging.debug('wait_for_event_timeout starting')
+        event_is_set = e.wait(t)
 
 
 if __name__ == "__main__":
