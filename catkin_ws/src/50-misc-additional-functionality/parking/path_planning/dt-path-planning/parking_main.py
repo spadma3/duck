@@ -11,19 +11,15 @@ import matplotlib.patches as patches
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from numpy import sign
-
+import os
 
 """
 Global parameters
 """
 # control parameters
-choose_random_parking_space_combination = True
+choose_random_parking_space_combination = False
 close_itself = True
-
-# simulation parameters
-# 0:entrance, 1-6:space x (this is rocket science =) ), 7:exit, 8:watch
-start_number_manual = 3      # (can be overwritten)
-end_number_manual = 7        # (can be overwritten)
+save_figures = True
 
 # parking lot parameters
 lot_width = 2*585                   # mm, lot = 2x2 squares
@@ -51,8 +47,13 @@ visual_boundairy = 100              # mm
 """
 Functions
 """
+# init once
+def init():
+    if save_figures:
+        os.system("rm images/*")
 
-def initialize():
+# init for every new path
+def initialize(start_number_manual, end_number_manual):
     if choose_random_parking_space_combination:
         entrance_exit = np.random.random_integers(0, 1)*7;
         parking_space = np.random.random_integers(1, 6);
@@ -68,6 +69,7 @@ def initialize():
 
     start_x, start_y, start_yaw = pose_from_key(start_number)
     end_x, end_y, end_yaw = pose_from_key(end_number)
+
     return start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number
 
 # pose assigenment: entrance, parking space, exit
@@ -116,13 +118,13 @@ def define_obstacles():
     obstacles.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
     obstacles.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
     obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
-    # obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
+    obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
 
     return obstacles
 
 
-# path planning
-def path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles):
+# dubins path planning
+def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles):
     # heuristics using path primitives
     detect_space_14 = (start_y < space_length and  (abs(start_yaw+radians(90))<radians(45)))
     detect_space_56 = lot_height- start_y < space_length and  abs(start_yaw-radians(90))<radians(45) and lot_width/2.0 < start_x
@@ -211,11 +213,11 @@ def collision_check(px, py, obstacles, start_number, end_number):
     if found_path:
         print("A collision free path from {} to {} was found!".format(start_number,end_number))
     else:
-        print("No path was found!")
+        print("No collision free path from {} to {} was found!".format(start_number,end_number))
         if crash:
-            print("The robot will crash into obstacles on this path!")
+            print("\tThe robot will crash into obstacles on this path!")
         if out_of_parking_lot:
-            print("The robot wants to drive outside the parking lot")
+            print("\tThe robot wants to drive outside the parking lot")
 
     return found_path
 
@@ -229,14 +231,15 @@ def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw,
     print("curvature = {}".format(curvature))
 
 # plot
-def do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obstacles):
+def do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obstacles, found_path):
     if close_itself:
         plt.clf()
-    fig, ax = plt.subplots(1)
+    fig, ax = plt.subplots()
     if found_path:
         plt.plot(px, py,'g-',lw=3)
     else:
         plt.plot(px, py,'m-',lw=3)
+
     # plt.plot(px, py, label="final course " + "".join(mode))
     dpp.plot_arrow(start_x, start_y, start_yaw,
     0.11*lot_width, 0.06*lot_width, fc="r", ec="r")
@@ -257,9 +260,26 @@ def do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obst
             obstacle[2], obstacle[3], fc=obstacle[4], ec="m", hatch='x'))
     if close_itself:
         plt.draw()
-        plt.pause(1.0)
+        plt.pause(0.5)
     else:
         plt.show()
+
+    if save_figures:
+        dic = {True:'driveable', False:'collision'}
+        plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
+
+def path_planning(start_number, end_number):
+    # define problem
+    start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
+    obstacles = define_obstacles()
+
+    # path planning and collision check with dubins path
+    px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles)
+    found_path = collision_check(px, py, obstacles, start_number, end_number)
+
+    # show results
+    # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
+    do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obstacles, found_path)
 
 
 """
@@ -268,14 +288,13 @@ main file
 if __name__ == '__main__':
     print('Path planning for duckietown...')
 
-    # define problem
-    start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize()
-    obstacles = define_obstacles()
+    # simulation parameters
+    # 0:entrance, 1-6:space x (this is rocket science =) ), 7:exit, 8:watch
+    start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]      # (can be overwritten)
+    end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]        # (can be overwritten)
+    # start_numbers = [0]
+    # end_numbers = [4]
 
-    # path planning and collision check with dubins path
-    px, py, pyaw = path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles)
-    found_path = collision_check(px, py, obstacles, start_number, end_number)
-
-    # show results
-    # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
-    do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obstacles)
+    init()
+    for start_number, end_number in zip(start_numbers, end_numbers):
+        path_planning(start_number, end_number)
