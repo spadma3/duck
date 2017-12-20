@@ -86,8 +86,6 @@ class Sender(object):
             # Destroy the sockets
             self.config[key][3].cleanup()
 
-        time.sleep(5)
-
     def create_cb(self, socket):
         """
         Create a callback function for an incomin ROS topic.

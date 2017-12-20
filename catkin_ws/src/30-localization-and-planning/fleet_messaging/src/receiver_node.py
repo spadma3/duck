@@ -45,7 +45,7 @@ class Receiver(object):
             for entry in config_yaml:
                 # Create the socket
                 port = entry["port"]
-                socket = cl.DuckieMQ(self.iface, port, "sub")
+                socket = cl.DuckieMQ(self.iface, port, "sub", self.timeout)
 
                 # Create the publisher
                 pub_topic = entry["pub"]
@@ -95,15 +95,11 @@ class Receiver(object):
         """
         rospy.loginfo("[%s] Shutting down." %(self.node_name))
 
-        # Loop through the configuration
+        # Stop the threads and sockets
         for key in self.config:
-            # Stop the threads by sending an event
             self.config[key][4].set()
-
-            # Destroy the sockets
+            self.config[key][5].join()
             self.config[key][3].cleanup()
-
-        time.sleep(5)
 
 
 def publish_msg(socket, pub, evnt, timeout):
@@ -127,6 +123,8 @@ def publish_msg(socket, pub, evnt, timeout):
 
         # Receive, process and publish the message
         zmq_msg = socket.rcv_serialized()
+        if zmq_msg is None:
+            continue
         bma = ByteMultiArray()
         bma.layout.data_offset = zmq_msg.layout.data_offset
         for dim in zmq_msg.layout.dim:

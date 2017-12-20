@@ -80,7 +80,7 @@ class DuckieMQ(object):
         Destroy the socket.
         """
         # Unregister the poller
-        if self.socktype == "sub":
+        if self.socktype == "sub" and self.timeout > 0:
             self.poller.unregister(self.socket)
 
         self.context.destroy()
