@@ -20,6 +20,16 @@ Global parameters
 choose_random_parking_space_combination = False
 close_itself = True
 save_figures = True
+pause_per_path = 0.5 # sec
+
+# path planning parameters
+straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
+straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
+primitive_backwards = True          # drive backwards and plan afterwards
+allow_backwards_on_circle = False   # use this later together with reeds sheep
+curvature = 120                     # mm minimal turning radius
+n_nodes_primitive = 50              # -
+distance_backwards = 400            # mm
 
 # parking lot parameters
 lot_width = 2*585                   # mm, lot = 2x2 squares
@@ -31,14 +41,7 @@ april_tag_screen_length = 80        # mm
 space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
 
-# path planning parameters
-straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
-straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
-primitive_backwards = True          # drive backwards and plan afterwards
-allow_backwards_on_circle = False   # use this later together with reeds sheep
-curvature = 120                     # mm minimal turning radius
-n_nodes_primitive = 50              # -
-distance_backwards = 400            # mm
+# additional constants
 length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0
 
 # plotting parameters
@@ -53,7 +56,7 @@ def init():
         os.system("rm images/*")
 
 # init for every new path
-def initialize(start_number_manual, end_number_manual):
+def initialize(start_number_manual=None, end_number_manual=None):
     if choose_random_parking_space_combination:
         entrance_exit = np.random.random_integers(0, 1)*7;
         parking_space = np.random.random_integers(1, 6);
@@ -118,7 +121,7 @@ def define_obstacles():
     obstacles.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
     obstacles.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
     obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
-    obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
+    # obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
 
     return obstacles
 
@@ -142,7 +145,7 @@ def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obs
         start_yaw = pyaw_backwards[-1]
 
     start_x_0, start_y_0, start_yaw_0 = pose_from_key(0)
-    if straight_at_entrance and (start_x==start_x_0 and start_y==start_y_0 and start_yaw == start_yaw_0) :
+    if straight_at_entrance and (start_x==start_x_0 and start_y==start_y_0 and start_yaw == start_yaw_0):
         dt = space_length/2.0/n_nodes_primitive
         px_straight_entrance = [start_x]
         py_straight_entrance = [start_y]
@@ -182,7 +185,7 @@ def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obs
         py = py_backwards + py
         pyaw = pyaw_backwards + pyaw
 
-    if straight_at_entrance and start_number==0:
+    if straight_at_entrance and (start_x==start_x_0 and start_y==start_y_0 and start_yaw == start_yaw_0):
         px = px_straight_entrance + px
         py = py_straight_entrance + py
         pyaw = pyaw_straight_entrance + pyaw
@@ -231,7 +234,7 @@ def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw,
     print("curvature = {}".format(curvature))
 
 # plot
-def do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obstacles, found_path):
+def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path):
     if close_itself:
         plt.clf()
     fig, ax = plt.subplots()
@@ -260,7 +263,7 @@ def do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obst
             obstacle[2], obstacle[3], fc=obstacle[4], ec="m", hatch='x'))
     if close_itself:
         plt.draw()
-        plt.pause(0.5)
+        plt.pause(pause_per_path)
     else:
         plt.show()
 
@@ -268,7 +271,7 @@ def do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obst
         dic = {True:'driveable', False:'collision'}
         plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
 
-def path_planning(start_number, end_number):
+def path_planning(start_number=None, end_number=None):
     # define problem
     start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
     obstacles = define_obstacles()
@@ -279,7 +282,7 @@ def path_planning(start_number, end_number):
 
     # show results
     # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
-    do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, px, py, obstacles, found_path)
+    do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path)
 
 
 """
@@ -288,13 +291,11 @@ main file
 if __name__ == '__main__':
     print('Path planning for duckietown...')
 
-    # simulation parameters
-    # 0:entrance, 1-6:space x (this is rocket science =) ), 7:exit, 8:watch
-    start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]      # (can be overwritten)
-    end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]        # (can be overwritten)
-    # start_numbers = [0]
-    # end_numbers = [4]
-
     init()
-    for start_number, end_number in zip(start_numbers, end_numbers):
-        path_planning(start_number, end_number)
+    if choose_random_parking_space_combination:
+        path_planning()
+    else:
+        start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]      # (can be overwritten)
+        end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]        # (can be overwritten)
+        for start_number, end_number in zip(start_numbers, end_numbers):
+            path_planning(start_number, end_number)
