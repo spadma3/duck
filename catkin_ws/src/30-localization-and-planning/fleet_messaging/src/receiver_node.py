@@ -31,7 +31,8 @@ class Receiver(object):
                 yaml_obj = YAML()
                 config_yaml = yaml_obj.load(config_file)
         except IOError:
-            output = "[%s] File \"%s\" does not exist! Please use an existing file!"
+            output = "[%s] File \"%s\" does not exist! Please use an " + \
+                     "existing file!"
             rospy.logfatal(output %(self.node_name, config_path))
             raise
 
@@ -129,7 +130,14 @@ def publish_msg(socket, pub, evnt, timeout):
     """
     # Loop until the event fires
     while not evnt.isSet():
+        # If the event fires, exit the function
+        event_is_set = evnt.wait(timeout)
+        if event_is_set:
+            return
+
         # &FEF - Receive and process the message
+        socket.rcv_serialized_timeout
+        print "bla"
 
 
     while not e.isSet():

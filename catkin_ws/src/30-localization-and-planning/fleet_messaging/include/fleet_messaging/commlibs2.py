@@ -15,7 +15,7 @@ class DuckieMQ(object):
     ZeroMQ class implementation for communication between Duckiebots.
     """
     def __init__(self, interface="wlan0", port="5554", socktype="sub",
-                 use_timeout=False):
+                 timeout=0):
         """
         Initialzes either a reciever or publisher socket on the specified
         interface and port.
@@ -23,12 +23,15 @@ class DuckieMQ(object):
         On standard Duckiebots the interface is called "wlan0".
         Communication works over epgm protocol (broadcasting)
         Inputs:
-        - interface:   Interface used by the socket
-        - port:        Port used by the socket
-        - socktype:    Socket type ("sub"/"pub")
-        - use_timeout: Set to True, if timeout on receiving shall be used.
+        - interface: Interface used by the socket
+        - port:      Port used by the socket
+        - socktype:  Socket type ("sub"/"pub")
+        - timeout:   timeout on receiving messages
         Ouptuts:
         - object: ZeroMQ socket
+        Exceptions:
+        - ValueError:   if timeout smaller than 0
+        - socket.error: if socket type neither "pub" nor "sub"
         """
         self.context = zmq.Context()
         self.ownip = ni.ifaddresses(interface)[ni.AF_INET][0]["addr"]
@@ -55,7 +58,9 @@ class DuckieMQ(object):
             self.def_filter = True
             self.socket.connect(endpoint)
             #self.socket.setsockopt_string(zmq.RATE, rate)
-            if use_timeout:
+            if timeout < 0:
+                raise ValueError("timeout must be greater or equal 0!")
+            if timeout > 0:
                 self.poller = zmq.Poller()
                 self.poller.register(self.socket, zmq.POLLIN)
             print("Subscriber initialized on " + endpoint)
@@ -65,7 +70,7 @@ class DuckieMQ(object):
 
         # Set the socket type and timeout
         self.socktype = socktype
-        self.use_timeout = use_timeout
+        self.timeout = timeout
 
         # Sleep, to guarantee initialization
         time.sleep(0.2)
@@ -88,6 +93,8 @@ class DuckieMQ(object):
         - filter_string: string filter to be removed
         Outputs:
         None
+        Exceptions:
+        - socket.error: if socket type is not "sub"
         """
         if self.socktype == "sub":
             try:
@@ -97,7 +104,8 @@ class DuckieMQ(object):
                 print("Removed filter: \"" + filter_string + "\" on " +
                       self.build_endpoint())
         else:
-            print("Socket not of type subscriber, no filter changed.")
+            raise socket.error("Socket not of type subscriber, no filter " +
+                               "changed.")
 
     def setfilter(self, filter_string):
         """
@@ -107,6 +115,8 @@ class DuckieMQ(object):
         - filter_string: string to be filtered
         Outputs:
         None
+        Exceptions:
+        - socket.error: if socket type is not "sub"
         """
         if self.socktype == "sub":
             if self.def_filter:
@@ -119,7 +129,8 @@ class DuckieMQ(object):
                 print("Set filter: \"" + filter_string + "\" on " +
                       self.build_endpoint())
         else:
-            print("Socket not of type subscriber, no filter changed.")
+            raise socket.error("Socket not of type subscriber, no filter " +
+                               "changed.")
 
     def send_string(self, msg):
         """
@@ -128,11 +139,13 @@ class DuckieMQ(object):
         - msg: string to be sent through the socket
         Outputs:
         None
+        Exceptions:
+        - socket.error: if socket type is not "pub"
         """
         if self.socktype == "pub":
             self.socket.send_string(msg)
         else:
-            print("Socket not of type publisher, no message sent.")
+            raise socket.error("Socket not of type publisher, no message sent.")
 
     def send_serialized(self, msg):
         """
@@ -141,12 +154,14 @@ class DuckieMQ(object):
         - msg: Message to be serialized and sent
         Outputs:
         None
+        Exceptions:
+        - socket.error: if socket type is not "pub"
         """
         if self.socktype == "pub":
             self.socket.send_serialized(msg, libserialize.serialize, flags=0,
                                         copy=True)
         else:
-            print("Socket not of type publisher, no message sent.")
+            raise socket.error("Socket not of type publisher, no message sent.")
 
     def rcv_string(self):
         """
@@ -154,15 +169,22 @@ class DuckieMQ(object):
         Inputs:
         None
         Outputs:
-        Received string
+        msg: Received string
+        Exceptions:
+        - socket.error: if socket type is not "sub"
         """
-        if self.socktype == "sub" and not self.use_timeout:
-            return self.socket.recv_string()
+        if self.socktype == "sub":
+            if self.timeout > 0:
+                msg = self.rcv_string_timeout()
+            else:
+                msg = self.socket.recv_string()
         else:
-            print("Socket not of type subscriber or using timeout, no " +
-                  "message will be received.")
+            raise socket.error("Socket not of type subscriber , no message " +
+                               "will be received.")
 
-    def rcv_string_timeout(self, timeout):
+        return msg
+
+    def rcv_string_timeout(self):
         """
         Receive string through the socket using a timeout.
         Inputs:
@@ -170,18 +192,14 @@ class DuckieMQ(object):
         Outputs:
         msg: Received string (None if timeout occurs, before any msg arrives)
         """
-        if self.socktype == "sub" and self.use_timeout:
-            # Poll for a message
-            received = self.poller.poll(timeout)
-            if not received:
-                msg = None
-            else:
-                msg = self.socket.recv_string()
-
-            return msg
+        # Poll for a message
+        events = self.poller.poll(self.timeout)
+        if not events:
+            msg = None
         else:
-            print("Socket not of type subscriber or not using timeout, " +
-                  "no message will be received.")
+            msg = self.socket.recv_string()
+
+        return msg
 
     def rcv_serialized(self):
         """
@@ -189,16 +207,23 @@ class DuckieMQ(object):
         Inputs:
         None
         Outputs:
-        Received parsed string
+        msg: Received parsed string
+        Exceptions:
+        - socket.error: if socket type is not "sub"
         """
-        if self.socktype == "sub" and not self.use_timeout:
-            return self.socket.recv_serialized(libserialize.parse, flags=0,
-                                               copy=True)
+        if self.socktype == "sub":
+            if self.timeout > 0:
+                msg = self.rcv_serialized_timeout()
+            else:
+                msg = self.socket.recv_serialized(libserialize.parse, flags=0,
+                                                  copy=True)
         else:
-            print("Socket not of type subscriber or using timeout, " +
-                  "no message will be received.")
+            raise socket.error("Socket not of type subscriber or using " +
+                               "timeout, no message will be received.")
 
-    def rcv_serialized_timeout(self, timeout):
+        return msg
+
+    def rcv_serialized_timeout(self):
         """
         Receive message and deserialize with libserialize.deserialize.
         Inputs:
@@ -207,19 +232,15 @@ class DuckieMQ(object):
         msg: Received parsed message (None if timeout occurs, before any msg
              arrives)
         """
-        if self.socktype == "sub" and self.use_timeout:
-            # Poll for a message
-            received = self.poller.poll(timeout)
-            if not received:
-                msg = None
-            else:
-                msg = self.socket.recv_serialized(libserialize.parse, flags=0,
-                                                  copy=True)
-
-            return msg
+        # Poll for a message
+        events = self.poller.poll(self.timeout)
+        if not events:
+            msg = None
         else:
-            print("Socket not of type subscriber or using timeout, " +
-                  "no message will be received.")
+            msg = self.socket.recv_serialized(libserialize.parse, flags=0,
+                                              copy=True)
+
+        return msg
 
     def build_endpoint(self):
         """
