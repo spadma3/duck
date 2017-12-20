@@ -44,7 +44,7 @@ class Sender(object):
 
                 # Create the subscriber
                 sub_topic = entry["sub"]
-                cb_fun = self.create_cb(socket)
+                cb_fun = create_cb(self.node_name, socket)
                 sub = rospy.Subscriber(sub_topic, ByteMultiArray, cb_fun)
 
                 # Populate the configuration
@@ -86,28 +86,31 @@ class Sender(object):
             # Destroy the sockets
             self.config[key][3].cleanup()
 
-    def create_cb(self, socket):
-        """
-        Create a callback function for an incomin ROS topic.
-        Inputs:
-        - socket: ZeroMQ socket
-        Outputs:
-        - send_cb: Callback function (pointer)
-        """
-        def send_cb(self, msg):
-            """
-            A callback that sends out message to other duckiebots through
-            multicast.
-            Inputs:
-            - msg: ROS message
-            Outputs:
-            None
-            """
-            timestamp = rospy.Time.now()
-            socket.send_serialized(msg.data)
-            rospy.loginfo("Sending msg at time: %s" %str(timestamp))
 
-        return send_cb
+def create_cb(node_name, socket):
+    """
+    Create a callback function for an incomin ROS topic.
+    Inputs:
+    - node_name: ROS node name
+    - socket:    ZeroMQ socket
+    Outputs:
+    - send_cb: Callback function (pointer)
+    """
+    def send_cb(msg):
+        """
+        A callback that sends out message to other duckiebots through
+        multicast.
+        Inputs:
+        - msg: ROS message
+        Outputs:
+        None
+        """
+        timestamp = rospy.Time.now()
+        socket.send_serialized(msg.data)
+        rospy.loginfo("[%s] Sending msg at time: %s" %(node_name,
+                                                       str(timestamp)))
+
+    return send_cb
 
 
 if __name__ == "__main__":
