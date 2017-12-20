@@ -82,7 +82,8 @@ class ActionsDispatcherNode:
         node = int(node)
         rospy.loginfo('Duckiebot {} located at node {}'.format(self.duckiebot_name, node))
 
-        location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
+        path_ints = [map(int, p) for p in self.path]
+        location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, path_ints)
         self.pub_location_node.publish(ByteMultiArray(data=location_message))
 
         if self.target_node is None or self.target_node == node:
