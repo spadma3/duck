@@ -145,7 +145,8 @@ def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obs
         start_yaw = pyaw_backwards[-1]
 
     start_x_0, start_y_0, start_yaw_0 = pose_from_key(0)
-    if straight_at_entrance and (start_x==start_x_0 and start_y==start_y_0 and start_yaw == start_yaw_0):
+    straight_at_entrance_ = (straight_at_entrance and abs(start_x-start_x_0)<1.0 and abs(start_y-start_y_0)<1.0 and abs(start_yaw-start_yaw_0)<1.0)
+    if straight_at_entrance_:
         dt = space_length/2.0/n_nodes_primitive
         px_straight_entrance = [start_x]
         py_straight_entrance = [start_y]
@@ -185,7 +186,7 @@ def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obs
         py = py_backwards + py
         pyaw = pyaw_backwards + pyaw
 
-    if straight_at_entrance and (start_x==start_x_0 and start_y==start_y_0 and start_yaw == start_yaw_0):
+    if straight_at_entrance_:
         px = px_straight_entrance + px
         py = py_straight_entrance + py
         pyaw = pyaw_straight_entrance + pyaw
@@ -295,7 +296,9 @@ if __name__ == '__main__':
     if choose_random_parking_space_combination:
         path_planning()
     else:
-        start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]      # (can be overwritten)
-        end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]        # (can be overwritten)
+        start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
+        end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
+        # start_numbers = [0]
+        # end_numbers = [3]
         for start_number, end_number in zip(start_numbers, end_numbers):
             path_planning(start_number, end_number)
