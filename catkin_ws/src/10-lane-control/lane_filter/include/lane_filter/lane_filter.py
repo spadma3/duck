@@ -35,7 +35,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         configuration = copy.deepcopy(configuration)
         Configurable.__init__(self,param_names,configuration)
 
-        self.num_belief = 3
+        self.num_belief = 4
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
         self.beliefArray = []
         for i in range(self.num_belief):
@@ -106,25 +106,13 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
 
     
-    def update(self, segments, range_min, range_max):
-        #range_delta = (range_max - range_min)/self.num_belief
-        #range_delta =np.array([0,(range_max-range_min)/6,(range_max-range_min)/2,(range_max-range_min)])
-        delta=range_max-range_min
-        range_delta =np.array([0, delta/6,delta/3,delta/2,delta*4/5])
-        #range_delta =np.array([0,(range_max-range_min)/12,(range_max-range_min)/6, (range_max-range_min)/4, (range_max-range_min)*5/12, (range_max-range_min)*7/12,(range_max-range_min)*9/12,range_max-range_min])
-        #range_delta[0]= 0
-        # range_delta[1]= (range_max-range_min)/6
-        #print "range 1 ",range_delta[1]
-        # range_delta[2]= (range_max-range_min)/6*3 + range_delta[1]
-        #print"range 2 " , range_delta[2]
-        # range_delta[3]= (range_max-range_min)/6*3 + range_delta[2]
-   
-        #for i in range(self.num_belief):
-        for i in range(4):
+    def update(self, segments, range_arr):
+
+        for i in range(self.num_belief):
             if i == 0:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_delta[i],delta)    
+                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 2])    
             else:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_delta[i], range_delta[i+1])
+                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 1])
             if measurement_likelihood is not None:
                 self.beliefArray[i] = np.multiply(self.beliefArray[i],measurement_likelihood)
                 if np.sum(self.beliefArray[i]) == 0:
@@ -137,18 +125,17 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segments:
+            # only consider points in a certain range from the Duckiebot
+            point_range = self.getSegmentDistance(segment)            
+            if point_range < range_min or point_range > range_max:
+                continue
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
                 continue
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-            point_range = self.getSegmentDistance(segment)
             # print "Point range: ", point_range 
-
-            # only consider points in a certain range from the Duckiebot
-            if point_range < range_min or point_range > range_max:
-                continue
             d_i,phi_i,l_i = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
             if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i>self.phi_max:
