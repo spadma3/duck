@@ -28,9 +28,10 @@ def detectOutlier(trainedCenters, trueCenters):  # YWRB
             tempTrueCenter = trueCenters[j]
             errorArray[j] = estimateError(tempTrafoCenter, tempTrueCenter)
         errorArrayTotal[i] = np.sum(errorArray)
+        print "error of trafo: " + str(errorArrayTotal[i])
     errorArraySortedIdx = np.argsort(errorArrayTotal)
-    return errorArraySortedIdx[-1], trainedCenters[errorArraySortedIdx[-1]]  # return last element.
-    # this element has the biggest error and is therefore the outlier.
+    return errorArraySortedIdx[0], trainedCenters[errorArraySortedIdx[0]]  # return first element.
+    # this set of centers leads to the lowest error and the left out center is therefore the outlier.
 
 
 def estimateError(trained_center, truecenter):
