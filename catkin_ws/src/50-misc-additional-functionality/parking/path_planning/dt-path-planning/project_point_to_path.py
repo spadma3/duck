@@ -77,7 +77,7 @@ def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
     Output:
         d_est in mm
         d_ref in mm
-        theta_est in radians
+        theta_est in radians, heading robot more left than path heading: negative
         c_ref in mm
     """
 
