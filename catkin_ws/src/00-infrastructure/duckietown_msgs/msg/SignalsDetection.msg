@@ -6,8 +6,8 @@ string right
 string left 
 
 # For the first backoff approach
-string led_detected
-string no_led_detected
+# string led_detected
+# string no_led_detected
 
 # Each of these can be:
 string NO_CAR='no_car_detected'
