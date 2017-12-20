@@ -37,7 +37,7 @@ class ContAntiInstagramNode():
 
         self.sub_image = rospy.Subscriber(
             # "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
-            "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
             #"~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
 
 

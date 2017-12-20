@@ -2,7 +2,7 @@
 	<arg name="veh"/>
 
 	<group ns="$(arg veh)">
-        <node name="anti_instagram_node" pkg="anti_instagram" type="anti_instagram_node.py" output="screen"/>
+        <node name="old_anti_instagram_node" pkg="anti_instagram" type="old_anti_instagram_node.py" output="screen"/>
     </group>
 
 </launch>
