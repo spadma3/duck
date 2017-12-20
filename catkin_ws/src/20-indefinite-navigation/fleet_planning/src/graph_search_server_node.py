@@ -34,8 +34,8 @@ class graph_search_server():
         self.duckietown_problem.start = req.source_node
         self.duckietown_problem.goal = req.target_node
         path = self.duckietown_problem.astar_search()
-        path_digits = [map(int, p) for p in path.path if p.isdigit()]
-        return GraphSearchResponse(path.actions,path_digits)
+        path_digits = [p for p in path.path if p.isdigit()]
+        return GraphSearchResponse(path.actions, path_digits)
 
 
 if __name__ == "__main__":
