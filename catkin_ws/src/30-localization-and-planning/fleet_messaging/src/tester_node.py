@@ -1,29 +1,32 @@
 #!/usr/bin/env python
+import array
 import rospy
 from std_msgs.msg import ByteMultiArray
 
 # Define callback function
 def callback(msg):
-    s = "Message recieved %s" % (msg.data)
-    #rospy.loginfo(s)
+    s = "Message received: %s %s %s" %(msg.data[0], msg.data[1], msg.data[2])
+    rospy.loginfo(s)
 
 def listener():
     #initialize node
-    rospy.init_node('dummyTest_node', anonymous=False)
+    rospy.init_node('tester_node', anonymous=False)
 
     #define publisher and subscriber
-    pub = rospy.Publisher('test_send', ByteMultiArray, queue_size=1)
-    sub = rospy.Subscriber("test_recieve", ByteMultiArray, callback)
+    pub = rospy.Publisher("test_receive", ByteMultiArray, queue_size=1)
+    sub = rospy.Subscriber("test_send", ByteMultiArray, callback)
 
-    #define counting order
+    #initialize counter
     count = 0
 
     while not rospy.is_shutdown():
         msg = ByteMultiArray()
-        msg.data = count
+        rospy.loginfo("Message published")
+        msg.data.append(count)
+        msg.data.append(count + 1)
+        msg.data.append(count + 2)
         pub.publish(msg)
         count = count + 1
-        # rospy.loginfo(msg.data)
         rospy.sleep(1.0)
 
 if __name__ == '__main__':

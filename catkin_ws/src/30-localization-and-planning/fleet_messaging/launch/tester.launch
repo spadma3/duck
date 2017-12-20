@@ -1,0 +1,3 @@
+<launch>
+    <node name="tester" pkg="fleet_messaging" type="tester_node.py" output="screen" />
+</launch>

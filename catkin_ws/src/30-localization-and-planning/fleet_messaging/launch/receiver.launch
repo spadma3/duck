@@ -2,7 +2,7 @@
     <arg name="config" default="$(find fleet_messaging)/config/config.yaml" />
     <arg name="iface" default="bat0" />
     <arg name="timeout" default="1" />
-    <node name="receiver_node" pkg="fleet_messaging" type="receiver_node.py" output="screen">
+    <node name="receiver" pkg="fleet_messaging" type="receiver_node.py" output="screen">
         <param name="~config" value="$(arg config)" />
         <param name="~iface" value="$(arg iface)" />
         <param name="~timeout" value="$(arg timeout)" />
