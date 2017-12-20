@@ -122,7 +122,7 @@ def define_obstacles():
     obstacles.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
     obstacles.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
     obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
-    # obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
+    # obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
 
     return obstacles
 
@@ -287,8 +287,6 @@ def path_planning(start_number=None, end_number=None):
     if ploting:
         do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path)
 
-    return px, py, pyaw
-
 
 """
 main file
@@ -303,7 +301,7 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        start_numbers = [0]
-        end_numbers = [3]
+        # start_numbers = [0]
+        # end_numbers = [3]
         for start_number, end_number in zip(start_numbers, end_numbers):
             path_planning(start_number, end_number)
