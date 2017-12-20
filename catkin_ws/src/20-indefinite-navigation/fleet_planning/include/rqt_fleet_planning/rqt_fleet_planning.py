@@ -53,10 +53,8 @@ class RQTFleetPlanning(Plugin):
 
         # ROS publishers/subscribers
         self.pub = rospy.Publisher('~/customer_requests', SourceTargetNodes, queue_size=1, latch=True)
-        self._subscriber_map_graph = rospy.Subscriber('/taxi_central_node/map_graph', Image,
-                                                      self.image_callback, queue_size = 1)
-        self._subscriber_duckiebot_list = rospy.Subscriber('/taxi/location', ByteMultiArray,
-                                                           self._received_duckiebot_update_callback)
+        self.subscriber = rospy.Subscriber('~/map_graph', Image,
+                                      self.image_callback,  queue_size = 1)
 
         #for drawing stuff
         self.basic_map_image = []

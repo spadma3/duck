@@ -13,13 +13,14 @@ class TestTaxiCentral(unittest.TestCase):
         rospy.init_node('test_node')
 
         duckiebot = Duckiebot('jeff')
-        start = 5
-        stop = 12
-        other = 7
+        start = '5'
+        stop = '12'
+        other = '7'
+        route = ['5', '14', '7', '8', '12']
         request = CustomerRequest(start, stop)
 
         # nothing to do, idle
-        self.assertEqual(duckiebot.taxi_state, TaxiState.IDLE)
+        self.assertEqual(duckiebot.taxi_state, TaxiState.WITHOUT_MISSION)
 
         # new request!
         duckiebot.assign_customer_request(request)
@@ -28,16 +29,16 @@ class TestTaxiCentral(unittest.TestCase):
         self.assertEqual(duckiebot.taxi_state, TaxiState.GOING_TO_CUSTOMER)
 
         # now duckiebot is at customer start location
-        self.assertEqual(duckiebot.update_location_check_target_reached(start, other), TaxiState.WITH_CUSTOMER)
+        self.assertEqual(duckiebot.update_location_check_target_reached(start, route), TaxiState.WITH_CUSTOMER)
         self.assertEqual(duckiebot.taxi_state, TaxiState.WITH_CUSTOMER)
 
         # now duckiebot is at any other location
-        self.assertEqual(duckiebot.update_location_check_target_reached(other, stop), None)
+        self.assertEqual(duckiebot.update_location_check_target_reached(other, route), None)
         self.assertEqual(duckiebot.taxi_state, TaxiState.WITH_CUSTOMER)
 
         # now duckiebot is at customer target location
-        self.assertEqual(duckiebot.update_location_check_target_reached(stop, other), TaxiState.IDLE)
-        self.assertEqual(duckiebot.taxi_state, TaxiState.IDLE)
+        self.assertEqual(duckiebot.update_location_check_target_reached(stop, route), TaxiState.WITHOUT_MISSION)
+        self.assertEqual(duckiebot.taxi_state, TaxiState.WITHOUT_MISSION)
 
         # customer request removed
         self.assertEqual(duckiebot.pop_customer_request(), request)
@@ -52,7 +53,6 @@ class TestTaxiCentral(unittest.TestCase):
 
         rospy.set_param('/map_dir', map_path)
         rospy.set_param('/map_name', csv_filename)
-        rospy.set_param('/gui_img_dir', gui_img_dir)
 
         taxi_central_node = TaxiCentralNode()
         taxi_central_node._fleet_planning_strategy = FleetPlanningStrategy.DEACTIVATED
@@ -66,14 +66,14 @@ class TestTaxiCentral(unittest.TestCase):
         # location update handling
         robot_name = 'jeff'
 
-        message = LocalizationMessageSerializer.serialize(robot_name, 9, [11, 13, 15])
+        message = LocalizationMessageSerializer.serialize(robot_name, 9, [9, 11, 13, 15])
         taxi_central_node._location_update(ByteMultiArray(ByteMultiArray,message))
         # robot is registered now
         self.assertTrue(robot_name in taxi_central_node._registered_duckiebots)
         request = taxi_central_node._pending_customer_requests.pop()
         taxi_central_node._registered_duckiebots[robot_name].assign_customer_request(request)
         self.assertTrue(taxi_central_node._registered_duckiebots[robot_name].taxi_state == TaxiState.GOING_TO_CUSTOMER)
-        self.assertTrue(len(taxi_central_node._idle_duckiebots()) == 0)
+        self.assertTrue(len(taxi_central_node.available_duckiebots) == 0)
 
         # set timer to shorter period, test robot time out deregistration
         taxi_central_node.TIME_OUT_CRITERIUM = 1.0
@@ -90,6 +90,7 @@ class TestTaxiCentral(unittest.TestCase):
         rospy.wait_for_service('send_location_information')
         fake_location = rospy.ServiceProxy('send_location_information', VirtualDuckiebotLocation)
         fake_location('susi', 5, '7,11,13')
+        fake_location('susi', 11, '7,11,13')
 
 
 if __name__ == '__main__':
