@@ -71,7 +71,7 @@ class lane_controller(object):
             self.d_thres = d_thres
             self.theta_thres = theta_thres
             self.d_offset = d_offset
-            if self.stopline_counter>0 and not self.stopline_msg.stop_line_detected:
+            if self.stopline_counter>0 and not self.stopline_msg.stop_line_detected and not math.fabs(stopline_msg.stop_line_point.y) < 0.4:
                 self.v_bar = v_bar
 
 
