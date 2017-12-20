@@ -7,8 +7,12 @@ import fleet_messaging.commlibs2 as cl
 from std_msgs.msg import ByteMultiArray
 from ruamel.yaml  import YAML
 
+
 class Sender(object):
-    """Listens to an outox topic and then sends out msg to communication network"""
+    """
+    Sender class for the duckietown fleet messaging.
+    Listens to an outbox topic and then sends out msg to other duckiebots.
+    """
     def __init__(self):
         # Initialize node
         self.node_name = rospy.get_name()

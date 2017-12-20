@@ -1,47 +1,131 @@
 #!/usr/bin/env python
+
+
+# Imports
 import rospy
 import fleet_messaging.commlibs2 as cl
-from std_msgs.msg import String
+from std_msgs.msg import ByteMultiArray
+from ruamel.yaml  import YAML
+
 
 class Receiver(object):
-    """Receives message with a certain filter and publishes to an inbox topic"""
+    """
+    Receiver class for the duckietown fleet messaging.
+    Listens to an message and then sends out the respective topic to other ROS
+    nodes.
+    """
     def __init__(self):
         # Initialize node
         self.node_name = rospy.get_name()
-        rospy.loginfo("[%s] Initialzing." % (self.node_name))
-        # Wireless Interface
-        self.iface = self.setupParameter("~iface", "wlan0")
-        # Instantiating up ZMQ subscriber
-        self.sub = cl.duckiemq(interface=self.iface, socktype='sub')
-        self.sub.setfilter("Fleet_Planning")
-        # Instantiating up ROS
-        self.publisher = rospy.Publisher("fleet_planning_inbox",String,queue_size=1)
+        rospy.loginfo("[%s] Initialzing." %(self.node_name))
 
-    def setupParameter(self, param_name, default_value):
+        # Load the parameters
+        config_path = self.setup_parameter("~config")
+        self.iface = self.setup_parameter("~iface")
+
+        # Load the configuration
+        try:
+            with open(config_path, "r") as config_file:
+                # Load the configuration file
+                yaml_obj = YAML()
+                config_yaml = yaml_obj.load(config_file)
+        except IOError:
+            output = "[%s] File \"%s\" does not exist! Please use an existing file!"
+            rospy.logfatal(output %(self.node_name, config_path))
+            raise
+
+        # Loop through the configuration
+        try:
+            self.config = {}
+            for entry in config_yaml:
+                # Create the socket
+                port = entry["port"]
+                socket = cl.DuckieMQ(self.iface, port, "sub")
+
+                # &FEF - Create the publisher
+                # Create the subscriber
+                sub_topic = entry["sub"]
+                cb_fun = self.create_cb(socket)
+                sub = rospy.Subscriber(sub_topic, ByteMultiArray, cb_fun)
+
+                # &FEF Populate the configuration
+                self.config[entry["name"]] = (
+                    port,
+                    sub_topic,
+                    sub,
+                    socket
+                )
+        except TypeError:
+            output = "[%s] Syntax error in \"%s\"!"
+            rospy.logfatal(output %(self.node_name, config_path))
+            raise
+
+        # &FEF - Create and start the threads
+
+    def setup_parameter(self, param_name, default_value=None):
+        """
+        Setup a node parameter.
+        Inputs:
+        - param_name:    Parameter name (see launch file)
+        - default_value: Default parameter value (define in launch file!)
+        Outputs:
+        - value: Parameter value
+        """
         value = rospy.get_param(param_name, default_value)
-        rospy.set_param(param_name, value)  # Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+        rospy.set_param(param_name, value)
+
+        rospy.loginfo("[%s] %s = %s " %(self.node_name, param_name, value))
+
         return value
 
-    def receive(self):
-        """Recieves ZQM serialzed message and deserializes it"""
-        message = self.sub.rcv_string()
-        rospy.loginfo("[%s] received: %s" % (self.node_name, message))
-        return message
+    def on_shutdown(self):
+        """
+        Perform cleanup on shutdown.
+        """
+        rospy.loginfo("[%s] Shutting down." %(self.node_name))
 
-    def publish(self):
-        """Publishes received messages"""
-        self.publisher.publish(self.receive())
+        # Loop through the configuration
+        for key in self.config:
+            # &FEF - Stop the threads
+            
+            # Destroy the sockets
+            self.config[key][3].cleanup()
 
 
-# Initialize the node with rospy
-rospy.init_node('receiver_node', anonymous=False)
-receiver = Receiver()
+    # &FEF - Do we need this callback function?
+    def create_cb(self, socket):
+        """
+        Create a callback function for an incomin ROS topic.
+        Inputs:
+        - socket: ZeroMQ socket
+        Outputs:
+        - send_cb: Callback function (pointer)
+        """
+        def send_cb(self, msg):
+            """
+            A callback that sends out message to other duckiebots through
+            multicast.
+            Inputs:
+            - msg: ROS message
+            Outputs:
+            None
+            """
+            timestamp = rospy.Time.now()
+            socket.send_serialized(msg.data)
+            rospy.loginfo("Sending msg at time: %s" %str(timestamp))
 
-while not rospy.is_shutdown():
-    print("Publishing")
-    receiver.publish()
+        return send_cb
 
-# Runs continuously until interrupted
-rospy.spin() 
 
+if __name__ == "__main__":
+    # Initialize the node with rospy
+    rospy.init_node('receiver_node', anonymous=False)
+
+    # Create the sender object
+    RECEIVER = Receiver()
+
+    # Setup proper shutdown behavior
+    rospy.on_shutdown(RECEIVER.on_shutdown)
+
+    # Keep it spinning to keep the node alive
+    rospy.spin()
