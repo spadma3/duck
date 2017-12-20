@@ -3,9 +3,9 @@ import numpy as np
 import sys
 
 
-def detectOutlier(centerArray):  # YWRB
+def detectOutlier(centerArray, trueCenters):  # YWRB
     n_centers, n_channels = centerArray.shape
-    trueCenters = np.vstack([[50, 240, 240], [240, 240, 240], [60, 60, 240], [60, 60, 60]])  # YWRB
+    # trueCenters = np.vstack([[50, 240, 240], [240, 240, 240], [60, 60, 240], [60, 60, 60]])  # YWRB
     print n_centers
     errors = np.zeros(n_centers)
     errorArrayTotal = np.zeros(n_centers)
@@ -14,7 +14,7 @@ def detectOutlier(centerArray):  # YWRB
         # leave out i-th trained center
         tempArray = np.vstack([centerArray[0:i, :], centerArray[i+1:n_centers, :]])
         # calculate transform with the other centers
-        T = calcTransform(n_centers-1, tempArray)
+        T = calcTransform(n_centers-1, tempArray, trueCenters)
         T.calcTransform()
         print "the transform is: shift - " + str(T.shift) + ", scale - " + str(T.scale)
         # print "left out " + str(leaveOut) + ", new centers: " + str(tempArray)
@@ -55,9 +55,11 @@ def main():
 
     centers = np.vstack([center2, center4, center3, center1])
 
+    trueCenters = np.vstack([[50, 240, 240], [240, 240, 240], [60, 60, 240], [60, 60, 60]])  # YWRB
+
     print "the centers: " + str(centers)
 
-    print(detectOutlier(centers))
+    print(detectOutlier(centers, trueCenters))
 
 
 

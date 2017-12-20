@@ -37,6 +37,7 @@ b the desired color value and A the matrix containing the color values of the fo
 The inputs:
 - number of centers:      this is the number of centers which are used to compute the transform
 - found centers:          this is an array containing the centers of the clusters.
+- true centers:           this is the array containing the true centers
 
 The outputs:
 - scale and shift:        The scale and shift values correspond to 'a' and 'b' in y = a*x + b for each channel
@@ -80,7 +81,10 @@ class calcTransform:
         self.shift = np.zeros(3, np.float64)
         self.residuals = np.zeros((3, 3), np.float64)
         self.valueArrayBGR = np.zeros((3, self.num_centers), np.uint8)
-        for k in range(3): self.valueArrayBGR[k,:] = self.found_centers[:,k]
+        print "true centers " + str(self.found_centers)
+        print "found centers 0 " + str(found_centers[:, 0])
+        for k in range(3):
+            self.valueArrayBGR[k, :] = self.found_centers[:, k]
 
         self.matrices_A = np.zeros((3, self.num_centers, 2), np.uint8)
         self.vectors_b = np.zeros((3, self.num_centers), np.uint8)
