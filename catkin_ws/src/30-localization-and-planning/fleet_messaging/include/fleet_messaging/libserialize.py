@@ -30,7 +30,7 @@ def serialize(ros_msg):
     bma.layout.data_offset = ros_msg.layout.data_offset
 
     # Set the data
-    bma.data = ros_msg.data
+    bma.data = str(ros_msg.data)
     bma_data = bma.SerializeToString()
     
     return bma_data

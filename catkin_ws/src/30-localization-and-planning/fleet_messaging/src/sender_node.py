@@ -105,7 +105,7 @@ def create_cb(node_name, socket):
         None
         """
         timestamp = rospy.Time.now()
-        socket.send_serialized(msg.data)
+        socket.send_serialized(msg)
         rospy.loginfo("[%s] Sending msg at time: %s" %(node_name,
                                                        str(timestamp)))
 
