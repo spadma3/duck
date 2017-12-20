@@ -28,13 +28,13 @@ class LaneFollowerNode(object):
         mvnc.SetGlobalOption(mvnc.GlobalOption.LOG_LEVEL, 2)
         devices = mvnc.EnumerateDevices()
         if len(devices) == 0:
-            print "No devices found!"
+            rospy.loginfo("No devices found!")
+	self.image_deque = deque(maxlen=4)
         self.device = mvnc.Device(devices[0])
         self.device.OpenDevice()
-        with open('graph', mode='rb') as f:
+        with open('/home/rithesh/DeepLearning/imitation_learning/graph', mode='rb') as f:
             blob = f.read()
         self.graph = self.device.AllocateGraph(blob)
-        self.image_deque = deque(4)
 
         rospy.loginfo("[%s] Initialized " % (rospy.get_name()))
 
@@ -57,21 +57,21 @@ class LaneFollowerNode(object):
         img = Image.fromarray(img)
         img.thumbnail((80, 60))
         img = np.asarray(img.convert('L'))
-        self.image_deque.append(img)
 
-        if len(self.image_deque == 4):
-            batch_img = np.asarray(self.image_deque)
-            print batch_img.shape
-            batch_img = batch_img.reshape(4, 60, 80)
-            batch_img = (2*(batch_img/255.) - 1.).astype('float32')
-            batch_img = batch_img.transpose(1, 2, 0)
+        output = [0.] 
+        if hasattr(self, 'image_deque'):
+            self.image_deque.append(img)
 
-            out = self.graph.LoadTensor(batch_img.astype(np.float16), 'user object')
-            assert out is True
-            output, userobj = self.graph.GetResult()
-            print "Result: ", output[0]
-        else:
-            output = [0.]
+            if len(self.image_deque) == 4 and hasattr(self, 'graph'):
+                batch_img = np.asarray(self.image_deque)
+                batch_img = batch_img.reshape(4, 60, 80)
+                batch_img = (2*(batch_img/255.) - 1.).astype('float32')
+                batch_img = batch_img.transpose(1, 2, 0)
+
+                out = self.graph.LoadTensor(batch_img.astype(np.float16), 'user object')
+                assert out is True
+                output, userobj = self.graph.GetResult()
+                # print "Result: ", output[0]
 
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - compressed_image.header.stamp
