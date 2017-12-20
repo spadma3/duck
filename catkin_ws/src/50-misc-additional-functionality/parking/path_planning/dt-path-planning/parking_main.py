@@ -21,6 +21,7 @@ choose_random_parking_space_combination = False
 close_itself = True
 save_figures = True
 pause_per_path = 0.5 # sec
+ploting = False
 
 # path planning parameters
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
@@ -103,7 +104,7 @@ def pose_from_key(key):
     elif key == "watch" or key == 8:
         return np.array([lot_width/2.0, lot_height/2.0, 0.0])
     else:
-        print("parking space not found")
+        print("parking space '{}' not found".format(key))
         exit(1)
 
 # define define_obstacles    """
@@ -283,7 +284,10 @@ def path_planning(start_number=None, end_number=None):
 
     # show results
     # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
-    do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path)
+    if ploting:
+        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path)
+
+    return px, py, pyaw
 
 
 """
@@ -292,13 +296,14 @@ main file
 if __name__ == '__main__':
     print('Path planning for duckietown...')
 
+    # path calculation
     init()
     if choose_random_parking_space_combination:
         path_planning()
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        # start_numbers = [0]
-        # end_numbers = [3]
+        start_numbers = [0]
+        end_numbers = [3]
         for start_number, end_number in zip(start_numbers, end_numbers):
             path_planning(start_number, end_number)
