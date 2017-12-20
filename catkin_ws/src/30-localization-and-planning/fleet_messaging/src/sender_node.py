@@ -40,7 +40,7 @@ class Sender(object):
             for entry in config_yaml:
                 # Create the socket
                 port = entry["port"]
-                socket = cl.DuckieMQ(self.iface, port, "sub")
+                socket = cl.DuckieMQ(self.iface, port, "pub")
 
                 # Create the subscriber
                 sub_topic = entry["sub"]
