@@ -65,6 +65,12 @@ class Graph(object):
             raise NodeNotInGraph(node)
         self.node_positions[node] = pos
 
+    @property
+    def intersection_nodes(self):
+        "nodes that are at an intersection and are displayed in the gui map"
+        nodes = [n for n in self._nodes if n.isdigit()]
+        return [node for node in nodes if int(node) % 2 == 1] # only uneven node numbers are relevant. See draw methods.
+
     def get_node(self, node_number):
         """
         Get the node with a given number
