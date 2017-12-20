@@ -6,6 +6,7 @@ import thread
 import rospy
 import fleet_messaging.commlibs2 as cl
 from std_msgs.msg import ByteMultiArray
+from std_msgs.msg import MultiArrayDimension
 from ruamel.yaml  import YAML
 
 
@@ -91,30 +92,6 @@ class Receiver(object):
             # Destroy the sockets
             self.config[key][3].cleanup()
 
-    # &FEF - Do we need this callback function?
-    def create_cb(self, socket):
-        """
-        Create a callback function for an incomin ROS topic.
-        Inputs:
-        - socket: ZeroMQ socket
-        Outputs:
-        - send_cb: Callback function (pointer)
-        """
-        def send_cb(self, msg):
-            """
-            A callback that sends out message to other duckiebots through
-            multicast.
-            Inputs:
-            - msg: ROS message
-            Outputs:
-            None
-            """
-            timestamp = rospy.Time.now()
-            socket.send_serialized(msg.data)
-            rospy.loginfo("Sending msg at time: %s" %str(timestamp))
-
-        return send_cb
-
 
 def publish_msg(socket, pub, evnt, timeout):
     """
@@ -135,14 +112,18 @@ def publish_msg(socket, pub, evnt, timeout):
         if event_is_set:
             return
 
-        # &FEF - Receive and process the message
-        socket.rcv_serialized_timeout
-        print "bla"
-
-
-    while not e.isSet():
-        logging.debug('wait_for_event_timeout starting')
-        event_is_set = e.wait(t)
+        # Receive, process and publish the message
+        zmq_msg = socket.rcv_serialized()
+        bma = ByteMultiArray()
+        bma.layout.data_offset = zmq_msg.layout.data_offset
+        for dim in zmq_msg.layout.dim:
+            mad = MultiArrayDimension()
+            mad.label = dim.label
+            mad.size = dim.size
+            mad.stride = dim.stride
+            bma.layout.dim.append(mad)
+        bma.data = zmq_msg.data
+        pub.publish(bma)
 
 
 if __name__ == "__main__":
