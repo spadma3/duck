@@ -31,8 +31,8 @@ def serialize(ros_msg):
 
     # Set the data
     bma.data = ros_msg.data
-
     bma_data = bma.SerializeToString()
+    
     return bma_data
 
 def parse(bma_data):

@@ -2,7 +2,8 @@
 
 
 # Imports
-import thread
+import threading
+import time
 import rospy
 import fleet_messaging.commlibs2 as cl
 from std_msgs.msg import ByteMultiArray
@@ -24,6 +25,7 @@ class Receiver(object):
         # Load the parameters
         config_path = self.setup_parameter("~config")
         self.iface = self.setup_parameter("~iface")
+        self.timeout = self.setup_parameter("~timeout")
 
         # Load the configuration
         try:
@@ -49,19 +51,27 @@ class Receiver(object):
                 pub_topic = entry["pub"]
                 pub = rospy.Publisher(pub_topic, ByteMultiArray, queue_size=1)
 
+                # Start threading
+                name = entry["name"]
+                evnt = threading.Event()
+                thread = threading.Thread(group=None, target=publish_msg,
+                                          name=name, args=(socket, pub, evnt,
+                                                           self.timeout))
+                thread.start()
+
                 # Populate the configuration
-                self.config[entry["name"]] = (
+                self.config[name] = (
                     port,
                     pub_topic,
                     pub,
-                    socket
+                    socket,
+                    evnt,
+                    thread
                 )
         except TypeError:
             output = "[%s] Syntax error in \"%s\"!"
             rospy.logfatal(output %(self.node_name, config_path))
             raise
-
-        # &FEF - Create and start the threads
 
     def setup_parameter(self, param_name, default_value=None):
         """
@@ -87,10 +97,13 @@ class Receiver(object):
 
         # Loop through the configuration
         for key in self.config:
-            # &FEF - Stop the threads
+            # Stop the threads by sending an event
+            self.config[key][4].set()
 
             # Destroy the sockets
             self.config[key][3].cleanup()
+
+        time.sleep(5)
 
 
 def publish_msg(socket, pub, evnt, timeout):

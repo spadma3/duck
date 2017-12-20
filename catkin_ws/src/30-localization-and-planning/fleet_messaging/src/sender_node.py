@@ -2,6 +2,7 @@
 
 
 # Imports
+import time
 import rospy
 import fleet_messaging.commlibs2 as cl
 from std_msgs.msg import ByteMultiArray
@@ -85,6 +86,7 @@ class Sender(object):
             # Destroy the sockets
             self.config[key][3].cleanup()
 
+        time.sleep(5)
 
     def create_cb(self, socket):
         """
