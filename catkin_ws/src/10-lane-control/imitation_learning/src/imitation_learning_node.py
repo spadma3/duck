@@ -7,7 +7,7 @@ from PIL import Image
 import numpy as np
 from mvnc import mvncapi as mvnc
 from collections import deque
-
+import os
 
 class LaneFollowerNode(object):
     def __init__(self):
@@ -32,7 +32,7 @@ class LaneFollowerNode(object):
 	self.image_deque = deque(maxlen=4)
         self.device = mvnc.Device(devices[0])
         self.device.OpenDevice()
-        with open('/home/rithesh/DeepLearning/imitation_learning/graph', mode='rb') as f:
+        with open('/home/rithesh/duckietown/catkin_ws/src/10-lane-control/imitation_learning/graph', mode='rb') as f:
             blob = f.read()
         self.graph = self.device.AllocateGraph(blob)
 
