@@ -103,7 +103,7 @@ class VehicleFilterNode(object):
 				translation_vector = -np.array([translation_vector[2],translation_vector[0]])
                                 translation_vector = np.dot(np.transpose(R2), translation_vector)
                                 pose_msg_out.theta.data = np.arctan2(translation_vector[1] , translation_vector[0])
-				print(translation_vector)
+				#print(translation_vector)
 				
 # 				pose_msg_out = Pose2DStamped()
 # 				pose_msg_out.header.stamp = vehicle_corners_msg.header.stamp

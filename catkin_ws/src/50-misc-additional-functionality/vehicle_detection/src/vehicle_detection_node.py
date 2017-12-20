@@ -14,6 +14,7 @@ import rospy
 import threading
 import time
 import yaml
+from decorator import init
 
 class VehicleDetectionNode(object):
 
@@ -47,6 +48,11 @@ class VehicleDetectionNode(object):
 			Float32, queue_size=1)
 		self.lock = mutex()
 		rospy.loginfo("[%s] Initialization completed" % (self.node_name))
+		
+		self.init = False
+		self.ok = False
+		#self.tracker = cv2.TrackerMedianFlow_create()
+		#self.tracker = cv2.TrackerKCF_create()
 	
 	def setupParam(self,param_name,default_value):
 		value = rospy.get_param(param_name,default_value)
@@ -96,36 +102,109 @@ class VehicleDetectionNode(object):
 			params.minArea = self.blobdetector_min_area
 			params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs
 			simple_blob_detector = cv2.SimpleBlobDetector_create(params)
-			(detection, corners) = cv2.findCirclesGrid(image_cv,
-					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
-					blobDetector=simple_blob_detector)
 			
-			vehicle_detected_msg_out.data = detection
-			self.pub_detection.publish(vehicle_detected_msg_out)
-			if detection:
-				#print(corners)
-				points_list = []	
-				for point in corners:
-					corner = Point32()
-					#print(point[0])
-					corner.x = point[0,0]
-					#print(point[0,1])
-					corner.y = point[0,1]
-					corner.z = 0
-					points_list.append(corner)
-				vehicle_corners_msg_out.header.stamp = image_msg.header.stamp
-				vehicle_corners_msg_out.corners = points_list
-				vehicle_corners_msg_out.detection.data = detection
-				vehicle_corners_msg_out.H = self.circlepattern_dims[1]
-				vehicle_corners_msg_out.W = self.circlepattern_dims[0]
-				self.pub_corners.publish(vehicle_corners_msg_out)
-			elapsed_time = (rospy.Time.now() - start).to_sec()
-			self.pub_time_elapsed.publish(elapsed_time)	
-			if self.publish_circles:
-				cv2.drawChessboardCorners(image_cv, 
-						self.circlepattern_dims, corners, detection)
-				image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
-				self.pub_circlepattern_image.publish(image_msg_out)
+			grey = image_cv
+			
+			if self.init:
+				timer = cv2.getTickCount()
+				self.ok, self.bbox = self.tracker.update(grey)
+				fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer);
+				
+				if self.ok:
+					# Tracking success
+					crop_img = grey[int(self.bbox[1]):int(self.bbox[1]+self.bbox[3]), int(self.bbox[0]):int(self.bbox[0]+self.bbox[2])]
+					(detection, corners) = cv2.findCirclesGrid(crop_img,
+							self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
+							blobDetector=simple_blob_detector)
+					
+					vehicle_detected_msg_out.data = detection
+					self.pub_detection.publish(vehicle_detected_msg_out)
+					
+					if detection:
+						#print(corners)
+						points_list = []	
+						for point in corners:
+							corner = Point32()
+							#print(point[0])
+							corner.x = point[0,0]
+							#print(point[0,1])
+							corner.y = point[0,1]
+							corner.z = 0
+							points_list.append(corner)
+						vehicle_corners_msg_out.header.stamp = image_msg.header.stamp
+						vehicle_corners_msg_out.corners = points_list
+						vehicle_corners_msg_out.detection.data = detection
+						vehicle_corners_msg_out.H = self.circlepattern_dims[1]
+						vehicle_corners_msg_out.W = self.circlepattern_dims[0]
+						self.pub_corners.publish(vehicle_corners_msg_out)
+						elapsed_time = (rospy.Time.now() - start).to_sec()
+						self.pub_time_elapsed.publish(elapsed_time)
+						
+						if self.publish_circles:
+	 						cv2.drawChessboardCorners(crop_img, 
+	 							self.circlepattern_dims, corners, detection)
+# 	 						p1 = (int(self.bbox[0]), int(self.bbox[1]))
+# 						 	p2 = (int(self.bbox[0] + self.bbox[2]), int(self.bbox[1] + self.bbox[3]))
+# 							cv2.rectangle(image_cv, p1, p2, (255,0,0), 2, 1)
+					 		image_msg_out = self.bridge.cv2_to_imgmsg(crop_img, "bgr8")
+							self.pub_circlepattern_image.publish(image_msg_out)
+							
+					else:
+						self.init = False
+							
+				else:
+					print("Tracking failed!")
+					self.init = False
+							
+			if not self.init:
+				(detection, corners) = cv2.findCirclesGrid(image_cv,
+						self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
+						blobDetector=simple_blob_detector)
+				
+				vehicle_detected_msg_out.data = detection
+				self.pub_detection.publish(vehicle_detected_msg_out)
+				
+				if detection:
+					#print(corners)
+					points_list = []	
+					for point in corners:
+						corner = Point32()
+						#print(point[0])
+						corner.x = point[0,0]
+						#print(point[0,1])
+						corner.y = point[0,1]
+						corner.z = 0
+						points_list.append(corner)
+					vehicle_corners_msg_out.header.stamp = image_msg.header.stamp
+					vehicle_corners_msg_out.corners = points_list
+					vehicle_corners_msg_out.detection.data = detection
+					vehicle_corners_msg_out.H = self.circlepattern_dims[1]
+					vehicle_corners_msg_out.W = self.circlepattern_dims[0]
+					self.pub_corners.publish(vehicle_corners_msg_out)
+					elapsed_time = (rospy.Time.now() - start).to_sec()
+					self.pub_time_elapsed.publish(elapsed_time)
+					
+					self.tracker = cv2.TrackerKCF_create()
+# 					print(corners[20][0,0]-corners[0][0,0])
+# 					print(corners[20][0,1]-corners[0][0,1])
+# 					a = int(corners[20][0,0]-corners[0][0,0])
+# 					b = int(corners[20][0,1]-corners[0][0,1])
+					self.bbox = (int(corners[0][0,0] - 50), int(corners[0][0,1] - 50), int(corners[20][0,0]-corners[0][0,0] + 100), int(corners[20][0,1]-corners[0][0,1] + 100))
+					#self.bbox = (int(corners[0][0,0] ), int(corners[0][0,1]), a, b)
+					self.ok = self.tracker.init(grey, self.bbox)
+					#print("debug")
+					self.init = self.ok		
+									
+					
+					if self.publish_circles:
+	 					cv2.drawChessboardCorners(image_cv, 
+	 						self.circlepattern_dims, corners, detection)
+	 					p1 = (int(self.bbox[0]), int(self.bbox[1]))
+					 	p2 = (int(self.bbox[0] + self.bbox[2]), int(self.bbox[1] + self.bbox[3]))
+						cv2.rectangle(image_cv, p1, p2, (255,0,0), 2, 1)
+				 		image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
+						self.pub_circlepattern_image.publish(image_msg_out)			
+
 			self.lock.unlock()
 
 if __name__ == '__main__': 
