@@ -1,0 +1,5 @@
+description: Shape 120x160, cutoff 40.
+constructor: line_detector2.image_prep.ImagePrep
+parameters:
+    shape: [120, 160]
+    top_cutoff: 40
