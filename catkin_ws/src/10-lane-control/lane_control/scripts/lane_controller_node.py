@@ -146,10 +146,10 @@ class lane_controller(object):
         x0 = 0.20   # Distance in cm where we want to stop.
         x_thr =0.3     # starting deaccleration here
         x = stopline_msg.stop_line_point.x
-        if  stopline_msg.stop_line_detected and math.fabs(stopline_msg.stop_line_point.y) < 0.4:
-            if x<x0:
-                self.v_bar=0.1
-            elif x<x_thr and stopline_msg.stop_line_detected:
+        if  stopline_msg.stop_line_detected and math.fabs(stopline_msg.stop_line_point.y) < 0.3:
+            # if x<x0:
+            #     self.v_bar=0.1
+            if x<x_thr and stopline_msg.stop_line_detected:
                 # self.v_bar = self.setupParameter("~v_bar",v_bar*(x-x0)/(x_thr-x0))
                 self.v_bar = self.setupParameter("~v_bar",v_bar*0.5)
                 rospy.loginfo("deaccleration triggered. Velocity now:%d", self.v_bar)
