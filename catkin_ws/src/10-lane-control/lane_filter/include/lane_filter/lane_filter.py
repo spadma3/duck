@@ -149,11 +149,41 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         return measurement_likelihood
         
     def getEstimate(self):
-        maxids = np.unravel_index(self.belief.argmax(),self.belief.shape)
+        d_max = np.zeros(self.num_belief)
+        phi_max = np.zeros(self.num_belief)
+        for i in range(self.num_belief):    
+            maxids = np.unravel_index(self.beliefArray[i].argmax(),self.beliefArray[i].shape)
         # add 0.5 because we want the center of the cell
-        d_max = self.d_min + (maxids[0]+0.5)*self.delta_d
-        phi_max = self.phi_min + (maxids[1]+0.5)*self.delta_phi
-        return [d_max,phi_max]
+            d_max[i] = self.d_min + (maxids[0]+0.5)*self.delta_d
+            phi_max[i] = self.phi_min + (maxids[1]+0.5)*self.delta_phi
+        
+        sum_phi_l = np.sum(phi_max[1:self.filter.num_belief])
+        sum_d_l   = np.sum(d_max[1:self.filter.num_belief])
+        av_phi_l  = np.average(phi_max[1:self.filter.num_belief])
+        av_d_l    = np.average(d_max[1:self.filter.num_belief])
+
+
+        delta_dmax = np.median(d_max[1:]) # - d_max[0]
+        delta_phimax = np.median(phi_max[1:]) #- phi_max[0]
+
+        if len(self.d_median) >= 5:
+            self.d_median.pop(0)
+            self.phi_median.pop(0)
+        self.d_median.append(delta_dmax)
+        self.phi_median.append(delta_phimax)
+        curvature= 10.0
+        #set curvature 
+        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
+            print "left curve"
+            curvature = 0.025
+        elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
+            print "right curve"
+            curvature = -0.054
+        else:
+            print "straight line"
+            curvature = 0.0
+
+        return [d_max,phi_max ,curvature]
 
     def getMax(self):
         return self.beliefArray[0].max()

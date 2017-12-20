@@ -72,67 +72,60 @@ class LaneFilterNode(object):
         self.filter.update(segment_list_msg.segments, range_arr)
 
         # Step 3: build messages and publish things
-        [d_max,phi_max] = self.filter.getEstimate()
+        [d_max,phi_max, curvature] = self.filter.getEstimate()
         #print "d_max = ", d_max
         #print "phi_max = ", phi_max
-        sum_phi_l = np.sum(phi_max[1:self.filter.num_belief])
-        sum_d_l   = np.sum(d_max[1:self.filter.num_belief])
-        av_phi_l  = np.average(phi_max[1:self.filter.num_belief])
-        av_d_l    = np.average(d_max[1:self.filter.num_belief])
+        # sum_phi_l = np.sum(phi_max[1:self.filter.num_belief])
+        # sum_d_l   = np.sum(d_max[1:self.filter.num_belief])
+        # av_phi_l  = np.average(phi_max[1:self.filter.num_belief])
+        # av_d_l    = np.average(d_max[1:self.filter.num_belief])
 
 
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max
 
-        #if (sum_phi_l<-1.6 and av_d_l>0.05):
-        #    print "I see a left curve"
-        #elif (sum_phi_l>1.6 and av_d_l <-0.05):
-        #    print "I see a right curve"
-        #else:
-        #    print "I am on a straight line" 
+        # delta_dmax = np.median(d_max[1:]) # - d_max[0]
+        # delta_phimax = np.median(phi_max[1:]) #- phi_max[0]
 
-        delta_dmax = np.median(d_max[1:]) # - d_max[0]
-        delta_phimax = np.median(phi_max[1:]) #- phi_max[0]
-
-        if len(self.d_median) >= 5:
-            self.d_median.pop(0)
-            self.phi_median.pop(0)
-        self.d_median.append(delta_dmax)
-        self.phi_median.append(delta_phimax)
+        # if len(self.d_median) >= 5:
+        #     self.d_median.pop(0)
+        #     self.phi_median.pop(0)
+        # self.d_median.append(delta_dmax)
+        # self.phi_median.append(delta_phimax)
 
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
         lanePose.d =d_max[0]
         lanePose.phi=phi_max[0]
-        #lanePose.d = d_max[0]
-        #lanePose.phi = phi_max[0]
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
-        lanePose.curvature= 12.0
-        if (me_phi_l<-0.2 and  av_d_l>0.03):
-            print "I see a left curve"
-            lanePose.curvature =0.025
-        elif (me_phi_l>0.2 and av_d_l<-0.03):
-            print "I see a right curve"
-            lanePose.curvature=0.054
-        else:
-            print "I am on a straight line" 
-            lanePose.curvature=0
-        print "curv ", lanePose.curvature
+        lanePose.curvature= curvature
+    #anna 
+        # if (me_phi_l<-0.2 and  av_d_l>0.03):
+        #     print "I see a left curve"
+        #     lanePose.curvature =0.025
+        # elif (me_phi_l>0.2 and av_d_l<-0.03):
+        #     print "I see a right curve"
+        #     lanePose.curvature=0.054
+        # else:
+        #     print "I am on a straight line" 
+        #     lanePose.curvature=0
+        # print "curv ", lanePose.curvature
         # publish the belief image
 
+    #simon
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
-        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
-            print "left curve"
-            lanePose.curvature = 0.025
-        elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
-            print "right curve"
-            lanePose.curvature = -0.054
-        else:
-            print "straight line"
-            lanePose.curvature = 0.0
+        # if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
+        #     print "left curve"
+        #     lanePose.curvature = 0.025
+        # elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
+        #     print "right curve"
+        #     lanePose.curvature = -0.054
+        # else:
+        #     print "straight line"
+        #     lanePose.curvature = 0.0
 
         # publish the belief image
         bridge = CvBridge()
