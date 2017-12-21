@@ -64,8 +64,8 @@ class AntiInstagram():
                                           self.KM.trained_centers[idxWhite]])
 
         # calculate transform with 4 centers
-        T4 = calcTransform(4, trained_centers)
-        T4.calcTransform()
+        #T4 = calcTransform(4, trained_centers)
+        #T4.calcTransform()
 
         # calculate transform with 3 centers
         T3 = calcTransform(3, trained_centers_woRed)
@@ -74,12 +74,12 @@ class AntiInstagram():
         # compare residuals
         # in practice, this is NOT a fair way to compare the residuals, 4 will almost always win out,
         # causing a serious red shift in any image that has only 3 colors
-        if T4.returnResidualNorm() >= T3.returnResidualNorm():
-            self.shift = T4.shift
-            self.scale = T4.scale
-        else:
-            self.shift = T3.shift
-            self.scale = T3.scale
+        #if T4.returnResidualNorm() >= T3.returnResidualNorm():
+        #    self.shift = T4.shift
+        #    self.scale = T4.scale
+        #else:
+        #    self.shift = T3.shift
+        #    self.scale = T3.scale
 
         self.shift = T3.shift
         self.scale = T3.scale

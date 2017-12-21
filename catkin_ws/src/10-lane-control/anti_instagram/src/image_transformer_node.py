@@ -32,16 +32,22 @@ class ImageTransformerNode():
         self.sub_image = rospy.Subscriber(
             # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
             # "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            "/maxhav/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
 
         self.sub_trafo = rospy.Subscriber(
-            "~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+            "/maxhav/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
             # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
 
         self.sub_colorBalance = rospy.Subscriber(
-            "/duckierick/cont_anti_instagram_node/colorBalanceTrafo", AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
+            "/maxhav/cont_anti_instagram_node/colorBalanceTrafo", AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
 
-
+        # Read parameters
+        self.trafo_mode = self.setupParameter("~trafo_mode", 'both')
+        if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
+            rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
+            self.trafo_mode == "both"
+            rospy.set_param("~trafo_mode", "both")  # Write to parameter server for transparancy
+            rospy.loginfo("[%s] %s = %s " % (self.node_name, "~trafo_mode", "both"))
 
         # TODO verify name of parameter
         # Verbose option
@@ -58,9 +64,12 @@ class ImageTransformerNode():
 
         self.image_msg = None
 
-        # TODO write to file within git folder
-        #self.file = open('/home/milan/output_image_transform_node.txt', 'a+')
-        #self.file.write('\nIMAGE_TRANSFORM_NODE:\n')
+
+    def setupParameter(self, param_name, default_value):
+        value = rospy.get_param(param_name, default_value)
+        rospy.set_param(param_name, value)#Write to parameter server for transparancy
+        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+        return value
 
 
 
@@ -79,29 +88,37 @@ class ImageTransformerNode():
 
         tk.completed('converted')
 
-        # milansc: try only colorBalance
-        """
-        corrected_image_cv2 = self.ai.applyTransform(cv_image)
-        tk.completed('applyTransform')
 
+        if self.trafo_mode == "cb" or self.trafo_mode == "both":
+
+            # apply color balance using latest thresholds
+            colorBalanced_image_cv2 = self.ai.applyColorBalance(img=cv_image, ThLow=self.ai.ThLow, ThHi=self.ai.ThHi)
+            tk.completed('applyColorBalance')
+        else:
+            colorBalanced_image_cv2 = cv_image
+
+        if self.trafo_mode == "lin" or self.trafo_mode == "both":
+            # apply color Transform using latest parameters
+            corrected_image_cv2 = self.ai.applyTransform(colorBalanced_image_cv2)
+            tk.completed('applyTransform')
+        else:
+            corrected_image_cv2 = colorBalanced_image_cv2
+
+        # store image to ros message
         self.corrected_image = self.bridge.cv2_to_imgmsg(
             corrected_image_cv2, "bgr8")
         tk.completed('encode')
-        """
-
-        corrected_image_cv2 = self.ai.applyColorBalance(img=cv_image, ThLow=self.ai.ThLow, ThHi=self.ai.ThHi)
-
-        self.corrected_image = self.bridge.cv2_to_imgmsg(
-            corrected_image_cv2, "bgr8")
 
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
+
 
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
 
 
     def cbNewTrafo(self, trafo_msg):
+        print('image transformer: received new trafo!')
         # testwise write to file
         # self.file.write('received new trafo\n')
 

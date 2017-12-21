@@ -81,7 +81,7 @@ class calcTransform:
         self.shift = np.zeros(3, np.float64)
         self.residuals = np.zeros((3, 3), np.float64)
         self.valueArrayBGR = np.zeros((3, self.num_centers), np.uint8)
-        print "true centers " + str(self.found_centers)
+        print "true centers " + str(self.true_centers)
         print "found centers 0 " + str(found_centers[:, 0])
         for k in range(3):
             self.valueArrayBGR[k, :] = self.found_centers[:, k]
