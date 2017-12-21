@@ -48,6 +48,7 @@
 	<arg name="fleet_planning" default="true"/>
 	<arg name="/fleet_planning/intersection_control" default="true"/>
 	<arg name="/fleet_planning/graph_planner" default="true"/>
+	<arg name="/fleet_planning/led_pattern" default="true"/>
 
 	<arg name="localization" default="true"/>
 	<arg name="/localization/local" default="true" />

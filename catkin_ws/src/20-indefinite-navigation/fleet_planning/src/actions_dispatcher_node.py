@@ -11,6 +11,8 @@ import tf2_ros
 from fleet_planning.generate_duckietown_map import graph_creator
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
+from fleet_planning.duckiebot import TaxiEvent
+from rgb_led.srv import PlayLEDPattern
 
 
 class ActionsDispatcherNode:
@@ -94,10 +96,21 @@ class ActionsDispatcherNode:
             self.dispatch_action()
 
     def new_duckiebot_mission(self, message):
-        duckiebot_name, target_node, taxi_state = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
+        duckiebot_name, target_node, taxi_event = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
         if duckiebot_name != self.duckiebot_name:
             return
         self.target_node = target_node
+
+        taxi_state = TaxiEvent(taxi_event)
+
+        # Signal using the LEDs.
+        rospy.loginfo("Received ")
+        if taxi_event == TaxiEvent.ACCEPTED_REQUEST:
+            self._play_led_pattern("fleet_planning/going_to_customer")
+        elif taxi_event == TaxiEvent.DROPOFF_CUSTOMER:
+            self._play_led_pattern("fleet_planning/customer_dropoff")
+        elif taxi_event == TaxiEvent.PICKUP_CUSTOMER:
+            self._play_led_pattern("fleet_planning/customer_pickup")
 
     def graph_search(self, source_node, target_node):
         print 'Requesting map for src: ', source_node, ' and target: ', target_node
@@ -132,6 +145,14 @@ class ActionsDispatcherNode:
                 self.pub_action.publish(Int16(0))
             elif action == 'w':
                 self.pub_action.publish(Int16(-1))
+
+    def _play_led_pattern(self, pattern):
+        play_pattern_service = rospy.ServiceProxy("LEDPatternNode/play_pattern", PlayLEDPattern)
+        try:
+            response = play_pattern_service(pattern, -1)
+            rospy.loginfo("Called play patter service. Got response: {}".format(response))
+        except rospy.ServiceException as exc:
+            rospy.loginfo("Call to play LED pattern service failed")
 
     def on_shutdown(self):
         rospy.loginfo("[ActionsDispatcherNode] Shutdown.")

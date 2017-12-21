@@ -171,7 +171,7 @@ class TaxiCentralNode:
                 # Assign the request to that duckiebot
                 self._pending_customer_requests.pop(0)
                 duckiebot.assign_customer_request(pending_request)
-                self._publish_duckiebot_mission(duckiebot)
+                self._publish_duckiebot_mission(duckiebot, TaxiEvent.ACCEPTED_REQUEST)
             else:
                 rospy.logwarn("There are available duckiebots but they were not found in the graph. Aborting assignment procedure.")
                 break
@@ -192,15 +192,16 @@ class TaxiCentralNode:
         # from this point onwards.
         node = str(node)
         route = map(str, route)
+        taxi_event = None
 
         if duckiebot_name not in self._registered_duckiebots: # new duckiebot
             self._create_and_register_duckiebot(duckiebot_name)
             duckiebot = self._registered_duckiebots[duckiebot_name]
-            new_duckiebot_state = duckiebot.update_location_check_target_reached(node, route)
+            new_duckiebot_state, taxi_event = duckiebot.update_location_check_target_reached(node, route)
 
         else:
             duckiebot = self._registered_duckiebots[duckiebot_name]
-            new_duckiebot_state = duckiebot.update_location_check_target_reached(node, route)
+            new_duckiebot_state, taxi_event = duckiebot.update_location_check_target_reached(node, route)
 
         if new_duckiebot_state == TaxiState.WITHOUT_MISSION: # mission accomplished or without mission
             request = duckiebot.pop_customer_request()
@@ -210,7 +211,7 @@ class TaxiCentralNode:
             self._execute_fleet_planning()
 
         elif new_duckiebot_state == TaxiState.WITH_CUSTOMER: # reached customer
-            self._publish_duckiebot_mission(duckiebot) # make duckiebot go to customer target location
+            self._publish_duckiebot_mission(duckiebot, taxi_event) # make duckiebot go to customer target location
 
         else: # nothing special happened, just location update
             pass
@@ -234,7 +235,7 @@ class TaxiCentralNode:
 
                 duckiebot.assign_rebalancing_mission(target)
                 rospy.loginfo('Rebalancing Duckiebot {}'.format(duckiebot.name))
-                self._publish_duckiebot_mission(duckiebot)
+                self._publish_duckiebot_mission(duckiebot, TaxiEvent.NONE_EVENT)
 
     def _check_time_out(self, msg):
         """callback function from some timer, ie. every 30 seconds. Checks for every duckiebot whether it has been
@@ -245,11 +246,11 @@ class TaxiCentralNode:
                 rospy.logwarn('Duckiebot {} has timed out.'.format(duckiebot.name))
                 self._unregister_duckiebot(duckiebot)
 
-    def _publish_duckiebot_mission(self, duckiebot):
+    def _publish_duckiebot_mission(self, duckiebot, taxi_event):
         """ create message that sends duckiebot to its next location, according to the customer request that had been
         assigned to it"""
         serialized_message = InstructionMessageSerializer.serialize(duckiebot.name, int(duckiebot.target_location),
-                                                                    duckiebot.taxi_state.value)
+                                                                    taxi_event.value)
         self._pub_duckiebot_target_location.publish(ByteMultiArray(data=serialized_message))
 
         rospy.loginfo('Duckiebot {} was sent to node {}'.format(duckiebot.name, duckiebot.target_location))
