@@ -13,6 +13,9 @@ from fleet_planning.generate_duckietown_map import graph_creator
 from fleet_planning.map_drawing import MapDraw
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
 from std_msgs.msg import ByteMultiArray
+from fleet_planning.duckiebot import *
+import json
+from std_msgs.msg import String
 #from fleet_planning.graph import Graph
 
 class RQTFleetPlanning(Plugin):
@@ -27,7 +30,7 @@ class RQTFleetPlanning(Plugin):
         self.request_start_node = ''
         self.request_destination_node = ''
         self.basic_map_image = []
-        self._all_living_duckiebots = dict()
+        self._all_living_duckiebots = []
 
         # Create QWidget
         self._widget = QWidget()
@@ -55,13 +58,8 @@ class RQTFleetPlanning(Plugin):
         self.pub = rospy.Publisher('~/customer_requests', SourceTargetNodes, queue_size=1, latch=True)
         self.subscriber = rospy.Subscriber('~/map_graph', Image,
                                       self.image_callback,  queue_size = 1)
-
-        #for drawing stuff
-        self.basic_map_image = []
-        map_dir = rospy.get_param('/map_dir')
-        gui_img_dir = rospy.get_param('/gui_img_dir')
-        self.map_drawer = MapDraw(self.duckietown_graph, map_dir, gui_img_dir, self.map_name)
-
+        self.duckiebots_sub = rospy.Subscriber('~/draw_request', String,
+                                               self._received_duckiebot_update_callback,queue_size=1)
         # event handling
         self._widget.buttonFindPlan.clicked.connect(self.requestPlan)
         self._widget.buttonClear.clicked.connect(self.clearRequest)
@@ -129,21 +127,8 @@ class RQTFleetPlanning(Plugin):
         pass
 
     def drawCurrentMap(self):
-        #draw start, end, path, duckie on basic_map_image
-        basic_map_for_drawing = np.copy(self.basic_map_image)
-        if (self.isRequestStartSet()):
-            self.map_drawer.draw_icons(basic_map_for_drawing, "customer", self.request_start_node, 1)
-        if (self.isRequestDestinationSet()):
-            self.map_drawer.draw_icons(basic_map_for_drawing, "target", self.request_destination_node, 1)
-        #todo: logic for drawing a plan
-        #draw the selected duckiebot
-        if (self._widget.cb_living_duckies.currentIndex() > -1):
-            duckie_to_draw = str(self._widget.cb_living_duckies.currentText())
-            duckie_location = self._all_living_duckiebots[duckie_to_draw]
-            self.map_drawer.draw_icons(basic_map_for_drawing,"start",duckie_location)
-
         #convert the drawing to QPixmap for display
-        cvImg = cv2.cvtColor(basic_map_for_drawing, cv2.COLOR_BGR2RGB)
+        cvImg = cv2.cvtColor(self.basic_map_image, cv2.COLOR_BGR2RGB)
         height, width, channel = cvImg.shape
         bytesPerLine = 3 * width
         q_img_tmp = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
@@ -153,8 +138,8 @@ class RQTFleetPlanning(Plugin):
         self._widget.label_image.setPixmap(self.image)
 
     def updateLivingDuckiebotItems(self):
-        living_duckie_list = [name for name in self._all_living_duckiebots.iterkeys()]
-        #todo: sort the list maybe?
+        living_duckie_list = map(lambda db:db.name,self._all_living_duckiebots)
+        self._widget.cb_living_duckies.clear()
         self._widget.cb_living_duckies.addItems(living_duckie_list)
 
     def image_callback(self, ros_data):
@@ -163,12 +148,14 @@ class RQTFleetPlanning(Plugin):
         self.drawCurrentMap()
         self.setImageToMapTransformer()
 
-    def _received_duckiebot_update_callback(self, message):
-        duckiebot_name, node, route = LocalizationMessageSerializer.deserialize("".join(map(chr, message.data)))
-        if (duckiebot_name):
-            #this adds the duckie if it wasn't in there before, otherwise it updates its location
-            self._all_living_duckiebots.update({duckiebot_name: node})
+    def _received_duckiebot_update_callback(self, msg):
+            data_json = msg.data
+            data = json.loads(data_json)
+
+            # get duckiebot objects
+            self._all_living_duckiebots = [BaseDuckiebot.from_json(db_data) for db_data in data['duckiebots']]
             self.updateLivingDuckiebotItems()
 
     def handleComboBox(self, string):
-        self.drawCurrentMap()
+        print('todo')
+        #todo: trigger call to drawNode
