@@ -39,12 +39,15 @@ comptests_packages=\
 	easy_node_tests\
 	easy_logs_tests\
 	easy_algo_tests\
+	easy_regression_tests\
 	duckietown_utils_tests\
 	line_detector2_tests\
 	what_the_duck_tests\
 	easy_regression_tests\
 	anti_instagram_tests\
-	duckieteam_tests
+	duckieteam_tests\
+	complete_image_pipeline_tests\
+	duckietown_segmaps_tests
 
 comptests_out=out/comptests
 

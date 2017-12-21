@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from os.path import basename, expanduser, isfile, join, splitext
+from os.path import basename, isfile, splitext
 from sys import exit
 
 from duckietown_utils import logger, get_duckiefleet_root
@@ -113,9 +113,13 @@ def load_camera_intrinsics(veh):
 
 def rectify(image, intrinsics):
     '''Undistort image'''
-    height, width, channels = image.shape
+    height, width, _ = image.shape
     rectified_image = np.zeros(np.shape(image))
     mapx = np.ndarray(shape=(height, width, 1), dtype='float32')
     mapy = np.ndarray(shape=(height, width, 1), dtype='float32')
-    mapx, mapy = cv2.initUndistortRectifyMap(intrinsics['K'], intrinsics['D'], intrinsics['R'], intrinsics['P'], (width, height), cv2.CV_32FC1, mapx, mapy)
+    mapx, mapy = cv2.initUndistortRectifyMap(intrinsics['K'], 
+                                             intrinsics['D'], 
+                                             intrinsics['R'], 
+                                             intrinsics['P'], 
+                                             (width, height), cv2.CV_32FC1, mapx, mapy)
     return cv2.remap(image, mapx, mapy, cv2.INTER_CUBIC, rectified_image)
