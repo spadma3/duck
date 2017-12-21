@@ -9,6 +9,7 @@ string ON=traffic_light_go
 string SIGNAL_A=CAR_SIGNAL_A
 string SIGNAL_B=CAR_SIGNAL_B
 string SIGNAL_C=CAR_SIGNAL_C
+string SIGNAL_GREEN = CAR_SIGNAL_GREEN
 
 string TL_GO_ALL=tl_go_all
 string TL_STOP_ALL=tl_stop_all
