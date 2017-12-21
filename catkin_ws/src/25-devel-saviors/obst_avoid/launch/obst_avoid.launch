@@ -1,9 +1,9 @@
 <launch>
-    <arg name="robot_name" default="dori" doc="Name of robot_name. ex: megaman"/>
+    <arg name="veh" default="dori" doc="Name of robot_name. ex: megaman"/>
     <arg name="show_marker" default="false" doc="Specify if you want to see the marker"/>
     <arg name="show_image" default="false" doc="Specify if you want to see the image"/>
 
-    <param name="~robot_name" value="$(arg robot_name)"/>
+    <param name="~robot_name" value="$(arg veh)"/>
     <param name="~show_marker" value="$(arg show_marker)" type="bool"/>
     <param name="~show_image" value="$(arg show_image)" type="bool"/>
 
