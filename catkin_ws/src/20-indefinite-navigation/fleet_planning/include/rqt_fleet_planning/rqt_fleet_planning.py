@@ -56,6 +56,7 @@ class RQTFleetPlanning(Plugin):
 
         # ROS publishers/subscribers
         self.pub = rospy.Publisher('~/customer_requests', SourceTargetNodes, queue_size=1, latch=True)
+        self.duckie_path_pub = rospy.Publisher('~/draw_path',String, queue_size=1, latch=True)
         self.subscriber = rospy.Subscriber('~/map_graph', Image,
                                       self.image_callback,  queue_size = 1)
         self.duckiebots_sub = rospy.Subscriber('~/draw_request', String,
@@ -149,6 +150,7 @@ class RQTFleetPlanning(Plugin):
         self.setImageToMapTransformer()
 
     def _received_duckiebot_update_callback(self, msg):
+        if msg is not None:
             data_json = msg.data
             data = json.loads(data_json)
 
@@ -157,5 +159,5 @@ class RQTFleetPlanning(Plugin):
             self.updateLivingDuckiebotItems()
 
     def handleComboBox(self, string):
-        print('todo')
-        #todo: trigger call to drawNode
+        if (string):
+            self.duckie_path_pub.publish(string)
