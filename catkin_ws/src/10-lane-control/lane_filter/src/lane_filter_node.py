@@ -72,7 +72,7 @@ class LaneFilterNode(object):
             range_arr[i] = range_min + (i-1)*range_diff
 
         self.filter.update(segment_list_msg.segments, range_arr)
-        print "segment list", len(segment_list)
+        print "segment list", len(segment_list_msg.segments)
 
         # Step 3: build messages and publish things
         [d_max,phi_max, curvature] = self.filter.getEstimate()
