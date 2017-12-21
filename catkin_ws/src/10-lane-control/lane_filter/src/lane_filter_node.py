@@ -84,9 +84,13 @@ class LaneFilterNode(object):
         in_lane = max_val > self.filter.min_max
 
         # check if the current estimation is an outlier compare to the last 3 estimates
+        d= 0
+        phi=0
         if len(self.store_d)<3:
             self.store_d.append(d_max[0])
             self.store_phi = phi_max[0]
+            d=d_max[0]
+            phi=phi_max[0]
         else:
             # if yes take the top one of the array give it to lane pose and store it again into the array. 
             if abs(np.mean(self.store_d[0:2])-d_max[0])> 0.06 :
