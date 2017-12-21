@@ -14,7 +14,7 @@ class LaneFollowerNode(object):
         self.node_name = "Imitation Learner"        
 
         # Subscribers
-        self.sub_topic = '/duckduckgo/camera_node/image/compressed'
+        self.sub_topic = '/shamrock/camera_node/image/compressed'
         self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage,
                                            self.callback)
 
@@ -32,7 +32,7 @@ class LaneFollowerNode(object):
 	self.image_deque = deque(maxlen=4)
         self.device = mvnc.Device(devices[0])
         self.device.OpenDevice()
-        with open('/home/rithesh/duckietown/catkin_ws/src/10-lane-control/imitation_learning/graph', mode='rb') as f:
+        with open('/home/paulll/duckietown/catkin_ws/src/10-lane-control/imitation_learning/graph', mode='rb') as f:
             blob = f.read()
         self.graph = self.device.AllocateGraph(blob)
 
