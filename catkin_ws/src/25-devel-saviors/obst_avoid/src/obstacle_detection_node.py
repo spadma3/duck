@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import CompressedImage, Image
 from geometry_msgs.msg import PoseArray
 from visualization_msgs.msg import MarkerArray
 import time
@@ -47,8 +47,8 @@ class ObstDetectNode(object):
                 print "show_image is active: image will be published as /veh/obst_detect/image_cropped/compressed"
 
         # Create a Subscriber
-        self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
-        self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback_img,queue_size=1, buff_size=2**24)
+        self.sub_topic = '/{}/image_transformer_node/corrected_image'.format(robot_name)
+        self.subscriber = rospy.Subscriber(self.sub_topic, Image, self.callback_img,queue_size=1, buff_size=2**24)
         #buff size to approximately close to 2^24 such that always most recent pic is taken
         #essentail 
 
