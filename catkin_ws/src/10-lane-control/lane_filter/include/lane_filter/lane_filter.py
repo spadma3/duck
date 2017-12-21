@@ -157,10 +157,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             d_max[i] = self.d_min + (maxids[0]+0.5)*self.delta_d
             phi_max[i] = self.phi_min + (maxids[1]+0.5)*self.delta_phi
         
-        sum_phi_l = np.sum(phi_max[1:self.filter.num_belief])
-        sum_d_l   = np.sum(d_max[1:self.filter.num_belief])
-        av_phi_l  = np.average(phi_max[1:self.filter.num_belief])
-        av_d_l    = np.average(d_max[1:self.filter.num_belief])
+        sum_phi_l = np.sum(phi_max[1:self.num_belief])
+        sum_d_l   = np.sum(d_max[1:self.num_belief])
+        av_phi_l  = np.average(phi_max[1:self.num_belief])
+        av_d_l    = np.average(d_max[1:self.num_belief])
 
 
         delta_dmax = np.median(d_max[1:]) # - d_max[0]
