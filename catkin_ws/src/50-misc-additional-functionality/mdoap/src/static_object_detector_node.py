@@ -8,7 +8,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import ObstacleImageDetection, ObstacleImageDetectionList, ObstacleType, Rect, BoolStamped
 import sys
 import threading
-from rgb_led import *
+from rgb_led import RGB_LED
 
 
 class Matcher:
@@ -141,7 +141,10 @@ class StaticObjectDetectorNode:
         self.pub_image = rospy.Publisher("~cone_detection_image", Image, queue_size=1)
         self.pub_detections_list = rospy.Publisher("~detection_list", ObstacleImageDetectionList, queue_size=1)
         self.bridge = CvBridge()
-	turn_off_LEDs(speed=5)
+
+        # Turn off all LEDs
+        leds = RGB_LED()
+        leds.turnOff()
 
         rospy.loginfo("[%s] Initialized." %(self.name))
 

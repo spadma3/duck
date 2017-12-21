@@ -1,14 +1,24 @@
 #!/usr/bin/env python
-from rgb_led import *
-import sys
 
-if len(sys.argv) <= 1:
-	pattern = 'blinking1'
-else:
-	pattern = sys.argv[1]
+import time
+from time import sleep
+from rgb_led import RGB_LED, Blinking1
 
-try:
-	cycle_LEDs_named(pattern)
-except ValueError as e:
-	print(e)
-	sys.exit(1)
+
+def cycle_leds(speed=5):
+    led = RGB_LED()
+
+    pattern = Blinking1()
+
+    while True:
+        t = time.time()
+        config = pattern.get_configuration(t)
+        for name, col in config.items():
+
+            k = RGB_LED.PORT_MAPPING[name]
+            led.setRGB(k, col)
+        sleep(0.01)
+
+
+if __name__ == '__main__':
+    cycle_leds()
