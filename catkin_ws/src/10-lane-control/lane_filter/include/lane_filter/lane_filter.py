@@ -109,10 +109,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def update(self, segments, range_arr):
 
         for i in range(self.num_belief):
-            if i == self.num_belief:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i-1], range_arr[i+1])    
-            else:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 1])
+            #if i == self.num_belief:
+            #    measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i-1], range_arr[i+1])    
+            #else:
+            measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 1])
             if measurement_likelihood is not None:
                 self.beliefArray[i] = np.multiply(self.beliefArray[i],measurement_likelihood)
                 if np.sum(self.beliefArray[i]) == 0:
@@ -176,7 +176,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.phi_median.append(delta_phimax)
         curvature= 10.0
 
-        diffbla =abs(np.mean(phi_max)-np.median(phi_max)) 
+        diffbla =abs(np.max(phi_max)-np.min(phi_max)) 
         print diffbla
         if diffbla<0.07:
             isstraight =1
