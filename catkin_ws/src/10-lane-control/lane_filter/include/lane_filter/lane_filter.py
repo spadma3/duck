@@ -177,7 +177,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         curvature= 10.0
 
         
-        if abs(np.mean(phi_max)-np.median(phi_max))<0.1:
+        if abs(np.mean(phi_max)-np.median(phi_max))<0.07:
             isstraight =1
         else:
             isstraight=0
