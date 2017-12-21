@@ -175,10 +175,15 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.d_median.append(delta_dmax)
         self.phi_median.append(delta_phimax)
         curvature= 10.0
-        if d_max[0]>= 0.07:
-            print "out of lane left!"
+
+        
+        if abs(np.mean(phi_max)-np.median(phi_max))<0.1:
+            isstraight =1
+        else:
+            isstraight=0
+
         #set curvature 
-        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
+        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05 and isstraight==0:
             print "left curve"
             curvature = 0.025
         elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
