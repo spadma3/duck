@@ -63,12 +63,11 @@ class LineDetectorNode2(EasyNode):
             # Resize and crop image
             hei_original, wid_original = image_cv.shape[0:2]
     
-            if  self.config.img_size[0] != hei_original or  self.config.img_size[1] != wid_original:
+            if self.config.img_size[0] != hei_original or self.config.img_size[1] != wid_original:
                 # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
                 image_cv = cv2.resize(image_cv, (self.config.img_size[1],  self.config.img_size[0]),
                                        interpolation=cv2.INTER_NEAREST)
-            image_cv = image_cv[self.config.top_cutoff:,:,:]
- 
+            image_cv = image_cv[self.config.top_cutoff:, :, :]
 
         with context.phase('correcting'):
             # apply color correction: AntiInstagram
@@ -83,7 +82,6 @@ class LineDetectorNode2(EasyNode):
             white = self.detector.detectLines('white')
             yellow = self.detector.detectLines('yellow')
             red = self.detector.detectLines('red')
- 
 
         with context.phase('preparing-images'):
             # SegmentList constructor
