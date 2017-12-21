@@ -93,14 +93,14 @@ class lane_controller(object):
         k_Id = rospy.get_param("~k_Id")
         k_Iphi = rospy.get_param("~k_Iphi")
         if self.k_Id != k_Id:
-            rospy.loginfo("ADJUSTED I GAIN")
+            #rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
         params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part)
         params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part)
 
         if params_old != params_new:
-            rospy.loginfo("[%s] Gains changed." %(self.node_name))
+            #rospy.loginfo("[%s] Gains changed." %(self.node_name))
             #rospy.loginfo("old gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_old))
             #rospy.loginfo("new gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_new))
             self.v_bar = v_bar
@@ -184,7 +184,7 @@ class lane_controller(object):
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(self.cross_track_err) > self.d_thres:
-            rospy.logerr("inside threshold ")
+            #rospy.logerr("inside threshold ")
             self.cross_track_err = self.cross_track_err / math.fabs(self.cross_track_err) * self.d_thres
 
         currentMillis = int(round(time.time() * 1000))
@@ -195,10 +195,10 @@ class lane_controller(object):
             self.heading_integral += self.heading_err * dt
 
         if self.cross_track_integral > 0.3:
-            rospy.loginfo("you're greater 0.3")
+            #rospy.loginfo("you're greater 0.3")
             self.cross_track_integral = 0.3
         if self.cross_track_integral < -0.3:
-            rospy.loginfo("youre smaller -0.3")
+            #rospy.loginfo("youre smaller -0.3")
             self.cross_track_integral = -0.3
 
         if self.heading_integral < -1.2:
@@ -264,12 +264,12 @@ class lane_controller(object):
         # rospy.loginfo("cross_track_err : " + str(self.cross_track_err))
         # rospy.loginfo("heading_err : " + str(self.heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
-        rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
-        rospy.loginfo("heading_err: " + str(self.heading_err))
-        rospy.loginfo("heading_integral: " + str(self.heading_integral))
-        rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
-        rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
-        rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+        #rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
+        #rospy.loginfo("heading_err: " + str(self.heading_err))
+        #rospy.loginfo("heading_integral: " + str(self.heading_integral))
+        #rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
+        #rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
+        #rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
