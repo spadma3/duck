@@ -72,6 +72,7 @@ class LaneFilterNode(object):
             range_arr[i] = range_min + (i-1)*range_diff
 
         self.filter.update(segment_list_msg.segments, range_arr)
+        print "segment list", len(segment_list)
 
         # Step 3: build messages and publish things
         [d_max,phi_max, curvature] = self.filter.getEstimate()
@@ -101,7 +102,7 @@ class LaneFilterNode(object):
                 self.store_d.pop(0)
                 self.store_d.append(d_max[0])
                 self.store_phi = phi_max[0]
-                print "accepted"
+                print "accepted" , d,phi
             print "length stored d " , len(self.store_d), self.store_d
      
 
