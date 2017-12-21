@@ -85,7 +85,7 @@
     <item row="0" column="0">
      <widget class="QLabel" name="label_duckiebot">
       <property name="text">
-       <string>Duckiebot to show</string>
+       <string>Duckiebot path to show</string>
       </property>
      </widget>
     </item>
