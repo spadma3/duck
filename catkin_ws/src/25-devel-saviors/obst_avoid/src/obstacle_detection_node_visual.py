@@ -16,7 +16,7 @@ class ObstDetectNodeVisual(object):
     """
     def __init__(self):
         self.node_name = "Obstacle Detecion Node"
-        robot_name = rospy.get_param("~robot_name", "")
+        robot_name = rospy.get_param("~veh", "")
         #robot_name = "dori"
         self.show_marker = (rospy.get_param("~show_marker", ""))
         #self.show_marker=True

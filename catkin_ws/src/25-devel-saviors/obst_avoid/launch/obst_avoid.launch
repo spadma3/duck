@@ -3,9 +3,19 @@
     <arg name="show_marker" default="false" doc="Specify if you want to see the marker"/>
     <arg name="show_image" default="false" doc="Specify if you want to see the image"/>
 
-    <param name="~robot_name" value="$(arg veh)"/>
+    <param name="~veh" value="$(arg veh)"/>
     <param name="~show_marker" value="$(arg show_marker)" type="bool"/>
     <param name="~show_image" value="$(arg show_image)" type="bool"/>
+
+
+    <group ns="$(arg veh)">
+
+
+	    <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen">
+        </node>
+
+
+    </group>
 
     <node name="obstacle_detection_node" pkg="obst_avoid" type="obstacle_detection_node.py" output="screen">
     </node>
