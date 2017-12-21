@@ -75,7 +75,9 @@ class LaneFilterNode(object):
 
         # Step 3: build messages and publish things
         [d_max,phi_max, curvature] = self.filter.getEstimate()
-
+        print curvature 
+        print "phi max",phi_max
+        print "d_max", d_max
 
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max
@@ -91,6 +93,7 @@ class LaneFilterNode(object):
                 phi =self.store_phi
                 self.store_d.pop(0)
                 self.store_d.append(self.store_d[1])
+                print "rejected"
             # else take the new d and store it i
             else:
                 d = d_max[0]
@@ -98,6 +101,7 @@ class LaneFilterNode(object):
                 self.store_d.pop(0)
                 self.store_d.append(d_max[0])
                 self.store_phi = phi_max[0]
+                print "accepted"
             print "length stored d " , len(store_d)
      
 
