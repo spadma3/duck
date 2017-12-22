@@ -20,16 +20,16 @@ Global parameters
 """
 # control parameters
 choose_random_parking_space_combination = True
-close_itself = True
+close_itself = False
 save_figures = False
 pause_per_path = 1.0 # sec
 ploting = True
 
 # projection parameters
 velocity = 0.1 # m/s
-bias_xy = 0             # mm
-var_xy = 50            # mm
-bias_heading = 0;       # rad
+bias_xy = 0.0             # mm
+var_xy = 50.0            # mm
+bias_heading = 0.0;       # rad
 var_heading = pi/20      # rad
 
 """
@@ -58,7 +58,6 @@ def path_planning(start_number=None, end_number=None):
     # calculate controller values: d_est, d_ref, theta_est, c_ref, v_ref
     d_est, d_ref, theta_est, c_ref, v_ref, x_proj, y_proj = project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature)
 
-
     # show results
     # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
     if ploting:
@@ -69,43 +68,50 @@ def path_planning(start_number=None, end_number=None):
 def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
     """
     Input:
-        px, py in mm
-        pyaw in radians
-        x_act, y_act in mm
-        yaw_act in radians
-        curvature is the minimum turning radius in mm
+        px, py [mm]
+        pyaw [radians]
+        x_act, y_act [mm]
+        yaw_act [radians]
+        curvature [mm] minimum turning radius
     Output:
-        d_est in mm
-        d_ref in mm
-        theta_est in radians, heading robot more left than path heading: negative
-        c_ref in mm
+        d_est [m] d_est > d_ref for vehicle left of reference
+        d_ref [m]
+        theta_est [radians] Anti-clockwise
+        c_ref in [1/m]
+        v_ref [m/s]
     """
 
     # distance calculation
     d_est = float("inf")
     x_proj, y_proj, idx_proj = None, None, None
-    for idx, (x, y) in enumerate(zip(px, py)):
+    for idx, (x, y, yaw) in enumerate(zip(px, py, pyaw)):
         d = sqrt((x-x_act)**2 + (y-y_act)**2)
-        if d < d_est:
+        if d < abs(d_est):
             d_est = d
-            x_proj, y_proj, idx_proj = x, y, idx
+            x_proj, y_proj, yaw_proj, idx_proj = x, y, yaw, idx
+    # A:projected point and frame with origin A and “heading“ yaw_proj, I:inertial frame
+    R_AI = np.array([[cos(yaw_proj),sin(yaw_proj)],[-sin(yaw_proj),cos(yaw_proj)]])
+    I_t_IA = np.array([[x_proj],[y_proj]])
+    A_t_AI = np.dot(-R_AI,I_t_IA)
+    p_act_A = np.dot(R_AI,np.array([[x_act],[y_act]]))+A_t_AI
+    if p_act_A[1] < 0:
+        d_est = -d_est
 
-
-    # curvature or straight
-    if (np.array([px[idx_proj-1],px[idx_proj+1]]).mean() == px[idx_proj]) and (np.array([py[idx_proj-1],py[idx_proj+1]]).mean() == py[idx_proj]):
-        c_ref = float("inf")
+    # curvature or straight (only valid for dubins path)
+    if ((px[idx_proj-1]+px[idx_proj+1])/2.0 == px[idx_proj]) and ((py[idx_proj-1]+py[idx_proj+1])/2.0 == py[idx_proj]):
+        c_ref = 0.0
     else:
         c_ref = 1.0/curvature
 
     # differential var_heading
-    theta_est = pyaw[idx_proj] - yaw_act
+    theta_est = yaw_act - pyaw[idx_proj]
 
     # further parameters
     d_ref, v_ref = 0, velocity
 
     print("d_est = {}\ntheta_est_deg = {}\nc_ref = {}".format(d_est, degrees(theta_est), c_ref))
 
-    return d_est, d_ref, theta_est, c_ref, v_ref, x_proj, y_proj
+    return d_est/1000.0, d_ref/1000.0, theta_est, c_ref*1000.0, v_ref, x_proj, y_proj
 
 
 def do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path, x_act, y_act, yaw_act, x_proj, y_proj):
