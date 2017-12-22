@@ -120,8 +120,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         phi_max = np.zeros(self.num_belief)
         for i in range(self.num_belief):
             maxids = np.unravel_index(self.beliefArray[i].argmax(),self.beliefArray[i].shape)
-            d_max[i] = self.d_min + maxids[0]*self.delta_d
-            phi_max[i] = self.phi_min + maxids[1]*self.delta_phi
+            d_max[i] = self.d_min + (maxids[0] + 0.5)*self.delta_d
+            phi_max[i] = self.phi_min + (maxids[1] + 0.5)*self.delta_phi
         return [d_max,phi_max]
 
     def getMax(self):
