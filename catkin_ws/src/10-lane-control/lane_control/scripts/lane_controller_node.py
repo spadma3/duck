@@ -206,14 +206,14 @@ class lane_controller(object):
         self.heading_err = lane_pose_msg.phi
 
         print "Latency from image to car control: ", image_delay
-        print "Mean overall latency image to car cmd: ", np.mean(self.image_delay_array)
+        print "Mean latency image to car cmd: ", np.mean(self.image_delay_array)
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(self.cross_track_err) > self.d_thres:
-            rospy.logerr("inside threshold ")
+            # rospy.logerr("inside threshold ")
             self.cross_track_err = self.cross_track_err / math.fabs(self.cross_track_err) * self.d_thres
 
         currentMillis = int(round(time.time() * 1000))
@@ -224,10 +224,10 @@ class lane_controller(object):
             self.heading_integral += self.heading_err * dt
 
         if self.cross_track_integral > 0.3:
-            rospy.loginfo("you're greater 0.3")
+            # rospy.loginfo("you're greater 0.3")
             self.cross_track_integral = 0.3
         if self.cross_track_integral < -0.3:
-            rospy.loginfo("youre smaller -0.3")
+            # rospy.loginfo("youre smaller -0.3")
             self.cross_track_integral = -0.3
 
         if self.heading_integral < -1.2:
@@ -303,12 +303,12 @@ class lane_controller(object):
         # rospy.loginfo("cross_track_err : " + str(self.cross_track_err))
         # rospy.loginfo("heading_err : " + str(self.heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
-        rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
-        rospy.loginfo("heading_err: " + str(self.heading_err))
-        rospy.loginfo("heading_integral: " + str(self.heading_integral))
-        rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
-        rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
-        rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+        # rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
+        # rospy.loginfo("heading_err: " + str(self.heading_err))
+        # rospy.loginfo("heading_integral: " + str(self.heading_integral))
+        # rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
+        # rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
+        # rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
         # rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
         # rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
         # rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
@@ -327,7 +327,7 @@ class lane_controller(object):
         car_cmd_stamp = rospy.Time.now() - timestamp_now
         car_cmd_latency = car_cmd_stamp.secs + car_cmd_stamp.nsecs/1e9
 
-        print "Latency car_cmd: ", car_cmd_latency
+        # print "Latency car_cmd: ", car_cmd_latency
 
         # debuging
         # self.pub_counter += 1

@@ -46,6 +46,7 @@ class LineDetectorNode(object):
         self.detector = None
         self.verbose = None
         self.updateParams(None)
+        self.latencyArray = []
             
         # Publishers
         self.pub_lines = rospy.Publisher("~segment_list", SegmentList, queue_size=1)
@@ -206,8 +207,10 @@ class LineDetectorNode(object):
         # Latency of segment List construction
         segment_latency_stamp = rospy.Time.now() - timestamp_now
         segment_latency = segment_latency_stamp.secs + segment_latency_stamp.nsecs/1e9
+        self.latencyArray.append(segment_latency)
 
         print "Latency of segment list: ", segment_latency
+        print "Mean latency segment list: ", np.mean(self.latencyArray)
 
         # Publish segmentList
         self.pub_lines.publish(segmentList)

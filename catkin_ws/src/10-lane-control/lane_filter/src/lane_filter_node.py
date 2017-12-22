@@ -110,20 +110,20 @@ class LaneFilterNode(object):
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
         if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
-            print "left curve"
+            # print "left curve"
             lanePose.curvature = 0.025
         elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
-            print "right curve"
+            # print "right curve"
             lanePose.curvature = -0.054
         else:
-            print "straight line"
+            # print "straight line"
             lanePose.curvature = 0.0
 
         # Calculate latency of estimation
         estimation_latency_stamp = rospy.Time.now() - timestamp_now
         estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
 
-        print "Latency of estimation: ", estimation_latency
+        # print "Latency of estimation: ", estimation_latency
 
 
         # publish the belief image
@@ -135,7 +135,7 @@ class LaneFilterNode(object):
         belief_latency_stamp = rospy.Time.now() - timestamp_now - estimation_latency_stamp
         belief_latency = belief_latency_stamp.secs + belief_latency_stamp.nsecs/1e9
 
-        print "Latency of belief image: ", belief_latency
+        # print "Latency of belief image: ", belief_latency
 
         self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
