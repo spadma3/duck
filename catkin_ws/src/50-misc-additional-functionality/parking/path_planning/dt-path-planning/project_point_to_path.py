@@ -24,7 +24,7 @@ choose_random_parking_space_combination = True
 close_itself = False
 save_figures = False
 pause_per_path = 1.0 # sec
-ploting = True
+ploting = False     ### True
 
 # projection parameters
 velocity = 0.1 # m/s
@@ -32,6 +32,9 @@ bias_xy = 0.0             # mm
 var_xy = 50.0            # mm
 bias_heading = 0.0;       # rad
 var_heading = pi/20      # rad
+
+###
+idx = 0
 
 """
 Functions
@@ -45,7 +48,7 @@ def get_random_pose(px, py, pyaw):
     y_act = py[idx] + np.random.normal(bias_xy,var_xy)
     yaw_act = pyaw[idx] + np.random.normal(bias_heading,var_heading)
     ##### previous_time_sec = current_time_sec
-    return x_act, y_act, yaw_act
+    return x_act, y_act, yaw_act, idx
 
 def path_planning(start_number=None, end_number=None):
     # define problem
@@ -58,7 +61,7 @@ def path_planning(start_number=None, end_number=None):
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
     # get some random pose near path
-    x_act, y_act, yaw_act = get_random_pose(px, py, pyaw)
+    x_act, y_act, yaw_act, idx = get_random_pose(px, py, pyaw)
 
     # calculate controller values: d_est, d_ref, theta_est, c_ref, v_ref
     d_est, d_ref, theta_est, c_ref, v_ref, x_proj, y_proj = project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature)
@@ -67,6 +70,8 @@ def path_planning(start_number=None, end_number=None):
     # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
     if ploting:
         do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path, x_act, y_act, yaw_act, x_proj, y_proj  )
+
+    return d_est, d_ref, theta_est, c_ref, v_ref, idx
 
 def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
     """

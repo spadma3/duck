@@ -1,8 +1,16 @@
 #!/usr/bin/env python
+import sys
+print("sys.path before append: ")
+print(sys.path)
+sys.path.append('/home/marco/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/path_planning/dt-path-planning')
+print("sys.path after append: ")
+print(sys.path)
+
 import rospy
 import math
 import numpy as np
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, ActuatorParameters, BoolStamped
+import project_point_to_path        # path_planning, d_est, d_ref, theta_est, c_ref, v_ref, idx
 import time
 ####JULIEN from duckietown_msgs.msg import LaneCurvature
 class lane_controller(object):
@@ -307,7 +315,7 @@ class lane_controller(object):
         #     car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
         # rospy.loginfo("kid : " + str(self.k_Id))
         # rospy.loginfo("Kd : " + str(self.k_d))
-        #rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
+        #rospy.loginfo("k_Iphi * heading : "                                                                                + str(self.k_Iphi * self.heading_integral))
         # rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
         # rospy.loginfo("Ktheta : " + str(self.k_theta))
         # rospy.loginfo("incurvature : " + str(self.incurvature))
@@ -320,6 +328,14 @@ class lane_controller(object):
         rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+        print("can you see the print?")
+        d_est, d_ref, theta_est, c_ref, v_ref, idx = project_point_to_path.path_planning(0,3)
+        print("idx: " + str(idx))
+        d_est, d_ref, theta_est, c_ref, v_ref, idx = project_point_to_path.path_planning(0,3)
+        print("idx: " + str(idx))
+        d_est, d_ref, theta_est, c_ref, v_ref, idx = project_point_to_path.path_planning(0,3)
+        print("idx: " + str(idx))
+        print("")
         # rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
         # rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
         # rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
