@@ -23,13 +23,27 @@ class IntersectionLocalizer(object):
         self.canny_aperture_size = 3  # self.SetupParameter("~canny_aperture_size", 5)
 
         # visibility parameters
-        self.A_visible = np.array([[-1.0, 0.0], [1.0, 0.0], [0.0, -1.0], [0.0, 1.0]])
-        b_visible = np.array([0.0, 640.0, -160.0, 480.0])
+        self.border_cutoff = 10.0  # remove 10pixels around border
+        self.x_dist_cutoff = 0.5 # remove things that are beyond 0.5m from Duckiebot
+
+        pt_img_h = np.dot(self.H, np.array([self.x_dist_cutoff, 0.0, 1.0]))
+        pt_img = pt_img_h[0:2]/pt_img_h[2]
+        n_par_img = np.dot(self.H[0:2, 0:2],np.array([0.0, 1.0]))
+        n_par_img = n_par_img/np.linalg.norm(n_par_img)
+        n_perp_img = np.array([n_par_img[1],-n_par_img[0]])
+        if n_perp_img[1] < 0.0:
+            n_perp_img = -n_perp_img
+
+        self.A_visible = np.array([[-1.0, 0.0], [1.0, 0.0], [0.0, -1.0], [0.0, 1.0], -n_perp_img])
+        b_visible = np.array([- (0.0 + self.border_cutoff), 640.0 - self.border_cutoff, -(0.0 + self.border_cutoff),
+                              480.0 - self.border_cutoff, -np.dot(pt_img, n_perp_img)])
         self.b_visible = b_visible[:, np.newaxis]
-        # TODO:
-        # remove area around border
-        # define area beyond which points are not reliable and assume not visible (x direction!)
-        # for canny image, make everything above outside above area black
+        self.mask_visible = np.zeros(shape=(480,640), dtype=np.uint8)
+
+        pts_grid = np.meshgrid(np.arange(0,640),np.arange(0,480))
+        pts = np.reshape(pts_grid,(2, 640*480))
+        visible = np.all(np.dot(self.A_visible, pts) - self.b_visible < 0.0, 0)
+        self.mask_visible[pts[1,visible],pts[0,visible]] = 255
 
         self.A_visible_img = np.array([[-1.0, 0.0], [1.0, 0.0], [0.0, -1.0], [0.0, 1.0]])
         self.b_visible_img = np.array([0.0, 640.0, 0.0, 480.0])
@@ -39,10 +53,11 @@ class IntersectionLocalizer(object):
         # TODO:
         # tune weight
         # multiple lines
+        # distance from duckiebot
 
         # localization algorithm parameters
         self.line_search_length = 20
-        self.max_num_iter = 10
+        self.max_num_iter = 1
         self.ctrl_pts_density = 80  # number of control points per edge length (in meters)
         self.min_num_ctrl_pts = 10
         self.max_num_ctrl_pts = 100
@@ -78,8 +93,11 @@ class IntersectionLocalizer(object):
         img_canny = cv2.Canny(img_gray, self.canny_lower_threshold, self.canny_upper_threshold,
                               apertureSize=self.canny_aperture_size)
 
+        # apply mask
+        img_mask = cv2.bitwise_and(img_canny,self.mask_visible)
+
         # pad image to avoid running into borders
-        img_processed = cv2.copyMakeBorder(img_canny, self.line_search_length, self.line_search_length,
+        img_processed = cv2.copyMakeBorder(img_mask, self.line_search_length, self.line_search_length,
                                            self.line_search_length, self.line_search_length, cv2.BORDER_CONSTANT,
                                            value=0)
 
@@ -152,7 +170,7 @@ class IntersectionLocalizer(object):
 
                 else:
                     n_par = (ptB - ptA)
-                    l = -ptA_h_img[2] / np.dot(self.H[2,:],np.hstack((n_par,1)))
+                    l = -ptA_h_img[2] / np.dot(self.H[2, :], np.hstack((n_par, 1)))
                     ptB_h_img = np.dot(self.H, np.hstack((ptA + 0.99 * l * n_par, 1)))
                     ptB_img = ptB_h_img[0:2] / ptB_h_img[2]
 
@@ -162,14 +180,15 @@ class IntersectionLocalizer(object):
                 ptB_img = ptB_h_img[0:2] / ptB_h_img[2]
 
                 n_par = (ptA - ptB)
-                l = -ptB_h_img[2] / np.dot(self.H[2,:],np.hstack((n_par,1)))
+                l = -ptB_h_img[2] / np.dot(self.H[2, :], np.hstack((n_par, 1)))
                 ptA_h_img = np.dot(self.H, np.hstack((ptB + 0.99 * l * n_par, 1)))
                 ptA_img = ptA_h_img[0:2] / ptA_h_img[2]
 
             if in_front_of_camera:
                 visible, ptA_img, ptB_img = self.ComputeVisibleEdge(ptA_img, ptB_img)
                 if visible:
-                    cv2.line(img, tuple(np.round(ptA_img).astype(np.int)), tuple(np.round(ptB_img).astype(np.int)), 255, 1)
+                    cv2.line(img, tuple(np.round(ptA_img).astype(np.int)), tuple(np.round(ptB_img).astype(np.int)), 255,
+                             1)
                     cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 255, -1)
                     cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 255, -1)
 
@@ -241,7 +260,7 @@ class IntersectionLocalizer(object):
             ctrl_pts_h_feasible = ctrl_pts_h[:, idx_feasible]
             ctrl_pts_img_feasible = ctrl_pts_img[:, idx_feasible]
             ctrl_pts_h_img_feasible = ctrl_pts_h_img[:, idx_feasible]
-            ctrl_pts_n_perp_feasible = ctrl_pts_n_perp[:,idx_feasible]
+            ctrl_pts_n_perp_feasible = ctrl_pts_n_perp[:, idx_feasible]
 
             # check if there are enough ctrl points left
             if num_feasible < self.min_num_ctrl_pts:
@@ -287,11 +306,10 @@ class IntersectionLocalizer(object):
 
         # debugging
         if 1:
-            for i in range(0,ctrl_pts_img_offset.shape[1]):
-                cv2.circle(img,tuple(np.round(ctrl_pts_img_offset[:,i]).astype(np.int)),2,180,-1)
+            for i in range(0, ctrl_pts_img_offset.shape[1]):
+                cv2.circle(img, tuple(np.round(ctrl_pts_img_offset[:, i]).astype(np.int)), 2, 180, -1)
 
-            cv2.imshow('canny',img)
-
+            cv2.imshow('canny', img)
 
         return True, x_pred, y_pred, theta_pred
 

@@ -51,7 +51,7 @@ class IntersectionLocalization(object):
 
             # temp
             if not self.init:
-                self.init = 1
+                self.init = 0
                 x_pred = 0.415
                 y_pred = -0.16
                 theta_pred = np.pi / 2.0
