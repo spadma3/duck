@@ -43,8 +43,8 @@ pip install --upgrade --user \
 	comptests==1.4.10 \
 	procgraph==1.10.6 \
 	pymongo==3.5.1 \
-	ruamel.yaml==0.15.34
-
+	ruamel.yaml==0.15.34\
+	PyGeometry==1.3
 
 
 
