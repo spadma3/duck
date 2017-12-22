@@ -2,23 +2,47 @@
     <arg name="veh" default="dori" doc="Name of robot_name. ex: megaman"/>
     <arg name="show_marker" default="false" doc="Specify if you want to see the marker"/>
     <arg name="show_image" default="false" doc="Specify if you want to see the image"/>
+    <arg name="use_ai" default="true" doc="Specify if you want to use the corrected image from anti instagram which means if this is yes, the topic: /{}/image_transformer_node/corrected_image MUST BE PUBLISHED, , otherwise we simply subscribe to raw image"/>
+
+    <arg name="ai_interval" default="10" doc="time interval after which the ai algorithm should be re-performed"/>
+    <arg name="geom" default="false" doc="use geometry considerations with true just bottom 0.6 of image with false"/>
+    <arg name="cents" default="10" doc="number of cluster centers for kmeans"/>
+    <arg name="blur" default="median" doc="type of blurring applied to image as preprocessing"/>
+    <arg name="resize" default="0.2" doc="resizing factor to scale the image down or up"/>
+    <arg name="ker" default="5" doc="size of blur kernel"/>
+    <arg name="trafo_mode" default="both" doc="'cb' for colo balance only; 'lin' for linear trafo only; 'both' for both"/>
+    <arg name="cb_percentage" default="2" doc="percentage for auto-colorbalance"/>
 
     <param name="~veh" value="$(arg veh)"/>
     <param name="~show_marker" value="$(arg show_marker)" type="bool"/>
     <param name="~show_image" value="$(arg show_image)" type="bool"/>
+    <param name="~use_ai" value="$(arg use_ai)" type="bool"/>
+   
+    <node name="obstacle_detection_node" pkg="obst_avoid" type="obstacle_detection_node.py" output="screen">
+    </node>
+    
 
 
     <group ns="$(arg veh)">
 
 
-	    <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen">
+        <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen">
+            <param name="~trafo_mode" type="str" value="$(arg trafo_mode)"/>
+            <!--remap from="/tesla/camera_node/image/compressed" to="~uncorrected_image" /-->
         </node>
 
+        <node name="cont_anti_instagram_node" pkg="anti_instagram" type="cont_anti_instagram_node.py" output="screen">
+            <param name="~ai_interval" value="$(arg ai_interval)"/>
+            <param name="~n_centers" type="int" value="$(arg cents)"/>
+            <param name="~fancyGeom" type="boolean" value="$(arg geom)"/>
+            <param name="~blur" type="str" value="$(arg blur)"/>
+            <param name="~resize" type="double" value="$(arg resize)"/>
+            <param name="~blur_kernel" type="int" value="$(arg ker)"/>
+            <param name="~trafo_mode" type="str" value="$(arg trafo_mode)"/>
+            <param name="~cb_percentage" type="int" value="$(arg cb_percentage)"/>
+        </node>
 
     </group>
-
-    <node name="obstacle_detection_node" pkg="obst_avoid" type="obstacle_detection_node.py" output="screen">
-    </node>
     
 
 
