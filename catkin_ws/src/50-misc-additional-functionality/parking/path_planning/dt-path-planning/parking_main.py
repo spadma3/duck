@@ -18,10 +18,10 @@ Global parameters
 """
 # control parameters
 choose_random_parking_space_combination = False
-close_itself = True
+close_itself = False
 save_figures = True
 pause_per_path = 0.5 # sec
-ploting = False
+ploting = True
 
 # path planning parameters
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
@@ -107,28 +107,37 @@ def pose_from_key(key):
         print("parking space '{}' not found".format(key))
         exit(1)
 
-# define define_obstacles    """
-def define_obstacles():
-    # x, y, dx, dy, colour, drivable
-    obstacles = [(0.0,0.0, lot_width, lot_height, (0.3,0.3,0.3), True)]
-    obstacles.append((0.0,0.0, narrow_tape_width, space_length, "y", True))
-    obstacles.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
-    obstacles.append((lot_width/2.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
-    obstacles.append((lot_width/4.0*3.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "y", True))
-    obstacles.append((lot_width-narrow_tape_width,0.0, narrow_tape_width, space_length, "y", True))
-    obstacles.append((lot_width/4.0*3.0-narrow_tape_width/2.0, lot_height-space_length, narrow_tape_width, space_length, "y", True))
-    obstacles.append((wide_tape_width+length_red_line, lot_height-lanes_length, narrow_tape_width, lanes_length, "y", True))
-    obstacles.append((0.0,lot_height-lanes_length, wide_tape_width,lanes_length, "w", True))
-    obstacles.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
-    obstacles.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
-    obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
-    # obstacles.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
+# define objects and obstacles
+def define_objects():
+    # x, y, dx, dy, colour, driveable
+    objects = [(0.0,0.0, lot_width, lot_height, (0.3,0.3,0.3), True)]
+    objects.append((0.0,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width/2.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width-narrow_tape_width,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0, lot_height-space_length, narrow_tape_width, space_length, "b", True))
+    objects.append((wide_tape_width+length_red_line, lot_height-lanes_length, narrow_tape_width, lanes_length, "y", True))
+    objects.append((0.0,lot_height-lanes_length, wide_tape_width,lanes_length, "w", True))
+    objects.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
+    objects.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
+    objects.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
+    # objects.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
 
+    return objects
+
+def define_obstacles(objects):
+    obstacles = []
+    for obj in objects:
+        if not obj[5]: # object not driveable
+            obstacles.append( obj[:4] + ("rectangle",) )
+
+    print obstacles
     return obstacles
 
 
 # dubins path planning
-def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles):
+def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw):
     # heuristics using path primitives
     detect_space_14 = (start_y < space_length and  (abs(start_yaw+radians(90))<radians(45)))
     detect_space_56 = lot_height- start_y < space_length and  abs(start_yaw-radians(90))<radians(45) and lot_width/2.0 < start_x
@@ -205,8 +214,7 @@ def collision_check(px, py, obstacles, start_number, end_number):
     crash, out_of_parking_lot = False, False
     for x, y in zip(px, py):
         for obstacle in obstacles:
-            if not obstacle[5]: # obstacle[5] is boolean value for drievable
-                # path is inside obstacle
+            if obstacle[4] == "rectangle":
                 if (obstacle[0] < x and x < obstacle[0]+obstacle[2]) and (obstacle[1] < y and y < obstacle[1]+obstacle[3]):
                     found_path = False
                     crash = True
@@ -214,13 +222,15 @@ def collision_check(px, py, obstacles, start_number, end_number):
                 if (x <= 0.0 or lot_width <= x or y <= 0.0  or lot_height <= y):
                     found_path = False
                     out_of_parking_lot = True
+            else:
+                exit("SN:ERROR: type {} not known.".format(obstacle[4]))
 
     if found_path:
         print("A collision free path from {} to {} was found!".format(start_number,end_number))
     else:
         print("No collision free path from {} to {} was found!".format(start_number,end_number))
         if crash:
-            print("\tThe robot will crash into obstacles on this path!")
+            print("\tThe robot will crash into objects on this path!")
         if out_of_parking_lot:
             print("\tThe robot wants to drive outside the parking lot")
 
@@ -236,7 +246,7 @@ def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw,
     print("curvature = {}".format(curvature))
 
 # plot
-def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path):
+def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, found_path):
     if close_itself:
         plt.clf()
     fig, ax = plt.subplots()
@@ -256,7 +266,7 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
     plt.axis("equal")
     plt.xlim([-visual_boundairy,lot_height+visual_boundairy])
     plt.ylim([-visual_boundairy,lot_width+visual_boundairy])
-    for obstacle in obstacles:
+    for obstacle in objects:
         if obstacle[5]:
             ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
             obstacle[2], obstacle[3], fc=obstacle[4] ))
@@ -276,16 +286,17 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
 def path_planning(start_number=None, end_number=None):
     # define problem
     start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
-    obstacles = define_obstacles()
+    objects = define_objects()
+    obstacles = define_obstacles(objects)
 
     # path planning and collision check with dubins path
-    px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles)
+    px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
     # show results
     # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
     if ploting:
-        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path)
+        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, found_path)
 
 
 """
@@ -301,7 +312,7 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        # start_numbers = [0]
-        # end_numbers = [3]
+        start_numbers = [0]
+        end_numbers = [3]
         for start_number, end_number in zip(start_numbers, end_numbers):
             path_planning(start_number, end_number)
