@@ -123,6 +123,8 @@ class ImageTransformerNode():
             corrected_image_cv2, "bgr8")
         tk.completed('encode')
 
+        self.corrected_image.header.stamp = image_msg.header.stamp #for synchronization
+
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
 

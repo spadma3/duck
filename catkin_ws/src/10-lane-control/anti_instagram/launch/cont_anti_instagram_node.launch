@@ -1,7 +1,7 @@
 <launch>
 
 	<arg name="veh"/>
-	<arg name="ai_interval" default="30" doc="time interval after which the ai algorithm should be re-performed"/>
+	<arg name="ai_interval" default="4" doc="time interval after which the ai algorithm should be re-performed"/>
 	<arg name="geom" default="false" doc="use geometry considerations with true just bottom 0.6 of image with false"/>
     <arg name="cents" default="10" doc="number of cluster centers for kmeans"/>
     <arg name="blur" default="median" doc="type of blurring applied to image as preprocessing"/>
