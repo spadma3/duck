@@ -202,7 +202,7 @@ class LineDetectorNode(object):
 
         # Publish segmentList
         self.pub_lines.publish(segmentList)
-        #print segmentList
+        print segmentList
         tk.completed('--pub_lines--')
 
         # VISUALIZATION only below

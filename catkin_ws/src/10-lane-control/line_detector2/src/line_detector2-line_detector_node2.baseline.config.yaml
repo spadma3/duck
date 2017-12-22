@@ -4,6 +4,6 @@ description: |
     
 values:
     img_size: [200,320]
-    top_cutoff: 70
+    top_cutoff: 40
     line_detector: baseline
     
