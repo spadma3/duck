@@ -1,5 +1,5 @@
 import numpy as np
-from geometry.poses import SE2_from_xytheta
+
 
 # Any time we use the variable "xytheta" it is a numpy array
 # with the following datatype
@@ -9,5 +9,10 @@ def xytheta_from_xyth(xyth):
     return np.array([xyth['x'], xyth['y'], xyth['theta']])
 
 def SE2_from_xyth(xyth):
+    from geometry.poses import SE2_from_xytheta
     xytheta = xytheta_from_xyth(xyth)
     return SE2_from_xytheta(xytheta)
+
+
+# meters from inches
+m_from_in = lambda x: x * 0.0254 

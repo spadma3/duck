@@ -72,6 +72,7 @@ from .wrap_main import *
 from .yaml_pretty import *
 from .yaml_wrap import *
 from .deprecation import *
+from .coords import *
 
 # Make sure that all variables look like they are 
 # in the duckietown_utils module, not duckietown_utils
