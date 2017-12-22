@@ -46,10 +46,11 @@ def get_random_pose(px, py, pyaw):
 def path_planning(start_number=None, end_number=None):
     # define problem
     start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
-    obstacles = define_obstacles()
+    objects = define_objects()
+    obstacles = define_obstacles(objects)
 
     # path planning and collision check with dubins path
-    px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles)
+    px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
     # get some random pose near path
@@ -61,9 +62,7 @@ def path_planning(start_number=None, end_number=None):
     # show results
     # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
     if ploting:
-        do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path, x_act, y_act, yaw_act, x_proj, y_proj)
-
-    return px, py, pyaw
+        do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path, x_act, y_act, yaw_act, x_proj, y_proj  )
 
 def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
     """
@@ -109,12 +108,11 @@ def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
     # further parameters
     d_ref, v_ref = 0, velocity
 
-    print("d_est = {}\ntheta_est_deg = {}\nc_ref = {}".format(d_est, degrees(theta_est), c_ref))
+    print("d_est = {}\ntheta_est_deg = {}\nc_ref = {}".format(d_est/1000.0, degrees(theta_est), c_ref/1000.0))
 
     return d_est/1000.0, d_ref/1000.0, theta_est, c_ref*1000.0, v_ref, x_proj, y_proj
 
-
-def do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, obstacles, found_path, x_act, y_act, yaw_act, x_proj, y_proj):
+def do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path, x_act, y_act, yaw_act, x_proj, y_proj):
     if close_itself:
         plt.clf()
     fig, ax = plt.subplots()
@@ -134,13 +132,35 @@ def do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end
     plt.axis("equal")
     plt.xlim([-visual_boundairy,lot_height+visual_boundairy])
     plt.ylim([-visual_boundairy,lot_width+visual_boundairy])
+
+    # background
+    ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fc=(0.3,0.3,0.3)))
+
+    # obstacles
     for obstacle in obstacles:
-        if obstacle[5]:
-            ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
-            obstacle[2], obstacle[3], fc=obstacle[4] ))
+        if obstacle[0] == "rectangle":
+            ax.add_patch( patches.Rectangle( (obstacle[1], obstacle[2]),
+            obstacle[3], obstacle[4], fc="m", ec="m", hatch='x',lw=0.0))
+        if obstacle[0] == "circle":
+            ax.add_patch( patches.Circle( (obstacle[1], obstacle[2]),
+            obstacle[3], fc="m", ec="m", hatch='x',lw=0.0))
+
+    # boundairies
+    r = 1.1*radius_robot
+    ax.add_patch( patches.Rectangle( (0.0-r, 0.0-r), r, lot_height+2.0*r, fc="w", ec="w"))
+    ax.add_patch( patches.Rectangle( (0.0-r, 0.0-r), lot_height+2.0*r, r, fc="w", ec="w"))
+    ax.add_patch( patches.Rectangle( (0.0-r, lot_height), lot_width+2.0*r, lot_height, fc="w", ec="w"))
+    ax.add_patch( patches.Rectangle( (lot_width, 0.0-r), r, lot_height+2.0*r, fc="w", ec="w"))
+
+
+    for obj in objects:
+        if obj[5]:
+            ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
+            obj[2], obj[3], fc=obj[4]))
         else:
-            ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
-            obstacle[2], obstacle[3], fc=obstacle[4], ec="m", hatch='x'))
+            ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
+            obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
+    ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fc=(0.3,0.3,0.3),fill=False))
 
     dpp.plot_arrow(x_act, y_act, yaw_act,
     0.11*lot_width, 0.06*lot_width, fc="c", ec="c")

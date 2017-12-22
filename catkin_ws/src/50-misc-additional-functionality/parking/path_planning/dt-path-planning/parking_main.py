@@ -133,6 +133,7 @@ def define_obstacles(objects):
     obstacles = []
     for obj in objects:
         if not obj[5]: # object not driveable
+            # current implementation only valid if object is a rectangle
             obstacles.append( ("rectangle", obj[0]-radius_robot, obj[1], obj[2]+2.0*radius_robot, obj[3] ))
             obstacles.append( ("rectangle", obj[0], obj[1]-radius_robot, obj[2], obj[3]+2.0*radius_robot ))
             obstacles.append( ("circle", obj[0], obj[1], radius_robot ))
