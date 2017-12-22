@@ -3,6 +3,7 @@ float32 d   #lateral offset
 float32 sigma_d
 float32 phi #heading error
 float32 sigma_phi
+float32 curvature
 int32 status
 bool in_lane
 #Enum for status
