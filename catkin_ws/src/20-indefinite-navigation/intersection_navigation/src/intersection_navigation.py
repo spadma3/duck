@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import rospy
 import cv2
+from pose_estimator.pose_estimator import PoseEstimator
 from sensor_msgs.msg import CompressedImage
-
+from duckietown_msgs.msg import Twist2DStamped
 
 class IntersectionNavigation(object):
+    '''class that handles the navigation of the Duckiebot at an intersection'''
     def __init__(self):
         # save the name of the node
         self.node_name = rospy.get_name()
@@ -15,19 +17,19 @@ class IntersectionNavigation(object):
 
         # set up path planner, state estimator, ...
         # self.pathPlanner = ...
-        # self.stateEstimator = ...
+        self.poseEstimator = PoseEstimator()
 
         # set up subscribers
-        self.sub_mode = rospy.Subscriber("~mode", FSMState, self.ModeCallback, queue_size=1)
-        self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.TurnTypeCallback, queue_size=1)
+        #self.sub_mode = rospy.Subscriber("~mode", FSMState, self.ModeCallback, queue_size=1)
+        #self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.TurnTypeCallback, queue_size=1)
         self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed", CompressedImage, self.ImageCallback, queue_size=1)
         #self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPoseInertial, self.stateEstimator.Update, queue_size=1)
-        #self.sub_car_cmd = rospy.Subscriber("~car_cmd", Twist2DStamped, self.stateEstimator.FeedCommands, queue_size = 10)
+        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, self.poseEstimator.FeedCommandQueue, queue_size = 10)
 
         # set up publishers
         #self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPoseInertial, queue_size=1)
-        self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
-        self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
+        #self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
+        #self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
 
 
         rospy.loginfo("[%s] Initialized." %(self.node_name))

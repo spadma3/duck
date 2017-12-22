@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 from collections import deque
+from duckietown_msgs.msg import Twist2DStamped
 
 class VehicleCommands(object):
     '''class for storing vehicle commands'''
@@ -83,9 +84,10 @@ class PoseEstimator(object):
 
         return state_est, cov_est
 
-    def FeedCommandQueue(self, v, omega, time):
+    def FeedCommandQueue(self, msg):
         '''store applied commands in command queue'''
-        self.command_queue.append(VehicleCommands(v,omega,time))
+        print(msg)
+        #self.cmd_queue.append(VehicleCommands(0.0,0.0,0.0))
 
 
     def UpdateWithPoseMeasurement(self, x_meas, y_meas, theta_meas, cov_meas, time_meas):
