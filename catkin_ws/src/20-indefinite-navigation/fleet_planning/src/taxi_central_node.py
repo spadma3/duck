@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 
-from enum import Enum, IntEnum
-import os
+from enum import Enum
 import rospy
 from fleet_planning.generate_duckietown_map import graph_creator
 from std_msgs.msg import ByteMultiArray, String
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
-
 from fleet_planning.duckiebot import *
 import json
 import random
-from sensor_msgs.msg import Image
+
 
 class FleetPlanningStrategy(Enum): # for future expansion
     DEACTIVATED = 0
     CLOSEST_DUCKIEBOT = 1
 
+
 class RebalancingStrategy(Enum):
     DEACTIVATED = 0
     RANDOM = 1
+
 
 class TaxiCentralNode:
     TIME_OUT_CRITERIUM = 60.0
