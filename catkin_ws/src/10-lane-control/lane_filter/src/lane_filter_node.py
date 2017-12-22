@@ -68,8 +68,8 @@ class LaneFilterNode(object):
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
-        #print "d_max = ", d_max
-        #print "phi_max = ", phi_max
+        print "d_max = ", d_max
+        print "phi_max = ", phi_max
         sum_phi_l = np.sum(phi_max[1:self.filter.num_belief])
         sum_d_l   = np.sum(d_max[1:self.filter.num_belief])
         av_phi_l  = np.average(phi_max[1:self.filter.num_belief])
