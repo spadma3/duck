@@ -33,9 +33,7 @@ class kMeansClass:
 
     # initialize
     def __init__(self, numCenters, blurAlg, resize, blurKer):
-        # read the image
-        #self.input_image = cv2.imread(inputImage, cv2.IMREAD_UNCHANGED)
-	self.input_image = None
+        self.input_image = None
         self.num_centers = int(numCenters)
         self.blur_alg = blurAlg
         self.fac_resize = float(resize)
@@ -46,18 +44,18 @@ class kMeansClass:
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img, fancyGeom=False):
         x, y, p = cv2img.shape
-	if not fancyGeom:
+        if not fancyGeom:
             img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
-	    x_new, y_new, p = img_geom.shape
-	    cv2_tpose = img_geom.transpose()
-	    cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
-	else:
-	    mask = processGeom2(cv2img)
-	    img_geom = np.expand_dims(mask,axis=-1)*cv2img
-	    mask = mask.transpose()
-	    inds = np.array(np.nonzero(mask))
-	    cv2_tpose = np.transpose(img_geom)
-	    cv2_arr_tpose = cv2_tpose[:,inds[0,:],inds[1,:]]
+            x_new, y_new, p = img_geom.shape
+            cv2_tpose = img_geom.transpose()
+            cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
+        else:
+            mask = processGeom2(cv2img)
+            img_geom = np.expand_dims(mask, axis=-1)*cv2img
+            mask = mask.transpose()
+            inds = np.array(np.nonzero(mask))
+            cv2_tpose = np.transpose(img_geom)
+            cv2_arr_tpose = cv2_tpose[:, inds[0, :], inds[1, :]]
         npdata = np.transpose(cv2_arr_tpose)
         return npdata
 
@@ -70,12 +68,12 @@ class kMeansClass:
         elif self.blur_alg == 'gaussian':
             self.blurred_image = cv2.GaussianBlur(self.resized_image, (self.blur_kernel, self.blur_kernel), 0)
 	
-	else:
-	    self.blurred_image = self.resized_image
+        else:
+            self.blurred_image = self.resized_image
 
     # apply kMeans alg
     def applyKM(self, img, fancyGeom=False):
-	self.input_image = img
+        self.input_image = img
         # resize image
         self.resized_image = cv2.resize(self.input_image, (0, 0), fx=self.fac_resize, fy=self.fac_resize)
 
@@ -132,11 +130,11 @@ class kMeansClass:
         errorBlackSortedIdx = np.argsort(errorBlack)
         errorYellowSortedIdx = np.argsort(errorYellow)
         errorWhiteSortedIdx = np.argsort(errorWhite)
-	errorSorted = np.vstack([errorBlack, errorWhite, errorYellow])
-        #print(errorSorted)
-	if (withRed):
+        errorSorted = np.vstack([errorBlack, errorWhite, errorYellow])
+        print(errorSorted)
+        if (withRed):
             errorRedSortedIdx = np.argsort(errorRed)
-	    errorSorted = np.vstack((errorSorted,errorRed))
+            errorSorted = np.vstack((errorSorted,errorRed))
         if (withRed):
             nTrueCenters = 4
         ListOfIndices = []
@@ -150,37 +148,37 @@ class kMeansClass:
         centersFound = False
         index = 0
 
-	w,h = errorSorted.shape
-	errorList = np.reshape(errorSorted,(w*h))
+        w,h = errorSorted.shape
+        errorList = np.reshape(errorSorted,(w*h))
         # find for every true center the corresponding trained center.
-	#this code considers the global minimum for assigning clusters,
-	#instead of assigning first black, then white, yellow and red
+        # this code considers the global minimum for assigning clusters,
+        # instead of assigning first black, then white, yellow and red
         while (not centersFound):
-	    ind = np.argmin(errorList)
-	    xi,yi = ind//h, ind%h
-	    if xi==0 and not blackIdxFound:
-		ListOfIndices.append(yi)
-		blackIdxFound = True
-		idxBlack = yi
-	    if xi==1 and not whiteIdxFound:
-	        ListOfIndices.append(yi)
-		whiteIdxFound = True
-		idxWhite = yi
-	    if xi==2 and not yellowIdxFound:
-	        ListOfIndices.append(yi)
-		yellowIdxFound = True
-		idxYellow = yi
-	    if (withRed):
-		if xi==3 and not redIdxFound:
-		    ListOfIndices.append(yi)
-		    redIdxFound = True
-		    idxRed = yi
-		centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
-	    else:
-		centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
-	    errorSorted[xi,:] = np.max(errorSorted)
-	    errorSorted[:,yi] = np.max(errorSorted)
-	    errorList = np.reshape(errorSorted,(w*h))
+            ind = np.argmin(errorList)
+            xi,yi = ind//h, ind%h
+            if xi==0 and not blackIdxFound:
+                ListOfIndices.append(yi)
+                blackIdxFound = True
+                idxBlack = yi
+            if xi==1 and not whiteIdxFound:
+                ListOfIndices.append(yi)
+                whiteIdxFound = True
+                idxWhite = yi
+            if xi==2 and not yellowIdxFound:
+                ListOfIndices.append(yi)
+                yellowIdxFound = True
+                idxYellow = yi
+            if (withRed):
+                if xi==3 and not redIdxFound:
+                    ListOfIndices.append(yi)
+                    redIdxFound = True
+                    idxRed = yi
+                    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
+                else:
+                    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
+            errorSorted[xi,:] = np.max(errorSorted)
+            errorSorted[:,yi] = np.max(errorSorted)
+            errorList = np.reshape(errorSorted,(w*h))
             #if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
             #    ListOfIndices.append(errorBlackSortedIdx[index])
             #    blackIdxFound = True
