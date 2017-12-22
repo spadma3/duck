@@ -24,6 +24,7 @@ pause_per_path = 0.5 # sec
 ploting = True
 
 # path planning parameters
+radius_robot = 70                  # mm distance point between wheels and most apart point on robot
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
@@ -110,16 +111,16 @@ def pose_from_key(key):
 # define objects and obstacles
 def define_objects():
     # x, y, dx, dy, colour, driveable
-    objects = [(0.0,0.0, lot_width, lot_height, (0.3,0.3,0.3), True)]
-    objects.append((0.0,0.0, narrow_tape_width, space_length, "b", True))
-    objects.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
-    objects.append((lot_width/2.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
-    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
-    objects.append((lot_width-narrow_tape_width,0.0, narrow_tape_width, space_length, "b", True))
-    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0, lot_height-space_length, narrow_tape_width, space_length, "b", True))
+    objects = []
+    objects.append((0.0,0.0, narrow_tape_width, space_length, "b", False))
+    objects.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", False))
+    objects.append((lot_width/2.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", False))
+    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", False))
+    objects.append((lot_width-narrow_tape_width,0.0, narrow_tape_width, space_length, "b", False))
+    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0, lot_height-space_length, narrow_tape_width, space_length, "b", False))
     objects.append((wide_tape_width+length_red_line, lot_height-lanes_length, narrow_tape_width, lanes_length, "y", True))
     objects.append((0.0,lot_height-lanes_length, wide_tape_width,lanes_length, "w", True))
-    objects.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False))
+    objects.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False)) # False
     objects.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
     objects.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
     # objects.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
@@ -127,12 +128,18 @@ def define_objects():
     return objects
 
 def define_obstacles(objects):
+    # rectangle, x, y, dx, dy
+    # circle, x, y, r
     obstacles = []
     for obj in objects:
         if not obj[5]: # object not driveable
-            obstacles.append( obj[:4] + ("rectangle",) )
+            obstacles.append( ("rectangle", obj[0]-radius_robot, obj[1], obj[2]+2.0*radius_robot, obj[3] ))
+            obstacles.append( ("rectangle", obj[0], obj[1]-radius_robot, obj[2], obj[3]+2.0*radius_robot ))
+            obstacles.append( ("circle", obj[0], obj[1], radius_robot ))
+            obstacles.append( ("circle", obj[0]+obj[2], obj[1], radius_robot ))
+            obstacles.append( ("circle", obj[0], obj[1]+obj[3], radius_robot ))
+            obstacles.append( ("circle", obj[0]+obj[2], obj[1]+obj[3], radius_robot ))
 
-    print obstacles
     return obstacles
 
 
@@ -214,16 +221,19 @@ def collision_check(px, py, obstacles, start_number, end_number):
     crash, out_of_parking_lot = False, False
     for x, y in zip(px, py):
         for obstacle in obstacles:
-            if obstacle[4] == "rectangle":
-                if (obstacle[0] < x and x < obstacle[0]+obstacle[2]) and (obstacle[1] < y and y < obstacle[1]+obstacle[3]):
+            if (x <= 0.0 or lot_width <= x or y <= 0.0  or lot_height <= y):
+                found_path = False
+                out_of_parking_lot = True
+            if obstacle[0] == "rectangle":
+                if (obstacle[1] < x and x < obstacle[1]+obstacle[3]) and (obstacle[2] < y and y < obstacle[2]+obstacle[4]):
                     found_path = False
                     crash = True
-                # path is outside parking lot
-                if (x <= 0.0 or lot_width <= x or y <= 0.0  or lot_height <= y):
+            elif obstacle[0] == "circle":
+                if (sqrt((x-obstacle[1])**2 + (y-obstacle[2])**2) < obstacle[3]):
                     found_path = False
-                    out_of_parking_lot = True
+                    crash = True
             else:
-                exit("SN:ERROR: type {} not known.".format(obstacle[4]))
+                exit("SN:ERROR: type {} not known.".format(obstacle[0]))
 
     if found_path:
         print("A collision free path from {} to {} was found!".format(start_number,end_number))
@@ -246,7 +256,7 @@ def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw,
     print("curvature = {}".format(curvature))
 
 # plot
-def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, found_path):
+def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path):
     if close_itself:
         plt.clf()
     fig, ax = plt.subplots()
@@ -266,13 +276,26 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
     plt.axis("equal")
     plt.xlim([-visual_boundairy,lot_height+visual_boundairy])
     plt.ylim([-visual_boundairy,lot_width+visual_boundairy])
-    for obstacle in objects:
-        if obstacle[5]:
-            ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
-            obstacle[2], obstacle[3], fc=obstacle[4] ))
+
+    # objects = [(0.0,0.0, lot_width, lot_height, (0.3,0.3,0.3), True)]
+    ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fc=(0.3,0.3,0.3)))
+
+    for obstacle in obstacles:
+        if obstacle[0] == "rectangle":
+            ax.add_patch( patches.Rectangle( (obstacle[1], obstacle[2]),
+            obstacle[3], obstacle[4], fc="m", ec="m", hatch='x'))
+        if obstacle[0] == "circle":
+            ax.add_patch( patches.Circle( (obstacle[1], obstacle[2]),
+            obstacle[3], fc="m", ec="m", hatch='x'))
+
+    for obj in objects:
+        if obj[5]:
+            ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
+            obj[2], obj[3], fc=obj[4] ))
         else:
-            ax.add_patch( patches.Rectangle( (obstacle[0], obstacle[1]),
-            obstacle[2], obstacle[3], fc=obstacle[4], ec="m", hatch='x'))
+            ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
+            obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
+
     if close_itself:
         plt.draw()
         plt.pause(pause_per_path)
@@ -296,7 +319,7 @@ def path_planning(start_number=None, end_number=None):
     # show results
     # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
     if ploting:
-        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, found_path)
+        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
 
 
 """
@@ -312,7 +335,7 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        start_numbers = [0]
-        end_numbers = [3]
+        start_numbers = [4]
+        end_numbers = [7]
         for start_number, end_number in zip(start_numbers, end_numbers):
             path_planning(start_number, end_number)
