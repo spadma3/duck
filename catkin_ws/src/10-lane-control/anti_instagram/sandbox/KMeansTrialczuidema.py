@@ -343,7 +343,7 @@ def main():
 
     trained_centers_woRed = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
                                 KM.trained_centers[idxWhite]])
-    true_centers = np.vstack([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240]])
+    true_centers = np.vstack([[70, 50, 60], [50, 70, 240], [60, 240, 230], [250, 250, 250]])
     outlierIndex, outlierCenter = detectOutlier(trained_centers, true_centers)
     true_centers_woOutlier = np.delete(true_centers, outlierIndex, 0)
     trained_centers_woOutlier = np.delete(trained_centers, outlierIndex, 0)
