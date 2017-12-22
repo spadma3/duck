@@ -176,10 +176,10 @@ class lane_controller(object):
         self.heading_integral += heading_err
 
         if self.cross_track_integral > 4:
-            rospy.loginfo("you're greater 5")
+            # rospy.loginfo("you're greater 5")
             self.cross_track_integral = 4
         if self.cross_track_integral < -4:
-            rospy.loginfo("youre smaller -5")
+            # rospy.loginfo("youre smaller -5")
             self.cross_track_integral = -4
 
         if self.heading_integral < -15:
@@ -194,8 +194,8 @@ class lane_controller(object):
         omega_feedforward = self.v_bar * self.velocity_to_m_per_s * lane_pose_msg.curvature * 2 * math.pi
 
         car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
-        rospy.loginfo("P-Control: " + str(car_control_msg.omega))
-        rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
+        # rospy.loginfo("P-Control: " + str(car_control_msg.omega))
+        # rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
         car_control_msg.omega -= self.k_Id * self.cross_track_integral
         car_control_msg.omega -= self.k_Iphi * self.heading_integral
         car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
@@ -217,14 +217,14 @@ class lane_controller(object):
         #         self.incurvature = False
         #     rospy.loginfo("incurvature : ")
         #     car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
-        rospy.loginfo("kid : " + str(self.k_Id))
-        rospy.loginfo("Kd : " + str(self.k_d))
-        #rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
-        rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
-        rospy.loginfo("Ktheta : " + str(self.k_theta))
-        # rospy.loginfo("incurvature : " + str(self.incurvature))
-        rospy.loginfo("cross_track_err : " + str(cross_track_err))
-        rospy.loginfo("heading_err : " + str(heading_err))
+        # rospy.loginfo("kid : " + str(self.k_Id))
+        # rospy.loginfo("Kd : " + str(self.k_d))
+        # #rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
+        # rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
+        # rospy.loginfo("Ktheta : " + str(self.k_theta))
+        # # rospy.loginfo("incurvature : " + str(self.incurvature))
+        # rospy.loginfo("cross_track_err : " + str(cross_track_err))
+        # rospy.loginfo("heading_err : " + str(heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
 
         # controller mapping issue
