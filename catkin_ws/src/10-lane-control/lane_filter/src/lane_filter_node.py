@@ -93,11 +93,11 @@ class LaneFilterNode(object):
             phi=phi_max[0]
         else:
             # if yes take the top one of the array give it to lane pose and store it again into the array. 
-            if abs(np.mean(self.store_d[0:2])-d_max[0])> 0.06 :
+            if abs(np.median(self.store_d[0:2])-d_max[0])> 0.06 :
                 d =self.store_d[2]
                 phi =self.store_phi
                 self.store_d.pop(0)
-                self.store_d.append(self.store_d[1])
+                self.store_d.append(d_max[0])
                 print "rejected"
             # else take the new d and store it i
             else:
