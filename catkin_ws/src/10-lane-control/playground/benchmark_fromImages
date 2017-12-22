@@ -1,0 +1,259 @@
+#!/usr/bin/python
+import sys
+import time
+import rospy
+import rosbag
+import argparse
+import cv2
+import numpy as np
+import duckietown_utils as dtu
+
+from anti_instagram.AntiInstagram import AntiInstagram
+from ground_projection.GroundProjection import GroundProjection
+from lane_filter.lane_filter import *
+from matplotlib import pyplot as plt
+from os.path import (isfile, dirname, basename)
+from os import (makedirs, environ, path)
+from sensor_msgs.msg import CameraInfo
+from collections import OrderedDict
+from ruamel.yaml.comments import CommentedMap
+from easy_algo.algo_db import get_easy_algo_db
+from duckietown_msgs.msg import (Segment, SegmentList)
+from line_detector.visual_state_fancy_display import vs_fancy_display
+from line_detector2.run_programmatically import FakeContext
+
+import warnings
+warnings.filterwarnings("ignore")
+
+def load_filter_config(filename=''):
+    # Load lane_filter config
+    if not isfile(filename):
+        filename = dtu.path_utils.get_ros_package_path('duckietown') + '/config/baseline/lane_filter/lane_filter_node/default.yaml'
+    filter_config = dtu.yaml_wrap.yaml_load_file(filename)
+    configuration = []
+    configuration.append(filter_config['filter'][0])
+    configuration.append(filter_config['filter'][1])
+    dtu.logger.info("Loaded lane_filter configuration")
+    return configuration
+
+def load_camera_info(robot):
+    # Load camera information
+    filename = (environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + robot + ".yaml")
+    if not isfile(filename):
+        dtu.logger.warn("no intrinsic calibration parameters for {}, trying default".format(robot))
+        filename = (environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
+        if not isfile(filename):
+            logger.error("can't find default either, something's wrong")
+    calib_data = dtu.yaml_wrap.yaml_load_file(filename)
+    cam_info = CameraInfo()
+    cam_info.width = calib_data['image_width']
+    cam_info.height = calib_data['image_height']
+    cam_info.K = calib_data['camera_matrix']['data']
+    cam_info.D = calib_data['distortion_coefficients']['data']
+    cam_info.R = calib_data['rectification_matrix']['data']
+    cam_info.P = calib_data['projection_matrix']['data']
+    cam_info.distortion_model = calib_data['distortion_model']
+    dtu.logger.info("Loaded camera calibration parameters for {} from {}".format(robot, path.basename(filename)))
+    return cam_info
+
+def process_image(input, i):
+
+    # Transform image
+    if (i == 0):
+        ai.calculateTransform(input)
+    input_transformed = ai.applyTransform(input)
+    input_transformed = np.clip(input_transformed, 0, 255).astype(np.uint8)
+
+    # Undistort image
+    # input_rectified = rectify(input_transformed, ci.K, ci.D, ci.R, ci.P, ci.height, ci.width)
+    input_rectified = gp.rectify(input_transformed)
+
+    # Get SegmentList from rectified image
+    # dtu.logger.info('Receiving SegmentList')
+    segmentList = SegmentList()
+    segmentList_transformed = SegmentList()
+    segmentList = image_preparer.process(context, input_rectified, line_detector, transform=None)
+    # print('Total amount of segments: %i' % np.size(segmentList.segments))
+    segmentList_transformed.header = segmentList.header
+
+    # Get ground truth of segmentList
+    for received_segment in segmentList.segments:
+        new_segment = Segment()
+        new_segment.points[0] = gp.vector2ground(received_segment.pixels_normalized[0])
+        new_segment.points[1] = gp.vector2ground(received_segment.pixels_normalized[1])
+        new_segment.color = received_segment.color
+        # TODO what about normal and points
+        segmentList_transformed.segments.append(new_segment)
+
+    # Get Estimation
+    # dtu.logger.info('Receiving pose estimation')
+    lf.update(segmentList_transformed.segments)
+
+    result = vs_fancy_display(input_rectified, segmentList)
+    # print(segmentList.segments)
+
+    [d_max, phi_max] = lf.getEstimate()
+    max_val = lf.getMax()
+    in_lane = max_val > lf.min_max 
+
+    dArray.append(d_max)
+    phiArray.append(phi_max)
+    nSegments.append(len(segmentList.segments))
+
+    # print('\ndistance:\t %f cm' % (d_max*100))
+    # print('angle:\t\t %f deg' % phi_max)
+    # print('in_lane:\t %s' % in_lane)
+    return result
+
+def create_Plots(dArray, phiArray):
+    xVal = np.linspace(0, len(dArray), len(dArray))
+    fig, ax = plt.subplots(2, sharex=True)
+    ax[0].plot(xVal, np.array(dArray)*100, color="blue", label=r'$d_{est}$')
+    ax[1].plot(xVal, np.array(phiArray), color="red", label=r'$phi_{est}$')
+    ax[0].set_ylim(-30, 30)
+    ax[0].set_ylabel('distance [cm]')
+    ax[0].set_xlabel('time [frames]')
+    ax[1].set_ylim(-3, 3)
+    ax[1].set_ylabel('tracking angle [deg]')
+    ax[1].set_xlabel('time [frames]')
+    ax[0].legend(loc='upper right')
+    ax[1].legend(loc='upper right')
+    ax[0].set_title('Performance evaluation of %s using %s' % (rosbagIN[:-4], preparer))
+    fig.set_size_inches(16,9)
+    fig.savefig('%s/results.png' % outputPath, dpi=300)
+    plt.show()
+
+def write_Logs(dArray, phiArray):
+    logFile = open(('%s/performance.txt' % outputPath), 'w')
+    logFile.write('Benchmark results for %s\n' % rosbagIN[:-4])
+    logFile.write('\tdist min:\t%s\n' % d_min)
+    logFile.write('\tdist max:\t%s\n' % d_max)
+    logFile.write('\tdist mean:\t%s\n' % round(d_mean,2))
+    logFile.write('\tdist med:\t%s\n' % d_median)
+    logFile.write('\tdist var:\t%s\n' % round(d_var,2))
+
+    logFile.write('\tphi min:\t%s\n' % phi_min)
+    logFile.write('\tphi max:\t%s\n' % phi_max)
+    logFile.write('\tphi mean:\t%s\n' % round(phi_mean,2))
+    logFile.write('\tphi med:\t%s\n' % phi_median)
+    logFile.write('\tphi var:\t%s\n' % round(phi_var,2))
+
+    logFile.write('\nImage preparer used: %s\n' % preparer)
+    logFile.write('\tAverage amount of segments:\t%s\n' % round(np.mean(nSegments),1))
+
+    logFile.write('\nProcessing time: %f\n' % (toc-tic))
+    logFile.write('\tAverage processing time per frame: %f\n' % ((toc-tic)/len(dArray)))
+
+    logFile = open(('%s/results.txt' % outputPath), 'w')
+    logFile.write('Distance, Angle:\n')
+    for d, phi in zip(dArray, phiArray):
+        logFile.write('%f, %f\n' % (d, phi))
+
+# Parse input arguments
+parser = argparse.ArgumentParser(description='Read images from a given bag \
+    and parse them through the image processing pipeline \
+    to determine performance of the pose_estimator and lane_controller')
+parser.add_argument('rosbag', type=str, help='Input rosbag file')
+# parser.add_argument('imgIn', type=str, help='Input image file')
+parser.add_argument('--output', type=str, help='Output folder where logs are being stored', default="output", required=False)
+parser.add_argument('--save_images', help='If to save the processed images from the rosbag', default=True, required=False)
+parser.add_argument('--preparer', help='Lane filter configuration to use', default='prep_120_40', required=False)
+
+args = parser.parse_args()
+rosbagIN = args.rosbag
+# imgIn = args.imgIn
+output = ('%s/%s' % (dirname(rosbagIN), args.output))
+save_images = args.save_images
+preparer = args.preparer
+
+# Perform file check
+from os.path import isfile
+if not isfile(rosbagIN):
+    print('The file "%s" does not exist' % rosbagIN)
+    exit(2)
+
+# Create missing folders
+try:
+    makedirs(output)
+except:
+    pass
+
+# Instantiate rosbag Object
+bag = rosbag.Bag(rosbagIN)
+rosbagIN = basename(rosbagIN)
+
+# Initialize variables
+robot = dtu.bag_info.which_robot(bag)
+topic = ('/' + robot + '/camera_node/image/compressed')
+detector = 'baseline'
+# preparer = 'prep_120_40'
+context = FakeContext()
+outputPath = ('%s/%s_%s' % (output, rosbagIN[:-4], preparer))
+
+algo_db = get_easy_algo_db()
+line_detector = algo_db.create_instance('line_detector', detector)
+image_preparer = algo_db.create_instance('image_prep', preparer)
+
+# Instantiate needed classes
+ai = AntiInstagram()
+dtu.logger.info('Initialized instance of AntiInstagram')
+
+gp = GroundProjection(robot)
+dtu.logger.info('Initialized instance of GroundProjection')
+ci = CameraInfo()
+ci = load_camera_info(robot)
+# print(ci)
+gp.initialize_pinhole_camera_model(ci)
+# dtu.logger.info('Initialized pinhole camera model for %s' % robot)
+
+lf_config = load_filter_config()
+assert isinstance(lf_config, list) and len(lf_config) == 2, lf_config
+lf = None
+lf = dtu.instantiate_utils.instantiate(lf_config[0], lf_config[1])
+dtu.logger.info('Initialized instance of %s' % str(lf_config[0]))
+dtu.logger.info("Running image pipeline with %s line_detector and %s" % (detector, preparer))
+
+# Loop through images
+print('Reading data from: "%s"' % rosbagIN)
+print('Robot name: %s' % robot)
+print('Getting images from: %s' % topic)
+
+messages = list(bag.read_messages(topic))
+
+print('Length of messages: %i' % len(messages))
+
+dArray = []
+phiArray = []
+nSegments = []
+
+print('Looping through images')
+tic = time.time()
+
+for i in range(len(messages)):
+
+    img = dtu.rgb_from_ros(messages[i][1])
+    input = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    result = process_image(input, i)
+    if (save_images == True):
+        dtu.write_image_as_jpg(result, '%s/%05d.jpg' % (outputPath, i))
+
+bag.close()
+
+d_min = np.min(dArray)
+d_max = np.max(dArray)
+d_mean = np.mean(dArray)
+d_median = np.median(dArray)
+d_var = np.var(dArray)
+
+phi_min = np.min(phiArray)
+phi_max = np.max(phiArray)
+phi_mean = np.mean(phiArray)
+phi_median = np.median(phiArray)
+phi_var = np.var(phiArray)
+
+print('Done\n')
+toc = time.time()
+print('Time Elapsed: %f' % (toc - tic))
+
+create_Plots(dArray, phiArray)
+write_Logs(dArray, phiArray)
