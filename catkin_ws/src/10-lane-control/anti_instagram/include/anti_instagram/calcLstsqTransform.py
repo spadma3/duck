@@ -105,7 +105,7 @@ class calcTransform:
         #print('matrices A: ' + str(self.matrices_A))
         #print('vectors b: ' + str(self.vectors_b))
 
-        print('created instance of calcTransform!')
+        # print('created instance of calcTransform!')
 
     def returnResidualNorm(self):
         return self.residualNorm

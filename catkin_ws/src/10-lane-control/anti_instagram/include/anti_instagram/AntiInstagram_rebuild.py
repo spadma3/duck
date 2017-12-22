@@ -4,6 +4,7 @@ from anti_instagram.calcLstsqTransform import *
 from anti_instagram.simpleColorBalanceClass import *
 from .scale_and_shift import scaleandshift
 import numpy as np
+import rospy
 
 
 class ScaleAndShift():
@@ -63,36 +64,27 @@ class AntiInstagram():
         # TODO take true centers from global variable
         true_centers = np.vstack([[70, 50, 60], [50, 70, 240], [60, 240, 230], [250, 250, 250]])
 
-        outlierIndex, outlierCenter = self.KM.detectOutlier(trained_centers, true_centers)
+        outlierIndex, outlierCenter, averageError = self.KM.detectOutlier(trained_centers, true_centers)
 
-        true_centers_woOutlier = np.delete(true_centers, outlierIndex, 0)
-        trained_centers_woOutlier = np.delete(trained_centers, outlierIndex, 0)
+        # print('average error: ' + str(averageError))
+
+        if averageError <= 200:
+
+            centers_name = ['black', 'red', 'yellow', 'white']
+            # print('idx of detected outlier: ' + str(centers_name[outlierIndex]))
+
+            true_centers_woOutlier = np.delete(true_centers, outlierIndex, 0)
+            trained_centers_woOutlier = np.delete(trained_centers, outlierIndex, 0)
 
 
-        # get centers w/o red
-        #trained_centers_woRed = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxYellow],
-                                          #self.KM.trained_centers[idxWhite]])
+            # calculate transform with 3 centers
+            T3 = calcTransform(3, trained_centers_woOutlier, true_centers_woOutlier)
+            T3.calcTransform()
 
-        # calculate transform with 4 centers
-        #T4 = calcTransform(4, trained_centers)
-        #T4.calcTransform()
-
-        # calculate transform with 3 centers
-        T3 = calcTransform(3, trained_centers_woOutlier, true_centers_woOutlier)
-        T3.calcTransform()
-
-        # compare residuals
-        # in practice, this is NOT a fair way to compare the residuals, 4 will almost always win out,
-        # causing a serious red shift in any image that has only 3 colors
-        #if T4.returnResidualNorm() >= T3.returnResidualNorm():
-        #    self.shift = T4.shift
-        #    self.scale = T4.scale
-        #else:
-        #    self.shift = T3.shift
-        #    self.scale = T3.scale
-
-        self.shift = T3.shift
-        self.scale = T3.scale
+            self.shift = T3.shift
+            self.scale = T3.scale
+        else:
+            rospy.loginfo('ai: average error too large. transform NOT updated.')
 
 
     def applyTransform(self, image):

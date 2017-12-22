@@ -158,33 +158,33 @@ class kMeansClass:
 
             if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
                 ListOfIndices.append(errorBlackSortedIdx[index])
-                print str(index) + " in black " + str(ListOfIndices)
+                # print str(index) + " in black " + str(ListOfIndices)
                 blackIdxFound = True
                 idxBlack = errorBlackSortedIdx[index]
             if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
                 ListOfIndices.append(errorWhiteSortedIdx[index])
-                print str(index) + " in white " + str(ListOfIndices)
+                # print str(index) + " in white " + str(ListOfIndices)
                 whiteIdxFound = True
                 idxWhite = errorWhiteSortedIdx[index]
             if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
                 ListOfIndices.append(errorYellowSortedIdx[index])
-                print str(index) + " in yellow " + str(ListOfIndices)
+                # print str(index) + " in yellow " + str(ListOfIndices)
                 yellowIdxFound = True
                 idxYellow = errorYellowSortedIdx[index]
             if withRed:
                 if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
                     ListOfIndices.append(errorRedSortedIdx[index])
                     redIdxFound = True
-                    print str(index) + "in red" + str(ListOfIndices)
+                    # print str(index) + "in red" + str(ListOfIndices)
                     idxRed = errorRedSortedIdx[index]
-                print "True?: " + str(redIdxFound) + str(yellowIdxFound) + str(whiteIdxFound) + str(blackIdxFound)
+                # print "True?: " + str(redIdxFound) + str(yellowIdxFound) + str(whiteIdxFound) + str(blackIdxFound)
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
-                print "centersFound: " + str(centersFound)
+                # print "centersFound: " + str(centersFound)
 
             else:
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
             index = index + 1
-            print "End of while loop. Index: " + str(index)
+            # print "End of while loop. Index: " + str(index)
 
         # return the minimal error indices for the trained centers.
         if (withRed):
@@ -199,7 +199,7 @@ class kMeansClass:
     def detectOutlier(self, trainedCenters, trueCenters):  # YWRB
         n_centers, n_channels = trainedCenters.shape
         # trueCenters = np.vstack([[50, 240, 240], [240, 240, 240], [60, 60, 240], [60, 60, 60]])  # YWRB
-        print n_centers
+        # print n_centers
         errors = np.zeros(n_centers)
         errorArrayTotal = np.zeros(n_centers)
         # leave one trained center out and estimate transform with the rest of the centers
@@ -210,7 +210,7 @@ class kMeansClass:
             # calculate transform with the other centers
             T = calcTransform(n_centers - 1, trainedCentersTemp, trueCenterstemp)
             T.calcTransform()
-            print "the transform is: shift - " + str(T.shift) + ", scale - " + str(T.scale)
+            # print "the transform is: shift - " + str(T.shift) + ", scale - " + str(T.scale)
             # print "left out " + str(leaveOut) + ", new centers: " + str(tempArray)
             # transformedCenters = np.zeros((tempArray.shape))
 
@@ -221,9 +221,11 @@ class kMeansClass:
                 tempTrueCenter = trueCenters[j]
                 errorArray[j] = self.estimateError(tempTrafoCenter, tempTrueCenter)
             errorArrayTotal[i] = np.sum(errorArray)
-            print "error of trafo: " + str(errorArrayTotal[i])
+            # print "error of trafo: " + str(errorArrayTotal[i])
         errorArraySortedIdx = np.argsort(errorArrayTotal)
-        return errorArraySortedIdx[0], trainedCenters[errorArraySortedIdx[0]]  # return first element.
+        averageError = np.average(errorArrayTotal[1:n_centers])
+        # print(averageError)
+        return errorArraySortedIdx[0], [errorArraySortedIdx[0]], averageError  # return first element.
         # this set of centers leads to the lowest error and the left out center is therefore the outlier.
 
     def estimateError(self, trained_center, truecenter):
