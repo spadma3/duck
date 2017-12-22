@@ -1,243 +1,108 @@
-import rospy
+#!/usr/bin/env python
 import numpy as np
+from collections import deque
+
+class VehicleCommands(object):
+    '''class for storing vehicle commands'''
 
-# the function estimate pose(see further down) should be used to get a pose estimate. This function uses the following function EKF_step:
-
-def EKF_step(PoseList, VarianceList, Input, InputList, *Measurement)
-		b = 0.05 #wheelbase [m], possible improvement: get value from devel sys id
-		k =	0.9 #how to determine this?, kinematics covariance parameter
-		#todo: measurement covariance parameters:
-		r_x =
-		r_y =
-		r_theta = 
-
-		#Measurement = [x, y ,theta, ]'
-
-		
-
-		#if there is a measurement
-		if len(Measurement) != 0:
-
-			#select pose at time of Measurement origin from poselist, same for input
-			t = Measurement[3] #timestamp of Measurement
-			n = #delta t
-
-			#find index of past input/state corresponding to the new measurement
-
-			for i in range( len(InputList[0,:]) )
-
-				if InputList[2,i] > t #if input happened after measurement
-				return(i)
-
-
-			x = PoseList[:,i] #PoseList(:,n) #3x1 vector(numpy array)
-			P = VarianceList[:,:,i]#intial state variance
-			u = Input     # latest input, 2x1 vector vl vr
-			
-			
-			
-
-			#predict mean xp of pose after input by forward kinematics motion model
-			xp = x + np.array([ [ ( u[0] + u[1] )/2 * cos( x[2] + ( u[1] - u[0] ) / (2*b) ) 	],
-	    						[ ( u[0] + u[1] )/2 * sin( x[2] + ( u[1] - u[0] ) / (2*b) ) 	],
-	    						[ ( u[1] - u[0] )/b												] 	])
-
-
-
-			# calculate Jacobian of motion model w.r.t state 3x3
-			F_x = np.array([	[	1, 0, -sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2)	],
-			  					[  	0, 1,  cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2)	],
-			    				[	0, 0,  1													]  ])
-
-			# calculate Jacobian of motion model w.r.t input 3x2
-
-			F_u = np.array([	[	cos(x[2] - (u[0] - u[1])/(2*b))/2 + (sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b), cos(x[2] - (u[0] - u[1])/(2*b))/2 - (sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b) ],
-					    		[	sin(x[2] - (u[0] - u[1])/(2*b))/2 - (cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b), sin(x[2] - (u[0] - u[1])/(2*b))/2 + (cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b) ],
-					    		[	-1/b,                                                                                    1/b 	]	])
-					   
-
-			#predict variance Pp of pose after input by forward kinematics
-
-			Q = np.array([	[ k * abs(u[0]), 0 ],
-							[ 0, k * abs(u[1]) ]
-									])
-			Pp = F_x @ P @ np.transpose(F_x) + F_u @ Q @ np.transpose(F_u)
-
-			##measurement update
-
-			#jacobian of measurement model wrt state
-			H = np.identity(3)
-
-			# wrt to noise
-			M = np.identity(3)
-
-			#measurement covariance
-			R = np.diag([r_x, r_y, r_theta])
-
-			#measurement	
-			z = Measurement
-
-
-
-
-			#Kalman Gain
-			K = Pp @ np.transpose(H) @ np.linalg.inv( H @ Pp @ np.transpose(H) + M @ R @ np.transpose(M) )
-
-			#state after measurement update
-			xm = xp + K @ (z - xp)
-
-			Pm = (np.identity(3) - K @ H) @ Pp
-
-			x = xm
-			P = Pm
-
-
-
-			# prediction update N times until current time
-
-			for t in trange(n ?):
-			
-
-				##predict mean xp of pose after input by forward kinematics motion model
-				xp = x + np.array([ [ ( u[0] + u[1] )/2 * cos( x[2] + ( u[1] - u[0] ) / (2*b) ) 	],
-	    						[ ( u[0] + u[1] )/2 * sin( x[2] + ( u[1] - u[0] ) / (2*b) ) 	],
-	    						[ ( u[1] - u[0] )/b												] 	])
-
-
-
-				# calculate Jacobian of motion model w.r.t state 3x3
-				F_x = np.array([	[	1, 0, -sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2)	],
-			  					[  	0, 1,  cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2)	],
-			    				[	0, 0,  1													]  ])
-
-				# calculate Jacobian of motion model w.r.t input 3x2
-
-				F_u = np.array([	[	cos(x[2] - (u[0] - u[1])/(2*b))/2 + (sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b), cos(x[2] - (u[0] - u[1])/(2*b))/2 - (sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b) ],
-					    		[	sin(x[2] - (u[0] - u[1])/(2*b))/2 - (cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b), sin(x[2] - (u[0] - u[1])/(2*b))/2 + (cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b) ],
-					    		[	-1/b,                                                                                    1/b 	]	])
-					   
-
-				#predict variance Pp of pose after input by forward kinematics
-
-				Q = np.array([	[ k * abs(u[0]), 0 ],
-							[ 0, k * abs(u[1]) ]
-									])
-				Pp = F_x @ P @ np.transpose(F_x) + F_u @ Q @ np.transpose(F_u)
-
-				x = xp
-				P = Pp
-
-			xf = x
-			Pf = P
-
-			
-
-
-
-
-
-
-	
-
-		#if there is no measurement
-		else 
-
-			#rename input arguments
-			x = PoseList[:,0] #3x1 vector(numpy array)
-			u = Input      #2x1 vector
-			P = VarianceList[:,:,i]#intial state variance
-
-
-			##predict mean xp of pose after input by forward kinematics motion model
-			xp = x + np.array([ [ ( u[0] + u[1] )/2 * cos( x[2] + ( u[1] - u[0] ) / (2*b) ) 	],
-	    						[ ( u[0] + u[1] )/2 * sin( x[2] + ( u[1] - u[0] ) / (2*b) ) 	],
-	    						[ ( u[1] - u[0] )/b												] 	])
-
-
-
-			# calculate Jacobian of motion model w.r.t state 3x3
-			F_x = np.array([	[	1, 0, -sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2)	],
-			  					[  	0, 1,  cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2)	],
-			    				[	0, 0,  1													]  ])
-
-			# calculate Jacobian of motion model w.r.t input 3x2
-
-			F_u = np.array([	[	cos(x[2] - (u[0] - u[1])/(2*b))/2 + (sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b), cos(x[2] - (u[0] - u[1])/(2*b))/2 - (sin(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b) ],
-					    		[	sin(x[2] - (u[0] - u[1])/(2*b))/2 - (cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b), sin(x[2] - (u[0] - u[1])/(2*b))/2 + (cos(x[2] - (u[0] - u[1])/(2*b))*(u[0]/2 + u[1]/2))/(2*b) ],
-					    		[	-1/b,                                                                                    1/b 	]	])
-					   
-
-			#predict variance Pp of pose after input by forward kinematics
-
-			Q = np.array([	[ k * abs(u[0]), 0 ],
-							[ 0, k * abs(u[1]) ]
-									])
-
-			Pp = F_x @ P @ np.transpose(F_x) + F_u @ Q @ np.transpose(F_u)
-
-			xf = xp
-			Pf = Pp
-
-
-
-		#add xf and Pf and u to list of x and Ps and u and shorten those lists
-
-
-		return(xf,Pf) 
-
-
-def EstimatePose(InitalPose=False, InitialVariance=False, Input, Inputlength, Measurement=False)
-
-	
-	Input = np.array([ 	[Input.vel_left * Inputlength]   #wheel distance = velocity * input duration
-						[Input.vel_right * Inputlength]
-						[Input.header.stamp]	]) #make np array
-
-	
-	InputList = np.array([ [Input, InputList]	]) #add new inputs to list
-
-
-	if InitialPose != False
-		Poselist = np.array([ 	[InitalPose] 
-								[Input[2]]			]) # enter initialpose with timestamp into poselist
-
-	if InitialVariance != False
-		Variancelist = np.array([ 	[InitalPose] 			#same with variance
-									[Input[2]]		])
-
-
-
-
-	 
-#if there is a measurement
-	if Measurement != False
-		
-		xandP = EKF_step(PoseList, VarianceList, Input, InputList, Measurement)
-
-	else
-	
-		xandP =EKF_step(PoseList, VarianceList, Input, InputList)
-
-
-
-
-#update lists with new values
-	x = np.array([ 	[xandP[:,0]]
-					[Input[2]]		]) #x equals state from ekf step with the timestamp of corresponding input appended
-
-	PoseList = np.array([ [x, PoseList]	]) #add new inputs to list
-
-
-
-	P = np.array([ 	[xandP[:,1]]
-					[Input[2]]		]) 
-
-	VarianceList = np.array([ [P, VarianceList]	])
-
-	
-
-
-	x= xandP[:,0]
-	
-	return (x)	
-
+    def __init__(self,v,omega,time):
+        self.v = v
+        self.omega = omega
+        self.time = time
+
+
+class PoseEstimator(object):
+    '''class for estimating pose of Duckiebot at intersection'''
+
+    def __init__(self):
+        # estimator state
+        self.state_est = np.zeros(shape=3, dtype=float) # state = (x,y,theta)
+        self.cov_est = np.zeros(shape=(3,3), dtype=float)
+        self.time_est = 0.0
+
+        # vehicle command queue
+        self.cmd_queue = deque([VehicleCommands(0.0, 0.0, 0)])
+
+        # estimator parameters
+        self.cov_proc = np.diag([0.1,0.1]) # process noise is assumed to be on inputs
+
+    def Reset(self, x_init, y_init, theta_init, time_init):
+        '''reset state estimate'''
+        self.state_est[0] = x_init
+        self.state_est[1] = y_init
+        self.state_est[2] = theta_init
+
+        self.time_est = time_init
+
+        self.cov_est = np.diag([1.0, 1.0, 1.0])
+
+    def PredictState(self, time_pred, predict_cov=False):
+        '''predict estimate forward until time_pred'''
+        state_est = self.state_est[:, :]
+        cov_est = self.cov_est[:,:]
+        time_est = self.time_est
+
+        # integrate forward with vehicle commands
+        idx_cmd = 0
+        num_cmd = len(self.cmd_queue)
+        while time_est < time_pred:
+            # find current command
+            if idx_cmd + 1 < num_cmd:
+                dt = min(self.cmd_queue[idx_cmd+1].time, time_pred) - time_est # careful, this could eventually cause problems if running long
+            else:
+                dt = time_pred - time_est
+
+            # predict covariance
+            if predict_cov:
+                A = np.array([[0.0, 0.0, -self.cmd_queue[idx_cmd].v*np.sin(state_est[2])],
+                             [0.0, 0.0, self.cmd_queue[idx_cmd].v*np.cos(state_est[2])],
+                            [0.0, 0.0, 0.0]])
+                L = np.array([[np.cos(state_est[2]), 0.0],
+                              [np.sin(state_est[2]), 0.0],
+                              [0.0, 1.0]])
+                cov_dot = np.dot(A,cov_est) + np.dot(cov_est, A.T) + np.dot(L, np.dot(self.cov_proc, L.T))
+                cov_est = cov_est + cov_dot*dt
+
+            # predict state
+            if np.abs(self.cmd_queue[idx_cmd].omega) > 1e-6:
+                radius = self.cmd_queue[idx_cmd].v / self.cmd_queue[idx_cmd].omega
+
+                state_est[0] = (state_est[0] - radius*np.sin(state_est[2])) + radius*np.sin(state_est[2] + self.cmd_queue[idx_cmd].omega * dt)
+                state_est[1] = (state_est[1] + radius*np.cos(state_est[2])) - radius*np.cos(state_est[2] + self.cmd_queue[idx_cmd].omega * dt)
+            else:
+                state_est[0] = state_est[0] + self.cmd_queue[idx_cmd].v*np.cos(state_est[2])*dt
+                state_est[1] = state_est[1] + self.cmd_queue[idx_cmd].v*np.sin(state_est[2])*dt
+            state_est[2] = state_est[2] + self.cmd_queue[idx_cmd].omega * dt
+
+
+            time_est = time_est + dt
+            idx_cmd += 1
+
+        # make sure covariance matrix is symmetric
+        cov_est = 0.5*(cov_est + cov_est.T)
+
+        return state_est, cov_est
+
+    def FeedCommandQueue(self, v, omega, time):
+        '''store applied commands in command queue'''
+        self.command_queue.append(VehicleCommands(v,omega,time))
+
+
+    def UpdateWithPoseMeasurement(self, x_meas, y_meas, theta_meas, cov_meas, time_meas):
+        '''update state estimate with pose measurement'''
+
+        # prior update
+        state_prior, cov_prior = self.PredictState(time_meas, True)
+
+        # remove old commands from queue
+        while self.cmd_queue[0] < time_meas and len(self.cmd_queue) > 1:
+            self.cmd_queue.popleft()
+
+        # a posteriori update
+        K = np.dot(cov_prior, np.linalg.inv(cov_prior + cov_meas))
+        state_posterior = state_prior + np.dot(K, (np.array([x_meas, y_meas, theta_meas]) - state_prior))
+        cov_posterior = cov_prior - np.dot(K, cov_prior)
+
+        # store results
+        self.state_est = state_posterior
+        self.cov_est = cov_posterior
