@@ -3,12 +3,14 @@ import rospy
 from anti_instagram.AntiInstagram_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
-from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
-                                 AntiInstagramTransform_CB, BoolStamped)
+from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform, AntiInstagramTransform_CB, BoolStamped)
 from duckietown_utils.jpg import image_cv_from_jpg
 from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
 import numpy as np
+
+import time
+import threading
 
 """
 This node subscribed to the uncorrected images from the camera and corrects these images
@@ -24,6 +26,9 @@ class ImageTransformerNode():
         # TODO verify if required?
         self.active = True
         self.locked = False
+        self.thread_lock = threading.Lock()
+        self.r = rospy.Rate(4) # Rate in Hz
+        robot_name = rospy.get_param("~veh", "") #to read the name always reliably
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
@@ -32,14 +37,14 @@ class ImageTransformerNode():
         self.sub_image = rospy.Subscriber(
             # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
             # "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            "/maxhav/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            '/{}/camera_node/image/compressed'.format(robot_name), CompressedImage, self.callbackImage, queue_size=1)
 
         self.sub_trafo = rospy.Subscriber(
-            "/maxhav/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+            '/{}/cont_anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
             # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
 
         self.sub_colorBalance = rospy.Subscriber(
-            "/maxhav/cont_anti_instagram_node/colorBalanceTrafo", AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
+            '/{}/cont_anti_instagram_node/colorBalanceTrafo'.format(robot_name), AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
 
         # Read parameters
         self.trafo_mode = self.setupParameter("~trafo_mode", 'both')
@@ -71,9 +76,18 @@ class ImageTransformerNode():
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-
+    def callbackImage(self, image_msg):
+        #use this to avoid lag!
+        thread = threading.Thread(target=self.cbNewImage,args=(image_msg,))
+        thread.setDaemon(True)
+        thread.start()
 
     def cbNewImage(self, image_msg):
+
+        if not self.thread_lock.acquire(False):
+                return
+
+        #start = time.time() #with this you can measure the time,..
         print('image received!')
         # memorize image
         self.image_msg = image_msg
@@ -112,9 +126,15 @@ class ImageTransformerNode():
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
 
+        #end = time.time()   #with this you can measure the time,..
+        #print "GOING THROUGH TOOK: s"  #with this you can measure the time,..
+        #print(end - start)  #with this you can measure the time,..
 
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
+
+        self.r.sleep() #to keep the rate
+        self.thread_lock.release()
 
 
     def cbNewTrafo(self, trafo_msg):
