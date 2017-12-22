@@ -109,16 +109,17 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def update(self, segments, range_arr):
 
         for i in range(self.num_belief):
-            if i == 0:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 2])    
-            else:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 1])
+            #if i == 0:
+            #    measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 2])    
+            #else:
+            measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 1])
             if measurement_likelihood is not None:
                 self.beliefArray[i] = np.multiply(self.beliefArray[i],measurement_likelihood)
                 if np.sum(self.beliefArray[i]) == 0:
                     self.beliefArray[i] = measurement_likelihood
                 else:
                     self.beliefArray[i] = self.beliefArray[i]/np.sum(self.beliefArray[i])
+        return measurement_likelihood
 
     def generate_measurement_likelihood(self, segments, range_min, range_max):
 
@@ -174,8 +175,14 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.d_median.append(delta_dmax)
         self.phi_median.append(delta_phimax)
         curvature= 10.0
+        diffbla =abs(np.max(phi_max)-np.min(phi_max)) 
+        print diffbla
+        if diffbla<0.07:
+            isstraight =1
+        else:
+            isstraight=0
         #set curvature 
-        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
+        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05  and isstraight==0:
             print "left curve"
             curvature = 0.025
         elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
@@ -184,7 +191,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         else:
             print "straight line"
             curvature = 0.0
-
+        print "np median d phi", np.median(self.d_median) , np.median(self.phi_median)
         return [d_max,phi_max ,curvature]
 
     def getMax(self):
