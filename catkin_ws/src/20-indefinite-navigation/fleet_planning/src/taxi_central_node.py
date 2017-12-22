@@ -191,7 +191,6 @@ class TaxiCentralNode:
         # The whole taxi_central_node uses strings as node ids. So let's make sure we use strings too
         # from this point onwards.
         node = str(node)
-        route = map(str, route)
 
         if duckiebot_name not in self._registered_duckiebots: # new duckiebot
             self._create_and_register_duckiebot(duckiebot_name)
