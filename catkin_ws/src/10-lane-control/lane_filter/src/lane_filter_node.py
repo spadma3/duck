@@ -97,7 +97,7 @@ class LaneFilterNode(object):
                 d =self.store_d[2]
                 phi =self.store_phi
                 self.store_d.pop(0)
-                self.store_d.appendd(d_max[0])
+                self.store_d.append(d_max[0])
                 print "rejected"
             # else take the new d and store it i
             else:

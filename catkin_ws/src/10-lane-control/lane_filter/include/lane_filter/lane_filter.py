@@ -169,7 +169,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         delta_dmax = np.median(d_max[1:]) # - d_max[0]
         delta_phimax = np.median(phi_max[1:]) #- phi_max[0]
 
-        if len(self.d_median) >= 5:
+        if len(self.d_median) >= 3:
             self.d_median.pop(0)
             self.phi_median.pop(0)
         self.d_median.append(delta_dmax)
