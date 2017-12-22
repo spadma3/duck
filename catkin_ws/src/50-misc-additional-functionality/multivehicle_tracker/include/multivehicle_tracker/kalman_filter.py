@@ -4,10 +4,11 @@ import numpy as np
 class KalmanFilter:
     def __init__(self, x, y, e):
         self.mu = [x, 0.0, y, 0.0]
-        self.sigma = np.diag([e, 0.15, e, 0.15])
+        self.sigma = np.diag([e, 1.0, e, 1.0])
         self.Q = np.diag([0.01, 0.01])
         self.H = np.array([[1, 0, 0, 0],
                           [0, 0, 1, 0]])
+        self.R = np.diag([0.01, 0.01])
         self.I = np.eye(4)
 
     def F(self, dt):
@@ -23,9 +24,6 @@ class KalmanFilter:
                         [1, 0],
                         [0, 0],
                         [0, 1]]) * dt
-
-    def R(self, e):
-            return np.diag([0.01, 0.01])  # * e
 
     def G(self, dt):
         return np.array([
@@ -46,7 +44,7 @@ class KalmanFilter:
 
     def correct(self, point, e):
         z = np.array([point[0], point[1]])
-        S = np.matmul(self.H, np.matmul(self.sigma, self.H.T)) + self.R(e)
+        S = np.matmul(self.H, np.matmul(self.sigma, self.H.T)) + self.R
         K = np.matmul(self.sigma, np.matmul(self.H.T, np.linalg.inv(S)))
         y = z - np.matmul(self.H, self.mu)
         self.mu = self.mu + np.matmul(K, y)

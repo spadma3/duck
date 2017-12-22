@@ -41,7 +41,7 @@ class MultiVehicleTrackerNode:
 
     def pixel2ground(self, x, y):
         u, v, w = np.dot(self.groundplane_homography, (x, y, 1))
-        return -v / w, u / w  # TODO: switch coordinates
+        return u / w, v / w  # TODO: switch coordinates
 
     def mid_groundplane_point(self, bot_detection):
         y_max = bot_detection.ymax
@@ -67,7 +67,8 @@ class MultiVehicleTrackerNode:
                 )
             )
 
-        self.pub_tracklet.publish(tracklet_list_msg)
+        if len(tracklet_list_msg.tracklets) > 0:
+            self.pub_tracklet.publish(tracklet_list_msg)
 
     def on_detections_received(self, object_detections):
         current_time = rospy.get_time()
