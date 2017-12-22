@@ -105,10 +105,10 @@ class LaneFilterNode(object):
 
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
-        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
+        if np.median(self.phi_median) - phi_max[0] < -0.3 and np.median(self.d_median) > 0.05:
             print "left curve"
             lanePose.curvature = 0.025
-        elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
+        elif np.median(self.phi_median) - phi_max[0] > 0.2 and np.median(self.d_median) < -0.02:
             print "right curve"
             lanePose.curvature = -0.054
         else:
