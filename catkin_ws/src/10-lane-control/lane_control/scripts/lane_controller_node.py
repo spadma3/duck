@@ -197,11 +197,15 @@ class lane_controller(object):
 
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
+        image_delay_array.append(image_delay)
 
         prev_cross_track_err = self.cross_track_err
         prev_heading_err = self.heading_err
         self.cross_track_err = lane_pose_msg.d - self.d_offset
         self.heading_err = lane_pose_msg.phi
+
+        print "Latency from image to car control: ", image_delay
+        print "Mean overall latency image to car cmd: ", np.mean(image_delay_array)
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
@@ -317,6 +321,12 @@ class lane_controller(object):
         # self.pub_.publish(car_control_msg)
         self.publishCmd(car_control_msg)
         self.last_ms = currentMillis
+
+        # Latency car_cmd
+        car_cmd_stamp = rospy.Time.now() - timestamp_now
+        car_cmd_latency = car_cmd_stamp.secs + car_cmd_stamp.nsecs/1e9
+
+        print "Latency car_cmd: ", car_cmd_latency
 
         # debuging
         # self.pub_counter += 1

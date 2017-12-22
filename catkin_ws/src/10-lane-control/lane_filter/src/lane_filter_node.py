@@ -50,6 +50,9 @@ class LaneFilterNode(object):
     def processSegments(self,segment_list_msg):
         if not self.active:
             return
+        
+        # Calculating the delay image processing took
+        timestamp_now = rospy.Time.now()
 
         # Step 1: predict
         current_time = rospy.get_time()
@@ -116,11 +119,24 @@ class LaneFilterNode(object):
             print "straight line"
             lanePose.curvature = 0.0
 
+        # Calculate latency of estimation
+        estimation_latency_stamp = rospy.Time.now() - timestamp_now
+        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
+
+        print "Latency of estimation: ", estimation_latency
+
+
         # publish the belief image
         bridge = CvBridge()
         belief_img = bridge.cv2_to_imgmsg((255*self.filter.beliefArray[0]).astype('uint8'), "mono8")
         belief_img.header.stamp = segment_list_msg.header.stamp
         
+        # Calculate latency of belief image
+        belief_latency_stamp = rospy.Time.now() - timestamp_now - estimation_latency_stamp
+        belief_latency = belief_latency_stamp.secs + belief_latency_stamp.nsecs/1e9
+
+        print "Latency of belief image: ", belief_latency
+
         self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
 
