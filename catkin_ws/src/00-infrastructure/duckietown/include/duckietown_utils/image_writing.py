@@ -28,7 +28,7 @@ def write_image_as_jpg(image, filename):
 def write_jpgs_to_dir(name2image, dirname):
     return write_bgr_images_as_jpgs(name2image, dirname)
     
-def write_bgr_images_as_jpgs(name2image, dirname):
+def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
     """ 
         Write a set of images to a directory.
         
@@ -57,8 +57,11 @@ def write_bgr_images_as_jpgs(name2image, dirname):
     for i, (filename, image) in enumerate(res.items()):
         if filename == 'all':
             basename = 'all'
+            if extra_string is not None:
+                image = add_header_to_image(image, extra_string)
         else:
             basename = ('step%02d-'%i)+filename
+        
             
         fn = os.path.join(dirname, basename+'.jpg')
         write_bgr_to_file_as_jpg(image, fn)

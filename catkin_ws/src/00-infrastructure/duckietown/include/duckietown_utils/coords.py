@@ -16,3 +16,15 @@ def SE2_from_xyth(xyth):
 
 # meters from inches
 m_from_in = lambda x: x * 0.0254 
+
+
+def norm_angle(theta):
+    while theta < -np.pi:
+        theta += np.pi*2
+    
+    while theta > +np.pi:
+        theta -= np.pi*2
+    
+    assert -np.pi <= theta <= +np.pi
+    
+    return theta
