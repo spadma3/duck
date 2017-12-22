@@ -18,7 +18,7 @@ Global parameters
 """
 # control parameters
 choose_random_parking_space_combination = False
-close_itself = False
+close_itself = True
 save_figures = True
 pause_per_path = 0.5 # sec
 ploting = True
@@ -112,12 +112,12 @@ def pose_from_key(key):
 def define_objects():
     # x, y, dx, dy, colour, driveable
     objects = []
-    objects.append((0.0,0.0, narrow_tape_width, space_length, "b", False))
-    objects.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", False))
-    objects.append((lot_width/2.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", False))
-    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", False))
-    objects.append((lot_width-narrow_tape_width,0.0, narrow_tape_width, space_length, "b", False))
-    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0, lot_height-space_length, narrow_tape_width, space_length, "b", False))
+    objects.append((0.0,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width/2.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width-narrow_tape_width,0.0, narrow_tape_width, space_length, "b", True))
+    objects.append((lot_width/4.0*3.0-narrow_tape_width/2.0, lot_height-space_length, narrow_tape_width, space_length, "b", True))
     objects.append((wide_tape_width+length_red_line, lot_height-lanes_length, narrow_tape_width, lanes_length, "y", True))
     objects.append((0.0,lot_height-lanes_length, wide_tape_width,lanes_length, "w", True))
     objects.append((lot_width/2.0-wide_tape_width,lot_height-lanes_length, wide_tape_width,lanes_length, "w", False)) # False
@@ -277,24 +277,34 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
     plt.xlim([-visual_boundairy,lot_height+visual_boundairy])
     plt.ylim([-visual_boundairy,lot_width+visual_boundairy])
 
-    # objects = [(0.0,0.0, lot_width, lot_height, (0.3,0.3,0.3), True)]
+    # background
     ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fc=(0.3,0.3,0.3)))
 
+    # obstacles
     for obstacle in obstacles:
         if obstacle[0] == "rectangle":
             ax.add_patch( patches.Rectangle( (obstacle[1], obstacle[2]),
-            obstacle[3], obstacle[4], fc="m", ec="m", hatch='x'))
+            obstacle[3], obstacle[4], fc="m", ec="m", hatch='x',lw=0.0))
         if obstacle[0] == "circle":
             ax.add_patch( patches.Circle( (obstacle[1], obstacle[2]),
-            obstacle[3], fc="m", ec="m", hatch='x'))
+            obstacle[3], fc="m", ec="m", hatch='x',lw=0.0))
+
+    # boundairies
+    r = 1.1*radius_robot
+    ax.add_patch( patches.Rectangle( (0.0-r, 0.0-r), r, lot_height+2.0*r, fc="w", ec="w"))
+    ax.add_patch( patches.Rectangle( (0.0-r, 0.0-r), lot_height+2.0*r, r, fc="w", ec="w"))
+    ax.add_patch( patches.Rectangle( (0.0-r, lot_height), lot_width+2.0*r, lot_height, fc="w", ec="w"))
+    ax.add_patch( patches.Rectangle( (lot_width, 0.0-r), r, lot_height+2.0*r, fc="w", ec="w"))
+
 
     for obj in objects:
         if obj[5]:
             ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
-            obj[2], obj[3], fc=obj[4] ))
+            obj[2], obj[3], fc=obj[4]))
         else:
             ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
             obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
+    ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fc=(0.3,0.3,0.3),fill=False))
 
     if close_itself:
         plt.draw()
@@ -335,7 +345,7 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        start_numbers = [4]
-        end_numbers = [7]
+        # start_numbers = [4]
+        # end_numbers = [7]
         for start_number, end_number in zip(start_numbers, end_numbers):
             path_planning(start_number, end_number)
