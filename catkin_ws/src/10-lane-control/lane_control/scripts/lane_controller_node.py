@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose
+import numpy as np
+from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, ActuatorParameters, BoolStamped
+import time
 ####JULIEN from duckietown_msgs.msg import LaneCurvature
 class lane_controller(object):
     def __init__(self):
         self.node_name = rospy.get_name()
         self.lane_reading = None
-
+        self.last_ms = None
         self.pub_counter = 0
 
         # Setup parameters
@@ -15,9 +17,12 @@ class lane_controller(object):
 
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+        self.pub_actuator_params_received = rospy.Publisher("~actuator_params_received", BoolStamped, queue_size=1)
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
+        self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0
         # safe shutdown
@@ -34,7 +39,6 @@ class lane_controller(object):
         return value
 
 
-
     def setGains(self):
         v_bar = 0.5 # nominal speed, 0.5m/s
         k_theta = -2.0
@@ -45,12 +49,24 @@ class lane_controller(object):
 
         # incurvature = False
         # curve_inner = False
-        k_Id = 0.2
-        k_Iphi = 0.1
+        k_Id = 2.5
+        k_Iphi = 1.25
+        self.cross_track_err = 0
+        self.heading_err = 0
         self.cross_track_integral = 0
         self.heading_integral = 0
         self.time_start_curve = 0
         turn_off_feedforward_part = False
+        self.wheels_cmd_executed = WheelsCmdStamped()
+
+        self.actuator_params = ActuatorParameters()
+        self.actuator_params.gain = 0.0
+        self.actuator_params.trim = 0.0
+        self.actuator_params.baseline = 0.0
+        self.actuator_params.radius = 0.0
+        self.actuator_params.k = 0.0
+        self.actuator_params.limit = 0.0
+        self.omega_max = 999.0     # TODO: change!
 
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
@@ -114,6 +130,22 @@ class lane_controller(object):
             # self.curve_inner = curve_inner
 
 
+    def updateWheelsCmdExecuted(self, msg_wheels_cmd):
+        self.wheels_cmd_executed = msg_wheels_cmd
+
+
+    def updateActuatorParameters(self, msg_actuator_params):
+        self.actuator_params = msg_actuator_params
+        rospy.loginfo("actuator_params updated to: ")
+        rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
+        rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
+        rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
+        rospy.loginfo("actuator_params.radius: " + str(self.actuator_params.radius))
+        rospy.loginfo("actuator_params.k: " + str(self.actuator_params.k))
+        rospy.loginfo("actuator_params.limit: " + str(self.actuator_params.limit))
+        msg_actuator_params_received = BoolStamped()
+        msg_actuator_params_received.data = True
+        self.pub_actuator_params_received.publish(msg_actuator_params_received)
 
 
     def custom_shutdown(self):
@@ -166,35 +198,48 @@ class lane_controller(object):
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
-        cross_track_err = lane_pose_msg.d - self.d_offset
-        heading_err = lane_pose_msg.phi
+        prev_cross_track_err = self.cross_track_err
+        prev_heading_err = self.heading_err
+        self.cross_track_err = lane_pose_msg.d - self.d_offset
+        self.heading_err = lane_pose_msg.phi
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
-        if math.fabs(cross_track_err) > self.d_thres:
+        if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
-            cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
+            self.cross_track_err = self.cross_track_err / math.fabs(self.cross_track_err) * self.d_thres
 
-        self.cross_track_integral += cross_track_err
-        self.heading_integral += heading_err
+        currentMillis = int(round(time.time() * 1000))
 
-        if self.cross_track_integral > 4:
-            rospy.loginfo("you're greater 5")
-            self.cross_track_integral = 4
-        if self.cross_track_integral < -4:
-            rospy.loginfo("youre smaller -5")
-            self.cross_track_integral = -4
+        if self.last_ms is not None:
+            dt = (currentMillis - self.last_ms) / 1000.0
+            self.cross_track_integral += self.cross_track_err * dt
+            self.heading_integral += self.heading_err * dt
 
-        if self.heading_integral < -15:
-            self.heading_integral = -15
-        if self.heading_integral > 15:
-            self.heading_integral = 15
+        if self.cross_track_integral > 0.3:
+            rospy.loginfo("you're greater 0.3")
+            self.cross_track_integral = 0.3
+        if self.cross_track_integral < -0.3:
+            rospy.loginfo("youre smaller -0.3")
+            self.cross_track_integral = -0.3
 
-        if abs(cross_track_err) <= 0.011:       # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
+        if self.heading_integral < -1.2:
+            self.heading_integral = -1.2
+        if self.heading_integral > 1.2:
+            self.heading_integral = 1.2
+
+        if abs(self.cross_track_err) <= 0.011:       # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.cross_track_integral = 0
-        if abs(heading_err) <= 0.051:           # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
+        if abs(self.heading_err) <= 0.051:           # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
+            self.heading_integral = 0
+        if np.sign(self.cross_track_err) != np.sign(prev_cross_track_err):
+            self.cross_track_integral = 0
+        if np.sign(self.heading_err) != np.sign(prev_heading_err):
+            self.heading_integral = 0
+        if self.wheels_cmd_executed.vel_right == 0 and self.wheels_cmd_executed.vel_left == 0:
+            self.cross_track_integral = 0
             self.heading_integral = 0
 
         # if velocity_of_actual_motor_comand == 0:       # TODO: get this velocity that is actually sent to the motors and plug in here
@@ -210,16 +255,26 @@ class lane_controller(object):
         if self.turn_off_feedforward_part:
             omega_feedforward = 0
 
-        car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
+        omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
         # rospy.loginfo("P-Control: " + str(car_control_msg.omega))
         # rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
-        car_control_msg.omega -= self.k_Id * self.cross_track_integral
-        car_control_msg.omega -= self.k_Iphi * self.heading_integral
-        car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
+        omega -= self.k_Id * self.cross_track_integral
+        omega -= self.k_Iphi * self.heading_integral
+        omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
+        ### omega_max_actuator_params = .....  # TODO: complete (based on parameters from self.actuator_params)
+        ### omega_max_radius_limitation = .....  # TODO: complete (based on radius limitation)
+        ### self.omega_max = min(omega_max_actuator_params, omega_max_radius_limitation)
+
+        if omega > self.omega_max:
+            car_control_msg.omega = self.omega_max
+            self.cross_track_integral -= self.cross_track_err * dt
+            self.heading_integral -= self.heading_err * dt
+        else:
+            car_control_msg.omega = omega
 
         # if not self.incurvature:
-        #     if heading_err > 0.3:
+        #     if self.heading_err > 0.3:
         #         self.incurvature = True
         #         rospy.set_param('~incurvature',True)
         #     car_control_msg.omega -= self.k_Id * self.cross_track_integral
@@ -240,20 +295,28 @@ class lane_controller(object):
         # rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
         # rospy.loginfo("Ktheta : " + str(self.k_theta))
         # rospy.loginfo("incurvature : " + str(self.incurvature))
-        # rospy.loginfo("cross_track_err : " + str(cross_track_err))
-        # rospy.loginfo("heading_err : " + str(heading_err))
+        # rospy.loginfo("cross_track_err : " + str(self.cross_track_err))
+        # rospy.loginfo("heading_err : " + str(self.heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
-        rospy.loginfo("heading_err: " + str(heading_err))
+        rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
+        rospy.loginfo("heading_err: " + str(self.heading_err))
         rospy.loginfo("heading_integral: " + str(self.heading_integral))
-        rospy.loginfo("cross_track_err: " + str(cross_track_err))
+        rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+        # rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
+        # rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
+        # rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
+        # rospy.loginfo("actuator_params.radius: " + str(self.actuator_params.radius))
+        # rospy.loginfo("actuator_params.k: " + str(self.actuator_params.k))
+        # rospy.loginfo("actuator_params.limit: " + str(self.actuator_params.limit))
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
         # print "controls: speed %f, steering %f" % (car_control_msg.speed, car_control_msg.steering)
         # self.pub_.publish(car_control_msg)
         self.publishCmd(car_control_msg)
+        self.last_ms = currentMillis
 
         # debuging
         # self.pub_counter += 1
