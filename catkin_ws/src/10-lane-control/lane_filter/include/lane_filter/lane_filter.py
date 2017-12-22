@@ -193,7 +193,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         else:
             print "straight line"
             curvature = 0.0
-
+        print "np median d phi", np.median(self.d_median) , np.median(self.phi_median)
         return [d_max,phi_max ,curvature]
 
     def getMax(self):
