@@ -56,7 +56,7 @@ class lane_controller(object):
         self.cross_track_integral = 0
         self.heading_integral = 0
         self.time_start_curve = 0
-        turn_off_feedforward_part = False
+        turn_off_feedforward_part = True
         self.wheels_cmd_executed = WheelsCmdStamped()
 
         self.actuator_params = ActuatorParameters()
