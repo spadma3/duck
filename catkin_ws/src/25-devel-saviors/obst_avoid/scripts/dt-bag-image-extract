@@ -19,17 +19,10 @@ if os.path.exists(dir):
 	sys.exit(3) 
 
 os.makedirs(dir)
-i = 0
-j = 15 #take a pic each half second since node runs at 30Hz
+i=0
 for topic, msg, t in bag.read_messages(topics=topic_interest):
-	if j!=15:
-		j=j+1
-	else:
 		im1=rgb_from_ros(msg)
 		im1=im1[...,::-1] #::-1 reverses a string!!!
 		cv2.imwrite(dir+ '/' + str(i) + '.jpg',im1)
 		i+=1
-		j=0
-
-
 bag.close()
