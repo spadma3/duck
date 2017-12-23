@@ -62,7 +62,7 @@ events: #Maps from subscribing topic to signal ids
 #    topic: "lane_filter_node/in_lane"
 #    msg_type: "BoolStamped"
 #    trigger: False
-#  found_lane: # note tested
+#  found_lane: # not tested
 #    topic: "lane_filter_node/in_lane"
 #    msg_type: "BoolStamped"
 #    trigger: True
