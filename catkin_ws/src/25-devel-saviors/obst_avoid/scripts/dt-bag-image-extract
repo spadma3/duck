@@ -7,7 +7,7 @@ from duckietown_utils.image_conversions import rgb_from_ros
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input_bagpath", help="specify link to input bagfile", type=str)
-parser.add_argument("topic_tolisten", help="specify the camera topic e.g. /tesla/camera_node/image/compressed ", type=str)
+parser.add_argument("topic_tolisten", help="specify the camera topic e.g. /tesla/image_transformer_node/corrected_image", type=str)
 parser.add_argument("output_directory", help="specify output directory", type=str)
 args=parser.parse_args()
 bag = rosbag.Bag(args.input_bagpath)
