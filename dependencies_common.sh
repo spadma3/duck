@@ -37,7 +37,7 @@ sudo apt remove -y \
 
 pip install --upgrade --user \
 	PyContracts==1.7.15 \
-    DecentLogs==1.1.2\
+	DecentLogs==1.1.2\
 	QuickApp==1.3.8 \
 	conftools==1.9.1 \
 	comptests==1.4.10 \
