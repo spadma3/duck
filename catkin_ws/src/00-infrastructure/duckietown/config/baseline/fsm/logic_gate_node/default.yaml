@@ -27,6 +27,18 @@ events:
     topic: "apriltag_node/ApriltagWithInfo"
     msg_type: "uint8"
     trigger: 14
+  joystick_override_on: 
+    topic: "joy_mapper_node/joystick_override"
+    msg_type: "BoolStamped"
+    trigger: True
+  parallel_autonomy_on:
+    topic: "joy_mapper_node/parallel_autonomy"
+    msg_type: "BoolStamped"
+    trigger: True
+  parallel_autonomy_off:
+    topic: "joy_mapper_node/parallel_autonomy"
+    msg_type: "BoolStamped"
+    trigger: False
 
 # TODO: 
 # - check whether non-Bool values can be given. 
@@ -38,12 +50,13 @@ gates:
     inputs:
       - at_stop_line
       - velocity_zero
-      output_topic: "~at_stop_line_and_velocity_zero"
+    output_topic: "~at_stop_line_and_velocity_zero"
   apriltag_parking_and_parking_active:
     gate_type: AND
     inputs:
       - apriltag_parking
       - parking_active
+    output_topic: "~apriltag_parking_and_parking_active"
   apriltag_parking:
     gate_type: OR
     inputs:
@@ -51,3 +64,16 @@ gates:
       - apriltag_right_t
       - apriltag_left_t
       - apriltag_t
+    output_topic: "~apriltag_parking"
+  joystick_override_on_and_parallel_autonomy_off:
+    gate_type: AND
+    inputs:
+      - joystick_override_on
+      - parallel_autonomy_off
+    output_topic: "~joystick_override_on_and_parallel_autonomy_off"
+  joystick_override_on_and_parallel_autonomy_on:
+    gate_type: AND
+    inputs:
+      - joystick_override_on
+      - parallel_autonomy_off
+    output_topic: "~joystick_override_on_and_parallel_autonomy_on"
