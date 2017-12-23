@@ -4,7 +4,7 @@ from distutils.core import setup
 from catkin_pkg.python_setup import generate_distutils_setup
 
 setup_args = generate_distutils_setup(
-    packages=['pose_estimator'],
+    packages=['intersection_localizer', 'path_planner', 'pose_estimator'],
     package_dir={'': 'include'},
 )
 
