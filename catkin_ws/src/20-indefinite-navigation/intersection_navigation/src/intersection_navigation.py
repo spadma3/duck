@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import cv2
+from path_planner.path_planner import PathPlanner
 from pose_estimator.pose_estimator import PoseEstimator
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
@@ -22,7 +23,7 @@ class IntersectionNavigation(object):
 
         # set up path planner, state estimator, ...
         self.intersectionLocalizer = IntersectionLocalizer(self.robot_name)
-        # self.pathPlanner = ...
+        self.pathPlanner = PathPlanner(self.robot_name)
         self.poseEstimator = PoseEstimator()
 
         # set up subscribers
@@ -57,8 +58,35 @@ class IntersectionNavigation(object):
                                        self.tag_info.LEFT_T_INTERSECT: [0.664, 0.400, np.pi],
                                        self.tag_info.RIGHT_T_INTERSECT: [-0.105, 0.121, 0.0 * np.pi],
                                        self.tag_info.T_INTERSECTION: [0.400, -0.105, 0.5 * np.pi]}
+        self.nominal_final_positions = [[0.159, 0.0508, -0.5 * np.pi],
+                                        [0.508, 0.159, 0.0],
+                                        [0.400, 0.508, 0.5 * np.pi],
+                                        [0.0508, 0.400, np.pi]]
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
+
+    def ComputeFinalPose(self, intersection_type, turn_type):
+        if intersection_type == self.tag_info.FOUR_WAY or intersection_type == self.tag_info.T_INTERSECTION:
+            if turn_type == 0: # straight
+                return self.nominal_final_positions[2]
+            elif turn_type == 1: # left
+                return self.nominal_final_positions[3]
+            else: #r ight
+                return self.nominal_final_positions[1]
+
+        elif intersection_type == self.tag_info.LEFT_T_INTERSECT:
+            if turn_type == 0: # straight
+                return self.nominal_final_positions[3]
+            else: # left
+                return self.nominal_final_positions[0]
+
+        else:
+            if turn_type == 0: # straight
+                return self.nominal_final_positions[1]
+            else: # right
+                return self.nominal_final_positions[0]
+
+
 
     def MainLoop(self):
         rate = rospy.Rate(self.rate)
@@ -71,7 +99,7 @@ class IntersectionNavigation(object):
             elif self.state == self.state_dict['INITIALIZING']:
                 # waiting for april tag info (type intersection and which exit)
                 try:
-                    msg = rospy.wait_for_message('~apriltags_out', AprilTagsWithInfos, self.timeout)
+                    april_msg = rospy.wait_for_message('~apriltags_out', AprilTagsWithInfos, self.timeout)
                 except rospy.ROSException:
                     rospy.loginfo("[%s] Timeout waiting for april tag info." % (self.node_name))
                     continue
@@ -79,9 +107,9 @@ class IntersectionNavigation(object):
                 # find closest (valid) april tag
                 closest_distance = 1e6
                 closest_idx = -1
-                for idx, detection in enumerate(msg.detections):
-                    if msg.infos[idx].tag_type == self.tag_info.SIGN:
-                        if msg.infos[idx].traffic_sign_type in self.intersection_signs:
+                for idx, detection in enumerate(april_msg.detections):
+                    if april_msg.infos[idx].tag_type == self.tag_info.SIGN:
+                        if april_msg.infos[idx].traffic_sign_type in self.intersection_signs:
                             position = detection.pose.pose.position
                             distance = np.sqrt(position.x ** 2 + position.y ** 2 + position.z ** 2)
 
@@ -94,11 +122,11 @@ class IntersectionNavigation(object):
                     continue
 
                 # initial position estimate
-                x_init = self.nominal_stop_positions[msg.infos[closest_idx].traffic_sign_type][0]
-                y_init = self.nominal_stop_positions[msg.infos[closest_idx].traffic_sign_type][1]
-                theta_init = self.nominal_stop_positions[msg.infos[closest_idx].traffic_sign_type][2]
+                x_init = self.nominal_stop_positions[april_msg.infos[closest_idx].traffic_sign_type][0]
+                y_init = self.nominal_stop_positions[april_msg.infos[closest_idx].traffic_sign_type][1]
+                theta_init = self.nominal_stop_positions[april_msg.infos[closest_idx].traffic_sign_type][2]
 
-                if msg.infos[closest_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
+                if april_msg.infos[closest_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
                                                                 self.tag_info.LEFT_T_INTERSECT]:
                     dx_init = np.linspace(-0.03, 0.03, 7)
                     dy_init = np.linspace(-0.05, 0.05, 11)
@@ -108,37 +136,21 @@ class IntersectionNavigation(object):
                     dy_init = np.linspace(-0.03, 0.03, 7)
                     dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
 
-                if msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
+                if april_msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
                     self.intersectionLocalizer.SetEdgeModel('FOUR_WAY_INTERSECTION')
                 else:
                     self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
-                # debugging
-                if 1:
-                    if msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
-                        print('four way intersection')
-                    elif msg.infos[closest_idx].traffic_sign_type == self.tag_info.RIGHT_T_INTERSECT:
-                        print('right t intersection')
-                    elif msg.infos[closest_idx].traffic_sign_type == self.tag_info.LEFT_T_INTERSECT:
-                        print('left t intersection')
-                    else:
-                        print('t intersection')
-
-                    print(x_init)
-                    print(y_init)
-                    print(theta_init)
-                    print('----------------')
-
                 # waiting for camera image
                 try:
-                    msg = rospy.wait_for_message("/" + self.robot_name + "/camera_node/image/compressed",
+                    img_msg = rospy.wait_for_message("/" + self.robot_name + "/camera_node/image/compressed",
                                                  CompressedImage, self.timeout)
                 except rospy.ROSException:
                     rospy.loginfo("[%s] Timeout waiting for camera image." % (self.node_name))
                     continue
 
                 # initialize intersection localizer
-                img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(msg)
+                img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(img_msg)
 
                 best_likelihood = -1.0
                 for dx in dx_init:
@@ -162,14 +174,23 @@ class IntersectionNavigation(object):
 
                 # waiting for instructions where to go
                 # TODO
+                # 0: straight, 1: left, 2: right
+                turn_type = 2
+                pose_init = [best_x_meas, best_y_meas, best_theta_meas]
+                pose_final = self.ComputeFinalPose(april_msg.infos[closest_idx].traffic_sign_type, turn_type)
 
-
+                alphas_init = np.linspace(0.1, 1.6, 11)
+                alphas_final = np.linspace(0.1, 1.6, 11)
+                self.pathPlanner.PlanPath(pose_init, alphas_init, pose_final, alphas_final)
+                print(pose_init)
+                print(pose_final)
 
                 # debugging
-                if 0:
+                if 1:
                     self.intersectionLocalizer.DrawModel(img_gray, best_x_meas, best_y_meas, best_theta_meas)
+                    self.pathPlanner.DrawPath(img_gray, [best_x_meas, best_y_meas, best_theta_meas])
                     cv2.imshow('initialization', img_gray)
-                    cv2.waitKey(1000)
+                    cv2.waitKey(10)
 
 
             elif self.state == self.state_dict['TRAVERSING']:

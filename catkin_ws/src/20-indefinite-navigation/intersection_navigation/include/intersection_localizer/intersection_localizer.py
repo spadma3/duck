@@ -321,7 +321,7 @@ class IntersectionLocalizer(object):
         likelihood = np.exp(-self.lambda_visible*(num_pts-num_feasible)/num_pts)*np.exp(-self.lambda_dist*np.mean(np.abs(dist)))
 
         # debugging
-        if 1:
+        if 0:
             img_canny = np.array(img,dtype=np.uint8)
             for i in range(0, ctrl_pts_img_offset.shape[1]):
                 cv2.circle(img_canny, tuple(np.round(ctrl_pts_img_offset[:, i]).astype(np.int)), 2, 180, -1)
