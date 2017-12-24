@@ -97,6 +97,8 @@ class Detector():
 	mask1 = cv2.inRange(im_test, self.lower_yellow, self.upper_yellow)
 	mask2 = cv2.inRange(im_test, self.lower_orange, self.upper_orange)
 	mask = np.bitwise_or((mask1/2),mask2)
+	#mask = mask1/2 #to only test yellow
+	#mask = mask2 #to only test orange
 	#yellow objects have value 127, orange 255
 	if(np.sum(mask!=0)!=0): #there were segment detected then
 		#SEGMENT IMAGE
