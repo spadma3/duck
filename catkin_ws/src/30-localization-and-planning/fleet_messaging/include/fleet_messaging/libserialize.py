@@ -5,7 +5,13 @@ This file contains the serializer library for the fleet communication project.
 
 # Import modules
 from proto.ByteMultiArray_pb2 import ByteMultiArray
-import helpers.helpers as helpers
+
+
+class TempStruct:
+    """
+    Temporary class needed for C-like structs.
+    """
+    pass
 
 
 def serialize(ros_msg):
@@ -32,7 +38,7 @@ def serialize(ros_msg):
     # Set the data
     bma.data = str(ros_msg.data)
     bma_data = bma.SerializeToString()
-    
+
     return bma_data
 
 def parse(bma_data):
@@ -51,11 +57,18 @@ def parse(bma_data):
     bma.ParseFromString(bma_data)
 
     # Populate the ROS message
-    dim_tmp = []
-    for dim in bma.layout.dim:
-        mad = helpers.MultiArrayDimension(dim.label, dim.size, dim.stride)
-        dim_tmp.append(mad)
-    layout_tmp = helpers.MultiArrayLayout(dim_tmp, bma.layout.data_offset)
-    ros_msg = helpers.ByteMultiArray(layout_tmp, bma.data)
+    dim = []
+    for dim_tmp in bma.layout.dim:
+        mad = TempStruct()
+        mad.label = dim_tmp.label
+        mad.size = dim_tmp.size
+        mad.stride = dim_tmp.stride
+        dim.append(mad)
+    layout = TempStruct()
+    layout.dim = dim_tmp
+    layout.data_offset = bma.layout.data_offset
+    ros_msg = TempStruct()
+    ros_msg.layout = layout
+    ros_msg.data = bma.data
 
     return ros_msg
