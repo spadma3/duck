@@ -1,7 +1,6 @@
 import sys
 import traceback
-
-# from decent_params.utils.script_utils import UserError
+ 
 
 from duckietown_utils import logger
 
