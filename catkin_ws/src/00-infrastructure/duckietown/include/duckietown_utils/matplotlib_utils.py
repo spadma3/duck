@@ -3,7 +3,7 @@ from duckietown_utils.jpg import bgr_from_png
     
 class CreateImageFromPylab(object):
 
-    def __init__(self, dpi=75):
+    def __init__(self, dpi=75, figure_args = {}):
         self.dpi = dpi
         suffix = '.png'
         self.temp_file = tempfile.NamedTemporaryFile(suffix=suffix)
@@ -11,7 +11,7 @@ class CreateImageFromPylab(object):
         from matplotlib import pylab
 
         self.pylab = pylab
-        figure_args = {}
+        
         self.figure = self.pylab.figure(**figure_args)
 
     def __enter__(self):
@@ -39,6 +39,8 @@ class CreateImageFromPylab(object):
 
         self.pylab.close()
     
+    def get_png(self):
+        return self.png_data
+    
     def get_bgr(self):
         return self.bgr
-              
