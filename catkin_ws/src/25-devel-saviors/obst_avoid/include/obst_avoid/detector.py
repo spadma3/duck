@@ -162,7 +162,8 @@ class Detector():
 			
 			        obst_object = Pose()
 			        new_position = np.array([[left+0.5*total_width],[bottom]])
-			        # Checks if there is close object from frame before
+			        #!!!!!!!!!CURRENTLY TRACKER IS OFF!!!!!!!!!!!!!!!!!!!
+			        # Checks if there is close object from frame before 
 			        #distance_min = self.obst_tracker(new_position)
                  		#if distance_min < self.minimum_tracking_distance:
 				point_calc=np.zeros((3,2),dtype=np.float)
