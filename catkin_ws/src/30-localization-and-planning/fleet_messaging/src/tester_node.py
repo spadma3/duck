@@ -33,7 +33,10 @@ def listener():
         msg.data.append(count + 1)
         msg.data.append(count + 2)
         pub.publish(msg)
-        count = count + 1
+        if count < 253:
+            count = count + 1
+        else:
+            count = 0
         rospy.sleep(1.0)
 
 if __name__ == '__main__':
