@@ -37,7 +37,9 @@ class Detector():
 	self.crop = 150 #default value but is overwritten in init_homo
 	self.lower_yellow = np.array([20,100,150])
 	self.upper_yellow = np.array([35,255,255])
-	self.lower_orange = np.array([5,100,150])
+	#self.lower_orange = np.array([5,100,150])
+	#self.upper_orange = np.array([15,255,255])
+	self.lower_orange = np.array([0,100,100])
 	self.upper_orange = np.array([15,255,255])
 	self.lower_white = np.array([0,0,150])
 	self.upper_white = np.array([255,25,255])
@@ -139,41 +141,56 @@ class Detector():
 		        print color_info
 		        print total_width
 		        print total_height
+
+		        #use rather real values now:
+		        abc1 = np.array(np.array(props[k-1]['intensity_image'])[int(props[k-1]['local_centroid'][0]),:])
+            		abc2 = np.array(np.array(props[k-1]['intensity_image'])[:,int(props[k-1]['local_centroid'][1])])
+            		width = np.shape(abc1)[0]-(1+np.argmax(np.flipud(abc1)))-np.argmax(abc1)
+            		height = np.shape(abc2)[0]-(1+np.argmax(np.flipud(abc2)))-np.argmax(abc2)
+
 		        #if ((color_info == 127 and total_width > 10) or (color_info == 255 and (total_width < 150 and total_height > 32))):
 		        #if ((color_info == 127 and total_width > 10) or (color_info == 255 and (props[k-1]['extent']<0.2 or (abs(props[k-1]['orientation'])>1.2) and props[k-1]['minor_axis_length']<10))):
-			if ((color_info == 127 and total_width > 10) or (color_info == 255 and (0.5*props[k-1]['perimeter']/props[k-1]['major_axis_length']<1.0))):
-
+			#if ((color_info == 127 and total_width > 10) or (color_info == 255 and (0.5*props[k-1]['perimeter']/props[k-1]['major_axis_length']<1.0))):
+			#if ((color_info == 127 and (width>8 and height>8)) or (color_info ==255 and (width<10 or height<10))):
+			if ((color_info == 127 and props[k-1]['inertia_tensor_eigvals'][0]>50 \
+			and not(props[k-1]['inertia_tensor_eigvals'][0]>1000 and \
+			props[k-1]['inertia_tensor_eigvals'][1]<10)) or \
+			(color_info ==255 and \
+			props[k-1]['inertia_tensor_eigvals'][0]/props[k-1]['inertia_tensor_eigvals'][1]>50)): 
+			#(color_info == 255 and props[k-1]['inertia_tensor_eigvals'][0]>100 \
+			#and props[k-1]['inertia_tensor_eigvals'][1]<30)):
+			
 			        obst_object = Pose()
 			        new_position = np.array([[left+0.5*total_width],[bottom]])
 			        # Checks if there is close object from frame before
-			        distance_min = self.obst_tracker(new_position)
-                 		if distance_min < self.minimum_tracking_distance:
-					point_calc=np.zeros((3,2),dtype=np.float)
-					point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
-					obst_object.position.x = point_calc[0,0] #obstacle coord x
-					if (point_calc[0,0]<0.5):
-						print "DANGEROUS OBSTACLE:"
-						print  point_calc[0:2,0]
-					obst_object.position.y = point_calc[1,0] #obstacle coord y
-					#calculate radius:
-					obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
-					#determine wheter obstacle is out of bounds:
-					if (obst_object.position.y>0): #obstacle is left of me
-						line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,right), linewidth=1, order=1, mode='constant')])
-					else:
-						line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,left), linewidth=1, order=1, mode='constant')])
-            				#bottom,left
-            				line1 =  cv2.inRange(line1, self.lower_white, self.upper_white)
-            				if (np.sum(line1==255)>3):
-            					obst_object.position.z = -1*obst_object.position.z #means it is out of bounds!
+			        #distance_min = self.obst_tracker(new_position)
+                 		#if distance_min < self.minimum_tracking_distance:
+				point_calc=np.zeros((3,2),dtype=np.float)
+				point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
+				obst_object.position.x = point_calc[0,0] #obstacle coord x
+				if (point_calc[0,0]<0.5):
+					print "DANGEROUS OBSTACLE:"
+					print  point_calc[0:2,0]
+				obst_object.position.y = point_calc[1,0] #obstacle coord y
+				#calculate radius:
+				obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
+				#determine wheter obstacle is out of bounds:
+				if (obst_object.position.y>0): #obstacle is left of me
+					line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,right), linewidth=1, order=1, mode='constant')])
+				else:
+					line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,left), linewidth=1, order=1, mode='constant')])
+    				#bottom,left
+    				line1 =  cv2.inRange(line1, self.lower_white, self.upper_white)
+    				if (np.sum(line1==255)>3):
+    					obst_object.position.z = -1*obst_object.position.z #means it is out of bounds!
 
-					#fill in the pixel boundaries of bird view image!!!
-					obst_object.orientation.x = top
-					obst_object.orientation.y = bottom
-					obst_object.orientation.z = left
-					obst_object.orientation.w = right
-					
-					obst_list.poses.append(obst_object)
+				#fill in the pixel boundaries of bird view image!!!
+				obst_object.orientation.x = top
+				obst_object.orientation.y = bottom
+				obst_object.orientation.z = left
+				obst_object.orientation.w = right
+				
+				obst_list.poses.append(obst_object)
 				 
 					#explanation: those parameters published here are seen from the !center of the axle! in direction
 					#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
