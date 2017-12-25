@@ -4,10 +4,10 @@
 # Imports
 import threading
 import rospy
-import fleet_messaging.commlibs2 as cl
-from std_msgs.msg import ByteMultiArray
-from std_msgs.msg import MultiArrayDimension
-from ruamel.yaml  import YAML
+from fleet_messaging.duckiemq import DuckieMQReceiver
+from std_msgs.msg             import ByteMultiArray
+from std_msgs.msg             import MultiArrayDimension
+from ruamel.yaml              import YAML
 
 
 class Receiver(object):
@@ -22,9 +22,9 @@ class Receiver(object):
         rospy.loginfo("[%s] Initializing." %(self.node_name))
 
         # Load the parameters
-        config_path = self.setup_parameter("~config")
-        self.iface = self.setup_parameter("~iface")
-        self.timeout = self.setup_parameter("~timeout")
+        config_path = self.__setup_parameter("~config")
+        self.iface = self.__setup_parameter("~iface")
+        self.timeout = self.__setup_parameter("~timeout")
 
         # Load the configuration
         try:
@@ -44,7 +44,7 @@ class Receiver(object):
             for entry in config_yaml:
                 # Create the socket
                 port = entry["port"]
-                socket = cl.DuckieMQ(self.iface, port, "sub", self.timeout)
+                socket = DuckieMQReceiver(self.iface, port, self.timeout)
 
                 # Create the publisher
                 pub_topic = entry["pub"]
@@ -72,7 +72,7 @@ class Receiver(object):
             rospy.logfatal(output %(self.node_name, config_path))
             raise
 
-    def setup_parameter(self, param_name, default_value=None):
+    def __setup_parameter(self, param_name, default_value=None):
         """
         Setup a node parameter.
         Inputs:

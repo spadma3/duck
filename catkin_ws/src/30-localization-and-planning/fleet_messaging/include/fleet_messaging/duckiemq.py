@@ -26,25 +26,25 @@ class DuckieMQBase(object):
         Ouptuts:
         - object: Duckietown ZeroMQ communication object
         """
-        self.__context = zmq.Context()
+        self.context = zmq.Context()
         ownip = ni.ifaddresses(interface)[ni.AF_INET][0]["addr"]
-        self.__endpoint = "epgm://" + ownip + ":" + port
+        self.endpoint = "epgm://" + ownip + ":" + port
         # Uncomment, if needed in future implementations
-        # self.__interface = interface
-        # self.__ownip = ownip
-        # self.__port = port
+        # self.interface = interface
+        # self.ownip = ownip
+        # self.port = port
 
         # Rate [kbit] can be setup manually (if not, optimal rate is taken)
-        # self.__rate = 40*1000
+        # self.rate = 40*1000
 
         # Sleep, to guarantee initialization
         time.sleep(0.2)
 
-    def __del__(self):
+    def cleanup(self):
         """
-        Destructor. Destroy the ZeroMQ context.
+        Destroy the ZeroMQ context.
         """
-        self.__context.destroy()
+        self.context.destroy()
 
 
 class DuckieMQSender(DuckieMQBase):
@@ -67,10 +67,10 @@ class DuckieMQSender(DuckieMQBase):
         super(DuckieMQSender, self).__init__(interface, port)
 
         # Configure sender socket
-        self.__socket = self.__context.socket(zmq.PUB)
-        self.__socket.connect(self.__endpoint)  # should connect
+        self.__socket = self.context.socket(zmq.PUB)
+        self.__socket.connect(self.endpoint)  # should connect
         # self.socket.setsockopt_string(zmq.RATE, self.__rate)
-        print("Publisher initialized on " + self.__endpoint)
+        print("Publisher initialized on " + self.endpoint)
 
         # Sleep, to guarantee initialization
         time.sleep(0.2)
@@ -124,10 +124,10 @@ class DuckieMQReceiver(DuckieMQBase):
         super(DuckieMQReceiver, self).__init__(interface, port)
 
         # Configure receiver socket
-        self.__socket = self.__context.socket(zmq.SUB)
+        self.__socket = self.context.socket(zmq.SUB)
         self.__socket.setsockopt(zmq.SUBSCRIBE, "")
         self.__filters = []
-        self.__socket.connect(self.__endpoint)
+        self.__socket.connect(self.endpoint)
         #self.socket.setsockopt_string(zmq.RATE, self.rate)
         if timeout < 0:
             raise ValueError("timeout must be greater or equal 0!")
@@ -135,21 +135,21 @@ class DuckieMQReceiver(DuckieMQBase):
             self.__poller = zmq.Poller()
             self.__poller.register(self.__socket, zmq.POLLIN)
         self.__timeout = timeout
-        print("Subscriber initialized on " + self.__endpoint)
+        print("Subscriber initialized on " + self.endpoint)
 
         # Sleep, to guarantee initialization
         time.sleep(0.2)
 
-    def __del__(self):
+    def cleanup(self):
         """
-        Destructor. Unregister the poller.
+        Unregister the poller and destroy the context.
         """
         # Unregister the poller
         if self.__timeout > 0:
             self.__poller.unregister(self.__socket)
 
-        # Call the parent destructor
-        super(DuckieMQReceiver, self).__del__()
+        # Call the parent cleanup method
+        super(DuckieMQReceiver, self).cleanup()
 
     def addfilter(self, filter_string):
         """
@@ -164,7 +164,7 @@ class DuckieMQReceiver(DuckieMQBase):
             self.__socket.setsockopt(zmq.SUBSCRIBE, filter_string)
         except TypeError:
             self.__socket.setsockopt_string(zmq.SUBSCRIBE, filter_string)
-            print("Set filter: \"" + filter_string + "\" on " + self.__endpoint)
+            print("Set filter: \"" + filter_string + "\" on " + self.endpoint)
         finally:
             self.__filters.append(filter_string)
 
@@ -187,7 +187,7 @@ class DuckieMQReceiver(DuckieMQBase):
         except TypeError:
             self.__socket.setsockopt_string(zmq.UNSUBSCRIBE, filter_string)
             print("Removed filter: \"" + filter_string + "\" on " +
-                  self.__endpoint)
+                  self.endpoint)
 
     def rcv_string(self):
         """
@@ -200,13 +200,13 @@ class DuckieMQReceiver(DuckieMQBase):
         - socket.error: if socket type is not "sub"
         """
         if self.__timeout > 0:
-            msg = self.rcv_string_timeout()
+            msg = self.__rcv_string_timeout()
         else:
             msg = self.__socket.recv_string()
 
         return msg
 
-    def rcv_string_timeout(self):
+    def __rcv_string_timeout(self):
         """
         Receive string through the socket using a timeout.
         Inputs:
@@ -234,14 +234,14 @@ class DuckieMQReceiver(DuckieMQBase):
         - socket.error: if socket type is not "sub"
         """
         if self.__timeout > 0:
-            msg = self.rcv_serialized_timeout()
+            msg = self.__rcv_serialized_timeout()
         else:
             msg = self.__socket.recv_serialized(libserialize.parse, flags=0,
                                                 copy=True)
 
         return msg
 
-    def rcv_serialized_timeout(self):
+    def __rcv_serialized_timeout(self):
         """
         Receive message and deserialize with libserialize.deserialize.
         Inputs:

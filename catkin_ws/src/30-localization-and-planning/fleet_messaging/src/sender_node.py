@@ -3,9 +3,9 @@
 
 # Imports
 import rospy
-import fleet_messaging.commlibs2 as cl
-from std_msgs.msg import ByteMultiArray
-from ruamel.yaml  import YAML
+from fleet_messaging.duckiemq import DuckieMQSender
+from std_msgs.msg             import ByteMultiArray
+from ruamel.yaml              import YAML
 
 
 class Sender(object):
@@ -19,8 +19,8 @@ class Sender(object):
         rospy.loginfo("[%s] Initializing." %(self.node_name))
 
         # Load the parameters
-        config_path = self.setup_parameter("~config")
-        self.iface = self.setup_parameter("~iface")
+        config_path = self.__setup_parameter("~config")
+        self.iface = self.__setup_parameter("~iface")
 
         # Load the configuration
         try:
@@ -39,7 +39,7 @@ class Sender(object):
             for entry in config_yaml:
                 # Create the socket
                 port = entry["port"]
-                socket = cl.DuckieMQ(self.iface, port, "pub")
+                socket = DuckieMQSender(self.iface, port)
 
                 # Create the subscriber
                 sub_topic = entry["sub"]
@@ -58,7 +58,7 @@ class Sender(object):
             rospy.logfatal(output %(self.node_name, config_path))
             raise
 
-    def setup_parameter(self, param_name, default_value=None):
+    def __setup_parameter(self, param_name, default_value=None):
         """
         Setup a node parameter.
         Inputs:
