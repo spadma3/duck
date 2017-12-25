@@ -40,7 +40,7 @@ pip install --upgrade --user \
 	DecentLogs==1.1.2\
 	QuickApp==1.3.8 \
 	conftools==1.9.1 \
-	comptests==1.4.10 \
+	comptests==1.4.12 \
 	procgraph==1.10.6 \
 	pymongo==3.5.1 \
 	ruamel.yaml==0.15.34\

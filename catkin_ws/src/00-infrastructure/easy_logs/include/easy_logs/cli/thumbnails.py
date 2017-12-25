@@ -8,7 +8,7 @@ from duckietown_utils import (BagReadProxy, DTUserError, bgr_from_rgb,
                               d8n_read_all_images_from_bag,
                               make_images_grid, write_image_as_jpg, logger)
 from duckietown_utils.cli import D8AppWithLogs
-from easy_logs.cli.easy_logs_summary_imp import format_logs
+from .easy_logs_summary_imp import format_logs
 
 
 class MakeThumbnails(D8AppWithLogs, QuickApp):
