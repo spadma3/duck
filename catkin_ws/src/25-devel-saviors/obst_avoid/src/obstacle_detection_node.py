@@ -103,7 +103,7 @@ class ObstDetectNode(object):
                 self.publisher_img.publish(obst_image.data)
 
         end = time.time()
-        print "GOING THROUGH TOOK: s"
+        print "OBST DETECTION TOOK: s"
         print(end - start)
         self.r.sleep()
         self.thread_lock.release()
