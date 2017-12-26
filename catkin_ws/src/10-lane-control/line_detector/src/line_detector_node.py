@@ -208,9 +208,11 @@ class LineDetectorNode(object):
         segment_latency_stamp = rospy.Time.now() - timestamp_now
         segment_latency = segment_latency_stamp.secs + segment_latency_stamp.nsecs/1e9
         self.latencyArray.append(segment_latency)
+        if len(self.latencyArray) > 100:
+            self.latencyArray.pop(0)
 
-        print "Latency of segment list: ", segment_latency
-        print "Mean latency segment list: ", np.mean(self.latencyArray)
+        # print "Latency of segment list: ", segment_latency
+        print "Mean latency of segment processing: ", np.mean(self.latencyArray)
 
         # Publish segmentList
         self.pub_lines.publish(segmentList)
