@@ -68,7 +68,7 @@ class ObstDetectNode(object):
         if not self.thread_lock.acquire(False):
             return
 
-        start = time.time()
+        #start = time.time()
         obst_list = PoseArray()
         marker_list = MarkerArray()
     
@@ -102,9 +102,9 @@ class ObstDetectNode(object):
                 #the visualizer.py modular!!!
                 self.publisher_img.publish(obst_image.data)
 
-        end = time.time()
-        print "OBST DETECTION TOOK: s"
-        print(end - start)
+        #end = time.time()
+        #print "OBST DETECTION TOOK: s"
+        #print(end - start)
         self.r.sleep()
         self.thread_lock.release()
 

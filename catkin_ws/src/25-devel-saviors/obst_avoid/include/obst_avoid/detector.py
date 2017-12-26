@@ -160,7 +160,7 @@ class Detector():
 					point_calc=np.zeros((3,2),dtype=np.float)
 					point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
 					obst_object.position.x = point_calc[0,0] #obstacle coord x
-					if (point_calc[0,0]<0.5):
+					if (point_calc[0,0]<0.35):
 						print "DANGEROUS OBSTACLE:"
 						print  point_calc[0:2,0]
 					obst_object.position.y = point_calc[1,0] #obstacle coord y
