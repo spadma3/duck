@@ -213,23 +213,23 @@ class Detector():
 	#FINALE AUSWERTUNG:
 	if (distance_min < self.minimum_tracking_distance): #only then modify the entry!
 		major_mom_change = abs(1- abs(self.track_array[2,distance_min_index]/new_position[2,:]))
-		new_position[4,:] = distance_min_index #show where we reference to
-		new_position[5,:] = distance_min 
-		self.track_array[6,distance_min_index] = self.track_array[6,distance_min_index] +1 #indicate someone refers to this
-		if (self.track_array[6,distance_min_index]>1):
-			self.track_array[6,distance_min_index] = self.track_array[6,distance_min_index] - 1 #decr again
-			#print "!!!!!!!!!MULTIPLE REFERENCES!!!!!!!!!!!!!!!!!!" #we must get active
-			competitor_idx = np.argmax(self.new_track_array[4,:]==distance_min_index)
-			if (self.new_track_array[4,competitor_idx]<new_position[5,:]): #competitor is closer and can stay
-				distance_min = 2*self.minimum_tracking_distance
-				new_position[4,:] = -1 #track lost!
-			else: #current point is closer
-				distance_min = 2*self.minimum_tracking_distance
-				self.new_track_array[4,competitor_idx] = -1 #track lost
-				self.new_track_array[7,competitor_idx] = 0 #track lost
-				new_position[7,:]= self.track_array[7,distance_min_index]+1
-		else:
-			new_position[7,:]= self.track_array[7,distance_min_index]+1
+		#new_position[4,:] = distance_min_index #show where we reference to
+		#new_position[5,:] = distance_min 
+		#self.track_array[6,distance_min_index] = self.track_array[6,distance_min_index] +1 #indicate someone refers to this
+		#if (self.track_array[6,distance_min_index]>1):
+	#		self.track_array[6,distance_min_index] = self.track_array[6,distance_min_index] - 1 #decr again
+	#		#print "!!!!!!!!!MULTIPLE REFERENCES!!!!!!!!!!!!!!!!!!" #we must get active
+	#		competitor_idx = np.argmax(self.new_track_array[4,:]==distance_min_index)
+	#		if (self.new_track_array[4,competitor_idx]<new_position[5,:]): #competitor is closer and can stay
+	#			distance_min = 2*self.minimum_tracking_distance
+	#			new_position[4,:] = -1 #track lost!
+	#		else: #current point is closer
+	#			distance_min = 2*self.minimum_tracking_distance
+	#			self.new_track_array[4,competitor_idx] = -1 #track lost
+	#			self.new_track_array[7,competitor_idx] = 0 #track lost
+	#			new_position[7,:]= self.track_array[7,distance_min_index]+1
+	#	else:
+		new_position[7,:]= self.track_array[7,distance_min_index]+1
 		
 		if ((new_position[2,:]<100 or major_mom_change>1.5) and new_position[7,:]<4): #not seen 4 times yet
 			#print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
