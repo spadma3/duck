@@ -35,12 +35,9 @@ class Detector():
 
 	#define where to cut the image, color range,...
 	self.crop = 150 #default value but is overwritten in init_homo
-	#self.lower_yellow = np.array([20,100,150])
-	#self.upper_yellow = np.array([35,255,255])
+	#self.lower_yellow = np.array([20,100,150]) #more restrictive -> if you can be sure for "no reddish yellow"
 	self.lower_yellow = np.array([15,100,200])
 	self.upper_yellow = np.array([35,255,255])
-	#self.lower_orange = np.array([5,100,150])
-	#self.upper_orange = np.array([15,255,255])
 	self.lower_orange = np.array([0,100,100])
 	self.upper_orange = np.array([15,255,255])
 	self.lower_white = np.array([0,0,150])
@@ -149,7 +146,10 @@ class Detector():
 			
 			        obst_object = Pose()
 			        if (color_info == 127): #means: yellow object:
-			        	new_position = np.array([[left+0.5*total_width],[bottom],[props[k-1]['inertia_tensor_eigvals'][0]],[props[k-1]['inertia_tensor_eigvals'][1]],[-1],[0],[0],[0]])	
+			        	#old fill weight tracker:
+			        	#new_position = np.array([[left+0.5*total_width],[bottom],[props[k-1]['inertia_tensor_eigvals'][0]],[props[k-1]['inertia_tensor_eigvals'][1]],[-1],[0],[0],[0]])
+			        	#new leightweight version:
+			        	new_position = np.array([[left+0.5*total_width],[bottom],[props[k-1]['inertia_tensor_eigvals'][0]],[0]])	
 			        	# Checks if there is close object from frame before 
 			        	checker = self.obst_tracker(new_position)
 			        else:
@@ -213,6 +213,7 @@ class Detector():
 	#FINALE AUSWERTUNG:
 	if (distance_min < self.minimum_tracking_distance): #only then modify the entry!
 		major_mom_change = abs(1- abs(self.track_array[2,distance_min_index]/new_position[2,:]))
+		#LEFT OUT DUE TO NO EFFICIENCY BUT ATTNETION: NOW ONE ELEMENT CAN SAY IT IS CLOSE TO MULTIPLE,...
 		#new_position[4,:] = distance_min_index #show where we reference to
 		#new_position[5,:] = distance_min 
 		#self.track_array[6,distance_min_index] = self.track_array[6,distance_min_index] +1 #indicate someone refers to this
@@ -229,9 +230,9 @@ class Detector():
 	#			self.new_track_array[7,competitor_idx] = 0 #track lost
 	#			new_position[7,:]= self.track_array[7,distance_min_index]+1
 	#	else:
-		new_position[7,:]= self.track_array[7,distance_min_index]+1
+		new_position[3,:]= self.track_array[3,distance_min_index]+1
 		
-		if ((new_position[2,:]<100 or major_mom_change>1.5) and new_position[7,:]<4): #not seen 4 times yet
+		if ((new_position[3,:]<100 or major_mom_change>1.5) and new_position[3,:]<4): #not seen 4 times yet
 			#print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 			distance_min = 2*self.minimum_tracking_distance
 		
