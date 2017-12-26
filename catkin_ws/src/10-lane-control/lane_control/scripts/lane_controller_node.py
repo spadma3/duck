@@ -205,8 +205,8 @@ class lane_controller(object):
         self.cross_track_err = lane_pose_msg.d - self.d_offset
         self.heading_err = lane_pose_msg.phi
 
-        print "Latency from image to car control: ", image_delay
-        print "Mean latency image to car cmd: ", np.mean(self.image_delay_array)
+        # print "Latency from image to car control: ", image_delay
+        # print "Mean latency image to car cmd: ", np.mean(self.image_delay_array)
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
