@@ -100,8 +100,8 @@ class Detector():
 
 	mask1 = cv2.inRange(im_test, self.lower_yellow, self.upper_yellow)
 	mask2 = cv2.inRange(im_test, self.lower_orange, self.upper_orange)
-	#mask = np.bitwise_or((mask1/2),mask2)
-	mask = mask1/2 #to only test yellow
+	mask = np.bitwise_or((mask1/2),mask2)
+	#mask = mask1/2 #to only test yellow
 	#mask = mask2 #to only test orange
 	#yellow objects have value 127, orange 255
 	if(np.sum(mask!=0)!=0): #there were segment detected then
@@ -140,34 +140,23 @@ class Detector():
 		        total_height = bottom - top
 		        # yellow: 127, orange: 255
 		        color_info = props[k-1]['max_intensity']
-		        print color_info
-		        print total_width
-		        print total_height
 
-		        #use rather real values now:
-		        abc1 = np.array(np.array(props[k-1]['intensity_image'])[int(props[k-1]['local_centroid'][0]),:])
-            		abc2 = np.array(np.array(props[k-1]['intensity_image'])[:,int(props[k-1]['local_centroid'][1])])
-            		width = np.shape(abc1)[0]-(1+np.argmax(np.flipud(abc1)))-np.argmax(abc1)
-            		height = np.shape(abc2)[0]-(1+np.argmax(np.flipud(abc2)))-np.argmax(abc2)
 
-		        #if ((color_info == 127 and total_width > 10) or (color_info == 255 and (total_width < 150 and total_height > 32))):
-		        #if ((color_info == 127 and total_width > 10) or (color_info == 255 and (props[k-1]['extent']<0.2 or (abs(props[k-1]['orientation'])>1.2) and props[k-1]['minor_axis_length']<10))):
-			#if ((color_info == 127 and total_width > 10) or (color_info == 255 and (0.5*props[k-1]['perimeter']/props[k-1]['major_axis_length']<1.0))):
-			#if ((color_info == 127 and (width>8 and height>8)) or (color_info ==255 and (width<10 or height<10))):
-			#if ((color_info == 127 and props[k-1]['inertia_tensor_eigvals'][0]>50 \
-			#and not(props[k-1]['inertia_tensor_eigvals'][0]>1000 and \
-			#props[k-1]['inertia_tensor_eigvals'][1]<10) \
 			#to take small duckies into account:(color_info == 127 and props[k-1]['inertia_tensor_eigvals'][0]>10)
 			if ((color_info == 127 and props[k-1]['inertia_tensor_eigvals'][0]>20) or \
 			(color_info ==255 and \
 			props[k-1]['inertia_tensor_eigvals'][0]/props[k-1]['inertia_tensor_eigvals'][1]>50)): 
-			#(color_info == 255 and props[k-1]['inertia_tensor_eigvals'][0]>100 \
-			#and props[k-1]['inertia_tensor_eigvals'][1]<30)):
 			
 			        obst_object = Pose()
-			        new_position = np.array([[left+0.5*total_width],[bottom],[props[k-1]['inertia_tensor_eigvals'][0]],[props[k-1]['inertia_tensor_eigvals'][1]],[-1],[0],[0],[0]])
+			        if (color_info == 127): #means: yellow object:
+			        	new_position = np.array([[left+0.5*total_width],[bottom],[props[k-1]['inertia_tensor_eigvals'][0]],[props[k-1]['inertia_tensor_eigvals'][1]],[-1],[0],[0],[0]])	
+			        	# Checks if there is close object from frame before 
+			        	checker = self.obst_tracker(new_position)
+			        else:
+			        	checker = True
+			        
 			        # Checks if there is close object from frame before 
-                 		if self.obst_tracker(new_position):
+                 		if (checker):
 					point_calc=np.zeros((3,2),dtype=np.float)
 					point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
 					obst_object.position.x = point_calc[0,0] #obstacle coord x
@@ -210,7 +199,6 @@ class Detector():
     	#outout: minimum distance to an obstacle in the image before, 2*minimum_tracking_distance if there haven't been obstacles in the frame before			
 	if self.track_array.size != 0:
 		distances = -(self.track_array[0:2,:] - new_position[0:2,:]) #only interested in depth change
-		print np.shape(distances)
 		distances_norms = LA.norm(distances, axis=0)
 		distance_min = np.amin(distances_norms)
 		distance_min_index = np.argmin(distances_norms)
