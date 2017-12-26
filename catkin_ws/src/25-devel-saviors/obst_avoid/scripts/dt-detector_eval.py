@@ -19,13 +19,14 @@ from geometry_msgs.msg import PoseArray
 from visualization_msgs.msg import MarkerArray
 import time
 #this script is here to evaulate the perofrmance of our code on whole large datasets
-robot_name='arki' #TO BE SET!!!
+robot_name='dori' #TO BE SET!!!
 #----------------SPECIFY FILES TO READ IN ---------------------
 #ASSUMES: pictures stored in folder structure ..../3/5_pics/"here_are_all_pics"
-start_file=6 #represent 1_pics e.g. start_file=end_file=1 only evaluates first folder!!!
-end_file=6
+start_file=8 #represent 1_pics e.g. start_file=end_file=1 only evaluates first folder!!!
+end_file=8
 name_new_folder="edited"
-general_path = '/home/niggi/savior_bags/19.12.bags/1/'
+#general_path = '/home/niggi/savior_bags/19.12.bags/1/'
+general_path = '/home/niggi/savior_bags/21.12./Record6/'
 dir_path = general_path+str(start_file)+"_pics"+"/"+name_new_folder
 im_path = general_path+str(start_file)+"_pics"
 #print dir_path
