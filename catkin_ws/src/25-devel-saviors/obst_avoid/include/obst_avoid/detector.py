@@ -148,41 +148,41 @@ class Detector():
 			props[k-1]['inertia_tensor_eigvals'][0]/props[k-1]['inertia_tensor_eigvals'][1]>50)): 
 			
 			        obst_object = Pose()
-			        if (color_info == 127): #means: yellow object:
-			        	new_position = np.array([[left+0.5*total_width],[bottom],[props[k-1]['inertia_tensor_eigvals'][0]],[props[k-1]['inertia_tensor_eigvals'][1]],[-1],[0],[0],[0]])	
-			        	# Checks if there is close object from frame before 
-			        	checker = self.obst_tracker(new_position)
-			        else:
-			        	checker = True
-			        
+			        #if (color_info == 127): #means: yellow object:
+			        #	new_position = np.array([[left+0.5*total_width],[bottom],[props[k-1]['inertia_tensor_eigvals'][0]],[props[k-1]['inertia_tensor_eigvals'][1]],[-1],[0],[0],[0]])	
+			        #	# Checks if there is close object from frame before 
+			        #	checker = self.obst_tracker(new_position)
+			        #else:
+			        #	checker = True
+			        #
 			        # Checks if there is close object from frame before 
-                 		if (checker):
-					point_calc=np.zeros((3,2),dtype=np.float)
-					point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
-					obst_object.position.x = point_calc[0,0] #obstacle coord x
-					if (point_calc[0,0]<0.5):
-						print "DANGEROUS OBSTACLE:"
-						print  point_calc[0:2,0]
-					obst_object.position.y = point_calc[1,0] #obstacle coord y
-					#calculate radius:
-					obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
-					#determine wheter obstacle is out of bounds:
-					if (obst_object.position.y>0): #obstacle is left of me
-						line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,right), linewidth=1, order=1, mode='constant')])
-					else:
-						line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,left), linewidth=1, order=1, mode='constant')])
-	    				#bottom,left
-	    				line1 =  cv2.inRange(line1, self.lower_white, self.upper_white)
-	    				if (np.sum(line1==255)>3):
-	    					obst_object.position.z = -1*obst_object.position.z #means it is out of bounds!
+                 		#if (checker):
+				point_calc=np.zeros((3,2),dtype=np.float)
+				point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
+				obst_object.position.x = point_calc[0,0] #obstacle coord x
+				if (point_calc[0,0]<0.5):
+					print "DANGEROUS OBSTACLE:"
+					print  point_calc[0:2,0]
+				obst_object.position.y = point_calc[1,0] #obstacle coord y
+				#calculate radius:
+				obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
+				#determine wheter obstacle is out of bounds:
+				if (obst_object.position.y>0): #obstacle is left of me
+					line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,right), linewidth=1, order=1, mode='constant')])
+				else:
+					line1 =  np.array([measure.profile_line(image, (self.center_y,self.center_x), (bottom,left), linewidth=1, order=1, mode='constant')])
+    				#bottom,left
+    				line1 =  cv2.inRange(line1, self.lower_white, self.upper_white)
+    				if (np.sum(line1==255)>3):
+    					obst_object.position.z = -1*obst_object.position.z #means it is out of bounds!
 
-					#fill in the pixel boundaries of bird view image!!!
-					obst_object.orientation.x = top
-					obst_object.orientation.y = bottom
-					obst_object.orientation.z = left
-					obst_object.orientation.w = right
-					
-					obst_list.poses.append(obst_object)
+				#fill in the pixel boundaries of bird view image!!!
+				obst_object.orientation.x = top
+				obst_object.orientation.y = bottom
+				obst_object.orientation.z = left
+				obst_object.orientation.w = right
+				
+				obst_list.poses.append(obst_object)
 				 
 					#explanation: those parameters published here are seen from the !center of the axle! in direction
 					#of drive with x pointing in direction and y to the left of direction of drive in [m]		        
