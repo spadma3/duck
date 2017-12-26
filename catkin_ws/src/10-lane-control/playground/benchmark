@@ -142,36 +142,41 @@ class Benchmark():
         fig, ax = plt.subplots(3, sharex=True)
         ax[0].plot(dArray[:,1]-self.startTime, dArray[:,0]*100, color="blue", label=r'$d_{est}$')
         ax[1].plot(phiArray[:,1]-self.startTime, phiArray[:,0], color="red", label=r'$phi_{est}$')
-        ax[2].plot(segmentArray[:,1]-self.startTime, segmentArray[:,0], color="orange", label=r'$n_{segment}$')
         if dComputedArray.any():
             ax[0].plot(dComputedArray[:,1]-self.startTime, dComputedArray[:,0]*100, linestyle=':', color="blue", label=r'$d_{comp}$')
             ax[1].plot(phiComputedArray[:,1]-self.startTime, phiComputedArray[:,0], linestyle=':', color="red", label=r'$phi_{comp}$')
+        ax[0].set_title('Performance evaluation of %s' % self.rosbagIN[:-4])
         ax[0].set_ylim(-25, 25)
         ax[0].yaxis.set_major_locator(ticker.MaxNLocator(10))
         ax[0].set_ylabel('distance [cm]')
         ax[0].set_xlim(left=0)
         ax[0].xaxis.set_major_locator(ticker.MaxNLocator(10))
         ax[0].xaxis.set_minor_locator(ticker.MaxNLocator(50))
+        ax[0].legend(loc='upper right')
+        ax[0].grid(color='grey', linestyle=':', linewidth=1)
+        ax[0].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
+        ax[0].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(self.d_mean*100,3), round(self.d_median*100,3)), ha="right", 
+            va="center", transform=ax[0].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
         ax[1].set_ylim(-2.5, 2.5)
         ax[1].set_ylabel('tracking angle [deg]')
         ax[1].yaxis.set_major_locator(ticker.MaxNLocator(10))
-        ax[2].set_ylim(10, 110)
-        ax[2].set_ylabel('amount of segments')
-        ax[2].set_xlabel('time [sec]')
-        ax[2].yaxis.set_major_locator(ticker.MaxNLocator(10))
-        ax[0].legend(loc='upper right')
         ax[1].legend(loc='upper right')
-        ax[2].legend(loc='upper right')
-        ax[0].grid(color='grey', linestyle=':', linewidth=1)
-        ax[0].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
         ax[1].grid(color='grey', linestyle=':', linewidth=1)
         ax[1].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
-        ax[2].grid(color='grey', linestyle=':', linewidth=1)
-        ax[2].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
-        ax[0].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(self.d_mean*100,3), round(self.d_median*100,3)), ha="right", va="center", transform=ax[0].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
-        ax[1].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(self.phi_mean,3), round(self.phi_median,3)), ha="right", va="center", transform=ax[1].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
-        ax[2].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(np.mean(segmentArray[:,0]),3), round(np.median(segmentArray[:,0]),3)), ha="right", va="center", transform=ax[2].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
-        ax[0].set_title('Performance evaluation of %s' % self.rosbagIN[:-4])
+        ax[1].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(self.phi_mean,3), round(self.phi_median,3)), ha="right", 
+            va="center", transform=ax[1].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
+
+        if segmentArray.any():
+            ax[2].plot(segmentArray[:,1]-self.startTime, segmentArray[:,0], color="orange", label=r'$n_{segment}$')
+            ax[2].set_ylim(10, 110)
+            ax[2].set_ylabel('amount of segments')
+            ax[2].set_xlabel('time [sec]')
+            ax[2].yaxis.set_major_locator(ticker.MaxNLocator(10))
+            ax[2].legend(loc='upper right')
+            ax[2].grid(color='grey', linestyle=':', linewidth=1)
+            ax[2].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
+            ax[2].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(np.mean(segmentArray[:,0]),3), round(np.median(segmentArray[:,0]),3)), ha="right", 
+                va="center", transform=ax[2].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
         fig.set_size_inches(20,10)
         fig.savefig('%s/%s.png' % (self.output, self.rosbagIN[:-4]), dpi=300, bbox_inches='tight')
         # plt.show()
@@ -191,10 +196,11 @@ class Benchmark():
         logFile.write('\tphi med:\t%s\n' % round(self.phi_median,3))
         logFile.write('\tphi var:\t%s\n' % round(self.phi_var,3))
 
-        logFile.write('\nImage segments statistics:')
-        logFile.write('\tAverage amount of segments:\t%s\n' % round(np.mean(segmentArray[:,0]),3))
-        logFile.write('\tMedian amount of segments:\t%s\n' % round(np.median(segmentArray[:,0]),3))
-        logFile.write('\tAverage processing time per frame (on duckiebot):\t%s\n' % round(SegmentProcessTime,3))
+        if segmentArray.any():
+            logFile.write('\nImage segments statistics:')
+            logFile.write('\tAverage amount of segments:\t%s\n' % round(np.mean(segmentArray[:,0]),3))
+            logFile.write('\tMedian amount of segments:\t%s\n' % round(np.median(segmentArray[:,0]),3))
+            logFile.write('\tAverage processing time per frame (on duckiebot):\t%s\n' % round(SegmentProcessTime,3))
 
         logFile.write('\nRosbag processing time: %f\n' % (self.toc-self.tic))
         logFile.write('\tAverage processing time per frame: %f\n' % ((self.toc-self.tic)/len(dArray)))
@@ -202,8 +208,12 @@ class Benchmark():
 
         logFile = open(('%s/%s.csv' % (self.output, self.rosbagIN[:-4])), 'w')
         logFile.write('Distance; Angle:\n')
-        for d, phi, seg in zip(dArray, phiArray, segmentArray[:,0]):
-            logFile.write('%f; %f; %f\n' % (d, phi, seg))
+        if segmentArray.any():
+            for d, phi, seg in zip(dArray, phiArray, segmentArray[:,0]):
+                logFile.write('%f; %f; %f\n' % (d, phi, seg))
+        else:
+            for d, phi, in zip(dArray, phiArray):
+                logFile.write('%f; %f\n' % (d, phi))
 
     def getMessages(self, messages):
         result = []
@@ -233,7 +243,9 @@ class Benchmark():
         ImageArray = []
         # beliefImgArray = []
         SegmentArray = []
-        avgSegments = 0
+        segmentArray = []
+        SegmentArray = np.asarray(SegmentArray)
+        segmentArray = np.asarray(segmentArray)
         SegmentProcessTime = 0
 
         self.tic = time.time()
@@ -273,6 +285,9 @@ class Benchmark():
         else:
             self.fast = 'False'
 
+        if not dArray.any():
+            self.fast = 'False'
+
         dComputedArray = []
         phiComputedArray = []
 
@@ -310,7 +325,7 @@ class Benchmark():
             dComputedArray = np.asarray(self.dComputedArray)
             phiComputedArray = np.asarray(self.phiComputedArray)
 
-        if not SegmentArray.any():
+        if not SegmentArray.any() or not dArray.any():
             dArray = dComputedArray
             phiArray = phiComputedArray
 
