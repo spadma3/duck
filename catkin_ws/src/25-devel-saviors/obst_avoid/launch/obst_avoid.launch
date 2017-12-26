@@ -5,12 +5,13 @@
     <arg name="use_ai" default="true" doc="Specify if you want to use the corrected image from anti instagram which means if this is yes, the topic: /{}/image_transformer_node/corrected_image MUST BE PUBLISHED, , otherwise we simply subscribe to raw image"/>
 
     <arg name="ai_interval" default="10" doc="time interval after which the ai algorithm should be re-performed"/>
-    
+    <arg name="trafo_mode" default="both" doc="'cb' for colo balance only; 'lin' for linear trafo only; 'both' for both"/>
 
     <param name="~veh" value="$(arg veh)"/>
     <param name="~show_marker" value="$(arg show_marker)" type="bool"/>
     <param name="~show_image" value="$(arg show_image)" type="bool"/>
     <param name="~use_ai" value="$(arg use_ai)" type="bool"/>
+
    
     <node name="obstacle_detection_node" pkg="obst_avoid" type="obstacle_detection_node.py" output="screen">
     </node>
@@ -18,6 +19,8 @@
     <include file="$(find anti_instagram)/launch/cont_anti_instagram_node.launch">
       <arg name="veh" value="$(arg veh)" />
       <arg name="ai_interval" value="$(arg ai_interval)" />
+      <arg name="trafo_mode" value="$(arg trafo_mode)" />
+
     </include>
 
 </launch>
