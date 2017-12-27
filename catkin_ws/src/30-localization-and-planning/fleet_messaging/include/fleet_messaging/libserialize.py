@@ -73,7 +73,7 @@ def parse(bma_data):
     ros_msg = TempStruct()
     ros_msg.layout = layout
     print "bma.data in: {}".format(bma.data)
-    ros_msg.data = (bma.data,)
+    ros_msg.data = tuple(map(int, bma_data))
     print "ros_msg.data in: {}".format(ros_msg.data)
 
     return ros_msg
