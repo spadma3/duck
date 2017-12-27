@@ -48,7 +48,7 @@ roslaunch obst_avoid obst_avoid_visual.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (de
 example with visualizing everything: roslaunch obst_avoid obst_avoid_visual.launch veh:=arki
 
 3. THERE IS THE OBSTACLE_DETECTION_NODE_ONLY
-This node will only launch our obstacle_detection algorithm without the anti_instagram module and will else perform like the obstacle_detection_node
+This node will only launch our obstacle_detection algorithm without the anti_instagram module and will else perform like the obstacle_detection_node -> this one will subscribe to the raw image from the camera!!!
 
 roslaunch obst_avoid obst_avoid_only.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=false)
 
