@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import sys
 import time
-import rospy
 import rosbag
 import argparse
 import cv2
@@ -17,8 +16,6 @@ from matplotlib import pyplot as plt
 from os.path import (isfile, dirname, basename)
 from os import (makedirs, environ, path)
 from sensor_msgs.msg import CameraInfo
-from collections import OrderedDict
-from ruamel.yaml.comments import CommentedMap
 from easy_algo.algo_db import get_easy_algo_db
 from duckietown_msgs.msg import (Segment, SegmentList)
 from line_detector.visual_state_fancy_display import vs_fancy_display
@@ -27,9 +24,9 @@ from line_detector2.run_programmatically import FakeContext
 import warnings
 warnings.filterwarnings("ignore")
 
+
 class Benchmark():
     def __init__(self):
-        pathArray = []
         self.path = None
         self.save_images = False
         self.preparer = 'prep_200_70'
@@ -129,7 +126,6 @@ class Benchmark():
         self.lf.update(segmentList_transformed.segments)
 
         result = vs_fancy_display(input_rectified, segmentList)
-        
         [d_max, phi_max] = self.lf.getEstimate()
         max_val = self.lf.getMax()
         in_lane = max_val > self.lf.min_max 
@@ -139,7 +135,10 @@ class Benchmark():
         return result
 
     def create_Plots(self, dArray, phiArray, dComputedArray, phiComputedArray, segmentArray):
-        fig, ax = plt.subplots(3, sharex=True)
+        if segmentArray.any():
+            fig, ax = plt.subplots(3, sharex=True)
+        else:
+            fig, ax = plt.subplots(2, sharex=True)
         ax[0].plot(dArray[:,1]-self.startTime, dArray[:,0]*100, color="blue", label=r'$d_{est}$')
         ax[1].plot(phiArray[:,1]-self.startTime, phiArray[:,0], color="red", label=r'$phi_{est}$')
         if dComputedArray.any():
@@ -177,39 +176,39 @@ class Benchmark():
             ax[2].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
             ax[2].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(np.mean(segmentArray[:,0]),3), round(np.median(segmentArray[:,0]),3)), ha="right", 
                 va="center", transform=ax[2].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
-        fig.set_size_inches(20,10)
+        fig.set_size_inches(20, 10)
         fig.savefig('%s/%s.png' % (self.output, self.rosbagIN[:-4]), dpi=300, bbox_inches='tight')
         # plt.show()
 
     def write_Logs(self, dArray, phiArray, segmentArray, SegmentProcessTime):
         logFile = open(('%s/%s.txt' % (self.output, self.rosbagIN[:-4])), 'w')
         logFile.write('Benchmark results for %s\n' % self.rosbagIN[:-4])
-        logFile.write('\tdist min:\t%s\n' % round(self.d_min,3))
-        logFile.write('\tdist max:\t%s\n' % round(self.d_max,3))
-        logFile.write('\tdist mean:\t%s\n' % round(self.d_mean,3))
-        logFile.write('\tdist med:\t%s\n' % round(self.d_median,3))
-        logFile.write('\tdist var:\t%s\n' % round(self.d_var,3))
+        logFile.write('\tdist min:\t%s\n' % round(self.d_min, 3))
+        logFile.write('\tdist max:\t%s\n' % round(self.d_max, 3))
+        logFile.write('\tdist mean:\t%s\n' % round(self.d_mean, 3))
+        logFile.write('\tdist med:\t%s\n' % round(self.d_median, 3))
+        logFile.write('\tdist var:\t%s\n' % round(self.d_var, 3))
 
-        logFile.write('\tphi min:\t%s\n' % round(self.phi_min,3))
-        logFile.write('\tphi max:\t%s\n' % round(self.phi_max,3))
-        logFile.write('\tphi mean:\t%s\n' % round(self.phi_mean,3))
-        logFile.write('\tphi med:\t%s\n' % round(self.phi_median,3))
-        logFile.write('\tphi var:\t%s\n' % round(self.phi_var,3))
+        logFile.write('\tphi min:\t%s\n' % round(self.phi_min, 3))
+        logFile.write('\tphi max:\t%s\n' % round(self.phi_max, 3))
+        logFile.write('\tphi mean:\t%s\n' % round(self.phi_mean, 3))
+        logFile.write('\tphi med:\t%s\n' % round(self.phi_median, 3))
+        logFile.write('\tphi var:\t%s\n' % round(self.phi_var, 3))
 
         if segmentArray.any():
             logFile.write('\nImage segments statistics:')
-            logFile.write('\tAverage amount of segments:\t%s\n' % round(np.mean(segmentArray[:,0]),3))
-            logFile.write('\tMedian amount of segments:\t%s\n' % round(np.median(segmentArray[:,0]),3))
-            logFile.write('\tAverage processing time per frame (on duckiebot):\t%s\n' % round(SegmentProcessTime,3))
+            logFile.write('\tAverage amount of segments:\t%s\n' % round(np.mean(segmentArray[:,0]), 3))
+            logFile.write('\tMedian amount of segments:\t%s\n' % round(np.median(segmentArray[:,0]), 3))
+            logFile.write('\tAverage processing time per frame (on duckiebot):\t%s\n' % round(SegmentProcessTime, 3))
 
-        logFile.write('\nRosbag processing time: %f\n' % (self.toc-self.tic))
-        logFile.write('\tAverage processing time per frame: %f\n' % ((self.toc-self.tic)/len(dArray)))
+        logFile.write('\nRosbag processing time: %f\n' % (self.toc - self.tic))
+        logFile.write('\tAverage processing time per frame: %f\n' % ((self.toc - self.tic) / len(dArray)))
         logFile.write('\tImage preparer used on computer: %s\n' % self.preparer)
 
         logFile = open(('%s/%s.csv' % (self.output, self.rosbagIN[:-4])), 'w')
         logFile.write('Distance; Angle:\n')
         if segmentArray.any():
-            for d, phi, seg in zip(dArray, phiArray, segmentArray[:,0]):
+            for d, phi, seg in zip(dArray, phiArray, segmentArray[:, 0]):
                 logFile.write('%f; %f; %f\n' % (d, phi, seg))
         else:
             for d, phi, in zip(dArray, phiArray):
