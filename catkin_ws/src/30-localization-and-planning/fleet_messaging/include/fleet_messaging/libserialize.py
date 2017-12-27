@@ -37,7 +37,8 @@ def serialize(ros_msg):
 
     # Set the data
     print "ros_msg.data out: {}".format(ros_msg.data)
-    bma.data = str(ros_msg.data)
+    # bma.data = str(ros_msg.data)
+    bma.data = bytes(ros_msg.data)
     print "bma.data out: {}".format(bma.data)
     bma_data = bma.SerializeToString()
 
@@ -73,7 +74,7 @@ def parse(bma_data):
     ros_msg = TempStruct()
     ros_msg.layout = layout
     print "bma.data in: {}".format(bma.data)
-    ros_msg.data = tuple(map(int, bma_data))
+    ros_msg.data = tuple(map(bytes, bma_data))
     print "ros_msg.data in: {}".format(ros_msg.data)
 
     return ros_msg
