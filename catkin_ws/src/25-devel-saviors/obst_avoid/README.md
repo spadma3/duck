@@ -58,6 +58,14 @@ example without visualizing anything: roslaunch obst_avoid obst_avoid_only.launc
 
 example with visualizing the obstacles in the imageframe: roslaunch obst_avoid obst_avoid_only.launch veh:=arki show_image:=true
 
+4. THERE IS THE OBSTACLE_DETECTION_NODE_LANE_FOLLOWING_LIGHT
+this node is designed to be used together with lane follwoing demo and provides the following behaviour: in the lane-following demo you can publish a linear transformation by pressing x-button and without any additional node running -> this launchfile subscribes to this topics rectified image -> is a lightweight version (the best i could come up with today,...)
+
+start via:
+
+roslaunch obst_avoid obst_avoid_lane_follow_light.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) 
+
+
 
 SCRIPTS:
 
