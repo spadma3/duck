@@ -70,6 +70,6 @@ def parse(bma_data):
     layout.data_offset = bma.layout.data_offset
     ros_msg = TempStruct()
     ros_msg.layout = layout
-    ros_msg.data = bma.data
+    ros_msg.data = (bma.data,)
 
     return ros_msg
