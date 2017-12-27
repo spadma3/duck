@@ -50,6 +50,14 @@ example with visualizing everything: roslaunch obst_avoid obst_avoid_visual.laun
 3. THERE IS THE OBSTACLE_DETECTION_NODE_ONLY
 This node will only launch our obstacle_detection algorithm without the anti_instagram module and will else perform like the obstacle_detection_node
 
+roslaunch obst_avoid obst_avoid_only.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=false)
+
+if computational load too high -> set ai_interval to a greater value. This value specifies in which interval you compute new color transformation!! (e.g. set to 100!!!) or use the Node No3!!!
+
+example without visualizing anything: roslaunch obst_avoid obst_avoid_only.launch veh:=arki
+
+example with visualizing the obstacles in the imageframe: roslaunch obst_avoid obst_avoid_only.launch veh:=arki show_image:=true
+
 
 SCRIPTS:
 
