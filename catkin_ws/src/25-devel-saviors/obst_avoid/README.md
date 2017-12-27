@@ -59,12 +59,13 @@ example without visualizing anything: roslaunch obst_avoid obst_avoid_only.launc
 example with visualizing the obstacles in the imageframe: roslaunch obst_avoid obst_avoid_only.launch veh:=arki show_image:=true
 
 4. THERE IS THE OBSTACLE_DETECTION_NODE_LANE_FOLLOWING_LIGHT
-this node is designed to be used together with lane follwoing demo and provides the following behaviour: in the lane-following demo you can publish a linear transformation by pressing x-button and without any additional node running -> this launchfile subscribes to this topics rectified image -> is a lightweight version (the best i could come up with today,...)
+this node is designed to be used together with lane follwoing demo and provides the following behaviour: in the lane-following demo you can publish a linear transformation by pressing x-button -> this launchfile subscribes to this transformation and publishes corrected image -> is a lightweight version since the user defines when the transformation has to be calculated (in best case before starting the autonomous drive!!!!) and then it is very lightweight and efficient!!!! (BUT IT IS ONLY USING LINEAR TRANSFORMATION,...)
 
 start via:
 
 roslaunch obst_avoid obst_avoid_lane_follow_light.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) 
 
+use like: start the make demo-lane-following then start the node via the launch expression (above) then press x on your joystick and hope that it says that color transform was succesfully published else, press x again until telling that it was sucessfully published (you can also double check via laptop by looking at the images of the topic: /ROBOT_NAME/image_transformer_node/corrected_image/ )
 
 
 SCRIPTS:
