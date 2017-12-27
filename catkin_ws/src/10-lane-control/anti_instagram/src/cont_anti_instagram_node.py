@@ -78,7 +78,13 @@ class ContAntiInstagramNode():
         self.image_msg = None
 
         # timer for continuous image process
-        self.timer = rospy.Timer(rospy.Duration(self.interval), self.processImage)
+        # TODO find shortest possible interval on duckiebot
+        self.timer_init = rospy.Timer(rospy.Duration(1), self.processImage)
+        self.timer_cont = None
+        rospy.loginfo('ai: Looking for initial trafo.')
+
+        # bool to switch from initialisation to continuous mode
+        self.initialized = False
 
         # TODO write to file within git folder
         #self.file = open('/home/milan/output_cont_ai_node.txt', 'a+')
@@ -137,17 +143,31 @@ class ContAntiInstagramNode():
                     colorBalanced_image = resized_img
 
 
-                # find color transform
-                self.ai.calculateTransform(colorBalanced_image)
-                tk.completed('calculateTransform')
+                # not yet initialized
+                if not self.initialized:
+                    if self.ai.calculateTransform(colorBalanced_image):
+                        # init successful. set interval on desired by input
+                        self.initialized = True
+                        self.timer_init.shutdown()
+                        self.timer_cont = rospy.Timer(rospy.Duration(self.interval), self.processImage)
+                        rospy.loginfo('ai: Initial trafo found! Switch to continuous mode.')
 
-                # store color transform to ros message
-                self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
-                self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
+                # initialisation already done: continuous mode
+                else:
 
-                # publish color trafo
-                self.pub_trafo.publish(self.transform)
-                rospy.loginfo('ai: Color transform published.')
+                    # find color transform
+                    if self.ai.calculateTransform(colorBalanced_image):
+                        tk.completed('calculateTransform')
+
+                        # store color transform to ros message
+                        self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
+                        self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
+
+                        # publish color trafo
+                        self.pub_trafo.publish(self.transform)
+                        rospy.loginfo('ai: Color transform published.')
+                    else:
+                        rospy.loginfo('ai: average error too large. transform NOT updated.')
 
 
 

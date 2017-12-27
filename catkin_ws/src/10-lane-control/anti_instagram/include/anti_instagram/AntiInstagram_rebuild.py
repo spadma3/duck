@@ -83,8 +83,11 @@ class AntiInstagram():
 
             self.shift = T3.shift
             self.scale = T3.scale
+
+            return True
         else:
-            rospy.loginfo('ai: average error too large. transform NOT updated.')
+            # rospy.loginfo('ai: average error too large. transform NOT updated.')
+            return False
 
 
     def applyTransform(self, image):
