@@ -5,7 +5,7 @@ from std_msgs.msg import ByteMultiArray
 
 # Define callback function
 def callback(msg):
-    s = "Message received: %s %s %s" %(msg.data[0], msg.data[1], msg.data[2])
+    s = "[tester_node] Message received: %s %s %s" %(msg.data[0], msg.data[1], msg.data[2])
     rospy.loginfo(s)
 
 def listener():
@@ -22,7 +22,7 @@ def listener():
 
     while not rospy.is_shutdown():
         msg = ByteMultiArray()
-        rospy.loginfo("Message published")
+        rospy.loginfo("[tester_node] Message published")
         # mutable_bytes[0] = count
         # mutable_bytes[1] = count + 1
         # mutable_bytes[2] = count + 2
@@ -40,5 +40,5 @@ def listener():
         rospy.sleep(1.0)
 
 if __name__ == '__main__':
-    print "Running"
+    print "[tester_node] Running"
     listener()

@@ -54,7 +54,8 @@ def parse(bma_data):
     bma = ByteMultiArray()
 
     # Parse the data
-    bma.ParseFromString(bma_data)
+    bma_data_joined = str.join(bma_data)
+    bma.ParseFromString(bma_data_joined)
 
     # Populate the ROS message
     dim = []
