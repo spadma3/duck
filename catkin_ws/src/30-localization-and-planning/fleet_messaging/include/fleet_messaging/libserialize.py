@@ -36,10 +36,7 @@ def serialize(ros_msg):
     bma.layout.data_offset = ros_msg.layout.data_offset
 
     # Set the data
-    print "ros_msg.data out: {}".format(ros_msg.data)
-    # bma.data = str(ros_msg.data)
-    bma.data = bytes(ros_msg.data)
-    print "bma.data out: {}".format(bma.data)
+    bma.data = "".join(chr(elmt) for elmt in ros_msg.data)
     bma_data = bma.SerializeToString()
 
     return bma_data
@@ -73,8 +70,6 @@ def parse(bma_data):
     layout.data_offset = bma.layout.data_offset
     ros_msg = TempStruct()
     ros_msg.layout = layout
-    print "bma.data in: {}".format(bma.data)
-    ros_msg.data = tuple(map(bytes, bma_data))
-    print "ros_msg.data in: {}".format(ros_msg.data)
+    ros_msg.data = tuple(ord(elmt) for elmt in bma.data)
 
     return ros_msg
