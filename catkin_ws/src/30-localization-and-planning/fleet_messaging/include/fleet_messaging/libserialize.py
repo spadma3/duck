@@ -66,7 +66,7 @@ def parse(bma_data):
         mad.stride = dim_tmp.stride
         dim.append(mad)
     layout = TempStruct()
-    layout.dim = dim_tmp
+    layout.dim = dim
     layout.data_offset = bma.layout.data_offset
     ros_msg = TempStruct()
     ros_msg.layout = layout
