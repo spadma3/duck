@@ -78,8 +78,8 @@ class EasyAlgoDB(object):
         instance = family.instances[instance_name]
         
         if not instance.valid:
-            msg = ('Cannot instantiate because it is invalid:\n%s' % 
-                   dtu.indent(instance.error_if_invalid, '> '))
+            msg = ('Cannot instantiate %r because it is invalid:\n%s' % 
+                   (instance_name, dtu.indent(instance.error_if_invalid, '> ')))
             raise dtu.DTConfigException(msg)
         res = dtu.instantiate(instance.constructor, instance.parameters)
         
