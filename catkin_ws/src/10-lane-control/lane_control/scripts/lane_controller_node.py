@@ -20,13 +20,13 @@ class lane_controller(object):
         # Subscription
         # TODO: set normal_use False for using your topic
         normal_use = True
-        if self.fsm_mode.state == "LANE_FOLLOWING"
+        if self.fsm_mode.state == None and self.fsm_mode.state == "LANE_FOLLOWING":
             self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
-        elif self.fsm.state == "INTERSECTION_CONTROL"
+        elif self.fsm.state == "INTERSECTION_CONTROL":
             # TODO: add your own subscriber here by modifying topic, choose from lane_pose_obstacle_avoidance,lane_pose_parking, implicit_coordination_velocity,lane_pose_intersection_navigation
             #self.sub_lane_reading = rospy.Subscriber("~lane_pose_intersection_navigation", LanePose, self.cbPose, queue_size=1)
             self.sub_lane_reading = rospy.Subscriber("~lane_pose_intersection_navigation", LanePose, self.cbPose, queue_size=1)
-        elif self.fsm_mode.state == "PARKING"
+        elif self.fsm_mode.state == "PARKING":
             self.sub_lane_reading = rospy.Subscriber("~lane_pose_parking", LanePose, self.cbPose, queue_size=1)
 
         self.sub_lane_reading_obstacle_avoidance = rospy.Subscriber("~lane_pose_obstacle_avoidance", LanePose, self.updateObstacleAvoidancePose, queue_size=1)
@@ -58,7 +58,7 @@ class lane_controller(object):
     def updateVelocityCommand(self,velocity_command_msg):
         self.velocity_command = velocity_command_msg.v_ref
 
-        if self.fsm_mode.state == "LANE_FOLLOWING" and self.v_min <= velocity_command_msg.v_ref <= self.v_max
+        if self.fsm_mode.state == "LANE_FOLLOWING" and self.v_min <= velocity_command_msg.v_ref <= self.v_max:
             self.v_bar = self.setupParameter("~v_bar",lane_pose_msg.v_ref)
 
 
@@ -264,14 +264,14 @@ class lane_controller(object):
         if self.fsm_mode.state == "INTERSECTION_CONTROL":
             if lane_pose_msg.d_ref != None:
                 self.d_ref = self.setupParameter("~d_ref",lane_pose_msg.d_ref)
-            if lane_pose_msg.v_bar != None and self.v_min <= velocity_command_msg.v_ref <= self.v_max
+            if lane_pose_msg.v_bar != None and self.v_min <= velocity_command_msg.v_ref <= self.v_max:
                 self.v_bar = self.setupParameter("~v_bar",lane_pose_msg.v_bar)
         elif self.fsm_mode.state == "PARKING":
             if lane_pose_msg.d_ref != None:
                 self.d_ref = self.setupParameter("~d_ref",lane_pose_msg.d_ref)
-            if lane_pose_msg.v_bar != None and self.v_min <= velocity_command_msg.v_ref <= self.v_max
+            if lane_pose_msg.v_bar != None and self.v_min <= velocity_command_msg.v_ref <= self.v_max:
                 self.v_bar = self.setupParameter("~v_bar",lane_pose_msg.v_ref)
-        elif self.fsm_mode.state == "LANE_FOLLOWING" and self.object_detected
+        elif self.fsm_mode.state == "LANE_FOLLOWING" and self.object_detected:
             if lane_pose_msg.d_ref != None:
                 self.d_ref = self.setupParameter("~d_ref", self.lane_reading_obstacle_avoidance.d_ref)
             if lane_pose_msg.phi_ref != None:
