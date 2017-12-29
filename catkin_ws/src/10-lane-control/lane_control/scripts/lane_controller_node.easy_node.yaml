@@ -55,8 +55,13 @@ subscriptions:
         type: duckietown_msgs/LanePose
         queue_size: 1
     fsm_mode:
-        topic: ~mode
+        topic: ~fsm_mode
         type: duckietown_msgs/FSMState
         queue_size: 1
+    obstacle_detected:
+        topic: ~flag_obstacle_detected
+        type: duckietown_msgs/BoolStamped
+        queue_size: 1
+    #TODO: remap flag_obstacle_detected
 
 contracts: {}

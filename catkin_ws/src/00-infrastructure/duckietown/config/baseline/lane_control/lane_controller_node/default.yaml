@@ -1,6 +1,8 @@
 #lane_control/lane_controller_node
 #v_bar_old 0.45
 v_bar: 0.3864
+v_min: 0.05
+v_max: 0.3864
 # k_d_old: -12
 k_d: -60
 # k_theta_old: -6.0
@@ -10,3 +12,6 @@ k_Iphi: 0.0
 theta_thres: 0.523
 d_thres: 0.2615
 d_offset: 0.0
+d_ref: 0.0
+phi_ref: 0.0
+object_detected: False

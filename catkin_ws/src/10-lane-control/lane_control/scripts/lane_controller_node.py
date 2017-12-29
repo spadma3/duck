@@ -20,15 +20,21 @@ class lane_controller(object):
         # Subscription
         # TODO: set normal_use False for using your topic
         normal_use = True
-        if normal_use:
+        if self.fsm_mode.state == "LANE_FOLLOWING"
             self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
-        else:
+        elif self.fsm.state == "INTERSECTION_CONTROL"
             # TODO: add your own subscriber here by modifying topic, choose from lane_pose_obstacle_avoidance,lane_pose_parking, implicit_coordination_velocity,lane_pose_intersection_navigation
             #self.sub_lane_reading = rospy.Subscriber("~lane_pose_intersection_navigation", LanePose, self.cbPose, queue_size=1)
-            self.sub_lane_reading = rospy.Subscriber("~yourtopic", LanePose, self.cbPose, queue_size=1)
+            self.sub_lane_reading = rospy.Subscriber("~lane_pose_intersection_navigation", LanePose, self.cbPose, queue_size=1)
+        elif self.fsm_mode.state == "PARKING"
+            self.sub_lane_reading = rospy.Subscriber("~lane_pose_parking", LanePose, self.cbPose, queue_size=1)
 
+        self.sub_lane_reading_obstacle_avoidance = rospy.Subscriber("~lane_pose_obstacle_avoidance", LanePose, self.updateObstacleAvoidancePose, queue_size=1)
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.updateFSMState, queue_size=1)
+        self.sub_velocity_command = rospy.Subscriber("~implicit_coordination_velocity", FSMState, self.updateVelocityCommand, queue_size=1)
+        self.sub_object_detected = rospy.Subscriber("~flag_obstacle_detected", BoolStamped, self.updateObjectDetected queue_size=1)
 
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0
@@ -43,6 +49,24 @@ class lane_controller(object):
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
+    def updateObstacleAvoidancePose(self, lane_pose_msg):
+        self.lane_reading_obstacle_avoidance = lane_pose_msg
+
+    def updateObjectDetected(self,obstacle_detected_msg):
+        self.object_detected = obstacle_detected_msg.data
+
+    def updateVelocityCommand(self,velocity_command_msg):
+        self.velocity_command = velocity_command_msg.v_ref
+
+        if self.fsm_mode.state == "LANE_FOLLOWING" and self.v_min <= velocity_command_msg.v_ref <= self.v_max
+            self.v_bar = self.setupParameter("~v_bar",lane_pose_msg.v_ref)
+
+
+    def updateFSMState(self,fsm_mode_msg):
+        if self.fsm_mode != None and self.fsm_mode == fsm_mode_msg.state:
+            self.setGains() # Reset default Values after change of FSM State
+        self.fsm_mode = fsm_mode_msg
+
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
@@ -51,12 +75,17 @@ class lane_controller(object):
 
 
     def setGains(self):
-        v_bar = 0.5 # nominal speed, 0.5m/s
+        v_bar = 0.38 # nominal speed, 0.5m/s
+        v_min = 0.05 # min velocity
+        v_max = 0.38 # max velocity
         k_theta = -2.0
         k_d = - (k_theta ** 2) / ( 4.0 * v_bar)
         theta_thres = math.pi / 6
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
+        d_ref = 0.0
+        phi_ref = 0.0
+        object_detected = False
 
         # incurvature = False
         # curve_inner = False
@@ -83,13 +112,17 @@ class lane_controller(object):
 
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
+        self.v_min = self.setupParameter("~v_min",v_min) # Linear velocity
+        self.v_max = self.setupParameter("~v_min",v_max) # Linear velocity
+
         # FIXME: AC aug'17: are these inverted?
         self.k_d = self.setupParameter("~k_d",k_d) # P gain for theta
         self.k_theta = self.setupParameter("~k_theta",k_theta) # P gain for d
         self.d_thres = self.setupParameter("~d_thres",d_thres) # Cap for error in d
         self.theta_thres = self.setupParameter("~theta_thres",theta_thres) # Maximum desire theta
         self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
-
+        self-d_ref =  self.setupParameter("~d_ref",d_ref)
+        self.object_detected = self.setupParameter("~object_detected",object_detected) # a configurable offset from the lane position
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
         self.turn_off_feedforward_part = self.setupParameter("~turn_off_feedforward_part",turn_off_feedforward_part)
@@ -103,12 +136,20 @@ class lane_controller(object):
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
+        v_min = rospy.get_param("~v_min")
+        v_max = rospy.get_param("~v_max")
+
         k_d = rospy.get_param("~k_d")
         k_theta = rospy.get_param("~k_theta")
         d_thres = rospy.get_param("~d_thres")
         theta_thres = rospy.get_param("~theta_thres")
         d_offset = rospy.get_param("~d_offset")
+        d_ref = rospy.get_param("~d_ref")
+        phi_ref = rospy.get_param("~phi_ref")
+
+        turn_off_feedforward_part = rospy.get_param("~turn_off_feedforward_part")
         use_radius_limit = rospy.get_param("~use_radius_limit")
+        object_detected = rospy.get_param("~object_detected")
 
         #FeedForward
         self.velocity_to_m_per_s = 0.67 # TODO: change according to information from team System ID!
@@ -117,7 +158,6 @@ class lane_controller(object):
         self.curvature_inner = 1 / 0.175
         # incurvature = rospy.get_param("~incurvature") # TODO remove after estimator is introduced
         # curve_inner = rospy.get_param("~curve_inner") # TODO remove after estimator is introduced
-        turn_off_feedforward_part = rospy.get_param("~turn_off_feedforward_part")
 
         k_Id = rospy.get_param("~k_Id")
         k_Iphi = rospy.get_param("~k_Iphi")
@@ -125,22 +165,27 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit)
+        params_old = (self.v_bar,self.v_max,self.v_min, self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.d_ref, self.phi_ref, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit, self.object_detected)
+        params_new = (v_bar, v_max, v_min, k_d,k_theta,d_thres,theta_thres, d_offset, d_ref, phi_ref, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit, object_detected)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
             #rospy.loginfo("old gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_old))
             #rospy.loginfo("new gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_new))
             self.v_bar = v_bar
+            self.v_max = v_max
+            self.v_min = v_min
+
             self.k_d = k_d
             self.k_theta = k_theta
             self.d_thres = d_thres
+            self.d_ref = d_ref
             self.theta_thres = theta_thres
             self.d_offset = d_offset
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
             self.turn_off_feedforward_part = turn_off_feedforward_part
+            self.object_detected = object_detected
 
             if use_radius_limit != self.use_radius_limit:
                 self.use_radius_limit = use_radius_limit
@@ -213,7 +258,24 @@ class lane_controller(object):
 
     def cbPose(self, lane_pose_msg):
 
+        if obejct
         self.lane_reading = lane_pose_msg
+
+        if self.fsm_mode.state == "INTERSECTION_CONTROL":
+            if lane_pose_msg.d_ref != None:
+                self.d_ref = self.setupParameter("~d_ref",lane_pose_msg.d_ref)
+            if lane_pose_msg.v_bar != None and self.v_min <= velocity_command_msg.v_ref <= self.v_max
+                self.v_bar = self.setupParameter("~v_bar",lane_pose_msg.v_bar)
+        elif self.fsm_mode.state == "PARKING":
+            if lane_pose_msg.d_ref != None:
+                self.d_ref = self.setupParameter("~d_ref",lane_pose_msg.d_ref)
+            if lane_pose_msg.v_bar != None and self.v_min <= velocity_command_msg.v_ref <= self.v_max
+                self.v_bar = self.setupParameter("~v_bar",lane_pose_msg.v_ref)
+        elif self.fsm_mode.state == "LANE_FOLLOWING" and self.object_detected
+            if lane_pose_msg.d_ref != None:
+                self.d_ref = self.setupParameter("~d_ref", self.lane_reading_obstacle_avoidance.d_ref)
+            if lane_pose_msg.phi_ref != None:
+                self.phi_ref = self.setupParameter("~phi_ref", self.lane_reading_obstacle_avoidance.phi_ref)
 
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
@@ -224,8 +286,8 @@ class lane_controller(object):
 
         prev_cross_track_err = self.cross_track_err
         prev_heading_err = self.heading_err
-        self.cross_track_err = lane_pose_msg.d - self.d_offset
-        self.heading_err = lane_pose_msg.phi
+        self.cross_track_err = lane_pose_msg.d - self.d_offset - self.d_ref
+        self.heading_err = lane_pose_msg.phi - self.phi_ref
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
