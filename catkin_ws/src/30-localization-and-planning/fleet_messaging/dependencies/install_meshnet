@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Install batman-adv (and dependencies)
+
+# Configure the mesh network

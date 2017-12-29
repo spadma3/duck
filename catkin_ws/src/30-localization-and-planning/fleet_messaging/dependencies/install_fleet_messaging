@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Argument check
+if [[ $# -eq 0 ]] ; then
+    echo "Aborting...no interface argument given!"
+    exit 1
+fi
+
+# Check the interface
+WIFACE=$1
+iwconfig $WIFACE | grep -v "no wireless extensions."
+if [[ $WIFACE != "" && $? -ne 0 ]] ; then
+    echo "Aborting...Interface" $WIFACE "is not a WiFi interface!"
+    exit 2
+fi
+
+source $DUCKIETOWN_ROOT/environment.sh
+
+# Install ZeroMQ
+./install_zeromq
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...installing ZeroMQ failed!"
+    exit 3
+fi
+
+# Install ProtoBuf
+./install_protobuf
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...installing ProtoBuf failed!"
+    exit 4
+fi
+
+# Install the mesh network
+./install_meshnet
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...installing mesh network failed!"
+    exit 5
+fi
