@@ -57,14 +57,14 @@ gates:
       - apriltag_parking
       - parking_active
     output_topic: "~apriltag_parking_and_parking_active"
-  apriltag_parking:
+  apriltag_intersection:
     gate_type: OR
     inputs:
       - apriltag_fourway
       - apriltag_right_t
       - apriltag_left_t
       - apriltag_t
-    output_topic: "~apriltag_parking"
+    output_topic: "~apriltag_intersection"
   joystick_override_on_and_parallel_autonomy_off:
     gate_type: AND
     inputs:
