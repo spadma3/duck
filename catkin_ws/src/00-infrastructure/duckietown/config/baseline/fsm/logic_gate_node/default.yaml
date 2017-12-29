@@ -4,8 +4,8 @@ events:
     msg_type: "BoolStamped"
     trigger: True
   velocity_zero: 
-    topic: "car_cmd/V"
-    msg_type: "uint8"
+    topic: "lane_controller_node/car_cmd"
+    msg_type: "Twist2DStamped"
     trigger: 0
   apriltag_parking:
     topic: "apriltag_node/ApriltagWithInfo"

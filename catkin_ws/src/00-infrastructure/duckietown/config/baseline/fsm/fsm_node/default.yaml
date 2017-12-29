@@ -10,6 +10,14 @@ events: #Maps from subscribing topic to signal ids
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
     trigger: False
+  parallel_autonomy_on:
+    topic: "joy_mapper_node/parallel_autonomy"
+    msg_type: "BoolStamped"
+    trigger: True
+  parallel_autonomy_off:
+    topic: "joy_mapper_node/parallel_autonomy"
+    msg_type: "BoolStamped"
+    trigger: False
   start_avoidance:
     topic: "joy_mapper_node/start_avoidance"
     msg_type: "BoolStamped"
@@ -70,22 +78,28 @@ nodes:
   # extras added
   central_fleet_planning_node: "central_fleet_planning_node/switch"
   LED_coordination_node: "LED_coordination_node/switch"
+  LED_detection_node: "LED_detection_node/switch"
   obstacle_avoidance_node: "obstacle_avoidance_node/switch"
   implicit_coordination_node: "implicit_coordination_node/switch"
   lane_controller_node: "lane_controller_node/switch"
   vehicle_avoidance_control_node: "vehicle_avoidance_control_node/switch"
   vehicle_detection_node : "vehicle_detection_node/switch"
+  intersection_navigation_node: "intersection_navigation_node/switch"
+  intersection_localization_node: "intersection_localization_node/switch"
   parking_perception_localization: "parking_perception_localization/switch"
+  parking_path_planning: "parking_path_planning/switch"
+  parking_control: "parking_control/switch"
 
 # Define state transitions
 states:
-  ALWAYS:
-    active_nodes:
-      - inverse_kinematics
-      - anti_instagram
+  # ALWAYS:
+  #   active_nodes:
+  #     - inverse_kinematics
+  #     - anti_instagram
   NORMAL_JOYSTICK_CONTROL:
     transitions:
       joystick_override_off: "LANE_FOLLOWING"
+      parallel_autonomy_on: "SAFE_JOYSTICK_CONTROL"
     active_nodes:
       - lane_filter_node
       - line_detector_node
@@ -98,6 +112,7 @@ states:
   SAFE_JOYSTICK_CONTROL:
     transitions:
       joystick_override_off: "LANE_FOLLOWING"
+      parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
     active_nodes:
       - lane_filter_node
       - line_detector_node
@@ -111,65 +126,70 @@ states:
     transitions:
       at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
     active_nodes:
-      - lane_filter_node
+      - decoder_node
       - line_detector_node
+      - lane_filter_node
       - lane_controller_node
       - stop_line_filter_node
       - obstacle_avoidance_node
-      - vehicle_detection_node
-      - vehicle_avoidance_control_node
-      - decoder_node
+      # - vehicle_detection_node
+      # - vehicle_avoidance_control_node
     lights: ["lane_following"]
     current_status: "in_progress"
   INTERSECTION_COORDINATION:
     transitions:
       intersection_go: "INTERSECTION_CONTROL"
     active_nodes:
-      - apriltag_node
-      - led_detector_node
-      - led_emitter_node
       - decoder_node
+      - apriltag_node
       - framerate_high
+      - led_emitter_node
+      - led_detector_node
       - implicit_coordination_node
       - LED_coordination_node
+      - LED_detection_node
     lights: ["coordination"]
     current_status: "in_progress"
   INTERSECTION_CONTROL:
     transitions:
       intersection_done: "LANE_FOLLOWING"
     active_nodes:
-      - line_detector_node
-      - lane_filter_node
       - apriltag_node
       - decoder_node
       - led_emitter_node
-      - navigators_node
+      - line_detector_node
+      - lane_filter_node
+      - intersection_navigation_node
+      - intersection_localization_node
     current_status: "in_progress"
-  LANE_RECOVERY: # not implemented
-    transitions:
-      found_lane: "LANE_FOLLOWING"
-      lane_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
-    active_nodes:
-      - lane_filter_node
-      - line_detector_node
-    current_status: "planned"
-  INTERSECTION_RECOVERY: # not implemented
-    transitions:
-      found_lane: "LANE_FOLLOWING"
-      intersection_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
-    active_nodes:
-      - lane_filter_node
-      - line_detector_node
-    current_status: "planned"
+  # LANE_RECOVERY: # not implemented
+  #   transitions:
+  #     found_lane: "LANE_FOLLOWING"
+  #     lane_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
+  #   active_nodes:
+  #     - lane_filter_node
+  #     - line_detector_node
+  #   current_status: "planned"
+  # INTERSECTION_RECOVERY: # not implemented
+  #   transitions:
+  #     found_lane: "LANE_FOLLOWING"
+  #     intersection_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
+  #   active_nodes:
+  #     - lane_filter_node
+  #     - line_detector_node
+  #   current_status: "planned"
   PARKING:
     transitions:
-      at_stop_line: "ARRIVE_AT_STOP_LINE"
+      at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
     active_nodes:
-      - lane_filter_node
-      - line_detector_node
-      - parking_node
-      - controller_node
       - decoder_node
+      - line_detector_node
+      - lane_filter_node
+      - parking_node
+      - lane_controller_node
+      - parking_perception_localization
+      - parking_path_planning
+      - parking_control
     current_status: "in_progress"
   ARRIVE_AT_STOP_LINE:
     transitions:
@@ -179,5 +199,3 @@ states:
       - apriltag_node
       - decoder_node
     current_status: "implemented"
-# TODOs:
-# - check active states

@@ -7,7 +7,7 @@ import rospkg
 import yaml
 from graphviz import Digraph
 
-colours = {"implemented": "black", "in_progress": "red", "planned": "gray"}
+colours = {"implemented": "black", "in_progress": "black", "planned": "black"}
 
 # TODO read from command line
 
