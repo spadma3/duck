@@ -34,7 +34,7 @@ class lane_controller(object):
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
         self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.updateFSMState, queue_size=1)
         self.sub_velocity_command = rospy.Subscriber("~implicit_coordination_velocity", FSMState, self.updateVelocityCommand, queue_size=1)
-        self.sub_object_detected = rospy.Subscriber("~flag_obstacle_detected", BoolStamped, self.updateObjectDetected queue_size=1)
+        self.sub_object_detected = rospy.Subscriber("~flag_obstacle_detected", BoolStamped, self.updateObjectDetected, queue_size=1)
 
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0
