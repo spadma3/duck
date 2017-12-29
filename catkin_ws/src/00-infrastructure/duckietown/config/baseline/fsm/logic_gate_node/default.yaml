@@ -6,27 +6,8 @@ events:
   velocity_zero: 
     topic: "lane_controller_node/car_cmd"
     msg_type: "Twist2DStamped"
-    trigger: 0
-  apriltag_parking:
-    topic: "apriltag_node/ApriltagWithInfo"
-    msg_type: "uint8"
-    trigger: 19
-  apriltag_fourway:
-    topic: "apriltag_node/ApriltagWithInfo"
-    msg_type: "uint8"
-    trigger: 11
-  apriltag_right_t:
-    topic: "apriltag_node/ApriltagWithInfo"
-    msg_type: "uint8"
-    trigger: 12
-  apriltag_left_t:
-    topic: "apriltag_node/ApriltagWithInfo"
-    msg_type: "uint8"
-    trigger: 13
-  apriltag_t:
-    topic: "apriltag_node/ApriltagWithInfo"
-    msg_type: "uint8"
-    trigger: 14
+    field: "v"
+    trigger: 0.0
   joystick_override_on: 
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
@@ -39,6 +20,32 @@ events:
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
     trigger: False
+  # apriltag_sign_type:
+  #   topic: "apriltag_node/apriltags_out"
+  #   msg_type: "AprilTagsWithInfos"
+  #   field: infos.tag_type
+  #   trigger: 1
+  # apriltag_parking:
+  #   topic: "apriltag_node/apriltags_out"
+  #   msg_type: "AprilTagsWithInfos"
+  #   field: infos.traffic_sign_type
+  #   trigger: 19
+  # apriltag_fourway:
+  #   topic: "apriltag_node/apriltags_out"
+  #   msg_type: "AprilTagsWithInfos"
+  #   trigger: 11
+  # apriltag_right_t:
+  #   topic: "apriltag_node/apriltags_out"
+  #   msg_type: "AprilTagsWithInfos"
+  #   trigger: 12
+  # apriltag_left_t:
+  #   topic: "apriltag_node/apriltags_out"
+  #   msg_type: "AprilTagsWithInfos"
+  #   trigger: 13
+  # apriltag_t:
+  #   topic: "apriltag_node/apriltags_out"
+  #   msg_type: "AprilTagsWithInfos"
+  #   trigger: 14
 
 # TODO: 
 # - check whether non-Bool values can be given. 
@@ -55,6 +62,7 @@ gates:
     gate_type: AND
     inputs:
       - apriltag_parking
+      - apriltag_sign_type
       - parking_active
     output_topic: "~apriltag_parking_and_parking_active"
   apriltag_intersection:
