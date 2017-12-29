@@ -1,7 +1,11 @@
-# Initail state of the FSM
+# Initial state of the FSM
 initial_state: "NORMAL_JOYSTICK_CONTROL"
 
-events: #Maps from subscribing topic to signal ids
+
+# TODOs:
+# - intersection_done flag? Who determines this?
+
+events: # Maps from subscribing topic to signal ids
   joystick_override_on: 
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
@@ -22,12 +26,8 @@ events: #Maps from subscribing topic to signal ids
     topic: "joy_mapper_node/start_avoidance"
     msg_type: "BoolStamped"
     trigger: True
-  # at_stop_line:
-  #   topic: "stop_line_filter_node/at_stop_line"
-  #   msg_type: "BoolStamped"
-  #   trigger: True
   intersection_go:
-    topic: "simple_coordinator_node/intersection_go"
+    topic: "logic_gate_node/intersection_go"
     msg_type: "BoolStamped"
     trigger: True
   intersection_done:
@@ -54,7 +54,7 @@ events: #Maps from subscribing topic to signal ids
     topic: "apriltag_node/ApriltagWithInfo"
     msg_type: "ApriltagWithInfo"
     trigger: False
-  # from logic_gate_node
+  # Logical events from logic_gate_node
   at_stop_line_and_velocity_zero:
     topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
     msg_type: "BoolStamped"
@@ -76,11 +76,6 @@ events: #Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
 
-  
-# TODOs: 
-# - check apriltag_* topic names and values
-# - found_lane transition? which node does this come from
-# Define global transitions. Available from all states.
 global_transitions:
   joystick_override_on_and_parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
   joystick_override_on_and_parallel_autonomy_on: "SAFE_JOYSTICK_CONTROL"
@@ -88,7 +83,6 @@ global_transitions:
 # Define nodes 
 nodes:
   decoder_node: "decoder_node/switch"
-# anti_instagram_node: "anti_instagram/switch"
   apriltag_node: "apriltag_detector_node/switch"
   vehicle_detector_node: "vehicle_detection_node/switch"
   led_detector_node: "LED_detector_node/switch"
@@ -137,12 +131,12 @@ states:
       joystick_override_off: "LANE_FOLLOWING"
       parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
     active_nodes:
-      - lane_filter_node
-      - line_detector_node
-      - stop_line_filter_node
-      - framerate_high
       - decoder_node
       - apriltag_node
+      - framerate_high
+      - line_detector_node
+      - lane_filter_node
+      - stop_line_filter_node
     lights: ["joystick"]
     current_status: "implemented"
   LANE_FOLLOWING:

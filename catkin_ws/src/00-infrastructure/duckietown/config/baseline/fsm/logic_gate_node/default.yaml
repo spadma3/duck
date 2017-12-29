@@ -20,6 +20,15 @@ events:
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
     trigger: False
+  intersection_go_implicit:
+    topic: "implicit_coord/flag_go_wait"
+    msg_type: "BoolStamped"
+    trigger: True
+  intersection_go_explicit:
+    topic: "LED_coordination/move_intersection"
+    msg_type: "BoolStamped"
+    trigger: True
+
   # apriltag_sign_type:
   #   topic: "apriltag_node/apriltags_out"
   #   msg_type: "AprilTagsWithInfos"
@@ -85,3 +94,9 @@ gates:
       - joystick_override_on
       - parallel_autonomy_off
     output_topic: "~joystick_override_on_and_parallel_autonomy_on"
+  intersection_go:
+    gate_type: OR
+    inputs:
+      - intersection_go_implicit
+      - intersection_go_explicit
+    output_topic: "~intersection_go"
