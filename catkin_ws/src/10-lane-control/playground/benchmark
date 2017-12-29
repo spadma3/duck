@@ -29,7 +29,7 @@ class Benchmark():
     def __init__(self):
         self.path = None
         self.save_images = False
-        self.preparer = 'prep_200_70'
+        self.preparer = 'prep_120_40'
         self.fast = True
 
     def run(self):
@@ -51,7 +51,7 @@ class Benchmark():
             pathArray.append(self.path)
 
         for i in range(len(pathArray)):
-            print('\n[ %d / %d ] Now Processing: %s' % (i, len(pathArray), pathArray[i]))
+            print('\n[ %d / %d ] Now Processing: %s' % (i+1, len(pathArray), pathArray[i]))
             self.rosbagPath = pathArray[i]
             self.rosbagIN = basename(self.rosbagPath)
             self.output = ('%s/%s/%s' % (dirname(self.rosbagPath), args.output, self.rosbagIN[:-4]))
@@ -62,6 +62,16 @@ class Benchmark():
                 pass
 
             self.processBag()
+            print('[ %d / %d ] Successfully processed: %s\n' % (i+1, len(pathArray), pathArray[i]))
+
+            # if not os.path.isdir(self.output):
+            #     self.processBag()
+            # else:
+            #     print('Rosbag %s is already existing' % self.rosbagIN[:-4])
+            #     answer = input('Overwrite? [y/n]')
+            #     if answer or answer[0].lower() == 'y':
+            #         self.processBag()
+
 
     def load_filter_config(self, filename=''):
         # Load lane_filter config
@@ -94,7 +104,7 @@ class Benchmark():
         dtu.logger.info("Loaded camera calibration parameters for {} from {}".format(robot, path.basename(filename)))
         return cam_info
 
-    def process_image(self, imgArray, i):
+    def process_image(self, imgArray, i, dComputedArray, phiComputedArray):
         img = dtu.rgb_from_ros(imgArray[0])
         input = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
@@ -130,15 +140,18 @@ class Benchmark():
         max_val = self.lf.getMax()
         in_lane = max_val > self.lf.min_max 
 
-        self.dComputedArray.append([d_max, imgArray[1]])
-        self.phiComputedArray.append([phi_max, imgArray[1]])
+        dComputedArray.append([d_max, imgArray[1]])
+        phiComputedArray.append([phi_max, imgArray[1]])
         return result
 
-    def create_Plots(self, dArray, phiArray, dComputedArray, phiComputedArray, segmentArray):
+    def create_Plots(self, dArray, phiArray, dComputedArray, phiComputedArray, segmentArray, vArray, omegaArray):
+        plt.rcParams.update({'font.size': 10})
         if segmentArray.any():
-            fig, ax = plt.subplots(3, sharex=True)
+            fig, ax = plt.subplots(4, sharex=True)
+            box_posH = 0.16
         else:
             fig, ax = plt.subplots(2, sharex=True)
+            box_posH = 0.13
         ax[0].plot(dArray[:,1]-self.startTime, dArray[:,0]*100, color="blue", label=r'$d_{est}$')
         ax[1].plot(phiArray[:,1]-self.startTime, phiArray[:,0], color="red", label=r'$phi_{est}$')
         if dComputedArray.any():
@@ -154,7 +167,7 @@ class Benchmark():
         ax[0].legend(loc='upper right')
         ax[0].grid(color='grey', linestyle=':', linewidth=1)
         ax[0].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
-        ax[0].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(self.d_mean*100,3), round(self.d_median*100,3)), ha="right", 
+        ax[0].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(self.d_mean*100,3), round(self.d_median*100,3)), ha="right", 
             va="center", transform=ax[0].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
         ax[1].set_ylim(-2.5, 2.5)
         ax[1].set_ylabel('tracking angle [deg]')
@@ -162,25 +175,36 @@ class Benchmark():
         ax[1].legend(loc='upper right')
         ax[1].grid(color='grey', linestyle=':', linewidth=1)
         ax[1].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
-        ax[1].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(self.phi_mean,3), round(self.phi_median,3)), ha="right", 
+        ax[1].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(self.phi_mean,3), round(self.phi_median,3)), ha="right", 
             va="center", transform=ax[1].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
 
         if segmentArray.any():
-            ax[2].plot(segmentArray[:,1]-self.startTime, segmentArray[:,0], color="orange", label=r'$n_{segment}$')
-            ax[2].set_ylim(10, 110)
-            ax[2].set_ylabel('amount of segments')
+            ax[2].plot(vArray[:,1]-self.startTime, vArray[:,0], color="grey", label=r'$v$')
+            ax[2].plot(omegaArray[:,1]-self.startTime, omegaArray[:,0], color="black", label=r'$omega$')
+            ax[2].set_ylim(-5, 5)
+            ax[2].set_ylabel('car_cmd values ' + r'$[m/s]$' + ' ' + r'$[rad/s]$')
             ax[2].set_xlabel('time [sec]')
             ax[2].yaxis.set_major_locator(ticker.MaxNLocator(10))
             ax[2].legend(loc='upper right')
             ax[2].grid(color='grey', linestyle=':', linewidth=1)
             ax[2].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
-            ax[2].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(np.mean(segmentArray[:,0]),3), round(np.median(segmentArray[:,0]),3)), ha="right", 
+            # ax[2].text(0.99, 0.14, "mean: %s\nmedian: %s" % (round(np.mean(segmentArray[:,0]),3), round(np.median(segmentArray[:,0]),3)), ha="right", 
+            #     va="center", transform=ax[2].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
+            ax[3].plot(segmentArray[:,1]-self.startTime, segmentArray[:,0], color="orange", label=r'$n_{segment}$')
+            ax[3].set_ylim(10, 110)
+            ax[3].set_ylabel('amount of segments')
+            ax[3].set_xlabel('time [sec]')
+            ax[3].yaxis.set_major_locator(ticker.MaxNLocator(10))
+            ax[3].legend(loc='upper right')
+            ax[3].grid(color='grey', linestyle=':', linewidth=1)
+            ax[3].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
+            ax[3].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(np.mean(segmentArray[:,0]),3), round(np.median(segmentArray[:,0]),3)), ha="right", 
                 va="center", transform=ax[2].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
         fig.set_size_inches(20, 10)
         fig.savefig('%s/%s.png' % (self.output, self.rosbagIN[:-4]), dpi=300, bbox_inches='tight')
         # plt.show()
 
-    def write_Logs(self, dArray, phiArray, segmentArray, SegmentProcessTime):
+    def write_Logs(self, dArray, phiArray, segmentArray, SegmentProcessTime, vArray, omegaArray):
         logFile = open(('%s/%s.txt' % (self.output, self.rosbagIN[:-4])), 'w')
         logFile.write('Benchmark results for %s\n' % self.rosbagIN[:-4])
         logFile.write('\tdist min:\t%s\n' % round(self.d_min, 3))
@@ -206,10 +230,10 @@ class Benchmark():
         logFile.write('\tImage preparer used on computer: %s\n' % self.preparer)
 
         logFile = open(('%s/%s.csv' % (self.output, self.rosbagIN[:-4])), 'w')
-        logFile.write('Distance; Angle:\n')
+        logFile.write('Distance; Angle; Speed, Omega, Segments:\n')
         if segmentArray.any():
-            for d, phi, seg in zip(dArray, phiArray, segmentArray[:, 0]):
-                logFile.write('%f; %f; %f\n' % (d, phi, seg))
+            for d, phi, v, omega, seg in zip(dArray, phiArray, vArray[:, 0], omegaArray[:, 0], segmentArray[:, 0]):
+                logFile.write('%f; %f; %f; %f; %f\n' % (d, phi, v, omega, seg))
         else:
             for d, phi, in zip(dArray, phiArray):
                 logFile.write('%f; %f\n' % (d, phi))
@@ -236,8 +260,12 @@ class Benchmark():
 
         dArray = []
         phiArray = []
-        self.dComputedArray = []
-        self.phiComputedArray = []
+        dArray = np.asarray(dArray)
+        phiArray = np.asarray(phiArray)
+        dComputedArray = []
+        phiComputedArray = []
+        vArray = []
+        omegaArray = []
         lanePoseArray = []
         ImageArray = []
         # beliefImgArray = []
@@ -260,13 +288,15 @@ class Benchmark():
             #     beliefImgArray = getMessages(messages)
             if 'image/compressed' in topic:
                 ImageArray = self.getMessages(messages)
+            if 'lane_controller_node/car_cmd' in topic:
+                CmdArray = self.getMessages(messages)
+
         bag.close()
 
         self.startTime = ImageArray[0,1]
 
         if SegmentArray.any():
             nSegmentLists = len(SegmentArray)
-            segmentArray = []
 
             for i in range(len(SegmentArray)):
                 segmentArray.append([len(SegmentArray[i,0].segments), SegmentArray[i,1]])
@@ -278,8 +308,15 @@ class Benchmark():
                 dArray.append([lanePoseArray[i][0].d, lanePoseArray[i][1]])
                 phiArray.append([lanePoseArray[i][0].phi, lanePoseArray[i][1]])
 
+            for i in range(len(CmdArray)):
+                vArray.append([CmdArray[i][0].v, CmdArray[i][1]])
+                omegaArray.append([CmdArray[i][0].omega, CmdArray[i][1]])
+
             dArray = np.asarray(dArray)
             phiArray = np.asarray(phiArray)
+
+            vArray = np.asarray(vArray)
+            omegaArray = np.asarray(omegaArray)
 
         else:
             self.fast = 'False'
@@ -287,8 +324,7 @@ class Benchmark():
         if not dArray.any():
             self.fast = 'False'
 
-        dComputedArray = []
-        phiComputedArray = []
+        
 
         if self.fast == 'False':
             # Initialize variables
@@ -317,12 +353,12 @@ class Benchmark():
                 progress = float(i)/len(ImageArray)*100
                 sys.stdout.write('\r[ %i%% ] Processing frames... ' % int(progress))
                 sys.stdout.flush();
-                result = self.process_image(ImageArray[i], i)
+                result = self.process_image(ImageArray[i], i, dComputedArray, phiComputedArray)
                 if (self.save_images == True):
                     dtu.write_image_as_jpg(result, '%s/%05d.jpg' % (self.output, i))
 
-            dComputedArray = np.asarray(self.dComputedArray)
-            phiComputedArray = np.asarray(self.phiComputedArray)
+            dComputedArray = np.asarray(dComputedArray)
+            phiComputedArray = np.asarray(phiComputedArray)
 
         if not SegmentArray.any() or not dArray.any():
             dArray = dComputedArray
@@ -344,8 +380,8 @@ class Benchmark():
         self.toc = time.time()
         print('Time Elapsed: %f' % (self.toc - self.tic))
 
-        self.create_Plots(dArray, phiArray, np.asarray(dComputedArray), np.asarray(phiComputedArray), np.asarray(segmentArray))
-        self.write_Logs(dArray[:, 0], phiArray[:, 0], np.asarray(segmentArray), SegmentProcessTime)
+        self.create_Plots(dArray, phiArray, dComputedArray, phiComputedArray, segmentArray, vArray, omegaArray)
+        self.write_Logs(dArray[:, 0], phiArray[:, 0], segmentArray, SegmentProcessTime, vArray, omegaArray)
 
 if __name__ == '__main__':
     # Create new Benchmark Instance
