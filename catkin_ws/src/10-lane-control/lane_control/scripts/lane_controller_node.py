@@ -58,7 +58,7 @@ class lane_controller(object):
         self.cross_track_integral = 0
         self.heading_integral = 0
         self.time_start_curve = 0
-        turn_off_feedforward_part = False
+        feedforward = False
         self.wheels_cmd_executed = WheelsCmdStamped()
 
         self.actuator_params = ActuatorParameters()
@@ -83,7 +83,7 @@ class lane_controller(object):
 
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
-        self.turn_off_feedforward_part = self.setupParameter("~turn_off_feedforward_part",turn_off_feedforward_part)
+        self.feedforward = self.setupParameter("~feedforward",feedforward)
         # self.incurvature = self.setupParameter("~incurvature",incurvature)
         # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit)
@@ -108,7 +108,7 @@ class lane_controller(object):
         self.curvature_inner = 1 / 0.175
         # incurvature = rospy.get_param("~incurvature") # TODO remove after estimator is introduced
         # curve_inner = rospy.get_param("~curve_inner") # TODO remove after estimator is introduced
-        turn_off_feedforward_part = rospy.get_param("~turn_off_feedforward_part")
+        feedforward = rospy.get_param("~feedforward")
 
         k_Id = rospy.get_param("~k_Id")
         k_Iphi = rospy.get_param("~k_Iphi")
@@ -116,8 +116,8 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit)
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.feedforward, self.use_radius_limit)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, feedforward, use_radius_limit)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -131,7 +131,7 @@ class lane_controller(object):
             self.d_offset = d_offset
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
-            self.turn_off_feedforward_part = turn_off_feedforward_part
+            self.feedforward = feedforward
 
             if use_radius_limit != self.use_radius_limit:
                 self.use_radius_limit = use_radius_limit
@@ -267,7 +267,7 @@ class lane_controller(object):
         # else:
         #     self.curvature = self.curvature_outer
         omega_feedforward = self.v_bar * self.velocity_to_m_per_s * lane_pose_msg.curvature * 2 * math.pi
-        if self.turn_off_feedforward_part:
+        if not self.feedforward:
             omega_feedforward = 0
 
         omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
@@ -314,12 +314,12 @@ class lane_controller(object):
         # rospy.loginfo("cross_track_err : " + str(self.cross_track_err))
         # rospy.loginfo("heading_err : " + str(self.heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
-        rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
-        rospy.loginfo("heading_err: " + str(self.heading_err))
-        rospy.loginfo("heading_integral: " + str(self.heading_integral))
-        rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
-        rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
-        rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+        # rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
+        # rospy.loginfo("heading_err: " + str(self.heading_err))
+        # rospy.loginfo("heading_integral: " + str(self.heading_integral))
+        # rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
+        # rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
+        # rospy.loginfo("feedforward: " + str(self.feedforward))
         # rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
         # rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
         # rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
