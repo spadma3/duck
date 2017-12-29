@@ -3,10 +3,11 @@ import os
 
 from quickapp import QuickApp
 
-from duckietown_utils import (BagReadProxy, DTUserError, bgr_from_rgb,
+import duckietown_utils as dtu
+from duckietown_utils import (BagReadProxy, bgr_from_rgb,
                               d8n_get_all_images_topic_bag,
                               d8n_read_all_images_from_bag,
-                              make_images_grid, write_image_as_jpg, logger)
+                              make_images_grid, logger)
 from duckietown_utils.cli import D8AppWithLogs
 from .easy_logs_summary_imp import format_logs
 
@@ -20,7 +21,8 @@ class MakeThumbnails(D8AppWithLogs, QuickApp):
     
     def define_options(self, params):
         params.add_int('max_images', help="Max images to extract", default=20) 
-        params.add_string('od', help="Output directory")
+        params.add_string('od', help="Output directory",
+                          default='out-make-thumbnails')
         params.accept_extra()
         
     def define_jobs_context(self, context):
@@ -31,10 +33,7 @@ class MakeThumbnails(D8AppWithLogs, QuickApp):
         if not extra:
             query = '*'
         else:
-            if len(extra) > 1:
-                msg = 'Expected only one extra argument.'
-                raise DTUserError(msg)
-            query = extra[0]
+            query = extra
         
         db = self.get_easy_logs_db() 
         logs = db.query(query)
@@ -46,15 +45,19 @@ class MakeThumbnails(D8AppWithLogs, QuickApp):
                 logs_valid[log_name] = log
         
         s = format_logs(logs_valid)
-        print(s)
+        self.info(s)
         
         od = self.options.od
+        # if all the logs are different use those as ids
+        names = [_.log_name for _ in logs_valid.values()]
+        use_names = len(set(names)) == len(names)
+        
         for i, (log_name, log) in enumerate(logs_valid.items()):  
-#             outd = os.path.join(out, log_name)
             if len(logs_valid) == 1:
                 out = od
             else:
-                out = os.path.join(od, str(i))
+                n = log.log_name if use_names else str(i)
+                out = os.path.join(od, n)
                 
             context.comp(work, log, out, max_images, job_id=log_name)
             
@@ -92,10 +95,10 @@ def work(log, outd, max_images):
         for i in range(len(res)):
             rgb = res[i]['rgb']
             fn = os.path.join(d0, ('image-%05d' % i) +'.jpg')
-            write_image_as_jpg(bgr_from_rgb(rgb), fn)
+            dtu.write_bgr_as_jpg(bgr_from_rgb(rgb), fn)
     
         images = [_['rgb'] for _ in res]
         grid = make_images_grid(images)
         fn = os.path.join(d0, 'grid.jpg')
-        write_image_as_jpg(bgr_from_rgb(grid), fn)
+        dtu.write_bgr_as_jpg(bgr_from_rgb(grid), fn)
 

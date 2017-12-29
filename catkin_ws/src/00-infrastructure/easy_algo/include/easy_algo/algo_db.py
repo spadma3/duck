@@ -6,6 +6,7 @@ import duckietown_utils as dtu
 
 from .algo_structures import EasyAlgoInstance, EasyAlgoFamily
 import traceback
+from duckietown_utils.exceptions import DTNoMatches
 
 
 __all__ = [
@@ -39,10 +40,21 @@ class EasyAlgoDB(object):
             self.family_name2config[k] = check_validity_instances(v)
     
     def query(self, family_name, query, raise_if_no_matches=False):
-        family = self.get_family(family_name)
-        instances = family.instances
-        result = dtu.fuzzy_match(query, instances, raise_if_no_matches=raise_if_no_matches)
-        return result
+        if isinstance(query, list):
+            res = OrderedDict()
+            for q in query:
+                res.update(self.query(family_name, q, raise_if_no_matches=False))
+            if raise_if_no_matches and not res:
+                msg = "Could not find any match for the queries:"
+                for q in query:
+                    msg += '\n- %s' % q
+                raise DTNoMatches(msg)
+            return res
+        else:
+            family = self.get_family(family_name)
+            instances = family.instances
+            result = dtu.fuzzy_match(query, instances, raise_if_no_matches=raise_if_no_matches)
+            return result
         
     def get_family(self, x):
         dtu.check_is_in('family', x, self.family_name2config)

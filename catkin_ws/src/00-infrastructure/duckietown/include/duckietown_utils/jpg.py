@@ -2,21 +2,23 @@
     The many options to convert JPG into data. 
 """
 
-
+import numpy as np
 import os
+import cv2
 
-from PIL import ImageFile  # @UnresolvedImport
+
 
 from duckietown_utils import logger
 
 from .file_utils import write_data_to_file
 from .image_composition import make_images_grid  # @UnusedImport
-from duckietown_utils.deprecation import deprecated
+from .deprecation import deprecated
+from .contracts_ import contract
 
-
-def jpg_from_bgr(image):
-    import cv2
-    return cv2.imencode('.jpg', image)[1].tostring()
+@contract(bgr='array[HxWx3](uint8)')
+def jpg_from_bgr(bgr):
+    _retval, s = cv2.imencode('.jpg', bgr) 
+    return s.tostring()
 
 @deprecated('Use jpg_from_bgr()')
 def jpg_from_image_cv(image):
@@ -26,16 +28,17 @@ def jpg_from_image_cv(image):
 def image_cv_from_jpg(data):
     return bgr_from_jpg(data)
 
+@contract(data=str, returns='array[HxWx3](uint8)')
 def bgr_from_png(data):
     return _bgr_from_file_data(data)
-    
+
+@contract(data=str, returns='array[HxWx3](uint8)')  
 def bgr_from_jpg(data):
     return _bgr_from_file_data(data)
 
+@contract(data=str, returns='array[HxWx3](uint8)')
 def _bgr_from_file_data(data):
     """ Returns an OpenCV BGR image from a string """
-    import cv2
-    import numpy as np
     s = np.fromstring(data, np.uint8)
     image_cv = cv2.imdecode(s, cv2.IMREAD_COLOR)
     if image_cv is None:
@@ -44,14 +47,18 @@ def _bgr_from_file_data(data):
         raise ValueError(msg)
     return image_cv
 
-
-def image_cv_from_jpg_fn(fn):
-    """ Read a JPG from a file """
+@contract(fn=str, returns='array[HxWx3](uint8)')
+def bgr_from_jpg_fn(fn):
+    """ Read a JPG BGR from a file """
     if not os.path.exists(fn):
         msg = "File does not exist: %s" % fn
         raise ValueError(msg)
     with open(fn) as f:
-        return image_cv_from_jpg(f.read())
+        return bgr_from_jpg(f.read())
+
+@deprecated('Use bgr_from_jpg()')
+def image_cv_from_jpg_fn(fn):
+    return bgr_from_jpg_fn(fn)
 
 @deprecated("Use more precise write_bgr_to_file_as_jpg")
 def write_jpg_to_file(image_cv, fn):
@@ -82,7 +89,7 @@ def write_bgr_to_file_as_jpg(image_cv, fn):
 
 def rgb_from_jpg_by_PIL(data):
     """ Warning: this returns RGB """
-    import numpy as np
+    from PIL import ImageFile  # @UnresolvedImport
     parser = ImageFile.Parser()
     parser.feed(data)
     res = parser.close() 
@@ -92,7 +99,6 @@ def rgb_from_jpg_by_PIL(data):
 # third option: jpeg library
 
 def rgb_from_jpg_by_JPEG_library(data):
-    import numpy as np
     try:
         import jpeg4py as jpeg
     except ImportError:
@@ -110,7 +116,6 @@ sudo pip install jpeg4py
 
 def image_clip_255(image_float):
     """ Clips to 0,255 and converts to uint8 """
-    import numpy as np
     h,w,_ = image_float.shape
     res = np.zeros((h,w,3), dtype=np.uint8)
     np.clip(image_float, 0, 255, out=res)

@@ -1,3 +1,4 @@
+from .contracts_ import contract
  
 
 class ImageConversions():
@@ -10,7 +11,7 @@ def get_cv_bridge():
         ImageConversions.bridge = CvBridge()
     return ImageConversions.bridge
 
-
+@contract(returns='array[HxWx3]')
 def rgb_from_imgmsg(msg):
     bridge = get_cv_bridge()
     return bridge.imgmsg_to_cv2(msg, "rgb8")
@@ -43,11 +44,21 @@ def pil_from_CompressedImage(msg):
     res = parser.close()
     return res
 
+@contract(returns='array[HxWx3]')
 def rgb_from_pil(im):
     import numpy as np
-    return np.asarray(im).astype(np.uint8)
+    im =  np.asarray(im).astype(np.uint8)
+    if len(im.shape) == 2:
+        H, W = im.shape[:2]
+        res = np.zeros(dtype='uint8', shape=(H, W, 3))
+        res[:,:,0] = im
+        res[:,:,1] = im
+        res[:,:,2] = im
+        return res
+    else:
+        return im
 
-
+@contract(returns='array[HxWx3]')
 def rgb_from_ros(msg):
     if 'CompressedImage' in msg.__class__.__name__: 
         return rgb_from_pil(pil_from_CompressedImage(msg))

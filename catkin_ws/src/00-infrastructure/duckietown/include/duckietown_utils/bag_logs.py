@@ -53,8 +53,9 @@ def d8n_read_all_images(filename, t0=None, t1=None):
     res = d8n_read_all_images_from_bag(bag_proxy, topic, t0=t0,t1=t1)
     return res
 
+import numpy as np
+
 def d8n_read_all_images_from_bag(bag, topic0, max_images=None):
-    import numpy as np
 
     nfound = bag.get_message_count(topic_filters=topic0)
     logger.info('Found %d images for %s' % (nfound, topic0))    

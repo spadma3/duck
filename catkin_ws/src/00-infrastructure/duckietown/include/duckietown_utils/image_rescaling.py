@@ -1,5 +1,9 @@
 from collections import OrderedDict
+
 import numpy as np
+
+from .contracts_ import contract
+from .exception_utils import check_isinstance
 
 
 def d8_image_zoom_linear(cv_image, ratio=4):
@@ -20,9 +24,9 @@ def d8_image_resize_no_interpolation(cv_image, new_shape):
     res = cv2.resize(cv_image, (W,H), interpolation=cv2.INTER_NEAREST)
     return res
 
-
+@contract(image_dict='dict(str:array)', returns='dict(str:array)')
 def resize_small_images(image_dict):
-    assert isinstance(image_dict, dict)
+    check_isinstance(image_dict, dict)
     max_H, max_W = 0, 0
     for image in image_dict.values():
         H, W = image.shape[0:2]    

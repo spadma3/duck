@@ -7,9 +7,8 @@ from .file_utils import write_data_to_file
 from .image_composition import make_images_grid
 from .image_rescaling import d8_image_resize_no_interpolation
 from .image_timestamps import add_header_to_image
-from .jpg import jpg_from_image_cv, write_jpg_to_file
+from .jpg import jpg_from_bgr, write_bgr_to_file_as_jpg
 from .deprecation import deprecated
-from duckietown_utils.jpg import write_bgr_to_file_as_jpg
 
 
 def write_bgr_as_jpg(image, filename):
@@ -17,7 +16,7 @@ def write_bgr_as_jpg(image, filename):
     if not isinstance(image, np.ndarray):
         # XXX
         pass
-    jpg = jpg_from_image_cv(image)
+    jpg = jpg_from_bgr(image)
     write_data_to_file(jpg, filename)
     
 @deprecated('use write_bgr_as_jpg')
@@ -48,11 +47,12 @@ def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
     images = []
     for i, (filename, image) in enumerate(res.items()):
         s = filename
+        print('Adding header %s' % s)
         res[filename] = add_header_to_image(image, s)
         images.append(res[filename])
 
     bgcolor = DuckietownConstants.DUCKIETOWN_YELLOW_BGR
-    res['all'] = make_images_grid(images, bgcolor=bgcolor)
+    res['all'] = make_images_grid(images, bgcolor=bgcolor, pad=20)
 
     for i, (filename, image) in enumerate(res.items()):
         if filename == 'all':

@@ -12,7 +12,8 @@ from .exceptions import DTNoMatches, DTUserError
 from .instantiate_utils import indent
 from .wildcards import wildcard_to_regexp
 from .yaml_pretty import yaml_load
-from duckietown_utils.text_utils import remove_prefix
+from .text_utils import remove_prefix
+
 
 
 class InvalidQueryForUniverse(Exception):
@@ -41,6 +42,24 @@ class Spec(object):
         return res
     
 
+class FromFilename(Spec):
+    # TODO: move away in logs_db
+    def __init__(self, filename):
+        self.filename = filename
+        
+    def __str__(self):
+        return "File:%s" % self.filename
+    
+    def match(self, _):
+        return False
+    
+    def match_dict(self, _):
+        from easy_logs.logs_db import physical_log_from_filename
+        l = physical_log_from_filename(self.filename)
+        od = OrderedDict()
+        od[l.log_name] = l
+        return od
+    
 class Or(Spec):
         
     def match(self, x):
@@ -305,6 +324,9 @@ def parse_match_spec(s, filters=None):
     if s == 'all' or s == '*' or s == '':
         return MatchAll()
     
+    if s.endswith('.bag'):
+        return FromFilename(s)
+    
     if not s:
         msg = 'Cannot parse empty string.'
         raise ValueError(msg)
@@ -353,9 +375,9 @@ def parse_match_spec(s, filters=None):
         value = float(s[1:])
         return GT(value)
     
-    
     if '*' in s:
         return Wildcard(s)
+    
     return Constant(s) 
     
     
@@ -371,7 +393,7 @@ def fuzzy_match(query, stuff, filters=None, raise_if_no_matches=False):
     check_isinstance(stuff, dict)
     check_isinstance(query, str)
     spec = parse_match_spec(query, filters=filters)
-#     print spec
+
     try:
         result = spec.match_dict(stuff)
     except InvalidQueryForUniverse as e:

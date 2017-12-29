@@ -3,13 +3,15 @@ import copy
 import os
 
 from duckietown_utils import (
-    format_time_as_YYYY_MM_DD, friendly_path, fuzzy_match, filters0, 
+    format_time_as_YYYY_MM_DD, friendly_path, fuzzy_match, filters0,
     get_cached, rosbag_info_cached, get_duckietown_root, logger,
-    look_everywhere_for_bag_files, yaml_load_file, 
+    look_everywhere_for_bag_files, yaml_load_file,
     yaml_write_to_file, check_isinstance, require_resource)
+import duckietown_utils as dtu
 
 from .logs_structure import PhysicalLog
 from .time_slice import filters_slice
+from duckietown_utils.exceptions import DTNoMatches
 
 
 def get_easy_logs_db():
@@ -66,19 +68,35 @@ class EasyLogsDB():
             check_isinstance(logs, OrderedDict)
         self.logs = logs
 
+    @dtu.contract(returns=OrderedDict, query='str|list(str)')
     def query(self, query, raise_if_no_matches=True):
         """
-            query: a string
+            query: a string or a list of strings
 
             Returns an OrderedDict str -> PhysicalLog.
+            
+            The query can also be a filename.
+            
         """
-        check_isinstance(query, str)
-        filters = OrderedDict()
-        filters.update(filters_slice)
-        filters.update(filters0)
-        result = fuzzy_match(query, self.logs, filters=filters,
-                             raise_if_no_matches=raise_if_no_matches)
-        return result
+        if isinstance(query, list):
+            res = OrderedDict()
+            for q in query:
+                res.update(self.query(q, raise_if_no_matches=False))
+            if raise_if_no_matches and not res:
+                msg = "Could not find any match for the queries:"
+                for q in query:
+                    msg += '\n- %s' % q
+                raise DTNoMatches(msg)
+            return res
+        else:
+            check_isinstance(query, str)
+            
+            filters = OrderedDict()
+            filters.update(filters_slice)
+            filters.update(filters0)
+            result = fuzzy_match(query, self.logs, filters=filters,
+                                 raise_if_no_matches=raise_if_no_matches)
+            return result
 
 def read_stats(pl):
     assert isinstance(pl, PhysicalLog)
@@ -131,31 +149,36 @@ def load_all_logs(which='*'):
     basename2filename = look_everywhere_for_bag_files(pattern=pattern)
     logs = OrderedDict()
     for basename, filename in basename2filename.items():
-        log_name = basename
-
         if not is_valid_name(basename):
             msg = 'Ignoring Bag file with invalid file name "%r".' % (basename)
             msg += '\n Full path: %s' % filename
             logger.warn(msg)
             continue
-
-        date = None
-        size =  os.stat(filename).st_size
-
-        l = PhysicalLog(log_name=log_name,
-                        map_name=None,
-                        description=None,
-                        length=None,
-                        t0=None,t1=None,
-                        date=date,
-                        size=size,
-                        has_camera=None,
-                        vehicle = None,
-                        filename=filename,
-                        bag_info=None,
-                        valid=True,
-                        error_if_invalid=None)
-        l = read_stats(l)
+        l = physical_log_from_filename(filename)
+        
         logs[l.log_name]= l
 
     return logs
+
+def physical_log_from_filename(filename):
+    date = None
+    size = os.stat(filename).st_size
+    b = os.path.basename(filename)
+    log_name, bagext = os.path.splitext(b)
+    if bagext != '.bag':
+        raise Exception(bagext)
+    l = PhysicalLog(log_name=log_name,
+                    map_name=None,
+                    description=None,
+                    length=None,
+                    t0=None,t1=None,
+                    date=date,
+                    size=size,
+                    has_camera=None,
+                    vehicle = None,
+                    filename=filename,
+                    bag_info=None,
+                    valid=True,
+                    error_if_invalid=None)
+    l = read_stats(l)
+    return l

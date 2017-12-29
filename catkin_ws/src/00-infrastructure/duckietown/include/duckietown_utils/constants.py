@@ -35,6 +35,9 @@ class DuckietownConstants(object):
     DUCKIETOWN_YELLOW_RGB = [1, 204.0/255, 0]
     DUCKIETOWN_YELLOW_BGR = [0, 204.0/255, 1]
     
+    # Show more information about dependencies 
+    debug_show_package_import_info = False
+    
 def get_duckietown_root():
     """ Returns the path of DUCKIETOWN_ROOT and checks it exists """
     return _get_dir(DuckietownConstants.DUCKIETOWN_ROOT_variable)

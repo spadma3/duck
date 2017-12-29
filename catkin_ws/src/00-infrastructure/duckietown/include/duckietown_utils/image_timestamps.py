@@ -18,7 +18,10 @@ def add_header_to_image(img, s, proportion=0.05):
     H, W = int(35*ratio), img.shape[1]
     black = np.zeros((H, W, 3), 'uint8')
     font = cv2.FONT_HERSHEY_SIMPLEX
+    
+    dim = (0.75*ratio)
+    
     cv2.putText(black, s, (10, int(25*ratio)), font, 
-                int(0.75*ratio), (0,255,255), 2, cv2.LINE_AA)  # @UndefinedVariable
+                dim, (0,255,255), 2, cv2.LINE_AA)  # @UndefinedVariable
     res = make_images_grid([black, img], cols=1)
     return res
