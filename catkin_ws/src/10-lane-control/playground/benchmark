@@ -50,9 +50,9 @@ class Benchmark():
         else:
             pathArray.append(self.path)
 
-        for file in (pathArray):
-            print('\nNow Processing: %s' % file)
-            self.rosbagPath = file
+        for i in range(len(pathArray)):
+            print('\n[ %d / %d ] Now Processing: %s' % (i, len(pathArray), pathArray[i]))
+            self.rosbagPath = pathArray[i]
             self.rosbagIN = basename(self.rosbagPath)
             self.output = ('%s/%s/%s' % (dirname(self.rosbagPath), args.output, self.rosbagIN[:-4]))
             # Create missing folders
