@@ -47,7 +47,9 @@ comptests_packages=\
 	anti_instagram_tests\
 	duckieteam_tests\
 	complete_image_pipeline_tests\
-	duckietown_segmaps_tests
+	duckietown_segmaps_tests\
+	grid_helper_tests\
+	lane_filter_generic_tests
 
 comptests_out=out/comptests
 
