@@ -27,29 +27,9 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
   intersection_done:
-    topic: "open_loop_intersection_control_node/intersection_done"
+    topic: "intersection_navigation_node/intersection_done"
     msg_type: "BoolStamped"
     trigger: True
-  obstacle_detection:
-    topic: "obstacle_safety_node/object_too_close"
-    msg_type: "BoolStamped"
-    trigger: True
-  obstacle_cleared:
-    topic: "obstacle_safety_node/object_too_close"
-    msg_type: "BoolStamped"
-    trigger: False
-  vehicle_detection:
-    topic: "vehicle_avoidance_control_node/vehicle_detected"
-    msg_type: "BoolStamped"
-    trigger: True
-  vehicle_cleared:
-    topic: "vehicle_avoidance_control_node/vehicle_detected"
-    msg_type: "BoolStamped"
-    trigger: False
-  apriltag_parking:
-    topic: "apriltag_node/ApriltagWithInfo"
-    msg_type: "ApriltagWithInfo"
-    trigger: False
   # Logical events from logic_gate_node
   at_stop_line_and_velocity_zero:
     topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
@@ -75,6 +55,22 @@ events: # Maps from subscribing topic to signal ids
     topic: "logic_gate_node/joystick_override_on_and_parallel_autonomy_on" 
     msg_type: "BoolStamped"
     trigger: True
+  # obstacle_detection:
+  #   topic: "obstacle_safety_node/object_too_close"
+  #   msg_type: "BoolStamped"
+  #   trigger: True
+  # obstacle_cleared:
+  #   topic: "obstacle_safety_node/object_too_close"
+  #   msg_type: "BoolStamped"
+  #   trigger: False
+  # vehicle_detection:
+  #   topic: "vehicle_avoidance_control_node/vehicle_detected"
+  #   msg_type: "BoolStamped"
+  #   trigger: True
+  # vehicle_cleared:
+  #   topic: "vehicle_avoidance_control_node/vehicle_detected"
+  #   msg_type: "BoolStamped"
+  #   trigger: False
 
 global_transitions:
   joystick_override_on_and_parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
