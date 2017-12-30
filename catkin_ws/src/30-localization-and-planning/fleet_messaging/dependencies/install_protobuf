@@ -1,0 +1,16 @@
+#!/bin/bash
+
+source $DUCKIETOWN_ROOT/environment.sh
+
+# Cleanup
+pip uninstall -y protobuf
+sudo apt purge -y protobuf-compiler
+sudo apt autoremove
+
+# protobuf versions
+PBC_VERSION=2.6.1-1.3
+PB_VERSION=2.6.1
+
+# Install protobuf
+sudo apt install -y protobuf-compiler=$PBC_VERSION
+pip install --user protobuf==$PB_VERSION

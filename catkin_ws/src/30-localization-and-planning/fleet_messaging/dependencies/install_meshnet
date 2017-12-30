@@ -1,5 +1,6 @@
 #!/bin/bash
 
-# Install batman-adv (and dependencies)
+# Install B.A.T.M.A.N. advanced and dependencies
+sudo apt install -y bridge-utils wireless-tools batctl
 
 # Configure the mesh network
