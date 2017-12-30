@@ -1,11 +1,11 @@
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 
 from duckietown_utils import logger
 from easy_algo.algo_db import get_easy_algo_db
 from easy_algo.formatting import format_db
 
 
-@comptest
+@dtu.unit_test
 def call_summary():
     db = get_easy_algo_db()
     s = format_db(db)
@@ -25,4 +25,4 @@ def call_summary():
 
     
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

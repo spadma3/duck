@@ -1,9 +1,9 @@
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 from easy_regression.conditions.binary import parse_binary 
 from easy_regression.conditions.interface import RTParseError
 
 
-@comptest
+@dtu.unit_test
 def parse_binary_check_good():
     good = ['==', '>=', '<', '<=', '>', '==[10%]']
     
@@ -11,7 +11,7 @@ def parse_binary_check_good():
         f = parse_binary(g)
         f(10,20)
 
-@comptest
+@dtu.unit_test
 def parse_binary_check_bad():
     bad = ['=', '!', '==[10%', '==[10]', '=[10%]', '=[%]', '==[-10%]']
     for b in bad:
@@ -26,4 +26,4 @@ def parse_binary_check_bad():
             raise Exception(msg)    
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

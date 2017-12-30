@@ -1,5 +1,5 @@
 from collections import OrderedDict, namedtuple
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 from contracts.utils import check_isinstance
 import re
 
@@ -29,7 +29,7 @@ def expect(data, query, result_keys, filters=None):
         msg += '\n Expect: %s' % list(result_keys)
         raise Exception(msg)
     
-@comptest
+@dtu.unit_test
 def matches():
     Species = namedtuple('Species', 'name size')
     data = OrderedDict([
@@ -48,7 +48,7 @@ def matches():
     expect(data, 'all/first', ['one'])
     expect(data, '/first', ['one'])
 
-@comptest
+@dtu.unit_test
 def matches_tags():
     Species = namedtuple('Species', 'name size weight')
     data = OrderedDict([
@@ -69,13 +69,13 @@ def matches_tags():
     expect(data, 'name:*cat', ['ronny'])
     expect(data, 'name:*dog+name:*cat', ['fuffy','ronny'])
     
-@comptest
+@dtu.unit_test
 def specs1():
     parse_match_spec('ciao')
     parse_match_spec('ciao+no')
 
 
-@comptest
+@dtu.unit_test
 def my_filter():
    
     rc = re.compile(slice_regexp)
@@ -105,6 +105,6 @@ def my_filter():
     assert len(res)==3
     
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()
     
     

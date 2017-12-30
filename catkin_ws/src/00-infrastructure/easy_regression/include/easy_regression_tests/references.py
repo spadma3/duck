@@ -1,9 +1,9 @@
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 from easy_regression.conditions.interface import RTParseError
 from easy_regression.conditions.references import parse_reference
 
 
-@comptest
+@dtu.unit_test
 def parse_references_check_good():
     good = [
         'v:analyzer/test/statistic', 
@@ -15,14 +15,14 @@ def parse_references_check_good():
         parse_reference(g)
         
         
-@comptest
+@dtu.unit_test
 def parse_one():
     s = 'v:analyzer/log/statistic?hash'
     a = parse_reference(s)
     assert a.commit == 'hash', a
     print a
     
-@comptest
+@dtu.unit_test
 def parse_references_check_bad():
     bad = [
         'v:analyzer/test',
@@ -46,4 +46,4 @@ def parse_references_check_bad():
 
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

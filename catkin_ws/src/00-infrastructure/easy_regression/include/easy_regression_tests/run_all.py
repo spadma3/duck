@@ -1,4 +1,4 @@
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 from duckietown_utils.system_cmd_imp import system_cmd_result, CmdException
 from easy_regression.conditions.interface import RTCheck
 import shutil
@@ -20,17 +20,17 @@ def run(which, expect):
     finally:
         shutil.rmtree(cwd)  
     
-@comptest
+@dtu.unit_test
 def run_abnormal1():
     run('expect_abnormal1', RTCheck.ABNORMAL)
 
 
-@comptest
+@dtu.unit_test
 def run_abnormal3():
     run('expect_abnormal3', RTCheck.ABNORMAL)
     
     
-@comptest
+@dtu.unit_test
 def run_dontrun1():
     try:
         run('expect_dontrun1', RTCheck.OK)
@@ -40,22 +40,22 @@ def run_dontrun1():
         raise
     
     
-@comptest
+@dtu.unit_test
 def run_ok1():
     run('expect_ok1', RTCheck.OK)
 
-@comptest
+@dtu.unit_test
 def run_nodata1():
     run('expect_nodata1', RTCheck.NODATA)
-@comptest
+@dtu.unit_test
 def run_nodata2():
     run('expect_nodata2', RTCheck.NODATA)
 
-@comptest
+@dtu.unit_test
 def run_fail1():
     run('expect_fail1', RTCheck.FAIL)
     
     
     
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

@@ -1,11 +1,11 @@
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 
 from duckietown_utils import fuzzy_match
 from easy_logs.logs_db import get_easy_logs_db_cached_if_possible
 from easy_logs.time_slice import filters_slice
 
 
-@comptest
+@dtu.unit_test
 def parse_expressions():
     db = get_easy_logs_db_cached_if_possible()
     logs = db.logs
@@ -32,7 +32,7 @@ def parse_expressions():
     assert l2.length == 2, l1.length
     
     
-@comptest
+@dtu.unit_test
 def parse_expressions2():
     db = get_easy_logs_db_cached_if_possible()
     logs = db.logs
@@ -47,5 +47,5 @@ def parse_expressions2():
     assert l1.length == 5, l1.length
     
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()
     

@@ -1,4 +1,4 @@
-from comptests.registrar import run_module_tests, comptest
+import duckietown_utils as dtu
 
 from duckietown_utils.instantiate_utils import indent
 from easy_regression.conditions.interface import RTCheck
@@ -57,7 +57,7 @@ def run_checks(condition_result):
         if not res.status == expected:
             raise_error(rdb, t, res, 'Expected %s' % expected)
             
-@comptest
+@dtu.unit_test
 def test_true():
     conditions_true = [
         ('v:analyzer/log1/value2 == 2', RTCheck.OK),
@@ -67,7 +67,7 @@ def test_true():
     ]
     run_checks(conditions_true)
 
-@comptest
+@dtu.unit_test
 def test_false():
     conditions = [
         ('v:analyzer/log1/value2 == 1', RTCheck.FAIL),
@@ -77,7 +77,7 @@ def test_false():
     ]   
     run_checks(conditions)
 
-@comptest
+@dtu.unit_test
 def test_eval_error():
     conditions = [
         ('v:analyzer/log1/not_exist <= 1', RTCheck.ABNORMAL),
@@ -86,7 +86,7 @@ def test_eval_error():
     ]
     run_checks(conditions)
 
-@comptest
+@dtu.unit_test
 def test_data_not_found():
     conditions = [
         ('v:analyzer/log1/value2@2016-01-12 <= 1', RTCheck.NODATA),
@@ -94,7 +94,7 @@ def test_data_not_found():
     ]
     run_checks(conditions)
 
-@comptest
+@dtu.unit_test
 def test_good_ref():
     conditions = [
         ('v:analyzer/log1/same@2017-01-01 == 10', RTCheck.OK),
@@ -109,7 +109,7 @@ def test_good_ref():
     run_checks(conditions)
     
     
-@comptest
+@dtu.unit_test
 def test_good_ref_ratios():
     conditions = [
         ('v:analyzer/log1/changed@2017-01-01 == 100', RTCheck.OK),
@@ -121,4 +121,4 @@ def test_good_ref_ratios():
 
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

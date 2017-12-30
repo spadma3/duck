@@ -1,9 +1,9 @@
-from comptests.registrar import run_module_tests, comptest
+import duckietown_utils as dtu
 
 from duckietown_utils import system_cmd_result
 
 
-@comptest
+@dtu.unit_test
 def run1():
     cmd = ['rosrun', 'duckieteam', 'create-machines', '--print']
     cwd = '.'
@@ -12,7 +12,7 @@ def run1():
                       display_stderr=False,
                       raise_on_error=True)
 
-@comptest
+@dtu.unit_test
 def run2():
     tmpfile = '/tmp/tmp'
     cmd = ['rosrun', 'duckieteam', 'create-roster', '--roster', tmpfile]
@@ -21,8 +21,8 @@ def run2():
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True)
-    
-@comptest
+
+@dtu.unit_test
 def run():
     cmd = ['rosrun', 'duckieteam', 'create-roster']
     cwd = '.'
@@ -30,7 +30,6 @@ def run():
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True)
-    
+
 if __name__ == '__main__':
-    run_module_tests()
-    
+    dtu.run_tests_for_this_module()

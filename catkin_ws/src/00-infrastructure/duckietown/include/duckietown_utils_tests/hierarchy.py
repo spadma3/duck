@@ -1,7 +1,7 @@
-from comptests.registrar import run_module_tests, comptest
+import duckietown_utils as dtu
 from duckietown_utils.disk_hierarchy import dir_from_data
     
-@comptest
+@dtu.unit_test
 def testh1():
     data =  """
     dir1:
@@ -28,4 +28,4 @@ def testh1():
 
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

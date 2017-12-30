@@ -1,7 +1,8 @@
-from comptests.registrar import comptest
 from duckietown_utils.system_cmd_imp import system_cmd_result
 
-@comptest
+import duckietown_utils as dtu
+
+@dtu.unit_test
 def test_cli1():
     cwd = '.'
     cmd = ['rosrun', 'easy_algo', 'summary']
@@ -9,7 +10,7 @@ def test_cli1():
                       display_stdout=True,
                       display_stderr=True,
                       raise_on_error=True)
-@comptest
+@dtu.unit_test
 def test_cli2():
     cwd = '.'
     cmd = ['rosrun', 'easy_algo', 'summary', 'robot']

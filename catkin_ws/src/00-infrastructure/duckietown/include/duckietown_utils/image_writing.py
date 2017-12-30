@@ -18,7 +18,7 @@ def write_bgr_as_jpg(image, filename):
         pass
     jpg = jpg_from_bgr(image)
     write_data_to_file(jpg, filename)
-    
+
 @deprecated('use write_bgr_as_jpg')
 def write_image_as_jpg(image, filename):
     return write_bgr_as_jpg(image, filename)
@@ -26,13 +26,13 @@ def write_image_as_jpg(image, filename):
 @deprecated('use write_bgr_images_as_jpgs')
 def write_jpgs_to_dir(name2image, dirname):
     return write_bgr_images_as_jpgs(name2image, dirname)
-    
+
 def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
-    """ 
+    """
         Write a set of images to a directory.
-        
-        name2image is a dictionary of name -> BGR mage 
-        
+
+        name2image is a dictionary of name -> BGR mage
+
         Images are assumed to be BGR, [H,W,3] uint8.
     """
     check_isinstance(name2image, dict)
@@ -42,12 +42,12 @@ def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
         if shape is None:
             shape = image.shape[:2]
         if image.shape[:2] != shape:
-            name2image[filename] = d8_image_resize_no_interpolation(image, shape) 
-        
+            name2image[filename] = d8_image_resize_no_interpolation(image, shape)
+
     images = []
     for i, (filename, image) in enumerate(res.items()):
         s = filename
-        print('Adding header %s' % s)
+        
         res[filename] = add_header_to_image(image, s)
         images.append(res[filename])
 
@@ -61,7 +61,7 @@ def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
                 image = add_header_to_image(image, extra_string)
         else:
             basename = ('step%02d-'%i)+filename
-        
-            
+
+
         fn = os.path.join(dirname, basename+'.jpg')
         write_bgr_to_file_as_jpg(image, fn)

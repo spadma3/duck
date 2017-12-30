@@ -1,10 +1,10 @@
-from comptests.registrar import run_module_tests, comptest
+import duckietown_utils as dtu
 import duckietown_utils as dtu
 from easy_algo.algo_db import EasyAlgoDB
 from easy_algo.formatting import format_db
 
 
-@comptest 
+@dtu.unit_test 
 def test_validity1():
     data="""
 "F.easy_algo_family.yaml": | 
@@ -29,7 +29,7 @@ class One(MyAdderInterface):
 class Two(object):
     pass
 
-@comptest 
+@dtu.unit_test 
 def test_instance():
     data="""
 "adder.easy_algo_family.yaml": | 
@@ -80,4 +80,4 @@ def test_instance():
 
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()
