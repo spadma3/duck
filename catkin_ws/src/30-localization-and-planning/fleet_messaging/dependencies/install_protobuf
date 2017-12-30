@@ -1,6 +1,10 @@
 #!/bin/bash
 
 source $DUCKIETOWN_ROOT/environment.sh
+if [[ $? -ne 0 ]] ; then
+    echo "Return code: "$?
+    exit 1
+fi
 
 # Cleanup
 pip uninstall -y protobuf

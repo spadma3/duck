@@ -57,3 +57,4 @@ tar -xzvf v$PYZMQ_VERSION.tar.gz
 # Install the python bindings
 cd pyzmq-$PYZMQ_VERSION
 python setup.py install --user
+cd ..

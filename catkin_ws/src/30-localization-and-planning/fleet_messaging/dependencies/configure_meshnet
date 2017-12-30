@@ -1,1 +1,59 @@
 #!/usr/bin/env python
+
+import argparse
+
+# Parse the WiFi interface
+DESCRIPTION = "Parse the mesh network WiFi interface."
+PARSER = argparse.ArgumentParser(description=DESCRIPTION)
+PARSER.add_argument("iface", type=str)
+PARSER.add_argument("ip", type=str)
+ARGS = PARSER.parse_args()
+
+# Interface "iface" is not checked in this script. It is already checked
+# outside
+
+# Create START_BATMAN
+with open("start_batman", "w") as START_BATMAN:
+    SCRIPT = """#!/bin/sh
+
+if [ "$IFACE" = {} ] ; then
+    sudo modprobe batman-adv
+    sudo batctl if add {}
+fi
+
+""".format(ARGS.iface, ARGS.iface)
+    START_BATMAN.write(SCRIPT)
+
+# Create STOP_BATMAN
+with open("stop_batman", "w") as STOP_BATMAN:
+    SCRIPT = """#!/bin/sh
+
+if [ "$IFACE" = {} ] ; then
+    sudo batctl if del {}
+    sudo modprobe -r batman-adv
+fi
+
+""".format(ARGS.iface, ARGS.iface)
+    STOP_BATMAN.write(SCRIPT)
+
+# Modify /etc/network/interfaces
+with open("/etc/network/interfaces", "a") as IFACES:
+    ENTRIES = """
+### REMOVE THIS PART TO UNINSTALL THE MESH NETWORK #############################
+### ALSO REMOVE start_batman FROM /etc/network/if-pre-up.d/ ####################
+### ALSO REMOVE stop_batman FROM /etc/network/if-post-down.d/ ##################
+auto {}
+iface {} inet manual
+    wireless-channel 1
+    wireless-essid ducknet
+    wireless-mode ad-hoc
+    wireless-ap 02:12:34:56:78:9A
+
+auto bat0
+iface bat0 inet static
+    address {}
+    netmask 255.255.255.0
+### END REMOVE THIS PART TO UNINSTALL THE MESH NETWORK #########################
+
+""".format(ARGS.iface, ARGS.iface, ARGS.ip)
+    IFACES.write(ENTRIES)

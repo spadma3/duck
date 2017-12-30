@@ -1,13 +1,21 @@
 #!/bin/bash
 
 # Argument check: show usage
-if [[ $# -eq 0 ]] ; then
-    echo "Aborting...no interface argument given!"
+if [[ $# -ne 2 ]] ; then
+    echo "Usage:"
+    echo "Important: the script MUST be run from its location!"
+    echo "./install_fleet_messaging <wifi-iface> <static-ip>"
+    echo "Write arguments without <>."
+    echo "<wifi-iface> is a WiFi interface that can be found with iwconfig."
+    echo "(interface used for the mesh network)"
+    echo "<static-ip> is a static IP address for the duckiebot."
+    echo "Every duckiebot needs a UNIQUE IP address!"
     exit 1
 fi
+WIFACE=$1
+IPADDR=$2
 
 # Check the interface
-WIFACE=$1
 for item in "$@" ; do
     # Remove argument for $DUCKIETOWN_ROOT/environment.sh
     shift;
@@ -25,22 +33,14 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 # Install ZeroMQ
-# ./install_zmq
+./install_zmq
 if [[ $? -ne 0 ]] ; then
     echo "Aborting...installing ZeroMQ failed!"
     exit 4
 fi
 
 # Install ProtoBuf
-# ./install_protobuf
-if [[ $? -ne 0 ]] ; then
-    echo "Aborting...installing ProtoBuf failed!"
-    exit 5
-fi
+./install_protobuf
 
 # Install the mesh network
-./install_meshnet
-if [[ $? -ne 0 ]] ; then
-    echo "Aborting...installing mesh network failed!"
-    exit 6
-fi
+./install_meshnet $WIFACE $IPADDR
