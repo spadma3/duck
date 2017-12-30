@@ -1,10 +1,6 @@
 # Initial state of the FSM
 initial_state: "NORMAL_JOYSTICK_CONTROL"
 
-
-# TODOs:
-# - intersection_done flag? Who determines this?
-
 events: # Maps from subscribing topic to signal ids
   joystick_override_on: 
     topic: "joy_mapper_node/joystick_override"
