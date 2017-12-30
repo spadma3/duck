@@ -30,6 +30,10 @@ events: # Maps from subscribing topic to signal ids
     topic: "intersection_navigation_node/intersection_done"
     msg_type: "BoolStamped"
     trigger: True
+  apriltag_intersection:
+    topic: "apriltag_postprocessing_node/apriltag_intersection" 
+    msg_type: "BoolStamped"
+    trigger: True
   # Logical events from logic_gate_node
   at_stop_line_and_velocity_zero:
     topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
@@ -41,10 +45,6 @@ events: # Maps from subscribing topic to signal ids
     trigger: True
   apriltag_parking_and_parking_active:
     topic: "logic_gate_node/apriltag_parking_and_parking_active" 
-    msg_type: "BoolStamped"
-    trigger: True
-  apriltag_intersection:
-    topic: "logic_gate_node/apriltag_intersection" 
     msg_type: "BoolStamped"
     trigger: True
   joystick_override_on_and_parallel_autonomy_off:

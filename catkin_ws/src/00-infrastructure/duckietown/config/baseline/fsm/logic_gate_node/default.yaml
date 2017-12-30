@@ -28,40 +28,17 @@ events:
     topic: "LED_coordination/move_intersection"
     msg_type: "BoolStamped"
     trigger: True
-
-  # apriltag_sign_type:
-  #   topic: "apriltag_node/apriltags_out"
-  #   msg_type: "AprilTagsWithInfos"
-  #   field: infos.tag_type
-  #   trigger: 1
-  # apriltag_parking:
-  #   topic: "apriltag_node/apriltags_out"
-  #   msg_type: "AprilTagsWithInfos"
-  #   field: infos.traffic_sign_type
-  #   trigger: 19
-  # apriltag_fourway:
-  #   topic: "apriltag_node/apriltags_out"
-  #   msg_type: "AprilTagsWithInfos"
-  #   field: infos.traffic_sign_type
-  #   trigger: 11
-  # apriltag_right_t:
-  #   topic: "apriltag_node/apriltags_out"
-  #   msg_type: "AprilTagsWithInfos"
-  #   field: infos.traffic_sign_type
-  #   trigger: 12
-  # apriltag_left_t:
-  #   topic: "apriltag_node/apriltags_out"
-  #   msg_type: "AprilTagsWithInfos"
-  #   field: infos.traffic_sign_type
-  #   trigger: 13
-  # apriltag_t:
-  #   topic: "apriltag_node/apriltags_out"
-  #   msg_type: "AprilTagsWithInfos"
-  #   field: infos.traffic_sign_type
-  #   trigger: 14
+  apriltag_parking:
+    topic: "apriltag_postprocessing_node/apriltag_parking"
+    msg_type: "BoolStamped"
+    trigger: True
+  parking_active:
+    topic: "parking_active"
+    msg_type: "BoolStamped"
+    trigger: True
 
 # TODO: 
-# - Figure out Apriltag gates
+# - parking_active flag?
 
 gates:
   at_stop_line_and_velocity_zero:
@@ -74,17 +51,8 @@ gates:
     gate_type: AND
     inputs:
       - apriltag_parking
-      - apriltag_sign_type
       - parking_active
     output_topic: "~apriltag_parking_and_parking_active"
-  apriltag_intersection:
-    gate_type: OR
-    inputs:
-      - apriltag_fourway
-      - apriltag_right_t
-      - apriltag_left_t
-      - apriltag_t
-    output_topic: "~apriltag_intersection"
   joystick_override_on_and_parallel_autonomy_off:
     gate_type: AND
     inputs:
