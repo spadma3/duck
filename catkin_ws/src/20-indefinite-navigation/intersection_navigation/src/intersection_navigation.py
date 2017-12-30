@@ -5,7 +5,7 @@ from path_planner.path_planner import PathPlanner
 from pose_estimator.pose_estimator import PoseEstimator
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
-from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped
+from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped
 from geometry_msgs.msg import PoseStamped
 import numpy as np
 
@@ -32,13 +32,16 @@ class IntersectionNavigation(object):
         self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed", CompressedImage,
                                         self.ImageCallback, queue_size=1)
         # self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPoseInertial, self.stateEstimator.Update, queue_size=1)
-        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped,
-                                            self.poseEstimator.FeedCommandQueue, queue_size=10)
+        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
+         
+        # self.poseEstimator.FeedCommandQueue, queue_size=10)
+        # in regular lane message
+        self.on_regular_road = rospy.Subscriber("~in_lane",BoolStamped, self.ModeCallback, queue_size=1)
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPoseInertial, queue_size=1)
         # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
-        # self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
+        self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
 
         # main logic parameters
         self.rate = 10  # main logic runs at 10Hz
@@ -71,7 +74,7 @@ class IntersectionNavigation(object):
                 return self.nominal_final_positions[2]
             elif turn_type == 1: # left
                 return self.nominal_final_positions[3]
-            else: #r ight
+            else: # right
                 return self.nominal_final_positions[1]
 
         elif intersection_type == self.tag_info.LEFT_T_INTERSECT:
@@ -210,6 +213,13 @@ class IntersectionNavigation(object):
         if self.state == self.state_dict['WAITING'] and msg.state == "INTERSECTION_CONTROL":
             self.state = self.state_dict['INITIALIZING']
 
+        # update state if we are done with the navigation
+        if self.on_regular_road == True and msg.state == "TRAVERSING":
+            self.state = self.state_dict['DONE'] 
+            # REDUNDANT ???
+            self.pub_done.publish(BoolStamped(True))
+            
+
     def TurnTypeCallback(self, msg):
         # TODO
         # will be used to proceed with main loop
@@ -225,6 +235,7 @@ class IntersectionNavigation(object):
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
+
 
     def OnShutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
