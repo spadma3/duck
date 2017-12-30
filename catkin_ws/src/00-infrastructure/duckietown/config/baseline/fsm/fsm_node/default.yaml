@@ -26,10 +26,6 @@ events: # Maps from subscribing topic to signal ids
     topic: "joy_mapper_node/start_avoidance"
     msg_type: "BoolStamped"
     trigger: True
-  intersection_go:
-    topic: "logic_gate_node/intersection_go"
-    msg_type: "BoolStamped"
-    trigger: True
   intersection_done:
     topic: "open_loop_intersection_control_node/intersection_done"
     msg_type: "BoolStamped"
@@ -57,6 +53,10 @@ events: # Maps from subscribing topic to signal ids
   # Logical events from logic_gate_node
   at_stop_line_and_velocity_zero:
     topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
+    msg_type: "BoolStamped"
+    trigger: True
+  intersection_go:
+    topic: "logic_gate_node/intersection_go"
     msg_type: "BoolStamped"
     trigger: True
   apriltag_parking_and_parking_active:

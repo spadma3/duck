@@ -42,23 +42,26 @@ events:
   # apriltag_fourway:
   #   topic: "apriltag_node/apriltags_out"
   #   msg_type: "AprilTagsWithInfos"
+  #   field: infos.traffic_sign_type
   #   trigger: 11
   # apriltag_right_t:
   #   topic: "apriltag_node/apriltags_out"
   #   msg_type: "AprilTagsWithInfos"
+  #   field: infos.traffic_sign_type
   #   trigger: 12
   # apriltag_left_t:
   #   topic: "apriltag_node/apriltags_out"
   #   msg_type: "AprilTagsWithInfos"
+  #   field: infos.traffic_sign_type
   #   trigger: 13
   # apriltag_t:
   #   topic: "apriltag_node/apriltags_out"
   #   msg_type: "AprilTagsWithInfos"
+  #   field: infos.traffic_sign_type
   #   trigger: 14
 
 # TODO: 
-# - check whether non-Bool values can be given. 
-# - check correct topic of velocity
+# - Figure out Apriltag gates
 
 gates:
   at_stop_line_and_velocity_zero:
@@ -92,7 +95,7 @@ gates:
     gate_type: AND
     inputs:
       - joystick_override_on
-      - parallel_autonomy_off
+      - parallel_autonomy_on
     output_topic: "~joystick_override_on_and_parallel_autonomy_on"
   intersection_go:
     gate_type: OR
