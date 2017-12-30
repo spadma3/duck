@@ -6,13 +6,13 @@
     <arg name="timeout" default="1" />
     <include file="$(find duckietown)/machines"/>
     <node ns="$(arg veh)" if="$(arg local)" name="receiver" pkg="fleet_messaging" type="receiver_node.py" output="screen">
-        <param name="~config" value="$(arg config)" />
-        <param name="~iface" value="$(arg iface)" />
-        <param name="~timeout" value="$(arg timeout)" />
+        <param name="~config" value="$(arg config)" default="$(find fleet_messaging)/config/config.yaml" />
+        <param name="~iface" value="$(arg iface)" default="bat0" />
+        <param name="~timeout" value="$(arg timeout)" default="1" />
     </node>
     <node ns="$(arg veh)" unless="$(arg local)" machine="$(arg veh)" name="receiver" pkg="fleet_messaging" type="receiver_node.py" output="screen">
-        <param name="~config" value="$(arg config)" />
-        <param name="~iface" value="$(arg iface)" />
-        <param name="~timeout" value="$(arg timeout)" />
+        <param name="~config" value="$(arg config)" default="$(find fleet_messaging)/config/config.yaml" />
+        <param name="~iface" value="$(arg iface)" default="bat0" />
+        <param name="~timeout" value="$(arg timeout)" default="1" />
     </node>
 </launch>

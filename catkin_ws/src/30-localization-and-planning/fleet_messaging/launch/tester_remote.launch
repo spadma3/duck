@@ -6,17 +6,17 @@
     <arg name="timeout" default="1" />
     <include file="$(find duckietown)/machines"/>
     <include file="$(find fleet_messaging)/launch/sender_remote.launch">
-        <arg name="veh" value="$(arg veh)" />
-        <arg name="local" value="$(arg local)" />
-        <arg name="config" value="$(arg config)" />
-        <arg name="iface" value="$(arg iface)" />
+        <arg name="veh" value="$(arg veh)" default="frankbot" />
+        <arg name="local" value="$(arg local)" default="false" />
+        <arg name="config" value="$(arg config)" default="$(find fleet_messaging)/config/tester.yaml" />
+        <arg name="iface" value="$(arg iface)" default="bat0" />
     </include>
     <include file="$(find fleet_messaging)/launch/receiver_remote.launch">
-        <arg name="veh" value="$(arg veh)" />
-        <arg name="local" value="$(arg local)" />
-        <arg name="config" value="$(arg config)" />
-        <arg name="iface" value="$(arg iface)" />
-        <arg name="timeout" value="$(arg timeout)" />
+        <arg name="veh" value="$(arg veh)" default="frankbot" />
+        <arg name="local" value="$(arg local)" default="false" />
+        <arg name="config" value="$(arg config)" default="$(find fleet_messaging)/config/tester.yaml" />
+        <arg name="iface" value="$(arg iface)" default="bat0" />
+        <arg name="timeout" value="$(arg timeout)" default="1" />
     </include>
     <node ns="$(arg veh)" if="$(arg local)" name="tester" pkg="fleet_messaging" type="tester_node.py" output="screen" />
     <node ns="$(arg veh)" unless="$(arg local)" machine="$(arg veh)" name="tester" pkg="fleet_messaging" type="tester_node.py" output="screen" />
