@@ -6,6 +6,8 @@ class ColorConstants(object):
     STR_RED = 'red'
     STR_BLACK = 'black'
     STR_GRAY = 'gray'
+    STR_GREEN = 'green'
+    STR_BLUE = 'blue'
     
     BLACK = (0,0,0) # XXX
     BGR_RED = (0,0,255)
@@ -18,12 +20,13 @@ class ColorConstants(object):
 
 def bgr_color_from_string(s):
     d = {
-        'yellow': ColorConstants.BGR_YELLOW,
-        'white': ColorConstants.BGR_WHITE,
-        'black': ColorConstants.BGR_BLACK,
-        'blue': ColorConstants.BGR_BLUE,
-        'red': ColorConstants.BGR_RED,
-        'gray': ColorConstants.BGR_GRAY,
+        ColorConstants.STR_YELLOW: ColorConstants.BGR_YELLOW,
+        ColorConstants.STR_WHITE: ColorConstants.BGR_WHITE,
+        ColorConstants.STR_BLACK: ColorConstants.BGR_BLACK,
+        ColorConstants.STR_BLUE: ColorConstants.BGR_BLUE,
+        ColorConstants.STR_RED: ColorConstants.BGR_RED,
+        ColorConstants.STR_GRAY: ColorConstants.BGR_GRAY,
+        ColorConstants.STR_GREEN: ColorConstants.BGR_GREEN,
     }
     if not s in d:
         msg = 'No color %r found in %s' % (s, list(d))
