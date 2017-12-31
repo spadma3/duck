@@ -2,9 +2,7 @@ from abc import abstractmethod, ABCMeta
 from collections import OrderedDict
 import random
 import re
-
-from duckietown_utils import logger
-
+from .logging_logger import logger
 from .contracts_ import contract
 from .exception_utils import check_isinstance, describe_type
 from .exception_utils import raise_wrapped

@@ -1,3 +1,4 @@
+# XXX: what is this?
 #!/usr/bin/python
 
 import numpy as np

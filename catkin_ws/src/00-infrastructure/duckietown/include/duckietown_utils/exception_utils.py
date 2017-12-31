@@ -86,7 +86,6 @@ def raise_wrapped_make(etype, e, msg, compact=False, **kwargs):
     if kwargs:
         s += '\n' + format_obs(kwargs)
 
-    import sys
     if sys.version_info[0] >= 3:
         es = str(e)
     else:

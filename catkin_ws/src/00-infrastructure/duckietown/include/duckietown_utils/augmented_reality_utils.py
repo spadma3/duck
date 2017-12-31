@@ -1,10 +1,13 @@
+# TODO: remove this from here
 import cv2
 import numpy as np
 from os.path import basename, isfile, splitext
 from sys import exit
 
-from duckietown_utils import logger, get_duckiefleet_root
+from .logging_logger import logger
+
 from .yaml_pretty import yaml_load
+from .constants import get_duckiefleet_root
 
 
 class BaseAugmenter(object):
@@ -59,7 +62,7 @@ class BaseAugmenter(object):
             'cyan' : ['rgb', [0, 1, 1]],
             'white' : ['rgb', [1, 1, 1]],
             'black' : ['rgb', [0, 0, 0]]}
-        color_type, [r, g, b] = defined_colors[color]
+        _color_type, [r, g, b] = defined_colors[color]
         cv2.line(image, (pt_x[0], pt_y[0]),(pt_x[1], pt_y[1]),(b * 255, g* 255, r * 255), 5)
         return image
 

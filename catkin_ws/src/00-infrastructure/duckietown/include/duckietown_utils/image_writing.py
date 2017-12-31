@@ -1,3 +1,4 @@
+import numpy as np
 from collections import OrderedDict
 import os
 
@@ -12,7 +13,7 @@ from .deprecation import deprecated
 
 
 def write_bgr_as_jpg(image, filename):
-    import numpy as np
+    
     if not isinstance(image, np.ndarray):
         # XXX
         pass

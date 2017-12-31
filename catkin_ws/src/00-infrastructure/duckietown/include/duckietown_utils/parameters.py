@@ -1,6 +1,8 @@
 import copy
 
-__all__ = ['Configurable']
+__all__ = [
+    'Configurable',
+]
 
 class Configurable(object):
     """ Utility class to read configuration """

@@ -1,9 +1,12 @@
-from .detect_environment import on_duckiebot
-
-from . import logger
 from .constants import DuckietownConstants
+from .detect_environment import on_duckiebot
+from .logging_logger import logger
 
-__all__ = ['contract']
+
+__all__ = [
+    'contract', 
+    'all_disabled',
+]
 
 show_info = DuckietownConstants.debug_show_package_import_info
 

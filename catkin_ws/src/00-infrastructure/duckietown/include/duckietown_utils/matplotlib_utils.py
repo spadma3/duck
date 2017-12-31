@@ -1,6 +1,10 @@
 import tempfile
-from duckietown_utils.jpg import bgr_from_png
-    
+
+from .jpg import bgr_from_png
+
+
+__all__ = ['CreateImageFromPylab']
+
 class CreateImageFromPylab(object):
 
     def __init__(self, dpi=75, figure_args = {}):
@@ -8,6 +12,7 @@ class CreateImageFromPylab(object):
         suffix = '.png'
         self.temp_file = tempfile.NamedTemporaryFile(suffix=suffix)
 
+        # avoid loading if not necessary
         from matplotlib import pylab
 
         self.pylab = pylab

@@ -1,10 +1,10 @@
 from contracts.utils import indent
-from duckietown_utils import logger
 import os
 
 from .constants import get_duckietown_root
 from .exceptions import DTConfigException
 from .friendly_path_imp import friendly_path
+from .logging_logger import logger
 from .memoization import memoize_simple
 from .mkdirs import d8n_make_sure_dir_exists
 from .system_cmd_imp import system_cmd_result

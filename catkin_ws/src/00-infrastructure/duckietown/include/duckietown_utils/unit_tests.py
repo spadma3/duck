@@ -1,4 +1,4 @@
-from . import logger
+from .logging_logger import logger
 from .constants import DuckietownConstants
 
 __all__ = [
@@ -8,6 +8,16 @@ __all__ = [
 ]
 
 show_info = DuckietownConstants.debug_show_package_import_info
+
+
+def unit_test(f):
+    return f
+
+def run_tests_for_this_module():
+    pass
+
+def get_output_dir_for_test():
+    return 'out-comptests'
 
 try: 
     from comptests import comptest as unit_test  # @UnusedImport
@@ -24,6 +34,7 @@ except ImportError:
     using_fake_tests = True
     
 if using_fake_tests:
+    
     def unit_test(f):
         return f
     
@@ -32,3 +43,4 @@ if using_fake_tests:
     
     def get_output_dir_for_test():
         return 'out-comptests'
+    

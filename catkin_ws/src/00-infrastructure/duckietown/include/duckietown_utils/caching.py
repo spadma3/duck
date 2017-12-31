@@ -1,6 +1,6 @@
 import os
 
-from duckietown_utils import logger
+from .logging_logger import logger
 
 from .friendly_path_imp import friendly_path
 from .path_utils import expand_all

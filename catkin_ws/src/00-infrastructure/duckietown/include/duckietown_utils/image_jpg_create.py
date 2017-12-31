@@ -1,9 +1,11 @@
 
-
+__all__ = [
+    'd8_compressed_image_from_cv_image',
+]
 
 def d8_compressed_image_from_cv_image(image_cv, same_timestamp_as = None):
     """ 
-        Create CompressedIamge from a CV image.
+        Create CompressedIamge from a CV BGR image.
     
         TODO: assumptions on format?
     """

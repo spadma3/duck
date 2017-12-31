@@ -1,6 +1,6 @@
 # copied from https://github.com/AndreaCensi/system_cmd
 
-from duckietown_utils import logger
+from .logging_logger import logger
 
 import os
 import subprocess

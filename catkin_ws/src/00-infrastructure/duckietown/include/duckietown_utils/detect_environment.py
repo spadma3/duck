@@ -1,4 +1,10 @@
 
+__all__ = [
+    'on_duckiebot',
+    'on_laptop',
+    'on_circle',
+]
+
 def on_duckiebot():
     """ True if we are on a Duckiebot. """
     import platform

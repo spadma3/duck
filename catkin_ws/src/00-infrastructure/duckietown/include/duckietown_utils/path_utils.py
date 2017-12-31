@@ -2,8 +2,11 @@ import os
 
 from .exceptions import DTConfigException
 
+__all__ = [
+    'get_ros_package_path',
+    'expand_all',
+]
 
-# from duckietown_utils.friendly_path_imp import friendly_path
 def expand_all(filename):
     """
         Expands ~ and ${ENV} in the string. 
@@ -20,10 +23,9 @@ def expand_all(filename):
         raise DTConfigException(msg)
     return fn
 
-
 def get_ros_package_path(package_name):
     """ Returns the path to a package. """
-    import rospkg
+    import rospkg  # @UnresolvedImport
     rospack = rospkg.RosPack()  # @UndefinedVariable
     return rospack.get_path(package_name)
 

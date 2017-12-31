@@ -1,6 +1,10 @@
 from contextlib import contextmanager
 import time
 
+__all__ = [
+    'rospy_timeit_clock',
+    'rospy_timeit_wall',
+]
 
 @contextmanager
 def rospy_timeit_clock(s):

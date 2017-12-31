@@ -1,12 +1,18 @@
+# TODO: move this to easy_logs
 import os
 
-from quickapp.quick_app import QuickApp
-from quickapp.quick_app_base import QuickAppBase
+from quickapp import QuickApp, QuickAppBase
 
-from duckietown_utils.exceptions import DTUserError, wrap_script_entry_point
+from .exceptions import DTUserError, wrap_script_entry_point
 from easy_logs.logs_db import get_easy_logs_db_cached_if_possible,\
     get_easy_logs_db_cloud, get_easy_logs_db_fresh
 
+__all__ = [
+    'D8App',
+    'D8AppWithLogs',
+    'D8AppWithJobs',
+    'd8app_run',
+]
 
 class D8App(QuickAppBase):
     

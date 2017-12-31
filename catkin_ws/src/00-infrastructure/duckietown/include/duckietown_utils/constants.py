@@ -1,6 +1,6 @@
 import os
 
-from . import logger
+from .logging_logger import logger
 from .exceptions import DTConfigException
 from .locate_files_impl import locate_files
 from .path_utils import expand_all
@@ -154,7 +154,8 @@ def get_scuderia_path():
 
 def _get_dir(variable_name):
     """ 
-        Raises DTConfigException if it does not exist or the environment variable is not set.
+        Raises DTConfigException if it does not exist or the environment 
+        variable is not set.
     """
     if not variable_name in os.environ:
         msg = 'Environment variable %r not defined.' % variable_name

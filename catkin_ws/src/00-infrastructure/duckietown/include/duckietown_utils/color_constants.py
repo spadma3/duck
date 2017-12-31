@@ -1,4 +1,8 @@
 
+__all__ = [
+    'bgr_color_from_string',
+    'ColorConstants',
+]
 
 class ColorConstants(object):
     STR_WHITE = 'white'

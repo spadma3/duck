@@ -1,9 +1,9 @@
-from duckietown_utils import logger
+import os
 
 from .friendly_path_imp import friendly_path
+from .logging_logger import logger
 from .mkdirs import d8n_make_sure_dir_exists
 from .path_utils import expand_all
-import os
 
 
 def write_data_to_file(data, filename):

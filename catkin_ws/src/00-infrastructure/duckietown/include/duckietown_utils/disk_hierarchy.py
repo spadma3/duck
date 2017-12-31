@@ -1,7 +1,7 @@
 import os
 from tempfile import mkdtemp
 
-from duckietown_utils import logger
+from .logging_logger import logger
 
 from .contracts_ import contract
 from .exception_utils import raise_desc

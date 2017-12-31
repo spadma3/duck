@@ -1,17 +1,9 @@
 import numpy as np
 
-
-# Any time we use the variable "xytheta" it is a numpy array
-# with the following datatype
-# # DATATYPE_XYTHETA =  np.dtype([('x', 'float64'), ('y', 'float64'), ('theta', 'float64')])
-# 
-# def xytheta_from_xyth(xyth):
-#     return np.array([xyth['x'], xyth['y'], xyth['theta']])
-# 
-# def SE2_from_xyth(xyth):
-#     from geometry.poses import SE2_from_xytheta
-#     xytheta = xytheta_from_xyth(xyth)
-#     return SE2_from_xytheta(xytheta)
+__all__ = [
+    'norm_angle',
+    'm_from_in',
+]
 
 
 # meters from inches

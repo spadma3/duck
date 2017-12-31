@@ -1,9 +1,10 @@
 from contextlib import contextmanager
 import os
 
-from duckietown_utils import logger
+from .logging_logger import logger
 from .mkdirs import d8n_make_sure_dir_exists
 
+__all__ = ['d8n_write_to_bag_context']
 
 @contextmanager
 def d8n_write_to_bag_context(out_bag_filename):

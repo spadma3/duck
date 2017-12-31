@@ -1,12 +1,16 @@
-from duckietown_utils import logger
+from .logging_logger import logger
 import time
 
 import numpy as np
 
 from .exceptions import DTBadData
 
+__all__ = [
+    'd8n_bag_read_with_progress',
+    'BagReadProxy',
+]
 
-class BagReadProxy():
+class BagReadProxy(object):
     
     def __init__(self, bag, t0, t1):
         """

@@ -20,8 +20,12 @@ except:
 
 
 from .constants import * 
+from .logging_logger import *
+from .unit_tests import *
 
-from .augmented_reality_utils import *
+# this is from the exercises
+# from .augmented_reality_utils import *
+# from .draw import *
 from .bag_info import *
 from .bag_logs import *
 from .bag_reading import *
@@ -74,17 +78,20 @@ from .yaml_wrap import *
 from .deprecation import *
 from .coords import *
 from .color_constants import *
-from .unit_tests import *
+
+from .matplotlib_utils import *
 
 # Make sure that all variables look like they are 
 # in the duckietown_utils module, not duckietown_utils
-__all__ = []
-for c in list(locals()):
-    v = eval(c)
-    if hasattr(v, '__module__'):
-        if v.__module__.startswith('duckietown_utils'):
-            v.__module__ = 'duckietown_utils'
-            __all__.append(c)
-            
+
+if False:
+    __all__ = []
+    for c in list(locals()):
+        v = eval(c)
+        if hasattr(v, '__module__'):
+            if v.__module__.startswith('duckietown_utils'):
+                v.__module__ = 'duckietown_utils'
+                __all__.append(c)
+                
 
 

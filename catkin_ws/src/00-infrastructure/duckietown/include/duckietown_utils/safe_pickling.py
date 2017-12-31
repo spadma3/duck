@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 
-from duckietown_utils import logger
+from .logging_logger import logger
 
 from .safe_reading import safe_read, safe_write
 

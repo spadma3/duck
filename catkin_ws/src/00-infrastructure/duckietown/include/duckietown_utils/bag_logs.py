@@ -1,18 +1,19 @@
 import os
 
-from duckietown_utils.bag_info import get_image_topic
+import numpy as np
 
-from . import logger
+from .bag_info import get_image_topic
 from .bag_reading import BagReadProxy
 from .expand_variables import expand_environment
 from .image_conversions import numpy_from_ros_compressed
+from .logging_logger import logger
 
-#
-# __all__ = [
-#     'd8n_read_images_interval',
-#     'd8n_read_all_images',
-#     'd8n_get_all_images_topic',
-# ]
+__all__ = [
+    'd8n_read_images_interval',
+    'd8n_read_all_images',
+    'd8n_read_all_images_from_bag',
+]
+
 def d8n_read_images_interval(filename, t0, t1):
     """
         Reads all the RGB data from the bag,
@@ -53,7 +54,6 @@ def d8n_read_all_images(filename, t0=None, t1=None):
     res = d8n_read_all_images_from_bag(bag_proxy, topic, t0=t0,t1=t1)
     return res
 
-import numpy as np
 
 def d8n_read_all_images_from_bag(bag, topic0, max_images=None):
 

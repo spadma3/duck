@@ -9,7 +9,9 @@ __all__ = [
     'rosbag_info', 
     'rosbag_info_cached',
     'd8n_get_all_images_topic_bag',
+    'd8n_get_all_images_topic',
     'which_robot',
+    'get_image_topic',
 ]
 
 def rosbag_info_cached(filename):

@@ -2,8 +2,7 @@ from collections import OrderedDict
 import fnmatch
 import os
 
-from duckietown_utils import logger
-
+from .logging_logger import logger
 from .constants import get_catkin_ws_src, get_duckiefleet_root, \
     get_duckietown_data, get_duckietown_local_log_downloads
 from .contracts_ import contract
@@ -13,13 +12,11 @@ from .exceptions import DTConfigException
 from .friendly_path_imp import friendly_path
 from .instantiate_utils import indent
 from .locate_files_impl import locate_files
-from .yaml_pretty import yaml_load
-from duckietown_utils.yaml_pretty import yaml_load_plain
+from .yaml_pretty import yaml_load, yaml_load_plain, yaml_dump_pretty
+from .file_utils import write_data_to_file
 
 
 def yaml_write_to_file(ob, filename):
-    from duckietown_utils.yaml_pretty import yaml_dump_pretty
-    from duckietown_utils.file_utils import write_data_to_file
     try:
         s = yaml_dump_pretty(ob)
     except:

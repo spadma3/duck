@@ -1,9 +1,11 @@
 import os
 import shutil
 
-from duckietown_utils import logger
+from .logging_logger import logger
 
 from .disk_hierarchy import create_tmpdir
+
+__all__ = ['d8n_make_video_from_bag']
 
 def d8n_make_video_from_bag(bag_filename, topic, out):
     """

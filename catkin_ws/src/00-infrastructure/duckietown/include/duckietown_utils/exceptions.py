@@ -2,8 +2,7 @@ import sys
 import traceback
  
 
-from duckietown_utils import logger
-
+from .logging_logger import logger
 
 class DTException(Exception):
     """ All exceptions derive from this one. """

@@ -1,4 +1,4 @@
-
+from .logging_logger import logger
 
 def ipython_if_guy():
     """ 
@@ -19,6 +19,5 @@ def ipython_if_guy():
         import IPython
         IPython.embed()
     else:
-        from . import logger
         logger.debug('Username is %r so not starting IPython' % user)
 

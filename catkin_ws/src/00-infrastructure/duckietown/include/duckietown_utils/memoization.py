@@ -8,6 +8,11 @@
 
 from decorator import decorator
 
+__all__ = [
+    'memoize_simple',
+]
+
+
 def memoize_simple(obj):
     cache = obj.cache = {}
 
