@@ -7,7 +7,7 @@ digraph {
 	NORMAL_JOYSTICK_CONTROL [label=<{ NORMAL_JOYSTICK_CONTROL | <B> ACTIVE NODES </B> | lane_filter_node | line_detector_node | stop_line_filter_node | framerate_high | decoder_node | apriltag_node }> color=black fontcolor=black]
 	PARKING [label=<{ PARKING | <B> ACTIVE NODES </B> | decoder_node | line_detector_node | lane_filter_node | parking_node | lane_controller_node | parking_perception_localization | parking_path_planning | parking_control }> color=black fontcolor=black]
 	LANE_FOLLOWING [label=<{ LANE_FOLLOWING | <B> ACTIVE NODES </B> | decoder_node | line_detector_node | lane_filter_node | lane_controller_node | stop_line_filter_node | obstacle_avoidance_node }> color=black fontcolor=black]
-	SAFE_JOYSTICK_CONTROL [label=<{ SAFE_JOYSTICK_CONTROL | <B> ACTIVE NODES </B> | lane_filter_node | line_detector_node | stop_line_filter_node | framerate_high | decoder_node | apriltag_node }> color=black fontcolor=black]
+	SAFE_JOYSTICK_CONTROL [label=<{ SAFE_JOYSTICK_CONTROL | <B> ACTIVE NODES </B> | decoder_node | apriltag_node | framerate_high | line_detector_node | lane_filter_node | stop_line_filter_node }> color=black fontcolor=black]
 	ARRIVE_AT_STOP_LINE -> PARKING [label=apriltag_parking_and_parking_active color=black fontcolor=black]
 	ARRIVE_AT_STOP_LINE -> INTERSECTION_COORDINATION [label=apriltag_intersection color=black fontcolor=black]
 	INTERSECTION_CONTROL -> LANE_FOLLOWING [label=intersection_done color=black fontcolor=black]
