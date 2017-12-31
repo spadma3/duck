@@ -30,6 +30,22 @@ events: # Maps from subscribing topic to signal ids
     topic: "apriltag_postprocessing_node/apriltag_intersection" 
     msg_type: "BoolStamped"
     trigger: True
+  obstacle_detection:
+    topic: "obstacle_safety_node/object_too_close"
+    msg_type: "BoolStamped"
+    trigger: True
+  obstacle_cleared:
+    topic: "obstacle_safety_node/object_too_close"
+    msg_type: "BoolStamped"
+    trigger: False
+  vehicle_detection:
+    topic: "vehicle_avoidance_control_node/vehicle_detected"
+    msg_type: "BoolStamped"
+    trigger: True
+  vehicle_cleared:
+    topic: "vehicle_avoidance_control_node/vehicle_detected"
+    msg_type: "BoolStamped"
+    trigger: False
   # Logical events from logic_gate_node
   at_stop_line_and_velocity_zero:
     topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
@@ -51,22 +67,14 @@ events: # Maps from subscribing topic to signal ids
     topic: "logic_gate_node/joystick_override_on_and_parallel_autonomy_on" 
     msg_type: "BoolStamped"
     trigger: True
-  obstacle_detection:
-    topic: "obstacle_safety_node/object_too_close"
+  intersection_done_and_parallel_autonomy_off:
+    topic: "logic_gate_node/intersection_done_and_parallel_autonomy_off"
     msg_type: "BoolStamped"
     trigger: True
-  obstacle_cleared:
-    topic: "obstacle_safety_node/object_too_close"
-    msg_type: "BoolStamped"
-    trigger: False
-  vehicle_detection:
-    topic: "vehicle_avoidance_control_node/vehicle_detected"
+  intersection_done_and_parallel_autonomy_on:
+    topic: "logic_gate_node/intersection_done_and_parallel_autonomy_off"
     msg_type: "BoolStamped"
     trigger: True
-  vehicle_cleared:
-    topic: "vehicle_avoidance_control_node/vehicle_detected"
-    msg_type: "BoolStamped"
-    trigger: False
 
 global_transitions:
   joystick_override_on_and_parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
@@ -119,36 +127,6 @@ states:
       - apriltag_node
     lights: ["joystick"]
     current_status: "implemented"
-  SAFE_JOYSTICK_CONTROL:
-    transitions:
-      joystick_override_off: "LANE_FOLLOWING"
-      parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
-      vehicle_detection: "AVOID_VEHICLE"
-      obstacle_detection: "AVOID_OBSTACLE"
-    active_nodes:
-      - decoder_node
-      - apriltag_node
-      - framerate_high
-      - line_detector_node
-      - lane_filter_node
-      - stop_line_filter_node
-      - lane_supervisor_node
-    lights: ["joystick"]
-    current_status: "implemented"
-  AVOID_VEHICLE:
-    transitions:
-      vehicle_cleared: "SAFE_JOYSTICK_CONTROL"
-    active_nodes:
-      - decoder_node
-      - apriltag_node
-      - framerate_high
-  AVOID_OBSTACLE:
-    transitions:
-      obstacle_cleared: "SAFE_JOYSTICK_CONTROL"
-    active_nodes:
-      - decoder_node
-      - apriltag_node
-      - framerate_high
   LANE_FOLLOWING:
     transitions:
       at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
@@ -179,7 +157,8 @@ states:
     current_status: "in_progress"
   INTERSECTION_CONTROL:
     transitions:
-      intersection_done: "LANE_FOLLOWING"
+      intersection_done_and_parallel_autonomy_off: "LANE_FOLLOWING"
+      intersection_done_and_parallel_autonomy_on: "SAFE_JOYSTICK_CONTROL"
     active_nodes:
       - apriltag_node
       - decoder_node
@@ -226,3 +205,33 @@ states:
       - apriltag_node
       - decoder_node
     current_status: "implemented"
+  SAFE_JOYSTICK_CONTROL:
+    transitions:
+      joystick_override_off: "LANE_FOLLOWING"
+      parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
+      vehicle_detection: "AVOID_VEHICLE"
+      obstacle_detection: "AVOID_OBSTACLE"
+    active_nodes:
+      - decoder_node
+      - apriltag_node
+      - framerate_high
+      - line_detector_node
+      - lane_filter_node
+      - stop_line_filter_node
+      - lane_supervisor_node
+    lights: ["joystick"]
+    current_status: "parallel_autonomy"
+  AVOID_VEHICLE:
+    transitions:
+      vehicle_cleared: "SAFE_JOYSTICK_CONTROL"
+    active_nodes:
+      - vehicle_detector_node
+      - decoder_node
+    current_status: "parallel_autonomy"
+  AVOID_OBSTACLE:
+    transitions:
+      obstacle_cleared: "SAFE_JOYSTICK_CONTROL"
+    active_nodes:
+      - decoder_node
+      - static_object_detector_node
+    current_status: "parallel_autonomy"

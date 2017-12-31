@@ -7,7 +7,7 @@ import rospkg
 import yaml
 from graphviz import Digraph
 
-colours = {"implemented": "black", "in_progress": "black", "planned": "black"}
+colours = {"implemented": "black", "in_progress": "black", "planned": "black", "parallel_autonomy": "blue"}
 
 # TODO read from command line
 
@@ -23,7 +23,6 @@ print "Load file: %s"%(file_path)
 # Load yaml as dictionary
 with file(file_path, "r") as f:
 	yaml_dict = yaml.load(f)
-# print yaml_dict
 
 all_state_dict = yaml_dict["states"]
 events_dict = yaml_dict["events"]
@@ -60,8 +59,11 @@ for state_name,state_dict in all_state_dict.items():
 		for event_name, next_state in transition_dict.items():
 			if "current_status" in state_dict.keys():
 				dot.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
+				dot_detailed.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
+
 			else:
 				dot.edge(state_name,next_state,label=event_name, fontcolor="black", color="black")
+				dot_detailed.edge(state_name,next_state,label=event_name, fontcolor="black", color="black")
 			print "Transition: %s -- %s --> %s " %(state_name, event_name, next_state)
 
 # Global transitions
