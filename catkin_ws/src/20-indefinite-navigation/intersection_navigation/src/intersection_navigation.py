@@ -5,8 +5,9 @@ from path_planner.path_planner import PathPlanner
 from pose_estimator.pose_estimator import PoseEstimator
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
-from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped
+from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose
 from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import Int16, String
 import numpy as np
 
 
@@ -28,16 +29,16 @@ class IntersectionNavigation(object):
 
         # set up subscribers
         self.sub_mode = rospy.Subscriber("~mode", FSMState, self.ModeCallback, queue_size=1)
-        # self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.TurnTypeCallback, queue_size=1)
+        self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.TurnTypeCallback, queue_size=1)
         self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed", CompressedImage,
                                         self.ImageCallback, queue_size=1)
-        # self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPoseInertial, self.stateEstimator.Update, queue_size=1)
+        self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPose, 
+                                        self.poseEstimator.UpdateWithPoseMeasurement, queue_size=1)
         self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
          
         # self.poseEstimator.FeedCommandQueue, queue_size=10)
         self.on_regular_road = rospy.Subscriber("~in_lane",BoolStamped, self.ModeCallback, queue_size=1)
 
-        # set up publishers_lane_msg.data = in_lane
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPoseInertial, queue_size=1)
         # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
@@ -176,8 +177,9 @@ class IntersectionNavigation(object):
 
                 # waiting for instructions where to go
                 # TODO
+                self.turn_type = TurnTypeCallback()
                 # 0: straight, 1: left, 2: right
-                turn_type = 2
+                turn_type = 2            
                 pose_init = [best_x_meas, best_y_meas, best_theta_meas]
                 pose_final = self.ComputeFinalPose(april_msg.infos[closest_idx].traffic_sign_type, turn_type)
 
@@ -216,6 +218,7 @@ class IntersectionNavigation(object):
         if self.on_regular_road == True and msg.state == "TRAVERSING":
             self.state = self.state_dict['DONE'] 
             in_lane_msg = BoolStamped() # is a header needed in this case ??
+            in_lane_msg.header.stamp = rospy.Time.now()
             in_lane_msg.data = True
             self.pub_done.publish(in_lane_msg)
             rospy.loginfo("[%s] Intersection naviation done.")
@@ -224,7 +227,14 @@ class IntersectionNavigation(object):
     def TurnTypeCallback(self, msg):
         # TODO
         # will be used to proceed with main loop
-        pass
+        if self.sub_turn_type ==1: # straight
+            turn_type = 0
+        elif self.sub_turn_type == 2: # right
+            turn_type = 2
+        elif self.sub_turn_type == 0: # left
+            turn_type = 1
+        else:
+            pass
 
     def ImageCallback(self, msg):
         # TODO
