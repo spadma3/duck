@@ -58,8 +58,10 @@ for state_name,state_dict in all_state_dict.items():
 	transition_dict = state_dict.get("transitions")
 	if transition_dict is not None:
 		for event_name, next_state in transition_dict.items():
-			dot.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
-			dot_detailed.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
+			if "current_status" in state_dict.keys():
+				dot.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
+			else:
+				dot.edge(state_name,next_state,label=event_name, fontcolor="black", color="black")
 			print "Transition: %s -- %s --> %s " %(state_name, event_name, next_state)
 
 # Global transitions
