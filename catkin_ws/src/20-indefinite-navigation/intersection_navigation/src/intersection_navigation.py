@@ -35,10 +35,9 @@ class IntersectionNavigation(object):
         self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
          
         # self.poseEstimator.FeedCommandQueue, queue_size=10)
-        # in regular lane message
         self.on_regular_road = rospy.Subscriber("~in_lane",BoolStamped, self.ModeCallback, queue_size=1)
 
-        # set up publishers
+        # set up publishers_lane_msg.data = in_lane
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPoseInertial, queue_size=1)
         # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
@@ -216,8 +215,10 @@ class IntersectionNavigation(object):
         # update state if we are done with the navigation
         if self.on_regular_road == True and msg.state == "TRAVERSING":
             self.state = self.state_dict['DONE'] 
-            # REDUNDANT ???
-            self.pub_done.publish(BoolStamped(True))
+            in_lane_msg = BoolStamped() # is a header needed in this case ??
+            in_lane_msg.data = True
+            self.pub_done.publish(in_lane_msg)
+            rospy.loginfo("[%s] Intersection naviation done.")
             
 
     def TurnTypeCallback(self, msg):
@@ -228,6 +229,8 @@ class IntersectionNavigation(object):
     def ImageCallback(self, msg):
         # TODO
         # predict state estimate until image timestamp and publish "~intersection_pose_pred"
+        # self.pub_intersection_pose_pred.publish IntersectionPoseInertial??
+
         pass
 
     def SetupParameter(self, param_name, default_value):
