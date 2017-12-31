@@ -19,7 +19,8 @@ test:
 
 test-circle: \
 	test-comptests \
-	test-download-logs
+	test-download-logs \
+	test-misc-utils
 
 
 	#test-line-detector-programmatic
@@ -31,6 +32,7 @@ test-circle: \
 
 test-all: \
 	test-comptests \
+	test-download-logs \
 	test-catkin_tests \
 	test-misc-utils
 
