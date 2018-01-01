@@ -1,6 +1,6 @@
 from easy_regression.processor_interface import ProcessorInterface
 import duckietown_utils as dtu
-from ground_projection.ground_projection_interface import \
+from ground_projection import \
     GroundProjection
 from complete_image_pipeline.pipeline import run_pipeline
 
@@ -26,7 +26,6 @@ class LocalizationPipeline(ProcessorInterface):
         else:
             start_time = bag_in.get_start_time() 
             
-#         sequence = bag_in.read_messages(topics=[topic])
         sequence = dtu.d8n_bag_read_with_progress(bag_in, topic, yield_tuple=True)
         for i, (topic, msg, t) in enumerate(sequence):
             
@@ -45,10 +44,19 @@ class LocalizationPipeline(ProcessorInterface):
             rect = (480, 640) if not all_details else (240, 320)
             res = dtu.resize_images_to_fit_in_rect(res, rect, bgcolor=dtu.ColorConstants.BGR_DUCKIETOWN_YELLOW)
 
-            extra_string = "frame %5d: %.2f s" % (i, rel_time)
-            res = dtu.write_bgr_images_as_jpgs(res, dirname=None, extra_string=extra_string)
+            headers = [
+                "frame %5d: %.2f s" % (i, rel_time),
+                "image_prep: %s | line_detector: %s | lane_filter: %s" % (self.line_detector, 
+                                                                      self.image_prep,self.lane_filter,)
+            ]
+            
+            res = dtu.write_bgr_images_as_jpgs(res, dirname=None)
             
             cv_image = res['all']
+            
+            for head in reversed(headers):
+                max_height = 35
+                cv_image = dtu.add_header_to_bgr(cv_image, head, max_height=max_height)
 #             cv_image = d8_image_resize_fit(cv_image, W=1280)
             
             otopic = "/localization_pipeline/all"
