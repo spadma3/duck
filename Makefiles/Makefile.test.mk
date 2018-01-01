@@ -42,7 +42,6 @@ comptests_packages=\
 	easy_node_tests\
 	easy_logs_tests\
 	easy_algo_tests\
-	easy_regression_tests\
 	duckietown_utils_tests\
 	line_detector2_tests\
 	what_the_duck_tests\
@@ -52,6 +51,8 @@ comptests_packages=\
 	duckietown_segmaps_tests\
 	grid_helper_tests\
 	lane_filter_generic_tests
+# XXX: not sure if this is making Circle mem out
+# easy_regression_tests
 
 comptests_out=out/comptests
 

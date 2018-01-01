@@ -52,9 +52,7 @@ jobs:
                 source /opt/ros/kinetic/setup.bash
                 source $PWD/catkin_ws/devel/setup.bash
 
-
                 export HOSTNAME=$HOSTNAME
-
 
                 # git clone git@github.com:duckietown/duckiefleet-fall2017.git $DUCKIEFLEET_ROOT
                 mkdir -p $DUCKIEFLEET_ROOT

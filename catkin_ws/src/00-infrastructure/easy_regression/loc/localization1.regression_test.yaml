@@ -7,8 +7,8 @@ parameters:
 #     - vehicle:yaf/{10:11}
     - '*/shuffle/[:20]/{5:6}'
     processors: 
-    - localization_pipeline_moregeneric_straight
-    # - localization_pipeline_baseline
+#     - localization_pipeline_moregeneric_straight
+    - localization_pipeline_baseline
     analyzers:
     - count_messages
 
