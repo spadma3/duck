@@ -11,7 +11,6 @@ class CheckException(Exception):
         both = compact + '\n\n' + long_explanation
         Exception.__init__(self, both)
 
-
 class CheckFailed(CheckException):
     pass
 

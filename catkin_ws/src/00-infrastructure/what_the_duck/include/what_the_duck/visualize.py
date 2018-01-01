@@ -4,7 +4,6 @@ from contracts.utils import indent
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from termcolor import colored
-import cgi
 
 
 class MakeSpans(object):
