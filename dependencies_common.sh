@@ -35,20 +35,7 @@ sudo apt remove -y \
 
 # These don't have an APT package
 
-pip install --upgrade --user \
-    compmake==3.5.6 \
-	PyContracts==1.7.15 \
-	DecentLogs==1.1.2 \
-	QuickApp==1.3.10 \
-	conftools==1.9.1 \
-	comptests==1.4.14 \
-	quickapp==1.3.10 \
-	procgraph==1.10.9 \
-	ros_node_utils==1.1.1\
-	pymongo==3.5.1 \
-	ruamel.yaml==0.15.34\
-	PyGeometry==1.3
-
+pip install --user -r requirements.txt
 
 
 # None of this should be needed. Next time you think you need it, let me know and we figure it out. -AC
