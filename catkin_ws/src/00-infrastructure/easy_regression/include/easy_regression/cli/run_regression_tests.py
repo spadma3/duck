@@ -3,10 +3,10 @@ from collections import OrderedDict
 import os
 
 from quickapp import QuickApp
-import duckietown_utils as dtu
 
+import duckietown_utils as dtu
 from duckietown_utils.cli import D8AppWithLogs
-from easy_algo.algo_db import get_easy_algo_db
+from easy_algo import get_easy_algo_db
 from easy_logs.cli.require import get_log_if_not_exists
 from easy_regression.cli.analysis_and_stat import job_analyze, job_merge, print_results
 from easy_regression.cli.checking import compute_check_results, display_check_results, fail_if_not_expected,\
@@ -14,6 +14,8 @@ from easy_regression.cli.checking import compute_check_results, display_check_re
 from easy_regression.cli.processing import process_one
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.regression_test import RegressionTest
+import shutil
+import time
 
 
 logger = dtu.logger
@@ -71,7 +73,10 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     for a in analyzers:
         results_all[a] = OrderedDict()
     
-    tmpdir = dtu.create_tmpdir()
+    date = dtu.format_time_as_YYYY_MM_DD(time.time())
+    prefix = 'run_regression_test-%s-%s-' % (rt_name, date)
+    tmpdir = dtu.create_tmpdir(prefix=prefix)
+    do_before_deleting_tmp_dir = []
     for log_name, log in logs.items():
         c = context.child(log_name)
         # process one     
@@ -82,15 +87,18 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
         log_out_ = c.comp(process_one, bag_filename, t0, t1, processors, log_out, job_id=log_name)
         
         for a in analyzers:
-            results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id=a) 
-        
+            r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id=a) 
+            do_before_deleting_tmp_dir.append(r)
+            
         for topic in rt.get_topic_videos():
-            mp4 = os.path.join(out, 'videos', log_name, topic + '.mp4')
-            c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4)
+            topic_sanitized = topic.replace('/','-')
+            mp4 = os.path.join(out, 'videos', log_name, topic_sanitized + '.mp4')
+            v = c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4)
+            do_before_deleting_tmp_dir.append(v)
 
     for a in analyzers:
         results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a)
-    
+        
     context.comp(print_results, analyzers, results_all, out)
 
     check_results = context.comp(compute_check_results, rt_name, rt, results_all)
@@ -98,6 +106,11 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     
     context.comp(fail_if_not_expected, check_results, expect)
     context.comp(write_to_db, rt_name, results_all, out)
+    
+    context.comp(delete_tmp_dir, tmpdir, do_before_deleting_tmp_dir)
+    
+def delete_tmp_dir(tmpdir, _dependencies):
+    shutil.rmtree(tmpdir)
     
 
     

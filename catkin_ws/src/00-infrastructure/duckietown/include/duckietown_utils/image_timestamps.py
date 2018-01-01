@@ -68,6 +68,6 @@ def _add_header(img, s, proportion=default_header_proportion,
     dim = (0.75*ratio)
     
     cv2.putText(black, s, (10, int(25*ratio)), font, 
-                dim, color, 2, cv2.LINE_AA)  # @UndefinedVariable
+                dim, color, 1, cv2.LINE_AA)  # @UndefinedVariable
     res = make_images_grid([black, img], cols=1)
     return res

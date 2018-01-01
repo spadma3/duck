@@ -6,10 +6,10 @@ from .exception_utils import check_isinstance
 from .file_utils import write_data_to_file
 from .image_composition import make_images_grid
 from .image_rescaling import d8_image_resize_no_interpolation
-from .image_timestamps import add_header_to_image
 from .jpg import jpg_from_bgr, write_bgr_to_file_as_jpg
 from .deprecation import deprecated
 from .image_operations import bgr_from_rgb
+from .image_timestamps import add_header_to_bgr
 
 def write_bgr_as_jpg(bgr, filename):
     jpg = jpg_from_bgr(bgr)
@@ -47,20 +47,26 @@ def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
     for i, (filename, image) in enumerate(res.items()):
         s = filename
         
-        res[filename] = add_header_to_image(image, s)
+        res[filename] = add_header_to_bgr(image, s)
         images.append(res[filename])
 
     bgcolor = DuckietownConstants.DUCKIETOWN_YELLOW_BGR
     res['all'] = make_images_grid(images, bgcolor=bgcolor, pad=20)
 
+    output = OrderedDict()
+    
     for i, (filename, image) in enumerate(res.items()):
         if filename == 'all':
             basename = 'all'
             if extra_string is not None:
-                image = add_header_to_image(image, extra_string)
+                max_height = 50
+                image = add_header_to_bgr(image, extra_string, max_height=max_height)
         else:
             basename = ('step%02d-'%i)+filename
 
-
-        fn = os.path.join(dirname, basename+'.jpg')
-        write_bgr_to_file_as_jpg(image, fn)
+        if dirname is not None:
+            fn = os.path.join(dirname, basename+'.jpg')
+            write_bgr_to_file_as_jpg(image, fn)
+        
+        output[basename] = image
+    return output

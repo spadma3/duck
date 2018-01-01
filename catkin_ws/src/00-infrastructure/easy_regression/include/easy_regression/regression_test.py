@@ -15,7 +15,7 @@ __all__ = [
 
 ChecksWithComment = namedtuple('ChecksWithComment', ['checks', 'comment'])
 
-class RegressionTest():
+class RegressionTest(object):
     
     def __init__(self, logs, processors=[], analyzers=[], checks=[], topic_videos=[]):
         self.logs = logs

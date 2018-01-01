@@ -1,0 +1,31 @@
+description: Localization
+constructor: easy_regression.RegressionTest
+parameters:
+    logs:
+#     - "yaf_ETHZ_2017-12-26-19-39-53/{1:3}"
+    - vehicle:tori/{3:5}
+    processors: 
+    - localization_pipeline_moregeneric_straight
+    # - localization_pipeline_baseline
+    analyzers:
+    - count_messages
+
+    checks:  []
+#     - desc: The number of messages read should remain the same.
+#       cond: |
+#         v:count_messages/20160223-amadoa-amadobot-RCDP2/num_messages == 5330
+#         v:count_messages/all/num_messages == 5330
+# 
+# 
+#         v:count_messages/all/num_messages == v:count_messages/all/num_messages?7bdc1413
+
+    topic_videos:
+#     - "/localization_pipeline/image_input"
+#     - "/localization_pipeline/segments rectified on image rectified"   
+#     - "/localization_pipeline/belief"
+#     - "/localization_pipeline/assumed"
+#     - "/localization_pipeline/reprojected"
+    - "/localization_pipeline/all"
+    
+    
+    

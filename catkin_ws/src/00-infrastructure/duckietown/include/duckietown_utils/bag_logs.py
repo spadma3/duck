@@ -6,8 +6,8 @@ import rosbag
 from .bag_info import get_image_topic
 from .bag_reading import BagReadProxy
 from .expand_variables import expand_environment
-from .image_conversions import numpy_from_ros_compressed
 from .logging_logger import logger
+from .image_conversions import rgb_from_ros
 
 
 __all__ = [
@@ -90,7 +90,7 @@ def d8n_read_all_images_from_bag(bag, topic0, max_images=None, use_relative_time
             if not add:
                 continue
             
-        rgb = numpy_from_ros_compressed(msg)
+        rgb = rgb_from_ros(msg)
 
         data.append({'timestamp': float_time, 'rgb': rgb})
 

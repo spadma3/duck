@@ -8,7 +8,14 @@ from .path_utils import expand_all
 
 class DuckietownConstants(object):
     DUCKIETOWN_ROOT_variable = 'DUCKIETOWN_ROOT'
+    DUCKIETOWN_TMP_variable = 'DUCKIETOWN_TMP'
     DUCKIEFLEET_ROOT_variable = 'DUCKIEFLEET_ROOT'
+    DUCKIETOWN_DATA_variable = 'DUCKIETOWN_DATA'
+    DUCKIETOWN_CONFIG_SEQUENCE_variable = 'DUCKIETOWN_CONFIG_SEQUENCE'
+
+    
+    # 
+    ROBOT_NAME_FOR_TESTS = 'robbie' 
     
     # If the environment variable is not set, use these: 
     duckiefleet_root_defaults = [
@@ -16,8 +23,6 @@ class DuckietownConstants(object):
         '~/duckiefleet-fall2017',
     ]
     
-    DUCKIETOWN_DATA_variable = 'DUCKIETOWN_DATA'
-    DUCKIETOWN_CONFIG_SEQUENCE_variable = 'DUCKIETOWN_CONFIG_SEQUENCE'
     
     # inside DUCKIEFLEET_ROOT
 #     scuderia_filename = 'scuderia.yaml'
