@@ -16,7 +16,7 @@ jobs:
             command: |
                 # apt install -y python-frozendict python-ruamel.yaml
 
-                pip install --user -r requirements.txt
+                pip install -r requirements.txt
 
                 echo "What version is comptests?"
                 ./misc/python_environment.py comptests
