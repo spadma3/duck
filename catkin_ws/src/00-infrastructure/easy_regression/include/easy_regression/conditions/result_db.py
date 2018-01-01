@@ -1,9 +1,7 @@
 from collections import namedtuple
 
-from contracts.utils import check_isinstance
+import duckietown_utils as dtu
 
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.system_cmd_imp import contract
 
 
 ResultDBEntry0 = namedtuple('ResultDBEntry0',
@@ -32,13 +30,13 @@ class AmbiguousQuery(Exception):
 
 class ResultDB():
     
-    @contract(current=ResultDBEntry, entries='seq($ResultDBEntry)')
+    @dtu.contract(current=ResultDBEntry, entries='seq($ResultDBEntry)')
     def __init__(self, current, entries):
         for e in entries:
-            check_isinstance(e, ResultDBEntry)
+            dtu.check_isinstance(e, ResultDBEntry)
         self.entries = entries
         self.current = current 
-        check_isinstance(current, ResultDBEntry)
+        dtu.check_isinstance(current, ResultDBEntry)
     
     def query_results(self, branch, date, commit):
         """ 
@@ -76,8 +74,8 @@ class ResultDB():
             msg += '\n   commit: %s' % commit
             msg += '\nThese are the matches:'    
             for i, p in enumerate(possible):
-                check_isinstance(p, ResultDBEntry)
-                msg += '\n' + indent(str(p), ' %2d of %d: ' % (i+1, n))
+                dtu.check_isinstance(p, ResultDBEntry)
+                msg += '\n' + dtu.indent(str(p), ' %2d of %d: ' % (i+1, n))
             raise AmbiguousQuery(msg)
         
         return possible[0]
@@ -85,10 +83,10 @@ class ResultDB():
     def __str__(self):
         n = len(self.entries)
         s = 'ResultsDB with %d entries' % n
-        s += '\n' + indent(str(self.current),'', '  current: ') 
+        s += '\n' + dtu.indent(str(self.current),'', '  current: ') 
         for i, p in enumerate(self.entries):
-            check_isinstance(p, ResultDBEntry)
-            s += '\n' + indent(str(p),'', ' %2d of %d: ' % (i+1, n))
+            dtu.check_isinstance(p, ResultDBEntry)
+            s += '\n' + dtu.indent(str(p),'', ' %2d of %d: ' % (i+1, n))
         return s
         
             

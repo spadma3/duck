@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
+__all__ = ['AnalyzerInterface']
+
 class AnalyzerInterface(object):
     
     __metaclass__ = ABCMeta

@@ -1,19 +1,18 @@
-import duckietown_utils as dtu
-from duckietown_utils.system_cmd_imp import system_cmd_result, CmdException
-from easy_regression.conditions.interface import RTCheck
 import shutil
-from duckietown_utils.disk_hierarchy import create_tmpdir
+
+import duckietown_utils as dtu
+from easy_regression.conditions.interface import RTCheck
 
 
 def run(which, expect):
     v = False
-    cwd = create_tmpdir('run-regression')
+    cwd = dtu.create_tmpdir('run-regression')
     try:
         cmd = ['rosrun', 'easy_regression', 'run', 
                '--expect', expect, 
                '--test', which,
                '-c', 'rmake']
-        system_cmd_result(cwd, cmd,
+        dtu.system_cmd_result(cwd, cmd,
               display_stdout=v,
               display_stderr=v,
               raise_on_error=True)
@@ -34,7 +33,7 @@ def run_abnormal3():
 def run_dontrun1():
     try:
         run('expect_dontrun1', RTCheck.OK)
-    except CmdException as e:
+    except dtu.CmdException as e:
         if 'NOT-existing' in e.res.stderr:
             return
         raise
@@ -47,6 +46,7 @@ def run_ok1():
 @dtu.unit_test
 def run_nodata1():
     run('expect_nodata1', RTCheck.NODATA)
+    
 @dtu.unit_test
 def run_nodata2():
     run('expect_nodata2', RTCheck.NODATA)
@@ -59,3 +59,5 @@ def run_fail1():
     
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()
+    
+    

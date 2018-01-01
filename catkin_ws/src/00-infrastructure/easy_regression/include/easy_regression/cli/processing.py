@@ -1,23 +1,21 @@
 import os
 import shutil
 
-from duckietown_utils import logger
-from duckietown_utils.disk_hierarchy import create_tmpdir
-from duckietown_utils.mkdirs import d8n_make_sure_dir_exists
-from easy_algo.algo_db import get_easy_algo_db
+import duckietown_utils as dtu
+
+from easy_algo import get_easy_algo_db
 import rosbag  # @UnresolvedImport
-from duckietown_utils.bag_reading import BagReadProxy
 
 
 def process_one(bag_filename, t0, t1, processors, log_out):
-    logger.info('job_one()')
-    logger.info('   input: %s' % bag_filename)
-    logger.info('   processors: %s' % processors)
-    logger.info('   out: %s' % log_out)
+    dtu.logger.info('job_one()')
+    dtu.logger.info('   input: %s' % bag_filename)
+    dtu.logger.info('   processors: %s' % processors)
+    dtu.logger.info('   out: %s' % log_out)
     
-    d8n_make_sure_dir_exists(log_out)
+    dtu.d8n_make_sure_dir_exists(log_out)
     
-    tmpdir = create_tmpdir()
+    tmpdir = dtu.create_tmpdir()
     tmpfiles = []
     
     def get_tmp_bag():
@@ -40,11 +38,11 @@ def process_one(bag_filename, t0, t1, processors, log_out):
             in_bag = rosbag.Bag(bag_filename)
 
             if i == 0:
-                in_bag = BagReadProxy(in_bag, t0, t1)
+                in_bag = dtu.BagReadProxy(in_bag, t0, t1)
             
             out_bag = rosbag.Bag(next_bag_filename, 'w')
             
-            logger.info('Processing:\n  in = %s\n out = %s' % 
+            dtu.logger.info('Processing:\n  in = %s\n out = %s' % 
                         (bag_filename, next_bag_filename))
             p.process_log(in_bag, out_bag)
             
@@ -53,22 +51,22 @@ def process_one(bag_filename, t0, t1, processors, log_out):
             
             bag_filename = next_bag_filename
                 
-        logger.info('Creating output file %s' % log_out)
+        dtu.logger.info('Creating output file %s' % log_out)
         if not processors:
             # just create symlink
-            logger.info('(Just creating symlink, because there '
+            dtu.logger.info('(Just creating symlink, because there '
                         'was no processing done.)')
             os.symlink(os.path.realpath(bag_filename), log_out)
         else:
             try:
                 shutil.copy(bag_filename, log_out)
             except:
-                logger.error('Could not create %s' % log_out)
-        logger.info('I created %s' % log_out)
+                dtu.logger.error('Could not create %s' % log_out)
+        dtu.logger.info('I created %s' % log_out)
             
 
     finally:
         for f in tmpfiles:
-            logger.info(' deleting %s' % f)
+            dtu.logger.info(' deleting %s' % f)
             os.unlink(f)
     return log_out

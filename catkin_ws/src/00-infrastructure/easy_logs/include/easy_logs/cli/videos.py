@@ -10,7 +10,9 @@ import rosbag
 
 from .easy_logs_summary_imp import format_logs
 
-__all__ = ['MakeVideos']
+__all__ = [
+    'MakeVideos',
+]
 
 
 class MakeVideos(D8AppWithLogs, QuickApp):
@@ -62,13 +64,14 @@ Use like this:
             n = log.log_name if use_names else str(i)
             out = os.path.join(od, n)
                 
-            jobs_videos(context, log, out)
+            jobs_videos(context, log, n, out)
             
-def jobs_videos(context, log, outd):
+def jobs_videos(context, log, name, outd):
     filename = log.filename
     bag = rosbag.Bag(filename)
     main_camera_topic = dtu.get_image_topic(bag)
-    topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag)]
+    min_messages = 3 # need at least 3 frames to make a video
+    topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag, min_messages=min_messages)]
     bag.close()
     
     for topic in topics:
@@ -76,10 +79,21 @@ def jobs_videos(context, log, outd):
         if d.startswith('_'):
             d = d[1:]
     
-        out = os.path.join(outd, d +'.mp4') 
-        context.comp(dtu.d8n_make_video_from_bag, filename, topic, out)
+        out = os.path.join(outd, name + '-' + d +'.mp4') 
+        j = context.comp(dtu.d8n_make_video_from_bag, filename, topic, out,
+                     job_id='%s-%s' % (name, topic))
         
+        # create link
         if topic == main_camera_topic:
-            fn = outd + '.jpg'
+            fn = outd + '.mp4'
+            
+            context.comp(link, j, out, fn)
 #             dtu.write_rgb_as_jpg(grid, fn)
 
+def link(_, src, dst):
+    print('symlink %s %s' %  (src, dst))
+    assert os.path.exists(src), dst
+
+    if os.path.exists(dst):
+        os.unlink(dst)  
+    os.symlink(src, dst)

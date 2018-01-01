@@ -11,6 +11,8 @@ from .contracts_ import contract
 __all__ = [
     'system_cmd_result',
     'indent_with_label',
+    'CmdException',
+    'CouldNotCallProgram',
 ]
 
 class Shared():

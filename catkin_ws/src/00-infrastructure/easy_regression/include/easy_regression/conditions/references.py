@@ -1,9 +1,9 @@
 from contracts.utils import check_isinstance
 import yaml
 
-from duckietown_utils.exception_utils import raise_wrapped, check_is_in
-from duckietown_utils.system_cmd_imp import contract
-from duckietown_utils.text_utils import remove_prefix, string_split
+
+import duckietown_utils as dtu
+
 from easy_regression.conditions.eval import Evaluable, EvaluationError
 from easy_regression.conditions.interface import RTParseError
 from easy_regression.conditions.result_db import ResultDBEntry
@@ -17,7 +17,7 @@ def parse_reference(s):
     prefix = 'v:'
     
     if s.startswith(prefix):
-        s = remove_prefix(s, prefix)
+        s = dtu.remove_prefix(s, prefix)
         
         T_DATE = '@'
         T_BRANCH = '~'
@@ -43,18 +43,18 @@ def parse_reference(s):
             if which is None:
                 break
             elif which == T_DATE:
-                s, date_spec = string_split(s, T_DATE)
+                s, date_spec = dtu.string_split(s, T_DATE)
                 if not date_spec:
                     msg = 'Invalid date spec %r.' % date_spec 
                     raise RTParseError(msg)
                 date = parse_date_spec(date_spec)
             elif which == T_BRANCH:
-                s, branch_spec = string_split(s, T_BRANCH)
+                s, branch_spec = dtu.string_split(s, T_BRANCH)
                 if not branch_spec:
                     msg = 'Invalid branch spec %r.' % branch_spec 
                     raise RTParseError(msg)
             elif which == T_COMMIT:
-                s, commit = string_split(s, T_COMMIT)
+                s, commit = dtu.string_split(s, T_COMMIT)
                 if not commit:
                     msg = 'Invalid commit %r.' % branch_spec 
                     raise RTParseError(msg)
@@ -91,11 +91,11 @@ def parse_date_spec(d):
         return parse(d)
     except ValueError as e:
         msg = 'Cannot parse date %s.' % d.__repr__()
-        raise_wrapped(RTParseError, e, msg, compact=True)
+        dtu.raise_wrapped(RTParseError, e, msg, compact=True)
 
 class StatisticReference(Evaluable):
     
-    @contract(statistic='seq(str)')
+    @dtu.contract(statistic='seq(str)')
     def __init__(self, analyzer, log, statistic, branch, date, commit):
         self.analyzer = analyzer
         self.log = log
@@ -115,21 +115,21 @@ class StatisticReference(Evaluable):
         check_isinstance(db_entry, ResultDBEntry)
 #         print('Results= %s' % db_entry.__repr__())
         results = db_entry.results
-        check_is_in('analyzer', self.analyzer, results, EvaluationError)
+        dtu.check_is_in('analyzer', self.analyzer, results, EvaluationError)
         logs = results[self.analyzer]
-        check_is_in('log', self.log, logs, EvaluationError)
+        dtu.check_is_in('log', self.log, logs, EvaluationError)
         forlog = logs[self.log]
         val = eval_name(forlog, self.statistic)
         return val
     
-@contract(name_tuple=tuple)
+@dtu.contract(name_tuple=tuple)
 def eval_name(x, name_tuple):
     if not name_tuple:
         return x
     else:
         first = name_tuple[0]
         rest = name_tuple[1:]
-        check_is_in('value', first, x, EvaluationError)
+        dtu.check_is_in('value', first, x, EvaluationError)
         xx = x[first]
         return eval_name(xx, rest)
     

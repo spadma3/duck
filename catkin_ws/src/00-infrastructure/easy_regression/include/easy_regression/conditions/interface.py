@@ -1,13 +1,12 @@
 from abc import abstractmethod, ABCMeta
 from collections import namedtuple
 
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.system_cmd_imp import contract
+import duckietown_utils as dtu
+
 from easy_regression.conditions.result_db import ResultDB
 
 
-class RTParseError(DTConfigException):
+class RTParseError(dtu.DTConfigException):
     """ Cannot parse condition """
 
 CheckResult0 = namedtuple('CheckResult0',
@@ -18,9 +17,9 @@ CheckResult0 = namedtuple('CheckResult0',
 class CheckResult(CheckResult0):
     def __str__(self):
         s = 'CheckResult:'
-        s += '\n' + indent(self.status, '   status: ')
-        s += '\n' + indent(self.summary, '  summary: ')
-        s += '\n' + indent(self.details, '', '  details: ')
+        s += '\n' + dtu.indent(self.status, '   status: ')
+        s += '\n' + dtu.indent(self.summary, '  summary: ')
+        s += '\n' + dtu.indent(self.details, '', '  details: ')
         return s
 
 class RTCheck():
@@ -35,7 +34,7 @@ class RTCheck():
     
     
     @abstractmethod
-    @contract(returns=CheckResult, result_db=ResultDB)
+    @dtu.contract(returns=CheckResult, result_db=ResultDB)
     def check(self, result_db):
         """ 
             Returns a CheckResult.

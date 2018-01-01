@@ -1,5 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
+__all__ = [
+    'ProcessorInterface',
+]
+
 class ProcessorInterface(object):
     
     __metaclass__ = ABCMeta

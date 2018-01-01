@@ -36,9 +36,10 @@ sudo apt remove -y \
 # These don't have an APT package
 
 pip install --upgrade --user \
+    compmake==3.5.6 \
 	PyContracts==1.7.15 \
-	DecentLogs==1.1.2\
-	QuickApp==1.3.8 \
+	DecentLogs==1.1.2 \
+	QuickApp==1.3.10 \
 	conftools==1.9.1 \
 	comptests==1.4.14 \
 	quickapp==1.3.10 \

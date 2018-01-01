@@ -3,10 +3,9 @@ from contracts.utils import check_isinstance
 from easy_regression.conditions.interface import RTParseError
 
 from .values import parse_float
-from duckietown_utils.text_utils import remove_prefix_suffix, remove_suffix
-from easy_regression.conditions.eval import EvaluationError,\
-    ResultWithDescription
-from duckietown_utils.exception_utils import raise_wrapped
+import duckietown_utils as dtu
+
+from easy_regression.conditions.eval import EvaluationError, ResultWithDescription
 
 def parse_binary(s):
     """
@@ -32,14 +31,14 @@ def parse_binary(s):
     
     if s in Cmp.known:
         return Cmp(s)
-    
+#     
     try:
-        inside = remove_prefix_suffix(s, '==[', ']')
+        inside = dtu.remove_prefix_suffix(s, '==[', ']')
     except ValueError:
         pass
     else:        
         if inside.endswith('%'):
-            val = remove_suffix(inside, '%')
+            val = dtu.remove_suffix(inside, '%')
             percentage = parse_float(val)
             if percentage < 0:
                 msg = 'Invalid percentage %s' % percentage
@@ -97,7 +96,7 @@ class Cmp():
             return ResultWithDescription(val, desc)
         except EvaluationError as e:
             msg = 'While evaluating %s(%s, %s)' % (self.f.__name__, a, b)
-            raise_wrapped(EvaluationError, e, msg, compact=True)
+            dtu.raise_wrapped(EvaluationError, e, msg, compact=True)
     
     def __repr__(self):
         return self.which

@@ -32,11 +32,21 @@ def d8n_make_video_from_bag(bag_filename, topic, out):
     try:
         import procgraph_ros  # @UnusedImport
         from procgraph import pg
+        import rosbag
     except ImportError:
         raise 
     
     # pg -m procgraph_ros bag2mp4 --bag $bag --topic $topic --out $out
       
+    bag = rosbag.Bag(bag_filename)
+    count = bag.get_message_count(topic_filters=topic)
+    bag.close()
+    print('Creating video for topic %r, which has %d messages.' % (topic, count))
+    min_messages = 3
+    if count < min_messages:
+        msg = 'Topic %r has only %d messages, too few to make a video.\nFile: %s' % (topic, count, bag_filename)
+        raise ValueError(msg)
+
     model = 'bag2mp4_fixfps'
 #     model = 'bag2mp4'
     tmpdir = create_tmpdir()

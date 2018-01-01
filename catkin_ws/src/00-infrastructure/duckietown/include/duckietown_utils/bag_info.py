@@ -1,7 +1,6 @@
 import os
 import re
 import subprocess
-
 import rosbag
 
 from .caching import get_cached
@@ -64,7 +63,7 @@ def d8n_get_all_images_topic(bag_filename):
     bag = rosbag.Bag(bag_filename)
     return d8n_get_all_images_topic_bag(bag)
 
-def d8n_get_all_images_topic_bag(bag):
+def d8n_get_all_images_topic_bag(bag, min_messages=0):
     """ 
         Returns the (name, type) of all topics that look like images
         and that have nonzero message count. 
@@ -90,8 +89,8 @@ def d8n_get_all_images_topic_bag(bag):
                 if other in topics:
                     continue
 
-            if message_count == 0:
-                print('ignoring topic %r because message_count = 0' % t)
+            if  message_count < min_messages:
+                # print('ignoring topic %r because message_count = 0' % t)
                 continue
 
             found.append((t,msg_type))

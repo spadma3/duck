@@ -5,11 +5,6 @@ import os
 from quickapp import QuickApp
 import duckietown_utils as dtu
 
-from duckietown_utils import DTUserError
-from duckietown_utils import contract
-from duckietown_utils import create_tmpdir
-from duckietown_utils import d8n_make_video_from_bag
-from duckietown_utils import logger
 from duckietown_utils.cli import D8AppWithLogs
 from easy_algo.algo_db import get_easy_algo_db
 from easy_logs.cli.require import get_log_if_not_exists
@@ -20,6 +15,8 @@ from easy_regression.cli.processing import process_one
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.regression_test import RegressionTest
 
+
+logger = dtu.logger
 
 ALL_LOGS = 'all'
 
@@ -41,7 +38,7 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
         
         if not expect in RTCheck.CHECK_RESULTS:
             msg = 'Invalid expect status %s; must be one of %s.' % (expect, RTCheck.CHECK_RESULTS)
-            raise DTUserError(msg)
+            raise dtu.DTUserError(msg)
         
         query = self.options.tests
         regression_tests = easy_algo_db.query('regression_test', query, raise_if_no_matches=True)
@@ -55,7 +52,8 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
             outd = os.path.join(self.options.output, 'regression_tests', rt_name)
             jobs_rt(c, rt_name, rt, easy_logs_db, outd, expect) 
 
-@contract(rt=RegressionTest)
+
+@dtu.contract(rt=RegressionTest)
 def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     
     logs = rt.get_logs(easy_logs_db)
@@ -73,7 +71,7 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     for a in analyzers:
         results_all[a] = OrderedDict()
     
-    tmpdir = create_tmpdir()
+    tmpdir = dtu.create_tmpdir()
     for log_name, log in logs.items():
         c = context.child(log_name)
         # process one     
@@ -88,7 +86,7 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
         
         for topic in rt.get_topic_videos():
             mp4 = os.path.join(out, 'videos', log_name, topic + '.mp4')
-            c.comp(d8n_make_video_from_bag, log_out_, topic, mp4)
+            c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4)
 
     for a in analyzers:
         results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a)

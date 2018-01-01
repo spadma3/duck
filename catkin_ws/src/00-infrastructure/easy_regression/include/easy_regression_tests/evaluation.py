@@ -1,6 +1,6 @@
 import duckietown_utils as dtu
 
-from duckietown_utils.instantiate_utils import indent
+
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.conditions.references import parse_date_spec
 from easy_regression.conditions.result_db import ResultDB, ResultDBEntry
@@ -44,9 +44,9 @@ def get_test_db():
 
 def raise_error(rdb, t, res, s):
     msg = s 
-    msg += '\n' + indent(str(res), 'obtained: ')
-    msg += '\n' + indent(str(t), '', 'test: ')
-    msg += '\n' + indent(str(rdb),'','rdb: ')
+    msg += '\n' + dtu.indent(str(res), 'obtained: ')
+    msg += '\n' + dtu.indent(str(t), '', 'test: ')
+    msg += '\n' + dtu.indent(str(rdb),'','rdb: ')
     raise Exception(msg)
 
 def run_checks(condition_result):

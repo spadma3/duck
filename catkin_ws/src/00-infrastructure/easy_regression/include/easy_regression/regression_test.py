@@ -1,12 +1,16 @@
 from collections import OrderedDict, namedtuple
-from contracts.utils import check_isinstance
 import copy
 
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.system_cmd_imp import contract
-from duckietown_utils.yaml_pretty import yaml_dump_pretty
+from contracts.utils import check_isinstance
+
+import duckietown_utils as dtu
 from easy_regression.conditions.interface import RTCheck, RTParseError
+
+
+__all__ = [
+    'RegressionTest',
+    'ChecksWithComment',
+]
 
 
 ChecksWithComment = namedtuple('ChecksWithComment', ['checks', 'comment'])
@@ -25,14 +29,14 @@ class RegressionTest():
             self.cwcs = parse_list_of_checks(checks)
         except RTParseError as e:
             msg = 'Cannot parse list of checks.'
-            msg += '\n' + indent(yaml_dump_pretty(checks), '', 'parsing: ')
-            raise_wrapped(RTParseError, e, msg, compact=True)
+            msg += '\n' + dtu.indent(dtu.yaml_dump_pretty(checks), '', 'parsing: ')
+            dtu.raise_wrapped(RTParseError, e, msg, compact=True)
 
-    @contract(returns='list(str)')
+    @dtu.contract(returns='list(str)')
     def get_processors(self):
         return self.processors
 
-    @contract(returns='list(str)')
+    @dtu.contract(returns='list(str)')
     def get_analyzers(self):
         return self.analyzers
     
