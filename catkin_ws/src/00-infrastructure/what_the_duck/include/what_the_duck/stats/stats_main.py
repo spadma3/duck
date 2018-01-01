@@ -7,13 +7,19 @@ import sys
 from duckietown_utils.safe_pickling import safe_pickle_dump
 
 def get_valid_data(collection):
-    
+    logger.info('downloading database')
+    res = []
+    for i, x in  enumerate(collection.find()):
+        if i != 100 == 0:
+            logger.debug('Downloaded %s' % i)
+        res.append(x)
     res = list(collection.find())
+    logger.info('downloaded %s' % len(res))
     out = []
     for r in res:
         if 'what_the_duck_version' in r:
             v = r['what_the_duck_version']
-            if v in ['1.1', '1.2', '1.3']:
+            if v in ['1.1', '1.2', '1.3', '1.4']:
                 del r['_id']
                 
                 if v in ['1.1']:
@@ -35,6 +41,7 @@ def what_the_duck_stats():
         
     collection = get_upload_collection()
     
+
     res = list(get_valid_data(collection))
 
 

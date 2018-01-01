@@ -31,7 +31,6 @@ def get_connection_string():
     s = ("mongodb://<USERNAME>:<PASSWORD>@dt0-shard-00-00-npkyt.mongodb.net:27017,"
         "dt0-shard-00-01-npkyt.mongodb.net:27017,dt0-shard-00-02-npkyt.mongodb.net"
         ":27017/test?ssl=true&replicaSet=dt0-shard-0&authSource=admin")
-    
     s = s.replace("<PASSWORD>", password)
     s = s.replace("<USERNAME>", username)
     return s
@@ -76,8 +75,9 @@ def get_upload_collection():
     s = get_connection_string()
     
     logger.info('Opening connection to MongoDB...')
+    logger.debug('Connection string: %s' % s)
     client = pymongo.MongoClient(s)
-    
+    logger.info('...connected.')
     db = client[mongo_db]
     collection = db[mongo_collection]
     return collection
