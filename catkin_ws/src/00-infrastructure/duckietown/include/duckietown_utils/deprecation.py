@@ -7,7 +7,18 @@ import warnings
 __all__ = ['deprecated']
 
 string_types = (type(b''), type(u''))
-
+# 
+# def old_deprecated_name_for(replacement):
+#     """
+#         old_name = old_deprecated_name_for(new_name)
+#     """
+#     def replacement
+#     @deprecated("use %s instead" % f.__name__)
+#     def ff(*args, **kwargs):
+#         return f(*args, **kwargs)
+#     ff
+#     return ff
+        
 
 def deprecated(reason):
     """

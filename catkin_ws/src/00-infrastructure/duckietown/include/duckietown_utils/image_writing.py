@@ -1,4 +1,3 @@
-import numpy as np
 from collections import OrderedDict
 import os
 
@@ -10,15 +9,14 @@ from .image_rescaling import d8_image_resize_no_interpolation
 from .image_timestamps import add_header_to_image
 from .jpg import jpg_from_bgr, write_bgr_to_file_as_jpg
 from .deprecation import deprecated
+from .image_operations import bgr_from_rgb
 
-
-def write_bgr_as_jpg(image, filename):
-    
-    if not isinstance(image, np.ndarray):
-        # XXX
-        pass
-    jpg = jpg_from_bgr(image)
+def write_bgr_as_jpg(bgr, filename):
+    jpg = jpg_from_bgr(bgr)
     write_data_to_file(jpg, filename)
+    
+def write_rgb_as_jpg(rgb, filename):
+    write_bgr_as_jpg(bgr_from_rgb(rgb), filename)
 
 @deprecated('use write_bgr_as_jpg')
 def write_image_as_jpg(image, filename):

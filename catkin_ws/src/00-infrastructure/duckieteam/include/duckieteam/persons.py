@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABCMeta
-from duckietown_utils.contracts_ import contract
+import duckietown_utils as dtu 
 
 class Person(object):
     __metaclass__ = ABCMeta
@@ -9,12 +9,12 @@ class Person(object):
         pass
     
     @abstractmethod
-    @contract(returns='str')
+    @dtu.contract(returns='str')
     def get_name(self):
         pass
     
     @abstractmethod
-    @contract(returns='None|str')
+    @dtu.contract(returns='None|str')
     def get_position(self):
         pass 
 

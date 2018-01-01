@@ -3,6 +3,7 @@ from collections import OrderedDict
 import os
 
 from quickapp import QuickApp
+import duckietown_utils as dtu
 
 from duckietown_utils import DTUserError
 from duckietown_utils import contract

@@ -1,9 +1,10 @@
-from .logging_logger import logger
 import time
 
 import numpy as np
 
 from .exceptions import DTBadData
+from .logging_logger import logger
+
 
 __all__ = [
     'd8n_bag_read_with_progress',
@@ -42,6 +43,7 @@ class BagReadProxy(object):
     
     def get_start_time(self):
         return self.read_from_absolute 
+    
     def get_end_time(self):
         return self.read_to_absolute 
             
@@ -49,7 +51,7 @@ class BagReadProxy(object):
         """ Returns approximate message count, compensating with ratio. """
         n = self.bag.get_message_count(topic_filters)
         n1 = int(np.ceil(self.fraction * n))
-        print('n = %s  fraction = %s  n1 = %s' % (n, self.fraction, n1) )
+#         print('n = %s  fraction = %s  n1 = %s' % (n, self.fraction, n1) )
         return n1 
     
     def read_messages(self, *args, **kwargs):

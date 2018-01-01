@@ -17,7 +17,6 @@ def get_cached(cache_name, f, quiet='not-given'):
             ${DUCKIETOWN_ROOT}/caches/![name].cache.pickle
     """
 
-
     cache = '${DUCKIETOWN_ROOT}/caches/%s.cache.pickle' % cache_name
     cache = expand_all(cache)
 

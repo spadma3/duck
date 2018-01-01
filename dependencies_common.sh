@@ -41,7 +41,9 @@ pip install --upgrade --user \
 	QuickApp==1.3.8 \
 	conftools==1.9.1 \
 	comptests==1.4.14 \
-	procgraph==1.10.6 \
+	quickapp==1.3.10 \
+	procgraph==1.10.9 \
+	ros_node_utils==1.1.1\
 	pymongo==3.5.1 \
 	ruamel.yaml==0.15.34\
 	PyGeometry==1.3

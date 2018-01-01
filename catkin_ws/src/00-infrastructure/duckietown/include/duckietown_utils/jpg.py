@@ -11,7 +11,7 @@ import cv2
 from .logging_logger import logger
 
 from .file_utils import write_data_to_file
-from .image_composition import make_images_grid  # @UnusedImport
+from .image_composition import make_images_grid  
 from .deprecation import deprecated
 from .contracts_ import contract
 

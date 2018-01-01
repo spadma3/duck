@@ -4,6 +4,10 @@ __all__ = [
     'ColorConstants',
 ]
 
+def rgb_color_from_bgr_color(c):
+    B, G, R = 0, 1, 2
+    return c[R], c[G], c[B]
+ 
 class ColorConstants(object):
     STR_WHITE = 'white'
     STR_YELLOW = 'yellow'
@@ -21,7 +25,18 @@ class ColorConstants(object):
     BGR_GRAY = (128,128,128)
     BGR_BLUE = (255,0,0)
     BGR_YELLOW = (0, 255,255)
+    BGR_DUCKIETOWN_YELLOW = (0, 204, 255)
 
+
+    RGB_RED = rgb_color_from_bgr_color(BGR_RED)
+    RGB_GREEN = rgb_color_from_bgr_color(BGR_GREEN)
+    RGB_WHITE = rgb_color_from_bgr_color(BGR_WHITE)
+    RGB_BLACK = rgb_color_from_bgr_color(BGR_BLACK)
+    RGB_GRAY = rgb_color_from_bgr_color(BGR_GRAY)
+    RGB_BLUE = rgb_color_from_bgr_color(BGR_BLUE)
+    RGB_YELLOW = rgb_color_from_bgr_color(BGR_YELLOW)
+    RGB_DUCKIETOWN_YELLOW = rgb_color_from_bgr_color(BGR_DUCKIETOWN_YELLOW)
+    
 def bgr_color_from_string(s):
     d = {
         ColorConstants.STR_YELLOW: ColorConstants.BGR_YELLOW,
