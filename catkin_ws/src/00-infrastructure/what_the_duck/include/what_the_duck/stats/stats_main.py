@@ -13,7 +13,7 @@ def get_valid_data(collection):
         if i != 100 == 0:
             logger.debug('Downloaded %s' % i)
         res.append(x)
-    res = list(collection.find())
+#     res = list(collection.find())
     logger.info('downloaded %s' % len(res))
     out = []
     for r in res:
