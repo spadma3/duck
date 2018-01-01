@@ -18,7 +18,7 @@ test:
 	@echo
 
 test-circle: \
-	test-comptests \
+	test-comptests-circle \
 	test-download-logs \
 	test-misc-utils
 
@@ -64,6 +64,9 @@ test-comptests-again:
 
 test-comptests:  test-download-logs
 	comptests -o $(comptests_out) --nonose --contracts -c "rparmake" $(comptests_packages)
+
+test-comptests-circle:  test-download-logs
+	comptests -o $(comptests_out) --nonose --contracts -c "rmake" $(comptests_packages)
 
 test-comptests-slow:  test-download-logs
 	comptests -o $(comptests_out) --nonose --contracts -c "rmake" $(comptests_packages)
