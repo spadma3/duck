@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from duckietown_utils.exceptions import wrap_script_entry_point
+import duckietown_utils as dtu
 from easy_node.user_config.summary import user_config_summary
 from duckietown_utils import col_logging  # @UnusedImport
 
@@ -9,4 +9,4 @@ def print_summary():
         
     
 if __name__ == '__main__':
-    wrap_script_entry_point(print_summary)
+    dtu.wrap_script_entry_point(print_summary)

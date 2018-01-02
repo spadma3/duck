@@ -3,7 +3,8 @@ from contextlib import contextmanager
 import gzip
 import os
 import random
-from duckietown_utils.exception_utils import check_isinstance
+
+from .exception_utils import check_isinstance
 
 
 __all__ = [

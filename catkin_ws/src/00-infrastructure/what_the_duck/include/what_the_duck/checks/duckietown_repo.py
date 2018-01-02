@@ -1,5 +1,6 @@
 from what_the_duck.check import Check, CheckFailed
 
+__all__ = ['CheckImportMessages']
 
 class CheckImportMessages(Check):
     def __init__(self):

@@ -38,6 +38,7 @@ from duckieteam.cli.create_machines import get_scuderia_contents
 #             l = 'The file %s is empty.'
 #             raise CheckFailed(msg, l)
 
+__all__ = ['ThisRobotInScuderiaFile']
 
 class ThisRobotInScuderiaFile(Check):
 

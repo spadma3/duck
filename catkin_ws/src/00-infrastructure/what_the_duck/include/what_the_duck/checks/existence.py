@@ -1,8 +1,14 @@
 import os
 
-from duckietown_utils import expand_all
+import duckietown_utils as dtu
+
 from what_the_duck.check import Check, CheckFailed
 
+__all__ = [
+    'FileExists',
+    'DeviceExists',
+    'DirExists',
+]
 
 class FileExists(Check):
     
@@ -10,7 +16,7 @@ class FileExists(Check):
         self.filename = filename
         
     def check(self):
-        fn = expand_all(self.filename)
+        fn = dtu.expand_all(self.filename)
         
         short = os.path.basename(self.filename)
         if not os.path.exists(fn):
@@ -36,7 +42,7 @@ class DeviceExists(Check):
         self.filename = filename
         
     def check(self):
-        fn = expand_all(self.filename)
+        fn = dtu.expand_all(self.filename)
         
         if not os.path.exists(fn):
             msg = 'Path does not exist: %s' % fn
@@ -54,7 +60,7 @@ class DirExists(Check):
         self.filename = filename
         
     def check(self):
-        fn = expand_all(self.filename)
+        fn = dtu.expand_all(self.filename)
         
         if not os.path.exists(fn):
             msg = 'Dir does not exist: %s' % fn

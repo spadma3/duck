@@ -1,7 +1,11 @@
 from what_the_duck.check import Check, CheckFailed
 import socket
-from duckietown_utils.instantiate_utils import indent
+import duckietown_utils as dtu
 
+__all__ = [
+    'CheckHostnameConfigured',
+    'CheckGoodHostsFile',
+]
 
 class CheckHostnameConfigured(Check):
     
@@ -17,7 +21,7 @@ class CheckHostnameConfigured(Check):
         contents = open(fn).read().strip()
         if contents != hostname:
             msg = 'The hostname is %r but it does not match %s.' % (hostname, fn)
-            l = 'Entire contents of %s:\n' % fn + indent(contents, '  > ')
+            l = 'Entire contents of %s:\n' % fn + dtu.indent(contents, '  > ')
             raise CheckFailed(msg, l)
         
         return contents
@@ -29,7 +33,7 @@ class CheckGoodHostsFile(Check):
         fn = '/etc/hosts'
         contents = open(fn).read()
         
-        l = 'Entire contents of %s:\n' % fn + indent(contents, '  > ')
+        l = 'Entire contents of %s:\n' % fn + dtu.indent(contents, '  > ')
         
         if '10.' in contents or '192.' in contents:
             msg = 'The %s file contains hard-wired IPs.' % fn

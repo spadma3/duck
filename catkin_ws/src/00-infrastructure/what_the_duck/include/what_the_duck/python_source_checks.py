@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from duckietown_utils import read_package_xml_info
-from duckietown_utils import DuckietownConstants
-from duckietown_utils import indent
-from duckietown_utils import locate_files
+import duckietown_utils as dtu
 
 from .check import CheckError
 from .check import CheckFailed, Check
@@ -21,7 +18,7 @@ class PythonPackageCheck(Check):
 class README(PythonPackageCheck):
     "README exists"
     def check(self):
-        if self.package_name in DuckietownConstants.good_readme_exceptions:
+        if self.package_name in dtu.DuckietownConstants.good_readme_exceptions:
             pass #
         else:
             check_good_readme(self.dirname, self.package_name)
@@ -29,7 +26,7 @@ class README(PythonPackageCheck):
 
 class PythonPackageCheckPythonFiles(PythonPackageCheck):
     def get_all_python_files(self):
-        python_files = locate_files(self.dirname, '*.py')
+        python_files = dtu.locate_files(self.dirname, '*.py')
         return python_files
 
     def check(self):
@@ -75,13 +72,13 @@ class NoTabs(PythonPackageCheckPythonFiles):
     resolution = SeeDocs('no-tabs')
 
     def check_python_file(self, filename):
-        if DuckietownConstants.enforce_no_tabs:
+        if dtu.DuckietownConstants.enforce_no_tabs:
             check_no_tabs(filename)
 
 class Naming(PythonPackageCheckPythonFiles):
     """ Proper naming of Python files. """
     def check_python_file(self, filename):
-        if DuckietownConstants.enforce_no_tabs:
+        if dtu.DuckietownConstants.enforce_no_tabs:
             check_good_name(filename)
 
 class Executable(PythonPackageCheckPythonFiles):
@@ -194,7 +191,7 @@ class PackageXMLCheck(PythonPackageCheck):
             msg = 'Invalid package.xml'
             raise CheckFailed(msg)
 
-        info = read_package_xml_info(filename)
+        info = dtu.read_package_xml_info(filename)
 
         try:
             self.check_xml(root, info)
@@ -392,7 +389,7 @@ def check_good_readme(dirname, package_name):
             raise ValueError(msg)
     except ValueError as e:
         msg = 'README problem: ' + str(e)
-        l = 'First 5 lines are:\n' + indent("\n".join(lines0[:5]), '> ')
+        l = 'First 5 lines are:\n' + dtu.indent("\n".join(lines0[:5]), '> ')
         raise CheckFailed(msg, l)
 
 def check_no_tabs(filename):

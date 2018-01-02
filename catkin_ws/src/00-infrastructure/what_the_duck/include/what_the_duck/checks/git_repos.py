@@ -2,15 +2,23 @@ from compmake.utils import duration_compact
 import os
 import time
 
-from duckietown_utils.path_utils import expand_all
+import duckietown_utils as dtu
+
 from what_the_duck.check import CheckError, Check, CheckFailed
 from .command_output import fail_if_stdout_contains
 
+__all__ = [
+#     'assert_is_git_repository',
+#     'get_repo_age',
+    'IsGitRepository',
+    'RecentlyPulled',
+    'GitCorrectRemote',
+]
 
 def assert_is_git_repository(dirname, ExceptionName):
     """ Returns True if the directory exists and is a git repository. """
     assert ExceptionName in [CheckError, CheckFailed]
-    d = expand_all(dirname)
+    d = dtu.expand_all(dirname)
     if not os.path.exists(d):
         msg = 'The repo does not exist'
         l = 'The repo does not exist in directory:\n  %s' % d
@@ -46,7 +54,7 @@ class RecentlyPulled(Check):
         self.max_age_hours = max_age_hours
         
     def check(self):
-        d = expand_all(self.dirname)
+        d = dtu.expand_all(self.dirname)
         assert_is_git_repository(d, CheckError) # error = abort
         age = get_repo_age(d)
         max_age = self.max_age_hours * 60 * 60
@@ -62,7 +70,7 @@ class GitCorrectRemote(Check):
         self.dirname = dirname
 
     def check(self):
-        d = expand_all(self.dirname)
+        d = dtu.expand_all(self.dirname)
         if not os.path.exists(d):
             msg = 'The repo does not exist'
             l = 'The repo does not exist in directory:\n  %s' % d

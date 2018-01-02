@@ -12,6 +12,7 @@ __all__ = [
     'system_cmd_result',
     'indent_with_label',
     'CmdException',
+    'CmdResult',
     'CouldNotCallProgram',
 ]
 

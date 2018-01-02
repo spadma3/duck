@@ -1,6 +1,10 @@
-from duckietown_utils.system_cmd_imp import system_cmd_result
+import duckietown_utils as dtu
 from what_the_duck.check import Check, CheckFailed
 
+__all__ = [
+    'CheckPackageNotInstalled',
+    'CheckPackageInstalled',
+]
 
 def is_package_installed(package_name):
     if '\n' in package_name or ' ' in package_name:
@@ -8,7 +12,7 @@ def is_package_installed(package_name):
 
     cmd = ['dpkg-query', '--show', "--showformat='${db:Status-Status}\n'", package_name]
 
-    res = system_cmd_result('.', cmd,
+    res = dtu.system_cmd_result('.', cmd,
                   display_stdout=False,
                   display_stderr=False,
                   raise_on_error=False,

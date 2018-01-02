@@ -1,13 +1,8 @@
-import cv2
-
 import numpy as np
-import rospy
-from sensor_msgs.msg import CompressedImage
-
 from .contracts_ import contract
 
 
-class ImageConversions():
+class ImageConversions(object):
     # We only instantiate the bridge once
     bridge = None
     

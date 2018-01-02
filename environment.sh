@@ -1,7 +1,6 @@
 #!/bin/bash
 # New policy: DUCKIETOWN_ROOT is implicit in the choice of running this script
 
-#[ -z "$DUCKIETOWN_ROOT" ] && { echo "Need to set DUCKIETOWN_ROOT - configuration is invalid (!)";  }
 [ -z "$HOSTNAME"        ] && { echo "Need to set HOSTNAME.";        }
 
 # Do not compile Lisp messages
@@ -33,5 +32,8 @@ if [ 2015 -ge $(date +%Y) ];
 then
     >&2 echo "Error! Time travel detected. System time is: $(date)"
 fi
+
+# add the shortcuts to the path
+export PATH=$PATH:$DUCKIETOWN_ROOT/shortcuts
 
 exec "$@" #Passes arguments. Need this for ROS remote launching to work.

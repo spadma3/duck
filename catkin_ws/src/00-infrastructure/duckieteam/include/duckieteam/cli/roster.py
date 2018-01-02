@@ -2,12 +2,11 @@
 import base64
 import os
 
-from duckietown_utils import (DTUserError, DTConfigException, format_table_plus,
-                              get_duckiefleet_root, indent, locate_files, memoize_simple, system_cmd_result,
-                              write_data_to_file)
+import duckietown_utils as dtu
+
 from duckietown_utils.cli import D8App, d8app_run
 from easy_algo import get_easy_algo_db
-from duckietown_utils.path_utils import expand_all
+
 
 
 class CreateRoster(D8App):
@@ -25,7 +24,7 @@ class CreateRoster(D8App):
         extra = self.options.get_extra()
         if len(extra) > 1:
             msg = 'Only one extra param accepted.'
-            raise DTUserError(msg)
+            raise dtu.DTUserError(msg)
         
         if len(extra) == 1:
             query = extra[0]
@@ -35,10 +34,10 @@ class CreateRoster(D8App):
         persons = db.query_and_instance('person', query)
         
         if self.options.roster:
-            out_file = expand_all(self.options.roster)
+            out_file = dtu.expand_all(self.options.roster)
             outd = os.path.dirname(out_file)
             roster = create_roster(persons, outd)
-            write_data_to_file(roster, out_file)
+            dtu.write_data_to_file(roster, out_file)
         else:
             # instance ll
             tags = set()
@@ -61,7 +60,7 @@ def table_people(people):
         table.append(row)
     s = ''
 #     remove_table_field(table, 'filename')
-    s += indent(format_table_plus(table, colspacing=4), '| ')
+    s += dtu.indent(dtu.format_table_plus(table, colspacing=4), '| ')
     return s
 
 def create_roster(people, outd):
@@ -73,12 +72,12 @@ def create_roster(people, outd):
         jpg = get_image_for_person(k, 128)
         basename = k + '.small.jpg'
         jpg_file = os.path.join(outd, 'roster-images', basename)
-        write_data_to_file(jpg, jpg_file)
+        dtu.write_data_to_file(jpg, jpg_file)
         name = person.get_name()
         s += '<div id="%s-roster" class="roster-person">' % k 
         s += '\n <span class="name">%s</span>' % name 
         s += '\n <img src="%s"/>' % basename 
-        s += '\n' + indent(roster_css, '  ')
+        s += '\n' + dtu.indent(roster_css, '  ')
         s += '\n</div>' + S + S
         
     s += S + '</div>'
@@ -94,20 +93,20 @@ def get_image_for_person(pid, size):
     tmp= 'tmp.jpg'
     cwd = '.'
     cmd = ['convert', basename2filename[b], '-resize', str(size), tmp]
-    system_cmd_result(cwd, cmd,
+    dtu.system_cmd_result(cwd, cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True) 
     jpg = open(tmp).read()
     return jpg
     
-@memoize_simple
+@dtu.memoize_simple
 def get_images():
-    found = locate_files(get_duckiefleet_root(), '*.jpg')
+    found = dtu.locate_files(dtu.get_duckiefleet_root(), '*.jpg')
     basename2filename = dict((os.path.basename(_), _) for _ in found)
     if not nopic in basename2filename:
         msg = 'I expect a file %r to represent missing pictures.' % nopic
-        raise DTConfigException(msg)
+        raise dtu.DTConfigException(msg)
     return basename2filename
     
 def inline_jpg(data):

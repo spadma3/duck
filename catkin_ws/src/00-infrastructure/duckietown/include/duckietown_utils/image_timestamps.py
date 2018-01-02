@@ -4,7 +4,7 @@ import numpy as np
 
 from .image_composition import make_images_grid
 from .color_constants import ColorConstants
-from duckietown_utils.deprecation import deprecated
+from .deprecation import deprecated
 
 
 __all__ = [

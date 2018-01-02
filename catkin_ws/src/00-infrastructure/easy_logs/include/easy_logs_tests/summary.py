@@ -1,13 +1,12 @@
 import duckietown_utils as dtu
 from easy_logs.cli.easy_logs_summary_imp import easy_logs_summary
-from duckietown_utils.exceptions import DTNoMatches
 from easy_logs.logs_db import get_easy_logs_db_cloud
 
 @dtu.unit_test
 def call_summary():
     try:
         print(easy_logs_summary())
-    except DTNoMatches:
+    except dtu.DTNoMatches:
         pass
 
 @dtu.unit_test

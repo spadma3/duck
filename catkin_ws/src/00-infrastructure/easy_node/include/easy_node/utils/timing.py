@@ -1,6 +1,5 @@
 from collections import defaultdict
 from contextlib import contextmanager
-import rospy
 import time
 import duckietown_utils as dtu
 
@@ -196,3 +195,16 @@ def get_percentage(i, n):
         v = 100 * (1.0 * i / n)
         return '%.1f %%' % v
         
+        
+
+
+class FakeContext(object):
+    def __init__(self):
+        pass  
+
+    @contextmanager
+    def phase(self, name):  # @UnusedVariable
+            yield
+
+    def get_stats(self):
+        pass 

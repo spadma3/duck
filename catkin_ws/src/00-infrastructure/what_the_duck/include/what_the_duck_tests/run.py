@@ -1,5 +1,3 @@
-from duckietown_utils.system_cmd_imp import system_cmd_result
-
 from what_the_duck.check import Check, CheckFailed, CheckError
 from what_the_duck.entry import Diagnosis
 from what_the_duck.list_of_checks import Manager
@@ -13,7 +11,7 @@ import duckietown_utils as dtu
 def test_cli2():
     cwd = '.'
     cmd = ['rosrun', 'what_the_duck', 'what-the-duck']
-    res = system_cmd_result(cwd, cmd,
+    res = dtu.system_cmd_result(cwd, cmd,
                       display_stdout=True,
                       display_stderr=True,
                       raise_on_error=False)

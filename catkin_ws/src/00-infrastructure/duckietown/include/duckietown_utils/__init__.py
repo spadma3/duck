@@ -20,6 +20,7 @@ except:
 
 
 from .constants import * 
+from .paths import *
 from .logging_logger import *
 from .unit_tests import *
 
@@ -94,4 +95,7 @@ if False:
                 __all__.append(c)
                 
 
+# Use the PyGeometry library as dtu.geo
+
+import geometry as geo
 

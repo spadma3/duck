@@ -4,8 +4,7 @@ import getpass
 import shelve
 import socket
 
-from duckietown_utils import is_internet_connected, logger, raise_wrapped
-from duckietown_utils import on_duckiebot, on_laptop, on_circle
+import duckietown_utils as dtu
 from what_the_duck import what_the_duck_version
 
 from .constant import Result
@@ -22,7 +21,7 @@ except ImportError as e:
     msg = 'pymongo not installed.'
     msg += '\n\nTry the following:'
     msg += '\n\n     pip install --user pymongo'
-    raise_wrapped(Exception, e, msg)
+    dtu.raise_wrapped(Exception, e, msg)
 
 def get_connection_string():    
     username = 'upload'
@@ -40,11 +39,11 @@ def get_local_keys():
     hostname = socket.gethostname()
     d = {}
 
-    if on_duckiebot():
+    if dtu.on_duckiebot():
         stype = 'duckiebot'
-    elif on_laptop():
+    elif dtu.on_laptop():
         stype = 'laptop'
-    elif on_circle():
+    elif dtu.on_circle():
         stype = 'cloud'
     else:
         stype = 'unknown'
@@ -74,10 +73,10 @@ def json_from_result(result):
 def get_upload_collection():
     s = get_connection_string()
     
-    logger.info('Opening connection to MongoDB...')
-    logger.debug('Connection string: %s' % s)
+    dtu.logger.info('Opening connection to MongoDB...')
+    dtu.logger.debug('Connection string: %s' % s)
     client = pymongo.MongoClient(s)
-    logger.info('...connected.')
+    dtu.logger.info('...connected.')
     db = client[mongo_db]
     collection = db[mongo_collection]
     return collection
@@ -96,18 +95,18 @@ def upload(to_upload):
         for u in to_upload:
             S[u['_id']] = u
         
-        if not is_internet_connected():
+        if not dtu.is_internet_connected():
             msg = 'Internet is not connected: cannot upload results.'
-            logger.warning(msg)
+            dtu.logger.warning(msg)
         else:
             remaining = []
             for k in S:
                 remaining.append(S[k])
                 
             collection = get_upload_collection()
-            logger.info('Uploading %s test results' % len(remaining))
+            dtu.logger.info('Uploading %s test results' % len(remaining))
             collection.insert_many(remaining)
-            logger.info('done')
+            dtu.logger.info('done')
             for r in remaining:
                 del S[r['_id']]
     finally:

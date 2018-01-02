@@ -7,7 +7,7 @@ from sys import exit
 from .logging_logger import logger
 
 from .yaml_pretty import yaml_load
-from .constants import get_duckiefleet_root
+from .paths import get_duckiefleet_root
 
 
 class BaseAugmenter(object):

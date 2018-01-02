@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
-from duckietown_utils import DuckietownConstants, get_list_of_packages_in_catkin_ws, on_circle, on_laptop, on_duckiebot
+import getpass
+import os
 
+import duckietown_utils as dtu
+
+from .check import Check
 from .checks import *  # @UnusedWildImport
 from .entry import Diagnosis, Entry, SeeDocs
 from .python_source_checks import add_python_package_checks
+from .resolution import Suggestion
 from .suite_git import add_suite_git
-from .suite_ssh import good_ssh_configuration 
+from .suite_ssh import good_ssh_configuration
 
 
 class Manager(object):
@@ -35,9 +40,9 @@ def get_checks():
     
     JOY_DEVICE = '/dev/input/js0'
 
-    this_is_a_duckiebot = on_duckiebot()
-    this_is_a_laptop = on_laptop() 
-    this_is_circle = on_circle()
+    this_is_a_duckiebot = dtu.on_duckiebot()
+    this_is_a_laptop = dtu.on_laptop() 
+    this_is_circle = dtu.on_circle()
     
     username = getpass.getuser()
 
@@ -230,9 +235,9 @@ def get_checks():
             DeviceExists(JOY_DEVICE),
             Diagnosis("The joystick is not found at %s" % JOY_DEVICE))
 
-    DUCKIETOWN_ROOT = DuckietownConstants.DUCKIETOWN_ROOT_variable
-    DUCKIEFLEET_ROOT = DuckietownConstants.DUCKIEFLEET_ROOT_variable
-    DUCKIETOWN_CONFIG_SEQUENCE = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
+    DUCKIETOWN_ROOT = dtu.DuckietownConstants.DUCKIETOWN_ROOT_variable
+    DUCKIEFLEET_ROOT = dtu.DuckietownConstants.DUCKIEFLEET_ROOT_variable
+    DUCKIETOWN_CONFIG_SEQUENCE = dtu.DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
 
     if False:
@@ -381,8 +386,8 @@ def get_checks():
     """))
 
     try:
-        packagename2dir = get_list_of_packages_in_catkin_ws()
-    except DTConfigException:
+        packagename2dir = dtu.get_list_of_packages_in_catkin_ws()
+    except dtu.DTConfigException:
         pass
     else:
         for package_name, dirname in packagename2dir.items():

@@ -7,8 +7,8 @@ import duckietown_utils as dtu
 from duckietown_utils.cli import D8AppWithLogs
 import rosbag
 
-
 from .easy_logs_summary_imp import format_logs
+
 
 __all__ = [
     'MakeVideos',

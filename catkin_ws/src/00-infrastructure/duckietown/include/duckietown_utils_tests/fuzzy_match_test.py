@@ -3,22 +3,17 @@ import duckietown_utils as dtu
 from contracts.utils import check_isinstance
 import re
 
-from duckietown_utils.fuzzy import fuzzy_match, parse_match_spec,\
-    slice_regexp
-from duckietown_utils.instantiate_utils import indent
-
-
 def expect(data, query, result_keys, filters=None):
     result_keys = list(result_keys)
     check_isinstance(data, OrderedDict)
     
     if True:
-        spec = parse_match_spec(query, filters=filters)
+        spec = dtu.parse_match_spec(query, filters=filters)
         print '-----'
         print 'Query: %s' % query
-        print indent(spec, '', 'Spec: ')
+        print dtu.indent(spec, '', 'Spec: ')
         
-    res = fuzzy_match(query, data, filters=filters)
+    res = dtu.fuzzy_match(query, data, filters=filters)
     check_isinstance(res, OrderedDict)
     
     if list(res) != result_keys:
@@ -71,14 +66,14 @@ def matches_tags():
     
 @dtu.unit_test
 def specs1():
-    parse_match_spec('ciao')
-    parse_match_spec('ciao+no')
+    dtu.parse_match_spec('ciao')
+    dtu.parse_match_spec('ciao+no')
 
 
 @dtu.unit_test
 def my_filter():
    
-    rc = re.compile(slice_regexp)
+    rc = re.compile(dtu.slice_regexp)
     m = rc.search('[1:2:3]')
     assert m.group('a') == '1'
     assert m.group('b') == '2'
@@ -101,7 +96,7 @@ def my_filter():
     expect(data, 'all/[0:3]', ['jeb', 'fuffy', 'ronny'])
     
     
-    res = fuzzy_match('all/shuffle', data)
+    res = dtu.fuzzy_match('all/shuffle', data)
     assert len(res)==3
     
 if __name__ == '__main__':

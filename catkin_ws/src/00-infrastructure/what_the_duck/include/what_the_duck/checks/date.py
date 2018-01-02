@@ -1,5 +1,7 @@
 from what_the_duck.check import CheckFailed, Check
 
+__all__ = ['CheckDate']
+
 class CheckDate(Check):
     def __init__(self):
         pass

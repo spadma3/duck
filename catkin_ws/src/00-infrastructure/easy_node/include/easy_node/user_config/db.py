@@ -1,17 +1,10 @@
 from collections import defaultdict
 
 import yaml
-
-from duckietown_utils import logger
-from duckietown_utils.caching import get_cached
-from duckietown_utils.constants import get_list_of_packages_in_catkin_ws
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.system_cmd_imp import contract
-from duckietown_utils.text_utils import format_table_plus 
+import duckietown_utils as dtu
+ 
 from easy_node.node_description.configuration import load_configuration_for_nodes_in_package, EasyNodeConfig
 from easy_node.user_config.get_configuration_files import get_all_configuration_files
-from duckietown_utils.friendly_path_imp import friendly_path
 
 
 class ValidationError(Exception):
@@ -20,7 +13,7 @@ class ValidationError(Exception):
 
 def get_config_db():
     if ConfigDB._singleton is None:
-        ConfigDB._singleton = get_cached('ConfigDB', ConfigDB)
+        ConfigDB._singleton = dtu.get_cached('ConfigDB', ConfigDB)
     return ConfigDB._singleton
 
 class ConfigDB():
@@ -31,17 +24,17 @@ class ConfigDB():
         # Load all configuration
         # filename2contents = look_everywhere_for_config_files()
         
-        logger.debug('Reading configuration files...')
+        dtu.logger.debug('Reading configuration files...')
         self.configs = get_all_configuration_files()
         self.package2nodes = {}
 
-        packages = get_list_of_packages_in_catkin_ws()
+        packages = dtu.get_list_of_packages_in_catkin_ws()
 
-        logger.debug('Reading %d packages configuration...' % len(packages))
+        dtu.logger.debug('Reading %d packages configuration...' % len(packages))
         for p in packages:
             self.package2nodes[p] = load_configuration_for_nodes_in_package(p)
 
-        logger.debug('Validating configuration...')
+        dtu.logger.debug('Validating configuration...')
         
         for i, c in enumerate(self.configs):
             try:
@@ -92,7 +85,7 @@ class ConfigDB():
         else:
             return None
             
-    @contract(package_name='str', node_name='str', config_sequence='list|tuple')
+    @dtu.contract(package_name='str', node_name='str', config_sequence='list|tuple')
     def resolve(self, package_name, node_name, config_sequence, date=None):
         """ Returns a QueryResult """
         if len(config_sequence) == 0:
@@ -105,12 +98,12 @@ class ConfigDB():
         if not package_name in self.package2nodes:
             msg = ('Could not find package "%s"; I know %s.' % 
                    (package_name, sorted(self.package2nodes)))
-            raise DTConfigException(msg)
+            raise dtu.DTConfigException(msg)
         nodes = self.package2nodes[package_name]
         if not node_name in nodes:
             msg = ('Could not find node "%s" in package "%s"; I know %s.' % 
                    (node_name, package_name, sorted(nodes)))
-            raise DTConfigException(msg)
+            raise dtu.DTConfigException(msg)
          
         node_config = nodes[node_name]
         all_keys = list(node_config.parameters)
@@ -143,7 +136,7 @@ class ConfigDB():
         if not using:
             msg = ('Cannot find any configuration for %s/%s with config sequence %s' % 
                    (package_name, node_name, ":".join(config_sequence)))
-            raise DTConfigException(msg)
+            raise dtu.DTConfigException(msg)
          
         return QueryResult(package_name, node_name, config_sequence, all_keys, 
                            values, origin, origin_filename, overridden)
@@ -168,10 +161,10 @@ class QueryResult():
         s = 'Configuration result for node `%s` (package `%s`)' % (self.node_name, self.package_name)
         s += '\nThe configuration sequence was %s.' % list(self.config_sequence)
         s += '\nThe following is the list of parameters set and their origin:'
-        s +='\n' + indent(config_summary(self.all_keys, self.values, self.origin), '  ')
+        s +='\n' + dtu.indent(config_summary(self.all_keys, self.values, self.origin), '  ')
         return s
         
-@contract(all_keys='seq(str)', values='dict', origin='dict(str:str)')
+@dtu.contract(all_keys='seq(str)', values='dict', origin='dict(str:str)')
 def config_summary(all_keys, values, origin):
     table = []
     table.append(['parameter', 'value', 'origin'])
@@ -183,10 +176,10 @@ def config_summary(all_keys, values, origin):
             if v.endswith('...'):
                 v = v[:-3]
             v = v.strip()
-            table.append([k,v, friendly_path(origin[k])])
+            table.append([k,v, dtu.friendly_path(origin[k])])
         else:
             table.append([k, '(unset)', '(not found)'])
-    return format_table_plus(table, 4)
+    return dtu.format_table_plus(table, 4)
 
         
         

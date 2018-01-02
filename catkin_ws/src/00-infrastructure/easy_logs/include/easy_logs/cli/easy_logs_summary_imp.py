@@ -1,8 +1,8 @@
 from ruamel import yaml
 
-from duckietown_utils import (format_table_plus, remove_table_field,
-    make_row_red, friendly_path,  indent)
-from easy_logs.logs_db import get_easy_logs_db
+import duckietown_utils as dtu
+
+from ..logs_db import get_easy_logs_db
 
 
 def easy_logs_summary(query='*'):
@@ -43,7 +43,7 @@ def format_logs(logs):
             if log.filename is None:
                 row.append('not local')
             else:
-                row.append(friendly_path(log.filename))
+                row.append(dtu.friendly_path(log.filename))
             if log.valid:
                 sr = 'Yes.'
             else:
@@ -54,15 +54,15 @@ def format_logs(logs):
             else:
                 info = '(none)'
             if not log.valid:
-                row = make_row_red(row)
+                row = dtu.make_row_red(row)
 
             row.append(info)
             table.append(row)
             
-        remove_table_field(table, 'filename')
-        remove_table_field(table, 'topics')
-        remove_table_field(table, 'description')
-        remove_table_field(table, 'map')
-        s += indent(format_table_plus(table, colspacing=4), '| ')
+        dtu.remove_table_field(table, 'filename')
+        dtu.remove_table_field(table, 'topics')
+        dtu.remove_table_field(table, 'description')
+        dtu.remove_table_field(table, 'map')
+        s += dtu.indent(dtu.format_table_plus(table, colspacing=4), '| ')
         return s    
     

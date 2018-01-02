@@ -1,6 +1,8 @@
 import urllib2
 from what_the_duck.check import Check, CheckFailed
 
+__all__ = ['InternetConnected']
+
 class InternetConnected(Check):
     """ Check that we are connected to the internet """
     

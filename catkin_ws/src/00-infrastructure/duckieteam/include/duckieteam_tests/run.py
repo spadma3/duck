@@ -1,13 +1,12 @@
 import duckietown_utils as dtu
 
-from duckietown_utils import system_cmd_result
 
 
 @dtu.unit_test
 def run1():
     cmd = ['rosrun', 'duckieteam', 'create-machines', '--print']
     cwd = '.'
-    system_cmd_result(cwd,cmd,
+    dtu.system_cmd_result(cwd,cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True)
@@ -17,7 +16,7 @@ def run2():
     tmpfile = '/tmp/tmp'
     cmd = ['rosrun', 'duckieteam', 'create-roster', '--roster', tmpfile]
     cwd = '.'
-    system_cmd_result(cwd,cmd,
+    dtu.system_cmd_result(cwd,cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True)
@@ -26,7 +25,7 @@ def run2():
 def run():
     cmd = ['rosrun', 'duckieteam', 'create-roster']
     cwd = '.'
-    system_cmd_result(cwd,cmd,
+    dtu.system_cmd_result(cwd,cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True)

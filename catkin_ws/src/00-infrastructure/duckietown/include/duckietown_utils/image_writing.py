@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import os
 
-from .constants import DuckietownConstants
 from .exception_utils import check_isinstance
 from .file_utils import write_data_to_file
 from .image_composition import make_images_grid
@@ -10,6 +9,7 @@ from .jpg import jpg_from_bgr, write_bgr_to_file_as_jpg
 from .deprecation import deprecated
 from .image_operations import bgr_from_rgb
 from .image_timestamps import add_header_to_bgr
+from duckietown_utils.color_constants import ColorConstants
 
 def write_bgr_as_jpg(bgr, filename):
     jpg = jpg_from_bgr(bgr)
@@ -50,7 +50,7 @@ def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
         res[filename] = add_header_to_bgr(image, s)
         images.append(res[filename])
 
-    bgcolor = DuckietownConstants.DUCKIETOWN_YELLOW_BGR
+    bgcolor = ColorConstants.BGR_DUCKIETOWN_YELLOW
     res['all'] = make_images_grid(images, bgcolor=bgcolor, pad=20)
 
     output = OrderedDict()

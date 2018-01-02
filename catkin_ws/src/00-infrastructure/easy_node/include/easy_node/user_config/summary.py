@@ -1,9 +1,7 @@
 import termcolor
 
+import duckietown_utils as dtu
 from duckietown_utils import col_logging  # @UnusedImport
-from duckietown_utils.friendly_path_imp import friendly_path
-from duckietown_utils.text_utils import truncate_string_right, format_table_plus,\
-    remove_table_field
 
 from .db import get_config_db
 from .get_configuration_files import ConfigInfo
@@ -27,7 +25,7 @@ def user_config_summary():
                   'extends', 'valid', 'error', 'description', 'filename', ])
     for c in db.configs:
         assert isinstance(c, ConfigInfo)        
-        d = truncate_string_right(c.description.replace('\n',' '), 40)
+        d = dtu.truncate_string_right(c.description.replace('\n',' '), 40)
         date = c.date_effective.strftime('%Y-%m-%d')
         if c.valid is None:
             valid = '?'
@@ -39,10 +37,10 @@ def user_config_summary():
         table.append([
             c.package_name, c.node_name, c.config_name,
             date , c.extends, valid, valid_error,
-            d, friendly_path(c.filename)
+            d, dtu.friendly_path(c.filename)
         ])
     
-    remove_table_field(table, 'filename')
+    dtu.remove_table_field(table, 'filename')
         
-    s = format_table_plus(table, colspacing=4)
+    s = dtu.format_table_plus(table, colspacing=4)
     return s

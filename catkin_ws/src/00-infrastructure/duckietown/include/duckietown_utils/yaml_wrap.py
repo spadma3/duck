@@ -2,18 +2,17 @@ from collections import OrderedDict
 import fnmatch
 import os
 
-from .logging_logger import logger
-from .constants import get_catkin_ws_src, get_duckiefleet_root, \
-    get_duckietown_data, get_duckietown_local_log_downloads
 from .contracts_ import contract
-from .exception_utils import check_isinstance
-from .exception_utils import raise_wrapped
+from .exception_utils import check_isinstance, raise_wrapped
 from .exceptions import DTConfigException
+from .file_utils import write_data_to_file
 from .friendly_path_imp import friendly_path
 from .instantiate_utils import indent
 from .locate_files_impl import locate_files
+from .logging_logger import logger
+from .paths import get_catkin_ws_src, get_duckiefleet_root, \
+    get_duckietown_local_log_downloads, get_duckietown_data_dirs
 from .yaml_pretty import yaml_load, yaml_load_plain, yaml_dump_pretty
-from .file_utils import write_data_to_file
 
 
 def yaml_write_to_file(ob, filename):
@@ -126,7 +125,8 @@ def look_everywhere_for_bag_files(pattern='*.bag'):
     # sources.append(get_catkin_ws_src())
     # then we look in $DUCKIETOWN_FLEET
     sources.append(get_duckiefleet_root())
-    sources.append(get_duckietown_data())
+    for d in get_duckietown_data_dirs():
+        sources.append(d)
     # downloads 
     p = get_duckietown_local_log_downloads()
     if os.path.exists(p):

@@ -1,12 +1,16 @@
-from duckietown_utils.system_cmd_imp import system_cmd_result
 from what_the_duck.check import Check, CheckFailed
 from what_the_duck.checks.fileutils import raise_CheckError_from_CommandResult,\
     summary_of_cmdres
-from duckietown_utils import expand_all
 import os
 from what_the_duck.checks.command_output import fail_if_stdout_contains
-from duckietown_utils.text_utils import indent
 
+import duckietown_utils as dtu
+
+__all__ = [
+    'GithubLogin',
+    'GitCorrectRemote',
+    'GitLFSInstalled',
+]
 
 class GithubLogin(Check):
 
@@ -14,7 +18,7 @@ class GithubLogin(Check):
 
         cmd = ['ssh', '-T', 'git@github.com']
 
-        res = system_cmd_result('.', cmd,
+        res = dtu.system_cmd_result('.', cmd,
                   display_stdout=False,
                   display_stderr=False,
                   raise_on_error=False,
@@ -41,7 +45,7 @@ class GitLFSInstalled(Check):
 
         cmd = ['git', 'lfs']
 
-        res = system_cmd_result('.', cmd,
+        res = dtu.system_cmd_result('.', cmd,
                   display_stdout=False,
                   display_stderr=False,
                   raise_on_error=False,
@@ -50,7 +54,7 @@ class GitLFSInstalled(Check):
 
         if res.ret != 0:
             msg = '`git lfs` returned non-zero.'
-            msg += '\n' + indent(res, '> ')
+            msg += '\n' + dtu.indent(res, '> ')
             raise CheckFailed(msg)
 
 class GitCorrectRemote(Check):
@@ -59,7 +63,7 @@ class GitCorrectRemote(Check):
         self.dirname = dirname
 
     def check(self):
-        d = expand_all(self.dirname)
+        d = dtu.expand_all(self.dirname)
         if not os.path.exists(d):
             msg = 'The repo does not exist'
             l = 'The repo does not exist in directory:\n  %s' % d

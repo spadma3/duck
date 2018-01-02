@@ -1,7 +1,6 @@
 from abc import abstractmethod
-
+import duckietown_utils as dtu
 from duckietown_utils.cli import D8AppWithLogs
-from duckietown_utils.exceptions import DTUserError
 
 
 class GenericLogDisplay(D8AppWithLogs): 
@@ -21,7 +20,7 @@ class GenericLogDisplay(D8AppWithLogs):
         else:
             if len(extra) > 1:
                 msg = 'Expected only one extra argument.'
-                raise DTUserError(msg)
+                raise dtu.DTUserError(msg)
             query = extra[0]
         
         db = self.get_easy_logs_db() 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from duckietown_utils.system_cmd_imp import system_cmd_result, CmdException,\
-    indent
+import duckietown_utils as dtu
 from what_the_duck.check import Check, CheckError, CheckFailed
 
 
@@ -21,39 +20,39 @@ class CommandOutputContains(Check):
         
 def fail_if_stdout_does_not_contain(cwd, cmd, substring):
     try:
-        res = system_cmd_result(cwd, cmd,
+        res = dtu.system_cmd_result(cwd, cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True,
                       capture_keyboard_interrupt=False,
                       env=None)
-    except CmdException as e:
+    except dtu.CmdException as e:
         msg = 'The command failed\n'
-        msg += '\n'+ indent(e, ' >')
+        msg += '\n'+ dtu.indent(e, ' >')
         raise CheckError(msg)
 
     if not substring in res.stdout:
         compact = ('Could not find string "%s" in output of %s.' % 
                    (substring, cmd))
-        long_explanation = 'Complete output is:\n\n' + indent(res.stdout,' > ')
+        long_explanation = 'Complete output is:\n\n' + dtu.indent(res.stdout,' > ')
         raise CheckFailed(compact, long_explanation)
     
 def fail_if_stdout_contains(cwd, cmd, substring):
     try:
-        res = system_cmd_result(cwd, cmd,
+        res = dtu.system_cmd_result(cwd, cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True,
                       capture_keyboard_interrupt=False,
                       env=None)
-    except CmdException as e:
+    except dtu.CmdException as e:
         msg = 'The command failed\n'
-        msg += '\n'+ indent(e, ' >')
+        msg += '\n'+ dtu.indent(e, ' >')
         raise CheckError(msg)
 
     if substring in res.stdout:
         compact = ('I found the string "%s" in output of `%s`' % 
                    (substring, " ".join(cmd)))
-        long_explanation = 'Complete output is:\n\n' + indent(res.stdout.strip(),' > ')
+        long_explanation = 'Complete output is:\n\n' + dtu.indent(res.stdout.strip(),' > ')
         raise CheckFailed(compact, long_explanation)
     

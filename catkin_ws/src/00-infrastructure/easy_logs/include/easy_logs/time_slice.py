@@ -1,17 +1,20 @@
 from collections import OrderedDict
-from duckietown_utils import indent
-from duckietown_utils.fuzzy import Spec
+import duckietown_utils as dtu
 
+__all__ = [
+    'filters_slice',
+    'MakeTimeSlice',
+]
 
-class MakeTimeSlice(Spec):
+class MakeTimeSlice(dtu.Spec):
     def __init__(self, spec, t0, t1):
-        Spec.__init__(self, [spec])
+        dtu.Spec.__init__(self, [spec])
         self.t0 = t0
         self.t1 = t1
     
     def __str__(self):
         s  = 'MakeTimeSlice  { %s : %s }' % (self.t0, self.t1)
-        s += '\n' + indent(str(self.children[0]), '  ')
+        s += '\n' + dtu.indent(str(self.children[0]), '  ')
         return s
     
     def match(self, x):

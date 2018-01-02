@@ -50,9 +50,8 @@ comptests_packages=\
 	complete_image_pipeline_tests\
 	duckietown_segmaps_tests\
 	grid_helper_tests\
-	lane_filter_generic_tests
-# XXX: not sure if this is making Circle mem out
-# easy_regression_tests
+	lane_filter_generic_tests\
+	easy_regression_tests
 
 comptests_out=out/comptests
 

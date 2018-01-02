@@ -6,7 +6,6 @@ import duckietown_utils as dtu
 
 from .algo_structures import EasyAlgoInstance, EasyAlgoFamily
 import traceback
-from duckietown_utils.exceptions import DTNoMatches
 
 
 __all__ = [
@@ -48,7 +47,7 @@ class EasyAlgoDB(object):
                 msg = "Could not find any match for the queries:"
                 for q in query:
                     msg += '\n- %s' % q
-                raise DTNoMatches(msg)
+                raise dtu.DTNoMatches(msg)
             return res
         else:
             family = self.get_family(family_name)

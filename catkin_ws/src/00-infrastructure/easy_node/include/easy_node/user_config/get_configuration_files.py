@@ -6,8 +6,6 @@ import yaml
 from yaml.error import YAMLError
 import duckietown_utils as dtu
 
-from duckietown_utils import logger
-
 
 
 SUFFIX = '.config.yaml'
@@ -49,10 +47,10 @@ def search_all_configuration_files():
     
     configs = []
     pattern = '*' + SUFFIX
-    logger.info('Looking for %s files.' % pattern) 
+    dtu.logger.info('Looking for %s files.' % pattern) 
     for s in sources:
         fs = dtu.locate_files(s, pattern)
-        logger.info('%4d files in %s' % (len(fs), s))
+        dtu.logger.info('%4d files in %s' % (len(fs), s))
         configs.extend(fs)
     
 #     logger.debug('I found:\n' + "\n".join(configs))
