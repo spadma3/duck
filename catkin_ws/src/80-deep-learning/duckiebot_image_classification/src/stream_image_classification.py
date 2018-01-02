@@ -36,19 +36,80 @@ with open( GRAPH_PATH, mode='rb' ) as f:
 # Load the graph buffer into the NCS
 graph = device.AllocateGraph( blob )
 
-class stream_classifier:
+class Stats():
     def __init__(self):
+        self.nresets = 0
+        self.reset()
+
+    def reset(self):
+        self.nresets += 1
+        self.t0 = time.time()
+        self.nreceived = 0
+        self.nskipped = 0
+        self.nprocessed = 0
+
+    def received(self):
+        if self.nreceived == 0 and self.nresets == 1:
+            rospy.loginfo('stream classification received first image.')
+        self.nreceived += 1
+
+    def skipped(self):
+        self.nskipped += 1
+
+    def processed(self):
+        if self.nprocessed == 0 and self.nresets == 1:
+            rospy.loginfo('stream classification processing first image.')
+
+        self.nprocessed += 1
+
+    def info(self):
+        delta = time.time() - self.t0
+
+        if self.nreceived:
+            skipped_perc = (100.0 * self.nskipped / self.nreceived)
+        else:
+            skipped_perc = 0
+
+        def fps(x):
+            return '%.1f fps' % (x / delta)
+
+        m = ('In the last %.1f s: received %d (%s) processed %d (%s) skipped %d (%s) (%1.f%%)' %
+             (delta, self.nreceived, fps(self.nreceived),
+              self.nprocessed, fps(self.nprocessed),
+              self.nskipped, fps(self.nskipped), skipped_perc))
+        return m
+
+class stream_classifier(object):
+    def __init__(self):
+        
+        # thread lock
+        self.thread_lock = threading.Lock()
+        
+        # constructor of the classifier
         self.bridge = CvBridge()
+        self.active = True
+        self.stats = Stats()
+        
+        # subscriber
         self.image_sub = rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, self.callback, queue_size=1)
-    def callback(self,image_data):
+    def callback(self,image_msg):
+        
+        self.stats.received()
+        if not self.active:
+            return 
         
         # start a daemon thread to process the image
-        thread = threading.Thread(target=self.processImage,arg=(image_msg))
+        thread = threading.Thread(target=self.processImage,args=(image_msg))
         thread.setDaemon(True)
         thread.start()
         # returns right away 
         
     def processImage(self, image_msg):    
+        
+        if not self.thread_lock.acquire(False):
+            self.stats.skipped()
+            # Return immediately if the thread is locked
+            return      
         
         try:
             self.processImage_(image_msg)
@@ -58,6 +119,8 @@ class stream_classifier:
     
     def processImage_(self, image_msg):
         
+        self.stats.processed()
+ 
         # decode from compressed image with OpenCV
         try:
             image_cv = image_cv_from_jpg(image_msg.data)
@@ -66,8 +129,6 @@ class stream_classifier:
             return
         
         
-        
-    
         (rows,cols,chans) = image_cv.shape
         # resize image [Image size is defined during training]
         img = cv2.resize( image_cv, IMAGE_DIM)
@@ -88,16 +149,14 @@ class stream_classifier:
             print ('prediction ' + str(i) + ' is ' + labels[order[i]]) 
             rospy.loginfo("I can see the images from duckieCamera!!!")
             
-            
-    
-def main(args):
-    sc = stream_classifier()
+if __name__ == '__main__':
     rospy.init_node('stream_classifier', anonymous=True)
+    sc = stream_classifier()
     try:
         rospy.spin()
     except KeyboardInterrupt:
         graph.DeallocateGraph()
         device.CloseDevice()
         print("Shutting down!!!")
-if __name__ == '__main__':
-    main(sys.argv)  
+
+
