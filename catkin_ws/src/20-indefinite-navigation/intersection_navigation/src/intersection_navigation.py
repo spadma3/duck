@@ -2,10 +2,10 @@
 import rospy
 import cv2
 from path_planner.path_planner import PathPlanner
-from pose_estimator.pose_estimator import PoseEstimator
+from pose_estimator.pose_estimator import PoseEstimator, VehicleCommands
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
-from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose
+from duckietown_msgs.msg import LanePose, AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int16, String
 import numpy as np
@@ -20,12 +20,13 @@ class IntersectionNavigation(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.robot_name = self.SetupParameter("~robot_name", "daisy")
+        self.robot_name = self.SetupParameter("~robot_name", "bob")
 
         # set up path planner, state estimator, ...
         self.intersectionLocalizer = IntersectionLocalizer(self.robot_name)
         self.pathPlanner = PathPlanner(self.robot_name)
         self.poseEstimator = PoseEstimator()
+        
 
         # set up subscribers
         self.sub_mode = rospy.Subscriber("~mode", FSMState, self.ModeCallback, queue_size=1)
@@ -34,14 +35,14 @@ class IntersectionNavigation(object):
                                         self.ImageCallback, queue_size=1)
         self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPose, 
                                         self.poseEstimator.UpdateWithPoseMeasurement, queue_size=1)
-        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
+        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, self.CarCmdCallback, queue_size=1)
          
         # self.poseEstimator.FeedCommandQueue, queue_size=10)
-        self.on_regular_road = rospy.Subscriber("~in_lane",BoolStamped, self.ModeCallback, queue_size=1)
+        # self.on_regular_road = rospy.Subscriber("~in_lane", BoolStamped, self.ModeCallback, queue_size=1)
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
-        # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
+        self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
 
         # main logic parameters
@@ -56,6 +57,7 @@ class IntersectionNavigation(object):
         self.tag_info = TagInfo()
         self.intersection_signs = [self.tag_info.FOUR_WAY, self.tag_info.RIGHT_T_INTERSECT,
                                    self.tag_info.LEFT_T_INTERSECT, self.tag_info.T_INTERSECTION]
+        self.VehicleCommands = VehicleCommands()
 
         # nominal stop positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
         self.nominal_stop_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
@@ -89,8 +91,9 @@ class IntersectionNavigation(object):
                 return self.nominal_final_positions[1]
             else: # right
                 return self.nominal_final_positions[0]
-
-
+                
+    def CarCmdCallback(self,cmd_msg):
+        return cmd_msg
 
     def MainLoop(self):
         rate = rospy.Rate(self.rate)
@@ -178,28 +181,74 @@ class IntersectionNavigation(object):
 
                 # waiting for instructions where to go
                 # TODO
-                self.turn_type = TurnTypeCallback()
+                # self.turn_type = TurnTypeCallback()
                 # 0: straight, 1: left, 2: right
-                turn_type = 2            
+                self.turn_type = 2            
                 pose_init = [best_x_meas, best_y_meas, best_theta_meas]
                 pose_final = self.ComputeFinalPose(april_msg.infos[closest_idx].traffic_sign_type, turn_type)
 
                 alphas_init = np.linspace(0.1, 1.6, 11)
                 alphas_final = np.linspace(0.1, 1.6, 11)
+
+                # Path Planner
                 self.pathPlanner.PlanPath(pose_init, alphas_init, pose_final, alphas_final)
-                print(pose_init)
-                print(pose_final)
+                numPathPoints = 10
+                s = np.linnspace(0.0, 1.0, numPathPoints)
+                pathPoints, _ = self.pathPlanner.path.Evaluate(s)
+                trackingPoints = 0
+                currPos = pose_init
+                self.state == self.state_dict['TRAVERSING']
+                # print(pose_init)
+                # print(pose_final)
 
                 # debugging
+                '''
                 if 1:
                     self.intersectionLocalizer.DrawModel(img_gray, best_x_meas, best_y_meas, best_theta_meas)
                     self.pathPlanner.DrawPath(img_gray, [best_x_meas, best_y_meas, best_theta_meas])
                     cv2.imshow('initialization', img_gray)
                     cv2.waitKey(10)
-
+				'''
 
             elif self.state == self.state_dict['TRAVERSING']:
-                pass
+                    trackingPoints += 1
+
+                    # Path updating
+                    dPath_x = pathPoints[0,trackingPoints] - pathPoints[0,trackingPoints-1]
+                    dPath_y = pathPoints[1,trackingPoints] - pathPoints[1,trackingPoints-1]
+                    dPath_sqrt = dPath_x*dPath_x + dPath_y*dPath_y
+                    dPathRobot_x = pathPoints[0,trackingPoints] - currPos[0]
+                    dPathRobot_y = pathPoints[1,trackingPoints] - currPos[1]
+                    dPathRobot_sqrt = dPathRobot_x*dPathRobot_x + dPathRobot_y*dPathRobot_y
+
+                    # LanePose message
+                    pathTracker_msg = LanePose()
+                    pathTracker_msg.d = np.sqrt(dPathRobot_sqrt-dPath_sqrt)
+                    pathTracker_msg.phi = np.arctan2(dPath_y,dPath_x) - currPos[3]
+					
+					#TODO add path curvature. Now we use the standard parameters of the lane following node
+                    if self.turn_type == 1:
+                        curvature = 0.025
+                    elif self.turn_type == 2:
+                        curvature = -0.054
+                    else:
+                        curvature = 0
+
+                    pathTracker_msg.curvature = curvature
+
+                    pathTracker.header.stamp = rospy.Time.now()
+                    self.pub_intersection_pose.publish(pathTracker_msg)
+
+                    #Update pose estimation (Only 1 cmd in queue)
+                    self.poseEstimator.state_est = currPos
+                    self.poseEstimator.cmd_queue = deque([VehicleCommands(cmd_msg.v, cmd_msg.omega, cmd_msg.header.stamp)])
+
+                    dt = rospy.Time.now().secs
+                    time_pred = dt - cmd_msg.header.stamp
+                    currPos, _ = self.poseEstimator.PredictState(time_pred)
+
+                    if trackingPoints == numPathPoints - 1:
+                        self.on_regular_road == True
 
             elif self.state == self.state_dict['DONE']:
                 pass
@@ -216,8 +265,9 @@ class IntersectionNavigation(object):
             self.state = self.state_dict['INITIALIZING']
 
         # update state if we are done with the navigation
-        if self.on_regular_road == True and msg.state == "TRAVERSING":
-            self.state = self.state_dict['DONE'] 
+        # if self.on_regular_road == True and msg.state == "TRAVERSING":
+        if self.on_regular_road == True and msg.state == "INTERSECTION_CONTROL" and self.state == self.state_dict['TRAVERSING']:
+            self.state = self.state_dict['DONE']
             in_lane_msg = BoolStamped() # is a header needed in this case ??
             in_lane_msg.header.stamp = rospy.Time.now()
             in_lane_msg.data = True
@@ -228,7 +278,7 @@ class IntersectionNavigation(object):
     def TurnTypeCallback(self, msg):
         # TODO
         # will be used to proceed with main loop
-        if self.sub_turn_type ==1: # straight
+        if self.sub_turn_type == 1: # straight
             turn_type = 0
         elif self.sub_turn_type == 2: # right
             turn_type = 2

@@ -19,13 +19,13 @@ class lane_controller(object):
 
         # Subscription
         # TODO: set normal_use False for using your topic
-        normal_use = True
+        normal_use = False
         if normal_use:
             self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         else:
             # TODO: add your own subscriber here by modifying topic, choose from lane_pose_obstacle_avoidance,lane_pose_parking, implicit_coordination_velocity,lane_pose_intersection_navigation
             #self.sub_lane_reading = rospy.Subscriber("~lane_pose_intersection_navigation", LanePose, self.cbPose, queue_size=1)
-            self.sub_lane_reading = rospy.Subscriber("~yourtopic", LanePose, self.cbPose, queue_size=1)
+            self.sub_lane_reading = rospy.Subscriber("intersection_navigation_node/intersection_pose", LanePose, self.cbPose, queue_size=1)
 
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
