@@ -66,7 +66,7 @@ test-comptests:  test-download-logs
 	comptests -o $(comptests_out) --nonose --contracts -c "rparmake" $(comptests_packages)
 
 test-comptests-circle:  test-download-logs
-	comptests -o $(comptests_out) --nonose --contracts -c "rmake new_process=1" $(comptests_packages)
+	comptests -o $(comptests_out) --nonose -c "rmake" $(comptests_packages)
 	# comptests -o $(comptests_out) --nonose --contracts -c "rparmake n=3" $(comptests_packages)
 
 test-comptests-slow:  test-download-logs
