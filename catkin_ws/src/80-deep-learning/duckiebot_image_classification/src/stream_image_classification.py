@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+from __future__ import print_function
 import roslib
-roslib.load_manifest('package')
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, Image
+from duckietown_utils.jpg import image_cv_from_jpg
 import cv2
 import rospy
 import threading
@@ -13,7 +14,6 @@ import mvnc.mvncapi as mvnc
 import numpy
 import os
 import sys
-from __future__ import import print_function
 # Movidius user modifiable input parameters
 NCAPPZOO_PATH           = os.path.expanduser( '~/workspace/ncappzoo' )
 GRAPH_PATH              = NCAPPZOO_PATH + '/caffe/GoogLeNet/graph' 
@@ -38,12 +38,12 @@ graph = device.AllocateGraph( blob )
 
 class stream_classifier:
     def __init__(self):
-        self.bridge = CvBridge
+        self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, self.callback)
     def callback(self,data):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        except CvBridgeError as e:
+            cv_image = image_cv_from_jpg(data)
+        except ValueError as e:
             print(e)
         (rows,cols,chans) = cv_image.shape
         # resize image [Image size is defined during training]
@@ -62,7 +62,7 @@ class stream_classifier:
         for i in range( 0, 4 ):
             print ('prediction ' + str(i) + ' is ' + labels[order[i]]) 
             rospy.loginfo("I can see the images from duckieCamera!!!")
-def main(arg):
+def main(args):
     sc = stream_classifier()
     rospy.init_node('stream_classifier', anonymous=True)
     try:
@@ -72,4 +72,4 @@ def main(arg):
         device.CloseDevice()
         print("Shutting down!!!")
 if __name__ == '__main__':
-    main(sys.arg)  
+    main(sys.argv)  
