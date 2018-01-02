@@ -9,6 +9,8 @@ __all__ = ['Summary']
 class Summary(D8App):
     """ Provides information about the families and their instances. """
 
+    cmd = 'rosrun easy_algo summary'
+    
     def define_program_options(self, params):
         params.accept_extra()
         g = "Input/output"

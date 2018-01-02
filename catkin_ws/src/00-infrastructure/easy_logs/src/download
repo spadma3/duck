@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# @create-shortcut-for-this
 import sys
 
 from duckietown_utils import col_logging  # @UnusedImport
@@ -11,9 +12,9 @@ def require():
     if not args:
         msg = 'Expected at least one log name.'
         raise DTUserError(msg)
-    
+
     require_main(args)
-    
+
 
 if __name__ == '__main__':
     wrap_script_entry_point(require)

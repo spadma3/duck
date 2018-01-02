@@ -1,6 +1,5 @@
 __all__ = [
-    'DuckietownConstants'
-
+    'DuckietownConstants',
 ]
 
 class DuckietownConstants(object):
@@ -35,5 +34,7 @@ class DuckietownConstants(object):
 
     # Show more information about dependencies 
     debug_show_package_import_info = False
+    
+    ADD_SHORTCUT_TAG = '@create-shortcut-for-this'
 
     

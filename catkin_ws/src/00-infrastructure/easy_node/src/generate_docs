@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# @create-shortcut-for-this
+
 from easy_node.node_description.doc_generation import generate_easy_node_docs
 import duckietown_utils as dtu
 

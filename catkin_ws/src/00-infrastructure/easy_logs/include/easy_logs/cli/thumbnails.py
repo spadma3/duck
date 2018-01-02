@@ -19,11 +19,13 @@ class MakeThumbnails(D8AppWithLogs, QuickApp):
         Creates thumbnails for the image topics in a log.
     """
 
+    cmd = 'rosrun easy_logs thumbnails'
+    
     usage = """
    
 Use like this:
 
-    $ rosrun easy_logs thumbnails --max_images=[num] [logs]
+    $ %(prog)s --max_images=[num] [logs]
     
     
 """

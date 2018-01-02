@@ -20,12 +20,17 @@ class MakeVideos(D8AppWithLogs, QuickApp):
         Creates videos for the image topics in a log.
     """
 
+    cmd = 'rosrun easy_logs videos'
+    
     usage = """
    
-Use like this:
+Usage:
 
-    $ rosrun easy_logs videos [logs]
+    $ %(prog)s [options]  "log query"
     
+For example:
+
+    $ %(prog)s --cloud vehicle:shamrock
     
 """
     
@@ -33,9 +38,7 @@ Use like this:
         params.accept_extra()
         
     def define_jobs_context(self, context):
-        
-        
-        
+    
         extra = self.options.get_extra()
         
         if not extra:

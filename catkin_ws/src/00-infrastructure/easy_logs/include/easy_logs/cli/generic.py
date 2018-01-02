@@ -6,7 +6,7 @@ from duckietown_utils.cli import D8AppWithLogs
 class GenericLogDisplay(D8AppWithLogs): 
 
     def define_options(self, params): 
-        params.accept_extra()
+        params.accept_extra(description='Log query string')
         
         
     @abstractmethod
