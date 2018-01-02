@@ -3,11 +3,11 @@ constructor: line_detector.LineDetectorHSV
 parameters:
     configuration:
       dilation_kernel_size: 3
-      canny_thresholds: [80,200]
+      canny_thresholds: [80, 200]
 
       hough_threshold: 2
       hough_min_line_length: 3
-      hough_max_line_gap:    1
+      hough_max_line_gap: 1
 
       hsv_white1:  [0,0,150]
       hsv_white2:  [180,60,255]

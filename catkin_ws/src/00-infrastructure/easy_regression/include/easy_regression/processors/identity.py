@@ -1,5 +1,8 @@
 from easy_regression.processor_interface import ProcessorInterface
 
+__all__ = ['IdentityProcessor']
+
+
 class IdentityProcessor(ProcessorInterface):
     
     def process_log(self, bag_in, bag_out):

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from duckietown_utils import indent_with_label
-from  .constant import ChecksConstants
-from .visualize import MakeSpans 
-from contracts.utils import indent
+import duckietown_utils as dtu
+
+from .constant import ChecksConstants
+from .visualize import MakeSpans
+
 
 class Statistics(object):
     def __init__(self, results):
@@ -114,35 +115,35 @@ def display_results_one(r):
     if r.status in [ChecksConstants.OK]:
         o += M.green(s) + NL
         if r.out_long:
-            o += NL + indent(r.out_long, '     > ') + NL + NL
+            o += NL + dtu.indent(r.out_long, '     > ') + NL + NL
             
     elif r.status in [ChecksConstants.FAIL]:
         o += NL
         o += M.red(s) + NL
-        o += M.red(indent_with_label(r.out_short, L(' failure:'))) + NL
+        o += M.red(dtu.indent_with_label(r.out_short, L(' failure:'))) + NL
         if r.out_long:
-            o += M.red(indent_with_label(r.out_long, L('details:'))) + NL
+            o += M.red(dtu.indent_with_label(r.out_long, L('details:'))) + NL
         if r.entry.diagnosis is not None:
             s = str(r.entry.diagnosis)
-            s = indent_with_label(s, L('diagnosis:'))
+            s = dtu.indent_with_label(s, L('diagnosis:'))
             o += s + NL*2
         for resolution in r.entry.resolutions:
             s = str(resolution)
-            s = indent_with_label(s, L('resolution:'))
+            s = dtu.indent_with_label(s, L('resolution:'))
             o += s + NL*2
         
     elif r.status in [ChecksConstants.ERROR]:
         o += M.bright_red(s) + NL
-        o += M.bright_red(indent_with_label(r.out_short, L(' error:'))) + NL
+        o += M.bright_red(dtu.indent_with_label(r.out_short, L(' error:'))) + NL
         if r.out_long:
-            o += M.bright_red(indent_with_label(r.out_long, L('details:'))) + NL
+            o += M.bright_red(dtu.indent_with_label(r.out_long, L('details:'))) + NL
         o += NL
         
     elif r.status in [ChecksConstants.SKIP]:
         o += M.yellow(s) + NL
-        o += M.yellow(indent_with_label(r.out_short, L(' reason:'))) + NL
+        o += M.yellow(dtu.indent_with_label(r.out_short, L(' reason:'))) + NL
         if r.out_long:
-            o += M.yellow(indent_with_label(r.out_long, L('details:'))) + NL
+            o += M.yellow(dtu.indent_with_label(r.out_long, L('details:'))) + NL
         o += NL
     else:
         assert False, r.status

@@ -1,5 +1,5 @@
 import duckietown_utils as dtu
-from duckietown_utils.disk_hierarchy import dir_from_data
+
     
 @dtu.unit_test
 def testh1():
@@ -13,7 +13,7 @@ def testh1():
     
     """
 
-    d = dir_from_data(data)
+    d = dtu.dir_from_data(data)
     
     #print locate_files(d, '*')
     

@@ -1,8 +1,9 @@
-from easy_regression.processor_interface import ProcessorInterface
+from easy_regression import ProcessorInterface
 import duckietown_utils as dtu
-from ground_projection import \
-    GroundProjection
+from ground_projection import GroundProjection
 from complete_image_pipeline.pipeline import run_pipeline
+
+__all__ = ['LocalizationPipelineProcessor']
 
 class LocalizationPipelineProcessor(ProcessorInterface):
     
