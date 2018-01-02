@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, Image
 import cv2
@@ -8,9 +8,6 @@ import time
 import numpy as np
 # Movidius NCS related packages
 import mvnc.mvncapi as mvnc
-import skimage
-from skimage import io
-from skimage.transform import resize
 import numpy
 import os
 import sys
@@ -58,8 +55,8 @@ if __name__ == '__main__':
     listener() 
     # ---- Step 3: Offload image onto the NCS to run inference -------------------
     # Read & resize image [Image size is defined during training]
-    img = print_img = skimage.io.imread( IMAGE_PATH )
-    img = skimage.transform.resize( img, IMAGE_DIM )
+    img = print_img = cv2.imread( IMAGE_PATH )
+    img = cv2.resize( img, IMAGE_DIM)
     # Convert RGB to BGR [skimage reads image in RGB, but Caffe uses BGR]
     img = img[:, :, ::-1]
     # Mean subtraction & scaling [A common technique used to center the data]
@@ -76,15 +73,10 @@ if __name__ == '__main__':
     order = output.argsort()[::-1][:6]
     for i in range( 0, 4 ):
         print ('prediction ' + str(i) + ' is ' + labels[order[i]])
-    # If a display is available, show the image on which inference was performed
-    if 'DISPLAY' in os.environ:
-        skimage.io.imshow( IMAGE_PATH )
-        skimage.io.show( )
+
     # ---- Step 5: Unload the graph and close the device -------------------------
     #graph.DeallocateGraph()
     #device.CloseDevice()
-    
-
     rospy.spin()    
     
     

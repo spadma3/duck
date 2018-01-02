@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-import rospy
-import threading
-import time
-import numpy as np
+from PIL import import image, ImageOps
 
 
 print("0")
