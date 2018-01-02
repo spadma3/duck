@@ -8,7 +8,7 @@
 
 PyContracts==1.7.15
 DecentLogs==1.1.2
-QuickApp==1.3.11
+QuickApp==1.3.12
 conftools==1.9.1
 comptests==1.4.14
 procgraph==1.10.9
