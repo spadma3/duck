@@ -39,15 +39,40 @@ graph = device.AllocateGraph( blob )
 class stream_classifier:
     def __init__(self):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, self.callback)
-    def callback(self,data):
+        self.image_sub = rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, self.callback, queue_size=1)
+    def callback(self,image_data):
+        
+        # start a daemon thread to process the image
+        thread = threading.Thread(target=self.processImage,arg=(image_msg))
+        thread.setDaemon(True)
+        thread.start()
+        # returns right away 
+        
+    def processImage(self, image_msg):    
+        
         try:
-            cv_image = image_cv_from_jpg(data)
+            self.processImage_(image_msg)
+        finally:
+            # release the thread lock
+            self.thread_lock.release()
+    
+    def processImage_(self, image_msg):
+        
+        # decode from compressed image with OpenCV
+        try:
+            image_cv = image_cv_from_jpg(image_msg.data)
         except ValueError as e:
-            print(e)
-        (rows,cols,chans) = cv_image.shape
+            self.loginfo('Could not decode image: %s' % e)
+            return
+        
+        
+        
+    
+        (rows,cols,chans) = image_cv.shape
         # resize image [Image size is defined during training]
-        img = cv2.resize( cv_image, IMAGE_DIM)
+        img = cv2.resize( image_cv, IMAGE_DIM)
+        # Convert RGB to BGR [skimage reads image in RGB, but Caffe uses BGR]
+        img = img[:, :, ::-1]
         # Mean subtraction & scaling [A common technique used to center the data]
         img = img.astype( numpy.float32 )
         img = ( img - IMAGE_MEAN ) * IMAGE_STDDEV
@@ -62,6 +87,9 @@ class stream_classifier:
         for i in range( 0, 4 ):
             print ('prediction ' + str(i) + ' is ' + labels[order[i]]) 
             rospy.loginfo("I can see the images from duckieCamera!!!")
+            
+            
+    
 def main(args):
     sc = stream_classifier()
     rospy.init_node('stream_classifier', anonymous=True)
