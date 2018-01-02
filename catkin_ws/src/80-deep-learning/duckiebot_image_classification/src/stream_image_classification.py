@@ -9,7 +9,8 @@ import numpy as np
 # Movidius NCS related packages
 import mvnc.mvncapi as mvnc
 import skimage
-from skimage import io, transform
+from skimage import io
+from skimage.transform import resize
 import numpy
 import os
 import sys
@@ -46,9 +47,8 @@ graph = device.AllocateGraph( blob )
 def callback(data):
     rospy.loginfo("I can see the images from duckieCamera!!!")
 def listener():
-    rospy.init_node('/tianlu/compressed_image_listener', anonymous=True)
+    rospy.init_node('compressed_image_listener', anonymous=True)
     rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, callback)
-    
     
     
     
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # ---- Step 3: Offload image onto the NCS to run inference -------------------
     # Read & resize image [Image size is defined during training]
     img = print_img = skimage.io.imread( IMAGE_PATH )
-    img = skimage.transform.resize( img, IMAGE_DIM, preserve_range=True )
+    img = skimage.transform.resize( img, IMAGE_DIM )
     # Convert RGB to BGR [skimage reads image in RGB, but Caffe uses BGR]
     img = img[:, :, ::-1]
     # Mean subtraction & scaling [A common technique used to center the data]
@@ -84,9 +84,8 @@ if __name__ == '__main__':
     #graph.DeallocateGraph()
     #device.CloseDevice()
     
-    rospy.spin()
 
-    
+    rospy.spin()    
     
     
     
