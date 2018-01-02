@@ -99,7 +99,7 @@ class stream_classifier(object):
             return 
         
         # start a daemon thread to process the image
-        thread = threading.Thread(target=self.processImage,args=(image_msg))
+        thread = threading.Thread(target=self.processImage,args=(image_msg,))
         thread.setDaemon(True)
         thread.start()
         # returns right away 
