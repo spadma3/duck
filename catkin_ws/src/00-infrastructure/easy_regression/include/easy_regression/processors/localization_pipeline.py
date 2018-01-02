@@ -4,13 +4,13 @@ from ground_projection import \
     GroundProjection
 from complete_image_pipeline.pipeline import run_pipeline
 
-class LocalizationPipeline(ProcessorInterface):
+class LocalizationPipelineProcessor(ProcessorInterface):
     
-    def __init__(self, line_detector, image_prep, lane_filter, anti_instagram_name):    
+    def __init__(self, line_detector, image_prep, lane_filter, anti_instagram):    
         self.line_detector = line_detector
         self.image_prep = image_prep
         self.lane_filter = lane_filter
-        self.anti_instagram_name = anti_instagram_name
+        self.anti_instagram = anti_instagram
         
     def process_log(self, bag_in, bag_out):
         
@@ -40,7 +40,7 @@ class LocalizationPipeline(ProcessorInterface):
                                         line_detector_name=self.line_detector, 
                                         image_prep_name=self.image_prep,
                                         lane_filter_name=self.lane_filter,
-                                        anti_instagram_name=self.anti_instagram_name,
+                                        anti_instagram_name=self.anti_instagram,
                                         all_details=all_details)
             
             rect = (480, 640) if not all_details else (240, 320)
