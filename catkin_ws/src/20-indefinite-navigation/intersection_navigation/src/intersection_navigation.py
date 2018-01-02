@@ -39,7 +39,8 @@ class IntersectionNavigation(object):
         # self.poseEstimator.FeedCommandQueue, queue_size=10)
         self.on_regular_road = rospy.Subscriber("~in_lane",BoolStamped, self.ModeCallback, queue_size=1)
 
-        # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPoseInertial, queue_size=1)
+        # set up publishers
+        # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
         # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
 
@@ -238,8 +239,22 @@ class IntersectionNavigation(object):
 
     def ImageCallback(self, msg):
         # TODO
+        # gathering the predicted measurements form PoseEstimator
+        state_est, cov_est = PredictState()
+        x_pred = state_est[0]
+        y_pred = state_est[1]
+        theta_pred = state_est[2]
+
+        msg_pose_pred = IntersectionPose()
+        # msg_pose_pred.header.stamp = msg_img.header.stamp
+        msg_pose_pred.x = x_pred
+        msg_pose_pred.y = y_pred
+        msg_pose_meas.theta = theta_pred
+
+        #still needs a while loop until image timestamps or something like that
+
         # predict state estimate until image timestamp and publish "~intersection_pose_pred"
-        # self.pub_intersection_pose_pred.publish IntersectionPoseInertial??
+        self.pub_intersection_pose_pred.publish(msg_pose_pred)
 
         pass
 
