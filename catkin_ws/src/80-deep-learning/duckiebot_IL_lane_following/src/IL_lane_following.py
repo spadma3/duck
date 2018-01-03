@@ -16,11 +16,9 @@ import os
 import sys
 # Movidius user modifiable input parameters
 NCAPPZOO_PATH           = os.path.expanduser( '~/workspace/ncappzoo' )
-GRAPH_PATH              = NCAPPZOO_PATH + '/caffe/GoogLeNet/graph' 
+GRAPH_PATH              = NCAPPZOO_PATH + '/caffe/Duckietown/duckie.graph' 
 LABELS_FILE_PATH        = NCAPPZOO_PATH + '/data/ilsvrc12/synset_words.txt'
-IMAGE_MEAN              = [ 104.00698793, 116.66876762, 122.67891434]
-IMAGE_STDDEV            = 1
-IMAGE_DIM               = ( 224, 224 )
+IMAGE_DIM               = ( 160, 120 )
 
 # Look for enumerated NCS device(s); quit program if none found.
 devices = mvnc.EnumerateDevices()
@@ -93,10 +91,7 @@ class stream_classifier(object):
         # subscriber, subscribe to compressed image
         self.image_sub = rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, self.callback, queue_size=1)
         # publisher, publish to control command
-        
-        
-        
-        
+                
     def callback(self,image_msg):
         
         self.stats.received()
@@ -136,22 +131,21 @@ class stream_classifier(object):
         # import image for classification
         (rows,cols,chans) = image_cv.shape
         # resize image [Image size is defined during training]
-        img = cv2.resize( image_cv, IMAGE_DIM)
-        # Convert RGB to BGR [skimage reads image in RGB, but Caffe uses BGR]
-        img = img[:, :, ::-1]
-        # Mean subtraction & scaling [A common technique used to center the data]
-        img = img.astype( numpy.float32 )
-        img = ( img - IMAGE_MEAN ) * IMAGE_STDDEV
+        img = cv2.resize( image_cv, IMAGE_DIM, interpolation=cv2.INTER_NEAREST)
+        # cut part of the image
+        img = img[40:,:,:]
+        # Convert image to gray scale
+        img =  cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # tranform 0-255 to 0-1
+        img = cv2.normalize(img.astype('float'),None, 0.0 , 1.0, cv2.NORM_MINMAX)
         # Load the image as a half-precision floating point array
         graph.LoadTensor( img.astype( numpy.float16 ), 'user object' )
         # Get the results from NCS
         output, userobj = graph.GetResult()
         # Print the results
         print('\n------- predictions --------')
-        labels = numpy.loadtxt( LABELS_FILE_PATH, str, delimiter = '\t' )
-        order = output.argsort()[::-1][:6]
-        for i in range( 0, 4 ):
-            print ('prediction ' + str(i) + ' is ' + labels[order[i]]) 
+        print (userobj)
+        print (output) 
                         
 if __name__ == '__main__':
     rospy.init_node('stream_classifier', anonymous=True)
