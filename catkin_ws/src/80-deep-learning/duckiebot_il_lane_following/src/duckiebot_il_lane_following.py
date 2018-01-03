@@ -17,7 +17,7 @@ import os
 import sys
 # Movidius user modifiable input parameters
 NCAPPZOO_PATH           = os.path.expanduser( '~/workspace/ncappzoo' )
-GRAPH_PATH              = NCAPPZOO_PATH + '/caffe/Duckietown/duckie.graph' 
+GRAPH_PATH              = NCAPPZOO_PATH + '/caffe/Duckietown/graph' 
 LABELS_FILE_PATH        = NCAPPZOO_PATH + '/data/ilsvrc12/synset_words.txt'
 IMAGE_DIM               = ( 160, 120 )
 
