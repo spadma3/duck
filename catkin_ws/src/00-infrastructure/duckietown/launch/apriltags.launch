@@ -8,14 +8,14 @@
 
     <!-- Camera -->
  	<include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">
- 	<arg name="veh" value="$(arg veh)"/>
- 	<arg name="local" value="$(arg local)"/>
- 	<arg name="config" value="$(arg config)"/>
- 	<arg name="param_file_name" value="$(arg param_file_name)"/>
- 	<arg name="raw" value="true"/>
- 	<arg name="cam_info" value="true"/> 
- 	<arg name="live" value="$(arg live)"/>
-	<arg name="rect" value="true" />
+ 		<arg name="veh" value="$(arg veh)"/>
+ 		<arg name="local" value="$(arg local)"/>
+ 		<arg name="config" value="$(arg config)"/>
+ 		<arg name="param_file_name" value="$(arg param_file_name)"/>
+ 		<arg name="raw" value="true"/>
+ 		<arg name="cam_info" value="true"/> 
+ 		<arg name="live" value="$(arg live)"/>
+		<arg name="rect" value="true" />
  	</include>
  
  	<!-- AprilTags Detections -->
