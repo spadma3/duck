@@ -39,14 +39,14 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 # Install ZeroMQ
-#./install_zmq
+./install_zmq
 if [[ $? -ne 0 ]] ; then
     echo "Aborting...installation of ZeroMQ failed!"
     exit 5
 fi
 
 # Install ProtoBuf
-#./install_protobuf
+./install_protobuf
 
 # Install the mesh network
 ./install_meshnet $WIFACE $NETADDR
