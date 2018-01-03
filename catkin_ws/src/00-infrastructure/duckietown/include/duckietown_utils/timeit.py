@@ -25,15 +25,23 @@ def rospy_timeit_wall(s):
     rospy.loginfo('%10d ms: %s' % ( 1000*delta, s))
     
 
+class Stack:
+    stack = []
+
 @contextmanager
 def timeit_clock(desc, minimum=None):
 #     logger.debug('timeit %s ...' % desc)
     t0 = time.clock()
+    Stack.stack.append(desc)
     yield
+    Stack.stack.pop()
     t1 = time.clock()
     delta = t1 - t0
     if minimum is not None:
         if delta < minimum:
             return
 #     logger.debug('timeit result: %.2f s (>= %s) for %s' % (delta, minimum, desc))
-    logger.debug('timeit_clock: %6.1f ms (>= %s) for %s' % (delta*1000, minimum, desc))
+
+    pre = '   ' * len(Stack.stack) 
+#     logger.debug('timeit_clock: %s %6.1f ms (>= %s) for %s' % (pre, delta*1000, minimum, desc))
+    logger.debug('timeit_clock: %s %6.2f ms  for %s' % (pre, delta*1000, desc))

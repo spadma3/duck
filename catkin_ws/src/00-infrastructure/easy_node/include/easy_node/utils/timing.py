@@ -86,30 +86,31 @@ class ProcessingTimingStats(object):
         self.stats['skipped'].sample()
     
     @contextmanager
-    def phase(self, phase_name): 
-        if not phase_name in self.phase_names:
-            self.phase_names.append(phase_name)
-        if self.last_msg_being_processed is None:
-            msg = 'Did not call decided_to_process() before?'
-            raise ValueError(msg)
-            
-#         t1 = rospy.get_time()   # @UndefinedVariable
-        t1 = time.time()
-        c1 = time.clock() 
-                    
-        try:
-            yield
-        finally:
-            c2 = time.clock()
-#             t2 = rospy.get_time()   # @UndefinedVariable
-            t2 = time.time()
-            delta_clock = c2 - c1
-            delta_wall = t2 - t1
-            latency_from_acquisition = t2 - self.last_msg_being_processed
-
-        self.stats[(phase_name, 'clock')].sample(delta_clock)
-        self.stats[(phase_name, 'wall')].sample(delta_wall)
-        self.stats[(phase_name, 'latency')].sample(latency_from_acquisition)
+    def phase(self, phase_name):
+        with dtu.timeit_clock(phase_name): 
+            if not phase_name in self.phase_names:
+                self.phase_names.append(phase_name)
+            if self.last_msg_being_processed is None:
+                msg = 'Did not call decided_to_process() before?'
+                raise ValueError(msg)
+                
+    #         t1 = rospy.get_time()   # @UndefinedVariable
+            t1 = time.time()
+            c1 = time.clock() 
+                        
+            try:
+                yield
+            finally:
+                c2 = time.clock()
+    #             t2 = rospy.get_time()   # @UndefinedVariable
+                t2 = time.time()
+                delta_clock = c2 - c1
+                delta_wall = t2 - t1
+                latency_from_acquisition = t2 - self.last_msg_being_processed
+    
+            self.stats[(phase_name, 'clock')].sample(delta_clock)
+            self.stats[(phase_name, 'wall')].sample(delta_wall)
+            self.stats[(phase_name, 'latency')].sample(latency_from_acquisition)
     
     def get_stats(self):
         s = ""
