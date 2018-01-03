@@ -6,7 +6,8 @@ Project point to given path
 Samuel Nyffenegger
 """
 
-from parking_main import *
+from parking_main import (initialize, define_objects, define_obstacles, dubins_path_planning, collision_check,
+    curvature, lot_width, lot_height, visual_boundairy, radius_robot)        ### from parking_main import *
 import dubins_path_planning as dpp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -37,10 +38,13 @@ Functions
 """
 def get_random_pose(px, py, pyaw):
     n_points = len(px)
-    idx = np.random.random_integers(1, n_points-1)
+    ##### current_time_sec = rospy.time.now().secs
+    ##### delta_t = current_time_sec - previous_time_sec
+    idx = np.random.random_integers(1, n_points-1)          ##### idx += int(velocity * delta_t / (sqrt((px[idx] - px[idx-1])**2 + (py[idx] - py[idx-1])**2)))
     x_act = px[idx] + np.random.normal(bias_xy,var_xy)
     y_act = py[idx] + np.random.normal(bias_xy,var_xy)
     yaw_act = pyaw[idx] + np.random.normal(bias_heading,var_heading)
+    ##### previous_time_sec = current_time_sec
     return x_act, y_act, yaw_act
 
 def path_planning(start_number=None, end_number=None):
@@ -96,9 +100,12 @@ def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
     if p_act_A[1] < 0:
         d_est = -d_est
 
+
     # curvature or straight (only valid for dubins path)
-    if ((px[idx_proj-1]+px[idx_proj+1])/2.0 == px[idx_proj]) and ((py[idx_proj-1]+py[idx_proj+1])/2.0 == py[idx_proj]):
+    if abs(np.cross([px[idx_proj+1] - px[idx_proj], py[idx_proj+1] - py[idx_proj], 0], [px[idx_proj+2] - px[idx_proj], py[idx_proj+2] - py[idx_proj], 0])[2]) < 1e-10:         ### if ((px[idx_proj-1]+px[idx_proj+1])/2.0 == px[idx_proj]) and ((py[idx_proj-1]+py[idx_proj+1])/2.0 == py[idx_proj]):
         c_ref = 0.0
+    elif np.cross([px[idx_proj+1] - px[idx_proj], py[idx_proj+1] - py[idx_proj], 0], [px[idx_proj+2] - px[idx_proj], py[idx_proj+2] - py[idx_proj], 0])[2] < 0:
+        c_ref = -1.0/curvature
     else:
         c_ref = 1.0/curvature
 
@@ -108,7 +115,7 @@ def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
     # further parameters
     d_ref, v_ref = 0, velocity
 
-    print("d_est = {}\ntheta_est_deg = {}\nc_ref = {}".format(d_est/1000.0, degrees(theta_est), c_ref/1000.0))
+    print("d_est = {}\ntheta_est_deg = {}\nc_ref = {}".format(d_est/1000.0, degrees(theta_est), c_ref*1000.0))
 
     return d_est/1000.0, d_ref/1000.0, theta_est, c_ref*1000.0, v_ref, x_proj, y_proj
 
