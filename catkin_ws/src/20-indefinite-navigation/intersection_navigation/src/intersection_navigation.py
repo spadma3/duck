@@ -20,7 +20,7 @@ class IntersectionNavigation(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.robot_name = self.SetupParameter("~robot_name", "bluck")
+        self.robot_name = self.SetupParameter("~robot_name", "bob")
 
         # set up path planner, state estimator, ...
         self.intersectionLocalizer = IntersectionLocalizer(self.robot_name)
@@ -181,7 +181,7 @@ class IntersectionNavigation(object):
 
                 # waiting for instructions where to go
                 # TODO
-                # self.turn_type = TurnTypeCallback()
+                self.turn_type = TurnTypeCallback()
                 # 0: straight, 1: left, 2: right
                 self.turn_type = 2            
                 pose_init = [best_x_meas, best_y_meas, best_theta_meas]
@@ -279,11 +279,11 @@ class IntersectionNavigation(object):
         # TODO
         # will be used to proceed with main loop
         if self.sub_turn_type == 1: # straight
-            turn_type = 0
+            self.turn_type = 0
         elif self.sub_turn_type == 2: # right
-            turn_type = 2
+            self.turn_type = 2
         elif self.sub_turn_type == 0: # left
-            turn_type = 1
+            self.turn_type = 1
         else:
             pass
 
