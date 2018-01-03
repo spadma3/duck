@@ -20,7 +20,7 @@ class IntersectionNavigation(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.robot_name = self.SetupParameter("~robot_name", "bob")
+        self.robot_name = self.SetupParameter("~robot_name", "bluck")
 
         # set up path planner, state estimator, ...
         self.intersectionLocalizer = IntersectionLocalizer(self.robot_name)
@@ -57,7 +57,7 @@ class IntersectionNavigation(object):
         self.tag_info = TagInfo()
         self.intersection_signs = [self.tag_info.FOUR_WAY, self.tag_info.RIGHT_T_INTERSECT,
                                    self.tag_info.LEFT_T_INTERSECT, self.tag_info.T_INTERSECTION]
-        self.VehicleCommands = VehicleCommands()
+        #self.VehicleCommands = VehicleCommands()
 
         # nominal stop positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
         self.nominal_stop_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
