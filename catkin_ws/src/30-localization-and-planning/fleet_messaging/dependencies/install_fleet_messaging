@@ -4,16 +4,15 @@
 if [[ $# -ne 2 ]] ; then
     echo "Usage:"
     echo "Important: the script MUST be run from its location!"
-    echo "./install_fleet_messaging <wifi-iface> <static-ip>"
+    echo "./install_fleet_messaging <wifi-iface> <network>"
     echo "Write arguments without <>."
-    echo "<wifi-iface> is a WiFi interface that can be found with iwconfig."
-    echo "(interface used for the mesh network)"
-    echo "<static-ip> is a static IP address for the duckiebot."
-    echo "Every duckiebot needs a UNIQUE IP address!"
+    echo "<wifi-iface> is a WiFi interface that can be found with iwconfig (interface used for the mesh network)."
+    echo "<network> is the duckiebot mesh network address (static IP address and subnet in slash notation, e.g. 192.168.15.30/24 for a subnet of 255.255.255.0)."
+    echo "Every duckiebot needs a UNIQUE IP address and the subnet must be equal on all the duckiebots!"
     exit 1
 fi
 WIFACE=$1
-IPADDR=$2
+NETADDR=$2
 
 # Check the interface
 for item in "$@" ; do
@@ -26,21 +25,32 @@ if [[ $? -ne 0 ]] ; then
     exit 2
 fi
 
-source $DUCKIETOWN_ROOT/environment.sh
+# Check the IP Address
+CHECK_IP=$(./get_ip $NETADDR)
 if [[ $? -ne 0 ]] ; then
-    echo "Aborting...there is something wrong with the environment!"
+    echo "Aborting...the network address" $NETADDR "has a wrong format!"
     exit 3
 fi
 
-# Install ZeroMQ
-./install_zmq
+source $DUCKIETOWN_ROOT/environment.sh
 if [[ $? -ne 0 ]] ; then
-    echo "Aborting...installing ZeroMQ failed!"
+    echo "Aborting...there is something wrong with the environment!"
     exit 4
 fi
 
+# Install ZeroMQ
+#./install_zmq
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...installation of ZeroMQ failed!"
+    exit 5
+fi
+
 # Install ProtoBuf
-./install_protobuf
+#./install_protobuf
 
 # Install the mesh network
-./install_meshnet $WIFACE $IPADDR
+./install_meshnet $WIFACE $NETADDR
+if [[ $? -ne 0 ]] ; then
+    exit 6
+    echo "Aborting...the installation of the mesh network failed!"
+fi

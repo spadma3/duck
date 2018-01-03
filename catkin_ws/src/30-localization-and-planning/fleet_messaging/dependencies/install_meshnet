@@ -1,19 +1,32 @@
 #!/bin/bash
 
+# Get the arguments
+WIFACE=$1
+NETADDR=$2
+
+# Get the IP Address and the subnet
+IPADDR=$(./get_ip $NETADDR)
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...the network address has the wrong format!"
+    exit 1
+fi
+SUBNET=$(./get_subnet $NETADDR)
+
 # Install B.A.T.M.A.N. advanced and dependencies
 sudo apt install -y bridge-utils wireless-tools batctl
 
 # Configure the mesh network
-sudo ./configure_meshnet $1 $2
+sudo ./configure_meshnet $WIFACE $IPADDR $SUBNET
 sudo chmod +x start_batman
+sudo chmod +x rem_bat_iface
 sudo chmod +x stop_batman
 sudo mv start_batman /etc/network/if-pre-up.d/
+sudo mv rem_bat_iface /etc/network/if-down.d/
 sudo mv stop_batman /etc/network/if-post-down.d/
 
 RED='\033[0;31m'
 NC='\033[0m'
 echo -e "${RED}"
 echo -e "Installation of the mesh network finished!"
-echo -e "Remove previous occurrences of $1 from /etc/network/interfaces"
-echo -e "Check /etc/network/interfaces for uninstalling the mesh network!"
+echo -e "Run ./uninstall_meshnet to uninstall the mesh network!"
 echo -e "${NC}"
