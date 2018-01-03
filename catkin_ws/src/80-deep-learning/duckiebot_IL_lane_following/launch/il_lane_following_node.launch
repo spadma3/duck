@@ -1,3 +1,0 @@
-<launch>
-  <node name="duckiebot_il_lane_following" pkg="duckiebot_il_lane_following" type="duckiebot_il_lane_following" />
-</launch>
