@@ -213,7 +213,7 @@
 
 
 	<!-- Start Imitation Learning -->
-	<include file="$(find duckiebot_il_lane_following)/launch/duckiebot_il_lane_following_node.launch">
+	<include file="$(find duckiebot_il_lane_following)/launch/il_lane_following_node.launch">
 	</include>
 	<!-- End Imitation Learning -->
 
