@@ -32,8 +32,10 @@ class IntersectionNavigation(object):
         self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.TurnTypeCallback, queue_size=1)
         self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed", CompressedImage,
                                         self.ImageCallback, queue_size=1)
+        
         self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPose, 
                                         self.poseEstimator.UpdateWithPoseMeasurement, queue_size=1)
+        
         self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
          
         # self.poseEstimator.FeedCommandQueue, queue_size=10)
@@ -229,18 +231,20 @@ class IntersectionNavigation(object):
         # TODO
         # will be used to proceed with main loop
         if self.sub_turn_type ==1: # straight
-            turn_type = 0
+            self.turn_type = 0
         elif self.sub_turn_type == 2: # right
-            turn_type = 2
+            self.turn_type = 2
         elif self.sub_turn_type == 0: # left
-            turn_type = 1
+            self.turn_type = 1
         else:
+        # random decision ? or a standardized right turn ?
             pass
 
     def ImageCallback(self, msg):
-        # TODO
-        # gathering the predicted measurements form PoseEstimator
-        state_est, cov_est = PredictState()
+        # TODO #NOT NEEDED YET. 
+        # gathering the predicted measurements from PoseEstimator
+
+        state_est, cov_est = self.PoseEstimator.PredictState()
         x_pred = state_est[0]
         y_pred = state_est[1]
         theta_pred = state_est[2]
@@ -255,7 +259,6 @@ class IntersectionNavigation(object):
 
         # predict state estimate until image timestamp and publish "~intersection_pose_pred"
         self.pub_intersection_pose_pred.publish(msg_pose_pred)
-
         pass
 
     def SetupParameter(self, param_name, default_value):
