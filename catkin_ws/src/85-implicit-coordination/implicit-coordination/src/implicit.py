@@ -3,7 +3,7 @@ import rospy
 import time
 from random import randrange
 from duckietown_msgs.msg import BoolStamped
-from duckietown_msgs.msg import VehiclePose
+from multivehicle_tracker.msg import TrackletList
 
 
 class Implicit(object):
@@ -12,13 +12,13 @@ class Implicit(object):
         self.node_name = rospy.get_name()
         self.bStopline = False
         self.iteration = 0
-        self.Pose = [0.0,0.0]
+        self.Pose = [0.0, 0.0]
 
         # Setup publishers
         self.pub_implicit_coordination = rospy.Publisher("~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
         # Setup subscriber
         self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection", BoolStamped, self.cbStop)
-        self.sub_detector = rospy.Subscriber("~vehicle_detection_node", VehiclePose, self.cbPose)
+        self.sub_detector = rospy.Subscriber("~vehicle_detection_node", TrackletList, self.cbPose)
 
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
         rospy.Timer(rospy.Duration.from_sec(1.0), self.cbCSMA)
@@ -41,12 +41,13 @@ class Implicit(object):
         self.Pose.pop(0)
 
     def DetectMovement(self):
-        if not (self.Pose[0] - self.Pose[1] == 0):
+        diff = self.Pose[0] - self.Pose[1]
+        if abs(diff) >= detection_threshold:
             return True
         else:
             return False
 
-    def cbCSMA(self, args = None):
+    def cbCSMA(self, args=None):
         print 'fuck the duck'
         flag = BoolStamped()
         SlotTime = 2.0  # in seconds, tunable parameter TODO: experiments
