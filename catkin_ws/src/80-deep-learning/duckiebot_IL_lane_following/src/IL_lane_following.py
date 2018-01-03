@@ -4,6 +4,7 @@ import roslib
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, Image
 from duckietown_utils.jpg import image_cv_from_jpg
+from duckietown_msgs.msg import Twist2DStamped, LanePose
 import cv2
 import rospy
 import threading
@@ -77,7 +78,7 @@ class Stats():
               self.nskipped, fps(self.nskipped), skipped_perc))
         return m
 
-class stream_classifier(object):
+class imitation_lane_following(object):
     def __init__(self):
         
         # thread lock
@@ -90,8 +91,10 @@ class stream_classifier(object):
         
         # subscriber, subscribe to compressed image
         self.image_sub = rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, self.callback, queue_size=1)
-        # publisher, publish to control command
-                
+        # publisher, publish to control command /robotname/car_cmd_switch_node/cmd
+        
+        self.pub_car_cmd = rospy.Publisher("/tianlu/car_cmd_switch_node/cmd", Twist2DStamped, queue_size=1) 
+        
     def callback(self,image_msg):
         
         self.stats.received()
@@ -144,12 +147,29 @@ class stream_classifier(object):
         output, userobj = graph.GetResult()
         # Print the results
         print('\n------- predictions --------')
-        print (userobj)
-        print (output) 
+        # first make the array to float data type
+        learning_omega = float(output[0])
+        print (learning_omega) 
+        
+        # set car cmd through ros message
+        
+        car_control_msg = Twist2DStamped()
+        car_control_msg.header = image_msg.header
+        car_control_msg.v = 0.386400014162
+        car_control_msg.omega = learning_omega
+        
+        # publish the control command
+        self.publishCmd(car_control_msg)   
+    
+    
+    def publishCmd(self, car_cmd_msg):
+        
+        self.pub_car_cmd.publish(car_cmd_msg)    
+    
                         
 if __name__ == '__main__':
-    rospy.init_node('stream_classifier', anonymous=True)
-    sc = stream_classifier()
+    rospy.init_node('imitation_lane_following', anonymous=True)
+    il = imitation_lane_following()
     try:
         rospy.spin()
     except KeyboardInterrupt:
