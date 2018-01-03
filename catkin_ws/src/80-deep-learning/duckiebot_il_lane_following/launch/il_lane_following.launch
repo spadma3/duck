@@ -1,7 +1,7 @@
 <launch>
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
 	<!-- start basic args -->
-	<include file="$(find duckiebot_IL_lane_following)/launch/il_lane_following_master.launch">
+	<include file="$(find duckiebot_il_lane_following)/launch/il_lane_following_master.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="visualization" default="true" />
 		<arg name="verbose" default="false" />
