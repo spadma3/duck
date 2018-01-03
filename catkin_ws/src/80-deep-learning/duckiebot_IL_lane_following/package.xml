@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>duckiebot_IL_lane_following</name>
+  <name>duckiebot_il_lane_following</name>
   <version>0.0.0</version>
-  <description>The duckiebot_IL_lane_following package</description>
+  <description>The duckiebot_il_lane_following package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

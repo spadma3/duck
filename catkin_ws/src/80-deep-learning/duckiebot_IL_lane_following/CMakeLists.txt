@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(duckiebot_IL_lane_following)
+project(duckiebot_il_lane_following)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
