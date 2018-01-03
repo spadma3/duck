@@ -5,7 +5,10 @@ __all__ = [
 ]
 
 # @contract(images='list[>=1](array)')
-def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
+def make_images_grid(images, cols=None, pad=0, bgcolor=[128, 128, 128]):
+    """
+        bgcolor: uint8 values
+    """
     n = len(images)
     if cols is None:
         cols = int(np.ceil(np.sqrt(n)))
@@ -55,7 +58,7 @@ def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
 
     canvas = np.zeros((canvas_height, canvas_width, 3), dtype='uint8')
     for k in range(3):
-        canvas[:, :, k] = bgcolor[k] * 255
+        canvas[:, :, k] = bgcolor[k] 
 
     for i in range(n):
         col = i % cols
@@ -85,11 +88,11 @@ def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
 def rgb_pad(height, width, color):
     pad = np.zeros((height, width, 3), dtype='uint8')
     for i in range(3):
-        pad[:, :, i] = color[i] * 255
+        pad[:, :, i] = color[i]
     return pad
 
 
-def image_border(rgb, left=0, right=0, top=0, bottom=0, color=[1, 1, 1]):
+def image_border(rgb, left=0, right=0, top=0, bottom=0, color=[126, 128, 128]):
     orig_shape = rgb.shape
     
     if left > 0:

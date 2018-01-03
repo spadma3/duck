@@ -13,7 +13,7 @@ def parse_expressions():
     res = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
     
     assert len(res) == 1
-    l1 = res[one]
+    l1 = res[list(res)[0]]
     assert l1.t0 == 10
     assert l1.t1 == 15
     assert l1.length == 5, l1.length
@@ -22,7 +22,8 @@ def parse_expressions():
     query = one + '/{10:15}/{1:3}'
     res2 = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
     assert len(res2) == 1
-    l2 = res2[one]
+    
+    l2 = res2[list(res2)[0]]
 #     print l2.t0, l2.t1, l2.length
     assert l2.t0 == 11
     assert l2.t1 == 13
@@ -38,7 +39,7 @@ def parse_expressions2():
     res = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
     
     assert len(res) == 1
-    l1 = res[one]
+    l1 = res[list(res)[0]]
     assert l1.t0 == 10.5
     assert l1.t1 == 15.5
     assert l1.length == 5, l1.length

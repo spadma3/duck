@@ -24,10 +24,11 @@ class MakeTimeSlice(dtu.Spec):
         results = self.children[0].match_dict(seq)
         matches = OrderedDict()
         for k, v in results.items():
-            matches[k] = self.transform(v) 
+            k2, v2 = self.transform(k, v)
+            matches[k2] = v2  
         return matches
     
-    def transform(self, log):
+    def transform(self, id_log, log):
         if not log.valid:
             return log
         u0 = log.t0
@@ -42,8 +43,9 @@ class MakeTimeSlice(dtu.Spec):
             new_end = u0 + self.t1
         else:
             new_end = u1
-        length = new_end-new_start 
-        return log._replace(t0=new_start, t1=new_end, length=length)
+        length = new_end-new_start
+        id_log2 = id_log + '_%s_%s' % (self.t0, self.t1)  
+        return id_log2, log._replace(t0=new_start, t1=new_end, length=length)
     
 def slice_time(m, spec):
     if m.group('t0') is not None:

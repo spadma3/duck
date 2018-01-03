@@ -7,7 +7,7 @@ from easy_algo import get_easy_algo_db
 import rosbag  # @UnresolvedImport
 
 
-def process_one(bag_filename, t0, t1, processors, log_out):
+def process_one(bag_filename, t0, t1, processors, log_out, log_name):
     dtu.logger.info('job_one()')
     dtu.logger.info('   input: %s' % bag_filename)
     dtu.logger.info('   processors: %s' % processors)
@@ -44,7 +44,7 @@ def process_one(bag_filename, t0, t1, processors, log_out):
             
             dtu.logger.info('Processing:\n  in = %s\n out = %s' % 
                         (bag_filename, next_bag_filename))
-            p.process_log(in_bag, out_bag)
+            p.process_log(in_bag, out_bag, log_name)
             
             in_bag.close()
             out_bag.close()

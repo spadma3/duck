@@ -32,7 +32,7 @@ class CreateImageFromPylab(object):
             raise Exception('You did not draw anything in the image.')
 
         savefig_params = dict(dpi=self.dpi, bbox_inches='tight', pad_inches=0.01,
-                              transparent=True)
+                              transparent=True, facecolor=self.figure.get_facecolor())
         self.pylab.savefig(self.temp_file.name, **savefig_params)
 
         with open(self.temp_file.name) as f:

@@ -26,7 +26,8 @@ def write_image_as_jpg(image, filename):
 def write_jpgs_to_dir(name2image, dirname):
     return write_bgr_images_as_jpgs(name2image, dirname)
 
-def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
+def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None,
+                             bgcolor = ColorConstants.BGR_DUCKIETOWN_YELLOW):
     """
         Write a set of images to a directory.
 
@@ -47,10 +48,10 @@ def write_bgr_images_as_jpgs(name2image, dirname, extra_string=None):
     for i, (filename, image) in enumerate(res.items()):
         s = filename
         
-        res[filename] = add_header_to_bgr(image, s)
+        res[filename] = add_header_to_bgr(image, s, bgcolor=bgcolor)
         images.append(res[filename])
 
-    bgcolor = ColorConstants.BGR_DUCKIETOWN_YELLOW
+    
     res['all'] = make_images_grid(images, bgcolor=bgcolor, pad=20)
 
     output = OrderedDict()

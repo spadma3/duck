@@ -1,7 +1,8 @@
-from easy_regression import ProcessorInterface
-import duckietown_utils as dtu
-from ground_projection import GroundProjection
 from complete_image_pipeline.pipeline import run_pipeline
+import duckietown_utils as dtu
+from easy_regression import ProcessorInterface
+from ground_projection import GroundProjection
+
 
 __all__ = ['LocalizationPipelineProcessor']
 
@@ -12,8 +13,9 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         self.image_prep = image_prep
         self.lane_filter = lane_filter
         self.anti_instagram = anti_instagram
+        self.all_details = False
         
-    def process_log(self, bag_in, bag_out):
+    def process_log(self, bag_in, bag_out, log_name):
         
         vehicle_name = dtu.which_robot(bag_in)
     
@@ -28,6 +30,8 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         else:
             start_time = bag_in.get_start_time() 
             
+        bgcolor = dtu.ColorConstants.BGR_DUCKIETOWN_YELLOW
+            
         sequence = dtu.d8n_bag_read_with_progress(bag_in, topic, yield_tuple=True)
         for i, (topic, msg, t) in enumerate(sequence):
             
@@ -35,25 +39,29 @@ class LocalizationPipelineProcessor(ProcessorInterface):
             
             rgb = dtu.rgb_from_ros(msg)
             
-            all_details = False
             bgr = dtu.bgr_from_rgb(rgb)
+            
             res, _stats = run_pipeline(bgr, gp=gp,
                                         line_detector_name=self.line_detector, 
                                         image_prep_name=self.image_prep,
                                         lane_filter_name=self.lane_filter,
                                         anti_instagram_name=self.anti_instagram,
-                                        all_details=all_details)
+                                        all_details=self.all_details)
             
-            rect = (480, 640) if not all_details else (240, 320)
-            res = dtu.resize_images_to_fit_in_rect(res, rect, bgcolor=dtu.ColorConstants.BGR_DUCKIETOWN_YELLOW)
+            rect = (480, 640) if not self.all_details else (240, 320)
+            res = dtu.resize_images_to_fit_in_rect(res, rect, bgcolor=bgcolor)
 
             headers = [
-                "frame %5d: %.2f s" % (i, rel_time),
-                "image_prep: %s | line_detector: %s | lane_filter: %s" % (self.line_detector, 
-                                                                      self.image_prep,self.lane_filter,)
+                "%s %.2f s" % (log_name,  rel_time),
+                "color correction: %s | preparation: %s | detector: %s | filter: %s" % (
+                    self.anti_instagram,
+                    self.image_prep,
+                    self.line_detector, 
+                    self.lane_filter,)
             ]
             
-            res = dtu.write_bgr_images_as_jpgs(res, dirname=None)
+            
+            res = dtu.write_bgr_images_as_jpgs(res, dirname=None, bgcolor=bgcolor)
             
             cv_image = res['all']
             

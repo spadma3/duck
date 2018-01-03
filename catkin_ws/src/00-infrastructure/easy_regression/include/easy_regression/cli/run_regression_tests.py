@@ -59,6 +59,8 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
 def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     
     logs = rt.get_logs(easy_logs_db)
+    print "log names: %s" % sorted(logs)
+    
     
     processors = rt.get_processors()
     
@@ -81,18 +83,21 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
         c = context.child(log_name)
         # process one     
         log_out = os.path.join(tmpdir, 'logs', log_name + '/'  + 'out.bag')
-        bag_filename = c.comp(get_log_if_not_exists, easy_logs_db.logs, log_name)
+        
+        bag_filename = c.comp(get_log_if_not_exists, easy_logs_db.logs, log.filename)
         t0 = log.t0
         t1 = log.t1
-        log_out_ = c.comp(process_one, bag_filename, t0, t1, processors, log_out, job_id=log_name)
+        log_out_ = c.comp(process_one, bag_filename, t0, t1, processors, log_out, log_name, job_id=log_name)
         
         for a in analyzers:
             r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id=a) 
             do_before_deleting_tmp_dir.append(r)
             
         for topic in rt.get_topic_videos():
-            topic_sanitized = topic.replace('/','-')
-            mp4 = os.path.join(out, 'videos', log_name, topic_sanitized + '.mp4')
+            # remove initial slash
+            topic_sanitized = topic[1:]
+            topic_sanitized = topic_sanitized.replace('/','-')
+            mp4 = os.path.join(out, 'videos', log_name, log_name+'-'+topic_sanitized + '.mp4')
             v = c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4)
             do_before_deleting_tmp_dir.append(v)
 

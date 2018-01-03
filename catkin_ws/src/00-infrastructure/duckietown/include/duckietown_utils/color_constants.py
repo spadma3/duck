@@ -2,11 +2,13 @@
 __all__ = [
     'bgr_color_from_string',
     'ColorConstants',
+    'matplotlib_01_from_rgb',
 ]
 
 def rgb_color_from_bgr_color(c):
     B, G, R = 0, 1, 2
     return c[R], c[G], c[B]
+ 
  
 class ColorConstants(object):
     STR_WHITE = 'white'
@@ -37,6 +39,10 @@ class ColorConstants(object):
     RGB_YELLOW = rgb_color_from_bgr_color(BGR_YELLOW)
     RGB_DUCKIETOWN_YELLOW = rgb_color_from_bgr_color(BGR_DUCKIETOWN_YELLOW)
     
+def matplotlib_01_from_rgb(c):
+    mcolor = tuple(x/255.0 for x in c)
+    return mcolor
+
 def bgr_color_from_string(s):
     d = {
         ColorConstants.STR_YELLOW: ColorConstants.BGR_YELLOW,

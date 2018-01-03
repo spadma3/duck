@@ -1,7 +1,6 @@
 from collections import OrderedDict, namedtuple
-import copy
-
 from contracts.utils import check_isinstance
+import copy
 
 import duckietown_utils as dtu
 from easy_regression.conditions.interface import RTCheck, RTParseError
@@ -43,7 +42,12 @@ class RegressionTest(object):
     def get_logs(self, algo_db):
         logs = OrderedDict()
         for s in self.logs:
-            logs.update(algo_db.query(s))
+            for k, log in algo_db.query(s).items():
+                if k in logs:
+                    msg = 'Repeated log id %r' % k
+                    msg += '\n query: %s' % self.logs
+                    raise ValueError(msg) 
+                logs[k] = log
         return logs
     
     def get_topic_videos(self):
