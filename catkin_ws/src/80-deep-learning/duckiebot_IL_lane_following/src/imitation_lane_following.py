@@ -168,7 +168,7 @@ class imitation_lane_following(object):
     
                         
 if __name__ == '__main__':
-    rospy.init_node('imitation_lane_following', anonymous=True)
+    rospy.init_node('imitation_lane_following', anonymous=False)
     il = imitation_lane_following()
     try:
         rospy.spin()

@@ -1,0 +1,6 @@
+<launch>
+	<arg name="veh"/>
+	<arg name="local" default="false"/>
+	<arg name="pkg_name" default="duckiebot_IL_lane_following"/>
+	<arg name="node_name" default="imitation_lane_following" doc="name of the node"/>
+</launch>
