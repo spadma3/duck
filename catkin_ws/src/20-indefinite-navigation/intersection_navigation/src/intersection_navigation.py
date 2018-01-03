@@ -279,11 +279,14 @@ class IntersectionNavigation(object):
         # TODO
         # will be used to proceed with main loop
         if self.sub_turn_type == 1: # straight
-            self.turn_type = 0
+            turn_type = 0
+            rospy.loginfo("[%s] Going straight.")
         elif self.sub_turn_type == 2: # right
-            self.turn_type = 2
+            turn_type = 2
+            rospy.loginfo("[%s] Going right.")
         elif self.sub_turn_type == 0: # left
-            self.turn_type = 1
+            turn_type = 1
+            rospy.loginfo("[%s] Going left.")
         else:
             pass
 
