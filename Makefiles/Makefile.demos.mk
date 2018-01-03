@@ -46,6 +46,8 @@ demo-line_detector-default_ld2: demo-line_detector-quiet-default_ld2
 demo-line_detector-quiet-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name) line_detector_param_file_name:=$* verbose:=false"
 
+demo-vehicle_follow_leader: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos vehicle_avoid.launch" 
 
 
 # Basic demos
