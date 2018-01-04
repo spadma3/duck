@@ -13,13 +13,28 @@ class Implicit(object):
         self.bStopline = False
         self.Pose = []
         self.iteration = 0
+	self.SlotTime
+	self.Treshold
+	self.config     = self.setupParam("~config", "baseline")
+        self.cali_file_name = self.setupParam("~cali_file_name", "default")
+	rospack = rospkg.RosPack()
+	self.cali_file = rospack.get_path('duckietown') + \
+                                "/config/" + self.config + \
+                                "/implicit_coordination/implicit_coordination_node" +  \
+                                self.cali_file_name + ".yaml"
+	
+	if not os.path.isfile(self.cali_file):
+        	rospy.logwarn("[%s] Can't find calibration file: %s.\n"
+                                        % (self.node_name, self.cali_file))
+        self.loadConfig(self.cali_file)
+
         rospy.loginfo("[%s] Initialzing." % (self.node_name))
 
         # Setup publishers
         self.pub_implicit_coordination = rospy.Publisher("~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
         # Setup subscriber
         self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection", BoolStamped, self.cbStop)
-        self.sub_detector = rospy.Subscriber("~detector", PoseStamped, self.cbPose)
+        self.sub_detector = rospy.Subscriber("~vehicle_detection_node", PoseStamped, self.cbPose)
 
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
 
@@ -28,6 +43,20 @@ class Implicit(object):
         rospy.set_param(param_name, value)
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
+
+
+    def loadConfig(self, filename):
+     	stream = file(filename, 'r')
+        data = yaml.load(stream)
+        stream.close()
+       
+        self.SlotTime = data['slottime']
+	rospy.loginfo('[%s] SlotTime: %.2f' % (self.node_name, self.SlotTime)
+	self.Treshold=data['treshold']
+        rospy.loginfo('[%s] Treshold: %.2f' % (self.node_name, self.Treshold)
+
+        
+			
 
     # callback functions
     def cbStop(self, msg):
@@ -48,7 +77,6 @@ class Implicit(object):
             return False
 
     def CSMA(self):
-        SlotTime = 2.0  # in seconds, tunable parameter TODO: experiments
         backoff_time = 0.0  # in seconds
         if self.DetectMovement:
             self.iteration += 1
