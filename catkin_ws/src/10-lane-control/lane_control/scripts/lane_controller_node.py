@@ -18,6 +18,7 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+	self.sub_mode      = rospy.Subscriber("fsm_node/mode",FSMState, self.processStateChange)
 
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
@@ -31,6 +32,11 @@ class lane_controller(object):
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
+
+    def processStateChange(self, msg):
+        if self.state == "INTERSECTION_CONTROL" and (msg.state == "LANE_FOLLOWING" or msg.state == "PARALLEL_AUTONOMY"):
+            self.afterIntersectionWork()
+        self.state=msg.state
 
     def setGains(self):
         v_bar = 0.5 # nominal speed, 0.5m/s
