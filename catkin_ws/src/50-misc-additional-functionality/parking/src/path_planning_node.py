@@ -144,24 +144,11 @@ class parkingPathPlanner():
     #Added from parking_main
 
     # init for every new path
-    def initialize(start_number_manual=None, end_number_manual=None):
-        if choose_random_parking_space_combination:
-            entrance_exit = np.random.random_integers(0, 1) * 7;
-            parking_space = np.random.random_integers(1, 6);
-            if entrance_exit == 0:
-                start_number = entrance_exit
-                end_number = parking_space
-            else:
-                start_number = parking_space
-                end_number = entrance_exit
-        else:
-            start_number = start_number_manual
-            end_number = end_number_manual
+    def initialize(end_number):
 
-        start_x, start_y, start_yaw = pose_from_key(start_number)
         end_x, end_y, end_yaw = pose_from_key(end_number)
 
-        return start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number
+        return end_x, end_y, end_yaw, end_number
 
     # pose assigenment: entrance, parking space, exit
     def pose_from_key(key):
