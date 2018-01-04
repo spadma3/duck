@@ -99,7 +99,7 @@ nodes:
 states:
   JOYSTICK_CONTROL:
     transitions:
-      joystick_override_off: "LEARNING_LANE_FOLLOWING"
+      joystick_override_off: "LANE_FOLLOWING"
       start_avoidance: "LANE_FOLLOWING_AVOID"
     active_nodes:
       - lane_filter_node
