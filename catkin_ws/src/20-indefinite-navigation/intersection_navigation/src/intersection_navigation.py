@@ -39,7 +39,7 @@ class IntersectionNavigation(object):
 
          
         # self.poseEstimator.FeedCommandQueue, queue_size=10)
-        # self.on_regular_road = rospy.Subscriber("~in_lane", BoolStamped, self.ModeCallback, queue_size=1)
+        self.on_regular_road = rospy.Subscriber("~in_lane", BoolStamped, self.ModeCallback, queue_size=1)
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
