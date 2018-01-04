@@ -26,7 +26,7 @@ class LaneFilterNode(object):
         self.store_phi =0
         
         # Subscribers
-        self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
+        self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments,"hi", queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
 
@@ -53,10 +53,10 @@ class LaneFilterNode(object):
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
-    def processSegments(self,segment_list_msg):
+    def processSegments(self,segment_list_msg, addmsg):
         if not self.active:
             return
-
+        print "add msg: ", addmsg
         # Step 1: predict
         current_time = rospy.get_time()
         self.filter.predict(dt=current_time-self.t_last_update, v = self.velocity.v, w = self.velocity.omega)
