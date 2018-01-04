@@ -16,7 +16,8 @@ import numpy
 import os
 import sys
 # Movidius user modifiable input parameters
-GRAPH_PATH              = './v1.graph'
+
+GRAPH_PATH              = os.environ['DUCKIETOWN_ROOT']+'/catkin_ws/src/80-deep-learning/duckiebot_il_lane_following/src/v1.graph'
 IMAGE_DIM               = ( 160, 120 )
 
 # Look for enumerated NCS device(s); quit program if none found.
