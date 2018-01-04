@@ -214,6 +214,7 @@ class LineDetectorNode(object):
 
         # print "Latency of segment list: ", segment_latency
         rospy.loginfo("Mean latency segment list: " + str(np.mean(self.latencyArray))
+        # rospy.loginfo("Image_Size: " + str(self.img_size) + " / top_cutoff: " + str(self.top_cutoff))
 
         # Publish segmentList
         self.pub_lines.publish(segmentList)
