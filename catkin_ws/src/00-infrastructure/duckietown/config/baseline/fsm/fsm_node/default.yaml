@@ -102,8 +102,19 @@ states:
       joystick_override_off: "LEARNING_LANE_FOLLOWING"
       start_avoidance: "LANE_FOLLOWING_AVOID"
     active_nodes:
-      - framerate_high
+      lane_filter_node
+      line_detector_node
+      stop_line_filter_node
+      framerate_high
+      decoder_node
+      apriltag_node
     lights: ["joystick"]
+  LEARNING_LANE_FOLLOWING:
+    transitions:
+      joystick_override_on: "JOYSTICK_CONTROL"
+    active_nodes:
+      - framerate_high
+    lights: ["learning_lane_control"]
   PARALLEL_AUTONOMY:
     transitions:
       vehicle_detection: "AVOID_VEHICLE"
