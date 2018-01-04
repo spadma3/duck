@@ -18,9 +18,13 @@ class Sender(object):
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initializing." %(self.node_name))
 
+        rospy.loginfo("[%s] 1" %(self.node_name))
+
         # Load the parameters
         config_path = self.__setup_parameter("~config")
+        rospy.loginfo("[%s] 2" %(self.node_name))
         self.iface = self.__setup_parameter("~iface")
+        rospy.loginfo("[%s] 3" %(self.node_name))
 
         # Load the configuration
         try:
@@ -32,6 +36,8 @@ class Sender(object):
             output = "[%s] File \"%s\" does not exist! Please use an existing file!"
             rospy.logfatal(output %(self.node_name, config_path))
             raise
+        
+        rospy.loginfo("[%s] 4" %(self.node_name))
 
         # Loop through the configuration
         try:
