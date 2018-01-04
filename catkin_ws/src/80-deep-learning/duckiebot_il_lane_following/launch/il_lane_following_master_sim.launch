@@ -36,6 +36,9 @@
 	<arg name="/odometry_learning/learning"  default="false"/>
 	<arg name="/odometry_learning/visual_odometry" default="false"/>
 
+        <arg name="duckiebot_il_lane_following" default="true"/>
+
+
 	<!-- end switch args -->
 	
 	<!-- Enable statistics -->
@@ -182,9 +185,25 @@
 
 
 	<!-- Start Imitation Learning -->
-	<include file="$(find duckiebot_il_lane_following)/launch/il_lane_following_node.launch">
-	</include>
+        <group if="$(arg duckiebot_il_lane_following)">
+		
+
+		<remap from="duckiebot_il_lane_following/compressed" to="camera_node/image/compressed" />
+		
+		<include file="$(find duckiebot_il_lane_following)/launch/il_lane_following_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+		</include>
+
+
+	</group>
 	<!-- End Imitation Learning -->
+
+
+
+
+
 
 
 </launch>
