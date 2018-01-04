@@ -80,6 +80,7 @@ class Stats():
 class imitation_lane_following(object):
     def __init__(self):
         
+        self.node_name = rospy.get_name()
         # thread lock
         self.thread_lock = threading.Lock()
         
@@ -89,10 +90,10 @@ class imitation_lane_following(object):
         self.stats = Stats()
         
         # subscriber, subscribe to compressed image
-        self.image_sub = rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, self.callback, queue_size=1)
+        self.image_sub = rospy.Subscriber("~compressed", CompressedImage, self.callback, queue_size=1)
         # publisher, publish to control command /robotname/car_cmd_switch_node/cmd
         
-        self.pub_car_cmd = rospy.Publisher("/tianlu/duckiebot_il_lane_following_node/car_cmd", Twist2DStamped, queue_size=1) 
+        self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1) 
         
     def callback(self,image_msg):
         
@@ -167,7 +168,9 @@ class imitation_lane_following(object):
     
                         
 if __name__ == '__main__':
+    # initialize the node with rospy
     rospy.init_node('duckiebot_il_lane_following', anonymous=False)
+    # create the object
     duckiebot_il_lane_following = imitation_lane_following()
     try:
         rospy.spin()
