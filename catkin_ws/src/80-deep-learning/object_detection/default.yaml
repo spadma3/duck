@@ -1,0 +1,7 @@
+# Deep Learning Object Detector Parameter
+object_detector:
+  inference_graph_path: models/mobilenets_ssd.pb
+  score_threshold: 0.2
+  denormalize_boundingbox: True
+
+

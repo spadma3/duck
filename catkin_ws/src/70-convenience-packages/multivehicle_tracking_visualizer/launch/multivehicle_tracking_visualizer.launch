@@ -1,0 +1,47 @@
+<launch>
+    <arg name="veh"  doc="Name of vehicle. ex: patito"/>
+    <arg name="pkg_name" value="multivehicle_tracking_visualizer"/>
+    <arg name="node_name" default="multivehicle_tracking_visualizer_node"/>
+    <arg name="local" default="true"/>
+    <arg name="debug" default="false"/>
+    <arg name="config" default="baseline"/>
+    <arg name="line_detector_param_file_name" default="default"/>
+    <arg name="verbose" default="false"/>
+    <arg name="param_file_name" default="default"/>
+
+
+    <group ns="$(arg veh)">
+        <remap from="$(arg node_name)/tracking" to="multivehicle_tracker_node/tracking"/>
+        <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
+            <rosparam command="load" file="$(eval find(pkg_name) + '/default.yaml')"/>
+            <param name="veh_name" value="$(arg veh)"/>
+        </node>
+    </group>
+
+    <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
+    <remap from="line_detector_node/image" to="camera_node/image/compressed"/>
+    <remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
+    <include file="$(find line_detector)/launch/line_detector_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <arg name="config" value="$(arg config)"/>
+            <!-- NOTE: "line_detector_param_file_name" as special case -->
+            <arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
+            <arg name="verbose" value="$(arg verbose)" />
+            <arg name="local" value="$(arg local)"/>
+    </include>
+    <include file="$(find ground_projection)/launch/ground_projection.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+        <arg name="local" value="$(arg local)"/>
+    </include>
+
+  <remap from="duckiebot_visualizer/segment_list" to="ground_projection/lineseglist_out"/>
+  <include file="$(find duckiebot_visualizer)/launch/duckiebot_visualizer.launch">
+      <arg name="veh" value="$(arg veh)" />
+  </include>
+</launch>
+
+<!--launch-prefix="xterm -e python -m pdb"-->

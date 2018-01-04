@@ -1,0 +1,30 @@
+<launch>
+	<arg name="veh" doc="Name of vehicle" />
+	<arg name="pkg_name" default="object_detection"/>
+	<arg name="node_name" default="object_detection_node"/>
+	<arg name="local" default="true" />
+	<arg name="publish_freq" />
+
+
+		<group ns="$(arg veh)">
+			<node name="decoder_low_freq" pkg="pi_camera" type="decoder_node.py" output="screen">
+				<param name="~publish_freq" value="5.0"/>
+				<remap from="decoder_low_freq/compressed_image" to="camera_node/image/compressed" />
+			</node>
+		</group>
+
+	<!-- Vehicle Detection Node -->
+<remap from="camera_node/image/compressed" to="decoder_low_freq/image/compressed" />
+	<include file="$(find multivehicle_tracker)/launch/multivehicle_tracker.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="local" value="$(arg local)" />
+	</include>
+
+	<!-- Vehicle Filter Node -->
+	<include file="$(find object_detection)/launch/object_detection.launch">
+
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="local" value="$(arg local)" />
+		<arg name="node_name" default="$(arg node_name)"/>
+	</include>
+</launch>
