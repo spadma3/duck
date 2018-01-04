@@ -52,7 +52,7 @@ with open("/etc/network/interfaces", "a") as IFACES:
 ### MESH NETWORK ###############################################################
 auto {}
 iface {} inet manual
-    wireless-channel 1
+    wireless-channel 40
     wireless-essid ducknet
     wireless-mode ad-hoc
     wireless-ap 02:12:34:56:78:9A
