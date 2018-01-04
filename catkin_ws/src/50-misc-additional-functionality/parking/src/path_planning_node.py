@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-from parking_main import *  # imports everything from parking_main
 import dubins_path_planning as dpp
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
-from numpy import sign, mean
 from parking.msg import Reference_for_control  # custom message to publish
 from parking.msg import Pose_duckiebot  # custom message to subscribe to
 
@@ -44,7 +40,7 @@ class parkingPathPlanner():
         sample_freq = 50
         rospy.Subscriber("pose_duckiebot", Pose_duckiebot, self.localization_callpack)
         self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control)
-        self.path_planning()
+        self.path_planning(1)
         rospy.Timer(rospy.Duration(1/sample_freq), self.sample_callback)
 
     def sample_callback(self):
@@ -108,18 +104,18 @@ class parkingPathPlanner():
         return d_est/1000.0, c_ref*1000.0, theta_est
 
 
-    def path_planning(self, end_number=None):
+    def path_planning(self, end_number):
         # define problem
-        end_x, end_y, end_yaw, end_number = initialize(end_number)
+        end_x, end_y, end_yaw, end_number = self.initialize(end_number)
         start_x   = self.x_act
         start_y   = self.y_act
         start_yaw = self.yaw_act
-        objects = define_objects()
-        obstacles = define_obstacles(objects)
+        objects = self.define_objects()
+        obstacles = self.define_obstacles(objects)
 
         # path planning and collision check with dubins path
-        self.px, self.py, self.pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
-        collision_check(self.px, self.py, obstacles)
+        self.px, self.py, self.pyaw = self.dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
+        self.collision_check(self.px, self.py, obstacles)
 
     def collision_check(px, py, obstacles):
         found_path = True
@@ -151,9 +147,9 @@ class parkingPathPlanner():
                 print("\tThe robot wants to drive outside the parking lot")
 
     # init for every new path
-    def initialize(end_number):
+    def initialize(self, end_number):
 
-        end_x, end_y, end_yaw = pose_from_key(end_number)
+        end_x, end_y, end_yaw = self.pose_from_key(end_number)
 
         return end_x, end_y, end_yaw
 
@@ -230,7 +226,7 @@ class parkingPathPlanner():
         return obstacles
 
     #  dubins path planning
-    def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw):
+    def dubins_path_planning(self, start_x, start_y, start_yaw, end_x, end_y, end_yaw):
         # heuristics using path primitives
         detect_space_14 = (start_y < space_length and (abs(start_yaw + radians(90)) < radians(45)))
         detect_space_56 = lot_height - start_y < space_length and abs(start_yaw - radians(90)) < radians(
@@ -248,7 +244,7 @@ class parkingPathPlanner():
             start_y = py_backwards[-1]
             start_yaw = pyaw_backwards[-1]
 
-        start_x_0, start_y_0, start_yaw_0 = pose_from_key(0)
+        start_x_0, start_y_0, start_yaw_0 = self.pose_from_key(0)
         straight_at_entrance_ = (
         straight_at_entrance and abs(start_x - start_x_0) < 1.0 and abs(start_y - start_y_0) < 1.0 and abs(
             start_yaw - start_yaw_0) < 1.0)
@@ -311,7 +307,7 @@ main file
 if __name__ == '__main__':
     print('Path planning and projection for duckietown...')
     rospy.init_node('parking_path_planning')
-    ppP = parkingPathPlanner()
+    pPP = parkingPathPlanner()
     rospy.spin()
 
     #path_planning(0,3)
