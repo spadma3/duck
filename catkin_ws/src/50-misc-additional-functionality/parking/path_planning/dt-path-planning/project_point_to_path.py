@@ -25,7 +25,7 @@ choose_random_parking_space_combination = True
 close_itself = False
 save_figures = False
 pause_per_path = 1.0 # sec
-ploting = True
+ploting = False     ### True
 
 # projection parameters
 velocity = 0.4 # m/s
