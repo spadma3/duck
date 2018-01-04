@@ -16,7 +16,7 @@ Global parameters
 """
 
 # path planning parameters
-radius_robot = 70                  # mm distance point between wheels and most apart point on robot
+radius_robot = 70                   # mm distance point between wheels and most apart point on robot
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
@@ -40,7 +40,6 @@ length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) 
 
 
 class parkingPathPlanner():
-
     def __init__(self):
         sample_freq = 50
         rospy.Subscriber("pose_duckiebot", Pose_duckiebot, self.localization_callpack)
@@ -48,13 +47,9 @@ class parkingPathPlanner():
         rospy.Timer(rospy.Duration(1/sample_freq), self.sample_callback)
         self.path_planning()
 
-
-
     def sample_callback(self):
         state = Reference_for_control()
-        state.d = 1
-        state.c = 2
-        state.phi = 3
+        state.d, state.c, state.phi = self.project_to_path()
         self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization node
@@ -62,7 +57,7 @@ class parkingPathPlanner():
         self.x_act = pose.x_act
         self.y_act = pose.y_act
         self.yaw_act = pose.yaw_act
-        return self.x_act, self.y_act, self.yaw_act
+        #return self.x_act, self.y_act, self.yaw_act
 
     def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
         """
@@ -79,6 +74,7 @@ class parkingPathPlanner():
             c_ref in [1/m]
             v_ref [m/s]
         """
+
 
         # distance calculation
         d_est = float("inf")
@@ -106,11 +102,11 @@ class parkingPathPlanner():
         theta_est = yaw_act - pyaw[idx_proj]
 
         # further parameters
-        d_ref, v_ref = 0,
+        #d_ref, v_ref = 0
 
         print("d_est = {}\ntheta_est_deg = {}\nc_ref = {}".format(d_est/1000.0, degrees(theta_est), c_ref/1000.0))
 
-        return d_est/1000.0, d_ref/1000.0, theta_est, c_ref*1000.0, v_ref, x_proj, y_proj
+        return d_est/1000.0, c_ref*1000.0, theta_est
 
 
     def path_planning(self, end_number=None):
@@ -124,21 +120,36 @@ class parkingPathPlanner():
 
         # path planning and collision check with dubins path
         px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
-        found_path = collision_check(px, py, obstacles, start_number, end_number)
+        collision_check(px, py, obstacles)
 
-        # get some random pose near path
-        x_act, y_act, yaw_act = get_random_pose(px, py, pyaw)
+    def collision_check(px, py, obstacles):
+        found_path = True
+        crash, out_of_parking_lot = False, False
+        for x, y in zip(px, py):
+            for obstacle in obstacles:
+                if (x <= 0.0 or lot_width <= x or y <= 0.0 or lot_height <= y):
+                    found_path = False
+                    out_of_parking_lot = True
+                if obstacle[0] == "rectangle":
+                    if (obstacle[1] < x and x < obstacle[1] + obstacle[3]) and (
+                            obstacle[2] < y and y < obstacle[2] + obstacle[4]):
+                        found_path = False
+                        crash = True
+                elif obstacle[0] == "circle":
+                    if (sqrt((x - obstacle[1]) ** 2 + (y - obstacle[2]) ** 2) < obstacle[3]):
+                        found_path = False
+                        crash = True
+                else:
+                    exit("SN:ERROR: type {} not known.".format(obstacle[0]))
 
-        # calculate controller values: d_est, d_ref, theta_est, c_ref, v_ref
-        d_est, d_ref, theta_est, c_ref, v_ref, x_proj, y_proj = project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature)
-
-        # show results
-        # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
-        if ploting:
-            do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path, x_act, y_act, yaw_act, x_proj, y_proj  )
-
-
-    #Added from parking_main
+        if found_path:
+            print("A collision free path was found!")
+        else:
+            print("No collision free path was found!")
+            if crash:
+                print("\tThe robot will crash into objects on this path!")
+            if out_of_parking_lot:
+                print("\tThe robot wants to drive outside the parking lot")
 
     # init for every new path
     def initialize(end_number):
@@ -179,7 +190,7 @@ class parkingPathPlanner():
             exit(1)
 
     # define objects and obstacles
-    def define_objects():
+    def define_objects(self):
         # x, y, dx, dy, colour, driveable
         objects = []
         objects.append((0.0, 0.0, narrow_tape_width, space_length, "b", True))
@@ -293,47 +304,6 @@ class parkingPathPlanner():
             pyaw = pyaw + pyaw_straight
 
         return px, py, pyaw
-
-    # collision check
-    def collision_check(px, py, obstacles, start_number, end_number):
-        found_path = True
-        crash, out_of_parking_lot = False, False
-        for x, y in zip(px, py):
-            for obstacle in obstacles:
-                if (x <= 0.0 or lot_width <= x or y <= 0.0 or lot_height <= y):
-                    found_path = False
-                    out_of_parking_lot = True
-                if obstacle[0] == "rectangle":
-                    if (obstacle[1] < x and x < obstacle[1] + obstacle[3]) and (
-                            obstacle[2] < y and y < obstacle[2] + obstacle[4]):
-                        found_path = False
-                        crash = True
-                elif obstacle[0] == "circle":
-                    if (sqrt((x - obstacle[1]) ** 2 + (y - obstacle[2]) ** 2) < obstacle[3]):
-                        found_path = False
-                        crash = True
-                else:
-                    exit("SN:ERROR: type {} not known.".format(obstacle[0]))
-
-        if found_path:
-            print("A collision free path from {} to {} was found!".format(start_number, end_number))
-        else:
-            print("No collision free path from {} to {} was found!".format(start_number, end_number))
-            if crash:
-                print("\tThe robot will crash into objects on this path!")
-            if out_of_parking_lot:
-                print("\tThe robot wants to drive outside the parking lot")
-
-        return found_path
-
-    # talk
-    def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number):
-        print("Path from {} to {}".format(start_number, end_number))
-        print("start pose ({}): \n\tx = {}\n\ty = {} \n\ttheta = {}".format(
-            start_number, start_x, start_y, degrees(start_yaw)))
-        print("end pose ({}): \n\tx = {}\n\ty = {} \n\ttheta = {}".format(
-            end_number, end_x, end_y, degrees(end_yaw)))
-        print("curvature = {}".format(curvature))
 
 
 """
