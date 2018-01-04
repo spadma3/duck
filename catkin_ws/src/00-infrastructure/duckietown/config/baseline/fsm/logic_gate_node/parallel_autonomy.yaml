@@ -71,3 +71,15 @@ gates:
       - intersection_go_implicit
       - intersection_go_explicit
     output_topic: "~intersection_go"
+  intersection_done_and_parallel_autonomy_on:
+    gate_type: "AND"
+    inputs: 
+      - intersection_done
+      - parallel_autonomy_on
+    output_topic: "~intersection_done_and_parallel_autonomy"
+  intersection_done_and_parallel_autonomy_off:
+    gate_type: "AND"
+    inputs:
+      - intersection_done
+      - parallel_autonomy_off
+    output_topic: "~intersection_done_and_not_parallel_autonomy"
