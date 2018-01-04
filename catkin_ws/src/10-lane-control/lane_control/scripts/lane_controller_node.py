@@ -121,7 +121,7 @@ class lane_controller(object):
         self.d_thres = self.setupParameter("~d_thres",d_thres) # Cap for error in d
         self.theta_thres = self.setupParameter("~theta_thres",theta_thres) # Maximum desire theta
         self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
-        self-d_ref =  self.setupParameter("~d_ref",d_ref)
+        self.d_ref =  self.setupParameter("~d_ref",d_ref)
         self.object_detected = self.setupParameter("~object_detected",object_detected) # a configurable offset from the lane position
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
