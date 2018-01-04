@@ -209,8 +209,8 @@ class LineDetectorNode(object):
         segment_latency = segment_latency_stamp.secs + segment_latency_stamp.nsecs/1e9
         self.latencyArray.append(segment_latency)
 
-        if (len(latencyArray) >= 20):
-            latencyArray.pop(0)
+        if (len(self.latencyArray) >= 20):
+            self.latencyArray.pop(0)
 
         # print "Latency of segment list: ", segment_latency
         print("Mean latency segment list: %d" % np.mean(self.latencyArray))
