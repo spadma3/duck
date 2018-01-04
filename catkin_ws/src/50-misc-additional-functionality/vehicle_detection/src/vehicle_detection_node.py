@@ -58,17 +58,17 @@ class VehicleDetectionNode(object):
 		stream = file(filename, 'r')
 		data = yaml.load(stream)
 		stream.close()
-                self.circlepattern_dims = tuple(data['circlepattern_dims']['data'])
-		self.blobdetector_min_area = data['blobdetector_min_area']
-		self.blobdetector_min_dist_between_blobs = data['blobdetector_min_dist_between_blobs']
-		self.publish_circles = data['publish_circles']
-                rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name, 
+        self.circlepattern_dims = tuple(data['circlepattern_dims']['data'])
+        self.blobdetector_min_area = data['blobdetector_min_area']
+        self.blobdetector_min_dist_between_blobs = data['blobdetector_min_dist_between_blobs']
+        self.publish_circles = data['publish_circles']
+        rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name, 
                                	self.circlepattern_dims,))
-		rospy.loginfo('[%s] blobdetector_min_area: %.2f' % (self.node_name, 
+        rospy.loginfo('[%s] blobdetector_min_area: %.2f' % (self.node_name, 
 				self.blobdetector_min_area))
-		rospy.loginfo('[%s] blobdetector_min_dist_between_blobs: %.2f' % (self.node_name, 
+        rospy.loginfo('[%s] blobdetector_min_dist_between_blobs: %.2f' % (self.node_name, 
 				self.blobdetector_min_dist_between_blobs))
-		rospy.loginfo('[%s] publish_circles: %r' % (self.node_name, 
+        rospy.loginfo('[%s] publish_circles: %r' % (self.node_name, 
 				self.publish_circles))
 
 	def cbSwitch(self, switch_msg):
@@ -92,6 +92,7 @@ class VehicleDetectionNode(object):
 			except CvBridgeError as e:
 				print e
 				
+			#Initialize Blobdetector
 			start = rospy.Time.now()
 			params = cv2.SimpleBlobDetector_Params()
 			params.minArea = self.blobdetector_min_area
@@ -100,30 +101,32 @@ class VehicleDetectionNode(object):
 			(detection, corners) = cv2.findCirclesGrid(image_cv,
 					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
 					blobDetector=simple_blob_detector)
-			
-			#print(corners)
-			
+						
 			vehicle_detected_msg_out.data = detection
 			self.pub_detection.publish(vehicle_detected_msg_out)
+			
 			if detection:
-				#print(corners)
+				#Convert coners to list
 				points_list = []	
 				for point in corners:
 					corner = Point32()
-					#print(point[0])
 					corner.x = point[0,0]
-					#print(point[0,1])
 					corner.y = point[0,1]
 					corner.z = 0
 					points_list.append(corner)
+					
+				#Fill corners msg
 				vehicle_corners_msg_out.header.stamp = rospy.Time.now()
 				vehicle_corners_msg_out.corners = points_list
 				vehicle_corners_msg_out.detection.data = detection
 				vehicle_corners_msg_out.H = self.circlepattern_dims[1]
 				vehicle_corners_msg_out.W = self.circlepattern_dims[0]
+				
 				self.pub_corners.publish(vehicle_corners_msg_out)
+				
 			elapsed_time = (rospy.Time.now() - start).to_sec()
-			self.pub_time_elapsed.publish(elapsed_time)	
+			self.pub_time_elapsed.publish(elapsed_time)
+				
 			if self.publish_circles:
 				cv2.drawChessboardCorners(image_cv, 
 						self.circlepattern_dims, corners, detection)

@@ -36,6 +36,8 @@ class VehicleFilterNode(object):
 				
 		self.sub_corners = rospy.Subscriber("~corners", VehicleCorners,
 				self.cbCorners, queue_size=1)
+		self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
+				self.cbSwitch, queue_size=1)
 				
 		self.pub_pose = rospy.Publisher("~pose", VehiclePose, queue_size=1)
 		self.sub_info = rospy.Subscriber("~camera_info", CameraInfo,
@@ -73,8 +75,13 @@ class VehicleFilterNode(object):
 		if self.lock.testandset():
 			self.pcm.fromCameraInfo(camera_info_msg)
 			self.lock.unlock()
+			
+	def cbSwitch(self, switch_msg):
+		self.active = switch_msg.data
 
 	def cbCorners(self, vehicle_corners_msg):
+		if not self.active:
+			return
 		# Start a daemon thread to process the image
 		thread = threading.Thread(target=self.processCorners,
 				args=(vehicle_corners_msg,))
@@ -83,33 +90,30 @@ class VehicleFilterNode(object):
 		# Returns rightaway
 
 	def processCorners(self, vehicle_corners_msg):
-		# do nothing - just relay the detection
 		if self.lock.testandset():
 			start = rospy.Time.now()
-			#print(start)
 			self.calcCirclePattern(vehicle_corners_msg.H, vehicle_corners_msg.W)
+			
+			#Convert corners in np array
 			points = []
 			for Point32 in vehicle_corners_msg.corners:
 				point = [Point32.x, Point32.y]
 				points.append(point)
 			points = np.array(points)
-			# points = np.reshape(points, (2,-1))
-			# print(points)	
-			# print(self.pcm.distortionCoeffs())
+
 			(success, rotation_vector, translation_vector) = cv2.solvePnP(self.circlepattern, points, self.pcm.intrinsicMatrix(), self.pcm.distortionCoeffs())
 			
 			if success:
+				#Ensure the estimated pose is right with reprojection error
 				points_reproj, _ = cv2.projectPoints(self.circlepattern, rotation_vector, translation_vector, self.pcm.intrinsicMatrix(), self.pcm.distortionCoeffs())
 				error = 0
 				for i in range(0, len(points_reproj)):
 					error += cv2.norm(points[i], points_reproj[i, 0], cv2.NORM_L2)
 					
 				mean_reproj_error = error / len(points_reproj)
-				#print(mean_reproj_error)
-				#print(self.max_reproj_pixelerror_pose_estimation)
 				
 				if mean_reproj_error < self.max_reproj_pixelerror_pose_estimation:
-					# print(translation_vector)
+					#Transform Pose from 3D into Pose in 2D
 					(R, jac) = cv2.Rodrigues(rotation_vector)
 					R_inv = np.transpose(R)
 					translation_vector = -np.dot(R_inv, translation_vector)
@@ -137,7 +141,6 @@ class VehicleFilterNode(object):
 			for j in range(0, height):
 				self.circlepattern[i + j * width, 0] = self.circlepattern_dist * i - self.circlepattern_dist * (width - 1) / 2
 				self.circlepattern[i + j * width, 1] = self.circlepattern_dist * j - self.circlepattern_dist * (height - 1) / 2
-		# print(self.circlepattern)
 
 	
 if __name__ == '__main__': 
