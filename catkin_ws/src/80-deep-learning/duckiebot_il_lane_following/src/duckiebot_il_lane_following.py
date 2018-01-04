@@ -90,10 +90,10 @@ class imitation_lane_following(object):
         self.stats = Stats()
         
         # subscriber, subscribe to compressed image
-        self.image_sub = rospy.Subscriber("~/camera_node/image/compressed", CompressedImage, self.callback, queue_size=1)
+        self.image_sub = rospy.Subscriber("~compressed", CompressedImage, self.callback, queue_size=1)
         # publisher, publish to control command /robotname/car_cmd_switch_node/cmd
         
-        self.pub_car_cmd = rospy.Publisher("~/duckiebot_il_lane_following_node/car_cmd", Twist2DStamped, queue_size=1) 
+        self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1) 
         
     def callback(self,image_msg):
         
