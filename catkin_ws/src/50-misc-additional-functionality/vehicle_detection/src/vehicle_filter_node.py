@@ -21,6 +21,7 @@ class VehicleFilterNode(object):
 	def __init__(self):
 		self.node_name = rospy.get_name()
 		self.bridge = CvBridge()
+		self.active = True
 
 		self.config	 = self.setupParam("~config", "baseline")
 		self.cali_file_name = self.setupParam("~cali_file_name", "default")

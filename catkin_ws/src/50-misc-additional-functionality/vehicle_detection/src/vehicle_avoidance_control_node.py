@@ -15,6 +15,8 @@ class VehicleAvoidanceControlNode(object):
 	def __init__(self):
 		self.node_name = rospy.get_name()
 		rospack = rospkg.RosPack()
+		self.active = True
+		
 		self.car_vel_pub = rospy.Publisher("~car_vel",
 				Float32, queue_size = 1)
 		self.vehicle_detected_pub = rospy.Publisher("~vehicle_detected",
