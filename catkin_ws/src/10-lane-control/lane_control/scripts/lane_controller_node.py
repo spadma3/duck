@@ -67,6 +67,8 @@ class lane_controller(object):
         self.heading_integral = 0
         self.time_start_curve = 0
         turn_off_feedforward_part = False
+        use_paht_following_parking = False
+        self.path_following_parking_initialized = False
         self.wheels_cmd_executed = WheelsCmdStamped()
 
         self.actuator_params = ActuatorParameters()
@@ -79,6 +81,7 @@ class lane_controller(object):
         self.omega_max = 999.0     # TODO: change!
 
         self.use_radius_limit = True
+        self.set_omega_to_zero = False
 
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
@@ -92,6 +95,7 @@ class lane_controller(object):
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
         self.turn_off_feedforward_part = self.setupParameter("~turn_off_feedforward_part",turn_off_feedforward_part)
+        self.use_paht_following_parking = self.setupParameter("~use_paht_following_parking",use_paht_following_parking)
         # self.incurvature = self.setupParameter("~incurvature",incurvature)
         # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit)
@@ -117,6 +121,7 @@ class lane_controller(object):
         # incurvature = rospy.get_param("~incurvature") # TODO remove after estimator is introduced
         # curve_inner = rospy.get_param("~curve_inner") # TODO remove after estimator is introduced
         turn_off_feedforward_part = rospy.get_param("~turn_off_feedforward_part")
+        use_paht_following_parking = rospy.get_param("~use_paht_following_parking")
 
         k_Id = rospy.get_param("~k_Id")
         k_Iphi = rospy.get_param("~k_Iphi")
@@ -124,8 +129,8 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit)
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_paht_following_parking, self.use_radius_limit)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part, use_paht_following_parking, use_radius_limit)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -140,6 +145,7 @@ class lane_controller(object):
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
             self.turn_off_feedforward_part = turn_off_feedforward_part
+            self.use_paht_following_parking = use_paht_following_parking
 
             if use_radius_limit != self.use_radius_limit:
                 self.use_radius_limit = use_radius_limit
@@ -211,6 +217,45 @@ class lane_controller(object):
     #        self.k_forward = 0.0
 
     def cbPose(self, lane_pose_msg):
+
+        if self.use_paht_following_parking:
+            
+            if not self.path_following_parking_initialized:
+                self.idx = 1
+                self.d_est, self.d_ref, self.theta_est, self.c_ref, self.v_ref, self.idx, self.px, self.py, self.pyaw, self.curv = project_point_to_path.path_planning(0,3,self.idx)
+                print("idx: " + str(self.idx))
+                self.path_following_parking_initialized = True
+                self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
+                
+            # get some random pose near path
+            self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
+            self.current_time = rospy.Time.now().nsecs
+            print("current_time_sec: {}".format(self.current_time_sec))
+            print("current_time: {}".format(self.current_time))
+            print("previous_time_sec: {}".format(self.previous_time_sec))
+            self.delta_t = self.current_time_sec - self.previous_time_sec
+            print("delta_t: {}".format(self.delta_t))
+            self.x_act, self.y_act, self.yaw_act, self.idx, self.end_of_path_reached = project_point_to_path.get_random_pose(self.px, self.py, self.pyaw, self.delta_t, self.idx)
+            self.previous_time_sec = self.current_time_sec
+            # calculate controller values: d_est, d_ref, theta_est, c_ref, v_ref
+            self.d_est, self.d_ref, self.theta_est, self.c_ref, self.v_ref, self.x_proj, self.y_proj = project_point_to_path.project_to_path(self.px, self.py, self.pyaw, self.x_act, self.y_act, self.yaw_act, self.curv, self.idx)
+            print("d_est: " + str(self.d_est))
+            print("idx: {}".format(self.idx))
+            if self.end_of_path_reached:
+                self.v_ref = 0
+            print("vref: " + str(self.v_ref))
+            lane_pose_msg.d = self.d_est
+            lane_pose_msg.phi = self.theta_est
+            lane_pose_msg.curvature = self.c_ref
+            self.v_bar = self.v_ref
+            if self.v_ref == 0:
+                self.set_omega_to_zero = True
+            else:
+                self.set_omega_to_zero = False
+
+        else:
+            self.path_following_parking_initialized = False
+            self.set_omega_to_zero = False
 
         self.lane_reading = lane_pose_msg
 
@@ -289,6 +334,10 @@ class lane_controller(object):
         ### omega_max_radius_limitation = .....  # TODO: complete (based on radius limitation)
         ### self.omega_max = min(omega_max_actuator_params, omega_max_radius_limitation)
 
+        if self.set_omega_to_zero:
+            omega = 0
+
+        print("omega: {}".format(omega))
         if omega > self.omega_max:
             self.cross_track_integral -= self.cross_track_err * dt
             self.heading_integral -= self.heading_err * dt
@@ -296,6 +345,7 @@ class lane_controller(object):
             ###     car_control_msg.omega = omega_max_radius_limitation
         else:
             car_control_msg.omega = omega
+
 
         # if not self.incurvature:
         #     if self.heading_err > 0.3:
@@ -328,13 +378,10 @@ class lane_controller(object):
         rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+        rospy.loginfo("use_paht_following_parking: " + str(self.use_paht_following_parking))
         print("can you see the print?")
-        d_est, d_ref, theta_est, c_ref, v_ref, idx = project_point_to_path.path_planning(0,3)
-        print("idx: " + str(idx))
-        d_est, d_ref, theta_est, c_ref, v_ref, idx = project_point_to_path.path_planning(0,3)
-        print("idx: " + str(idx))
-        d_est, d_ref, theta_est, c_ref, v_ref, idx = project_point_to_path.path_planning(0,3)
-        print("idx: " + str(idx))
+
+
         print("")
         # rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
         # rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))

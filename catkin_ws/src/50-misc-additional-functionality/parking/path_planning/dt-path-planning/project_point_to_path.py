@@ -6,6 +6,7 @@ Project point to given path
 Samuel Nyffenegger
 """
 
+import rospy
 from parking_main import (initialize, define_objects, define_obstacles, dubins_path_planning, collision_check,
     curvature, lot_width, lot_height, visual_boundairy, radius_robot)        ### from parking_main import *
 import dubins_path_planning as dpp
@@ -27,7 +28,7 @@ pause_per_path = 1.0 # sec
 ploting = False     ### True
 
 # projection parameters
-velocity = 0.1 # m/s
+velocity = 0.4 # m/s
 bias_xy = 0.0             # mm
 var_xy = 50.0            # mm
 bias_heading = 0.0;       # rad
@@ -39,18 +40,24 @@ idx = 0
 """
 Functions
 """
-def get_random_pose(px, py, pyaw):
+def get_random_pose(px, py, pyaw, delta_t, idx):
     n_points = len(px)
-    ##### current_time_sec = rospy.time.now().secs
-    ##### delta_t = current_time_sec - previous_time_sec
-    idx = np.random.random_integers(1, n_points-1)          ##### idx += int(velocity * delta_t / (sqrt((px[idx] - px[idx-1])**2 + (py[idx] - py[idx-1])**2)))
-    x_act = px[idx] + np.random.normal(bias_xy,var_xy)
-    y_act = py[idx] + np.random.normal(bias_xy,var_xy)
-    yaw_act = pyaw[idx] + np.random.normal(bias_heading,var_heading)
-    ##### previous_time_sec = current_time_sec
-    return x_act, y_act, yaw_act, idx
+    velocity_to_m_per_s = 0.67
+    idx += (velocity * velocity_to_m_per_s * delta_t / (sqrt((px[int(idx)] - px[int(idx)-1])**2 + (py[int(idx)] - py[int(idx)-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
+    print("idx = {}".format(idx))
+    if int(idx) > n_points - 3:
+        idx = n_points - 3
+        end_of_path_reached = True
+    else:
+        end_of_path_reached = False
+    print("idx = {}".format(idx))
+    print("idx += {}".format((velocity * velocity_to_m_per_s * delta_t / (sqrt((px[int(idx)] - px[int(idx)-1])**2 + (py[int(idx)] - py[int(idx)-1])**2) / 1000))))
+    x_act = px[int(idx)]        ### + np.random.normal(bias_xy,var_xy)
+    y_act = py[int(idx)]        ### + np.random.normal(bias_xy,var_xy)
+    yaw_act = pyaw[int(idx)]        ### + np.random.normal(bias_heading,var_heading)
+    return x_act, y_act, yaw_act, idx, end_of_path_reached
 
-def path_planning(start_number=None, end_number=None):
+def path_planning(start_number=None, end_number=None, idx=0):
     # define problem
     start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
     objects = define_objects()
@@ -61,19 +68,20 @@ def path_planning(start_number=None, end_number=None):
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
     # get some random pose near path
-    x_act, y_act, yaw_act, idx = get_random_pose(px, py, pyaw)
+    delta_t = 0
+    x_act, y_act, yaw_act, idx, end_of_path_reached = get_random_pose(px, py, pyaw, delta_t, idx)
 
     # calculate controller values: d_est, d_ref, theta_est, c_ref, v_ref
-    d_est, d_ref, theta_est, c_ref, v_ref, x_proj, y_proj = project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature)
+    d_est, d_ref, theta_est, c_ref, v_ref, x_proj, y_proj = project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature, idx)
 
     # show results
     # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
     if ploting:
         do_plotting_projection(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path, x_act, y_act, yaw_act, x_proj, y_proj  )
 
-    return d_est, d_ref, theta_est, c_ref, v_ref, idx
+    return d_est, d_ref, theta_est, c_ref, v_ref, idx, px, py, pyaw, curvature
 
-def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
+def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature, idx):
     """
     Input:
         px, py [mm]
@@ -92,11 +100,11 @@ def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
     # distance calculation
     d_est = float("inf")
     x_proj, y_proj, idx_proj = None, None, None
-    for idx, (x, y, yaw) in enumerate(zip(px, py, pyaw)):
+    for idx_i, (x, y, yaw) in enumerate(zip(px, py, pyaw)):
         d = sqrt((x-x_act)**2 + (y-y_act)**2)
         if d < abs(d_est):
             d_est = d
-            x_proj, y_proj, yaw_proj, idx_proj = x, y, yaw, idx
+            x_proj, y_proj, yaw_proj, idx_proj = x, y, yaw, idx_i
     # A:projected point and frame with origin A and “heading“ yaw_proj, I:inertial frame
     R_AI = np.array([[cos(yaw_proj),sin(yaw_proj)],[-sin(yaw_proj),cos(yaw_proj)]])
     I_t_IA = np.array([[x_proj],[y_proj]])
@@ -107,15 +115,17 @@ def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
 
 
     # curvature or straight (only valid for dubins path)
-    if abs(np.cross([px[idx_proj+1] - px[idx_proj], py[idx_proj+1] - py[idx_proj], 0], [px[idx_proj+2] - px[idx_proj], py[idx_proj+2] - py[idx_proj], 0])[2]) < 1e-10:         ### if ((px[idx_proj-1]+px[idx_proj+1])/2.0 == px[idx_proj]) and ((py[idx_proj-1]+py[idx_proj+1])/2.0 == py[idx_proj]):
+    idx_proj = idx
+    print("idx_proj: {}".format(idx_proj))
+    if abs(np.cross([px[int(idx_proj)+1] - px[int(idx_proj)], py[int(idx_proj)+1] - py[int(idx_proj)], 0], [px[int(idx_proj)+2] - px[int(idx_proj)], py[int(idx_proj)+2] - py[int(idx_proj)], 0])[2]) < 1e-10:         ### if ((px[idx_proj-1]+px[idx_proj+1])/2.0 == px[idx_proj]) and ((py[idx_proj-1]+py[idx_proj+1])/2.0 == py[idx_proj]):
         c_ref = 0.0
-    elif np.cross([px[idx_proj+1] - px[idx_proj], py[idx_proj+1] - py[idx_proj], 0], [px[idx_proj+2] - px[idx_proj], py[idx_proj+2] - py[idx_proj], 0])[2] < 0:
+    elif np.cross([px[int(idx_proj)+1] - px[int(idx_proj)], py[int(idx_proj)+1] - py[int(idx_proj)], 0], [px[int(idx_proj)+2] - px[int(idx_proj)], py[int(idx_proj)+2] - py[int(idx_proj)], 0])[2] < 0:
         c_ref = -1.0/curvature
     else:
         c_ref = 1.0/curvature
 
     # differential var_heading
-    theta_est = yaw_act - pyaw[idx_proj]
+    theta_est = yaw_act - pyaw[int(idx_proj)]
 
     # further parameters
     d_ref, v_ref = 0, velocity
@@ -196,4 +206,4 @@ main file
 if __name__ == '__main__':
     print('Path planning and projection for duckietown...')
 
-    path_planning(0,3)
+    path_planning(0,3,idx)
