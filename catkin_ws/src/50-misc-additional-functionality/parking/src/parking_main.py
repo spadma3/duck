@@ -14,7 +14,7 @@ from numpy import sign
 import os
 
 """
-Global parameters
+Global parameters   
 """
 # control parameters
 choose_random_parking_space_combination = False

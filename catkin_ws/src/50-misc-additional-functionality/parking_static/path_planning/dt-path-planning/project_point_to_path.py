@@ -6,7 +6,7 @@ Project point to given path
 Samuel Nyffenegger
 """
 
-from parking_main import *
+from parking_main import *  # imports everything from parking_main
 import dubins_path_planning as dpp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
