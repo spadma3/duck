@@ -34,7 +34,6 @@ class Implicit(object):
 
     def cbGetBots(self, tracklet_list):
         for bot in tracklet_list.tracklets:
-            print Tracklet.STATUS_TRACKING
             if bot.id not in self.detected_bots:
                 self.detected_bots[bot.id] = (0.0, bot.x, 0.0, bot.y)
             if bot.status == Tracklet.STATUS_BORN or bot.status == Tracklet.STATUS_TRACKING:
