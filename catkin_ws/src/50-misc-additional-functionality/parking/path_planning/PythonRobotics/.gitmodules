@@ -1,0 +1,18 @@
+[submodule "PathTracking/rear_wheel_feedback/pycubicspline"]
+	path = PathTracking/rear_wheel_feedback/pycubicspline
+	url = https://github.com/AtsushiSakai/pycubicspline.git
+[submodule "PathTracking/rear_wheel_feedback/matplotrecorder"]
+	path = PathTracking/rear_wheel_feedback/matplotrecorder
+	url = https://github.com/AtsushiSakai/matplotrecorder.git
+[submodule "PathPlanning/LatticePlanner/matplotrecorder"]
+	path = PathPlanning/LatticePlanner/matplotrecorder
+	url = https://github.com/AtsushiSakai/matplotrecorder.git
+[submodule "PathPlanning/ModelPredictiveTrajectoryGenerator/matplotrecorder"]
+	path = PathPlanning/ModelPredictiveTrajectoryGenerator/matplotrecorder
+	url = https://github.com/AtsushiSakai/matplotrecorder
+[submodule "PathPlanning/Dijkstra/matplotrecorder"]
+	path = PathPlanning/Dijkstra/matplotrecorder
+	url = https://github.com/AtsushiSakai/matplotrecorder
+[submodule "PathPlanning/AStar/matplotrecorder"]
+	path = PathPlanning/AStar/matplotrecorder
+	url = https://github.com/AtsushiSakai/matplotrecorder
