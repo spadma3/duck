@@ -18,7 +18,6 @@ import sys
 # Movidius user modifiable input parameters
 NCAPPZOO_PATH           = os.path.expanduser( '~/workspace/ncappzoo' )
 GRAPH_PATH              = NCAPPZOO_PATH + '/caffe/Duckietown/v1.graph' 
-LABELS_FILE_PATH        = NCAPPZOO_PATH + '/data/ilsvrc12/synset_words.txt'
 IMAGE_DIM               = ( 160, 120 )
 
 # Look for enumerated NCS device(s); quit program if none found.
@@ -93,7 +92,7 @@ class imitation_lane_following(object):
         self.image_sub = rospy.Subscriber("/tianlu/camera_node/image/compressed", CompressedImage, self.callback, queue_size=1)
         # publisher, publish to control command /robotname/car_cmd_switch_node/cmd
         
-        self.pub_car_cmd = rospy.Publisher("/tianlu/car_cmd_switch_node/cmd", Twist2DStamped, queue_size=1) 
+        self.pub_car_cmd = rospy.Publisher("/tianlu/duckiebot_il_lane_following_node/car_cmd", Twist2DStamped, queue_size=1) 
         
     def callback(self,image_msg):
         
