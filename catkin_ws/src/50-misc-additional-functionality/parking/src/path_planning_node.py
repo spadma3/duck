@@ -58,11 +58,11 @@ class parkingPathPlanner():
         self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization node
-    def localization_callback(pose):
-        x_act = pose.x_act
-        y_act = pose.y_act
-        yaw_act = pose.yaw_act
-        return x_act, y_act, yaw_act
+    def localization_callback(self, pose):
+        self.x_act = pose.x_act
+        self.y_act = pose.y_act
+        self.yaw_act = pose.yaw_act
+        return self.x_act, self.y_act, self.yaw_act
 
     def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
         """
@@ -106,22 +106,19 @@ class parkingPathPlanner():
         theta_est = yaw_act - pyaw[idx_proj]
 
         # further parameters
-        d_ref, v_ref = 0, velocity
+        d_ref, v_ref = 0,
 
         print("d_est = {}\ntheta_est_deg = {}\nc_ref = {}".format(d_est/1000.0, degrees(theta_est), c_ref/1000.0))
 
         return d_est/1000.0, d_ref/1000.0, theta_est, c_ref*1000.0, v_ref, x_proj, y_proj
 
 
-    def path_planning(start_number=None, end_number=None):
-
-        #  init ROS node, set up subscribers,publishers
-        pub = rospy.Publisher('reference_for_control', Reference_for_control, queue_size=10)
-        rospy.init_node('path_planning', anonymous=True)
-        rospy.Subscriber('pose_duckiebot', Pose_duckiebot, localization_callback, queue_size=10)
-
+    def path_planning(self, end_number=None):
         # define problem
-        start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
+        end_x, end_y, end_yaw, end_number = initialize(end_number)
+        start_x   = self.x_act
+        start_y   = self.y_act
+        start_yaw = self.yaw_act
         objects = define_objects()
         obstacles = define_obstacles(objects)
 
