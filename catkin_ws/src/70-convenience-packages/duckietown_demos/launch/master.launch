@@ -77,7 +77,10 @@
 	<arg name="coordination" default="false"/>
 
 	<arg name="navigation" default="false"/>
-	<arg name="/navigation/intersection_control" default="true"/>
+	<arg name="/navigation/intersection_navigation" default="false"/>
+	<arg name="/navigation/intersection_navigation" default="true"/>
+	<arg name="/navigation/intersection_localisation" default="true"/>
+	
 	<arg name="/navigation/apriltags_random" default="true"/>
 	<arg name="/navigation/random_sr_turns" default="false"/>
 	<arg name="/navigation/graph_planner" default="false"/>
@@ -529,12 +532,34 @@
 			<remap from="open_loop_intersection_control_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading"/>
 			<remap from="open_loop_intersection_control_node/in_lane" to="lane_filter_node/in_lane"/>
 			<include file="$(find intersection_control)/launch/open_loop_intersection_controller_node.launch">
+				<arg name="veh" value="$(arg veh)"/>        
+				<arg name="config" value="$(arg config)"/>        
+				<arg name="param_file_name" value="$(arg param_file_name)"/>        
+			</include>
+		</group>
+
+		<group if="$(arg /navigation/intersection_navigation)">
+			<!-- closed loop intersection_navigation -->
+			<remap from="" to=""/>
+	#Still NEED TO LOOK AT THE REMAPPING		
+			<include file="$(find intersection_navigation)/launch/intersection_navigation_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
 				<arg name="param_file_name" value="$(arg param_file_name)"/>
 			</include>
 		</group>
 
+		<group if="$(arg /navigation/intersection_localization)">
+			<!--intersection_localization node=simulated sensor for navigation -->
+			<remap from="" to=""/>
+						
+			<include file="$(find intersection_localization)/launch/intersection_localization_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>
+		</group>
+	
         <group if="$(arg /navigation/random_sr_turns)">
 			<!-- random april tags -->
 			<remap from="sr_turns_node/mode" to="fsm_node/mode"/>
