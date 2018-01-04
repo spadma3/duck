@@ -5,11 +5,11 @@
     <arg name="iface" default="bat0" />
     <include file="$(find duckietown)/machines"/>
     <node ns="$(arg veh)" if="$(arg local)" name="sender" pkg="fleet_messaging" type="sender_node.py" output="screen">
-        <param name="~config" value="$(arg config)" default="$(find fleet_messaging)/config/config.yaml" />
-        <param name="~iface" value="$(arg iface)" default="bat0" />
+        <param name="~config" value="$(arg config)" />
+        <param name="~iface" value="$(arg iface)" />
     </node>
     <node ns="$(arg veh)" unless="$(arg local)" machine="$(arg veh)" name="sender" pkg="fleet_messaging" type="sender_node.py" output="screen">
-        <param name="~config" value="$(arg config)" default="$(find fleet_messaging)/config/config.yaml" />
-        <param name="~iface" value="$(arg iface)" default="bat0" />
+        <param name="~config" value="$(arg config)" />
+        <param name="~iface" value="$(arg iface)" />
     </node>
 </launch>
