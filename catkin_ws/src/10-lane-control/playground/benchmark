@@ -199,7 +199,7 @@ class Benchmark():
             ax[3].grid(color='grey', linestyle=':', linewidth=1)
             ax[3].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
             ax[3].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(np.mean(segmentArray[:,0]),3), round(np.median(segmentArray[:,0]),3)), ha="right", 
-                va="center", transform=ax[2].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
+                va="center", transform=ax[3].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
         fig.set_size_inches(20, 10)
         fig.savefig('%s/%s.png' % (self.output, self.rosbagIN[:-4]), dpi=300, bbox_inches='tight')
         # plt.show()
@@ -266,9 +266,12 @@ class Benchmark():
         phiComputedArray = []
         vArray = []
         omegaArray = []
+        vArray = np.asarray(vArray)
+        omegaArray = np.asarray(omegaArray)
         lanePoseArray = []
         ImageArray = []
         # beliefImgArray = []
+        CmdArray = []
         SegmentArray = []
         segmentArray = []
         SegmentArray = np.asarray(SegmentArray)
@@ -299,18 +302,18 @@ class Benchmark():
             nSegmentLists = len(SegmentArray)
 
             for i in range(len(SegmentArray)):
-                segmentArray.append([len(SegmentArray[i,0].segments), SegmentArray[i,1]])
+                np.append(segmentArray, [len(SegmentArray[i,0].segments), SegmentArray[i,1]])
 
             # segment_mean = np.mean(segmentArray)
             SegmentProcessTime = (SegmentArray[-1][1] - SegmentArray[0][1]) / nSegmentLists
 
             for i in range(len(lanePoseArray)):
-                dArray.append([lanePoseArray[i][0].d, lanePoseArray[i][1]])
-                phiArray.append([lanePoseArray[i][0].phi, lanePoseArray[i][1]])
+                np.append(dArray, [lanePoseArray[i][0].d, lanePoseArray[i][1]])
+                np.append(phiArray, [lanePoseArray[i][0].phi, lanePoseArray[i][1]])
 
             for i in range(len(CmdArray)):
-                vArray.append([CmdArray[i][0].v, CmdArray[i][1]])
-                omegaArray.append([CmdArray[i][0].omega, CmdArray[i][1]])
+                np.append(vArray, [CmdArray[i][0].v, CmdArray[i][1]])
+                np.append(omegaArray, [CmdArray[i][0].omega, CmdArray[i][1]])
 
             dArray = np.asarray(dArray)
             phiArray = np.asarray(phiArray)
