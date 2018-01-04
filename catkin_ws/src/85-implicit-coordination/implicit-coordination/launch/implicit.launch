@@ -4,13 +4,7 @@
 		<group ns="$(arg veh)">
 			<node name="implicit_coordination" pkg="implicit_coord" type="implicit.py" output="screen">
 			     <!-- Remapping topics -->
-			  <remap from="vehicle_detection_node/image" to="camera_node/image/compressed" />
 			  <remap from="implicit_coordination/vehicle_detection_node" to="/duckbrown/multivehicle_tracker_node/tracking" />
 			</node>
 		</group>
-
-		<include file="$(find duckietown)/launch/vehicle_camera_detection_filter_control.launch">
-				<arg name="veh" value="$(arg veh)"/>
-				<arg name="local" value="$(arg local)"/>
-		</include>
 </launch>

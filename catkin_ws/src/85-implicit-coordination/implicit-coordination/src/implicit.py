@@ -3,7 +3,7 @@ import rospy
 import time
 from random import randrange
 from duckietown_msgs.msg import BoolStamped
-from multivehicle_tracker.msg import TrackletList
+from multivehicle_tracker.msg import Tracklet, TrackletList
 
 
 class Implicit(object):
@@ -12,13 +12,13 @@ class Implicit(object):
         self.node_name = rospy.get_name()
         self.bStopline = False
         self.iteration = 0
-        self.Pose = [0.0, 0.0]
+        self.detected_bots = {}
 
         # Setup publishers
         self.pub_implicit_coordination = rospy.Publisher("~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
         # Setup subscriber
         self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection", BoolStamped, self.cbStop)
-        self.sub_detector = rospy.Subscriber("~vehicle_detection_node", TrackletList, self.cbPose)
+        self.sub_detector = rospy.Subscriber("~vehicle_detection_node", TrackletList, self.cbGetBots)
 
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
         rospy.Timer(rospy.Duration.from_sec(1.0), self.cbCSMA)
@@ -33,30 +33,41 @@ class Implicit(object):
     def cbStop(self, msg):
         self.bStopline = msg
 
-    def cbPose(self, msg):
-        if msg.detection.data:
-            self.Pose.append(float(msg.rho.data))
-        else:
-            self.Pose.append(self.Pose[0])
-        self.Pose.pop(0)
+    def cbGetBots(self, tracklet_list):
+        for bot in tracklet_list.tracklets:
+            print Tracklet.STATUS_TRACKING
+            if bot.id not in self.detected_bots:
+                self.detected_bots[bot.id] = (0.0, bot.x, 0.0, bot.y)
+            if bot.status == Tracklet.STATUS_BORN or bot.status == Tracklet.STATUS_TRACKING:
+                print "tracking"
+                pos_tupel = self.detected_bots[bot.id] # pos_tupel=(old_x,cur_x,old_y,cur_y)
+                self.detected_bots[bot.id] = (pos_tupel[1], bot.x, pos_tupel[3], bot.y)
+            else:
+                print "lost"
+                self.detected_bots.pop(bot.id)
+        print self.detected_bots
 
     def DetectMovement(self):
-        diff = self.Pose[0] - self.Pose[1]
-        if abs(diff) >= detection_threshold:
-            return True
-        else:
-            return False
+        detection_threshold = 0.02
+        for key in self.detected_bots:
+            pos_tupel = self.detected_bots[key]
+            diff_x = pos_tupel[0] - pos_tupel[1]
+            diff_y = pos_tupel[2] - pos_tupel[3]
+            if diff_x**2 + diff_y**2 >= detection_threshold**2:
+                return True
+        return False
 
     def cbCSMA(self, args=None):
-        print 'fuck the duck'
         flag = BoolStamped()
-        SlotTime = 2.0  # in seconds, tunable parameter TODO: experiments
+        SlotTime = 0.2  # in seconds, tunable parameter TODO: experiments
         backoff_time = 0.0  # in seconds
         if self.DetectMovement():
-            self.iteration += 1
-            backoff_time = randrange(0, 2**self.iteration - 1) * SlotTime
+            if self.iteration > 0:
+                backoff_time = randrange(0, 2**self.iteration - 1) * SlotTime
             flag.data = False
+            self.pub_implicit_coordination.publish(flag)
             time.sleep(backoff_time)
+            self.iteration += 1
         else:
             self.iteration = 0
             flag.data = True
