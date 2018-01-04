@@ -64,7 +64,7 @@ class Sender(object):
             rospy.logfatal(output %(self.node_name, config_path))
             raise
 
-    def __setup_parameter(self, param_name, default_value=None):
+    def __setup_parameter(self, param_name, default_value="None"):
         """
         Setup a node parameter.
         Inputs:
@@ -73,7 +73,9 @@ class Sender(object):
         Outputs:
         - value: Parameter value
         """
+	rospy.loginfo("[%s] config 1" %(self.node_name))
         value = rospy.get_param(param_name, default_value)
+	rospy.loginfo("[%s] name: %s (%s), value: %s" %(self.node_name, param_name, rospy.resolve_name(param_name), value))
         rospy.set_param(param_name, value)
 
         rospy.loginfo("[%s] %s = %s " %(self.node_name, param_name, value))
