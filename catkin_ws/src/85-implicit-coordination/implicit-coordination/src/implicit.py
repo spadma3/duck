@@ -10,14 +10,29 @@ class Implicit(object):
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
+        self.detection_threshold
+        self.slotTime
         self.iteration = 0
         self.detected_bots = {}
-
+        self.config = self.setupParam("~config", "baseline")
+        self.cali_file_name = self.setupParam("~cali_file_name", "default")
+        rospack = rospkg.RosPack()
+        self.cali_file = rospack.get_path('duckietown') + \
+            "/config/" + self.config + \
+            "/implicit_coordination/implicit_coordination_node/" +  \
+            self.cali_file_name + ".yaml"
+        if not os.path.isfile(self.cali_file):
+            rospy.logwarn("[%s] Can't find calibration file: %s.\n"
+                          % (self.node_name, self.cali_file))
+        self.loadConfig(self.cali_file)
         # Setup publishers
-        self.pub_implicit_coordination = rospy.Publisher("~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
+        self.pub_implicit_coordination = rospy.Publisher(
+            "~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
         # Setup subscriber
-        self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection", BoolStamped, self.cbCSMA)
-        self.sub_detector = rospy.Subscriber("~vehicle_detection_node", TrackletList, self.cbGetBots)
+        self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection",
+                                                    BoolStamped, self.cbCSMA)
+        self.sub_detector = rospy.Subscriber("~vehicle_detection_node",
+                                             TrackletList, self.cbGetBots)
 
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
         rospy.Timer(rospy.Duration.from_sec(1.0), self.cbCSMA)
@@ -28,18 +43,29 @@ class Implicit(object):
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
+    def loadConfig(self, filename):
+        stream = file(filename, 'r')
+        data = yaml.load(stream)
+        stream.close()
+        self.detection_threshold = data['detection_threshold']
+        self.SlotTime = data['SlotTime']
+        rospy.loginfo('[%s] detection_threshold: %.4f' % (self.node_name,
+                      self.detection_threshold))
+        rospy.loginfo('[%s] SlotTime: %.4f' % (self.node_name, self.SlotTime))
+
     # callback functions
-    def cbStop(self, msg):
-        self.bStopline = msg
 
     def cbGetBots(self, tracklet_list):
         for bot in tracklet_list.tracklets:
             if bot.id not in self.detected_bots:
                 self.detected_bots[bot.id] = (0.0, bot.x, 0.0, bot.y)
-            if bot.status == Tracklet.STATUS_BORN or bot.status == Tracklet.STATUS_TRACKING:
+            if bot.status == Tracklet.STATUS_BORN or \
+                    bot.status == Tracklet.STATUS_TRACKING:
                 print "tracking"
-                pos_tupel = self.detected_bots[bot.id] # pos_tupel=(old_x,cur_x,old_y,cur_y)
-                self.detected_bots[bot.id] = (pos_tupel[1], bot.x, pos_tupel[3], bot.y)
+                # pos_tupel=(old_x,cur_x,old_y,cur_y)
+                pos_tupel = self.detected_bots[bot.id]
+                self.detected_bots[bot.id] = (pos_tupel[1], bot.x,
+                                              pos_tupel[3], bot.y)
             else:
                 print "lost"
                 self.detected_bots.pop(bot.id)
