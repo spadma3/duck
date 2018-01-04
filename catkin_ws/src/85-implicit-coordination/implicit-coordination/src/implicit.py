@@ -10,14 +10,13 @@ class Implicit(object):
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
-        self.bStopline = False
         self.iteration = 0
         self.detected_bots = {}
 
         # Setup publishers
         self.pub_implicit_coordination = rospy.Publisher("~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
         # Setup subscriber
-        self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection", BoolStamped, self.cbStop)
+        self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection", BoolStamped, self.cbCSMA)
         self.sub_detector = rospy.Subscriber("~vehicle_detection_node", TrackletList, self.cbGetBots)
 
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
