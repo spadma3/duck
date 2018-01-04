@@ -279,14 +279,7 @@ class IntersectionNavigation(object):
     def TurnTypeCallback(self, msg):
         # TODO
         # will be used to proceed with main loop
-<<<<<<< HEAD
-        if self.sub_turn_type ==1: # straight
-            self.turn_type = 0
-        elif self.sub_turn_type == 2: # right
-            self.turn_type = 2
-        elif self.sub_turn_type == 0: # left
-            self.turn_type = 1
-=======
+
         if self.sub_turn_type == 1: # straight
             turn_type = 0
             rospy.loginfo("[%s] Going straight.")
@@ -296,7 +289,6 @@ class IntersectionNavigation(object):
         elif self.sub_turn_type == 0: # left
             turn_type = 1
             rospy.loginfo("[%s] Going left.")
->>>>>>> devel-intersection_navigation-theo
         else:
         # random decision ? or a standardized right turn ?
             pass
