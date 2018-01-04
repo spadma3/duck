@@ -33,15 +33,10 @@ class IntersectionNavigation(object):
         self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.TurnTypeCallback, queue_size=1)
         self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed", CompressedImage,
                                         self.ImageCallback, queue_size=1)
-        
         self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPose, 
                                         self.poseEstimator.UpdateWithPoseMeasurement, queue_size=1)
-<<<<<<< HEAD
-        
-        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
-=======
         self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, self.CarCmdCallback, queue_size=1)
->>>>>>> devel-intersection_navigation-theo
+
          
         # self.poseEstimator.FeedCommandQueue, queue_size=10)
         # self.on_regular_road = rospy.Subscriber("~in_lane", BoolStamped, self.ModeCallback, queue_size=1)
