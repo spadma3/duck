@@ -16,8 +16,7 @@ import numpy
 import os
 import sys
 # Movidius user modifiable input parameters
-NCAPPZOO_PATH           = os.path.expanduser( '~/workspace/ncappzoo' )
-GRAPH_PATH              = NCAPPZOO_PATH + '/caffe/Duckietown/v1.graph' 
+GRAPH_PATH              = './v1.graph'
 IMAGE_DIM               = ( 160, 120 )
 
 # Look for enumerated NCS device(s); quit program if none found.
