@@ -49,7 +49,7 @@ class parkingPathPlanner():
 
     def sample_callback(self):
         state = Reference_for_control()
-        state.d, state.c, state.phi = self.project_to_path(self.px, self.py, self.pyaw, self.x_act, self.y_act, self.yaw_act, curvature)
+        state.d, state.c, state.phi = self.project_to_path(curvature)
         self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization node
@@ -59,7 +59,7 @@ class parkingPathPlanner():
         self.yaw_act = pose.yaw_act
         #return self.x_act, self.y_act, self.yaw_act
 
-    def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
+    def project_to_path(self, curvature):
         """
         Input:
             px, py [mm]
@@ -75,12 +75,11 @@ class parkingPathPlanner():
             v_ref [m/s]
         """
 
-
         # distance calculation
         d_est = float("inf")
         x_proj, y_proj, idx_proj = None, None, None
-        for idx, (x, y, yaw) in enumerate(zip(px, py, pyaw)):
-            d = sqrt((x-x_act)**2 + (y-y_act)**2)
+        for idx, (x, y, yaw) in enumerate(zip(self.px, self.py, self.pyaw)):
+            d = sqrt((x-self.x_act)**2 + (y-self.y_act)**2)
             if d < abs(d_est):
                 d_est = d
                 x_proj, y_proj, yaw_proj, idx_proj = x, y, yaw, idx
@@ -88,18 +87,18 @@ class parkingPathPlanner():
         R_AI = np.array([[cos(yaw_proj),sin(yaw_proj)],[-sin(yaw_proj),cos(yaw_proj)]])
         I_t_IA = np.array([[x_proj],[y_proj]])
         A_t_AI = np.dot(-R_AI,I_t_IA)
-        p_act_A = np.dot(R_AI,np.array([[x_act],[y_act]]))+A_t_AI
+        p_act_A = np.dot(R_AI,np.array([[self.x_act],[self.y_act]]))+A_t_AI
         if p_act_A[1] < 0:
             d_est = -d_est
 
         # curvature or straight (only valid for dubins path)
-        if ((px[idx_proj-1]+px[idx_proj+1])/2.0 == px[idx_proj]) and ((py[idx_proj-1]+py[idx_proj+1])/2.0 == py[idx_proj]):
+        if ((self.px[idx_proj-1]+self.px[idx_proj+1])/2.0 == self.px[idx_proj]) and ((self.py[idx_proj-1]+self.py[idx_proj+1])/2.0 == self.py[idx_proj]):
             c_ref = 0.0
         else:
             c_ref = 1.0/curvature
 
         # differential var_heading
-        theta_est = yaw_act - pyaw[idx_proj]
+        theta_est = self.yaw_act - self.pyaw[idx_proj]
 
         # further parameters
         #d_ref, v_ref = 0
