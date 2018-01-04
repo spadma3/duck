@@ -44,12 +44,12 @@ class parkingPathPlanner():
         sample_freq = 50
         rospy.Subscriber("pose_duckiebot", Pose_duckiebot, self.localization_callpack)
         self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control)
-        rospy.Timer(rospy.Duration(1/sample_freq), self.sample_callback)
         self.path_planning()
+        rospy.Timer(rospy.Duration(1/sample_freq), self.sample_callback)
 
     def sample_callback(self):
         state = Reference_for_control()
-        state.d, state.c, state.phi = self.project_to_path()
+        state.d, state.c, state.phi = self.project_to_path(self.px, self.py, self.pyaw, self.x_act, self.y_act, self.yaw_act, curvature)
         self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization node
@@ -119,8 +119,8 @@ class parkingPathPlanner():
         obstacles = define_obstacles(objects)
 
         # path planning and collision check with dubins path
-        px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
-        collision_check(px, py, obstacles)
+        self.px, self.py, self.pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
+        collision_check(self.px, self.py, obstacles)
 
     def collision_check(px, py, obstacles):
         found_path = True
@@ -156,7 +156,7 @@ class parkingPathPlanner():
 
         end_x, end_y, end_yaw = pose_from_key(end_number)
 
-        return end_x, end_y, end_yaw, end_number
+        return end_x, end_y, end_yaw
 
     # pose assigenment: entrance, parking space, exit
     def pose_from_key(key):
@@ -312,6 +312,8 @@ main file
 if __name__ == '__main__':
     print('Path planning and projection for duckietown...')
     rospy.init_node('parking_path_planning')
+    ppP = parkingPathPlanner()
+    rospy.spin()
 
     #path_planning(0,3)
 
