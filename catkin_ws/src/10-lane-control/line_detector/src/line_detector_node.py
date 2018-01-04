@@ -213,7 +213,7 @@ class LineDetectorNode(object):
             self.latencyArray.pop(0)
 
         # print "Latency of segment list: ", segment_latency
-        print("Mean latency segment list: %d" % np.mean(self.latencyArray))
+        print("Mean latency segment list: %s" % np.mean(self.latencyArray))
         # rospy.loginfo("Image_Size: " + str(self.img_size) + " / top_cutoff: " + str(self.top_cutoff))
 
         # Publish segmentList
