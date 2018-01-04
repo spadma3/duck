@@ -110,10 +110,6 @@ nodes:
 
 # Define state transitions
 states:
-  # ALWAYS:
-  #   active_nodes:
-  #     - inverse_kinematics
-  #     - anti_instagram
   NORMAL_JOYSTICK_CONTROL:
     transitions:
       joystick_override_off: "LANE_FOLLOWING"
