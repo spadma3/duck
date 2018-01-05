@@ -9,7 +9,7 @@ import duckietown_utils as dtu
 
 @dtu.unit_test
 def test_cli2():
-    cwd = '.'
+    cwd = dtu.get_output_dir_for_test()
     cmd = ['rosrun', 'what_the_duck', 'what-the-duck']
     res = dtu.system_cmd_result(cwd, cmd,
                       display_stdout=True,

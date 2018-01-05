@@ -1,5 +1,5 @@
 import os
-from tempfile import mkdtemp
+from tempfile import mkdtemp, NamedTemporaryFile
 
 from .logging_logger import logger
 
@@ -8,6 +8,7 @@ from .exception_utils import raise_desc
 from .yaml_pretty import yaml_load
 from .constants import DuckietownConstants
 from compmake.utils.filesystem_utils import mkdirs_thread_safe
+from catalyst.commands.command import contextmanager
 
 
 @contract(s=str, returns=str)
@@ -58,3 +59,10 @@ def create_tmpdir(prefix='tmpdir'):
 
     d = mkdtemp(dir=base, prefix=prefix)
     return d
+
+@contextmanager
+def tmpfile(suffix):
+    ''' Yields the name of a temporary file '''
+    temp_file = NamedTemporaryFile(suffix=suffix)
+    yield temp_file.name
+    temp_file.close()
