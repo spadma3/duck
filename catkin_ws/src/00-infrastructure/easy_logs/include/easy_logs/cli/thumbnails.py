@@ -123,8 +123,9 @@ def work(log, outd, max_images):
         s = log.log_name
         grid = dtu.add_header_to_rgb(grid, s, max_height=32)
                 
-        fn = d0 + '.jpg'
-        dtu.write_rgb_as_jpg(grid, fn)
+        if (topic != main) or len(topics)> 1:
+            fn = d0 + '.jpg'
+            dtu.write_rgb_as_jpg(grid, fn)
         
         if topic == main:
             fn = outd + '.jpg'
