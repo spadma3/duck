@@ -1,11 +1,20 @@
 #!/bin/bash
 
+# Check the interface
+WIFACE=$1
+iwconfig $WIFACE | grep -v "no wireless extensions."
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...Interface" $WIFACE "is not a WiFi interface!"
+    exit 2
+fi
+
 # Deactivate bat0
+sudo batctl if del $WIFACE # For safety reasons
 sudo ifdown bat0
 
 # Remove the scripts
 sudo rm /etc/network/if-pre-up.d/start_batman
-sudo rm /etc/network/if-post-down.d/stop_batman
+sudo rm /etc/network/if-down.d/stop_batman
 
 # Remove the mesh network configuration
 sudo ./unconfigure_meshnet

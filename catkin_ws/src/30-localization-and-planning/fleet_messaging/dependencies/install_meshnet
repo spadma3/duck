@@ -22,7 +22,7 @@ sudo chmod +x rem_bat_iface
 sudo chmod +x stop_batman
 sudo mv start_batman /etc/network/if-pre-up.d/
 sudo mv rem_bat_iface /etc/network/if-down.d/
-sudo mv stop_batman /etc/network/if-post-down.d/
+sudo mv stop_batman /etc/network/if-down.d/
 
 RED='\033[0;31m'
 NC='\033[0m'
