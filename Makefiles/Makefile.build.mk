@@ -93,5 +93,16 @@ python-module-stats:
 		ros_node_utils\
 		pymongo\
 		ruamel.yaml\
+		ruamel.ordereddict\
 		geometry\
-		bs4
+		bs4\
+		cv2\
+		rospkg\
+		rosbag\
+		rospy\
+		catkin\
+		catkin-pkg\
+		matplotlib\
+		networkx\
+		Pillow\
+		qtfaststart
