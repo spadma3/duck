@@ -55,6 +55,11 @@ def run_nodata2():
 def run_fail1():
     run('expect_fail1', RTCheck.FAIL)
     
+
+@dtu.unit_test
+def run_rt_small_video():
+    run('rt_small_video', RTCheck.OK)
+    
     
     
 if __name__ == '__main__':
