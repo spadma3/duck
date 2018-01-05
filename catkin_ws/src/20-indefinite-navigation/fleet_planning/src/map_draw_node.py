@@ -121,7 +121,8 @@ class MapDrawNode:
 
         # NOTE: factor -1 added so due to image negative image coordinates in vertical direction.
         height_start = max(self.map_img.shape[0] * -1, point[1] * -1)  
-        height_end = max(self.map_img.shape[0] * -1, (height_start + icon.shape[0]))
+        height_end = min(self.map_img.shape[0], (height_start + icon.shape[0]))
+        print "height end as max: ", self.map_img.shape[0] * -1, (height_start + icon.shape[0])
         width_start =  min(self.map_img.shape[1], point[0] + (icon_number - 1) * (icon.shape[1] + 5))
         width_end = min(self.map_img.shape[1], width_start + icon.shape[1])
         icon = icon[0:height_end - height_start, 0:width_end - width_start]
