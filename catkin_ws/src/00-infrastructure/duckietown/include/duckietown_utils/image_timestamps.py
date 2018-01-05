@@ -49,7 +49,7 @@ def add_header_to_image(*args, **kwargs):
 
 def _add_header(img, s, proportion=default_header_proportion, 
                 max_height=default_max_height, min_height=default_min_height, 
-                        bgcolor=(0,0,0), color=(255,255,255)):
+                        bgcolor=(0,0,0), color=(255,255,255), width=1):
     
     font_height = proportion * img.shape[1]
     if max_height is not None:
@@ -68,6 +68,6 @@ def _add_header(img, s, proportion=default_header_proportion,
     dim = (0.75*ratio)
     
     cv2.putText(black, s, (10, int(25*ratio)), font, 
-                dim, color, 1, cv2.LINE_AA)  # @UndefinedVariable
+                dim, color, width, cv2.LINE_AA)  # @UndefinedVariable
     res = make_images_grid([black, img], cols=1)
     return res

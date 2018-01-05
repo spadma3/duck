@@ -1,6 +1,8 @@
 
 from collections import OrderedDict
 import os
+import shutil
+import time
 
 from quickapp import QuickApp
 
@@ -11,11 +13,10 @@ from easy_logs.cli.require import get_log_if_not_exists
 from easy_regression.cli.analysis_and_stat import job_analyze, job_merge, print_results
 from easy_regression.cli.checking import compute_check_results, display_check_results, fail_if_not_expected,\
     write_to_db
-from easy_regression.cli.processing import process_one
+from easy_regression.cli.processing import process_one_dynamic
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.regression_test import RegressionTest
-import shutil
-import time
+import rosbag
 
 
 logger = dtu.logger
@@ -59,8 +60,6 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
 def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     
     logs = rt.get_logs(easy_logs_db)
-    print "log names: %s" % sorted(logs)
-    
     
     processors = rt.get_processors()
     
@@ -87,19 +86,30 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
         bag_filename = c.comp(get_log_if_not_exists, easy_logs_db.logs, log.filename)
         t0 = log.t0
         t1 = log.t1
-        log_out_ = c.comp(process_one, bag_filename, t0, t1, processors, log_out, log_name, job_id=log_name)
+        
+        log_out_ = c.comp_dynamic(process_one_dynamic, 
+                                  bag_filename, t0, t1, processors, log_out, log, job_id='process_one_dynamic')
         
         for a in analyzers:
             r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id=a) 
             do_before_deleting_tmp_dir.append(r)
             
+        def sanitize_topic(x):
+            if x.startswith('/'):
+                x = x[1:]
+            x = x.replace('/','-')
+            return x
+            
         for topic in rt.get_topic_videos():
-            # remove initial slash
-            topic_sanitized = topic[1:]
-            topic_sanitized = topic_sanitized.replace('/','-')
-            mp4 = os.path.join(out, 'videos', log_name, log_name+'-'+topic_sanitized + '.mp4')
+            mp4 = os.path.join(out, 'videos', log_name, log_name+'-'+sanitize_topic(topic) + '.mp4')
             v = c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4)
             do_before_deleting_tmp_dir.append(v)
+            
+        for topic in rt.get_topic_images():
+            basename = os.path.join(out, 'images', log_name, log_name+'-'+sanitize_topic(topic) )
+            v = c.comp(write_image, log_out_, topic, basename)
+            do_before_deleting_tmp_dir.append(v)
+            
 
     for a in analyzers:
         results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a)
@@ -113,9 +123,24 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     context.comp(write_to_db, rt_name, results_all, out)
     
     context.comp(delete_tmp_dir, tmpdir, do_before_deleting_tmp_dir)
-    
-def delete_tmp_dir(tmpdir, _dependencies):
-    shutil.rmtree(tmpdir)
+
+def write_image(bag_filename, topic, basename):
+    dtu.logger.info('reading topic %r from %r' % (topic, bag_filename))   
+    bag = rosbag.Bag(bag_filename)
+    res = dtu.d8n_read_all_images_from_bag(bag, topic, )
+    n = len(res)
+    for i in range(n):
+        rgb = res[i]['rgb']
+        data = dtu.png_from_bgr(dtu.bgr_from_rgb(rgb))
+        if n==1:
+            fn = basename + '.png'
+        else:
+            fn = basename + '-%02d' % i + '.png'
+        dtu.write_data_to_file(data, fn)
+        
+    bag.close()
     
 
+def delete_tmp_dir(tmpdir, _dependencies):
+    shutil.rmtree(tmpdir)
     

@@ -14,13 +14,23 @@ __all__ = [
 
 ChecksWithComment = namedtuple('ChecksWithComment', ['checks', 'comment'])
 
+ProcessorEntry = namedtuple('ProcessorEntry', ['processor', 'prefix_in', 'prefix_out'])
+ 
 class RegressionTest(object):
     
-    def __init__(self, logs, processors=[], analyzers=[], checks=[], topic_videos=[]):
+    def __init__(self, logs, processors=[], analyzers=[], checks=[], topic_videos=[],
+                 topic_images=[]):
         self.logs = logs
-        self.processors = processors
+        
+        self.processors = []
+        for p in processors:
+            p2 = ProcessorEntry(**p)
+            self.processors.append(p2)
+        
         self.analyzers = analyzers
         self.topic_videos = topic_videos
+        self.topic_images = topic_images
+        
         
         check_isinstance(checks, list)
        
@@ -31,7 +41,8 @@ class RegressionTest(object):
             msg += '\n' + dtu.indent(dtu.yaml_dump_pretty(checks), '', 'parsing: ')
             dtu.raise_wrapped(RTParseError, e, msg, compact=True)
 
-    @dtu.contract(returns='list(str)')
+        
+    @dtu.contract(returns='list($ProcessorEntry)')
     def get_processors(self):
         return self.processors
 
@@ -52,6 +63,9 @@ class RegressionTest(object):
     
     def get_topic_videos(self):
         return self.topic_videos
+    
+    def get_topic_images(self):
+        return self.topic_images
     
     def get_checks(self):
         return self.cwcs

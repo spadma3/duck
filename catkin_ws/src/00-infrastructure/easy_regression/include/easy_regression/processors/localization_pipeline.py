@@ -2,9 +2,11 @@ from complete_image_pipeline.pipeline import run_pipeline
 import duckietown_utils as dtu
 from easy_regression import ProcessorInterface
 from ground_projection import GroundProjection
+import rospy
 
-
-__all__ = ['LocalizationPipelineProcessor']
+__all__ = [
+    'LocalizationPipelineProcessor',
+]
 
 class LocalizationPipelineProcessor(ProcessorInterface):
     
@@ -15,7 +17,10 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         self.anti_instagram = anti_instagram
         self.all_details = False
         
-    def process_log(self, bag_in, bag_out, log_name):
+    def process_log(self, bag_in, prefix_in, bag_out, prefix_out, utils):
+#         bag_in = proxy_transparent(bag_in)
+        
+        log_name = utils.get_log().log_name
         
         vehicle_name = dtu.which_robot(bag_in)
     
@@ -24,24 +29,15 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         gp = GroundProjection(vehicle_name) 
     
         topic = dtu.get_image_topic(bag_in)
-        
-        if isinstance(bag_in, dtu.BagReadProxy):
-            start_time = bag_in.get_physical_log_start_time()
-        else:
-            start_time = bag_in.get_start_time() 
             
         bgcolor = dtu.ColorConstants.BGR_DUCKIETOWN_YELLOW
             
-        sequence = dtu.d8n_bag_read_with_progress(bag_in, topic, yield_tuple=True)
-        for i, (topic, msg, t) in enumerate(sequence):
+        sequence = bag_in.read_messages_plus(topics=[topic])
+        for _i, mp in enumerate(sequence):
             
-            rel_time = t.to_sec() - start_time
+            bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(mp.msg))
             
-            rgb = dtu.rgb_from_ros(msg)
-            
-            bgr = dtu.bgr_from_rgb(rgb)
-            
-            res, _stats = run_pipeline(bgr, gp=gp,
+            res, stats = run_pipeline(bgr, gp=gp,
                                         line_detector_name=self.line_detector, 
                                         image_prep_name=self.image_prep,
                                         lane_filter_name=self.lane_filter,
@@ -51,15 +47,15 @@ class LocalizationPipelineProcessor(ProcessorInterface):
             rect = (480, 640) if not self.all_details else (240, 320)
             res = dtu.resize_images_to_fit_in_rect(res, rect, bgcolor=bgcolor)
 
+            print('abs: %s  window: %s  fron log: %s' % (mp.time_absolute, mp.time_window, mp.time_from_physical_log_start))
             headers = [
-                "%s %.2f s" % (log_name,  rel_time),
-                "color correction: %s | preparation: %s | detector: %s | filter: %s" % (
+                "Robot: %s log: %s time: %.2f s" % (vehicle_name, log_name, mp.time_from_physical_log_start),
+                "Algorithms | color correction: %s | preparation: %s | detector: %s | filter: %s" % (
                     self.anti_instagram,
                     self.image_prep,
                     self.line_detector, 
                     self.lane_filter,)
             ]
-            
             
             res = dtu.write_bgr_images_as_jpgs(res, dirname=None, bgcolor=bgcolor)
             
@@ -68,10 +64,13 @@ class LocalizationPipelineProcessor(ProcessorInterface):
             for head in reversed(headers):
                 max_height = 35
                 cv_image = dtu.add_header_to_bgr(cv_image, head, max_height=max_height)
-#             cv_image = d8_image_resize_fit(cv_image, W=1280)
             
-            otopic = "/localization_pipeline/all"
-#             omsg = d8n_image_msg_from_cv_image(cv_image, "bgr8", same_timestamp_as=msg)
-            omsg = dtu.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=msg)
-            bag_out.write(otopic, omsg)
+            otopic = "all"
+
+            omsg = dtu.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=mp.msg)
+            t = rospy.Time.from_sec(mp.time_absolute)  # @UndefinedVariable
+            bag_out.write(prefix_out + '/' + otopic, omsg, t=t)
+            
+            for name, value in stats.items():
+                utils.write_stat(prefix_out + '/' + name, value, t=t)
 

@@ -29,7 +29,8 @@ class CreateImageFromPylab(object):
             return False
 
         if not self.figure.axes:
-            raise Exception('You did not draw anything in the image.')
+#            raise Exception('You did not draw anything in the image.')
+            pass
 
         savefig_params = dict(dpi=self.dpi, bbox_inches='tight', pad_inches=0.01,
                               transparent=True, facecolor=self.figure.get_facecolor())

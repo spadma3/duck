@@ -57,6 +57,7 @@ def d8n_read_all_images(filename, t0=None, t1=None):
     bag_proxy = BagReadProxy(bag, t0, t1)
     # FIXME: this is wrong
     res = d8n_read_all_images_from_bag(bag_proxy, topic, t0=t0,t1=t1)
+    bag_proxy.close()
     return res
 
 

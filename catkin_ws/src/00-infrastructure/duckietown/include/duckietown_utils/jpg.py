@@ -19,6 +19,10 @@ def jpg_from_bgr(bgr):
     _retval, s = cv2.imencode('.jpg', bgr) 
     return s.tostring()
 
+def png_from_bgr(bgr):
+    _retval, s = cv2.imencode('.png', bgr) 
+    return s.tostring()
+
 @deprecated('Use jpg_from_bgr()')
 def jpg_from_image_cv(image):
     return jpg_from_bgr(image) 

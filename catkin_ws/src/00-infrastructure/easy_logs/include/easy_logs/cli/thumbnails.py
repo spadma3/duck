@@ -119,7 +119,7 @@ def work(log, outd, max_images):
             dtu.write_bgr_as_jpg(dtu.bgr_from_rgb(rgb), fn)
     
         grid = dtu.make_images_grid(images_with_label, pad=4,
-                                    bgcolor=dtu.ColorConstants.BGR_DUCKIETOWN_YELLOW)
+                                    bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW)
         s = log.log_name
         grid = dtu.add_header_to_rgb(grid, s, max_height=32)
                 

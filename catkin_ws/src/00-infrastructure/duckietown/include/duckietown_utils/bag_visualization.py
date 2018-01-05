@@ -1,9 +1,13 @@
 import os
 import shutil
 
-from .logging_logger import logger
-
+from .bag_info import rosbag_info
 from .disk_hierarchy import create_tmpdir
+from .instantiate_utils import indent
+from .logging_logger import logger
+from .yaml_pretty import yaml_dump
+from compmake.utils.filesystem_utils import mkdirs_thread_safe
+
 
 __all__ = ['d8n_make_video_from_bag']
 
@@ -39,12 +43,17 @@ def d8n_make_video_from_bag(bag_filename, topic, out):
     # pg -m procgraph_ros bag2mp4 --bag $bag --topic $topic --out $out
       
     bag = rosbag.Bag(bag_filename)
+    
     count = bag.get_message_count(topic_filters=topic)
     bag.close()
-    print('Creating video for topic %r, which has %d messages.' % (topic, count))
+    logger.info('Creating video for topic %r, which has %d messages.' % (topic, count))
     min_messages = 3
     if count < min_messages:
-        msg = 'Topic %r has only %d messages, too few to make a video.\nFile: %s' % (topic, count, bag_filename)
+        msg = ('Topic %r has only %d messages, too few to make a video.\nFile: %s' 
+               % (topic, count, bag_filename))
+        
+        info = rosbag_info(bag_filename)
+        msg += '\n' + indent(yaml_dump(info), '  info: ')
         raise ValueError(msg)
 
     model = 'bag2mp4_fixfps'
@@ -60,7 +69,9 @@ def d8n_make_video_from_bag(bag_filename, topic, out):
 
     dn = os.path.dirname(out)
     if not os.path.exists(dn):
-        os.makedirs(dn)
+        mkdirs_thread_safe(dn)
+        
+        
     
     shutil.copyfile(out_tmp, out)
     logger.info('Created: %s' % out)

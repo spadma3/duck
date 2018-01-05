@@ -13,4 +13,4 @@ parameters:
     checks:  []
 
     topic_videos:
-    - "/localization_pipeline/all"
+    - "all"

@@ -16,7 +16,7 @@ def get_easy_logs_db_cached_if_possible():
         f = EasyLogsDB
         EasyLogsDB._singleton = dtu.get_cached('EasyLogsDB', f)
 
-        fn = os.path.join(dtu.get_duckietown_root(),'caches','candidate_cloud.yaml')
+        fn = os.path.join(dtu.get_duckietown_root(), 'caches', 'candidate_cloud.yaml')
 
         if not os.path.exists(fn):
             logs = copy.deepcopy(EasyLogsDB._singleton.logs)
@@ -60,6 +60,11 @@ class EasyLogsDB(object):
             logs  = load_all_logs()
         else:
             dtu.check_isinstance(logs, OrderedDict)
+        
+        # Let's get rid of these redundant logs from 2016
+        for k in list(logs):
+            if 'RCDP' in k:
+                del logs[k]
         self.logs = logs
 
     @dtu.contract(returns=OrderedDict, query='str|list(str)')

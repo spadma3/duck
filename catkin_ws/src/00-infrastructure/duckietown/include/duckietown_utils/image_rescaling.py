@@ -6,6 +6,7 @@ import numpy as np
 
 from .contracts_ import contract
 from .exception_utils import check_isinstance
+from duckietown_utils.image_operations import gray2rgb
 
 
 def d8_image_zoom_linear(cv_image, ratio=4):
@@ -78,6 +79,9 @@ def resize_small_images(image_dict):
         
     d = OrderedDict()
     for k, image in image_dict.items():
+        if len(image.shape) == 2: # grayscale
+            image = gray2rgb(image)
+        
         H, W = image.shape[0:2]
         ratio = max(max_H*1.0/H, max_W*1.0/W)
         ratio = int(np.ceil(ratio))

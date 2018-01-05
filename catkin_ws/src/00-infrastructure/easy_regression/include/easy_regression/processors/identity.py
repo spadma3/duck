@@ -5,6 +5,7 @@ __all__ = ['IdentityProcessor']
 
 class IdentityProcessor(ProcessorInterface):
     
-    def process_log(self, bag_in, bag_out):
+    def process_log(self, bag_in, prefix_in, bag_out, prefix_out):
+        # TODO
         for topic, msg, _t in bag_in.read_messages():
             bag_out.write(topic, msg)

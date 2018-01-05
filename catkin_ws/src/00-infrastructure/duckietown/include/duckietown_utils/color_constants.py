@@ -29,7 +29,6 @@ class ColorConstants(object):
     BGR_YELLOW = (0, 255,255)
     BGR_DUCKIETOWN_YELLOW = (0, 204, 255)
 
-
     RGB_RED = rgb_color_from_bgr_color(BGR_RED)
     RGB_GREEN = rgb_color_from_bgr_color(BGR_GREEN)
     RGB_WHITE = rgb_color_from_bgr_color(BGR_WHITE)
@@ -57,3 +56,7 @@ def bgr_color_from_string(s):
         msg = 'No color %r found in %s' % (s, list(d))
         raise ValueError(msg)
     return d[s]
+
+def segment_color_constant_from_string():
+    pass
+    

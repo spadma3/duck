@@ -4,7 +4,7 @@ class CountMessages(AnalyzerInterface):
     
     def analyze_log(self, bag_in, dict_out):
         n = 0
-        for _ in bag_in.read_messages():
+        for _ in bag_in.read_messages(raw=True):
             n += 1
             
         dict_out['num_messages'] = n
