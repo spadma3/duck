@@ -23,7 +23,8 @@ def run(which, expect):
               display_stderr=v,
               raise_on_error=True)
     finally:
-        shutil.rmtree(cwd)
+        if False:
+            shutil.rmtree(cwd)
 
 @dtu.unit_test
 def run_abnormal1():
