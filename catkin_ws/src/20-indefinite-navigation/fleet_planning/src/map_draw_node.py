@@ -52,9 +52,10 @@ class MapDrawNode:
         self.num_duckiebots_per_node = {node: 0 for node in self.duckietown_graph._nodes}
 
         # image used to store all start, customer and target icons at their positions
-        self.customer_icon = cv2.resize(cv2.imread(customer_icon_path), (30, 30))
-        self.start_icon = cv2.resize(cv2.imread(start_icon_path), (30, 30))
-        self.target_icon = cv2.resize(cv2.imread(target_icon_path), (30, 30))
+        icon_length = 60
+        self.customer_icon = cv2.resize(cv2.imread(customer_icon_path), (icon_length, icon_length))
+        self.start_icon = cv2.resize(cv2.imread(start_icon_path), (icon_length, icon_length))
+        self.target_icon = cv2.resize(cv2.imread(target_icon_path), (icon_length, icon_length))
 
         print "Map loaded successfully!\n"
 
@@ -67,13 +68,35 @@ class MapDrawNode:
 
         self._draw_and_publish_image(None) # publish map without duckies
 
+
     def graph_node_to_image_location(self, graph, node):
         """
         Convert a graph node number to a 2d image pixel location
         """
         return graph.node_positions[str(node)]
 
-    def draw_icons(self, map_image, icon_type, location, icon_number=1):
+
+    def pad_and_write_duckiebot_name(self, img, name):
+        """
+        takes image, pads it and writes the duckiebot name where indicated. text_location is approximately at the bottom of the font, in the middle of the word.
+        """
+        # center location depending on name length
+        text_size = cv2.getTextSize(name, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1)
+        print "text_size: ", text_size
+        text_location = (2, int(img.shape[1] + text_size[0][1]))  #  TODO: verify this is the correct position
+        # text_location = (int(img.shape[0] / 2 - text_size[0][0] / 2), int(img.shape[1] + text_size[0][1]))  #  TODO: verify this is the correct position
+
+        # pad image to make space for text
+        padding = [0, 0, text_size[0][1] + 5, 0]
+        padded_img = cv2.copyMakeBorder(img, top=padding[0], right=padding[1], bottom=padding[2], left=padding[3], borderType=cv2.BORDER_CONSTANT, value=(255,255,255))
+
+        # write text
+        color = (0,0,255)
+        text_image = cv2.putText(padded_img, name, org=text_location, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.4, color=color, thickness=1)
+        return text_image
+
+
+    def draw_icons(self, map_image, icon_type, location, icon_number=1, bot_name = None):
         """
         Draw start, customer and target icons next to each
         corresponding graph node along with the respective name
@@ -97,6 +120,7 @@ class MapDrawNode:
         elif icon_type == "start":
             icon = self.start_icon
             # TODO: add the name of the duckiebot to the icon. Maybe overlay icons if e.g. duckiebot is at targets
+            icon = self.pad_and_write_duckiebot_name(icon, bot_name)
         elif icon_type == "target":
             icon = self.target_icon
             print "drawing target"
@@ -114,7 +138,7 @@ class MapDrawNode:
             rospy.logwarn("Point ({},{}) is outside of the map!".format(point[1], point[0]))
 
         # NOTE: factor -1 added so due to image negative image coordinates in vertical direction.
-        height_start = max(self.map_img.shape[0] * -1, point[1] * -1)  
+        height_start = max(self.map_img.shape[0] * -1, point[1])  
         height_end = max(self.map_img.shape[0] * -1, (height_start + icon.shape[0]))
         width_start =  min(self.map_img.shape[1], point[0] + (icon_number - 1) * (icon.shape[1] + 5))
         width_end = min(self.map_img.shape[1], width_start + icon.shape[1])
@@ -161,7 +185,8 @@ class MapDrawNode:
             # draw duckiebot
             self.num_duckiebots_per_node[str(bot.location)] += 1
             overlay = self.draw_icons(overlay, "start", location=bot.location,
-                                      icon_number=self.num_duckiebots_per_node[str(bot.location)])
+                                      icon_number=self.num_duckiebots_per_node[str(bot.location)],
+                                      bot_name = bot.name)
 
             if bot.taxi_state != TaxiState.IDLE:
                 if bot.taxi_state == TaxiState.GOING_TO_CUSTOMER:
@@ -173,7 +198,7 @@ class MapDrawNode:
                 # draw customer
                 self.num_duckiebots_per_node[str(customer_location)] += 1
                 overlay = self.draw_icons(overlay, "customer",
-                                          location=customer_location, icon_number=self.num_duckiebots_per_node[str(customer_location)])  # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
+                                          location=customer_location, icon_number=self.num_duckiebots_per_node[str(customer_location)])
 
                 # draw target icon
                 self.num_duckiebots_per_node[str(bot.target_location)] += 1
