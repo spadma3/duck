@@ -1,1 +1,0 @@
-PASS tests/test_zmq_poll_fd (exit status: 0)
