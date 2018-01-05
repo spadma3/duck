@@ -18,22 +18,8 @@ import sys
 
 # Movidius user modifiable input parameters
 
-GRAPH_PATH = os.environ['DUCKIETOWN_ROOT'] + '/catkin_ws/src/80-deep-learning/duckiebot_il_lane_following/src/v1.graph'
+GRAPH_BASE_PATH = os.environ['DUCKIETOWN_ROOT'] + '/catkin_ws/src/80-deep-learning/duckiebot_il_lane_following/src/'
 IMAGE_DIM = (160, 120)
-
-# Look for enumerated NCS device(s); quit program if none found.
-devices = mvnc.EnumerateDevices()
-if len(devices) == 0:
-    print('No devices found')
-    quit()
-# Get a handle to the first enumerated device and open it
-device = mvnc.Device(devices[0])
-device.OpenDevice()
-# Read the graph file into a buffer
-with open(GRAPH_PATH, mode='rb') as f:
-    blob = f.read()
-# Load the graph buffer into the NCS
-graph = device.AllocateGraph(blob)
 
 
 class Stats():
@@ -92,6 +78,7 @@ class imitation_lane_following(object):
         self.active = True
         self.stats = Stats()
 
+        # input channel can be 1 or 3, corresponding to grayscale and rgb image respectively
         self.input_channel = rospy.get_param("~input_channel")
 
         # subscriber, subscribe to compressed image
@@ -99,6 +86,27 @@ class imitation_lane_following(object):
         # publisher, publish to control command /robotname/car_cmd_switch_node/cmd
 
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+
+        # Look for enumerated NCS device(s); quit program if none found.
+        self.devices = mvnc.EnumerateDevices()
+        if len(self.devices) == 0:
+            print('No devices found')
+            quit()
+        # Get a handle to the first enumerated device and open it
+        self.device = mvnc.Device(self.devices[0])
+        self.device.OpenDevice()
+
+        if self.input_channel == 1:
+            GRAPH_PATH = GRAPH_BASE_PATH + 'one_channel.graph'
+
+        if self.input_channel == 3:
+            GRAPH_PATH = GRAPH_BASE_PATH + 'three_channel.graph'
+
+        # Read the graph file into a buffer
+        with open(GRAPH_PATH, mode='rb') as f:
+            self.blob = f.read()
+        # Load the graph buffer into the NCS
+        self.graph = self.device.AllocateGraph(self.blob)
 
     def callback(self, image_msg):
 
@@ -143,16 +151,17 @@ class imitation_lane_following(object):
         # cut part of the image
         img = img[40:, :, :]
         # Convert image to gray scale
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        if self.input_channel == 1:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # tranform 0-255 to 0-1
         img = cv2.normalize(img.astype('float'), None, 0.0, 1.0, cv2.NORM_MINMAX)
         # Load the image as a half-precision floating point array
-        graph.LoadTensor(img.astype(numpy.float16), 'user object')
+        self.graph.LoadTensor(img.astype(numpy.float16), 'user object')
         # Get the results from NCS
-        output, userobj = graph.GetResult()
+        output, userobj = self.graph.GetResult()
         # Print the results
         print('\n------- predictions --------')
-        print(self.input_channel)
+        print('input channel: ' + str(self.input_channel))
         # first make the array to float data type
         learning_omega = float(output[0])
         print(learning_omega)
@@ -180,6 +189,6 @@ if __name__ == '__main__':
     try:
         rospy.spin()
     except KeyboardInterrupt:
-        graph.DeallocateGraph()
-        device.CloseDevice()
+        duckiebot_il_lane_following.graph.DeallocateGraph()
+        duckiebot_il_lane_following.device.CloseDevice()
         print("Shutting down!!!")
