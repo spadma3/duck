@@ -25,5 +25,7 @@ def run_one(cmd):
               display_stderr=v,
               raise_on_error=True)
     finally:
-        shutil.rmtree(cwd)  
+        pass
+#         if os.path.exists(cwd):
+#             shutil.rmtree(cwd)  
     
