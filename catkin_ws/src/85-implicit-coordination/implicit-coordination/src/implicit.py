@@ -5,7 +5,7 @@ import rospkg
 import os
 import yaml
 from random import randrange, randint
-from duckietown_msgs.msg import BoolStamped, FSMState
+from duckietown_msgs.msg import BoolStamped, Twist2DStamped, FSMState
 from multivehicle_tracker.msg import Tracklet, TrackletList
 from std_msgs.msg import Int16
 
@@ -32,17 +32,20 @@ class Implicit(object):
         self.loadConfig(self.cali_file)
 
         # Setup publishers
+        self.pub_coord_cmd = rospy.Publisher('simple_coordinator_node/car_cmd',
+                                             Twist2DStamped, queue_size=1)
         self.pub_implicit_coordination = rospy.Publisher(
             "~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
         self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1)
 
         # Setup subscriber
-        self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection",
-                                                    BoolStamped, self.cbCSMA)
+        # self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection",
+        #                                            BoolStamped, self.cbCSMA)
         self.sub_detector = rospy.Subscriber("~vehicle_detection_node",
                                              TrackletList, self.cbGetBots)
-        self.sub_mode = rospy.Subscriber("~fsm", FSMState, self.cbFSMState)
+        self.sub_mode = rospy.Subscriber("~fsm", FSMState, self.cbCSMA)
 
+        self.timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.publish_car_cmd)
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
         # rospy.Timer(rospy.Duration.from_sec(1.0), self.cbCSMA)
 
@@ -63,12 +66,9 @@ class Implicit(object):
         rospy.loginfo('[%s] SlotTime: %.4f' % (self.node_name, self.SlotTime))
 
     # callback functions
-    def cbFSMState(self, msg):
-        self.mode = msg.state
-        if self.mode == "INTERSECTION_CONTROL":
-            self.active = True
-            rospy.loginfo("[%s] activated" % (self.node_name))
-
+    def publish_car_cmd(self,event):
+        self.pub_coord_cmd.publish(Twist2DStamped(v=0,omega=0))
+        
     def cbGetBots(self, tracklet_list):
         for bot in tracklet_list.tracklets:
             if bot.id not in self.detected_bots:
@@ -94,8 +94,11 @@ class Implicit(object):
                 return True
         return False
 
-    def cbCSMA(self, args=None):
-        if self.active:
+    def cbCSMA(self, msg):
+        self.mode = msg.state
+        if self.mode == "COORDINATION":
+            self.active = True
+            rospy.loginfo("[%s] activated" % (self.node_name))
             flag = BoolStamped()
             backoff_time = 0.0  # in seconds
             if self.DetectMovement():
@@ -109,7 +112,7 @@ class Implicit(object):
             else:
                 self.iteration = 0
                 flag.data = True
-                turn_type = Int16(randint(0, 2))
+                turn_type = Int16(1)
                 self.pub_turn_type.publish(turn_type)
                 self.pub_implicit_coordination.publish(flag)
 

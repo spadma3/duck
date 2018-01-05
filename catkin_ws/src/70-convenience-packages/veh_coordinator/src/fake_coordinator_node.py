@@ -16,7 +16,7 @@ class FakeCoordinatorNode(object):
         if msg.state == "COORDINATION":
             self.pub_intersection_go.publish(BoolStamped(header=msg.header,data=True))
 
-    def publish_car_cmd(self,event):  
+    def publish_car_cmd(self,event):
         self.pub_coord_cmd.publish(Twist2DStamped(v=0,omega=0))
 
     def onShutdown(self):
@@ -28,4 +28,3 @@ if __name__ == '__main__':
     fake_coordinator_node = FakeCoordinatorNode()
     rospy.on_shutdown(fake_coordinator_node.onShutdown)
     rospy.spin()
-
