@@ -1,0 +1,1 @@
+PASS tests/test_getsockopt_memset (exit status: 0)
