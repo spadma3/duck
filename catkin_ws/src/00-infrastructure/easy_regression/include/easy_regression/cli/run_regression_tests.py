@@ -11,8 +11,7 @@ from duckietown_utils.cli import D8AppWithLogs
 from easy_algo import get_easy_algo_db
 from easy_logs.cli.require import get_log_if_not_exists
 from easy_regression.cli.analysis_and_stat import job_analyze, job_merge, print_results
-from easy_regression.cli.checking import compute_check_results, display_check_results, fail_if_not_expected,\
-    write_to_db
+from easy_regression.cli.checking import compute_check_results, display_check_results, fail_if_not_expected
 from easy_regression.cli.processing import process_one_dynamic
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.regression_test import RegressionTest
@@ -29,6 +28,7 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
     def define_options(self, params):
         g = 'Running regressions tests'
         params.add_string('tests', help="Query for tests instances.", group=g)
+        params.add_flag('write_to_db', help='Stores the current results in the DB', group=g)
         
         h = 'Expected status code for this regression test; one of: %s' % ", ".join(RTCheck.CHECK_RESULTS)
         default = RTCheck.OK
@@ -38,6 +38,7 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
         easy_algo_db = get_easy_algo_db()
         
         expect = self.options.expect
+        write_to_db=self.options.write_to_db
         
         if not expect in RTCheck.CHECK_RESULTS:
             msg = 'Invalid expect status %s; must be one of %s.' % (expect, RTCheck.CHECK_RESULTS)
@@ -53,11 +54,11 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
             c = context.child(rt_name)
             
             outd = os.path.join(self.options.output, 'regression_tests', rt_name)
-            jobs_rt(c, rt_name, rt, easy_logs_db, outd, expect) 
+            jobs_rt(c, rt_name, rt, easy_logs_db, outd, expect, write_to_db=write_to_db) 
 
 
 @dtu.contract(rt=RegressionTest)
-def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
+def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_to_db):
     
     logs = rt.get_logs(easy_logs_db)
     
@@ -120,7 +121,8 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect):
     context.comp(display_check_results, check_results, out)
     
     context.comp(fail_if_not_expected, check_results, expect)
-    context.comp(write_to_db, rt_name, results_all, out)
+    if write_to_db:
+        context.comp(write_to_db, rt_name, results_all, out)
     
     context.comp(delete_tmp_dir, tmpdir, do_before_deleting_tmp_dir)
 
