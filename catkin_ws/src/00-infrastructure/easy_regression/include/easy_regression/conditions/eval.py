@@ -2,9 +2,8 @@ from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
 
 import duckietown_utils as dtu
-from .interface import RTCheck
-from .result_db import ResultDB, AmbiguousQuery
-from easy_regression.conditions.interface import CheckResult
+from .interface import RTCheck, CheckResult
+from .result_db import ResultDB, AmbiguousQuery 
 
 
 class EvaluationError(Exception):
@@ -14,7 +13,7 @@ class DataNotFound(Exception):
     pass
 
 
-class Evaluable():
+class Evaluable(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
@@ -41,6 +40,7 @@ class Wrapper(RTCheck):
         
     def __str__(self):
         return self.evaluable.__str__()
+    
     # @contract(returns=CheckResult, result_db=ResultDB)
     def check(self, rdb):
         """ 

@@ -85,8 +85,8 @@ def parse_list_of_checks(checks):
         for l in lines:
             if '#' in l:
                 l = l[:l.index('#')]
-                if l.strip():
-                    decommented.append(l)
+            if l.strip():
+                decommented.append(l)
         cwc_checks = [RTCheck.from_string(_) for _ in decommented]
         cwc = ChecksWithComment(checks=cwc_checks, comment=desc)
         cwcs.append(cwc)

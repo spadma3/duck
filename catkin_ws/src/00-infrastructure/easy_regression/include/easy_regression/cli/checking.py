@@ -59,7 +59,9 @@ def compute_check_results(rt_name, rt, results_all):
     return res
         
 def display_check_results(results, out):
+    
     s = ""
+    s += '\n%d results to report' % len(results)
     for i, r in enumerate(results):
         s += '\n' + dtu.indent(str(r), '', '%d of %d: ' % (i+1, len(results)))
     print(s)

@@ -41,7 +41,7 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
         easy_algo_db = get_easy_algo_db()
         
         expect = self.options.expect
-        write_to_db=self.options.write
+        write_to_db = self.options.write
         
         if not expect in RTCheck.CHECK_RESULTS:
             msg = 'Invalid expect status %s; must be one of %s.' % (expect, RTCheck.CHECK_RESULTS)
