@@ -12,24 +12,24 @@ jobs:
      resource_class: large
      steps:
         - checkout
-        - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+        # - restore_cache:
+        #    key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
 
         - run:
             name: deps
             command: |
-                python -m venv venv
-
-                 . venv/bin/activate
+                # python -m venv venv
+                #
+                # . venv/bin/activate
 
                 pip install --upgrade -r requirements.txt
 
                 make python-module-stats
 
-        - save_cache:
-            key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-            paths:
-            - "venv"
+        # - save_cache:
+        #     key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+        #     paths:
+        #     - "venv"
 
 
 
