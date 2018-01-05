@@ -86,7 +86,7 @@ test-download-logs:
 	@echo Loading log
 	rosrun easy_logs download $(onelog)
 	@echo Should be equal to 70e9e2a49d1181d2da160ff5e615969f
-	md5sum `rosrun easy_logs find 20160223-amadoa-amadobot-RCDP2`
+	md5sum `rosrun easy_logs find $(onelog)`
 	echo TODO: check md5
 
 test-misc-utils:
@@ -94,7 +94,7 @@ test-misc-utils:
 	rosrun complete_image_pipeline display_segmaps 'DT17*tile*'
 
 test-cloud-logs: cloud-download
-	rosrun easy_logs summary --cloud 20160122-censi-ferrari-RCDP6-lapentab
+	rosrun easy_logs summary --cloud  $(onelog)
 
 # test-line-detector-programmatic: test-download-logs
 # 	rosrun easy_logs download $(onelog)
