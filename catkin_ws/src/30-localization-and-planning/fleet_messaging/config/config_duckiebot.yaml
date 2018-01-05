@@ -1,0 +1,10 @@
+- name: "fleet-plan-location"                                                        │-rw-rw-r--  1 fechu fechu 2059 Jan  5 09:16 what_the_duck-luca-Lenovo-Yoga-2-Pro-luca
+  description: "fleet planning location"                                             │.html
+  port: "23456"                                                                      │-rw-rw-r--  1 fechu fechu 2389 Jan  5 09:16 what_the_duck-napatkarn-Surface-Book-napa
+  sub: "/taxi/location"                                                              │tkarn.html
+  pub: "dummy"                                                                       │fechu@harpy:~/duckietown⟫ rosservice list
+- name: "fleet-plan-commands"                                                        │/receiver/get_loggers
+  description: "fleet planning commands"                                             │/receiver/set_logger_level
+  port: "23457"                                                                      │/rosout/get_loggers
+  sub: "dummy"                                                                       │/rosout/set_logger_level
+  pub: "/taxi/commands"
