@@ -1,17 +1,24 @@
+import warnings
+
+import duckietown_utils as dtu
 from what_the_duck.check import Check, CheckFailed, CheckError
 from what_the_duck.entry import Diagnosis
 from what_the_duck.list_of_checks import Manager
 from what_the_duck.sanity_checks import run_checks
 from what_the_duck.statistics import display_results, display_summary
-import warnings
+import os
 
-import duckietown_utils as dtu
+
+def _cwd():
+    cwd = dtu.get_output_dir_for_test()
+    if not os.path.exists(cwd):
+        dtu.mkdirs_thread_safe(cwd)
+    return cwd
 
 @dtu.unit_test
 def test_cli2():
-    cwd = dtu.get_output_dir_for_test()
     cmd = ['rosrun', 'what_the_duck', 'what-the-duck']
-    res = dtu.system_cmd_result(cwd, cmd,
+    res = dtu.system_cmd_result(_cwd(), cmd,
                       display_stdout=True,
                       display_stderr=True,
                       raise_on_error=False)
