@@ -17,7 +17,8 @@ jobs:
             command: |
                 # apt install -y python-frozendict python-ruamel.yaml
 
-                pip install -r requirements.txt
+                # pip install -r requirements.txt
+                pip install --upgrade -r requirements.txt
 
                 echo "What version is comptests?"
                 ./misc/python_environment.py comptests
@@ -29,6 +30,9 @@ jobs:
 
                 echo "Install python-sklearn"
                 apt install -y python-sklearn
+
+
+                make python-module-stats
 
         - run:
             name: build

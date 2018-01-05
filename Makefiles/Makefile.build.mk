@@ -61,6 +61,7 @@ check-environment:
 	# Put here procedures to check the environment is valid
 	#-./what-the-duck
 
+
 pdoc_packages=\
 	duckietown_utils\
 	easy_logs\
@@ -79,3 +80,18 @@ pdoc:
 
 pdoc-clean:
 	rm -rf  $(pdoc_out)
+
+
+python-module-stats:
+	./misc/python_environment.py \
+		contracts\
+		decent_logs\
+		quickapp\
+		conf_tools\
+		comptests\
+		procgraph\
+		ros_node_utils\
+		pymongo\
+		ruamel.yaml\
+		geometry\
+		bs4

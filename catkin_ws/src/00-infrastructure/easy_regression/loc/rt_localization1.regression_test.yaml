@@ -6,7 +6,9 @@ parameters:
     - "yaf_ETHZ_2017-12-26-19-39-53/{5:6}"
     processors:
 #     - localization_pipeline_moregeneric_straight
-    - localization_pipeline_baseline
+    - processor: localization_pipeline_baseline
+      prefix_in: ''
+      prefix_out: ''
     analyzers:
     - count_messages
 
