@@ -1,22 +1,21 @@
-from compmake.utils.filesystem_utils import mkdirs_thread_safe
 import os
 import shutil
 
 import duckietown_utils as dtu
-from duckietown_utils.unit_tests import get_output_dir_for_test
 from easy_regression.conditions.interface import RTCheck
 
 
 def run(which, expect):
     v = False
-    cwd = get_output_dir_for_test()
+    cwd = dtu.get_output_dir_for_test()
     if not os.path.exists(cwd):
-        mkdirs_thread_safe(cwd)
+        dtu.mkdirs_thread_safe(cwd)
 
     try:
         cmd = ['rosrun', 'easy_regression', 'run',
                '--expect', expect,
                '--test', which,
+               '-o', '.',
                '-c', 'rmake']
         dtu.system_cmd_result(cwd, cmd,
               display_stdout=v,
