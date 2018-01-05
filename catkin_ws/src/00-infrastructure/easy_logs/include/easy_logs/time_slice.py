@@ -44,7 +44,16 @@ class MakeTimeSlice(dtu.Spec):
         else:
             new_end = u1
         length = new_end-new_start
-        id_log2 = id_log + '_from%dto%d' % (self.t0*100, self.t1*100)  
+        
+#         A = '%d'%self.t0*100 if self.t0 is not None else "START"
+#         B = '%d'%self.t1*100 if self.t1 is not None else "END"
+#         
+#         id_log2 = id_log + '_from%sto%s' % (A,B)
+        A = '%d'%(new_start*100) 
+        B = '%d'%(new_end*100)
+         
+        id_log2 = id_log + '_from%sto%s' % (A,B)
+  
         return id_log2, log._replace(t0=new_start, t1=new_end, length=length)
     
 def slice_time(m, spec):

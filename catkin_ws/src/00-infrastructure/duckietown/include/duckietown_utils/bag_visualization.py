@@ -9,6 +9,7 @@ from .yaml_pretty import yaml_dump
 from compmake.utils.filesystem_utils import mkdirs_thread_safe
 
 
+
 __all__ = ['d8n_make_video_from_bag']
 
 def d8n_make_video_from_bag(bag_filename, topic, out):

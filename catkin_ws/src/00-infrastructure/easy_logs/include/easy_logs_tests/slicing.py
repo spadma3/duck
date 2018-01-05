@@ -43,6 +43,33 @@ def parse_expressions2():
     assert l1.t0 == 10.5
     assert l1.t1 == 15.5
     assert l1.length == 5, l1.length
+
+@dtu.unit_test
+def parse_expressions3():
+    db = get_easy_logs_db_cached_if_possible()
+    logs = db.logs
+    one = logs.keys()[0]
+    query = one + '/{:2.5}'
+    res = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
+    
+    assert len(res) == 1
+    l1 = res[list(res)[0]]
+    assert l1.t0 == 0
+    assert l1.t1 == 2.5
+
+@dtu.unit_test
+def parse_expressions4():
+    db = get_easy_logs_db_cached_if_possible()
+    logs = db.logs
+    one = logs.keys()[0]
+    query = one + '/{1:}'
+    res = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
+    print res
+    assert len(res) == 1
+    l1 = res[list(res)[0]]
+    assert l1.t0 == 1 
+    
+
     
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()
