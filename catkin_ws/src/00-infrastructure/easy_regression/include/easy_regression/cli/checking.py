@@ -63,6 +63,8 @@ def display_check_results(results, out):
     for i, r in enumerate(results):
         s += '\n' + dtu.indent(str(r), '', '%d of %d: ' % (i+1, len(results)))
     print(s)
+    fn = os.path.join(out, 'check_results.txt')
+    dtu.write_data_to_file(s, fn)
     
 def write_to_db(rt_name, results_all, out):
     rdbe = make_entry(rt_name, results_all)

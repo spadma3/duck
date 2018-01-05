@@ -7,9 +7,11 @@ import duckietown_utils as dtu
 
 def _parse_regression_test_check(line):
     line = line.strip()
-    tokens = line.split(' ')
+    delim = ' '
+    tokens = line.split(delim)
+    
     if len(tokens) != 3:
-        msg = 'I expect exactly 3 tokens.\nLine: "%s"\nTokens: %s' % (line, tokens)
+        msg = 'I expect exactly 3 tokens with delimiter %s.\nLine: "%s"\nTokens: %s' % (delim, line, tokens)
         raise dtu.DTConfigException(msg)
     
     try:

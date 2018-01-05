@@ -44,7 +44,7 @@ class MakeTimeSlice(dtu.Spec):
         else:
             new_end = u1
         length = new_end-new_start
-        id_log2 = id_log + '_%s_%s' % (self.t0, self.t1)  
+        id_log2 = id_log + '_from%dto%d' % (self.t0*100, self.t1*100)  
         return id_log2, log._replace(t0=new_start, t1=new_end, length=length)
     
 def slice_time(m, spec):

@@ -33,11 +33,14 @@ class ProcessorUtils(ProcessorUtilsInterface):
         return self.log
     
 
+def interpret_ros(msg):
+    return np.array(msg.data)
+
 def ros_from_misc(name, value, t):
     if isinstance(value, float):
         return Float64(value)
     elif isinstance(value, int):
-        return  Int64(value)
+        return Int64(value)
     elif isinstance(value, np.ndarray):
         msg = ros_from_np_array(value)
 #         print('%s -> %s' % (value, msg))
@@ -96,12 +99,7 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log)
         prefix_in = processor_entry.prefix_in
         prefix_out = processor_entry.prefix_out
         tmp = get_tmp_bag()
-#         if i == 0:
-#         t0_ = t0
-#         t1_ = t1
-#         else:
-#             t0_ = 0
-#             t1_ = t1-t0
+
         bag_filename = context.comp(process_one_processor, processor_name, prefix_in, prefix_out, 
                                              bag_filename, tmp, t0_absolute, t1_absolute, log,
                                              job_id='process-%d-%s' % (i, processor_name))

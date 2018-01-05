@@ -22,7 +22,7 @@ class CheckResult(CheckResult0):
         s += '\n' + dtu.indent(self.details, '', '  details: ')
         return s
 
-class RTCheck():
+class RTCheck(object):
     __metaclass__ = ABCMeta
     
     FAIL = 'fail'

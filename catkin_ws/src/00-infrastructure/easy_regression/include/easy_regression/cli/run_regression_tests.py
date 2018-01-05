@@ -25,6 +25,8 @@ ALL_LOGS = 'all'
 
 class RunRegressionTest(D8AppWithLogs, QuickApp): 
     """ Run regression tests. """
+    
+    cmd = 'rosrun easy_regression run'
 
     def define_options(self, params):
         g = 'Running regressions tests'
@@ -93,7 +95,7 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db):
                                   bag_filename, t0, t1, processors, log_out, log, job_id='process_one_dynamic')
         
         for a in analyzers:
-            r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id=a) 
+            r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id='analyze-%s'%a) 
             do_before_deleting_tmp_dir.append(r)
             
         def sanitize_topic(x):
@@ -104,17 +106,20 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db):
             
         for topic in rt.get_topic_videos():
             mp4 = os.path.join(out, 'videos', log_name, log_name+'-'+sanitize_topic(topic) + '.mp4')
-            v = c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4)
+            job_id = 'make_video-%s' % sanitize_topic(topic)
+            v = c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4, job_id=job_id)
             do_before_deleting_tmp_dir.append(v)
             
         for topic in rt.get_topic_images():
             basename = os.path.join(out, 'images', log_name, log_name+'-'+sanitize_topic(topic) )
-            v = c.comp(write_image, log_out_, topic, basename)
+            job_id = 'write_image-%s' % sanitize_topic(topic)
+            v = c.comp(write_image, log_out_, topic, basename, job_id=job_id)
             do_before_deleting_tmp_dir.append(v)
             
 
     for a in analyzers:
-        results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a)
+        v = results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a, job_id='merge-%s'%a)
+#         do_before_deleting_tmp_dir.append(v)
         
     context.comp(print_results, analyzers, results_all, out)
 
@@ -125,7 +130,8 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db):
     if write_data_to_db:
         context.comp(write_to_db, rt_name, results_all, out)
     
-    context.comp(delete_tmp_dir, tmpdir, do_before_deleting_tmp_dir)
+    done = context.comp(delete_tmp_dir, tmpdir, do_before_deleting_tmp_dir)
+    return done
 
 def write_image(bag_filename, topic, basename):
     dtu.logger.info('reading topic %r from %r' % (topic, bag_filename))   
@@ -145,5 +151,6 @@ def write_image(bag_filename, topic, basename):
     
 
 def delete_tmp_dir(tmpdir, _dependencies):
+    dtu.logger.warning('deleting tmpdir %s' % tmpdir )
     shutil.rmtree(tmpdir)
     

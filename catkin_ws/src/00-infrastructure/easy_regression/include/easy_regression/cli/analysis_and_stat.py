@@ -13,7 +13,7 @@ def print_results(analyzers, results_all, out):
     base = os.path.join(out, 'statistics')
     yaml_data  = dtu.yaml_dump_pretty(results_all)
     dtu.write_data_to_file(yaml_data, os.path.join(base, 'statistics.yaml'))
-    print(yaml_data)
+    print(dtu.indent(yaml_data, 'print_results '))
     
     for a in analyzers:
         dtu.write_data_to_file(dtu.yaml_dump_pretty(results_all[a]), 
@@ -23,15 +23,28 @@ def print_results(analyzers, results_all, out):
         table = table_for_analyzer(results_all[a])
         s += '\n' + dtu.indent(dtu.format_table_plus(table, colspacing=3), '  ')
         s += '\n'
-        dtu.write_data_to_file(yaml_data, os.path.join(base, '%s.table.txt' % a))
+        dtu.write_data_to_file(s, os.path.join(base, '%s.table.txt' % a))
     
 def table_for_analyzer(results_all):
     from easy_regression.cli.run_regression_tests import ALL_LOGS
     keys = list(results_all[ALL_LOGS].keys())
+    
     head = ['log name'] + keys
     table = [head]
     for k, v in results_all.items():
-        row = [k] + list(v.values())
+        row = [k] 
+        
+        for key in keys:
+            value = v[key]
+            if isinstance(value, (float, int)):
+                row.append(value)
+            elif isinstance(value, dict):
+                s = ""
+                for mk, mv in value.items():
+                    s += '\n %s  %s' % (mk, mv)
+                row.append(s)
+            else:
+                row.append(type(value).__name__)
         
         if k == ALL_LOGS:
             table.append(['']*len(head))
