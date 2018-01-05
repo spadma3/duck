@@ -73,9 +73,9 @@ class Sender(object):
         Outputs:
         - value: Parameter value
         """
-	rospy.loginfo("[%s] config 1" %(self.node_name))
+        rospy.loginfo("[%s] config 1" %(self.node_name))
         value = rospy.get_param(param_name, default_value)
-	rospy.loginfo("[%s] name: %s (%s), value: %s" %(self.node_name, param_name, rospy.resolve_name(param_name), value))
+        rospy.loginfo("[%s] name: %s (%s), value: %s" %(self.node_name, param_name, rospy.resolve_name(param_name), value))
         rospy.set_param(param_name, value)
 
         rospy.loginfo("[%s] %s = %s " %(self.node_name, param_name, value))

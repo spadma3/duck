@@ -8,7 +8,7 @@
         <param name="~config" value="$(arg config)" />
         <param name="~iface" value="$(arg iface)" />
     </node>
-    <node ns="$(arg veh)" unless="$(arg local)" machine="$(arg veh)" name="sender" pkg="fleet_messaging" type="sender_node.py" output="screen">
+    <node ns="$(arg veh)" unless="$(arg local)" machine="$(arg veh)" name="sender" pkg="fleet_messaging" type="sender_node.py" clear_params="true" output="screen">
         <param name="~config" value="$(arg config)" />
         <param name="~iface" value="$(arg iface)" />
     </node>
