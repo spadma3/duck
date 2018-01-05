@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import rospy
 import dubins_path_planning as dpp
@@ -36,10 +37,11 @@ length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) 
 
 
 class parkingPathPlanner():
+
     def __init__(self):
         sample_freq = 50
-        rospy.Subscriber("pose_duckiebot", Pose_duckiebot, self.localization_callpack)
-        self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control)
+        rospy.Subscriber("pose_duckiebot", Pose_duckiebot, self.localization_callback)
+        self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control,queue_size=10)
         self.path_planning(1)
         rospy.Timer(rospy.Duration(1/sample_freq), self.sample_callback)
 

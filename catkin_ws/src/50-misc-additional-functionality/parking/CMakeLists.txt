@@ -7,21 +7,18 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
- add_message_files
- (
-   FILES
-   Reference_for_control.msg
-   Pose_duckiebot.msg
- )
+add_message_files(
+  FILES
+  Reference_for_control.msg
+  Pose_duckiebot.msg
+)
 
- generate_messages
- (
-   DEPENDENCIES
-   std_msgs
- )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
-catkin_package
-(
+catkin_package(
   CATKIN_DEPENDS message_runtime
 )
 
