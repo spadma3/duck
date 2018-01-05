@@ -34,7 +34,7 @@ class graph_search_server():
         self.duckietown_problem.start = req.source_node
         self.duckietown_problem.goal = req.target_node
         path = self.duckietown_problem.astar_search()
-        rospy.logwarn('HEE PAATH {}'.format(path.path)0)
+        rospy.logwarn('HEE PAATH {}'.format(path.path))
         return GraphSearchResponse(path.actions, path.path)
 
 
