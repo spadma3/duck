@@ -15,24 +15,16 @@ jobs:
         - run:
             name: deps
             command: |
-                # apt install -y python-frozendict python-ruamel.yaml
 
-                # pip install -r requirements.txt
+
                 pip install --upgrade -r requirements.txt
 
-                echo "What version is comptests?"
-                ./misc/python_environment.py comptests
-                echo "Where is it?"
-                which comptests
-
-                echo "What version is compmake?"
-                ./misc/python_environment.py compmake
-
-                echo "Install python-sklearn"
-                apt install -y python-sklearn
-
-
                 make python-module-stats
+
+                apt install -y strace
+
+
+
 
         - run:
             name: build
@@ -50,6 +42,8 @@ jobs:
 
                 source environment.sh
                 # make build-machines
+
+                make python-module-stats
 
         - run:
             name: make continuous-integration-tests
