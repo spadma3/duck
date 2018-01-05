@@ -8,7 +8,7 @@ jobs:
               DUCKIETOWN_ROOT: /root/project
               DUCKIETOWN_DATA: /root/duckietown-data
               COLUMNS: 160
-     parallelism: 1
+     parallelism: 2
      resource_class: large
      steps:
         - checkout
