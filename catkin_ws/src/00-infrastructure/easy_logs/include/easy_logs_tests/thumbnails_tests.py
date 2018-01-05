@@ -18,7 +18,7 @@ def test_videos():
     
 def run_one(cmd):
     v = False
-    cwd = dtu.create_tmpdir('run-regression')
+    cwd = dtu.get_output_dir_for_test()
     try:
         dtu.system_cmd_result(cwd, cmd,
               display_stdout=v,

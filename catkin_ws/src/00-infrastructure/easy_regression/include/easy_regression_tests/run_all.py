@@ -2,11 +2,13 @@ import shutil
 
 import duckietown_utils as dtu
 from easy_regression.conditions.interface import RTCheck
+from duckietown_utils.unit_tests import get_output_dir_for_test
 
 
 def run(which, expect):
     v = False
-    cwd = dtu.create_tmpdir('run-regression')
+    cwd = get_output_dir_for_test()
+#     cwd = dtu.create_tmpdir('run-regression')
     try:
         cmd = ['rosrun', 'easy_regression', 'run', 
                '--expect', expect, 
