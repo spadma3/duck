@@ -10,7 +10,6 @@ from sensor_msgs.msg import Image
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.transformation import PixelAndMapTransformer, MapToGraphTransformer
 from fleet_planning.generate_duckietown_map import graph_creator
-from fleet_planning.map_drawing import MapDraw
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
 from std_msgs.msg import ByteMultiArray
 from fleet_planning.duckiebot import *
