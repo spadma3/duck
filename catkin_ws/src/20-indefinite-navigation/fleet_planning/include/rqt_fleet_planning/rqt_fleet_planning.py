@@ -161,5 +161,4 @@ class RQTFleetPlanning(Plugin):
     def handleComboBox(self, index):
         if int(index) >= 0:
             duckie_name = self._widget.cb_living_duckies.currentText()
-            print str(duckie_name)
             self.duckie_path_pub.publish(duckie_name)
