@@ -165,9 +165,6 @@ class MapDrawNode:
         #todo get updated graph (with path)
         edges_to_draw = None
         if (self._duckie_path_to_draw):
-            print "duckie to draw: ", self._duckie_path_to_draw
-            print "all duckies: "
-            print self.duckiebots.keys()
             node_numbers_as_str = self.duckiebots[self._duckie_path_to_draw].path
             edges_to_draw = []
             for i in range(0,len(node_numbers_as_str)-1):
@@ -245,9 +242,10 @@ class MapDrawNode:
         self._pub_image.publish(map_img)
 
 
-    def _draw_path(self,duckie_name):
-        if duckie_name is not None:
-            self._duckie_path_to_draw = duckie_name
+    def _draw_path(self,duckie_name_msg):
+        if duckie_name_msg is not None:
+            print duckie_name_msg.data
+            self._duckie_path_to_draw = duckie_name_msg.data
             map_img = self.drawMap(self.duckiebots, self.pending_customer_requests, self._duckie_path_to_draw)
             rospy.loginfo('Publish new map.')
             self._pub_image.publish(map_img)
