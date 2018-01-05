@@ -13,4 +13,4 @@ parameters:
     checks:
     - desc: The number of messages read should remain the same.
       cond: |
-        v:count_messages/all/NOT-EXISTING == 5330
+        v:count_messages/all/NOT-EXISTING == 16202

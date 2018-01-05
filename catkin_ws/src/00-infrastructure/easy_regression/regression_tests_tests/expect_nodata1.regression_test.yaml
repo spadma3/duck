@@ -12,4 +12,4 @@ parameters:
     checks:
     - desc: The number of messages read should remain the same.
       cond: |
-        v:count_messages/all/num_messages@2016-12-12 == 5330
+        v:count_messages/all/num_messages@2016-12-12 == 16202

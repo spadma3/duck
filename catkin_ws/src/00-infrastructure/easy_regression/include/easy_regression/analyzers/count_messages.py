@@ -24,4 +24,4 @@ class CountMessages(AnalyzerInterface):
     def summarize_as_image(self):
         raise NotImplementedError()
     
-    
+
