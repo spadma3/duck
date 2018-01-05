@@ -24,37 +24,43 @@ class MapDrawNode:
     def __init__(self, ):
         print 'mapDraw initializing...'
 
-        map_dir = rospy.get_param('/map_dir')
-        map_name = rospy.get_param('/map_name')
+        self._map_dir = rospy.get_param('/map_dir')
+        self._map_name = rospy.get_param('/map_name')
         gui_img_dir = rospy.get_param('/gui_img_dir')
 
         # Loading paths
         tiles_dir = os.path.abspath(
-            map_dir + '/../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
+            self._map_dir + '/../../../../30-localization-and-planning/duckietown_description/urdf/meshes/tiles/')
         customer_icon_path = os.path.join(gui_img_dir, 'customer_duckie.jpg')
         start_icon_path = os.path.join(gui_img_dir, 'duckie.jpg')
         target_icon_path = os.path.join(gui_img_dir, 'location-icon.png')
 
         # build and init graphs
         gc = graph_creator()
-        self.duckietown_graph = gc.build_graph_from_csv(map_dir, map_name)  # gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
+        self.duckietown_graph = gc.build_graph_from_csv(self._map_dir, self._map_name)  # gc.build_graph_from_csv(script_dir=self.script_dir, csv_filename=self.map_name)
         self.duckietown_problem = GraphSearchProblem(self.duckietown_graph, None, None)  # GraphSearchProblem(self.duckietown_graph, None, None)
 
         self.bridge = CvBridge()
         # prepare and send graph image through publisher
-        self.graph_image = self.duckietown_graph.draw(map_dir=map_dir, highlight_edges=None, map_name=map_name)
+        self.graph_image = self.duckietown_graph.draw(map_dir=self._map_dir, highlight_edges=None, map_name=self._map_name)
 
         mc = MapImageCreator(tiles_dir)
         self.tile_length = mc.tile_length
-        self.map_img = mc.build_map_from_csv(map_dir=map_dir, csv_filename=map_name)
+        self.map_img = mc.build_map_from_csv(map_dir=self._map_dir, csv_filename=self._map_name)
 
         # keep track of how many icons are being drawn at each node
         self.num_duckiebots_per_node = {node: 0 for node in self.duckietown_graph._nodes}
 
+        # init items for later drawing
+        self._duckie_path_to_draw = ""
+        self.pending_customer_requests = []
+        self.duckiebots = {}
+
         # image used to store all start, customer and target icons at their positions
-        self.customer_icon = cv2.resize(cv2.imread(customer_icon_path), (30, 30))
-        self.start_icon = cv2.resize(cv2.imread(start_icon_path), (30, 30))
-        self.target_icon = cv2.resize(cv2.imread(target_icon_path), (30, 30))
+        icon_length = 60
+        self.customer_icon = cv2.resize(cv2.imread(customer_icon_path), (icon_length, icon_length))
+        self.start_icon = cv2.resize(cv2.imread(start_icon_path), (icon_length, icon_length))
+        self.target_icon = cv2.resize(cv2.imread(target_icon_path), (icon_length, icon_length))
 
         print "Map loaded successfully!\n"
 
@@ -64,8 +70,10 @@ class MapDrawNode:
         # subscribers
         self._sub_draw_request = rospy.Subscriber('~/draw_request', String,
                                                        self._draw_and_publish_image, queue_size=1)
+        self._sub_draw_duckie_ = rospy.Subscriber('~/draw_path',String, self._draw_path, queue_size=1)
 
         self._draw_and_publish_image(None) # publish map without duckies
+
 
     def graph_node_to_image_location(self, graph, node):
         """
@@ -73,7 +81,28 @@ class MapDrawNode:
         """
         return graph.node_positions[str(node)]
 
-    def draw_icons(self, map_image, icon_type, location, icon_number=1):
+
+    def pad_and_write_duckiebot_name(self, img, name):
+        """
+        takes image, pads it and writes the duckiebot name where indicated. text_location is approximately at the bottom of the font, in the middle of the word.
+        """
+        # center location depending on name length
+        text_size = cv2.getTextSize(name, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1)
+
+        text_location = (2, int(img.shape[1] + text_size[0][1]))  #  TODO: verify this is the correct position
+        # text_location = (int(img.shape[0] / 2 - text_size[0][0] / 2), int(img.shape[1] + text_size[0][1]))  #  TODO: verify this is the correct position
+
+        # pad image to make space for text
+        padding = [0, 0, text_size[0][1] + 5, 0]
+        padded_img = cv2.copyMakeBorder(img, top=padding[0], right=padding[1], bottom=padding[2], left=padding[3], borderType=cv2.BORDER_CONSTANT, value=(255,255,255))
+
+        # write text
+        color = (0,0,255)
+        text_image = cv2.putText(padded_img, name, org=text_location, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.4, color=color, thickness=1)
+        return text_image
+
+
+    def draw_icons(self, map_image, icon_type, location, icon_number=1, bot_name = None):
         """
         Draw start, customer and target icons next to each
         corresponding graph node along with the respective name
@@ -97,6 +126,7 @@ class MapDrawNode:
         elif icon_type == "start":
             icon = self.start_icon
             # TODO: add the name of the duckiebot to the icon. Maybe overlay icons if e.g. duckiebot is at targets
+            icon = self.pad_and_write_duckiebot_name(icon, bot_name)
         elif icon_type == "target":
             icon = self.target_icon
             print "drawing target"
@@ -114,15 +144,11 @@ class MapDrawNode:
             rospy.logwarn("Point ({},{}) is outside of the map!".format(point[1], point[0]))
 
         # NOTE: factor -1 added so due to image negative image coordinates in vertical direction.
-        height_start = max(self.map_img.shape[0] * -1, point[1] * -1)  
+        height_start = max(self.map_img.shape[0] * -1, point[1])  
         height_end = max(self.map_img.shape[0] * -1, (height_start + icon.shape[0]))
         width_start =  min(self.map_img.shape[1], point[0] + (icon_number - 1) * (icon.shape[1] + 5))
         width_end = min(self.map_img.shape[1], width_start + icon.shape[1])
         icon = icon[0:height_end - height_start, 0:width_end - width_start]
-        print "point: ", point
-        print "map: ", self.map_img.shape
-        print "coords: ", height_start, height_end, width_start, width_end
-        print "icon shape: ", icon.shape, "icon type: ", icon_type
         map_image[height_start:height_end, width_start:width_end, :] = icon
 
         return map_image
@@ -148,7 +174,7 @@ class MapDrawNode:
         overlay = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
         return overlay
 
-    def drawMap(self, duckiebots, pending_customer_requests=[]):
+    def drawMap(self, duckiebots, pending_customer_requests=[], duckie_path_to_draw = ""):
         """
         New function to draw map independent of GUI calls. Draw all duckiebots
         and their customers, if they have any.
@@ -156,12 +182,29 @@ class MapDrawNode:
             - duckiebots: all duckiebots that should be drawn
         """
         # TODO: figure out best way to visualize duckiebot with customer
+        #todo get updated graph (with path)
+        edges_to_draw = None
+        if (self._duckie_path_to_draw):
+            node_numbers_as_str = self.duckiebots[self._duckie_path_to_draw].path
+            edges_to_draw = []
+            for i in range(0,len(node_numbers_as_str)-1):
+                node = node_numbers_as_str[i]
+                next_node = node_numbers_as_str[i+1]
+                edges = self.duckietown_graph.node_edges(node)
+                for edge in edges:
+                    if edge.source == node and edge.target == next_node:
+                        edges_to_draw.append(edge)
+                        break
+
+        self.graph_image = self.duckietown_graph.draw(map_dir=self._map_dir, highlight_edges=edges_to_draw, map_name=self._map_name)
+
         overlay = self.prepImage()
-        for bot in duckiebots:
+        for bot in duckiebots.itervalues():
             # draw duckiebot
             self.num_duckiebots_per_node[str(bot.location)] += 1
             overlay = self.draw_icons(overlay, "start", location=bot.location,
-                                      icon_number=self.num_duckiebots_per_node[str(bot.location)])
+                                      icon_number=self.num_duckiebots_per_node[str(bot.location)],
+                                      bot_name = bot.name)
 
             if bot.taxi_state != TaxiState.IDLE:
                 if bot.taxi_state == TaxiState.GOING_TO_CUSTOMER:
@@ -173,7 +216,7 @@ class MapDrawNode:
                 # draw customer
                 self.num_duckiebots_per_node[str(customer_location)] += 1
                 overlay = self.draw_icons(overlay, "customer",
-                                          location=customer_location, icon_number=self.num_duckiebots_per_node[str(customer_location)])  # TODO(ben): figure out an unambiguous set of icons and assign the correct ones
+                                          location=customer_location, icon_number=self.num_duckiebots_per_node[str(customer_location)])
 
                 # draw target icon
                 self.num_duckiebots_per_node[str(bot.target_location)] += 1
@@ -199,22 +242,33 @@ class MapDrawNode:
     def _draw_and_publish_image(self, msg):
 
         if msg is None:
-            map_img = self.drawMap([], [])
+            map_img = self.drawMap({}, [], '')
         else:
             data_json = msg.data
             data = json.loads(data_json)
 
             # get duckiebot objects
-            duckiebots = [BaseDuckiebot.from_json(db_data) for db_data in data['duckiebots']]
+            self.duckiebots = {}
+            for db_data in data['duckiebots']:
+                bot = BaseDuckiebot.from_json(db_data)
+                self.duckiebots[bot.name]=bot
 
             # get customer request objects
-            pending_customer_requests = [
+            self.pending_customer_requests = [
                 BaseCustomerRequest.from_json(cust) for cust in data['pending_customer_requests'] if cust is not None]
 
-            map_img = self.drawMap(duckiebots, pending_customer_requests)
+            map_img = self.drawMap(self.duckiebots, self.pending_customer_requests, self._duckie_path_to_draw)
 
         rospy.loginfo('Publish new map.')
         self._pub_image.publish(map_img)
+
+
+    def _draw_path(self,duckie_name_msg):
+        if duckie_name_msg is not None:
+            self._duckie_path_to_draw = duckie_name_msg.data
+            map_img = self.drawMap(self.duckiebots, self.pending_customer_requests, self._duckie_path_to_draw)
+            rospy.loginfo('Publish new map.')
+            self._pub_image.publish(map_img)
 
     @staticmethod
     def on_shutdown():

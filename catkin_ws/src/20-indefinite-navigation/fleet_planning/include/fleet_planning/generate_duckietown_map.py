@@ -264,7 +264,7 @@ class graph_creator():
 class MapImageCreator:
 
 	def __init__(self, tiles_dir):
-		self.tile_length = 101
+		self.tile_length = 201
 		self.tile_midpoint = (self.tile_length/2,self.tile_length/2)
 		self.turn_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/turn.png'))
 		self.three_way_tile = self.imread_and_resize(os.path.abspath(tiles_dir+'/3way.png'))
