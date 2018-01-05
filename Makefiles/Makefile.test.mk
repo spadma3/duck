@@ -87,6 +87,7 @@ onelog=2016-04-29-dp3auto-neptunus-1
 test-download-logs:
 	@echo Loading log
 	rosrun easy_logs download $(onelog)
+	rosrun easy_logs download tori_ETHZ_2017-12-22-17-18-41
 	@echo Should be equal to 70e9e2a49d1181d2da160ff5e615969f
 	md5sum `rosrun easy_logs find $(onelog)`
 	echo TODO: check md5
