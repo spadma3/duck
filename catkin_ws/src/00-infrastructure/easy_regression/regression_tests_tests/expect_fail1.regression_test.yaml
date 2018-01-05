@@ -4,7 +4,7 @@ description: |
 constructor: easy_regression.RegressionTest
 parameters:
     logs:
-    - 20160223-amadoa-amadobot-RCDP2
+    - 2016-04-29-dp3auto-neptunus-1
     processors: []
     analyzers:
     - count_messages

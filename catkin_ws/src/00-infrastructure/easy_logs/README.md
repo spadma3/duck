@@ -170,9 +170,9 @@ The syntax is:
 
 For example:
 
-    $ rosrun easy_logs download 20160223-amadoa-amadobot-RCDP2
+    $ rosrun easy_logs download 2016-04-29-dp3auto-neptunus-1
 
-If the file `20160223-amadoa-amadobot-RCDP2.bag` is not available
+If the file `2016-04-29-dp3auto-neptunus-1.bag` is not available
 locally, it is downloaded.
 
 The database of URLs is at [the file `dropbox.urls.yaml`][DB] in the package `easy_node`.
@@ -190,10 +190,10 @@ the log. Then, we use `find` to find the path.
     set -ex
 
     # We need the log to proceed
-    rosrun easy_logs download 20160223-amadoa-amadobot-RCDP2
+    rosrun easy_logs download 2016-04-29-dp3auto-neptunus-1
 
     # Here, we know that we have the log. We use `find` to get the filename.
-    filename=`rosrun easy_logs find 20160223-amadoa-amadobot-RCDP2`
+    filename=`rosrun easy_logs find 2016-04-29-dp3auto-neptunus-1`
 
     # We can now use the log
     vdir ${filename}
