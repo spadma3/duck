@@ -77,6 +77,10 @@ class BaseDuckiebot:
     @property
     def name(self):
         return self._name
+    
+    @property
+    def path(self):
+        return self._path
 
     @property
     def customer_request(self):
