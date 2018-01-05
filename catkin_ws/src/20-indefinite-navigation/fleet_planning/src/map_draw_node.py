@@ -186,6 +186,7 @@ class MapDrawNode:
         edges_to_draw = None
         if (self._duckie_path_to_draw):
             node_numbers_as_str = self.duckiebots[self._duckie_path_to_draw].path
+            rospy.logwarn('node_numbers_asstr {}'.format(node_numbers_as_str))
             edges_to_draw = []
             for i in range(0,len(node_numbers_as_str)-1):
                 node = node_numbers_as_str[i]
@@ -196,6 +197,7 @@ class MapDrawNode:
                         edges_to_draw.append(edge)
                         break
 
+        rospy.logwarn('edges_to_draw {}'.format(edges_to_draw))
         self.graph_image = self.duckietown_graph.draw(map_dir=self._map_dir, highlight_edges=edges_to_draw, map_name=self._map_name)
 
         overlay = self.prepImage()

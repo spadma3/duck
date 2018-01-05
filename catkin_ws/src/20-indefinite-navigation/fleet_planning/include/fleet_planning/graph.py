@@ -26,7 +26,7 @@ class Edge(object):
             and self.weight == other.weight and self.action == other.action
 
     def __repr__(self):
-        return "Edge(%r,%r,%r)" % (self.source, self.target, self.weight, self.action)
+        return "Edge(%r,%r,%r,%r)" % (self.source, self.target, self.weight, self.action)
 
 
 class Graph(object):
@@ -110,6 +110,9 @@ class Graph(object):
         g.body.append(r'label = "\nduckiegraph"')
         g.body.append('fontsize=16')
 
+        print 'highlight edges'
+        print highlight_edges
+
         for node in self._nodes:
             node_name = self.node_label_fn(node)
             node_pos = "%f,%f!" % (self.node_positions[node][0], self.node_positions[node][1])
@@ -130,7 +133,8 @@ class Graph(object):
                 else:
                     t = ""
 
-                if highlight_edges and (self.node_label_fn(src_node), self.node_label_fn(e.target)) in highlight_edges:
+                if highlight_edges and Edge(self.node_label_fn(src_node), self.node_label_fn(e.target), e.weight,
+                                            e.action) in highlight_edges:
                     c = 'cyan' #red
                     p = '3.0'
                 else:
