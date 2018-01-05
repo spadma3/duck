@@ -141,7 +141,7 @@ class Graph(object):
 
 
         g.format = 'png'
-        g.render(filename=map_name, directory=map_dir, view=False, cleanup=True)
+        g.render(filename=map_name, directory=map_dir, view=False, cleanup=False)
 
         # crop lower useless title on the bottom of the rendered image
         image_path = os.path.join(map_dir, map_name+'.png')
