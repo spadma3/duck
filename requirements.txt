@@ -7,14 +7,15 @@
 
 
 # PyContracts==1.7.15
-compmake==3.4 # XXX
+compmake==3.4.0 # XXX
+comptests==1.4.16
 
 pyparsing==2.2.0
 PyContracts==1.8.0
 DecentLogs==1.1.2
 QuickApp==1.3.12
 conftools==1.9.1
-comptests==1.4.15
+
 procgraph==1.10.9
 ros_node_utils==1.1.1
 pymongo==3.5.1
