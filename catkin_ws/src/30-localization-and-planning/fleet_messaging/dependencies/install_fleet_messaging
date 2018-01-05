@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Argument check: show usage
+if [[ $# -ne 2 ]] ; then
+    echo "Usage:"
+    echo "Important: the script MUST be run from its location!"
+    echo "./install_fleet_messaging <wifi-iface> <network>"
+    echo "Write arguments without <>."
+    echo "<wifi-iface> is a WiFi interface that can be found with iwconfig (interface used for the mesh network)."
+    echo "<network> is the duckiebot mesh network address (static IP address and subnet in slash notation, e.g. 192.168.15.30/24 for a subnet of 255.255.255.0)."
+    echo "Every duckiebot needs a UNIQUE IP address and the subnet must be equal on all the duckiebots!"
+    exit 1
+fi
+WIFACE=$1
+NETADDR=$2
+
+# Check the interface
+for item in "$@" ; do
+    # Remove argument for $DUCKIETOWN_ROOT/environment.sh
+    shift;
+done
+iwconfig $WIFACE | grep -v "no wireless extensions."
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...Interface" $WIFACE "is not a WiFi interface!"
+    exit 2
+fi
+
+# Check the IP Address
+CHECK_IP=$(./get_ip $NETADDR)
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...the network address" $NETADDR "has a wrong format!"
+    exit 3
+fi
+
+source $DUCKIETOWN_ROOT/environment.sh
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...there is something wrong with the environment!"
+    exit 4
+fi
+
+# Install ZeroMQ
+./install_zmq
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...installation of ZeroMQ failed!"
+    exit 5
+fi
+
+# Install ProtoBuf
+./install_protobuf
+
+# Install the mesh network
+./install_meshnet $WIFACE $NETADDR
+if [[ $? -ne 0 ]] ; then
+    exit 6
+    echo "Aborting...the installation of the mesh network failed!"
+fi
