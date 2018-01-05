@@ -101,6 +101,11 @@ jobs:
               path: reports
               destination: reports
 
+        - run:
+            when: always
+            command: |
+                ./misc/generate-other-reports.sh
+
         - store_artifacts:
               path: out
               destination: out
