@@ -36,5 +36,7 @@ class DuckietownConstants(object):
     debug_show_package_import_info = False
     
     ADD_SHORTCUT_TAG = '@create-shortcut-for-this'
+    
+    show_timeit_benchmarks = False
 
     
