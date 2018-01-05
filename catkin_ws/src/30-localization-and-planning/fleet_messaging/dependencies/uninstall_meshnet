@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Argument check: show usage
+if [[ $# -ne 1 ]] ; then
+    echo "Usage:"
+    echo "./uninstall_meshnet <wifi-iface>"
+    echo "Write the argument without <>."
+    echo "<wifi-iface> is a WiFi interface that can be found with iwconfig (interface used for the mesh network)."
+    exit 1
+fi
+
 # Check the interface
 WIFACE=$1
 iwconfig $WIFACE | grep -v "no wireless extensions."
