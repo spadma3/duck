@@ -15,24 +15,26 @@ import mvnc.mvncapi as mvnc
 import numpy
 import os
 import sys
+
 # Movidius user modifiable input parameters
 
-GRAPH_PATH              = os.environ['DUCKIETOWN_ROOT']+'/catkin_ws/src/80-deep-learning/duckiebot_il_lane_following/src/v1.graph'
-IMAGE_DIM               = ( 160, 120 )
+GRAPH_PATH = os.environ['DUCKIETOWN_ROOT'] + '/catkin_ws/src/80-deep-learning/duckiebot_il_lane_following/src/v1.graph'
+IMAGE_DIM = (160, 120)
 
 # Look for enumerated NCS device(s); quit program if none found.
 devices = mvnc.EnumerateDevices()
-if len( devices ) == 0:
-    print( 'No devices found' )
+if len(devices) == 0:
+    print('No devices found')
     quit()
 # Get a handle to the first enumerated device and open it
-device = mvnc.Device( devices[0] )
+device = mvnc.Device(devices[0])
 device.OpenDevice()
 # Read the graph file into a buffer
-with open( GRAPH_PATH, mode='rb' ) as f:
+with open(GRAPH_PATH, mode='rb') as f:
     blob = f.read()
 # Load the graph buffer into the NCS
-graph = device.AllocateGraph( blob )
+graph = device.AllocateGraph(blob)
+
 
 class Stats():
     def __init__(self):
@@ -77,96 +79,99 @@ class Stats():
               self.nskipped, fps(self.nskipped), skipped_perc))
         return m
 
+
 class imitation_lane_following(object):
     def __init__(self):
-        
+
         self.node_name = rospy.get_name()
         # thread lock
         self.thread_lock = threading.Lock()
-        
+
         # constructor of the classifier
         self.bridge = CvBridge()
         self.active = True
         self.stats = Stats()
-        
+
+        self.input_channel = rospy.get_param("~input_channel")
+
         # subscriber, subscribe to compressed image
         self.image_sub = rospy.Subscriber("~compressed", CompressedImage, self.callback, queue_size=1)
         # publisher, publish to control command /robotname/car_cmd_switch_node/cmd
-        
-        self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1) 
-        
-    def callback(self,image_msg):
-        
+
+        self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+
+    def callback(self, image_msg):
+
         self.stats.received()
         if not self.active:
-            return 
-        
-        # start a daemon thread to process the image
-        thread = threading.Thread(target=self.processImage,args=(image_msg,))
+            return
+
+            # start a daemon thread to process the image
+        thread = threading.Thread(target=self.processImage, args=(image_msg,))
         thread.setDaemon(True)
         thread.start()
         # returns right away 
-        
-    def processImage(self, image_msg):    
-        
+
+    def processImage(self, image_msg):
+
         if not self.thread_lock.acquire(False):
             self.stats.skipped()
             # Return immediately if the thread is locked
-            return      
-        
+            return
+
         try:
             self.processImage_(image_msg)
         finally:
             # release the thread lock
             self.thread_lock.release()
-    
+
     def processImage_(self, image_msg):
-        
+
         self.stats.processed()
- 
+
         # decode from compressed image with OpenCV
         try:
             image_cv = image_cv_from_jpg(image_msg.data)
         except ValueError as e:
             self.loginfo('Could not decode image: %s' % e)
             return
-        
+
         # import image for classification
-        (rows,cols,chans) = image_cv.shape
+        (rows, cols, chans) = image_cv.shape
         # resize image [Image size is defined during training]
-        img = cv2.resize( image_cv, IMAGE_DIM, interpolation=cv2.INTER_NEAREST)
+        img = cv2.resize(image_cv, IMAGE_DIM, interpolation=cv2.INTER_NEAREST)
         # cut part of the image
-        img = img[40:,:,:]
+        img = img[40:, :, :]
         # Convert image to gray scale
-        img =  cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # tranform 0-255 to 0-1
-        img = cv2.normalize(img.astype('float'),None, 0.0 , 1.0, cv2.NORM_MINMAX)
+        img = cv2.normalize(img.astype('float'), None, 0.0, 1.0, cv2.NORM_MINMAX)
         # Load the image as a half-precision floating point array
-        graph.LoadTensor( img.astype( numpy.float16 ), 'user object' )
+        graph.LoadTensor(img.astype(numpy.float16), 'user object')
         # Get the results from NCS
         output, userobj = graph.GetResult()
         # Print the results
         print('\n------- predictions --------')
+        print(self.input_channel)
         # first make the array to float data type
         learning_omega = float(output[0])
-        print (learning_omega) 
-        
+        print(learning_omega)
+
         # set car cmd through ros message
-        
+
         car_control_msg = Twist2DStamped()
         car_control_msg.header = image_msg.header
         car_control_msg.v = 0.386400014162
         car_control_msg.omega = learning_omega
-        
+
         # publish the control command
-        self.publishCmd(car_control_msg)   
-    
-    
+        self.publishCmd(car_control_msg)
+
     def publishCmd(self, car_cmd_msg):
-        
-        self.pub_car_cmd.publish(car_cmd_msg)    
-    
-                        
+
+        self.pub_car_cmd.publish(car_cmd_msg)
+
+
 if __name__ == '__main__':
     # initialize the node with rospy
     rospy.init_node('duckiebot_il_lane_following', anonymous=False)
@@ -178,5 +183,3 @@ if __name__ == '__main__':
         graph.DeallocateGraph()
         device.CloseDevice()
         print("Shutting down!!!")
-
-
