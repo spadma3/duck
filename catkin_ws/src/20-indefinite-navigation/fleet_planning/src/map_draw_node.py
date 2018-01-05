@@ -88,7 +88,7 @@ class MapDrawNode:
         """
         # center location depending on name length
         text_size = cv2.getTextSize(name, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1)
-        print "text_size: ", text_size
+
         text_location = (2, int(img.shape[1] + text_size[0][1]))  #  TODO: verify this is the correct position
         # text_location = (int(img.shape[0] / 2 - text_size[0][0] / 2), int(img.shape[1] + text_size[0][1]))  #  TODO: verify this is the correct position
 
@@ -149,10 +149,6 @@ class MapDrawNode:
         width_start =  min(self.map_img.shape[1], point[0] + (icon_number - 1) * (icon.shape[1] + 5))
         width_end = min(self.map_img.shape[1], width_start + icon.shape[1])
         icon = icon[0:height_end - height_start, 0:width_end - width_start]
-        print "point: ", point
-        print "map: ", self.map_img.shape
-        print "coords: ", height_start, height_end, width_start, width_end
-        print "icon shape: ", icon.shape, "icon type: ", icon_type
         map_image[height_start:height_end, width_start:width_end, :] = icon
 
         return map_image
@@ -269,7 +265,6 @@ class MapDrawNode:
 
     def _draw_path(self,duckie_name_msg):
         if duckie_name_msg is not None:
-            print duckie_name_msg.data
             self._duckie_path_to_draw = duckie_name_msg.data
             map_img = self.drawMap(self.duckiebots, self.pending_customer_requests, self._duckie_path_to_draw)
             rospy.loginfo('Publish new map.')
