@@ -155,6 +155,8 @@ class imitation_lane_following(object):
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # tranform 0-255 to 0-1
         img = cv2.normalize(img.astype('float'), None, 0.0, 1.0, cv2.NORM_MINMAX)
+        if self.input_channel == 3:
+            img = np.transpose(img, axes=[2, 0, 1])
         # Load the image as a half-precision floating point array
         self.graph.LoadTensor(img.astype(numpy.float16), 'user object')
         # Get the results from NCS
