@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 
-from enum import Enum, IntEnum
-import os
+from enum import Enum
 import rospy
 from fleet_planning.generate_duckietown_map import graph_creator
 from std_msgs.msg import ByteMultiArray, String
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
-
 from fleet_planning.duckiebot import *
 import json
 import random
-from sensor_msgs.msg import Image
+
 
 class FleetPlanningStrategy(Enum): # for future expansion
     DEACTIVATED = 0
     CLOSEST_DUCKIEBOT = 1
 
+
 class RebalancingStrategy(Enum):
     DEACTIVATED = 0
     RANDOM = 1
+
 
 class TaxiCentralNode:
     TIME_OUT_CRITERIUM = 60.0
@@ -191,7 +191,6 @@ class TaxiCentralNode:
         # The whole taxi_central_node uses strings as node ids. So let's make sure we use strings too
         # from this point onwards.
         node = str(node)
-        route = map(str, route)
 
         if duckiebot_name not in self._registered_duckiebots: # new duckiebot
             self._create_and_register_duckiebot(duckiebot_name)

@@ -79,7 +79,7 @@ class MapDrawNode:
         """
         return graph.node_positions[str(node)]
 
-    def draw_icons(self, map_image, icon_type, location, icon_number):
+    def draw_icons(self, map_image, icon_type, location, icon_number=1):
         """
         Draw start, customer and target icons next to each
         corresponding graph node along with the respective name
@@ -102,21 +102,34 @@ class MapDrawNode:
             icon = self.customer_icon
         elif icon_type == "start":
             icon = self.start_icon
+            # TODO: add the name of the duckiebot to the icon. Maybe overlay icons if e.g. duckiebot is at targets
         elif icon_type == "target":
             icon = self.target_icon
+            print "drawing target"
         else:
-            print "invalid icon type"
+            rospy.logwarn("{} is an invalid icon type.".format(icon_type))
             # return
 
         # convert graph number to 2D image pixel coords
         point = self.graph_node_to_image_location(graph=self.duckietown_graph, node=location)
         point = transf.map_to_image(point)
-        x_start = point[1]
-        x_end = x_start + icon.shape[0]
-        y_start = point[0] + (icon_number - 1) * (
-        icon.shape[1] + 5)  # TODO: check to make sure icons aren't outside of image boundaries
-        y_end = y_start + icon.shape[1]
-        map_image[x_start:x_end, y_start:y_end, :] = icon
+        # check if point is in map - NOTE that the coordinates of point are 
+        # image coordinates (height by width, i.e. y by x and not x by y),
+        # starting at the top left, thus having a negative sign.
+        if (point[1] * -1 > map_image.shape[0] or point[1] * -1 < 0 or point[0] > map_image.shape[1] or point[0] < 0):
+            rospy.logwarn("Point ({},{}) is outside of the map!".format(point[1], point[0]))
+
+        # NOTE: factor -1 added so due to image negative image coordinates in vertical direction.
+        height_start = max(self.map_img.shape[0] * -1, point[1] * -1)  
+        height_end = max(self.map_img.shape[0] * -1, (height_start + icon.shape[0]))
+        width_start =  min(self.map_img.shape[1], point[0] + (icon_number - 1) * (icon.shape[1] + 5))
+        width_end = min(self.map_img.shape[1], width_start + icon.shape[1])
+        icon = icon[0:height_end - height_start, 0:width_end - width_start]
+        print "point: ", point
+        print "map: ", self.map_img.shape
+        print "coords: ", height_start, height_end, width_start, width_end
+        print "icon shape: ", icon.shape, "icon type: ", icon_type
+        map_image[height_start:height_end, width_start:width_end, :] = icon
 
         return map_image
 
@@ -199,6 +212,11 @@ class MapDrawNode:
             self.num_duckiebots_per_node[node] = 0
 
         return self.bridge.cv2_to_imgmsg(overlay, "bgr8")
+
+    def draw_duckiebot_path(self):
+        # TODO: draw path for duckiebot. Only draw path for the latest request? Or the one chosen in the GUI?
+        # Checkout the highlight edges thing in graph.py. Maybe need to add a function there?
+        pass
 
     def _draw_and_publish_image(self, msg):
 
