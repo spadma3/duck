@@ -43,7 +43,7 @@ class Implicit(object):
         #                                            BoolStamped, self.cbCSMA)
         self.sub_detector = rospy.Subscriber("~vehicle_detection_node",
                                              TrackletList, self.cbGetBots)
-        self.sub_mode = rospy.Subscriber("~fsm", FSMState, self.cbCSMA)
+        self.sub_mode = rospy.Subscriber("~fsm", FSMState, self.cbFSM)
 
         self.timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.publish_car_cmd)
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
@@ -68,7 +68,7 @@ class Implicit(object):
     # callback functions
     def publish_car_cmd(self,event):
         self.pub_coord_cmd.publish(Twist2DStamped(v=0,omega=0))
-        
+
     def cbGetBots(self, tracklet_list):
         for bot in tracklet_list.tracklets:
             if bot.id not in self.detected_bots:
@@ -90,18 +90,24 @@ class Implicit(object):
             pos_tupel = self.detected_bots[key]
             diff_x = pos_tupel[0] - pos_tupel[1]
             diff_y = pos_tupel[2] - pos_tupel[3]
-            if diff_x**2 + diff_y**2 >= detection_threshold**2:
+            if diff_x**2 + diff_y**2 >= self.detection_threshold**2:
                 return True
         return False
 
-    def cbCSMA(self, msg):
+    def cbFSM(self, msg):
         self.mode = msg.state
         if self.mode == "COORDINATION":
             self.active = True
+            self.CSMA()
+            
+    def CSMA(self):
+        while self.active:
             rospy.loginfo("[%s] activated" % (self.node_name))
             flag = BoolStamped()
             backoff_time = 0.0  # in seconds
+            time.sleep(1.0)
             if self.DetectMovement():
+                rospy.loginfo("[%s] movement" % (self.node_name))
                 if self.iteration > 0:
                     backoff_time = randrange(0, 2**self.iteration - 1) * \
                         self.SlotTime
@@ -109,10 +115,12 @@ class Implicit(object):
                 self.pub_implicit_coordination.publish(flag)
                 time.sleep(backoff_time)
                 self.iteration += 1
-            else:
+            elif not self.detected_bots == None:
+                rospy.loginfo("[%s] no movement" % (self.node_name))
                 self.iteration = 0
                 flag.data = True
                 turn_type = Int16(1)
+                self.active = False
                 self.pub_turn_type.publish(turn_type)
                 self.pub_implicit_coordination.publish(flag)
 
