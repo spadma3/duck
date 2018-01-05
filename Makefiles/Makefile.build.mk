@@ -84,6 +84,7 @@ pdoc-clean:
 
 python-module-stats:
 	./misc/python_environment.py \
+		compmake\
 		contracts\
 		decent_logs\
 		quickapp\
