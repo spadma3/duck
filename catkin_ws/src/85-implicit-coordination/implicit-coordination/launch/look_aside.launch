@@ -1,0 +1,8 @@
+<launch>
+    <arg name="veh" doc="name of vehicle"/>
+		<arg name="local" default="false"/>
+		<group ns="$(arg veh)">
+    <node name="look_aside_node" pkg="implicit_coord" type="look_aside_node.py" output="screen">
+    </node>
+		</group>
+</launch>
