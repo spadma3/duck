@@ -1,7 +1,7 @@
 import duckietown_utils as dtu
+from easy_regression.conditions.implementation import _parse_regression_test_check
 from easy_regression.conditions.interface import RTParseError
 from easy_regression.conditions.references import parse_reference
-from easy_regression.conditions.implementation import _parse_regression_test_check
 
 
 @dtu.unit_test

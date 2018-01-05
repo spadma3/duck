@@ -91,10 +91,8 @@ def jobs_videos(context, log, name, outd):
             fn = outd + '.mp4'
             
             context.comp(link, j, out, fn)
-#             dtu.write_rgb_as_jpg(grid, fn)
 
 def link(_, src, dst):
-    print('symlink %s %s' %  (src, dst))
     assert os.path.exists(src), dst
 
     if os.path.exists(dst):
