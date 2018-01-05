@@ -45,13 +45,15 @@ comptests_packages=\
 	duckietown_utils_tests\
 	line_detector2_tests\
 	what_the_duck_tests\
-	anti_instagram_tests\
 	duckieteam_tests\
 	complete_image_pipeline_tests\
 	duckietown_segmaps_tests\
 	lane_filter_generic_tests\
 	easy_regression_tests\
 	grid_helper_tests
+
+# These take a long time
+# anti_instagram_tests\
 
 comptests_out=out/comptests
 
