@@ -10,7 +10,13 @@ from sensor_msgs.msg import Image
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.transformation import PixelAndMapTransformer, MapToGraphTransformer
 from fleet_planning.generate_duckietown_map import graph_creator
-from fleet_planning.graph import Graph
+from fleet_planning.map_drawing import MapDraw
+from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
+from std_msgs.msg import ByteMultiArray
+from fleet_planning.duckiebot import *
+import json
+from std_msgs.msg import String
+#from fleet_planning.graph import Graph
 
 class RQTFleetPlanning(Plugin):
 
@@ -23,7 +29,8 @@ class RQTFleetPlanning(Plugin):
         self.image = QPixmap()
         self.request_start_node = ''
         self.request_destination_node = ''
-        self.image_np = []
+        self.basic_map_image = []
+        self._all_living_duckiebots = []
 
         # Create QWidget
         self._widget = QWidget()
@@ -33,7 +40,6 @@ class RQTFleetPlanning(Plugin):
 
         # Load parameters
         self.map_name = rospy.get_param('/map_name', 'tiles_lab')
-        self.veh = rospy.get_param('/veh')
         self.script_dir = os.path.dirname(__file__)
         self.super_script_dir = self.script_dir + '/../../src/maps/'
         self.tile_size = rospy.get_param('tile_size',101)
@@ -50,13 +56,16 @@ class RQTFleetPlanning(Plugin):
 
         # ROS publishers/subscribers
         self.pub = rospy.Publisher('~/customer_requests', SourceTargetNodes, queue_size=1, latch=True)
+        self.duckie_path_pub = rospy.Publisher('~/draw_path',String, queue_size=1, latch=True)
         self.subscriber = rospy.Subscriber('~/map_graph', Image,
                                       self.image_callback,  queue_size = 1)
-
+        self.duckiebots_sub = rospy.Subscriber('~/draw_request', String,
+                                               self._received_duckiebot_update_callback,queue_size=1)
         # event handling
         self._widget.buttonFindPlan.clicked.connect(self.requestPlan)
         self._widget.buttonClear.clicked.connect(self.clearRequest)
         self._widget.label_image.mousePressEvent = self.getPos
+        self._widget.cb_living_duckies.currentIndexChanged.connect(self.handleComboBox)
 
     def setImageToMapTransformer(self):
         self.image_to_map_transformer = PixelAndMapTransformer(self.tile_size, self.image.height())
@@ -74,11 +83,11 @@ class RQTFleetPlanning(Plugin):
         elif (self.isRequestStartSet()):
             self._widget.label_dest_tiles.setText("(" + tile_x + ", " + tile_y + ")" + " #" + graph_node_number)
             self.request_destination_node = graph_node_number
-            # todo: actually draw start and end into the image
+
         else:
             self._widget.label_start_tiles.setText("(" + tile_x + ", " + tile_y + ")" + " #" + graph_node_number)
             self.request_start_node = graph_node_number
-            # todo: actually draw start only
+        self.drawCurrentMap()
 
     def isRequestStartSet(self):
         if (self.request_start_node):
@@ -101,11 +110,11 @@ class RQTFleetPlanning(Plugin):
         self.request_destination_node = ""
         self._widget.label_start_tiles.setText("")
         self._widget.label_dest_tiles.setText("")
-        #todo send out message to clear node highlighting
+        self.drawCurrentMap()
 
     def shutdown_plugin(self):
         self.pub.unregister()
-        self.subscriber.unregister()
+        self._subscriber_map_graph.unregister()
         pass
 
     def save_settings(self, plugin_settings, instance_settings):
@@ -118,14 +127,38 @@ class RQTFleetPlanning(Plugin):
         # v = instance_settings.value(k)
         pass
 
-    def image_callback(self, ros_data):
-        bridge = CvBridge()
-        image_np = bridge.imgmsg_to_cv2(ros_data, "bgr8")
-        cvImg = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+    def drawCurrentMap(self):
+        #convert the drawing to QPixmap for display
+        cvImg = cv2.cvtColor(self.basic_map_image, cv2.COLOR_BGR2RGB)
         height, width, channel = cvImg.shape
         bytesPerLine = 3 * width
-        self.test_image = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
-        self.image = QPixmap(self.test_image)
+        q_img_tmp = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        self.image = QPixmap(q_img_tmp)
+        #show it on the GUI
         self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
         self._widget.label_image.setPixmap(self.image)
+
+    def updateLivingDuckiebotItems(self):
+        living_duckie_list = map(lambda db:db.name,self._all_living_duckiebots)
+        self._widget.cb_living_duckies.clear()
+        self._widget.cb_living_duckies.addItems(living_duckie_list)
+
+    def image_callback(self, ros_data):
+        bridge = CvBridge()
+        self.basic_map_image = bridge.imgmsg_to_cv2(ros_data, "bgr8")
+        self.drawCurrentMap()
         self.setImageToMapTransformer()
+
+    def _received_duckiebot_update_callback(self, msg):
+        if msg is not None:
+            data_json = msg.data
+            data = json.loads(data_json)
+
+            # get duckiebot objects
+            self._all_living_duckiebots = [BaseDuckiebot.from_json(db_data) for db_data in data['duckiebots']]
+            self.updateLivingDuckiebotItems()
+
+    def handleComboBox(self, index):
+        if int(index) >= 0:
+            duckie_name = self._widget.cb_living_duckies.currentText()
+            self.duckie_path_pub.publish(duckie_name)
