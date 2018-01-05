@@ -1,10 +1,10 @@
+from compmake.utils.filesystem_utils import mkdirs_thread_safe
+import os
 import shutil
 
 import duckietown_utils as dtu
-from easy_regression.conditions.interface import RTCheck
 from duckietown_utils.unit_tests import get_output_dir_for_test
-import os
-from compmake.utils.filesystem_utils import mkdirs_thread_safe
+from easy_regression.conditions.interface import RTCheck
 
 
 def run(which, expect):
