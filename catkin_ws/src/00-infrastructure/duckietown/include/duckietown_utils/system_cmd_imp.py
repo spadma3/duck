@@ -74,6 +74,10 @@ def system_cmd_result(cwd, cmd,
         
         :param write_stdin: A string to write to the process.
     '''
+    if not os.path.exists(cwd):
+        msg = 'Cwd does not exist.'
+        msg += '\n' + cwd
+        raise ValueError(msg)
     
     if env is None:
         env = os.environ.copy()
@@ -128,9 +132,12 @@ def system_cmd_result(cwd, cmd,
             raise 
     except OSError as e:
         msg = 'Invalid executable (OSError)'
-        msg += '\n      cmd   %s' % cmd[0]
-        msg += '\n    errno   %s' % e.errno
-        msg += '\n strerror   %s' % e.strerror
+        msg += '\n      cwd   %r' % cwd
+        msg += '\n   cmd[0]   %r' % cmd[0]
+        msg += '\n    errno   %r' % e.errno
+        msg += '\n strerror   %r' % e.strerror
+        msg += '\n filename   %r' % e.filename
+        msg += '\n rest   %s' % e
         raise CouldNotCallProgram(msg)
         
 #         interrupted = False
