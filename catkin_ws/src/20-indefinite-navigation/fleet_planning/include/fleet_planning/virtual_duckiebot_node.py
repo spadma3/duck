@@ -53,6 +53,9 @@ class VirtualDuckiebotNode:
     def update_locations(self, msg):
         rospy.loginfo('Go one timestep ahead. Update locations')
         for db in self._duckiebots.itervalues():
+            if db.path is None:
+                continue
+
             db_path = [p for p in db.path if p.isdigit() and int(p)%2 == 1]
             rospy.logwarn('this is {}'.format(db_path))
             for i, p in enumerate(db_path):
@@ -66,7 +69,6 @@ class VirtualDuckiebotNode:
                         send_location = rospy.ServiceProxy('send_location_information', VirtualDuckiebotLocation)
                         resp = send_location(db.name, int(db.location), ','.join(db.path))
                         self._duckiebots.update({db.name: db})
-
 
     def send_location_information(self, req):
         rospy.loginfo("Will send location information")
