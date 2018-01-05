@@ -7,6 +7,8 @@
 
 
 # PyContracts==1.7.15
+compmake==3.4 # XXX
+
 pyparsing==2.2.0
 PyContracts==1.8.0
 DecentLogs==1.1.2
