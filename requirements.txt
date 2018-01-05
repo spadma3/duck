@@ -7,7 +7,7 @@
 
 
 # PyContracts==1.7.15
-compmake==3.4.0 # XXX
+compmake==3.5.6 # XXX
 comptests==1.4.16
 
 pyparsing==2.2.0
