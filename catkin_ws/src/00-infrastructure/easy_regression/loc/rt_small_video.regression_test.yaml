@@ -68,4 +68,5 @@ parameters:
 
         # strong regression constraint with stability
         v:signal_stats/all/moregeneric_quality/mean == v:signal_stats/all/moregeneric_quality/mean?774222bc
-        v:signal_stats/all/moregeneric_quality/mean == v:signal_stats/all/moregeneric_quality/mean@20180105
+
+        # v:signal_stats/all/moregeneric_quality/mean == v:signal_stats/all/moregeneric_quality/mean@20180105
