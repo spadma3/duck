@@ -79,7 +79,8 @@ test-comptests-collect-junit:
 test-catkin_tests: check-environment
 	bash -c "source environment.sh; catkin_make -C $(catkin_ws) run_tests; catkin_test_results $(catkin_ws)/build/test_results/"
 
-onelog=20160223-amadoa-amadobot-RCDP2
+# onelog=20160223-amadoa-amadobot-RCDP2
+onelog=2016-04-29-dp3auto-neptunus-1
 
 test-download-logs:
 	@echo Loading log
