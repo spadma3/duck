@@ -150,10 +150,10 @@ class MapDrawNode:
 
     def drawMap(self, duckiebots, pending_customer_requests=[]):
         """
-        New function to draw map independent of GUI calls. Draw all duckiebots
+        New function to draw map independent of GUI calls. Draw all _duckiebots
         and their customers, if they have any.
         Input:
-            - duckiebots: all duckiebots that should be drawn
+            - _duckiebots: all _duckiebots that should be drawn
         """
         # TODO: figure out best way to visualize duckiebot with customer
         overlay = self.prepImage()
@@ -205,7 +205,7 @@ class MapDrawNode:
             data = json.loads(data_json)
 
             # get duckiebot objects
-            duckiebots = [BaseDuckiebot.from_json(db_data) for db_data in data['duckiebots']]
+            duckiebots = [BaseDuckiebot.from_json(db_data) for db_data in data['_duckiebots']]
 
             # get customer request objects
             pending_customer_requests = [

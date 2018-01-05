@@ -58,7 +58,7 @@ class TaxiCentralNode:
     @property
     def available_duckiebots(self):
         """
-        :return: A list of all available duckiebots.
+        :return: A list of all available _duckiebots.
         """
         return filter(lambda bot: bot.taxi_state == TaxiState.IDLE or bot.taxi_state == TaxiState.WITHOUT_MISSION,
                       self._registered_duckiebots.values())
@@ -83,7 +83,7 @@ class TaxiCentralNode:
 
         request = duckiebot.pop_customer_request
         if request is not None:
-            self._pending_customer_requests[:0] = [duckiebot.pop_customer_request()]  # prepend, high priority
+            self._pending_customer_requests[:0] = [request]  # prepend, high priority
 
         try:
             del self._registered_duckiebots[duckiebot.name]
@@ -173,7 +173,7 @@ class TaxiCentralNode:
                 duckiebot.assign_customer_request(pending_request)
                 self._publish_duckiebot_mission(duckiebot)
             else:
-                rospy.logwarn("There are available duckiebots but they were not found in the graph. Aborting assignment procedure.")
+                rospy.logwarn("There are available _duckiebots but they were not found in the graph. Aborting assignment procedure.")
                 break
 
     def _location_update(self, message):
@@ -254,7 +254,7 @@ class TaxiCentralNode:
         rospy.loginfo('Duckiebot {} was sent to node {}'.format(duckiebot.name, duckiebot.target_location))
 
     def _publish_draw_request(self):
-        dict = {'duckiebots': [db[1].to_dict() for db in self._registered_duckiebots.items()],
+        dict = {'_duckiebots': [db[1].to_dict() for db in self._registered_duckiebots.items()],
                 'pending_customer_requests': [cr.to_dict() for cr in self._pending_customer_requests if cr is not None]}
         rospy.loginfo('Published draw request.')
         self._pub_draw_command.publish(json.dumps(dict))
