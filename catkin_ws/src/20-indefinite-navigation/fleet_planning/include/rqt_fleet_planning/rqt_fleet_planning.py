@@ -158,6 +158,8 @@ class RQTFleetPlanning(Plugin):
             self._all_living_duckiebots = [BaseDuckiebot.from_json(db_data) for db_data in data['duckiebots']]
             self.updateLivingDuckiebotItems()
 
-    def handleComboBox(self, string):
-        if (string):
-            self.duckie_path_pub.publish(string)
+    def handleComboBox(self, index):
+        if int(index) >= 0:
+            duckie_name = self._widget.cb_living_duckies.currentText()
+            print str(duckie_name)
+            self.duckie_path_pub.publish(duckie_name)
