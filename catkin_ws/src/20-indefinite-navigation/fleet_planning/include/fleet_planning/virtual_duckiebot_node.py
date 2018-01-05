@@ -29,7 +29,7 @@ class VirtualDuckiebotNode:
         rospy.loginfo("Will send location information")
 
         # Serialize Message and send it
-        route = map(int, req.route.split(','))
+        route = req.route.split(',')
         serialized_message = LocalizationMessageSerializer.serialize(req.duckie_name, req.location, route)
         message = ByteMultiArray(data=serialized_message)
 
