@@ -40,6 +40,8 @@
 	<remap from="/tag_detections" to="tag_detections" />
 		<node name="target2bot_apriltags" pkg="duckiemvp_tfpose" type="target2bot_apriltags.py" output="screen">
 		</node>
+		<node name="depth_cir" pkg="duckiemvp_tfpose" type="depth_cir.py" output="screen">
+		</node>
 	</group>
 
 </launch>

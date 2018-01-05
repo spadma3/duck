@@ -55,6 +55,7 @@ def apriltag_callback(data):
 if __name__ == '__main__':
     print "Get Start"
     apriltag_sub = rospy.Subscriber("/tag_detections", AprilTagDetectionArray, apriltag_callback, queue_size = 1)
+    #obj_detect_sub = rospy.Subscriber("")
 
     rospy.sleep(1)
     
