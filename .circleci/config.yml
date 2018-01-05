@@ -7,7 +7,7 @@ jobs:
               DUCKIEFLEET_ROOT: /root/duckiefleet
               DUCKIETOWN_ROOT: /root/project
               DUCKIETOWN_DATA: /root/duckietown-data
-              COLUMNS: 200
+              COLUMNS: 160
      parallelism: 1
      # resource_class: large
      steps:
