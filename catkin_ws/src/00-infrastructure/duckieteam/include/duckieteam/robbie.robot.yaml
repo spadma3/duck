@@ -1,0 +1,7 @@
+owner: censi
+hostname: robbie
+username: andrea
+description: >
+    Hypothetical robot used for tests
+log:
+    2018-01-01: Came into non-existence
