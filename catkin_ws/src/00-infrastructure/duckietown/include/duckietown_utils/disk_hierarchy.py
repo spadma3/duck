@@ -8,7 +8,6 @@ from .exception_utils import raise_desc
 from .yaml_pretty import yaml_load
 from .constants import DuckietownConstants
 from compmake.utils.filesystem_utils import mkdirs_thread_safe
-from catalyst.commands.command import contextmanager
 
 
 @contract(s=str, returns=str)
