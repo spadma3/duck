@@ -1,5 +1,5 @@
 description: |
-    A regression test that should fail.
+    A regression test that should fail because the numebr is wrong
 
 constructor: easy_regression.RegressionTest
 parameters:
