@@ -26,7 +26,6 @@ sudo apt install -y \
     libatlas-base-dev \
     python-dev \
     ipython \
-    python-sklearn \
     python-smbus
 
 sudo apt remove -y \
