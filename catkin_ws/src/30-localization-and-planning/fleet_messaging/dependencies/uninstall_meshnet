@@ -11,7 +11,7 @@ fi
 
 # Check the interface
 WIFACE=$1
-iwconfig $WIFACE | grep "ducknet"
+CHECK=$(iwconfig $WIFACE | grep "ducknet")
 if [[ $? -ne 0 ]] ; then
     echo "Aborting...Interface" $WIFACE "is either not a WiFi interface or not used for the mesh network!"
     exit 2
