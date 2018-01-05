@@ -90,7 +90,7 @@ test-download-logs:
 	echo TODO: check md5
 
 test-misc-utils:
-	rosrun complete_image_pipeline validate_calibration shamrock
+	rosrun complete_image_pipeline validate_calibration robbie
 	rosrun complete_image_pipeline display_segmaps 'DT17*tile*'
 
 test-cloud-logs: cloud-download
