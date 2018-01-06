@@ -1,7 +1,5 @@
-
-from rosbag.bag import ROSBagException
-
 import rosbag
+from rosbag.bag import ROSBagException
 
 
 def _hotfix_get_message_type(info):
@@ -24,9 +22,10 @@ def _hotfix_get_message_type(info):
 #                   %(info.datatype, info.md5sum), file=sys.stderr)
         except genmsg.MsgGenerationException as ex:
             raise ROSBagException('Error generating datatype %s: %s' % (info.datatype, str(ex)))
-        
+
         _message_types[info.md5sum] = message_type
 
     return message_type
+
 
 rosbag.bag._get_message_type = _hotfix_get_message_type

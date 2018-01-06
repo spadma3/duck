@@ -2,7 +2,7 @@ from collections import OrderedDict
 import os
 
 import duckietown_utils as dtu
-from duckietown_utils.cli import D8AppWithLogs
+from easy_logs.app_with_logs import D8AppWithLogs
 from quickapp import QuickApp
 import rosbag
 
@@ -33,13 +33,13 @@ For example:
 """
 
     def define_options(self, params):
-        params.add_flag('only_camera',
-                        help='If set, only use the camera topic.')
+        params.add_flag('all_topics',
+                        help='If set, plots all topics, in addition to the camera.')
         params.accept_extra()
 
     def define_jobs_context(self, context):
 
-        only_camera = self.options.only_camera
+        only_camera = not self.options.all_topics
 
         extra = self.options.get_extra()
 
@@ -69,12 +69,14 @@ For example:
             n = log.log_name if use_names else str(i)
             out = os.path.join(od, n)
 
+            log = self.download_if_necessary(log)
+
             jobs_videos(context, log, n, out, only_camera)
 
 
 def jobs_videos(context, log, name, outd, only_camera):
-    filename = log.filename
-    bag = rosbag.Bag(filename)
+    assert log.filename is not None
+    bag = rosbag.Bag(log.filename)
     main_camera_topic = dtu.get_image_topic(bag)
     min_messages = 3  # need at least 3 frames to make a video
     topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag, min_messages=min_messages)]
@@ -90,12 +92,13 @@ def jobs_videos(context, log, name, outd, only_camera):
             if topic != main_camera_topic:
                 continue
             out = only_camera_fn
-            j = context.comp(dtu.d8n_make_video_from_bag, filename, topic, out,
+            j = context.comp(dtu.d8n_make_video_from_bag, log.filename, topic, out,
+                             t0=log.t0, t1=log.t1,
                          job_id='%s-%s' % (name, topic))
 
         else:
             out = os.path.join(outd, name + '-' + d + '.mp4')
-            j = context.comp(dtu.d8n_make_video_from_bag, filename, topic, out,
+            j = context.comp(dtu.d8n_make_video_from_bag, log.filename, topic, out,
                          job_id='%s-%s' % (name, topic))
 
             # create link

@@ -6,9 +6,8 @@ import rosbag
 from .caching import get_cached
 from .yaml_pretty import yaml_load
 
-
 __all__ = [
-    'rosbag_info', 
+    'rosbag_info',
     'rosbag_info_cached',
     'd8n_get_all_images_topic_bag',
     'd8n_get_all_images_topic',
@@ -16,14 +15,18 @@ __all__ = [
     'get_image_topic',
 ]
 
+
 def rosbag_info_cached(filename):
+
     def f():
         return rosbag_info(filename)
+
     basename = os.path.basename(filename)
     cache_name = 'rosbag_info/' + basename
     return get_cached(cache_name, f, quiet=True)
 
-def rosbag_info(bag): 
+
+def rosbag_info(bag):
     stdout = subprocess.Popen(['rosbag', 'info', '--yaml', bag],
                               stdout=subprocess.PIPE).communicate()[0]
 #     try:
@@ -33,9 +36,10 @@ def rosbag_info(bag):
 #         raise
     return info_dict
 
+
 def which_robot(bag):
-    pattern  = r'/(\w+)/camera_node/image/compressed'
-    
+    pattern = r'/(\w+)/camera_node/image/compressed'
+
     topics = list(bag.get_type_and_topic_info()[1].keys())
 
     for topic in topics:
@@ -46,6 +50,7 @@ def which_robot(bag):
     msg = 'Could not find a topic matching %s' % pattern
     raise ValueError(msg)
 
+
 def get_image_topic(bag):
     """ Returns the name of the topic for the main camera """
     topics = bag.get_type_and_topic_info()[1].keys()
@@ -55,18 +60,20 @@ def get_image_topic(bag):
     msg = 'Cannot find the topic: %s' % topics
     raise ValueError(msg)
 
+
 def d8n_get_all_images_topic(bag_filename):
-    """ 
-        Returns the (name, type) of all topics that look like images. 
     """
-    
+        Returns the (name, type) of all topics that look like images.
+    """
+
     bag = rosbag.Bag(bag_filename)
     return d8n_get_all_images_topic_bag(bag)
 
+
 def d8n_get_all_images_topic_bag(bag, min_messages=0):
-    """ 
+    """
         Returns the (name, type) of all topics that look like images
-        and that have nonzero message count. 
+        and that have nonzero message count.
     """
     tat = bag.get_type_and_topic_info()
     consider_images = [
@@ -76,7 +83,7 @@ def d8n_get_all_images_topic_bag(bag, min_messages=0):
     all_types = set()
     found = []
     topics = tat.topics
-    for t,v in topics.items():
+    for t, v in topics.items():
         msg_type = v.msg_type
         all_types.add(msg_type)
         message_count = v.message_count
@@ -93,6 +100,6 @@ def d8n_get_all_images_topic_bag(bag, min_messages=0):
                 # print('ignoring topic %r because message_count = 0' % t)
                 continue
 
-            found.append((t,msg_type))
+            found.append((t, msg_type))
     return found
 

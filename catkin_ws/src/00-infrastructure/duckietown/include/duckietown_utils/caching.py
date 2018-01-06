@@ -1,15 +1,14 @@
 import os
 
-from .logging_logger import logger
-
 from .friendly_path_imp import friendly_path
+from .logging_logger import logger
 from .path_utils import expand_all
 from .safe_pickling import safe_pickle_load, safe_pickle_dump
-
 
 __all__ = [
     'get_cached',
 ]
+
 
 def get_cached(cache_name, f, quiet='not-given'):
     """
@@ -36,7 +35,6 @@ def get_cached(cache_name, f, quiet='not-given'):
             msg = 'Removing cache that I cannot read: %s' % friendly_path(cache)
             logger.error(msg)
             os.unlink(cache)
-
 
     ob = f()
     if not should_be_quiet:

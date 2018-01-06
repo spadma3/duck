@@ -11,6 +11,7 @@ from .time_slice import filters_slice
 def get_easy_logs_db():
     return get_easy_logs_db_cached_if_possible()
 
+
 def get_easy_logs_db_cached_if_possible():
     if EasyLogsDB._singleton is None:
         f = EasyLogsDB
@@ -22,16 +23,19 @@ def get_easy_logs_db_cached_if_possible():
             logs = copy.deepcopy(EasyLogsDB._singleton.logs)
             # remove the field "filename"
             for k, v in logs.items():
-                logs[k]=v._replace(filename=None)
+                logs[k] = v._replace(filename=None)
+
             dtu.yaml_write_to_file(logs, fn)
 
     return EasyLogsDB._singleton
+
 
 def get_easy_logs_db_fresh():
     if EasyLogsDB._singleton is None:
         f = EasyLogsDB
         EasyLogsDB._singleton = f()
     return EasyLogsDB._singleton
+
 
 def get_easy_logs_db_cloud():
     cloud_file = dtu.require_resource('cloud.yaml')
@@ -57,10 +61,10 @@ class EasyLogsDB(object):
     def __init__(self, logs=None):
         # ordereddict str -> PhysicalLog
         if logs is None:
-            logs  = load_all_logs()
+            logs = load_all_logs()
         else:
             dtu.check_isinstance(logs, OrderedDict)
-        
+
         # Let's get rid of these redundant logs from 2016
         for k in list(logs):
             if 'RCDP' in k:
@@ -73,9 +77,9 @@ class EasyLogsDB(object):
             query: a string or a list of strings
 
             Returns an OrderedDict str -> PhysicalLog.
-            
+
             The query can also be a filename.
-            
+
         """
         if isinstance(query, list):
             res = OrderedDict()
@@ -89,13 +93,14 @@ class EasyLogsDB(object):
             return res
         else:
             dtu.check_isinstance(query, str)
-            
+
             filters = OrderedDict()
             filters.update(filters_slice)
             filters.update(dtu.filters0)
             result = dtu.fuzzy_match(query, self.logs, filters=filters,
                                  raise_if_no_matches=raise_if_no_matches)
             return result
+
 
 def read_stats(pl):
     assert isinstance(pl, PhysicalLog)
@@ -125,9 +130,10 @@ def read_stats(pl):
         pl = pl._replace(valid=False, error_if_invalid='No camera data.')
     return pl
 
+
 def which_robot_from_bag_info(info):
     import re
-    pattern  = r'/(\w+)/camera_node/image/compressed'
+    pattern = r'/(\w+)/camera_node/image/compressed'
     for topic in info['topics']:
         m = re.match(pattern, topic['topic'])
         if m:
@@ -136,12 +142,14 @@ def which_robot_from_bag_info(info):
     msg = 'Could not find a topic matching %s' % pattern
     raise ValueError(msg)
 
+
 def is_valid_name(basename):
-    forbidden = [',','(','conflicted', ' ']
+    forbidden = [',', '(', 'conflicted', ' ']
     for f in forbidden:
         if f in basename:
             return False
     return True
+
 
 def load_all_logs(which='*'):
     pattern = which + '.bag'
@@ -154,10 +162,11 @@ def load_all_logs(which='*'):
             dtu.logger.warn(msg)
             continue
         l = physical_log_from_filename(filename)
-        
-        logs[l.log_name]= l
+
+        logs[l.log_name] = l
 
     return logs
+
 
 def physical_log_from_filename(filename):
     date = None
@@ -170,11 +179,11 @@ def physical_log_from_filename(filename):
                     map_name=None,
                     description=None,
                     length=None,
-                    t0=None,t1=None,
+                    t0=None, t1=None,
                     date=date,
                     size=size,
                     has_camera=None,
-                    vehicle = None,
+                    vehicle=None,
                     filename=filename,
                     bag_info=None,
                     valid=True,
