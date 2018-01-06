@@ -6,22 +6,23 @@ from easy_regression.conditions.references import parse_reference
 @dtu.unit_test
 def parse_references_check_good():
     good = [
-        'v:analyzer/test/statistic', 
+        'v:analyzer/test/statistic',
         'v:analyzer/test/statistic@2016-12-01',
         'v:analyzer/log/statistic~master@2016-12-01',
         'v:analyzer/log/statistic~master',
     ]
     for g in good:
         parse_reference(g)
-        
-        
+
+
 @dtu.unit_test
 def parse_one():
     s = 'v:analyzer/log/statistic?hash'
     a = parse_reference(s)
     assert a.commit == 'hash', a
     print a
-    
+
+
 @dtu.unit_test
 def parse_references_check_bad():
     bad = [

@@ -1,17 +1,15 @@
 from collections import defaultdict, namedtuple
-import os
 
 import duckietown_utils as dtu
+from easy_regression.cli.processing import interpret_ros
 from easy_regression.processor_interface import ProcessorInterface
 from grid_helper.grid_helper_visualization import convert_unit
 import numpy as np
 import rospy
-from easy_regression.cli.processing import interpret_ros
-
-
 
 PlotSignalSpec = namedtuple('PlotSignalSpec', 'topic units units_display label color min max')
 # PlotSpec = namedtuple('PlotSpec', 'signals')
+
 
 def PlotSignalSpec_from_yaml(x):
     return PlotSignalSpec(**x)
@@ -81,9 +79,8 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
         _fig, ax0 = pylab.subplots()
         ax0.set_xlabel('time (s)')
         axes.append(ax0)
-        for i in range(len(signals)-1):
+        for i in range(len(signals) - 1):
             axes.append(ax0.twinx())
-
 
         for i, signal_spec in enumerate(signals):
             ax = axes[i]
@@ -126,7 +123,7 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
     # output_filename = os.path.join('tmp', plot_name +'.png')
     # dtu.write_bgr_as_jpg(bgr, output_filename)
 
-    t_inf = rospy.Time.from_sec(bag_in.get_end_time()) # @UndefinedVariable
+    t_inf = rospy.Time.from_sec(bag_in.get_end_time())  # @UndefinedVariable
     omsg = dtu.d8_compressed_image_from_cv_image(bgr, timestamp=t_inf)
     otopic = prefix_out + '/' + plot_name
     bag_out.write(otopic, omsg, t=t_inf)

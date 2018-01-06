@@ -1,8 +1,5 @@
 import duckietown_utils as dtu
-
-
 from easy_regression.conditions.interface import RTCheck
-from easy_regression.conditions.references import parse_date_spec
 from easy_regression.conditions.result_db import ResultDB, ResultDBEntry
 from easy_regression_tests.evaluation import raise_error
 
@@ -11,8 +8,8 @@ def get_test_db():
     results = {'analyzer': {
     'log1': {
         'value2': 1,
-        'composite': {'a':2,'b':{'c':3}},
-    }}} 
+        'composite': {'a':2, 'b':{'c':3}},
+    }}}
     current = ResultDBEntry(regression_test_name='',
                             date='',
                            host='',
@@ -33,7 +30,8 @@ def run_checks(condition_result):
         res = t.check(rdb)
         if not res.status == expected:
             raise_error(rdb, t, res, 'Expected %s' % expected)
-            
+
+
 @dtu.unit_test
 def test_composite_true():
     conditions_true = [

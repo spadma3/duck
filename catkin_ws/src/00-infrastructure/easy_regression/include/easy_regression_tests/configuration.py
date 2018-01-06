@@ -20,7 +20,6 @@ parameters:
         v:count_messages/all/num_messages == 5330
 """
 
-
 s_fail = """
 description: |
     A simple regression test.
@@ -39,6 +38,7 @@ parameters:
         v:count_messages/20160223-amadoa-amadobot-RCDP2/num_messages == 5330
         v:count_messages/all/num_messages = 5330
 """
+
 
 @dtu.unit_test
 def parse_reg_test():

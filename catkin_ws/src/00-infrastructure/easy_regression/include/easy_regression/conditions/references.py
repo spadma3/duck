@@ -1,9 +1,7 @@
 from contracts.utils import check_isinstance
 import yaml
 
-
 import duckietown_utils as dtu
-
 from easy_regression.conditions.eval import Evaluable, EvaluationError
 from easy_regression.conditions.interface import RTParseError
 from easy_regression.conditions.result_db import ResultDBEntry
@@ -12,68 +10,65 @@ from easy_regression.conditions.result_db import ResultDBEntry
 def parse_reference(s):
     """
         v:analyzer/log/statistic~master@date
-        
+
     """
     prefix = 'v:'
-    
+
     if s.startswith(prefix):
         s = dtu.remove_prefix(s, prefix)
-        
+
         T_DATE = '@'
         T_BRANCH = '~'
         T_COMMIT = '?'
         TS = [T_DATE, T_BRANCH, T_COMMIT]
-        
+
         if (T_COMMIT in s)  and (T_DATE in s):
             msg = 'Cannot specify commit and date: %s' % s
             raise RTParseError(msg)
-        
+
         date = None
         commit = None
         branch_spec = None
-        
+
         def get_last_one(s0):
             for c in s0[::-1]:
                 if c in TS:
                     return c
-                
+
         while True:
             which = get_last_one(s)
-            
+
             if which is None:
                 break
             elif which == T_DATE:
                 s, date_spec = dtu.string_split(s, T_DATE)
                 if not date_spec:
-                    msg = 'Invalid date spec %r.' % date_spec 
+                    msg = 'Invalid date spec %r.' % date_spec
                     raise RTParseError(msg)
                 date = parse_date_spec(date_spec)
             elif which == T_BRANCH:
                 s, branch_spec = dtu.string_split(s, T_BRANCH)
                 if not branch_spec:
-                    msg = 'Invalid branch spec %r.' % branch_spec 
+                    msg = 'Invalid branch spec %r.' % branch_spec
                     raise RTParseError(msg)
             elif which == T_COMMIT:
                 s, commit = dtu.string_split(s, T_COMMIT)
                 if not commit:
-                    msg = 'Invalid commit %r.' % branch_spec 
+                    msg = 'Invalid commit %r.' % branch_spec
                     raise RTParseError(msg)
-        
-            
-              
+
         tokens = s.split('/')
         if not len(tokens) >= 3:
             msg = 'Expected "analyzer/log/statistic"'
             raise RTParseError(msg)
-        
+
         analyzer = tokens[0]
         log = tokens[1]
-        statistic = tuple(tokens[2:]) 
-        
-            
-        return StatisticReference(analyzer=analyzer, log=log, statistic=statistic, 
+        statistic = tuple(tokens[2:])
+
+        return StatisticReference(analyzer=analyzer, log=log, statistic=statistic,
                                   branch=branch_spec, date=date, commit=commit)
-    
+
     try:
         c = yaml.load(s)
         if isinstance(c, str) and '/' in c:
@@ -85,6 +80,7 @@ def parse_reference(s):
         msg = 'Could not parse reference %s.' % s.__repr__()
         raise RTParseError(msg)
 
+
 def parse_date_spec(d):
     from dateutil.parser import parse
     try:
@@ -93,8 +89,9 @@ def parse_date_spec(d):
         msg = 'Cannot parse date %s.' % d.__repr__()
         dtu.raise_wrapped(RTParseError, e, msg, compact=True)
 
+
 class StatisticReference(Evaluable):
-    
+
     @dtu.contract(statistic='seq(str)')
     def __init__(self, analyzer, log, statistic, branch, date, commit):
         self.analyzer = analyzer
@@ -103,11 +100,11 @@ class StatisticReference(Evaluable):
         self.branch = branch
         self.date = date
         self.commit = commit
-    
+
     def __str__(self):
-        return ('StatisticReference(%s,%s,%s,%s,%s)' % 
+        return ('StatisticReference(%s,%s,%s,%s,%s)' %
                 (self.analyzer, self.log, self.statistic, self.branch, self.date))
-        
+
     def eval(self, rdb):
         db_entry = rdb.query_results_one(branch=self.branch,
                                   date=self.date,
@@ -121,7 +118,8 @@ class StatisticReference(Evaluable):
         forlog = logs[self.log]
         val = eval_name(forlog, self.statistic)
         return val
-    
+
+
 @dtu.contract(name_tuple=tuple)
 def eval_name(x, name_tuple):
     if not name_tuple:
@@ -132,12 +130,16 @@ def eval_name(x, name_tuple):
         dtu.check_is_in('value', first, x, EvaluationError)
         xx = x[first]
         return eval_name(xx, rest)
-    
+
+
 class Constant(Evaluable):
+
     def __init__(self, x):
         self.x = x
+
     def eval(self, _test_results):
         return self.x
+
     def __repr__(self):
         return 'Constant(%s)' % self.x.__repr__()
-    
+

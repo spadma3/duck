@@ -16,11 +16,11 @@ class ProcessorUtils(ProcessorUtilsInterface):
     def __init__(self, log, bag_out):
         self.log = log
         self.bag_out = bag_out
-    
+
     def write_stat(self, name, value, t=None, prefix=()):
         if isinstance(value, dict):
             for k, v in value.items():
-                self.write_stat(k, v, t=t, prefix=prefix+(name,))
+                self.write_stat(k, v, t=t, prefix=prefix + (name,))
             return
         else:
             msg = ros_from_misc(name, value, t)
@@ -28,13 +28,14 @@ class ProcessorUtils(ProcessorUtilsInterface):
             topic = "/".join(complete)
 #             print('%s = %s' % (topic, msg))
             self.bag_out.write(topic, msg, t=t)
-    
+
     def get_log(self):
         return self.log
-    
+
 
 def interpret_ros(msg):
     return np.array(msg.data)
+
 
 def ros_from_misc(name, value, t):
     if isinstance(value, float):
@@ -52,18 +53,19 @@ def ros_from_misc(name, value, t):
         m = "Could not find a way to write \"%s\" in ROS (%s)" % (name, dtu.describe_type(value))
         m += '\n' + dtu.indent(str(value), '> ')
         raise ValueError(m)
-    
+
+
 def ros_from_np_array(data):
     if data.shape == ():
         msg = 'I do not know how to convert this: \n%s\n%s' % (data.dtype, data)
-        raise NotImplementedError(msg) 
+        raise NotImplementedError(msg)
     dims = []
     for i, size in enumerate(data.shape):
         label = 'dim%d' % i
         stride = 0
         dims.append(MultiArrayDimension(label=label, size=size, stride=stride))
     layout = MultiArrayLayout(dim=dims)
-    
+
     d = list(data.flatten())
     msg = Float64MultiArray(data=d, layout=layout)
     return msg
@@ -76,37 +78,38 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log)
     dtu.logger.info('   processors: %s' % processors)
     dtu.logger.info('   out: %s' % log_out)
     dtu.logger.info('   t0 t1: %s %s' % (t0, t1))
-    
+
     dtu.d8n_make_sure_dir_exists(log_out)
-    
+
     tmpdir = dtu.create_tmpdir()
     tmpfiles = []
-    
+
     def get_tmp_bag():
         i = len(tmpfiles)
-        f = os.path.join(tmpdir, 'tmp%d.bag'%i)
+        f = os.path.join(tmpdir, 'tmp%d.bag' % i)
         tmpfiles.append(f)
         return f
-    
+
     tmpfiles = []
-    
+
     bag = rosbag.Bag(bag_filename)
     t0_absolute = bag.get_start_time() + t0
     t1_absolute = bag.get_start_time() + t1
-    
+
     for i, processor_entry in enumerate(processors):
         processor_name = processor_entry.processor
         prefix_in = processor_entry.prefix_in
         prefix_out = processor_entry.prefix_out
         tmp = get_tmp_bag()
 
-        bag_filename = context.comp(process_one_processor, processor_name, prefix_in, prefix_out, 
+        bag_filename = context.comp(process_one_processor, processor_name, prefix_in, prefix_out,
                                              bag_filename, tmp, t0_absolute, t1_absolute, log,
                                              job_id='process-%d-%s' % (i, processor_name))
-    
+
     final = context.comp(finalize, bag_filename, log_out, processors, tmpfiles)
     return final
-        
+
+
 def finalize(bag_filename, log_out, processors, tmpfiles):
     dtu.logger.info('Creating output file %s' % log_out)
     if not processors:
@@ -120,14 +123,15 @@ def finalize(bag_filename, log_out, processors, tmpfiles):
         except:
             dtu.logger.error('Could not create %s' % log_out)
     dtu.logger.info('I created %s' % log_out)
-    
+
     for f in tmpfiles:
         if os.path.exists(f):
             dtu.logger.info(' deleting %s' % f)
             os.unlink(f)
     return log_out
 
-def process_one_processor(processor_name, prefix_in, prefix_out, bag_filename, 
+
+def process_one_processor(processor_name, prefix_in, prefix_out, bag_filename,
                           next_bag_filename, t0_absolute, t1_absolute, log):
     easy_algo_db = get_easy_algo_db()
     processor = easy_algo_db.create_instance('processor', processor_name)
@@ -135,39 +139,35 @@ def process_one_processor(processor_name, prefix_in, prefix_out, bag_filename,
     dtu.logger.info('out: next_bag_filename: %s' % next_bag_filename)
     dtu.logger.info('t0_absolute: %s' % t0_absolute)
     dtu.logger.info('t1_absolute: %s' % t1_absolute)
-    
+
     original_bag = rosbag.Bag(log.filename)
     bag_absolute_t0_ref = original_bag.get_start_time()
     original_bag.close()
-    
-    
+
     out_bag = rosbag.Bag(next_bag_filename, 'w')
-    
+
     bag0 = rosbag.Bag(bag_filename)
     t0_rel = t0_absolute - bag0.get_start_time()
     t1_rel = t1_absolute - bag0.get_start_time()
-    
-    in_bag = dtu.BagReadProxy(bag0, t0_rel, t1_rel, bag_absolute_t0_ref=bag_absolute_t0_ref)
 
-    
+    in_bag = dtu.BagReadProxy(bag0, t0_rel, t1_rel, bag_absolute_t0_ref=bag_absolute_t0_ref)
 
     utils = ProcessorUtils(bag_out=out_bag, log=log)
     processor.process_log(in_bag, prefix_in, out_bag, prefix_out, utils)
     in_bag.close()
     # also copy the other messages
-    
+
     in_bag1 = rosbag.Bag(bag_filename)
     for topic, msg, t in in_bag1.read_messages(raw=True):
         out_bag.write(topic, msg, t, raw=True)
     in_bag1.close()
 
     out_bag.close()
-    
+
 #     r = rosbag.Bag(next_bag_filename)
 #     for topic, msg, t in r.read_messages(raw=True):
 #         pass
 #     r.close()
-    
 
 #     cmd = ['rosbag', 'fix', next_bag_filename, next_bag_filename]
 #     dtu.system_cmd_result(cwd='.', cmd=cmd, raise_on_error=True, display_stdout=True,
@@ -176,4 +176,4 @@ def process_one_processor(processor_name, prefix_in, prefix_out, bag_filename,
 #     dtu.system_cmd_result(cwd='.', cmd=cmd, raise_on_error=True, display_stdout=True,
 #                           display_stderr=True)
     return next_bag_filename
-            
+

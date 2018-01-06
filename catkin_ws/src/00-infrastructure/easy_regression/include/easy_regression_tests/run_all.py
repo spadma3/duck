@@ -25,6 +25,7 @@ def run(which, expect):
         if False:
             shutil.rmtree(cwd)
 
+
 @dtu.unit_test
 def run_abnormal1():
     run('expect_abnormal1', RTCheck.ABNORMAL)
@@ -49,13 +50,16 @@ def run_dontrun1():
 def run_ok1():
     run('expect_ok1', RTCheck.OK)
 
+
 @dtu.unit_test
 def run_nodata1():
     run('expect_nodata1', RTCheck.NODATA)
 
+
 @dtu.unit_test
 def run_nodata2():
     run('expect_nodata2', RTCheck.NODATA)
+
 
 @dtu.unit_test
 def run_fail1():
@@ -65,7 +69,6 @@ def run_fail1():
 @dtu.unit_test
 def run_rt_small_video():
     run('rt_small_video', RTCheck.OK)
-
 
 
 if __name__ == '__main__':
