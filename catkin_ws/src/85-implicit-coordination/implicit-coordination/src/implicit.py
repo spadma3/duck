@@ -60,10 +60,21 @@ class Implicit(object):
         data = yaml.load(stream)
         stream.close()
         self.detection_threshold = data['detection_threshold']
+
+        self.right_priority_threshold = data['right_priority_threshold']
+        self.right_priority = data['right_priority']
         self.SlotTime = data['SlotTime']
+        # set Field of Interest
+        self.FOI_right = data['FOI_right']
+        self.FOI_front = data['FOI_front']
+        self.FOI_left = data['FOI_left']
         rospy.loginfo('[%s] detection_threshold: %.4f' % (self.node_name,
                       self.detection_threshold))
         rospy.loginfo('[%s] SlotTime: %.4f' % (self.node_name, self.SlotTime))
+        rospy.loginfo('[%s] right priority: %s' % (self.node_name,
+                                                     self.right_priority))
+        rospy.loginfo('[%s] FOI boarders (l,r,f): %.4f, %.4f, %.4f'
+                      % (self.node_name, self.FOI_left, self.FOI_right, self.FOI_front))
 
     # callback functions
     def publish_car_cmd(self,event):
@@ -71,43 +82,49 @@ class Implicit(object):
 
     def cbGetBots(self, tracklet_list):
         for bot in tracklet_list.tracklets:
-            if bot.id not in self.detected_bots:
-                self.detected_bots[bot.id] = (0.0, bot.x, 0.0, bot.y)
-            if bot.status == Tracklet.STATUS_BORN or \
-                    bot.status == Tracklet.STATUS_TRACKING:
-                print "tracking"
-                # pos_tupel=(old_x,cur_x,old_y,cur_y)
-                pos_tupel = self.detected_bots[bot.id]
-                self.detected_bots[bot.id] = (pos_tupel[1], bot.x,
-                                              pos_tupel[3], bot.y)
-            else:
-                print "lost"
-                self.detected_bots.pop(bot.id)
-        print self.detected_bots
+            #check if in Field of Interest (FOI)
+            if bot.x < self.FOI_front and bot.y < self.FOI_right and \
+                    bot.y > self.FOI_left:
+                # check if bot already in dict
+                if bot.id not in self.detected_bots:
+                    self.detected_bots[bot.id] = (0.0, bot.x, 0.0, bot.y)
+                if bot.status == Tracklet.STATUS_BORN or \
+                        bot.status == Tracklet.STATUS_TRACKING:
+                    print "tracking"
+                    # pos_tupel=(old_x,cur_x,old_y,cur_y)
+                    pos_tupel = self.detected_bots[bot.id]
+                    self.detected_bots[bot.id] = (pos_tupel[1], bot.x,
+                                                  pos_tupel[3], bot.y)
+                else:
+                    print "lost"
+                    self.detected_bots.pop(bot.id)
 
-    def DetectMovement(self):
+    def DetectPotCollision(self):
         for key in self.detected_bots:
             pos_tupel = self.detected_bots[key]
             diff_x = pos_tupel[0] - pos_tupel[1]
             diff_y = pos_tupel[2] - pos_tupel[3]
             if diff_x**2 + diff_y**2 >= self.detection_threshold**2:
                 return True
-        return False
+            if self.right_priority and \
+                    self.right_priority_threshold < pos_tupel[3]:
+                return True
+            return False
 
     def cbFSM(self, msg):
         self.mode = msg.state
         if self.mode == "COORDINATION":
             self.active = True
             self.CSMA()
-            
+
     def CSMA(self):
         while self.active:
             rospy.loginfo("[%s] activated" % (self.node_name))
             flag = BoolStamped()
             backoff_time = 0.0  # in seconds
             time.sleep(1.0)
-            if self.DetectMovement():
-                rospy.loginfo("[%s] movement" % (self.node_name))
+            if self.DetectPotCollision():
+                rospy.loginfo("[%s] potential collision" % (self.node_name))
                 if self.iteration > 0:
                     backoff_time = randrange(0, 2**self.iteration - 1) * \
                         self.SlotTime
@@ -116,7 +133,7 @@ class Implicit(object):
                 time.sleep(backoff_time)
                 self.iteration += 1
             elif not self.detected_bots == None:
-                rospy.loginfo("[%s] no movement" % (self.node_name))
+                rospy.loginfo("[%s] no potential" % (self.node_name))
                 self.iteration = 0
                 flag.data = True
                 turn_type = Int16(1)
