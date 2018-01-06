@@ -82,33 +82,35 @@ class Implicit(object):
 
     def cbGetBots(self, tracklet_list):
         for bot in tracklet_list.tracklets:
-            #check if in Field of Interest (FOI)
-            if bot.x < self.FOI_front and bot.y < self.FOI_right and \
-                    bot.y > self.FOI_left:
-                # check if bot already in dict
-                if bot.id not in self.detected_bots:
-                    self.detected_bots[bot.id] = (0.0, bot.x, 0.0, bot.y)
-                if bot.status == Tracklet.STATUS_BORN or \
-                        bot.status == Tracklet.STATUS_TRACKING:
-                    print "tracking"
-                    # pos_tupel=(old_x,cur_x,old_y,cur_y)
-                    pos_tupel = self.detected_bots[bot.id]
-                    self.detected_bots[bot.id] = (pos_tupel[1], bot.x,
-                                                  pos_tupel[3], bot.y)
-                else:
-                    print "lost"
-                    self.detected_bots.pop(bot.id)
+            # check if bot already in dict
+            if bot.id not in self.detected_bots:
+                self.detected_bots[bot.id] = (0.0, bot.x, 0.0, bot.y)
+            if bot.status == Tracklet.STATUS_BORN or \
+                    bot.status == Tracklet.STATUS_TRACKING:
+                print "tracking"
+                # pos_tupel=(old_x,cur_x,old_y,cur_y)
+                pos_tupel = self.detected_bots[bot.id]
+                self.detected_bots[bot.id] = (pos_tupel[1], bot.x,
+                                              pos_tupel[3], bot.y)
+            else:
+                print "lost"
+                self.detected_bots.pop(bot.id)
+                print self.detected_bots
 
     def DetectPotCollision(self):
         for key in self.detected_bots:
             pos_tupel = self.detected_bots[key]
             diff_x = pos_tupel[0] - pos_tupel[1]
             diff_y = pos_tupel[2] - pos_tupel[3]
-            if diff_x**2 + diff_y**2 >= self.detection_threshold**2:
-                return True
-            if self.right_priority and \
-                    self.right_priority_threshold < pos_tupel[3]:
-                return True
+            #check if in Field of Interest
+            if pos_tupel[1] < self.FOI_front and pos_tupel[3] > self.FOI_right and \
+                    pos_tupel[3] < self.FOI_left:
+                if diff_x**2 + diff_y**2 >= self.detection_threshold**2:
+                    return True
+                if self.right_priority and \
+                        self.right_priority_threshold < pos_tupel[3]:
+                    return True
+                return False
             return False
 
     def cbFSM(self, msg):
