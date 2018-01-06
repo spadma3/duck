@@ -1,10 +1,10 @@
+
 from .constants import DuckietownConstants
 from .detect_environment import on_duckiebot
 from .logging_logger import logger
 
-
 __all__ = [
-    'contract', 
+    'contract',
     'all_disabled',
 ]
 
@@ -16,7 +16,7 @@ if on_duckiebot():
         logger.warning('Contracts are disabled becaused we are on Duckiebot.')
 else:
     try:
-        # use PyContracts if installed 
+        # use PyContracts if installed
         from contracts import contract, all_disabled  # @UnusedImport
         if all_disabled():
             if show_info:
@@ -29,11 +29,15 @@ else:
         if show_info:
             logger.warning('Contracts are disabled becaused PyContracts not found.')
         using_fake_contracts = True
-    
+
 if using_fake_contracts:
+
     def all_disabled():
         return True
+
     def contract(**kwargs):  # @UnusedVariable
+
         def phi(f):
             return f
+
         return phi

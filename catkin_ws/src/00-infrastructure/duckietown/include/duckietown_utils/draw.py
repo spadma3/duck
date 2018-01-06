@@ -1,9 +1,8 @@
 #@PydevCodeAnalysisIgnore
-# TODO: remove this from here
 import cv2
-import numpy as np
 
 from duckietown_utils import load_homography, load_map
+import numpy as np
 
 
 class Draw():

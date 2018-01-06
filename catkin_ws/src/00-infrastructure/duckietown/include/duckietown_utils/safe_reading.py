@@ -6,7 +6,6 @@ import random
 
 from .exception_utils import check_isinstance
 
-
 __all__ = [
     'safe_write',
     'safe_read',
@@ -20,11 +19,11 @@ def is_gzip_filename(filename):
 
 @contextmanager
 def safe_write(filename, mode='wb', compresslevel=5):
-    """ 
-        Makes atomic writes by writing to a temp filename. 
+    """
+        Makes atomic writes by writing to a temp filename.
         Also if the filename ends in ".gz", writes to a compressed stream.
         Yields a file descriptor.
-        
+
         It is thread safe because it renames the file.
         If there is an error, the file will be removed if it exists.
     """
@@ -72,7 +71,7 @@ def safe_write(filename, mode='wb', compresslevel=5):
 
 @contextmanager
 def safe_read(filename, mode='rb'):
-    """ 
+    """
         If the filename ends in ".gz", reads from a compressed stream.
         Yields a file descriptor.
     """

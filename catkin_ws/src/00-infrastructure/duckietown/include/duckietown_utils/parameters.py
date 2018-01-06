@@ -4,9 +4,10 @@ __all__ = [
     'Configurable',
 ]
 
+
 class Configurable(object):
     """ Utility class to read configuration """
-    
+
     def __init__(self, param_names, configuration0):
 
         configuration0 = copy.deepcopy(configuration0)
@@ -18,13 +19,13 @@ class Configurable(object):
         configuration.update(configuration0)
         # check that we set all parameters
         given = list(configuration)
-        
+
         required = list(param_names)
-        
+
         extra = set(given) - set(required)
         missing = set(required) - set(given)
         if extra or missing:
-            msg = ('Error while loading configuration for %r from %r.' % 
+            msg = ('Error while loading configuration for %r from %r.' %
                    (self, configuration))
             msg += '\n'
             msg += 'Extra parameters: %r\n' % extra
@@ -39,10 +40,9 @@ class Configurable(object):
                 import numpy as np
                 value = np.array(value)
             configuration[p] = value
-            
+
         for p in param_names:
             setattr(self, p, configuration[p])
-            
+
         return configuration
-    
-    
+

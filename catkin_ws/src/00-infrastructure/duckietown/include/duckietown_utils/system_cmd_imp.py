@@ -1,12 +1,9 @@
-# copied from https://github.com/AndreaCensi/system_cmd
-
-from .logging_logger import logger
-
 import os
 import subprocess
 import tempfile
-from .contracts_ import contract
 
+from .contracts_ import contract
+from .logging_logger import logger
 
 __all__ = [
     'system_cmd_result',
@@ -16,12 +13,13 @@ __all__ = [
     'CouldNotCallProgram',
 ]
 
-class Shared():
-    p = None 
 
+class Shared():
+    p = None
 
 
 class CmdResult(object):
+
     def __init__(self, cwd, cmd, ret, rets, interrupted, stdout, stderr):
         self.cwd = cwd
         self.cmd = cmd
@@ -47,14 +45,17 @@ class CmdResult(object):
             msg += '\n' + indent(self.stderr, 'stderr>')
         return msg
 
-    
+
 class CmdException(Exception):
+
     def __init__(self, cmd_result):
         Exception.__init__(self, str(cmd_result))
         self.res = cmd_result
 
+
 class CouldNotCallProgram(Exception):
-    pass        
+    pass
+
 
 @contract(cwd='str', cmd='str|list(str)', env='dict|None')
 def system_cmd_result(cwd, cmd,
@@ -63,22 +64,22 @@ def system_cmd_result(cwd, cmd,
                       raise_on_error=False,
                       write_stdin='',
                       capture_keyboard_interrupt=False,
-                      env=None): 
-    ''' 
+                      env=None):
+    '''
         Returns the structure CmdResult; raises CmdException.
         Also OSError are captured.
         KeyboardInterrupt is passed through unless specified
-        
+
         If the program cannot be called at all (OSError for permissions,
         existence, it raises CouldNotCallProgram).
-        
+
         :param write_stdin: A string to write to the process.
     '''
     if not os.path.exists(cwd):
         msg = 'Cwd does not exist.'
         msg += '\n' + cwd
         raise ValueError(msg)
-    
+
     if env is None:
         env = os.environ.copy()
 
@@ -89,17 +90,16 @@ def system_cmd_result(cwd, cmd,
     rets = None
     interrupted = False
 
-#     if (display_stdout and captured_stdout) or (display_stderr and captured_stderr):        
-    
-        
+#     if (display_stdout and captured_stdout) or (display_stderr and captured_stderr):
+
     try:
-        # stdout = None if display_stdout else 
+        # stdout = None if display_stdout else
         stdout = tmp_stdout.fileno()
-        # stderr = None if display_stderr else 
+        # stderr = None if display_stderr else
         stderr = tmp_stderr.fileno()
         if isinstance(cmd, str):
             cmd = cmd2args(cmd)
-        
+
         assert isinstance(cmd, list)
         if display_stdout or display_stderr:
             logger.info('$ %s' % copyable_cmd(cmd))
@@ -129,7 +129,7 @@ def system_cmd_result(cwd, cmd,
             ret = 100
             interrupted = True
         else:
-            raise 
+            raise
     except OSError as e:
         msg = 'Invalid executable (OSError)'
         msg += '\n      cwd   %r' % cwd
@@ -139,7 +139,7 @@ def system_cmd_result(cwd, cmd,
         msg += '\n filename   %r' % e.filename
         msg += '\n rest   %s' % e
         raise CouldNotCallProgram(msg)
-        
+
 #         interrupted = False
 #         ret = 200
 #         rets = str(e)
@@ -152,7 +152,7 @@ def system_cmd_result(cwd, cmd,
 
     captured_stdout = read_all(tmp_stdout).strip()
     captured_stderr = read_all(tmp_stderr).strip()
-    
+
     s = ""
 
     captured_stdout = remove_empty_lines(captured_stdout)
@@ -176,6 +176,7 @@ def system_cmd_result(cwd, cmd,
 
     return res
 
+
 def remove_empty_lines(s):
     lines = s.split("\n")
     empty = lambda line: len(line.strip()) == 0
@@ -188,15 +189,17 @@ def cmd2args(s):
     if isinstance(s, list):
         return s
     elif isinstance(s, str):
-        return s.split() 
-    else: 
+        return s.split()
+    else:
         assert False
-    
+
+
 def wrap(header, s, N=30):
     header = '  ' + header + '  '
     l1 = '-' * N + header + '-' * N
     l2 = '-' * N + '-' * len(header) + '-' * N
     return  l1 + '\n' + s + '\n' + l2
+
 
 def result_format(cwd, cmd, ret, stdout=None, stderr=None):
     msg = ('Command:\n\t{cmd}\n'
@@ -208,12 +211,13 @@ def result_format(cwd, cmd, ret, stdout=None, stderr=None):
     if stderr is not None:
         msg += '\n' + wrap('stderr', stderr)
     return msg
-#     
+#
 # def indent(s, prefix):
 #     lines = s.split('\n')
 #     lines = ['%s%s' % (prefix, line.rstrip()) for line in lines]
 #     return '\n'.join(lines)
-#  
+#
+
 
 def indent(s, prefix, first=None):
     s = str(s)
@@ -222,27 +226,28 @@ def indent(s, prefix, first=None):
     if not lines: return ''
 
     if first is None:
-        first= prefix
+        first = prefix
 
     m = max(len(prefix), len(first))
 
-    prefix = ' ' * (m-len(prefix)) + prefix
-    first = ' ' * (m-len(first)) +first
+    prefix = ' ' * (m - len(prefix)) + prefix
+    first = ' ' * (m - len(first)) + first
 
     # differnet first prefix
     res = ['%s%s' % (prefix, line.rstrip()) for line in lines]
     res[0] = '%s%s' % (first, lines[0].rstrip())
     return '\n'.join(res)
 
+
 def indent_with_label(s, first):
     prefix = ' ' * len(first)
     return indent(s, prefix, first)
-    
-    
+
 
 @contract(cmds='list(str)')
 def copyable_cmd(cmds):
     """ Returns the commands as a copyable string. """
+
     @contract(x='str')
     def copyable(x):
         if (not ' ' in x) and (not '"' in x) and (not '"' in x):
@@ -252,5 +257,5 @@ def copyable_cmd(cmds):
                 return "'%s'" % x
             else:
                 return '"%s"' % x
-            
+
     return " ".join(map(copyable, cmds))

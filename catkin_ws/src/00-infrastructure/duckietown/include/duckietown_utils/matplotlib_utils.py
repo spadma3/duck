@@ -1,13 +1,14 @@
+
 import tempfile
 
 from .jpg import bgr_from_png
 
-
 __all__ = ['CreateImageFromPylab']
+
 
 class CreateImageFromPylab(object):
 
-    def __init__(self, dpi=75, figure_args = {}):
+    def __init__(self, dpi=75, figure_args={}):
         self.dpi = dpi
         suffix = '.png'
         self.temp_file = tempfile.NamedTemporaryFile(suffix=suffix)
@@ -16,7 +17,7 @@ class CreateImageFromPylab(object):
         from matplotlib import pylab
 
         self.pylab = pylab
-        
+
         self.figure = self.pylab.figure(**figure_args)
 
     def __enter__(self):
@@ -38,15 +39,15 @@ class CreateImageFromPylab(object):
 
         with open(self.temp_file.name) as f:
             self.png_data = f.read()
-             
+
         self.temp_file.close()
 
         self.bgr = bgr_from_png(self.png_data)
 
         self.pylab.close()
-    
+
     def get_png(self):
         return self.png_data
-    
+
     def get_bgr(self):
         return self.bgr

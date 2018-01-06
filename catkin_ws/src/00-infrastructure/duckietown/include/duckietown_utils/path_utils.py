@@ -7,13 +7,14 @@ __all__ = [
     'expand_all',
 ]
 
+
 def expand_all(filename):
     """
-        Expands ~ and ${ENV} in the string. 
-        
+        Expands ~ and ${ENV} in the string.
+
         Raises DTConfigException if some environment variables
         are not expanded.
-        
+
     """
     fn = filename
     fn = os.path.expanduser(fn)
@@ -23,13 +24,13 @@ def expand_all(filename):
         raise DTConfigException(msg)
     return fn
 
+
 def get_ros_package_path(package_name):
     """ Returns the path to a package. """
     import rospkg  # @UnresolvedImport
     rospack = rospkg.RosPack()  # @UndefinedVariable
     return rospack.get_path(package_name)
 
-
 # def display_filename(filename):
 #     """ Displays a filename in a possibly simpler way """
-#     return friendly_path(filename) 
+#     return friendly_path(filename)

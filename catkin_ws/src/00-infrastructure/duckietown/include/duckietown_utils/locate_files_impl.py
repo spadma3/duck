@@ -1,6 +1,4 @@
-# from . import logger
 from collections import defaultdict
-# from contracts import contract
 import fnmatch
 import os
 

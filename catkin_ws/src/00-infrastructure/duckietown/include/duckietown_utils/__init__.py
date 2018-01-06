@@ -32,7 +32,6 @@ from .image_rescaling import *
 from .image_timestamps import *
 from .image_writing import *
 from .instantiate_utils import *
-from .ipython_utils import *
 from .jpg import *
 from .locate_files_impl import *
 from .logging_logger import *

@@ -6,6 +6,7 @@ from .mkdirs import d8n_make_sure_dir_exists
 
 __all__ = ['d8n_write_to_bag_context']
 
+
 @contextmanager
 def d8n_write_to_bag_context(out_bag_filename):
     """
@@ -13,7 +14,7 @@ def d8n_write_to_bag_context(out_bag_filename):
             bag.write(topic_name, msg)
 
     """
-    import rosbag 
+    import rosbag
 
     d8n_make_sure_dir_exists(out_bag_filename)
     out_bag = rosbag.Bag(out_bag_filename + '.tmp', 'w')

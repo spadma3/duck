@@ -4,7 +4,9 @@ import platform
 
 __all__ = []
 
+
 def add_coloring_to_emit_ansi(fn):
+
     # add methods we need to the class
     def new(*args):
         levelno = args[1].levelno
@@ -23,7 +25,9 @@ def add_coloring_to_emit_ansi(fn):
 
         args[1].msg = color + str(args[1].msg) + '\x1b[0m'  # normal
         return fn(*args)
+
     return new
+
 
 if platform.system() != 'Windows':
     emit2 = add_coloring_to_emit_ansi(logging.StreamHandler.emit)

@@ -1,8 +1,6 @@
-
-import duckietown_utils as dtu
-
 from termcolor import colored
 
+import duckietown_utils as dtu
 
 
 @dtu.unit_test
@@ -29,6 +27,7 @@ def get_test_table():
         table.append(row)
     return table
 
+
 @dtu.unit_test
 def test_table():
 
@@ -47,4 +46,4 @@ def test_table():
 
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()
-    
+

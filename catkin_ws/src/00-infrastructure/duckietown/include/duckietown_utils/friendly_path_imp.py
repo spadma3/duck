@@ -2,7 +2,7 @@
 
 Utilities for writing compact file paths.
 Copied from the `compmake` project.
-    
+
 Author: Andrea Censi
 
 '''
@@ -17,13 +17,13 @@ __all__ = [
 
 
 def friendly_path(path, use_environment=True):
-    """ 
+    """
         Gets a friendly representation of the given path,
         using relative paths or environment variables
         (if use_environment = True).
     """
     # TODO: send extra rules
-    
+
     options = []
 
     options.append(os.path.relpath(path, os.getcwd()))
@@ -35,7 +35,7 @@ def friendly_path(path, use_environment=True):
 
     if use_environment:
         envs = dict(os.environ)
-        # remove unwanted 
+        # remove unwanted
         for e in list(envs.keys()):
             if 'PWD' in e:
                 del envs[e]
@@ -61,12 +61,13 @@ def friendly_path(path, use_environment=True):
         s = s.replace('..', '*' * weight_doubledot)
         return len(s)
 
-    options.sort(key=score) 
+    options.sort(key=score)
     result = options[0]
 
     # print('Converted %s  => %s' % (original, result))
 
     return result
+
 
 def replace_variables(path, rules):
     for k, v in rules:
@@ -74,5 +75,4 @@ def replace_variables(path, rules):
             # print("  applied %s => %s" % (v, k))
             path = path.replace(v, k)
     return path
-
 

@@ -1,5 +1,4 @@
 # https://stackoverflow.com/questions/2536307/decorators-in-the-python-standard-lib-deprecated-specifically
-
 import functools
 import inspect
 import warnings
@@ -7,7 +6,7 @@ import warnings
 __all__ = ['deprecated']
 
 string_types = (type(b''), type(u''))
-# 
+#
 # def old_deprecated_name_for(replacement):
 #     """
 #         old_name = old_deprecated_name_for(new_name)
@@ -18,7 +17,7 @@ string_types = (type(b''), type(u''))
 #         return f(*args, **kwargs)
 #     ff
 #     return ff
-        
+
 
 def deprecated(reason):
     """

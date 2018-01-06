@@ -1,7 +1,8 @@
 from contextlib import contextmanager
 import time
+
+from .constants import DuckietownConstants
 from .logging_logger import logger
-from duckietown_utils.constants import DuckietownConstants
 
 __all__ = [
     'rospy_timeit_clock',
@@ -9,25 +10,28 @@ __all__ = [
     'timeit_clock',
 ]
 
+
 @contextmanager
 def rospy_timeit_clock(s):
     import rospy
     t0 = time.clock()
     yield
-    delta = time.clock() - t0    
-    rospy.loginfo('%10d ms: %s' % ( 1000*delta, s))
+    delta = time.clock() - t0
+    rospy.loginfo('%10d ms: %s' % (1000 * delta, s))
+
 
 @contextmanager
 def rospy_timeit_wall(s):
     import rospy
     t0 = time.time()
     yield
-    delta = time.time() - t0    
-    rospy.loginfo('%10d ms: %s' % ( 1000*delta, s))
-    
+    delta = time.time() - t0
+    rospy.loginfo('%10d ms: %s' % (1000 * delta, s))
+
 
 class Stack:
     stack = []
+
 
 @contextmanager
 def timeit_clock(desc, minimum=None):
@@ -44,6 +48,6 @@ def timeit_clock(desc, minimum=None):
 #     logger.debug('timeit result: %.2f s (>= %s) for %s' % (delta, minimum, desc))
 
     if DuckietownConstants.show_timeit_benchmarks:
-        pre = '   ' * len(Stack.stack) 
+        pre = '   ' * len(Stack.stack)
     #     logger.debug('timeit_clock: %s %6.1f ms (>= %s) for %s' % (pre, delta*1000, minimum, desc))
-        logger.debug('timeit_clock: %s %6.2f ms  for %s' % (pre, delta*1000, desc))
+        logger.debug('timeit_clock: %s %6.2f ms  for %s' % (pre, delta * 1000, desc))

@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-    Author: Andrea Censi
-    
-    Origin: snippet from PyMCDP 
-"""
- 
 
 from decorator import decorator
 
@@ -25,7 +19,7 @@ def memoize_simple(obj):
         try:
             cached = cache[key]
             return cached
-        except ImportError: # pragma: no cover  # impossible to test
+        except ImportError:  # pragma: no cover  # impossible to test
             del cache[key]
             cache[key] = f(*args)
             return cache[key]

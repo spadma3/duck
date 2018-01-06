@@ -1,5 +1,4 @@
 # copied from compmake
-
 import os
 
 __all__ = [
@@ -9,22 +8,23 @@ __all__ = [
 
 
 def d8n_make_sure_dir_exists(filename):
-    """ 
-        Makes sure that the path to file exists, by creating directories. 
-        
+    """
+        Makes sure that the path to file exists, by creating directories.
+
     """
     dirname = os.path.dirname(filename)
-    
+
     # dir == '' for current dir
     if dirname != '' and not os.path.exists(dirname):
         d8n_mkdirs_thread_safe(dirname)
-        
+
+
 def d8n_mkdirs_thread_safe(dst):
-    """ 
+    """
         Make directories leading to 'dst' if they don't exist yet.
-        
+
         This version is thread safe.
-        
+
     """
     if dst == '' or os.path.exists(dst):
         return
