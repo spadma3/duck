@@ -45,9 +45,9 @@ class parkingPathPlanner():
         rospy.Subscriber("pose_duckiebot", Pose_duckiebot, self.localization_callback)
         # init pose
         pose =  Pose_duckiebot()
-        self.x_act = pose.x_act
-        self.y_act = pose.y_act
-        self.yaw_act = pose.yaw_act
+        self.x_act = pose.x_act #165.0
+        self.y_act = pose.y_act #1015
+        self.yaw_act = pose.yaw_act #-pi/2
         print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
         self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control,queue_size=10)
