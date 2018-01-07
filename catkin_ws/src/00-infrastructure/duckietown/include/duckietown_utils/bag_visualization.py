@@ -37,7 +37,8 @@ def count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=None):
             if stop_at is not None:
                 if actual_count >= stop_at:
                     break
-    bag.close()
+
+    bag0.close()
 
     return actual_count, count
 
