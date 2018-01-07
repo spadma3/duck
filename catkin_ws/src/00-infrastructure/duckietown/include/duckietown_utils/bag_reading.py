@@ -3,6 +3,7 @@ import time
 
 import numpy as np
 import rosbag
+import rospy
 
 from .exceptions import DTBadData
 from .logging_logger import logger
@@ -71,16 +72,18 @@ class BagReadProxy(object):
 
     def read_messages_plus(self, *args, **kwargs):
         if isinstance(self.bag, rosbag.Bag):
+            start_time = rospy.Time.from_sec(self.read_from_absolute)
+            end_time = rospy.Time.from_sec(self.read_to_absolute)
 
-            for topic, msg, _t in self.bag.read_messages(*args, **kwargs):
+            for topic, msg, _t in self.bag.read_messages(*args, start_time=start_time, end_time=end_time, **kwargs):
                 t = _t.to_sec()
                 if t < self.read_from_absolute:
                     if debug_skip:
-                        print('skipping %s becasue %s < %s' % (topic, t, self.read_from_absolute))
+                        logger.debug('skipping %s becasue %s < %s' % (topic, t, self.read_from_absolute))
                     continue
                 if t > self.read_to_absolute:
                     if debug_skip:
-                        print('skipping %s becasue %s > %s' % (topic, t, self.read_to_absolute))
+                        logger.debug('skipping %s becasue %s > %s' % (topic, t, self.read_to_absolute))
                         continue
                     break
                 time_absolute = t
@@ -96,14 +99,15 @@ class BagReadProxy(object):
                     yield m
 
     def read_messages(self, *args, **kwargs):
-        for topic, msg, _t in self.bag.read_messages(*args, **kwargs):
+        start_time = rospy.Time.from_sec(self.read_from_absolute)
+        end_time = rospy.Time.from_sec(self.read_to_absolute)
+        for topic, msg, _t in self.bag.read_messages(*args, start_time=start_time, end_time=end_time, **kwargs):
             t = _t.to_sec()
             if t < self.read_from_absolute:
-#                 print('skipping %s becasue %s < %s' % (topic, t, self.read_from_absolute))
+                logger.debug('warning: skipping %s becasue %s < %s' % (topic, t, self.read_from_absolute))
                 continue
             if t > self.read_to_absolute:
-#                 print('skipping %s becasue %s > %s' % (topic, t, self.read_to_absolute))
-#                 continue
+                logger.debug('skipping %s becasue %s > %s' % (topic, t, self.read_to_absolute))
                 break
             yield topic, msg, _t
 

@@ -1,10 +1,9 @@
 import os
 import shutil
 
-from duckietown_utils.contracts_ import contract
-
 from .bag_info import rosbag_info
 from .bag_reading import BagReadProxy
+from .contracts_ import contract
 from .disk_hierarchy import create_tmpdir, mkdirs_thread_safe
 from .instantiate_utils import indent
 from .logging_logger import logger
@@ -15,6 +14,13 @@ __all__ = ['d8n_make_video_from_bag']
 
 @contract(returns='tuple(int, int)')
 def count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=None):
+    '''
+        Counts the number of messages in a slice of time.
+        Stops at stop_at, if given.
+
+        Returns (count, total), where total is the total number in the log.
+    '''
+
     import rosbag
     bag0 = rosbag.Bag(bag_filename)
     count = bag0.get_message_count(topic_filters=topic)
