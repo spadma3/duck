@@ -3,7 +3,6 @@ import time
 
 import numpy as np
 import rosbag
-import rospy
 
 from .exceptions import DTBadData
 from .logging_logger import logger
@@ -72,6 +71,7 @@ class BagReadProxy(object):
 
     def read_messages_plus(self, *args, **kwargs):
         if isinstance(self.bag, rosbag.Bag):
+            import rospy
             start_time = rospy.Time.from_sec(self.read_from_absolute)
             end_time = rospy.Time.from_sec(self.read_to_absolute)
 
@@ -99,6 +99,7 @@ class BagReadProxy(object):
                     yield m
 
     def read_messages(self, *args, **kwargs):
+        import rospy
         start_time = rospy.Time.from_sec(self.read_from_absolute)
         end_time = rospy.Time.from_sec(self.read_to_absolute)
         for topic, msg, _t in self.bag.read_messages(*args, start_time=start_time, end_time=end_time, **kwargs):

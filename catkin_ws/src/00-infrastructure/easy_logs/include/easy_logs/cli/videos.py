@@ -84,7 +84,7 @@ def jobs_videos(context, log, name, outd, only_camera):
     assert log.filename is not None
     bag = rosbag.Bag(log.filename)
     main_camera_topic = dtu.get_image_topic(bag)
-    min_messages = 3  # need at least 3 frames to make a video
+    min_messages = 5  # need at least 5 frames to make a video
 
     topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag, min_messages=min_messages)]
     bag.close()

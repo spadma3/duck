@@ -81,6 +81,8 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
     # pg -m procgraph_ros bag2mp4 --bag $bag --topic $topic --out $out
 
     stop_at = 10
+    min_messages = 5
+
     actual_count, count = count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=stop_at)
 
     msg = 'Creating video for topic %r, which has %d messages in the entire log.' % (topic, count)
@@ -90,10 +92,9 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
         msg = 'However, the actual count in [%s, %s] is %s' % (t0, t1, actual_count)
         logger.info(msg)
 
-    min_messages = 3
     if actual_count < min_messages:
-        msg = ('Topic %r has only %d messages in slice (%d total), too few to make a video.\nFile: %s'
-               % (topic, actual_count, count, bag_filename))
+        msg = ('Topic %r has only %d messages in slice (%d total), too few to make a video (min: %s).\nFile: %s'
+               % (topic, actual_count, count, bag_filename, min_messages))
 
         if actual_count == count:
             info = rosbag_info(bag_filename)
