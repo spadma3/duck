@@ -1,3 +1,6 @@
+# cloud.yaml: "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
+cloud.yaml: "https://www.dropbox.com/s/v7ovn42icjv9h4z/20180106-candidate_cloud.yaml?dl=1"
+
 tori_ETHZ_2017-12-22-17-18-41.bag: "https://www.dropbox.com/s/mktlvpp5i0prkr6/tori_ETHZ_2017-12-22-17-18-41.bag?dl=1"
 
 160122-3cars_dark-from_mercedes.orig.bag: "https://www.dropbox.com/s/8jz5c5y9pn7tci1/160122-3cars_dark-from_mercedes.orig.bag?dl=1"
@@ -859,5 +862,3 @@ vehicle_50cm.bag: "https://www.dropbox.com/s/ml7oyfr1u2vfabw/vehicle_50cm.bag?dl
 ii-datasets.zip: "https://www.dropbox.com/s/xhb2zg9tunshxga/ii-datasets.zip?dl=1"
 
 frame0002.jpg: "https://www.dropbox.com/s/bzezpw8ivlfu4b0/frame0002.jpg?dl=1"
-
-cloud.yaml: "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
