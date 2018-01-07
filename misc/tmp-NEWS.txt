@@ -56,7 +56,7 @@ How to add log to Dropbox?
 
 
     try:
-        image_cv = dtu.image_cv_from_jpg(compressed_img_msg.data)
+        image_cv = dtu.bgr_from_jpg(compressed_img_msg.data)
     except ValueError as e:
         msg = 'Could not decode image: %s' % e
         dtu.raise_wrapped(ValueError, e, msg)

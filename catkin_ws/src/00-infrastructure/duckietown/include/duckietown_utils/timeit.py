@@ -47,7 +47,11 @@ def timeit_clock(desc, minimum=None):
             return
 #     logger.debug('timeit result: %.2f s (>= %s) for %s' % (delta, minimum, desc))
 
-    if DuckietownConstants.show_timeit_benchmarks:
+    if DuckietownConstants.show_timeit_benchmarks or minimum is not None:
         pre = '   ' * len(Stack.stack)
     #     logger.debug('timeit_clock: %s %6.1f ms (>= %s) for %s' % (pre, delta*1000, minimum, desc))
-        logger.debug('timeit_clock: %s %6.2f ms  for %s' % (pre, delta * 1000, desc))
+        msg = 'timeit_clock: %s %6.2f ms  for %s' % (pre, delta * 1000, desc)
+        logger.debug(msg)
+
+        import rospy  # XXX
+        rospy.loginfo(msg)

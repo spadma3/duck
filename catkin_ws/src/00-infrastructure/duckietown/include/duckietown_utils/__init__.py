@@ -6,7 +6,6 @@ from .bag_reading import *
 from .bag_visualization import *
 from .bag_writing import *
 from .caching import *
-from .cli import *
 from .col_logging import *
 from .color_constants import *
 from .constants import *
@@ -43,6 +42,7 @@ from .parameters import *
 from .path_utils import *
 from .paths import *
 from .read_package_xml import *
+from .robot_name import *
 from .safe_pickling import *
 from .system_cmd_imp import *
 from .test_hash import *
@@ -55,6 +55,7 @@ from .wrap_main import *
 from .yaml_pretty import *
 from .yaml_wrap import *
 
+#from .cli import *
 try:
     import frozendict  # @UnusedImport @UnresolvedImport
 except:

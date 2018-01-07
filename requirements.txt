@@ -6,7 +6,7 @@
 # NEVER use "sudo" for these.
 
 pyparsing==2.2.0
-PyContracts==1.8.0
+PyContracts==1.8.1
 compmake==3.5.20
 comptests==1.4.18
 DecentLogs==1.1.2

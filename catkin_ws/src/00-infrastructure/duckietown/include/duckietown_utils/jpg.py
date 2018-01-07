@@ -12,6 +12,7 @@ from .contracts_ import contract
 from .deprecation import deprecated
 from .file_utils import write_data_to_file
 from .logging_logger import logger
+from .timeit import timeit_clock
 
 
 @contract(bgr='array[HxWx3](uint8)')
@@ -49,12 +50,12 @@ def bgr_from_jpg(data):
 def _bgr_from_file_data(data):
     """ Returns an OpenCV BGR image from a string """
     s = np.fromstring(data, np.uint8)
-    image_cv = cv2.imdecode(s, cv2.IMREAD_COLOR)
-    if image_cv is None:
+    bgr = cv2.imdecode(s, cv2.IMREAD_COLOR)
+    if bgr is None:
         msg = 'Could not decode image (cv2.imdecode returned None). '
         msg += 'This is usual a sign of data corruption.'
         raise ValueError(msg)
-    return image_cv
+    return bgr
 
 
 @contract(fn=str, returns='array[HxWx3](uint8)')
@@ -116,8 +117,12 @@ def rgb_from_jpg_by_JPEG_library(data):
         import jpeg4py as jpeg
     except ImportError:
         installation = """
-sudo apt-get install -y libturbojpeg  python-cffi
-sudo pip install jpeg4py
+
+Try to install using:
+
+    sudo apt-get install -y libturbojpeg python-cffi
+    pip install --user jpeg4py
+
 """
         logger.error(installation)
         raise
