@@ -147,6 +147,7 @@ class Slice(Spec):
 
 
 class Shuffle(Spec):
+    """ Sort entries by name """
 
     def __init__(self, spec):
         Spec.__init__(self, [spec])
@@ -167,6 +168,72 @@ class Shuffle(Spec):
         for k in keys:
             res[k] = results[k]
         return res
+
+
+class Sort(Spec):
+
+    @contract(key=str)
+    def __init__(self, spec, key):
+        Spec.__init__(self, [spec])
+        self.key = key
+
+    def match(self, x):
+        raise NotImplementedError()
+
+    def __str__(self):
+        s = 'Sort by %s' % self.key
+        s += '\n' + indent(str(self.children[0]), '  ')
+        return s
+
+    def match_dict(self, seq):
+        results = self.children[0].match_dict(seq)
+        res = OrderedDict()
+        key = lambda _: _get_tag(seq[_], self.key)
+        keys = sorted(results, key=key)
+#        print('sorted: %s' % keys)
+#        print('keys: %s' % map(key, keys))
+        for k in keys:
+            res[k] = results[k]
+        return res
+
+
+class Reverse(Spec):
+
+    def __init__(self, spec):
+        Spec.__init__(self, [spec])
+
+    def match(self, x):
+        raise NotImplementedError()
+
+    def __str__(self):
+        s = 'Reverse'
+        s += '\n' + indent(str(self.children[0]), '  ')
+        return s
+
+    def match_dict(self, seq):
+        results = self.children[0].match_dict(seq)
+        res = OrderedDict()
+        for k in reversed(list(results)):
+            res[k] = results[k]
+        return res
+
+
+def _get_tag(x, tagname):
+    if isinstance(x, dict):
+        if not tagname in x:
+            msg = 'Cannot find %r in keys %r' % (tagname, x.keys())
+            raise InvalidQueryForUniverse(msg)
+        return x[tagname]
+    else:
+        if not hasattr(x, tagname):
+            msg = ('The object of type %s does not have attribute "%s".' %
+                 (type(x).__name__, tagname))
+            try:
+                msg += '\nThe available attributes are:\n  %s' % sorted(x.__dict__.keys())
+            except:
+                pass
+            raise InvalidQueryForUniverse(msg)
+        return getattr(x, tagname)
 
 
 class Index(Spec):
@@ -335,8 +402,17 @@ def filter_index(m, spec):
     return Slice(spec, (a, b, c))
 
 
+def filter_sort(m, spec):
+    key = m.group('key')
+    return Sort(spec, key)
+
+
 def filter_first(_, spec):
     return OnlyFirst(spec)
+
+
+def filter_reverse(_, spec):
+    return Reverse(spec)
 
 
 def filter_shuffle(_, spec):
@@ -351,6 +427,8 @@ filters0 = OrderedDict([
     (slice_regexp, filter_index),
     ('first', filter_first),
     ('shuffle', filter_shuffle),
+    ('reverse', filter_reverse),
+    ('sort\((?P<key>\w+)\)', filter_sort)
 ])
 
 

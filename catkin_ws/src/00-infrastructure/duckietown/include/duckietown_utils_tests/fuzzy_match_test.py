@@ -105,6 +105,29 @@ def my_filter():
     assert len(res) == 3
 
 
+@dtu.unit_test
+def my_filter_sort():
+    from dateutil.parser import parse
+    Species = namedtuple('Species', 'name size weight birthday')
+    data = OrderedDict([
+        ('jeb', Species('A big horse', 'large', 200, parse('1 Jan 2011'))),
+        ('fuffy', Species('A medium dog', 'medium', 50, parse('3 Jan 2013'))),
+        ('ronny', Species('A medium cat', 'medium', 30, parse('5 Jan 2015'))),
+    ])
+    expect(data, 'all', ['jeb', 'fuffy', 'ronny'])
+
+    expect(data, 'all/sort(weight)', ['ronny', 'fuffy', 'jeb'])
+    expect(data, 'all/sort(birthday)', ['jeb', 'fuffy', 'ronny'])
+    expect(data, 'all/sort(birthday)/reverse', ['ronny', 'fuffy', 'jeb'])
+
+    try:
+        expect(data, 'all/sort(invalidkey)', ['ronny', 'fuffy', 'jeb'])
+    except dtu.DTUserError as e:
+        assert 'The query does not apply' in str(e)
+    else:
+        raise Exception()
+
+
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()
 
