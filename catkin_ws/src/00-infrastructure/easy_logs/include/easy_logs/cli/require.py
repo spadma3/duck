@@ -57,7 +57,8 @@ Usage:
                 msg = 'I have already %s' % physical_log_name
                 self.info(msg)
             else:
-                l = context.comp(download_if_necessary, log)
+                job_id = 'download-%s' % physical_log_name
+                l = context.comp(download_if_necessary, log, job_id=job_id)
                 logs_to_download[physical_log_name] = l
                 n += 1
                 msg = 'I will get     %s' % physical_log_name

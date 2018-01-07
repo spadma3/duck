@@ -114,13 +114,7 @@ def read_stats(pl):
     if length is None:
         return pl._replace(valid=False, error_if_invalid='Empty bag.')
 
-    date_ms = info['start']
-    if date_ms < 156600713:
-        return pl._replace(valid=False, error_if_invalid='Date not set.')
-
-    date = dtu.format_time_as_YYYY_MM_DD(date_ms)
-
-    pl = pl._replace(date=date, length=length, t0=0, t1=length, bag_info=info)
+    pl = pl._replace(length=length, t0=0, t1=length, bag_info=info)
 
     try:
         vehicle = which_robot_from_bag_info(info)
@@ -128,6 +122,14 @@ def read_stats(pl):
     except ValueError:
         vehicle = None
         pl = pl._replace(valid=False, error_if_invalid='No camera data.')
+
+    date_ms = info['start']
+    if date_ms < 156600713:
+        pl = pl._replace(valid=False, error_if_invalid='Date not set.')
+    else:
+        date = dtu.format_time_as_YYYY_MM_DD(date_ms)
+        pl = pl._replace(date=date)
+
     return pl
 
 
