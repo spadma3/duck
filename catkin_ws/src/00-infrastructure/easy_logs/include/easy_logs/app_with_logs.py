@@ -1,14 +1,16 @@
+import os
+
 import duckietown_utils as dtu
+from duckietown_utils.cli import D8App
 
 from .logs_db import get_easy_logs_db_cached_if_possible, \
     get_easy_logs_db_cloud, get_easy_logs_db_fresh
 from .logs_structure import PhysicalLog
-from .mis import get_log_if_not_exists
 
 __all__ = ['D8AppWithLogs']
 
 
-class D8AppWithLogs(dtu.D8App):
+class D8AppWithLogs(D8App):
     """
         An app that works with a log database.
 
@@ -47,26 +49,54 @@ class D8AppWithLogs(dtu.D8App):
         self._db = db
         return db
 
-    @dtu.contract(log=PhysicalLog, returns=PhysicalLog)
-    def download_if_necessary(self, log):
-        """
-            Downloads the log if necessary.
 
-            Use like this:
+@dtu.contract(log=PhysicalLog, returns=PhysicalLog)
+def download_if_necessary(log):
+    """
+        Downloads the log if necessary.
 
-                log = ...
+        Use like this:
 
-                assert log.filename is None
+            log = ...
 
-                log2 = self.download_if_necessary(log.filename)
+            assert log.filename is None
 
-                open log2.filename
+            log2 = self.download_if_necessary(log.filename)
 
-        """
-        dtu.check_isinstance(log, PhysicalLog)
-        # XXX: this is a bit convoluted
-        local_db = get_easy_logs_db_fresh()
-        logs = local_db.query(log.log_name, raise_if_no_matches=False)
-        filename = get_log_if_not_exists(logs, log.log_name)
-        log2 = log._replace(filename=filename)
-        return log2
+            open log2.filename
+
+    """
+    dtu.check_isinstance(log, PhysicalLog)
+    # XXX: this is a bit convoluted
+    local_db = get_easy_logs_db_fresh()
+    logs = local_db.query(log.log_name, raise_if_no_matches=False)
+    filename = get_log_if_not_exists(logs, log.log_name)
+    log2 = log._replace(filename=filename)
+    return log2
+
+
+def get_log_if_not_exists(logs, log_name):
+    """" Returns the path to the log. """
+    downloads = dtu.get_duckietown_local_log_downloads()
+
+    if log_name.endswith('.bag'):
+        msg = 'get_log_if_not_exists() wants a log name, not a bag file'
+        dtu.logger.warn(msg)
+        log_name = log_name.replace('.bag', '')
+
+    if log_name in logs and (logs[log_name].filename is not None):
+        where = logs[log_name].filename
+        dtu.logger.info('We already have %s locally at %s' % (log_name, where))
+        return where
+    else:
+        dtu.logger.info('We do not have %s locally.' % log_name)
+
+        filename = os.path.join(downloads, log_name + '.bag')
+        if os.path.exists(filename):
+            dtu.logger.info('It was already downloaded as %s' % filename)
+            return filename
+
+        resource = log_name + '.bag'
+        dtu.require_resource(resource, destination=filename)
+        return filename
+

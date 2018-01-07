@@ -7,9 +7,13 @@ from .contracts_ import contract
 from .exception_utils import raise_desc
 from .yaml_pretty import yaml_load
 from .constants import DuckietownConstants
-from compmake.utils.filesystem_utils import mkdirs_thread_safe
+
 from contextlib import contextmanager
 
+
+def mkdirs_thread_safe(dirname):
+    from compmake.utils.filesystem_utils import mkdirs_thread_safe as md
+    return md(dirname)
 
 @contract(s=str, returns=str)
 def dir_from_data(s):
@@ -31,7 +35,7 @@ def write_to_dir(data, d):
     else:
         msg = 'Invalid type.'
         raise_desc(ValueError, msg, data=data, d=d)
-            
+
 
 def get_dt_tmp_dir():
     """ Returns *the* temp dir for this project.

@@ -2,7 +2,9 @@ from collections import OrderedDict
 import os
 
 import duckietown_utils as dtu
-from easy_logs.app_with_logs import D8AppWithLogs
+from duckietown_utils.bag_visualization import count_messages_in_slice
+from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
+from easy_logs.logs_db import get_easy_logs_db_fresh
 from quickapp import QuickApp
 import rosbag
 
@@ -61,17 +63,21 @@ For example:
         self.info(s)
 
         od = self.options.output
-        # if all the logs are different use those as ids
-        names = [_.log_name for _ in logs_valid.values()]
-        use_names = len(set(names)) == len(names)
 
-        for i, (log_name, log) in enumerate(logs_valid.items()):
-            n = log.log_name if use_names else str(i)
-            out = os.path.join(od, n)
+        local_db = get_easy_logs_db_fresh()
+        for log_name, log in logs_valid.items():
+            out = os.path.join(od, log_name)
 
-            log = self.download_if_necessary(log)
+            present = local_db.query(log.log_name)
+            if not present:
+                print('I will have to download %s' % log.log_name)
+                job_id = 'download-%s' % log.log_name
+                log_downloaded = context.comp(download_if_necessary, log, job_id=job_id)
+            else:
+                log_downloaded = log
 
-            jobs_videos(context, log, n, out, only_camera)
+            job_id = 'setup-%s' % log_name
+            context.comp_dynamic(jobs_videos, log_downloaded, log_name, out, only_camera, job_id=job_id)
 
 
 def jobs_videos(context, log, name, outd, only_camera):
@@ -79,11 +85,20 @@ def jobs_videos(context, log, name, outd, only_camera):
     bag = rosbag.Bag(log.filename)
     main_camera_topic = dtu.get_image_topic(bag)
     min_messages = 3  # need at least 3 frames to make a video
+
     topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag, min_messages=min_messages)]
     bag.close()
 
     only_camera_fn = outd + '.mp4'
     for topic in topics:
+        stop_at = min_messages + 2
+        actual_count, count = count_messages_in_slice(log.filename, topic, log.t0, log.t1, stop_at=stop_at)
+        assert count >= min_messages
+        if actual_count < min_messages:
+            msg = 'There are only %d (out of %d) in the slice [%s, %s]' % (actual_count, count, log.t0, log.t1)
+            msg += '\n topic: %s' % topic
+            continue
+
         d = topic.replace('/', '_')
         if d.startswith('_'):
             d = d[1:]

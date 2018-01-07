@@ -1,15 +1,43 @@
 import os
 import shutil
 
-from compmake.utils.filesystem_utils import mkdirs_thread_safe
+from duckietown_utils.contracts_ import contract
 
 from .bag_info import rosbag_info
-from .disk_hierarchy import create_tmpdir
+from .bag_reading import BagReadProxy
+from .disk_hierarchy import create_tmpdir, mkdirs_thread_safe
 from .instantiate_utils import indent
 from .logging_logger import logger
 from .yaml_pretty import yaml_dump
 
 __all__ = ['d8n_make_video_from_bag']
+
+
+@contract(returns='tuple(int, int)')
+def count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=None):
+    import rosbag
+    bag0 = rosbag.Bag(bag_filename)
+    count = bag0.get_message_count(topic_filters=topic)
+
+    if t0 is None and t1 is None:
+        actual_count = count
+    else:
+        bag = BagReadProxy(bag0, t0, t1)
+
+        actual_count = 0
+        for _ in bag.read_messages(topics=[topic]):
+            actual_count += 1
+
+            if stop_at is not None:
+                if actual_count >= stop_at:
+                    break
+    bag.close()
+
+    return actual_count, count
+
+
+class NotEnoughFramesInSlice(Exception):
+    pass
 
 
 def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
@@ -18,6 +46,10 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
 
        topic: the topic name (any image-like topic)
        out: an .mp4 file.
+
+
+       raises NotEnoughFramesInSlice if there are less than 3 frames in slice
+
 
        Note that needs a bunch more dependencies to be installed.
 
@@ -37,45 +69,55 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
     try:
         import procgraph_ros  # @UnusedImport
         from procgraph import pg
-        import rosbag
     except ImportError:
         raise
 
     # pg -m procgraph_ros bag2mp4 --bag $bag --topic $topic --out $out
 
-    bag = rosbag.Bag(bag_filename)
+    stop_at = 10
+    actual_count, count = count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=stop_at)
 
-    count = bag.get_message_count(topic_filters=topic)
-    bag.close()
-    logger.info('Creating video for topic %r, which has %d messages.' % (topic, count))
+    msg = 'Creating video for topic %r, which has %d messages in the entire log.' % (topic, count)
+    logger.info(msg)
+
+    if (actual_count != stop_at) and (actual_count != count):
+        msg = 'However, the actual count in [%s, %s] is %s' % (t0, t1, actual_count)
+        logger.info(msg)
+
     min_messages = 3
-    if count < min_messages:
-        msg = ('Topic %r has only %d messages, too few to make a video.\nFile: %s'
-               % (topic, count, bag_filename))
+    if actual_count < min_messages:
+        msg = ('Topic %r has only %d messages in slice (%d total), too few to make a video.\nFile: %s'
+               % (topic, actual_count, count, bag_filename))
 
-        info = rosbag_info(bag_filename)
-        msg += '\n' + indent(yaml_dump(info), '  info: ')
-        raise ValueError(msg)
+        if actual_count == count:
+            info = rosbag_info(bag_filename)
+            msg += '\n' + indent(yaml_dump(info), '  info: ')
+        raise NotEnoughFramesInSlice(msg)
 
     model = 'bag2mp4_fixfps_limit'
-#     model = 'bag2mp4'
+
     tmpdir = create_tmpdir()
     out_tmp = os.path.join(tmpdir, os.path.basename(out))
-    logger.debug('Writing temp file to %s' % out_tmp)
-    logger.debug('(You can use mplayer to follow along.)')
-    pg(model, config=dict(bag=bag_filename, topic=topic, out=out_tmp, t0=t0, t1=t1))
-    md = out_tmp + '.metadata.yaml'
-    if os.path.exists(md):
-        os.unlink(md)
+    try:
+        logger.debug('Writing temp file to %s' % out_tmp)
+        logger.debug('(You can use mplayer to follow along.)')
+        pg(model, config=dict(bag=bag_filename, topic=topic, out=out_tmp, t0=t0, t1=t1))
+        md = out_tmp + '.metadata.yaml'
+        if os.path.exists(md):
+            os.unlink(md)
 
-    dn = os.path.dirname(out)
-    if not os.path.exists(dn):
-        mkdirs_thread_safe(dn)
+        dn = os.path.dirname(out)
+        if not os.path.exists(dn):
+            mkdirs_thread_safe(dn)
 
-    shutil.copyfile(out_tmp, out)
-    logger.info('Created: %s' % out)
+        shutil.copyfile(out_tmp, out)
+        logger.info('Created: %s' % out)
 
-    info = out_tmp + '.info.yaml'
-    if os.path.exists(info):
-        os.unlink(info)
-
+        info = out_tmp + '.info.yaml'
+        if os.path.exists(info):
+            os.unlink(info)
+    finally:
+        if os.path.exists(out_tmp):
+            os.unlink(out_tmp)
+        if os.path.exists(tmpdir):
+            shutil.rmtree(tmpdir)

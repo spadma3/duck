@@ -2,7 +2,7 @@ from collections import OrderedDict
 import os
 
 import duckietown_utils as dtu
-from easy_logs.app_with_logs import D8AppWithLogs
+from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
 import numpy as np
 from quickapp import QuickApp
 import rosbag
@@ -17,7 +17,7 @@ class MakeThumbnails(D8AppWithLogs, QuickApp):
         Creates thumbnails for the image topics in a log.
     """
 
-    cmd = 'rosrun easy_logs thumbnails'
+    cmd = 'dt-easy_logs-thumbnails'
 
     usage = """
 
@@ -67,16 +67,16 @@ Use like this:
 
         od = self.options.output
         # if all the logs are different use those as ids
-        names = [_.log_name for _ in logs_valid.values()]
-        use_names = len(set(names)) == len(names)
+#        names = [_.log_name for _ in logs_valid.values()]
+#        use_names = len(set(names)) == len(names)
 
-        for i, (log_name, log) in enumerate(logs_valid.items()):
-            n = log.log_name if use_names else str(i)
-            out = os.path.join(od, n)
+        for log_name, log in logs_valid.items():
+#            n = log.log_name if use_names else str(i)
+            out = os.path.join(od, log_name)
 
-            log = self.download_if_necessary(log)
+            log_downloaded = context.comp(download_if_necessary, log)
 
-            context.comp(work, log, out, max_images, only_camera=only_camera,
+            context.comp(work, log_downloaded, out, max_images, only_camera=only_camera,
                          write_frames=write_frames, job_id=log_name)
 
 
