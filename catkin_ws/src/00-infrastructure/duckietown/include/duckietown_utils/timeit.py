@@ -8,6 +8,7 @@ __all__ = [
     'rospy_timeit_clock',
     'rospy_timeit_wall',
     'timeit_clock',
+    'timeit_wall',
 ]
 
 
@@ -34,13 +35,13 @@ class Stack:
 
 
 @contextmanager
-def timeit_clock(desc, minimum=None):
+def timeit_generic(desc, minimum, time_function):
 #     logger.debug('timeit %s ...' % desc)
-    t0 = time.clock()
+    t0 = time_function()
     Stack.stack.append(desc)
     yield
     Stack.stack.pop()
-    t1 = time.clock()
+    t1 = time_function()
     delta = t1 - t0
     if minimum is not None:
         if delta < minimum:
@@ -53,5 +54,18 @@ def timeit_clock(desc, minimum=None):
         msg = 'timeit_clock: %s %6.2f ms  for %s' % (pre, delta * 1000, desc)
         logger.debug(msg)
 
-        import rospy  # XXX
-        rospy.loginfo(msg)
+#        import rospy  # XXX
+#        rospy.loginfo(msg)
+
+
+@contextmanager
+def timeit_clock(desc, minimum=None):
+    with timeit_generic(desc=desc, minimum=minimum, time_function=time.clock) as f:
+        yield f
+
+
+@contextmanager
+def timeit_wall(desc, minimum=None):
+    with timeit_generic(desc=desc, minimum=minimum, time_function=time.time) as f:
+        yield f
+

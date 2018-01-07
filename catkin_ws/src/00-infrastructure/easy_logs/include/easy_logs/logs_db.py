@@ -45,9 +45,9 @@ def get_easy_logs_db_cloud():
 #         url = "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
 #         download_url_to_file(url, cloud_file)
 
-    dtu.logger.info('Loading cloud DB %s' % dtu.friendly_path(cloud_file))
-
-    logs = dtu.yaml_load_file(cloud_file, plain_yaml=True)
+    with dtu.timeit_wall("loading DB"):
+        dtu.logger.info('Loading cloud DB %s' % dtu.friendly_path(cloud_file))
+        logs = dtu.yaml_load_file(cloud_file, plain_yaml=True)
 
     logs = OrderedDict(logs)
     dtu.logger.info('Loaded cloud DB with %d entries.' % len(logs))

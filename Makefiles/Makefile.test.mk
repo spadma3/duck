@@ -86,11 +86,7 @@ onelog=2016-04-29-dp3auto-neptunus-1
 
 test-download-logs:
 	@echo Loading log
-	rosrun easy_logs download $(onelog)
-	rosrun easy_logs download tori_ETHZ_2017-12-22-17-18-41
-	@echo Should be equal to 70e9e2a49d1181d2da160ff5e615969f
-	md5sum `rosrun easy_logs find $(onelog)`
-	echo TODO: check md5
+	rosrun easy_logs download $(onelog) tori_ETHZ_2017-12-22-17-18-41
 
 test-misc-utils:
 	rosrun complete_image_pipeline validate_calibration robbie
@@ -98,10 +94,6 @@ test-misc-utils:
 
 test-cloud-logs: cloud-download
 	rosrun easy_logs summary --cloud  $(onelog)
-
-# test-line-detector-programmatic: test-download-logs
-# 	rosrun easy_logs download $(onelog)
-# 	rosrun line_detector2 programmatic --logs $(onelog) --algos all --reset -c parmake
 
 test-documentation:
 	echo "<html><head></head><body></body></html>" > catkin_ws/00_main_template.html
