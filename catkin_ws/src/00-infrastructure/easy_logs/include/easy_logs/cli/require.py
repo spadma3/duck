@@ -61,7 +61,7 @@ Usage:
                 l = context.comp(download_if_necessary, log, job_id=job_id)
                 logs_to_download[physical_log_name] = l
                 n += 1
-                msg = 'I will get     %s' % physical_log_name
+                msg = 'I will get %s' % physical_log_name
                 self.info(msg)
 
         context.comp(done, logs_to_download)

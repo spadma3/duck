@@ -6,8 +6,7 @@ import time
 
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
-from easy_logs.app_with_logs import D8AppWithLogs
-from easy_logs.cli.require import get_log_if_not_exists
+from easy_logs.app_with_logs import D8AppWithLogs, get_log_if_not_exists
 from easy_regression.cli.analysis_and_stat import job_analyze, job_merge, print_results
 from easy_regression.cli.checking import compute_check_results, display_check_results, fail_if_not_expected, \
     write_to_db
