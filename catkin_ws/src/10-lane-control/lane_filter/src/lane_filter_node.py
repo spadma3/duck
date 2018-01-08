@@ -30,6 +30,12 @@ class LaneFilterNode(object):
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+        self.latencyArray = []
+
+        interp = True
+        interp_amount = 5
+        self.interp = self.setupParameter("~interp",interp)
+        self.interpAmount = self.setupParameter("~interp_amount",interp_amount)
 
 
     def updateParams(self, event):
@@ -39,6 +45,13 @@ class LaneFilterNode(object):
 
             self.loginfo('new filter config: %s' % str(c))
             self.filter = instantiate(c[0], c[1])
+
+
+    def setupParameter(self,param_name,default_value):
+        value = rospy.get_param(param_name,default_value)
+        rospy.set_param(param_name,value) #Write to parameter server for transparancy
+        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
+        return value
             
 
     def cbSwitch(self, switch_msg):
@@ -83,6 +96,16 @@ class LaneFilterNode(object):
         in_lane_msg.header.stamp = segment_list_msg.header.stamp
         in_lane_msg.data = in_lane
         self.pub_in_lane.publish(in_lane_msg)
+
+        # Latency of getting a pose estimate
+        pose_latency_stamp = rospy.Time.now() - current_time
+        pose_latency = pose_latency_stamp.secs + pose_latency_stamp.nsecs/1e9
+        self.latencyArray.append(pose_latency)
+
+        if (len(self.latencyArray) >= 20):
+            self.latencyArray.pop(0)
+
+        print("Mean latency pose estimation: %s" % np.mean(self.latencyArray))
 
     def getDistributionImage(self,mat,stamp):
         bridge = CvBridge()

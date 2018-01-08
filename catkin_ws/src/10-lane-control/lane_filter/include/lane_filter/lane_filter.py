@@ -1,6 +1,7 @@
 from duckietown_utils.parameters import Configurable
-from duckietown_msgs.msg import Segment
+from duckietown_msgs.msg import (Segment, SegmentList)
 import numpy as np
+import rospy
 from .lane_filter_interface import LaneFilterInterface
 from scipy.stats import multivariate_normal
 from scipy.ndimage.filters import gaussian_filter
@@ -40,6 +41,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
+        self.interp = True
+        self.interp_amount = 5
 
         self.initialize()
         
@@ -69,7 +72,40 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.belief = s_belief/np.sum(s_belief)
 
 
+    def interpSegments(self, oldSegments):
+        interpolatedSegments = SegmentList()
+        for oldSegment in oldSegments:
+            # we don't care about RED ones for now
+            if oldSegment.color != oldSegment.WHITE and oldSegment.color != oldSegment.YELLOW:
+                continue
+            # filter out any oldSegments that are behind us
+            if oldSegment.points[0].x < 0 or oldSegment.points[1].x < 0:
+                continue
+
+            xArray = np.linspace(oldSegment.points[0].x, oldSegment.points[1].x, self.interp_amount+1)
+            yArray = np.linspace(oldSegment.points[0].y, oldSegment.points[1].y, self.interp_amount+1)
+            # xNormArray = np.linspace(oldSegment.pixels_normalized[0].x, oldSegment.pixels_normalized[1].x, self.interp_amount+1)
+            # yNormArray = np.linspace(oldSegment.pixels_normalized[0].y, oldSegment.pixels_normalized[1].y, self.interp_amount+1)
+            
+            for i in range(len(xArray)-1):
+                newSegment = oldSegment
+                newSegment.points[0].x = xArray[i]
+                newSegment.points[1].x = xArray[i+1]
+                newSegment.points[0].y = yArray[i]
+                newSegment.points[1].y = yArray[i+1]
+                # newSegment.pixels_normalized[0].x = xNormArray[i]
+                # newSegment.pixels_normalized[1].x = xNormArray[i+1]
+                # newSegment.pixels_normalized[0].y = yNormArray[i]
+                # newSegment.pixels_normalized[1].y = yNormArray[i+1]
+                interpolatedSegments.append(newSegment)
+        return interpolatedSegments
+
+
     def update(self, segments):
+        self.interp = rospy.get_param("~interp")
+        self.interp_amount = rospy.get_param("~interp_amount")
+        if self.interp == True:
+            segments = interpSegments(segments)
         measurement_likelihood = self.generate_measurement_likelihood(segments)
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief,measurement_likelihood)
