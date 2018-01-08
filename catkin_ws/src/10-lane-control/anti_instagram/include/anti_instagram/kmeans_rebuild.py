@@ -10,6 +10,9 @@ from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 from collections import Counter
 from anti_instagram.geom import processGeom2
+
+import rospy
+from sensor_msgs.msg import CompressedImage, Image
 import math
 
 CENTERS_BRYW = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240]]);
@@ -41,6 +44,8 @@ class kMeansClass:
         self.blur_kernel = int(blurKer)
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
+        self.masked_image = rospy.Publisher(
+            "~masked_image", Image, queue_size=1)
 
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img, fancyGeom=False):
@@ -53,6 +58,8 @@ class kMeansClass:
         else:
             mask = processGeom2(cv2img)
             img_geom = np.expand_dims(mask, axis=-1)*cv2img
+            print("fancy geom")
+            self.masked_image.publish(img_geom)
             mask = mask.transpose()
             inds = np.array(np.nonzero(mask))
             cv2_tpose = np.transpose(img_geom)
@@ -68,7 +75,7 @@ class kMeansClass:
         # blur image using gaussian:
         elif self.blur_alg == 'gaussian':
             self.blurred_image = cv2.GaussianBlur(self.resized_image, (self.blur_kernel, self.blur_kernel), 0)
-	
+
         else:
             self.blurred_image = self.resized_image
 
@@ -96,16 +103,16 @@ class kMeansClass:
         for i in np.arange(self.num_centers):
             self.labelcount[i] = np.sum(self.labels == i)
 
-    def determineColor(self, withRed, trained_centers):
-
+    def determineColor(self, trained_centers, withRed = True):
+        idxRed = 0
         # define the true centers. This color is preset. The color transformation
         # tries to transform a picture such that the black areas will become true black.
         # The same applies for yellow, white and (if valid) red.
-        trueBlack = [60, 60, 60]
-        trueYellow = [50, 240, 240]
-        trueWhite = [240, 240, 240]
+        trueBlack = [70, 50, 60]
+        trueYellow = [50, 240, 230]
+        trueWhite = [250, 250, 250]
         if (withRed):
-            trueRed = [60, 60, 240]
+            trueRed = [50, 70, 240]
 
         # initialize arrays which save the errors to each true center
         # later the minimal error cluster center will be defined as this color
@@ -132,13 +139,16 @@ class kMeansClass:
         errorBlackSortedIdx = np.argsort(errorBlack)
         errorYellowSortedIdx = np.argsort(errorYellow)
         errorWhiteSortedIdx = np.argsort(errorWhite)
-        # errorSorted = np.vstack([errorBlack, errorWhite, errorYellow])
+
+        errorSorted = np.vstack([errorBlack, errorWhite, errorYellow])
         if (withRed):
             errorRedSortedIdx = np.argsort(errorRed)
-            #errorSorted = np.vstack((errorSorted,errorRed))
+            errorSorted = np.vstack((errorSorted, errorRed))
+
         if (withRed):
             nTrueCenters = 4
         ListOfIndices = []
+        print(errorSorted)
 
         # boolean variables to determine whether the minimal error index has been found
         blackIdxFound = False
@@ -149,42 +159,64 @@ class kMeansClass:
         centersFound = False
         index = 0
 
-        #w,h = errorSorted.shape
-        #errorList = np.reshape(errorSorted,(w*h))
+        n_true_centers, n_trained_centers = errorSorted.shape
+        errorList = np.reshape(errorSorted, (n_trained_centers*n_true_centers))
+
+        print "the number of trained centers is: " + str(n_trained_centers)
         # find for every true center the corresponding trained center.
         # this code considers the global minimum for assigning clusters,
         # instead of assigning first black, then white, yellow and red
-        while (not centersFound):
+        while not centersFound:
+            ind = np.argmin(errorList)
+            category, ind_center = ind//n_trained_centers, ind % n_trained_centers
+            print "category: " + str(category)
+            print "ind_center: " + str(ind_center)
 
-            if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
-                ListOfIndices.append(errorBlackSortedIdx[index])
-                # print str(index) + " in black " + str(ListOfIndices)
+            if category==0 and not blackIdxFound:
+                ListOfIndices.append(ind_center)
                 blackIdxFound = True
-                idxBlack = errorBlackSortedIdx[index]
-            if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
-                ListOfIndices.append(errorWhiteSortedIdx[index])
-                # print str(index) + " in white " + str(ListOfIndices)
+                idxBlack = ind_center
+            if category==1 and not whiteIdxFound:
+                ListOfIndices.append(ind_center)
                 whiteIdxFound = True
-                idxWhite = errorWhiteSortedIdx[index]
-            if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
-                ListOfIndices.append(errorYellowSortedIdx[index])
-                # print str(index) + " in yellow " + str(ListOfIndices)
+                idxWhite = ind_center
+            if category==2 and not yellowIdxFound:
+                ListOfIndices.append(ind_center)
                 yellowIdxFound = True
-                idxYellow = errorYellowSortedIdx[index]
-            if withRed:
-                if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
-                    ListOfIndices.append(errorRedSortedIdx[index])
+                idxYellow = ind_center
+            if (withRed):
+                if category==3 and not redIdxFound:
+                    ListOfIndices.append(ind_center)
                     redIdxFound = True
-                    # print str(index) + "in red" + str(ListOfIndices)
-                    idxRed = errorRedSortedIdx[index]
-                # print "True?: " + str(redIdxFound) + str(yellowIdxFound) + str(whiteIdxFound) + str(blackIdxFound)
-                centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
-                # print "centersFound: " + str(centersFound)
-
+                    idxRed = ind_center
+                    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
             else:
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
-            index = index + 1
-            # print "End of while loop. Index: " + str(index)
+            errorSorted[category, :] = float('inf')
+            errorSorted[:, ind_center] = float('inf')
+            errorList = np.reshape(errorSorted, (n_trained_centers*n_true_centers))
+            #if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
+            #    ListOfIndices.append(errorBlackSortedIdx[index])
+            #    blackIdxFound = True
+            #    idxBlack = errorBlackSortedIdx[index]
+            #if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
+            #    ListOfIndices.append(errorWhiteSortedIdx[index])
+            #    whiteIdxFound = True
+            #    idxWhite = errorWhiteSortedIdx[index]
+            #if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
+            #    ListOfIndices.append(errorYellowSortedIdx[index])
+            #    yellowIdxFound = True
+            #    idxYellow = errorYellowSortedIdx[index]
+            #if withRed:
+            #    if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
+            #        ListOfIndices.append(errorRedSortedIdx[index])
+            #        redIdxFound = True
+            #        idxRed = errorRedSortedIdx[index]
+            #    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
+
+            #else:
+            #    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
+            #index = index + 1
 
         # return the minimal error indices for the trained centers.
         if (withRed):
