@@ -73,7 +73,7 @@ class calcTransform:
         return image_transformed
 
 def main():
-    KM = kMeansClass(10, 'median', 0.1, 5)
+    KM = kMeansClass(20, 'median', 0.1, 5)
     image = cv2.imread("test_images/pic3.jpg", cv2.IMREAD_UNCHANGED)
     KM.applyKM(image)
     idxBlack, idxRed, idxYellow, idxWhite = KM.determineColor(KM.trained_centers)
@@ -104,7 +104,6 @@ def main():
     cv2.imshow('corrected', image_transformed)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
 
 
 if __name__ == '__main__':
