@@ -9,6 +9,9 @@ from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 from collections import Counter
 from anti_instagram.geom import processGeom2
+
+import rospy
+from sensor_msgs.msg import CompressedImage, Image
 import math
 
 CENTERS_BRYW = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240]]);
@@ -40,6 +43,8 @@ class kMeansClass:
         self.blur_kernel = int(blurKer)
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
+        self.masked_image = rospy.Publisher(
+            "~masked_image", Image, queue_size=1)
 
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img, fancyGeom=False):
@@ -52,6 +57,8 @@ class kMeansClass:
         else:
             mask = processGeom2(cv2img)
             img_geom = np.expand_dims(mask, axis=-1)*cv2img
+            print("fancy geom")
+            self.masked_image.publish(img_geom)
             mask = mask.transpose()
             inds = np.array(np.nonzero(mask))
             cv2_tpose = np.transpose(img_geom)

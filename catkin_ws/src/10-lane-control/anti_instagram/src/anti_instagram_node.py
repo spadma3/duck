@@ -11,6 +11,7 @@ from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
 from duckietown_utils.jpg import image_cv_from_jpg
 from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
+import numpy as np
 
 
 class AntiInstagramNode:
@@ -67,16 +68,18 @@ class AntiInstagramNode:
 
     def cbNewImage(self, image_msg):
         # memorize image
+        print("new image received.")
         self.image_msg = image_msg
 
-        if False:
+        if True:
             tk = TimeKeeper(image_msg)
-            cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+            # cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+            cv_image = image_cv_from_jpg(self.image_msg.data)
 
             corrected_image_cv2 = scaleandshift2(cv_image, self.scale, self.shift)
             tk.completed('applyTransform')
 
-            corrected_image_cv2 = np.clip(corrected_img, 0, 255).astype(np.uint8)
+            corrected_image_cv2 = np.clip(corrected_image_cv2, 0, 255).astype(np.uint8)
             self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")
 
             tk.completed('encode')
