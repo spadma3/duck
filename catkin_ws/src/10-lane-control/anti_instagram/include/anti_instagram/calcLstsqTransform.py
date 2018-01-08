@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
+from scipy.optimize import least_squares
 # from anti_instagram.kmeans_rebuild import CENTERS_BRYW, CENTERS_BYW
 
 # TODO fix import issue of centers
@@ -65,6 +66,8 @@ class calcTransform:
     residuals = []
     residualNorm = -1
 
+
+
     # initialize
     def __init__(self, numOcenters, found_centers, true_centers = []):
         assert (numOcenters >= 2), "at least two centers needed. Otherwise under constrained"
@@ -90,6 +93,7 @@ class calcTransform:
             self.valueArrayBGR[k, :] = self.found_centers[:, k]
 
         self.matrices_A = np.zeros((3, self.num_centers, 2), np.uint8)
+        self.matrices_A_row = np.zeros((3, self.num_centers), np.uint8)
         self.vectors_b = np.zeros((3, self.num_centers), np.uint8)
 
         for channel in range(3):
@@ -97,6 +101,16 @@ class calcTransform:
             self.vectors_b[channel, :] = self.true_centers[:, channel]
             # prepare matrices A for each channel
             self.matrices_A[channel] = np.array(([[self.valueArrayBGR[channel, j], 1] for j in range(self.num_centers)]))
+
+        # bounded Trafo:
+        self.funcLine = lambda tpl,x : tpl[0]*x + tpl[1]
+        self.ErrorFunc = lambda tpl, x, y: self.funcLine(tpl, x) - y
+        self.tplInit = (1.0, 0.0)
+        self.bounds = [(0.333,-100.0), (3.0,100.0)]
+
+
+
+
         #for j in range(3):
         #    self.matrices_Aw[j] = np.dot(self.matrices_A[j], self.weights_MA)
         #    self.vectors_bw[j] = np.dot(self.vectors_b[j], self.weights_MA)
@@ -122,4 +136,15 @@ class calcTransform:
         # print('shift: ' + str(self.shift))
         self.residualNorm = np.linalg.norm(self.residuals)
         # print('residuals: ' + str(self.residualNorm))
+        return self.scale, self.shift
+
+
+    def calcBoundedTrafo(self):
+        # loop over the three color channels
+        for channel in range(3):
+            tpl_param = least_squares(self.ErrorFunc, self.tplInit[:], args=(self.vectors_b[channel], self.valueArrayBGR[channel]), bounds=self.bounds)
+            print('parameter:')
+            print(tpl_param.x)
+            self.scale[channel] = tpl_param.x[0]
+            self.shift[channel] = tpl_param.x[1]
         return self.scale, self.shift

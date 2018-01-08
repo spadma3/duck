@@ -145,7 +145,8 @@ class ContAntiInstagramNode():
 
                 # not yet initialized
                 if not self.initialized:
-                    if self.ai.calculateTransform(colorBalanced_image):
+                    #if self.ai.calculateTransform(colorBalanced_image):
+                    if self.ai.calculateBoundedTransform(colorBalanced_image):
                         # init successful. set interval on desired by input
                         self.initialized = True
                         self.timer_init.shutdown()
@@ -156,7 +157,8 @@ class ContAntiInstagramNode():
                 else:
 
                     # find color transform
-                    if self.ai.calculateTransform(colorBalanced_image):
+                    #if self.ai.calculateTransform(colorBalanced_image):
+                    if self.ai.calculateBoundedTransform(colorBalanced_image):
                         tk.completed('calculateTransform')
 
                         # store color transform to ros message
