@@ -73,7 +73,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
 
     def interpSegments(self, oldSegments):
-        interpolatedSegments = SegmentList()
+        interpolatedSegments = []
         for oldSegment in oldSegments:
             # we don't care about RED ones for now
             if oldSegment.color != oldSegment.WHITE and oldSegment.color != oldSegment.YELLOW:
@@ -97,8 +97,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 # newSegment.pixels_normalized[1].x = xNormArray[i+1]
                 # newSegment.pixels_normalized[0].y = yNormArray[i]
                 # newSegment.pixels_normalized[1].y = yNormArray[i+1]
-                interpolatedSegments.segments.append(newSegment)
-        return interpolatedSegments.segments
+                interpolatedSegments.append(newSegment)
+        return interpolatedSegments
 
 
     def update(self, segments):
