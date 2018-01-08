@@ -105,7 +105,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.interp = rospy.get_param("~interp")
         self.interp_amount = rospy.get_param("~interp_amount")
         if self.interp == True:
-            segments = interpSegments(segments)
+            segments = self.interpSegments(segments)
         measurement_likelihood = self.generate_measurement_likelihood(segments)
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief,measurement_likelihood)
