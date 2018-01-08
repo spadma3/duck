@@ -62,6 +62,7 @@ class LaneFilterNode(object):
             return
 
         # Step 1: predict
+        last_timestamp = rospy.Time.now()
         current_time = rospy.get_time()
         self.filter.predict(dt=current_time-self.t_last_update, v = self.velocity.v, w = self.velocity.omega)
         self.t_last_update = current_time
@@ -98,7 +99,7 @@ class LaneFilterNode(object):
         self.pub_in_lane.publish(in_lane_msg)
 
         # Latency of getting a pose estimate
-        pose_latency_stamp = rospy.Time.now() - current_time
+        pose_latency_stamp = rospy.Time.now() - last_timestamp
         pose_latency = pose_latency_stamp.secs + pose_latency_stamp.nsecs/1e9
         self.latencyArray.append(pose_latency)
 
