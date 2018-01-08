@@ -1,0 +1,7 @@
+digraph G {
+"map" -> "bamboo17"[label="Broadcaster: /bamboo17_to_map\nAverage rate: 91.813 Hz\nMost recent transform: 1515283245.514 ( 0.023 sec old)\nBuffer length: 4.945 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1515283245.537"[ shape=plaintext ] ;
+ }->"map";
+}
