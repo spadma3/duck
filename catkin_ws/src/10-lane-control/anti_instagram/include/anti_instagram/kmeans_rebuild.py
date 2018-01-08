@@ -11,8 +11,6 @@ from sklearn.cluster import KMeans
 from collections import Counter
 from anti_instagram.geom import processGeom2
 
-import rospy
-from sensor_msgs.msg import CompressedImage, Image
 import math
 
 CENTERS_BRYW = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240]]);
@@ -44,28 +42,31 @@ class kMeansClass:
         self.blur_kernel = int(blurKer)
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
-        self.masked_image = rospy.Publisher(
-            "~masked_image", Image, queue_size=1)
+        self.img_geom = None
 
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img, fancyGeom=False):
         x, y, p = cv2img.shape
-        if not fancyGeom:
+        if not True:
             img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
             x_new, y_new, p = img_geom.shape
             cv2_tpose = img_geom.transpose()
             cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
         else:
-            mask = processGeom2(cv2img)
-            img_geom = np.expand_dims(mask, axis=-1)*cv2img
             print("fancy geom")
-            self.masked_image.publish(img_geom)
+            mask = processGeom2(cv2img)
+            self.img_geom = np.expand_dims(mask, axis=-1)*cv2img
             mask = mask.transpose()
             inds = np.array(np.nonzero(mask))
-            cv2_tpose = np.transpose(img_geom)
+            cv2_tpose = np.transpose(self.img_geom)
             cv2_arr_tpose = cv2_tpose[:, inds[0, :], inds[1, :]]
         npdata = np.transpose(cv2_arr_tpose)
+        print("fancy geom out.")
         return npdata
+
+    # czuidema trial:
+    def returnMaskedImage(self):
+        return self.img_geom
 
     def _blurImg(self):
         # blur image using median:
@@ -111,7 +112,7 @@ class kMeansClass:
         trueBlack = [70, 50, 60]
         trueYellow = [50, 240, 230]
         trueWhite = [250, 250, 250]
-        if (withRed):
+        if withRed:
             trueRed = [50, 70, 240]
 
         # initialize arrays which save the errors to each true center
@@ -148,7 +149,6 @@ class kMeansClass:
         if (withRed):
             nTrueCenters = 4
         ListOfIndices = []
-        print(errorSorted)
 
         # boolean variables to determine whether the minimal error index has been found
         blackIdxFound = False
@@ -162,15 +162,13 @@ class kMeansClass:
         n_true_centers, n_trained_centers = errorSorted.shape
         errorList = np.reshape(errorSorted, (n_trained_centers*n_true_centers))
 
-        print "the number of trained centers is: " + str(n_trained_centers)
+        # print "the number of trained centers is: " + str(n_trained_centers)
         # find for every true center the corresponding trained center.
         # this code considers the global minimum for assigning clusters,
         # instead of assigning first black, then white, yellow and red
         while not centersFound:
             ind = np.argmin(errorList)
             category, ind_center = ind//n_trained_centers, ind % n_trained_centers
-            print "category: " + str(category)
-            print "ind_center: " + str(ind_center)
 
             if category==0 and not blackIdxFound:
                 ListOfIndices.append(ind_center)

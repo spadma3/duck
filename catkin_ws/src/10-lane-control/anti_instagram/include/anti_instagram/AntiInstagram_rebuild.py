@@ -55,7 +55,7 @@ class AntiInstagram():
         self.KM.applyKM(img)
 
         # get the indices of the matched centers
-        idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(True, self.KM.trained_centers)
+        idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(self.KM.trained_centers, True)
 
         # get centers with red
         trained_centers = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxRed],
@@ -101,14 +101,6 @@ class AntiInstagram():
         return corrected_image
 
 
-
-
-
-
-
-
-
-
-
-
-
+    # czuidema trial
+    def getMaskedImage(self):
+        return self.KM.returnMaskedImage()
