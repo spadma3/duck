@@ -260,22 +260,20 @@ class Benchmark():
 
         dArray = []
         phiArray = []
-        dArray = np.asarray(dArray)
-        phiArray = np.asarray(phiArray)
+        # dArray = np.asarray(dArray)
+        # phiArray = np.asarray(phiArray)
         dComputedArray = []
         phiComputedArray = []
         vArray = []
         omegaArray = []
-        vArray = np.asarray(vArray)
-        omegaArray = np.asarray(omegaArray)
+        # vArray = np.asarray(vArray)
+        # omegaArray = np.asarray(omegaArray)
         lanePoseArray = []
         ImageArray = []
         # beliefImgArray = []
         CmdArray = []
         SegmentArray = []
         segmentArray = []
-        SegmentArray = np.asarray(SegmentArray)
-        segmentArray = np.asarray(segmentArray)
         SegmentProcessTime = 0
 
         self.tic = time.time()
@@ -298,35 +296,40 @@ class Benchmark():
 
         self.startTime = ImageArray[0,1]
 
+        SegmentArray = np.asarray(SegmentArray)
+
         if SegmentArray.any():
             nSegmentLists = len(SegmentArray)
 
             for i in range(len(SegmentArray)):
-                np.append(segmentArray, [len(SegmentArray[i,0].segments), SegmentArray[i,1]])
+                # np.append(segmentArray, [len(SegmentArray[i,0].segments), SegmentArray[i,1]])
+                segmentArray.append([len(SegmentArray[i,0].segments), SegmentArray[i,1]])
 
             # segment_mean = np.mean(segmentArray)
             SegmentProcessTime = (SegmentArray[-1][1] - SegmentArray[0][1]) / nSegmentLists
 
             for i in range(len(lanePoseArray)):
-                np.append(dArray, [lanePoseArray[i][0].d, lanePoseArray[i][1]])
-                np.append(phiArray, [lanePoseArray[i][0].phi, lanePoseArray[i][1]])
+                # np.append(dArray, [lanePoseArray[i][0].d, lanePoseArray[i][1]])
+                # np.append(phiArray, [lanePoseArray[i][0].phi, lanePoseArray[i][1]])
+                dArray.append([lanePoseArray[i][0].d, lanePoseArray[i][1]])
+                phiArray.append([lanePoseArray[i][0].phi, lanePoseArray[i][1]])
 
             for i in range(len(CmdArray)):
-                np.append(vArray, [CmdArray[i][0].v, CmdArray[i][1]])
-                np.append(omegaArray, [CmdArray[i][0].omega, CmdArray[i][1]])
-
-            dArray = np.asarray(dArray)
-            phiArray = np.asarray(phiArray)
-
-            vArray = np.asarray(vArray)
-            omegaArray = np.asarray(omegaArray)
-
+                # np.append(vArray, [CmdArray[i][0].v, CmdArray[i][1]])
+                # np.append(omegaArray, [CmdArray[i][0].omega, CmdArray[i][1]])
+                vArray.append([CmdArray[i][0].v, CmdArray[i][1]])
+                omegaArray.append([CmdArray[i][0].omega, CmdArray[i][1]])
         else:
             self.fast = 'False'
 
+        dArray = np.asarray(dArray)
+        phiArray = np.asarray(phiArray)
+
+        vArray = np.asarray(vArray)
+        omegaArray = np.asarray(omegaArray)
+
         if not dArray.any():
             self.fast = 'False'
-
         
 
         if self.fast == 'False':
@@ -362,6 +365,10 @@ class Benchmark():
 
             dComputedArray = np.asarray(dComputedArray)
             phiComputedArray = np.asarray(phiComputedArray)
+
+        segmentArray = np.asarray(segmentArray)
+        dComputedArray = np.asarray(dComputedArray)
+        phiComputedArray = np.asarray(phiComputedArray)
 
         if not SegmentArray.any() or not dArray.any():
             dArray = dComputedArray
