@@ -64,6 +64,12 @@ class depth_cir(object):
             cv_image = self.cv_bridge.imgmsg_to_cv2(rgb_data, "bgr8")
             cv_depthimage = self.cv_bridge.imgmsg_to_cv2(depth_data, "32FC1")
             self.cv_depthimage2 = np.array(cv_depthimage, dtype=np.float32)
+
+            for i in range(225, 235):
+                for j in range(295, 305):
+                    pass
+                    #print self.cv_depthimage2[i][j],
+                #print ""
         except CvBridgeError as e:
             print(e)
         
@@ -109,6 +115,17 @@ class depth_cir(object):
         return False
     # above function is used for getting rid of the unwanted square, like vertices of square which is out of the image
 
+    def max2min(self, a, b, c, d):
+        
+        r = [a, b, c, d]
+        for i in range(0, 4):
+            for j in range(1, 4-i):
+                if r[i] < r[i+j]:
+                    t = r[i]
+                    r[i] = r[i+j]
+                    r[i+j] = t
+        return r
+
     def cbFiguredetect(self, image):
         #decode the image to cv_image which we used
         #narr = np.fromstring(image_msg.data, np.uint8)
@@ -126,8 +143,10 @@ class depth_cir(object):
 
         # try don't resize
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        hsv_yellow1 = np.array([25,50,50])
-        hsv_yellow2 = np.array([45,255,255])
+        #hsv_yellow1 = np.array([25,50,50])
+        #hsv_yellow2 = np.array([45,255,255])
+        hsv_yellow1 = np.array([20,153,127])
+        hsv_yellow2 = np.array([35,242,245])
         mask = cv2.inRange(hsv,hsv_yellow1,hsv_yellow2)
         #mask = cv2.Canny(mask2,100,200)
 
@@ -162,23 +181,44 @@ class depth_cir(object):
                     # origin x y pixel have been mismatched
                     xp = int((M["m10"] / M["m00"]) * self.ratio)
                     yp = int((M["m01"] / M["m00"]) * self.ratio)
-                    print "(xp, yp) = ", xp,",", yp
+                    #print "(xp, yp) = ", xp,",", yp
                     c = c.astype("float")
                     c *= self.ratio
                     c = c.astype("int")         #cast c to integer
                     rect = cv2.minAreaRect(c)   #draw the rectangle by contours
                     box = cv2.boxPoints(rect)   #find the vertices of rectangle
                     box = np.int0(box)          #transform float to integer
+
+                    x_pixels = self.max2min(box[0][0], box[1][0], box[2][0], box[3][0])
+                    y_pixels = self.max2min(box[0][1], box[1][1], box[2][1], box[3][1])
+                    #print "x", x_pixels
+                    #print "y", y_pixels
                     
                     if self.check_square(box):
                         cv2.drawContours(image,[box], 0, (255, 0, 0), 2)  #draw the contours of outer square
-                        cv2.putText(image, shape, (yp, xp), cv2.FONT_HERSHEY_SIMPLEX,0.5, (255, 255, 255), 2) # print the shape of detail
+                        cv2.putText(image, shape, (xp, yp), cv2.FONT_HERSHEY_SIMPLEX,0.5, (255, 255, 255), 2) # print the shape of detail
+                        
                         zc = self.cv_depthimage2[int(xp)][int(yp)]
+                        '''
+                        zc = 0
+                        for i in range(x_pixels[2], x_pixels[1]):
+                            for j in range(y_pixels[2],y_pixels[1]):
+                                zc = self.cv_depthimage2[int(i)][int(j)]
+                                print "zc = ", zc
+                        '''
+                        zc = 1000
+                        for i in range(xp-5, xp+5):
+                            for j in range(yp-5, yp+5):
+                                #pass
+                                print self.cv_depthimage2[i][j],
+                                if 0 < self.cv_depthimage2[i][j] < zc:
+                                    zc = self.cv_depthimage2[i][j]
+                            print ""
+                        
                         
                         #print zc
-                        if zc == 0:
-                            zc = 0
-
+                        print "xp, yp, zc = ", xp,",", yp,",", zc
+                        print "fx, fy, cx, cy", self.fx,",", self.fy,",", self.cx,",", self.cy
                         center = self.getXYZ(xp, yp, zc, self.fx, self.fy, self.cx, self.cy)
                         center_point.x = center[0]
                         center_point.y = center[1]

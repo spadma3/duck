@@ -11,7 +11,7 @@
 	<!--remap from="image" to="camera_node/image/compressed"/-->
  	<!--/node-->
  	<!--remap from="image_rect" to="camera_node/image/rect"/-->
- 	<remap from="image_rect" to="/camera/rgb/image_color"/>
+ 	<remap from="image_rect" to="/camera/rgb/image_mono"/>
  	<remap from="camera_node/image/camera_info" to="/camera/rgb/camera_info" />
 	<remap from="apriltags_detector_node/image_raw" to="camera_node/image/raw"/>
 	<remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
@@ -40,8 +40,7 @@
 	<remap from="/tag_detections" to="tag_detections" />
 		<node name="target2bot_apriltags" pkg="duckiemvp_tfpose" type="target2bot_apriltags.py" output="screen">
 		</node>
-		<node name="depth_cir" pkg="duckiemvp_tfpose" type="depth_cir.py" output="screen">
-		</node>
+		<node name="depth_cir" pkg="duckiemvp_tfpose" type="depth_cir.py" output="screen"/>
 	</group>
 
 </launch>

@@ -3,7 +3,9 @@
 import rospy
 from duckietown_msgs.msg import Twist2DStamped, BoolStamped
 from geometry_msgs.msg import Point, Pose, PoseStamped
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Float64
+
+from dynamixel_msgs.msg import JointState
 
 rospy.init_node('move2target', anonymous=True)
 
@@ -29,6 +31,8 @@ def navi_callback(msg):
 		car_cmd(0.4, 0, car_cmd_pub)
 	elif z < 0.09:
 		car_cmd(-0.4, 0, car_cmd_pub)
+	elif 0.09 < z < 0.10:
+		grab()
 
 	car_stop(car_cmd_pub)
 
@@ -56,6 +60,18 @@ def car_stop(pub):
 	cmd.omega = 0.0
 
 	pub.publish(cmd)
+
+def grab():
+
+	pan_pub = rospy.Publisher("/pan_controller/command", Float64, queue_size=1)
+	tilt_pub = rospy.Publisher("/tilt_controller/command", Float64, queue_size=1)
+	grip_pub = rospy.Publisher("/grip_controller/command", Float64, queue_size=1)
+
+	pan_pub(1.288)
+	tilt_pub(1.288)
+	grip_pub(0.0)
+	rospy.sleep(2.5)
+	grip_pub(1.0)
 
 if __name__ == '__main__':
 	print "Get Start"
