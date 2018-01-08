@@ -8,10 +8,17 @@
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
     <arg name="rect" default="false" />
 
+    <arg name="vfs" default="80" doc="Final command value for straight calibration."/>
+    <arg name="ss" default="5" doc="Step size for straight calibration."/>
+    <arg name="ds" default="0.4" doc="Step duration for straight calibration."/>
+   
     <node pkg="rosbag" type="record" args="record -O /media/logs/calibration -a" name="record" output="screen"/>
 
-    <node  pkg="calibration" type="publish_control.py" name="publish_control" output="screen" clear_params="true" required="true"> 
+    <node  pkg="calibration" type="publish_control.py" name="publish_control" output="screen" clear_params="true" required="true">
                  <param name="veh" value="$(arg veh)"/>
+		 <param name="vfs" value="$(arg vfs)"/>
+		 <param name="ss" value="$(arg ss)"/>
+		 <param name="ds" value="$(arg ds)"/>
     </node>
 
 
