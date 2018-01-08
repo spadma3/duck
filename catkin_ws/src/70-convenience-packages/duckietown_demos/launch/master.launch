@@ -539,9 +539,8 @@
 		</group>
 
 		<group if="$(arg /navigation/intersection_navigation)">
-			<!-- closed loop intersection_navigation -->
-			<remap from="" to=""/>
-	#Still NEED TO LOOK AT THE REMAPPING		
+			<!-- closed loop intersection_navigation -->			
+			
 			<include file="$(find intersection_navigation)/launch/intersection_navigation_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -551,8 +550,7 @@
 
 		<group if="$(arg /navigation/intersection_localization)">
 			<!--intersection_localization node=simulated sensor for navigation -->
-			<remap from="" to=""/>
-						
+									
 			<include file="$(find intersection_localization)/launch/intersection_localization_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
