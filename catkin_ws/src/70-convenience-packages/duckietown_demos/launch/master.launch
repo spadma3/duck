@@ -77,7 +77,7 @@
 	<arg name="coordination" default="false"/>
 
 	<arg name="navigation" default="false"/>
-	<arg name="/navigation/intersection_navigation" default="false"/>
+	<arg name="/navigation/intersection_control" default="false"/>
 	<arg name="/navigation/intersection_navigation" default="true"/>
 	<arg name="/navigation/intersection_localisation" default="true"/>
 	
@@ -539,7 +539,9 @@
 		</group>
 
 		<group if="$(arg /navigation/intersection_navigation)">
-			<!-- closed loop intersection_navigation -->			
+			<!-- closed loop intersection_navigation -->
+			<remap from="intersection_navigation_node/mode" to="fsm_node/mode"/>
+			<remap from="intersection_navigation_node/in_lane" to="lane_filter_node/in_lane"/>		
 			
 			<include file="$(find intersection_navigation)/launch/intersection_navigation_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
