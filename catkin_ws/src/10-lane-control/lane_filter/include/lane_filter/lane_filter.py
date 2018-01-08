@@ -98,7 +98,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 # newSegment.pixels_normalized[0].y = yNormArray[i]
                 # newSegment.pixels_normalized[1].y = yNormArray[i+1]
                 interpolatedSegments.segments.append(newSegment)
-        return interpolatedSegments
+        return interpolatedSegments.segments
 
 
     def update(self, segments):
