@@ -51,10 +51,12 @@ class kMeansClass:
     def _getimgdatapts(self, cv2img, fancyGeom=False):
         x, y, p = cv2img.shape
         if not fancyGeom:
-            img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
-            x_new, y_new, p = img_geom.shape
-            cv2_tpose = img_geom.transpose()
+            self.img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
+            x_new, y_new, p = self.img_geom.shape
+            cv2_tpose = self.img_geom.transpose()
             cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
+
+            self.mask_255 = np.zeros((x, y), np.uint8)
         else:
             print("fancy geom")
             self.mask = processGeom2(cv2img)
@@ -91,7 +93,6 @@ class kMeansClass:
 
     # apply kMeans alg
     def applyKM(self, img, fancyGeom=False):
-        rospy.loginfo('enter apply KMeans')
         self.input_image = img
         # resize image
         self.resized_image = cv2.resize(self.input_image, (0, 0), fx=self.fac_resize, fy=self.fac_resize)

@@ -141,7 +141,7 @@ class ImageTransformerNode():
 
 
     def cbNewTrafo(self, trafo_msg):
-        print('image transformer: received new trafo!')
+        #print('image transformer: received new trafo!')
         # testwise write to file
         # self.file.write('received new trafo\n')
 

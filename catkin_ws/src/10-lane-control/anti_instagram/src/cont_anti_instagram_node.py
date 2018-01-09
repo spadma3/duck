@@ -40,9 +40,7 @@ class ContAntiInstagramNode():
             "~maskedImage", Image, queue_size=1)
 
         self.sub_image = rospy.Subscriber(
-            # "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
             '/{}/camera_node/image/compressed'.format(robot_name), CompressedImage, self.cbNewImage, queue_size=1)
-            #"~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
 
 
         # TODO verify name of parameter
@@ -108,7 +106,6 @@ class ContAntiInstagramNode():
     def processImage(self, event):
         # if we have seen an image:
         if self.image_msg is not None:
-            rospy.loginfo('ai: Computing color transform...')
             tk = TimeKeeper(self.image_msg)
 
             try:
@@ -126,6 +123,7 @@ class ContAntiInstagramNode():
 
             if self.trafo_mode == "cb" or self.trafo_mode == "both":
                 # find color balance thresholds
+                rospy.loginfo('ai: Computing color balance thresholds...')
                 self.ai.calculateColorBalanceThreshold(resized_img, self.cb_percentage)
                 tk.completed('calculateColorBalanceThresholds')
 
@@ -149,17 +147,29 @@ class ContAntiInstagramNode():
 
                 # not yet initialized
                 if not self.initialized:
+                    rospy.loginfo('ai: Computing color transformation...')
                     if self.ai.calculateTransform(colorBalanced_image, self.fancyGeom):
                         # init successful. set interval on desired by input
                         self.initialized = True
                         self.timer_init.shutdown()
                         self.timer_cont = rospy.Timer(rospy.Duration(self.interval), self.processImage)
-                        rospy.loginfo('ai: Initial trafo found! Switch to continuous mode.')
+
+                        # store color transform to ros message
+                        self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
+                        self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
+
+                        # publish color trafo
+                        self.pub_trafo.publish(self.transform)
+                        rospy.loginfo('ai: Initial trafo found and published! Switch to continuous mode.')
+                    else:
+                        rospy.loginfo('ai: average error too large. transform NOT updated.')
+
 
                 # initialisation already done: continuous mode
                 else:
 
                     # find color transform
+                    rospy.loginfo('ai: Computing color transformation...')
                     if self.ai.calculateTransform(colorBalanced_image, self.fancyGeom):
                         tk.completed('calculateTransform')
 
@@ -177,15 +187,16 @@ class ContAntiInstagramNode():
 
                 # TODO health mesurement
 
-            self.mask = self.bridge.cv2_to_imgmsg(
-                self.ai.getMask(), "mono8")
-            self.pub_mask.publish(self.mask)
-            rospy.loginfo('published mask!')
+                if self.fancyGeom:
+                    self.mask = self.bridge.cv2_to_imgmsg(
+                        self.ai.getMask(), "mono8")
+                    self.pub_mask.publish(self.mask)
+                    rospy.loginfo('published mask!')
 
-            self.maskedImage = self.bridge.cv2_to_imgmsg(
-                self.ai.getMaskedImage(), "bgr8")
-            self.pub_maskedImage.publish(self.maskedImage)
-            rospy.loginfo('published masked Image!')
+                self.maskedImage = self.bridge.cv2_to_imgmsg(
+                    self.ai.getMaskedImage(), "bgr8")
+                self.pub_maskedImage.publish(self.maskedImage)
+                rospy.loginfo('published masked Image!')
 
 
 
