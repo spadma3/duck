@@ -102,6 +102,9 @@ Eigen::Matrix4d TagDetection::getRelativeTransform(double tag_size, double fx, d
   std::cout<<"break 1"<<std::endl;
   std::cout<<"r = "<<r<<std::endl;
   std::cout<<"rvec = "<<rvec<<std::endl;
+  rvec.at<double>(0) = -2.820025629275124;
+  rvec.at<double>(1) = 0.05840543250558225;
+  rvec.at<double>(2) = -0.6906929605516307;
   cv::Rodrigues(rvec, r);
   std::cout<<"break 2"<<std::endl;
   Eigen::Matrix3d wRo;
