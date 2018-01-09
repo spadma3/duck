@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import rospy
+import rosnode
 from std_msgs.msg import String #Imports msg
 from duckietown_msgs.msg import WheelsCmdStamped, Twist2DStamped
-from math import sin, pi
-
+from math import sin, pi 
+import os 
 
 class calibration:
 	def __init__(self):
@@ -15,10 +16,14 @@ class calibration:
                 publisher=rospy.get_param("~veh")+"/wheels_driver_node/wheels_cmd"
                 self.pub_wheels_cmd = rospy.Publisher(publisher,WheelsCmdStamped,queue_size=1)
 
-		self.vFinStraight = rospy.get_param('~vfs')
-		self.stepStraight = rospy.get_param("~ss")
-		self.durationStraight = rospy.get_param("~ds")
-		
+		self.vFin = rospy.get_param("~vFin")
+		self.step = rospy.get_param("~step")
+		self.stepTime = rospy.get_param("~stepTime")
+
+		self.k1 = rospy.get_param("~k1")
+                self.k2 = rospy.get_param("~k2")
+                self.omega = rospy.get_param("~omega")
+		self.duration = rospy.get_param("~duration")		
 
 	def sendCommand(self, vel_right, vel_left):
 		# Put the wheel commands in a message and publish
@@ -31,20 +36,17 @@ class calibration:
 	def StraightCalib(self):
 		rospy.loginfo("Straight calibration starts")
 
-		for i in range(0,self.vFinStraight,self.stepStraight):
-			self.sendCommand(i/100.0, i/100.0)
-			rospy.sleep(self.durationStraight)
+		for v in range(0,self.vFin,self.step):
+			self.sendCommand(v/100.0, v/100.0)
+			rospy.sleep(self.stepTime)
 		self.sendCommand(0, 0)
 
 
 	def SinCalib(self):
 		rospy.loginfo("Sin calibration starts") 
-		k = 0.2
-		alpha = 0.4
-		omega = 0.02
-		phi =  pi
-		for i in range(0,1000,1):
-			self.sendCommand(k*(1+alpha*sin(omega*i)),k*(1+alpha*sin(omega*i+phi))) 		
+
+		for t in range(0,self.duration,10):
+			self.sendCommand(self.k1+self.k2*sin(self.omega*t),self.k1-self.k2*sin(self.omega*t))
 			rospy.sleep(0.01)
 		
 		self.sendCommand(0,0)
@@ -59,5 +61,4 @@ if __name__ == '__main__':
 	rospy.sleep(10)
 	calib.SinCalib()
 	rospy.loginfo("Calibration finished")
-
-
+	os.system("rosnode kill /record")
