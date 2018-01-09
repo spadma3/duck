@@ -97,13 +97,13 @@ Eigen::Matrix4d TagDetection::getRelativeTransform(double tag_size, double fx, d
                            0, fy, py,
                            0,  0,  1);
   cv::Vec4f distParam(0,0,0,0); // all 0?
-  cv::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
+  //cv::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
   cv::Matx33d r;
   std::cout<<"break 1"<<std::endl;
   std::cout<<"r = "<<r<<std::endl;
-  rvec.at<float>(0) = -2.820025629275124;
-  rvec.at<float>(1) = 0.05840543250558225;
-  rvec.at<float>(2) = -0.6906929605516307;
+  rvec.at<double>(0) = -2.820025629275124;
+  rvec.at<double>(1) = 0.05840543250558225;
+  rvec.at<double>(2) = -0.6906929605516307;
   //rvec[0] = -2.820025629275124;
   //rvec[1] = 0.05840543250558225;
   //rvec[2] = -0.6906929605516307;
