@@ -50,6 +50,7 @@ namespace apriltags_ros{
   }
   
   void AprilTagDetector::imageCb(const sensor_msgs::ImageConstPtr& msg,const sensor_msgs::CameraInfoConstPtr& cam_info){
+    std::cout << "check 01" << std::endl;
     cv_bridge::CvImagePtr cv_ptr;
     try{
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -59,6 +60,7 @@ namespace apriltags_ros{
       ROS_ERROR("cv_bridge exception: %s", e.what());
       return;
     }
+    std::cout << "check 02" << std::endl;
     cv::Mat gray;
     cv::cvtColor(cv_ptr->image, gray, CV_BGR2GRAY);
     std::vector<AprilTags::TagDetection>	detections = tag_detector_->extractTags(gray);
@@ -68,6 +70,8 @@ namespace apriltags_ros{
     double fy = cam_info->K[4];
     double px = cam_info->K[2];
     double py = cam_info->K[5];
+
+    std::cout << "check 03" << std::endl;
     
     if(!sensor_frame_id_.empty())
       cv_ptr->header.frame_id = sensor_frame_id_;
@@ -75,6 +79,8 @@ namespace apriltags_ros{
     duckietown_msgs::AprilTagDetectionArray tag_detection_array;
     geometry_msgs::PoseArray tag_pose_array;
     tag_pose_array.header = cv_ptr->header;
+
+    std::cout << "check 04" << std::endl;
     
     BOOST_FOREACH(AprilTags::TagDetection detection, detections){
       std::map<int, AprilTagDescription>::const_iterator description_itr = descriptions_.find(detection.id);
@@ -82,6 +88,8 @@ namespace apriltags_ros{
 	ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
 	continue;
       }
+
+      std::cout << "check 05" << std::endl;
       AprilTagDescription description = description_itr->second;
       double tag_size = description.size();
       
@@ -111,9 +119,13 @@ namespace apriltags_ros{
       tf::poseStampedMsgToTF(tag_pose, tag_transform);
       tf_pub_.sendTransform(tf::StampedTransform(tag_transform, tag_transform.stamp_, tag_transform.frame_id_, description.frame_name()));
     }
+
+    std::cout << "check 06" << std::endl;
     detections_pub_.publish(tag_detection_array);
     pose_pub_.publish(tag_pose_array);
     image_pub_.publish(cv_ptr->toImageMsg());
+
+    std::cout << "check 07" << std::endl;
   }
 
 
