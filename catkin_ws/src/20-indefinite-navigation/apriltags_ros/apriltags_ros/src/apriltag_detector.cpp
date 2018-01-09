@@ -93,11 +93,13 @@ namespace apriltags_ros{
       AprilTagDescription description = description_itr->second;
       double tag_size = description.size();
       
+      std::cout << "check 06" << std::endl;
       detection.draw(cv_ptr->image);
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
       Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
 
+	  std::cout << "check 07" << std::endl;
       geometry_msgs::PoseStamped tag_pose;
       tag_pose.pose.position.x = transform(0,3);
       tag_pose.pose.position.y = transform(1,3);
@@ -108,6 +110,7 @@ namespace apriltags_ros{
       tag_pose.pose.orientation.w = rot_quaternion.w();
       tag_pose.header = cv_ptr->header;
 
+      std::cout << "check 08" << std::endl;
       duckietown_msgs::AprilTagDetection tag_detection;
       tag_detection.pose = tag_pose;
       tag_detection.id = detection.id;
@@ -115,17 +118,15 @@ namespace apriltags_ros{
       tag_detection_array.detections.push_back(tag_detection);
       tag_pose_array.poses.push_back(tag_pose.pose);
 
+      std::cout << "check 09" << std::endl;
       tf::Stamped<tf::Transform> tag_transform;
       tf::poseStampedMsgToTF(tag_pose, tag_transform);
       tf_pub_.sendTransform(tf::StampedTransform(tag_transform, tag_transform.stamp_, tag_transform.frame_id_, description.frame_name()));
     }
 
-    std::cout << "check 06" << std::endl;
     detections_pub_.publish(tag_detection_array);
     pose_pub_.publish(tag_pose_array);
     image_pub_.publish(cv_ptr->toImageMsg());
-
-    std::cout << "check 07" << std::endl;
   }
 
 
