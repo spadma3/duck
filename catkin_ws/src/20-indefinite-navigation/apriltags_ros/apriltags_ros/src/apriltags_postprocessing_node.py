@@ -51,7 +51,9 @@ class AprilPostPros(object):
             "do-not-enter": self.info.DO_NOT_ENTER,
             "pedestrian": self.info.PEDESTRIAN,
             "t-light-ahead": self.info.T_LIGHT_AHEAD,
-            "duck-crossing": self.info.DUCK_CROSSING}
+            "duck-crossing": self.info.DUCK_CROSSING,
+            "parking": self.info.PARKING}
+        
 
 # ---- end tag info stuff 
 
