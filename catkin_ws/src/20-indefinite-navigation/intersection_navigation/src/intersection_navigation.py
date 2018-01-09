@@ -35,12 +35,10 @@ class IntersectionNavigation(object):
                                         self.ImageCallback, queue_size=1)
         self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPose, 
                                         self.poseEstimator.UpdateWithPoseMeasurement, queue_size=1)
-        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, self.CarCmdCallback, queue_size=1)
-
-         
+        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, 
+                                        self.CarCmdCallback, queue_size=1)              
+        self.on_regular_road = rospy.Subscriber("~in_lane", BoolStamped, self.NavigationDoneCallback, queue_size=1)
         # self.poseEstimator.FeedCommandQueue, queue_size=10)
-        self.on_regular_road = rospy.Subscriber("~in_lane", BoolStamped, self.ModeCallback, queue_size=1)
-
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
         self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
@@ -182,7 +180,7 @@ class IntersectionNavigation(object):
 
                 # waiting for instructions where to go
                 # TODO
-                self.turn_type = TurnTypeCallback()
+                self.turn_type = turn_type
                 # 0: straight, 1: left, 2: right
                 self.turn_type = 2            
                 pose_init = [best_x_meas, best_y_meas, best_theta_meas]
@@ -265,8 +263,8 @@ class IntersectionNavigation(object):
         if self.state == self.state_dict['WAITING'] and msg.state == "INTERSECTION_CONTROL":
             self.state = self.state_dict['INITIALIZING']
 
+    def NavigationDoneCallback(self, msg):
         # update state if we are done with the navigation
-        # if self.on_regular_road == True and msg.state == "TRAVERSING":
         if self.on_regular_road == True and msg.state == "INTERSECTION_CONTROL" and self.state == self.state_dict['TRAVERSING']:
             self.state = self.state_dict['DONE']
             in_lane_msg = BoolStamped() # is a header needed in this case ??
