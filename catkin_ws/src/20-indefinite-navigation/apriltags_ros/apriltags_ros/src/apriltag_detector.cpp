@@ -50,17 +50,16 @@ namespace apriltags_ros{
   }
   
   void AprilTagDetector::imageCb(const sensor_msgs::ImageConstPtr& msg,const sensor_msgs::CameraInfoConstPtr& cam_info){
-    std::cout << "check 01" << std::endl;
     cv_bridge::CvImagePtr cv_ptr;
-    try{
+    try
+    {
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-      //cv_ptr = cv_bridge::toCvShare(msg, enc::BGR8);
     }
-    catch (cv_bridge::Exception& e){
+    catch (cv_bridge::Exception& e)
+    {
       ROS_ERROR("cv_bridge exception: %s", e.what());
       return;
     }
-    std::cout << "check 02" << std::endl;
     cv::Mat gray;
     cv::cvtColor(cv_ptr->image, gray, CV_BGR2GRAY);
     std::vector<AprilTags::TagDetection>	detections = tag_detector_->extractTags(gray);
@@ -70,8 +69,6 @@ namespace apriltags_ros{
     double fy = cam_info->K[4];
     double px = cam_info->K[2];
     double py = cam_info->K[5];
-
-    std::cout << "check 03" << std::endl;
     
     if(!sensor_frame_id_.empty())
       cv_ptr->header.frame_id = sensor_frame_id_;
@@ -79,31 +76,26 @@ namespace apriltags_ros{
     duckietown_msgs::AprilTagDetectionArray tag_detection_array;
     geometry_msgs::PoseArray tag_pose_array;
     tag_pose_array.header = cv_ptr->header;
-
-    std::cout << "check 04" << std::endl;
     
-    BOOST_FOREACH(AprilTags::TagDetection detection, detections){
+    BOOST_FOREACH(AprilTags::TagDetection detection, detections)
+    {
       std::map<int, AprilTagDescription>::const_iterator description_itr = descriptions_.find(detection.id);
-      if(description_itr == descriptions_.end()){
-	ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
-	continue;
+      if(description_itr == descriptions_.end())
+      {
+		ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
+		continue;
       }
 
-      std::cout << "check 05" << std::endl;
       AprilTagDescription description = description_itr->second;
       double tag_size = description.size();
-      
-      std::cout << "check 06" << std::endl;
-      detection.draw(cv_ptr->image);
-      std::cout << "check 07.0" << std::endl;
-      Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
-      std::cout << "check 07.1" << std::endl;
-      Eigen::Matrix3d rot = transform.block(0,0,3,3);
-      std::cout << "check 07.2" << std::endl;
-      Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
-      std::cout << "check 07.3" << std::endl;
 
-	  
+      detection.draw(cv_ptr->image);
+      std::cout << "check 01" << std::endl;
+      Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
+      std::cout << "check 02" << std::endl;
+      Eigen::Matrix3d rot = transform.block(0,0,3,3);
+      Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
+
       geometry_msgs::PoseStamped tag_pose;
       tag_pose.pose.position.x = transform(0,3);
       tag_pose.pose.position.y = transform(1,3);
@@ -114,7 +106,6 @@ namespace apriltags_ros{
       tag_pose.pose.orientation.w = rot_quaternion.w();
       tag_pose.header = cv_ptr->header;
 
-      std::cout << "check 08" << std::endl;
       duckietown_msgs::AprilTagDetection tag_detection;
       tag_detection.pose = tag_pose;
       tag_detection.id = detection.id;
@@ -122,7 +113,6 @@ namespace apriltags_ros{
       tag_detection_array.detections.push_back(tag_detection);
       tag_pose_array.poses.push_back(tag_pose.pose);
 
-      std::cout << "check 09" << std::endl;
       tf::Stamped<tf::Transform> tag_transform;
       tf::poseStampedMsgToTF(tag_pose, tag_transform);
       tf_pub_.sendTransform(tf::StampedTransform(tag_transform, tag_transform.stamp_, tag_transform.frame_id_, description.frame_name()));
