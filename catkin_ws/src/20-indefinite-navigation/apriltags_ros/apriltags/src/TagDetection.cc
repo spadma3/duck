@@ -90,10 +90,9 @@ Eigen::Matrix4d TagDetection::getRelativeTransform(double tag_size, double fx, d
   imgPts.push_back(cv::Point2f(p2.first, p2.second));
   imgPts.push_back(cv::Point2f(p3.first, p3.second));
   imgPts.push_back(cv::Point2f(p4.first, p4.second));
-
-  cv::Matx31f rvec;
-  cv::Matx31f tvec;
-  cv::Matx33f cameraMatrix(
+  cv::Mat31f rvec;
+  cv::Mat31f tvec;
+  cv::Mat33f cameraMatrix(
                            fx, 0, px,
                            0, fy, py,
                            0,  0,  1);
