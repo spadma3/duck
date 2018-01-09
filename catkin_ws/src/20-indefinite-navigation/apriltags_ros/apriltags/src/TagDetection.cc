@@ -96,7 +96,6 @@ Eigen::Matrix4d TagDetection::getRelativeTransform(double tag_size, double fx, d
                            fx, 0, px,
                            0, fy, py,
                            0,  0,  1);
-  cv::Vec4f distParam(0,0,0,0); // all 0?
   bool PnPout = cv::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
   std::cout<<"PnPout = "<<PnPout<<std::endl;
   cv::Matx33d r;
