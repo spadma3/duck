@@ -139,6 +139,7 @@ class calcTransform:
         return self.scale, self.shift
 
 
+    # this function uses the least squares method from scipy, which allows constrained parameters
     def calcBoundedTrafo(self):
         # loop over the three color channels
         for channel in range(3):
