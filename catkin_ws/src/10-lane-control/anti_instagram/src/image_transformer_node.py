@@ -34,9 +34,6 @@ class ImageTransformerNode():
         self.pub_image = rospy.Publisher(
             "~corrected_image", Image, queue_size=1)
 
-        self.masked_image = rospy.Publisher(
-            "~masked_image", Image, queue_size=1)
-
         self.sub_image = rospy.Subscriber(
             # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
             # "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
@@ -70,8 +67,6 @@ class ImageTransformerNode():
         self.ai = AntiInstagram()
         self.bridge = CvBridge()
 
-        self.image_msg = None
-        self.maskImage = None
 
 
     def setupParameter(self, param_name, default_value):
@@ -146,7 +141,7 @@ class ImageTransformerNode():
 
 
     def cbNewTrafo(self, trafo_msg):
-        # print('image transformer: received new trafo!')
+        print('image transformer: received new trafo!')
         # testwise write to file
         # self.file.write('received new trafo\n')
 
@@ -160,12 +155,6 @@ class ImageTransformerNode():
         self.ai.shift = trafo_msg.s[0:3]         #copied from line_detector2 ldn.py
         self.ai.scale = trafo_msg.s[3:6]
 
-        self.maskImage = self.ai.getMaskedImage()
-        self.maskImage = self.bridge.cv2_to_imgmsg(
-            self.maskImage, "bgr8")
-        self.maskImage.header.stamp = self.image_msg.header.stamp
-        self.masked_image.publish(self.maskImage)
-        print("Mask image published.")
 
     def cbNewTrafo_CB(self, th_msg):
         # print('image transformer: received new Color Balance trafo!')

@@ -50,9 +50,9 @@ class AntiInstagram():
         # init colorBalanceClass
         self.ThLow, self.ThHi = self.CB.thresholdAnalysis(img, CBpercent)
 
-    def calculateTransform(self, img):
+    def calculateTransform(self, img, fancyGeom=False):
         # apply KMeans
-        self.KM.applyKM(img)
+        self.KM.applyKM(img, fancyGeom)
 
         # get the indices of the matched centers
         idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(self.KM.trained_centers, True)
@@ -104,3 +104,7 @@ class AntiInstagram():
     # czuidema trial
     def getMaskedImage(self):
         return self.KM.returnMaskedImage()
+
+    # milansc trial
+    def getMask(self):
+        return self.KM.returnMask()

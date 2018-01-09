@@ -44,6 +44,8 @@ class kMeansClass:
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
         self.img_geom = None
+        self.mask = None
+        self.mask_255 = None
 
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img, fancyGeom=False):
@@ -55,10 +57,12 @@ class kMeansClass:
             cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
         else:
             print("fancy geom")
-            mask = processGeom2(cv2img)
-            self.img_geom = np.expand_dims(mask, axis=-1)*cv2img
-            mask = mask.transpose()
-            inds = np.array(np.nonzero(mask))
+            self.mask = processGeom2(cv2img)
+            self.mask_255 = self.mask
+            self.mask_255[self.mask_255==1] = 255
+            self.img_geom = np.expand_dims(self.mask, axis=-1)*cv2img
+            self.mask = self.mask.transpose()
+            inds = np.array(np.nonzero(self.mask))
             cv2_tpose = np.transpose(self.img_geom)
             cv2_arr_tpose = cv2_tpose[:, inds[0, :], inds[1, :]]
             print("fancy geom out.")
@@ -68,6 +72,10 @@ class kMeansClass:
     # czuidema trial:
     def returnMaskedImage(self):
         return self.img_geom
+
+    # milansc trial:
+    def returnMask(self):
+        return self.mask_255
 
     def _blurImg(self):
         # blur image using median:
@@ -107,7 +115,6 @@ class kMeansClass:
             self.labelcount[i] = np.sum(self.labels == i)
 
     def determineColor(self, trained_centers, withRed = True):
-        rospy.loginfo('enter apply determineColor')
         # milansc: define idxBlack and so on...
         idxRed = -1
         idxBlack = -1
@@ -149,11 +156,11 @@ class kMeansClass:
         errorYellowSortedIdx = np.argsort(errorYellow)
         errorWhiteSortedIdx = np.argsort(errorWhite)
 
-        print('error black: ' + str(errorBlack))
-        print('error yellow: ' + str(errorYellow))
-        print('error white: ' + str(errorWhite))
-        if withRed:
-            print('error red: ' + str(errorRed))
+        #print('error black: ' + str(errorBlack))
+        #print('error yellow: ' + str(errorYellow))
+        #print('error white: ' + str(errorWhite))
+        #if withRed:
+            #print('error red: ' + str(errorRed))
 
         errorSorted = np.vstack([errorBlack, errorWhite, errorYellow])
         if (withRed):
@@ -183,17 +190,16 @@ class kMeansClass:
         # this code considers the global minimum for assigning clusters,
         # instead of assigning first black, then white, yellow and red
         while not centersFound:
-            rospy.loginfo('still within the loop in determine color')
 
-            print(errorList)
+            #print(errorList)
             ind = np.argmin(errorList)
             category, ind_center = ind//n_trained_centers, ind % n_trained_centers
-            print ('category, ind_center: ' + str(category) + ', ' + str(ind_center))
-            if withRed:
-                print('blackIdxFound: ' + str(blackIdxFound) + ' whiteIdxFound: ' + str(
-                    whiteIdxFound) + ' yellowIdxFound: ' + str(yellowIdxFound) + ' redIdxFound: ' + str(redIdxFound))
-            else:
-                print(' blackIdxFound: ' + str(blackIdxFound) + ' whiteIdxFound: ' + str(whiteIdxFound) + ' yellowIdxFound: ' + str(yellowIdxFound))
+            #print ('category, ind_center: ' + str(category) + ', ' + str(ind_center))
+            #if withRed:
+                #print('blackIdxFound: ' + str(blackIdxFound) + ' whiteIdxFound: ' + str(
+                    #whiteIdxFound) + ' yellowIdxFound: ' + str(yellowIdxFound) + ' redIdxFound: ' + str(redIdxFound))
+            #else:
+                #print(' blackIdxFound: ' + str(blackIdxFound) + ' whiteIdxFound: ' + str(whiteIdxFound) + ' yellowIdxFound: ' + str(yellowIdxFound))
 
 
 
@@ -218,10 +224,10 @@ class kMeansClass:
                     redIdxFound = True
                     idxRed = ind_center
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
-                print('centersFound: ' + str(centersFound))
+                #print('centersFound: ' + str(centersFound))
             else:
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
-                print('centersFound: ' + str(centersFound))
+                #print('centersFound: ' + str(centersFound))
             # errorSorted[category, :] = np.max(errorSorted) + 100 # float('inf')
             #errorSorted[:, ind_center] = np.max(errorSorted) # float('inf')
             # errorList = np.reshape(errorSorted, (n_trained_centers*n_true_centers))
@@ -251,8 +257,6 @@ class kMeansClass:
             #    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
             #index = index + 1
 
-        rospy.loginfo('found centers:' + str(ListOfIndices))
-        rospy.loginfo('exit while loop')
         # return the minimal error indices for the trained centers.
         if (withRed):
             return idxBlack, idxRed, idxYellow, idxWhite,

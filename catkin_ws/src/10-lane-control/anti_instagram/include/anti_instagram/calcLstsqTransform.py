@@ -117,7 +117,11 @@ class calcTransform:
             X, r, rank, s = np.linalg.lstsq(self.matrices_A[channel], self.vectors_b[channel])
             self.scale[channel] = X[0]
             self.shift[channel] = X[1]
-            self.residuals[channel] = r
+            # milansc: TODO: idk why, but somtimes r is empty
+            if r:
+                self.residuals[channel] = r
+            else:
+                self.residuals[channel] = 0
         # print('scale: ' + str(self.scale))
         # print('shift: ' + str(self.shift))
         self.residualNorm = np.linalg.norm(self.residuals)

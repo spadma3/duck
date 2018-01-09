@@ -34,6 +34,10 @@ class ContAntiInstagramNode():
             "~colorBalanceTrafo", AntiInstagramTransform_CB, queue_size=1)
         self.pub_health = rospy.Publisher(
             "~health", AntiInstagramHealth, queue_size=1, latch=True)
+        self.pub_mask = rospy.Publisher(
+            "~mask", Image, queue_size=1)
+        self.pub_maskedImage = rospy.Publisher(
+            "~maskedImage", Image, queue_size=1)
 
         self.sub_image = rospy.Subscriber(
             # "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
@@ -86,9 +90,9 @@ class ContAntiInstagramNode():
         # bool to switch from initialisation to continuous mode
         self.initialized = False
 
-        # TODO write to file within git folder
-        #self.file = open('/home/milan/output_cont_ai_node.txt', 'a+')
-        #self.file.write('\nCONT_ANTI_INSTAGRAM_NODE:\n')
+        # milansc container for mask and maskedImage
+        self.mask = []
+        self.maskedImage = []
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -145,7 +149,7 @@ class ContAntiInstagramNode():
 
                 # not yet initialized
                 if not self.initialized:
-                    if self.ai.calculateTransform(colorBalanced_image):
+                    if self.ai.calculateTransform(colorBalanced_image, self.fancyGeom):
                         # init successful. set interval on desired by input
                         self.initialized = True
                         self.timer_init.shutdown()
@@ -156,7 +160,7 @@ class ContAntiInstagramNode():
                 else:
 
                     # find color transform
-                    if self.ai.calculateTransform(colorBalanced_image):
+                    if self.ai.calculateTransform(colorBalanced_image, self.fancyGeom):
                         tk.completed('calculateTransform')
 
                         # store color transform to ros message
@@ -172,6 +176,16 @@ class ContAntiInstagramNode():
 
 
                 # TODO health mesurement
+
+            self.mask = self.bridge.cv2_to_imgmsg(
+                self.ai.getMask(), "mono8")
+            self.pub_mask.publish(self.mask)
+            rospy.loginfo('published mask!')
+
+            self.maskedImage = self.bridge.cv2_to_imgmsg(
+                self.ai.getMaskedImage(), "bgr8")
+            self.pub_maskedImage.publish(self.maskedImage)
+            rospy.loginfo('published masked Image!')
 
 
 
