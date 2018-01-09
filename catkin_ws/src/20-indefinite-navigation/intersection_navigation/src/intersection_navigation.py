@@ -48,7 +48,7 @@ class IntersectionNavigation(object):
         self.rate = 10  # main logic runs at 10Hz
         self.timeout = 1.0
         self.state_dict = dict()
-        for counter, key in enumerate(['WAITING', 'INITIALIZING', 'WAITING_FOR_INSTRUCTIONS', 'TRAVERSING', 'DONE']):
+        for counter, key in enumerate(['WAITING', 'INITIALIZING', 'WAITING_FOR_INSTRUCTIONS', 'TRAVERSING', 'DONE', 'ERROR']):
             self.state_dict.update({key: counter})
         self.state = self.state_dict['WAITING']
 
@@ -57,8 +57,8 @@ class IntersectionNavigation(object):
         self.intersection_signs = [self.tag_info.FOUR_WAY, self.tag_info.RIGHT_T_INTERSECT,
                                    self.tag_info.LEFT_T_INTERSECT, self.tag_info.T_INTERSECTION]
 
-        # nominal stop positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
-        self.nominal_stop_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
+        # nominal start positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
+        self.nominal_start_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
                                        self.tag_info.LEFT_T_INTERSECT: [0.664, 0.400, np.pi],
                                        self.tag_info.RIGHT_T_INTERSECT: [-0.105, 0.121, 0.0 * np.pi],
                                        self.tag_info.T_INTERSECTION: [0.400, -0.105, 0.5 * np.pi]}
@@ -126,9 +126,9 @@ class IntersectionNavigation(object):
                     continue
 
                 # initial position estimate
-                x_init = self.nominal_stop_positions[april_msg.infos[closest_idx].traffic_sign_type][0]
-                y_init = self.nominal_stop_positions[april_msg.infos[closest_idx].traffic_sign_type][1]
-                theta_init = self.nominal_stop_positions[april_msg.infos[closest_idx].traffic_sign_type][2]
+                x_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][0]
+                y_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][1]
+                theta_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][2]
 
                 if april_msg.infos[closest_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
                                                                 self.tag_info.LEFT_T_INTERSECT]:
@@ -184,11 +184,10 @@ class IntersectionNavigation(object):
                 pose_init = [best_x_meas, best_y_meas, best_theta_meas]
                 pose_final = self.ComputeFinalPose(april_msg.infos[closest_idx].traffic_sign_type, turn_type)
 
-                alphas_init = np.linspace(0.1, 1.6, 11)
-                alphas_final = np.linspace(0.1, 1.6, 11)
-                self.pathPlanner.PlanPath(pose_init, alphas_init, pose_final, alphas_final)
-                print(pose_init)
-                print(pose_final)
+                if not self.pathPlanner.PlanPath(pose_init, pose_final):
+                    rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
+                    continue
+
 
                 # debugging
                 if 1:
