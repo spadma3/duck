@@ -95,7 +95,7 @@ namespace apriltags_ros{
       
       std::cout << "check 06" << std::endl;
       detection.draw(cv_ptr->image);
-      std::cout << "check 07" << std::endl;
+      std::cout << "check 07.0" << std::endl;
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       std::cout << "check 07.1" << std::endl;
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
