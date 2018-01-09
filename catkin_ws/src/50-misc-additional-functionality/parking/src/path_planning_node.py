@@ -48,13 +48,22 @@ class parkingPathPlanner():
         self.x_act = pose.x_act #165.0
         self.y_act = pose.y_act #1015
         self.yaw_act = pose.yaw_act #-pi/2
+
+        self.x_act = 137
+        self.y_act = 58
+        self.yaw_act = 0.513057909409
+
+        print "The current x is ", self.x_act
+        print "The current y is ", self.y_act
+        print "The current yaw is ", self.yaw_act
+
         print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
         self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control,queue_size=10)
         self.path_planning(rospy.get_param('~end_space'))
-        print "The computed x path is ", self.px
-        print "The computed y path is ", self.py
-        print "The computed yaw path is ", self.pyaw
+        print "The computed x path is ", self.px[100]
+        print "The computed y path is ", self.py[100]
+        print "The computed yaw path is ", self.pyaw[100]
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.sample_callback)
 
     #  callback for control references
@@ -65,9 +74,10 @@ class parkingPathPlanner():
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
-        self.x_act = pose.x_act
-        self.y_act = pose.y_act
-        self.yaw_act = pose.yaw_act
+        #self.x_act = pose.x_act
+        #self.y_act = pose.y_act
+        #self.yaw_act = pose.yaw_act
+
         #if self.count == 0:
             # plan the path once during first callback
         #    self.path_planning(1)
@@ -84,20 +94,34 @@ class parkingPathPlanner():
             c_ref in [1/m]
         """
         # distance calculation
+        print "The current x is ", self.x_act
+        print "The current y is ", self.y_act
+        print "The current yaw is ", self.yaw_act
+
+
         d_est = float("inf")
         x_proj, y_proj, idx_proj = None, None, None
         for idx, (x, y, yaw) in enumerate(zip(self.px, self.py, self.pyaw)):
             d = sqrt((x-self.x_act)**2 + (y-self.y_act)**2)
+            print "The x is ", x
+            print "The y is ", y
+            print "The yaw is ", yaw
             if d < abs(d_est):
                 d_est = d
                 x_proj, y_proj, yaw_proj, idx_proj = x, y, yaw, idx
         # A:projected point and frame with origin A and “heading“ yaw_proj, I:inertial frame
+        print "The projected x is ", x_proj
+        print "The projected y is ", y_proj
+        print "The projected yaw is ", yaw_proj
+
         R_AI = np.array([[cos(yaw_proj),sin(yaw_proj)],[-sin(yaw_proj),cos(yaw_proj)]])
         I_t_IA = np.array([[x_proj],[y_proj]])
         A_t_AI = np.dot(-R_AI,I_t_IA)
         p_act_A = np.dot(R_AI,np.array([[self.x_act],[self.y_act]]))+A_t_AI
         if p_act_A[1] < 0:
             d_est = -d_est
+
+        print "The distence d is ", d_est
 
         # curvature or straight (only valid for dubins path)
         if ((self.px[idx_proj-1]+self.px[idx_proj+1])/2.0 == self.px[idx_proj]) and ((self.py[idx_proj-1]+self.py[idx_proj+1])/2.0 == self.py[idx_proj]):
@@ -122,6 +146,11 @@ class parkingPathPlanner():
         start_x   = self.x_act
         start_y   = self.y_act
         start_yaw = self.yaw_act
+
+        start_x   = 0
+        start_y   = 0
+        start_yaw = 0
+
         objects = self.define_objects()
         obstacles = self.define_obstacles(objects)
 
