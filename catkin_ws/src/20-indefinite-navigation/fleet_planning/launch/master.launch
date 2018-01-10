@@ -55,7 +55,7 @@
 	<arg name="/localization/gui" default="false"/>
 
 	<arg name="fsm" default="true"/>
-    <arg name="fsm_file_name" default="$(find duckietown)/config/baseline/fsm/fsm_node/default.yaml"/>
+    <arg name="fsm_file_name" default="$(find config)/config/baseline/fsm/fsm_node/default.yaml"/>
 
 	<!-- end switch args -->
 
