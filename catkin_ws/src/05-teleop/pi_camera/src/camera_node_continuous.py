@@ -21,7 +21,7 @@ class CameraNode(object):
         #self.res_h = self.setupParam("~res_h",200)
 
 	self.res_w = self.setupParam("~res_w",640)
-	self.res_h = self.setupParam("~res_h",300)
+	self.res_h = self.setupParam("~res_h",400)
         # self.img_low_framerate = self.setupParam("~img_low_framerate",30.0)
         # self.img_high_framerate = self.setupParam("~img_high_framerate",5.0)
         # self.img_low_res_w = self.setupParam("~img_low_res_w",320)
