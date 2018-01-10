@@ -11,7 +11,7 @@ import tf2_ros
 from fleet_planning.generate_duckietown_map import graph_creator
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
-
+from duckietown_msgs.msg import FSMState
 
 class ActionsDispatcherNode:
     _world_frame = 'world'
@@ -23,6 +23,7 @@ class ActionsDispatcherNode:
         map_dir = rospy.get_param('/map_dir')
         map_name = rospy.get_param('/map_name')
 
+        self.duckiebot_state = None
         self.actions = []
         self.path = []
         self.target_node = None
@@ -30,7 +31,7 @@ class ActionsDispatcherNode:
 
         # Subscribers:
         self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.new_duckiebot_mission)
-        self.sub_red_line = rospy.Subscriber("~/" + self.duckiebot_name + "/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
+        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode", FSMState, self.update_state, queue_size=1)
 
         # location listener
         self.listener_transform = tf.TransformListener()
@@ -51,8 +52,23 @@ class ActionsDispatcherNode:
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def localize_at_red_line(self, message):
-        if rospy.get_time() - self.last_red_line < 5.0 and message is not None:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
+    def update_state(self, msg):
+        state = msg.state
+
+        if state == self.duckiebot_state:
+            # nothing new happened
+            return
+
+        self.duckiebot_state = state
+
+        if self.duckiebot_state == 'ARRIVE_AT_STOP_LINE':
+            self.localize_at_red_line(is_repeating=False)
+
+
+
+
+    def localize_at_red_line(self, is_repeating):
+        if rospy.get_time() - self.last_red_line < 5.0 and is_repeating:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
             rospy.logwarn('Location not updated, red line too soon detected after last one.')
             return
         self.last_red_line = rospy.get_time()
@@ -86,7 +102,7 @@ class ActionsDispatcherNode:
         self.pub_location_node.publish(ByteMultiArray(data=location_message))
 
         if self.target_node is None or self.target_node == node:
-            self.localize_at_red_line(None) # repeat until new duckiebot mission was published # TODO: improve this?
+            self.localize_at_red_line(is_repeating=True)  # repeat until new duckiebot mission was published
 
         else:
             self.graph_search(node, self.target_node)
