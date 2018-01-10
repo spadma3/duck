@@ -81,7 +81,7 @@ class TaxiCentralNode:
         """unregister given duckiebot, remove from map drawing. If it currently has been assigned a customer,
         put customer request back to _pending_customer_requests"""
 
-        request = duckiebot.pop_customer_request
+        request = duckiebot.pop_customer_request()
         if request is not None:
             self._pending_customer_requests[:0] = [request]  # prepend, high priority
 

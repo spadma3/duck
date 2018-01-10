@@ -50,6 +50,14 @@ class VirtualDuckiebotNode:
         resp = send_location(name, location, '')
         return 'success'
 
+    def remove_duckiebot(self, request):
+
+        if request.name not in self._duckiebots.iterkeys():
+            return "no such duckiebot"
+
+        del self._duckiebots[request.name]
+        return 'success'
+
     def update_locations(self, msg):
         rospy.loginfo('Go one timestep ahead. Update locations')
         for db in self._duckiebots.itervalues():
@@ -118,6 +126,12 @@ if __name__ == "__main__":
         'create_duckiebot',
         VirtualDuckiebot,
         virtual_duckiebot_node.create_duckiebot
+    )
+
+    remove_duckiebot_service = rospy.Service(
+        'remove_duckiebot',
+        VirtualDuckiebot,
+        virtual_duckiebot_node.remove_duckiebot
     )
 
     rospy.on_shutdown(virtual_duckiebot_node.onShutdown)
