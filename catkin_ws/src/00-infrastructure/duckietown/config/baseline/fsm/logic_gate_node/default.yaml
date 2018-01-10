@@ -16,10 +16,12 @@ events:
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
     trigger: True
+    default: False
   parallel_autonomy_off:
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
     trigger: False
+    default: True
   intersection_go_implicit:
     topic: "implicit_coord/flag_go_wait"
     msg_type: "BoolStamped"
@@ -41,11 +43,11 @@ events:
     msg_type: "BoolStamped"
     trigger: False
   deep_lane_following_on: 
-    topic: "joy_mapper_node/joystick_override"
+    topic: "joy_mapper_node/deep_learn_toggle"
     msg_type: "BoolStamped"
     trigger: True
   deep_lane_following_off: 
-    topic: "joy_mapper_node/joystick_override"
+    topic: "joy_mapper_node/deep_learn_toggle"
     msg_type: "BoolStamped"
     trigger: False
   intersection_done:

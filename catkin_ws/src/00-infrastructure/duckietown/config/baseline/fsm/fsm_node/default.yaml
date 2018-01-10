@@ -2,10 +2,10 @@
 initial_state: "NORMAL_JOYSTICK_CONTROL"
 
 events: # Maps from subscribing topic to signal ids
-  joystick_override_on: 
-    topic: "joy_mapper_node/joystick_override"
-    msg_type: "BoolStamped"
-    trigger: True
+  # joystick_override_on: 
+  #   topic: "joy_mapper_node/joystick_override"
+  #   msg_type: "BoolStamped"
+  #   trigger: True
   # joystick_override_off: 
   #   topic: "joy_mapper_node/joystick_override"
   #   msg_type: "BoolStamped"
@@ -15,7 +15,6 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
   parallel_autonomy_off:
-    default: True
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
     trigger: False
@@ -60,6 +59,14 @@ events: # Maps from subscribing topic to signal ids
     topic: "logic_gate_node/joystick_override_off_and_deep_lane_on"
     msg_type: "BoolStamped"
     trigger: True
+  deep_lane_following_on: 
+    topic: "joy_mapper_node/deep_learn_toggle"
+    msg_type: "BoolStamped"
+    trigger: True
+  deep_lane_following_off: 
+    topic: "joy_mapper_node/deep_learn_toggle"
+    msg_type: "BoolStamped"
+    trigger: False
   # obstacle_detection:
   #   topic: "obstacle_safety_node/object_too_close"
   #   msg_type: "BoolStamped"
@@ -223,6 +230,7 @@ states:
   DEEP_LANE_FOLLOWING:
     transitions:
       at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
+      deep_lane_following_off: "LANE_FOLLOWING"
     active_nodes:
       - decoder_node
       - line_detector_node
