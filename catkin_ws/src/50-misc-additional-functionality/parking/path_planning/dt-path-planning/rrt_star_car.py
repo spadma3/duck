@@ -218,8 +218,13 @@ class RRT():
                 #  plt.plot([node.x, self.nodeList[node.parent].x], [
                 #  node.y, self.nodeList[node.parent].y], "-g")
 
-        for (ox, oy, size) in obstacleList:
-            plt.plot(ox, oy, "ok", ms=30 * size)
+        for obstacle in obstacleList:
+            if obstacle[0] == "circle":
+                (ox, oy, size) = obstacle[1:]
+                plt.plot(ox, oy, "ok", ms=30 * size)
+            elif obstacle[1] == "rectangle":
+                (ox, oy, odx, ody) = obstacle[1:]
+                print("implement rectangle drawing")
 
         dubins_path_planning.plot_arrow(
             self.start.x, self.start.y, self.start.yaw)
@@ -242,14 +247,26 @@ class RRT():
         return minind
 
     def CollisionCheck(self, node, obstacleList):
+        # rectangle, x, y, dx, dy
+        # circle, x, y, r
 
-        for (ox, oy, size) in obstacleList:
-            for (ix, iy) in zip(node.path_x, node.path_y):
-                dx = ox - ix
-                dy = oy - iy
-                d = dx * dx + dy * dy
-                if d <= size ** 2:
-                    return False  # collision
+        for obstacle in obstacleList:
+            if obstacle[0] == "circle":
+                (ox, oy, size) = obstacle[1:]
+                for (ix, iy) in zip(node.path_x, node.path_y):
+                    dx = ox - ix
+                    dy = oy - iy
+                    d = dx * dx + dy * dy
+                    if d <= size ** 2:
+                        return False  # collision
+            elif obstacle[0] == "rectangle":
+                (ox, oy, odx, ody) = obstacle[1:]
+                print('Implement collision check for rectangle')
+                return False
+            else:
+                print('Object {} not found!'.format(obstacle[0]))
+                print(obstacle[0])
+
 
         return True  # safe
 
@@ -278,12 +295,13 @@ if __name__ == '__main__':
 
     # ====Search Path with RRT====
     obstacleList = [
-        (5, 5, 1),
-        (3, 6, 2),
-        (3, 8, 2),
-        (3, 10, 2),
-        (7, 5, 2),
-        (9, 5, 2)
+        ("circle", 5, 5, 1),
+        ("circle", 3, 6, 2),
+        ("circle", 3, 8, 2),
+        ("circle", 3, 10, 2),
+        ("circle", 7, 5, 2),
+        ("circle", 9, 5, 2),
+        # ("rectangle",3,4,1,2)
     ]  # [x,y,size(radius)]
 
     # Set Initial parameters
