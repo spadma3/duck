@@ -110,9 +110,6 @@ class Graph(object):
         g.body.append(r'label = "\nduckiegraph"')
         g.body.append('fontsize=16')
 
-        print 'highlight edges'
-        print highlight_edges
-
         for node in self._nodes:
             node_name = self.node_label_fn(node)
             node_pos = "%f,%f!" % (self.node_positions[node][0], self.node_positions[node][1])

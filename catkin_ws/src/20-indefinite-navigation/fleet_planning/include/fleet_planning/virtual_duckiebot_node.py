@@ -57,7 +57,6 @@ class VirtualDuckiebotNode:
                 continue
 
             db_path = [p for p in db.path if p.isdigit() and int(p)%2 == 1]
-            rospy.logwarn('this is {}'.format(db_path))
             for i, p in enumerate(db_path):
                 if p == db.location:
 
@@ -65,10 +64,14 @@ class VirtualDuckiebotNode:
                         db.path = None
                     else:
                         db.location = db_path[i+1]
-                        rospy.wait_for_service('send_location_information', timeout=2.0)
-                        send_location = rospy.ServiceProxy('send_location_information', VirtualDuckiebotLocation)
-                        resp = send_location(db.name, int(db.location), ','.join(db.path))
-                        self._duckiebots.update({db.name: db})
+                        self.update_location(db)
+                        break
+
+    def update_location(self, duckiebot):
+        rospy.wait_for_service('send_location_information', timeout=1.0)
+        send_location = rospy.ServiceProxy('send_location_information', VirtualDuckiebotLocation)
+        resp = send_location(duckiebot.name, int(duckiebot.location), ','.join(duckiebot.path))
+        self._duckiebots.update({duckiebot.name: duckiebot})
 
     def send_location_information(self, req):
         rospy.loginfo("Will send location information")
@@ -93,12 +96,12 @@ class VirtualDuckiebotNode:
 
         source_node = self._duckiebots[name].location
         # calculate path
-        print 'Requesting map for src: ', source_node, ' and target: ', target_node
         rospy.wait_for_service('/laptop/graph_search', timeout=1.0)
 
         graph_search = rospy.ServiceProxy('/laptop/graph_search', GraphSearch)
         resp = graph_search(str(source_node), str(target_node))
         self._duckiebots[name].path = resp.path
+        self.update_location(self._duckiebots[name])
 
 
 if __name__ == "__main__":
