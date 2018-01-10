@@ -54,7 +54,25 @@
 	<arg name="/localization/map_name" default="tags_tiles_lab" />
 	<arg name="/localization/gui" default="false"/>
 
+	<arg name="fsm" default="true"/>
+
 	<!-- end switch args -->
+
+	<group if="$(arg fsm)">
+		<!-- FSM -->
+		<!-- no remapping for FSM - full topic names specified in params yaml -->
+		<include file="$(find fsm)/launch/fsm_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg fsm_file_name)"/>
+		</include>
+        
+		<include file="$(find fsm)/launch/logic_gate_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+		</include>
+	</group>
 	
 	<!-- Enable statistics -->
 	<param name="enable_statistics" value="$(arg statistics)"/>
