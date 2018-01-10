@@ -61,7 +61,7 @@ class AprilPostPros(object):
 
         self.sub_prePros        = rospy.Subscriber("~apriltags_in", AprilTagDetectionArray, self.callback, queue_size=1)
         self.pub_postPros       = rospy.Publisher("~apriltags_out", AprilTagsWithInfos, queue_size=1)
-        self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
+        self.pub_visualize = rospy.P    ublisher("~tag_pose", PoseStamped, queue_size=1)
 
         rospy.loginfo("[%s] has started", self.node_name)
 
