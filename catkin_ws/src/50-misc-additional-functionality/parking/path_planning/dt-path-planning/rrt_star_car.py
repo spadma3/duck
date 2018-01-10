@@ -64,7 +64,6 @@ class RRT():
 
             if animation and i % 5 == 0:
                 self.DrawGraph(rnd=rnd)
-                matplotrecorder.save_frame()  # save each frame
 
         # generate coruse
         lastIndex = self.get_best_last_index()
@@ -302,8 +301,6 @@ class Node():
 if __name__ == '__main__':
     print("Start rrt start planning")
     import matplotlib.pyplot as plt
-    import matplotrecorder
-    matplotrecorder.donothing = True # recorder is not tested
     fig = plt.figure()
 
     # ====Search Path with RRT====
@@ -330,10 +327,4 @@ if __name__ == '__main__':
     plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
     plt.grid(True)
     plt.pause(0.001)
-
-    for i in range(10):
-        matplotrecorder.save_frame()  # save each frame
-
     plt.show()
-
-    matplotrecorder.save_movie("animation.gif", 0.1)
