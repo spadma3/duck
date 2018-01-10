@@ -8,23 +8,23 @@
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
     <arg name="rect" default="false" />
 
-    <arg name="vFin" default="60" doc="Final command value for straight calibration."/>
-    <arg name="step" default="5" doc="Step size for straight calibration."/>
-    <arg name="stepTime" default="0.5" doc="Step duration for straight calibration."/>
+    <arg name="vFin" default="0.5" doc="Final command value for straight calibration."/>
+    <arg name="Nstep" default="180" doc="Step size for straight calibration."/>
+    <!-- arg name="stepTime" default="0.5" doc="Step duration for straight calibration."/ -->
 
-    <arg name="k1" default="0.15" doc="Mean command for sine calibration."/>
-    <arg name="k2" default="0.09" doc="Amplitude of sines."/>
+    <arg name="k1" default="0.06" doc="Mean command for sine calibration."/>
+    <arg name="k2" default="0.05" doc="Amplitude of sines."/>
     <arg name="omega" default="0.003" doc="Angular velocity."/>   
-    <arg name="duration" default="10000" doc="Duration of sine calibration."/>
+    <arg name="duration" default="3500" doc="Duration of sine calibration."/>
 
-    <node pkg="rosbag" type="record" args="record -O /media/logs/calibration -a" name="record" output="screen"/>
+    <node pkg="rosbag" type="record" args="record -O /media/logs/$(arg veh)_calibration -a" name="record" output="screen"/>
 
     <node  pkg="calibration" type="publish_control.py" name="publish_control" output="screen" clear_params="true" required="true">
                  <param name="veh" value="$(arg veh)"/>
 
 		 <param name="vFin" value="$(arg vFin)"/>
-		 <param name="step" value="$(arg step)"/>
-		 <param name="stepTime" value="$(arg stepTime)"/>
+		 <param name="Nstep" value="$(arg Nstep)"/>
+		 <!-- param name="stepTime" value="$(arg stepTime)"/ -->
 		
 		 <param name="k1" value="$(arg k1)"/>
                  <param name="k2" value="$(arg k2)"/>

@@ -3,7 +3,7 @@ import rospy
 import rosnode
 from std_msgs.msg import String #Imports msg
 from duckietown_msgs.msg import WheelsCmdStamped, Twist2DStamped
-from math import sin, pi 
+from math import sin, pi, cos
 import os 
 
 class calibration:
@@ -17,13 +17,14 @@ class calibration:
                 self.pub_wheels_cmd = rospy.Publisher(publisher,WheelsCmdStamped,queue_size=1)
 
 		self.vFin = rospy.get_param("~vFin")
-		self.step = rospy.get_param("~step")
-		self.stepTime = rospy.get_param("~stepTime")
+		self.Nstep = rospy.get_param("~Nstep")
+		#self.stepTime = rospy.get_param("~stepTime")
 
 		self.k1 = rospy.get_param("~k1")
                 self.k2 = rospy.get_param("~k2")
                 self.omega = rospy.get_param("~omega")
 		self.duration = rospy.get_param("~duration")		
+		self.frequency = 30.0
 
 	def sendCommand(self, vel_right, vel_left):
 		# Put the wheel commands in a message and publish
@@ -36,9 +37,10 @@ class calibration:
 	def StraightCalib(self):
 		rospy.loginfo("Straight calibration starts")
 
-		for v in range(0,self.vFin,self.step):
-			self.sendCommand(v/100.0, v/100.0)
-			rospy.sleep(self.stepTime)
+		for n in range(1,self.Nstep+1):
+			v=self.vFin/self.Nstep*n
+			self.sendCommand(v, v)
+			rospy.sleep(1/self.frequency)
 		self.sendCommand(0, 0)
 
 
@@ -46,8 +48,8 @@ class calibration:
 		rospy.loginfo("Sin calibration starts") 
 
 		for t in range(0,self.duration,10):
-			self.sendCommand(self.k1+self.k2*sin(self.omega*t),self.k1-self.k2*sin(self.omega*t))
-			rospy.sleep(0.01)
+			self.sendCommand(self.k1+self.k2*cos(self.omega*t),self.k1-self.k2*cos(self.omega*t))
+			rospy.sleep(1/self.frequency)
 		
 		self.sendCommand(0,0)
 
@@ -61,4 +63,4 @@ if __name__ == '__main__':
 	rospy.sleep(10)
 	calib.SinCalib()
 	rospy.loginfo("Calibration finished")
-	os.system("rosnode kill /record")
+	#os.system("rosnode kill /record")
