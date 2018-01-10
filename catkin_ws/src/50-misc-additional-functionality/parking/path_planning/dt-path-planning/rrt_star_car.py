@@ -5,6 +5,8 @@
 
 @author: AtsushiSakai(@Atsushi_twi)
 
+@adapted: Samuel Nyffenegger (samueln@ethz.ch)
+
 @license: MIT
 
 """
@@ -288,9 +290,10 @@ if __name__ == '__main__':
     start = [0.0, 0.0, math.radians(0.0)]
     goal = [10.0, 10.0, math.radians(0.0)]
 
-    rrt = RRT(start, goal, randArea=[-2.0, 15.0], obstacleList=obstacleList)
+    rrt = RRT(start, goal, randArea=[-2.0, 15.0], obstacleList=obstacleList, maxIter=50)
     path = rrt.Planning(animation=True)
 
+    # start, goal, obstacleList, randArea, goalSampleRate=10, maxIter=1000
     # Draw final path
     rrt.DrawGraph()
     plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
