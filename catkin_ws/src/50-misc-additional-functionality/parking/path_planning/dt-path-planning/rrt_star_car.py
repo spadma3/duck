@@ -209,7 +209,11 @@ class RRT():
         Draw Graph
         """
         import matplotlib.pyplot as plt
+        import matplotlib.patches as patches
         plt.clf()
+        ax = fig.add_subplot(111)
+
+
         if rnd is not None:
             plt.plot(rnd.x, rnd.y, "^k")
         for node in self.nodeList:
@@ -221,10 +225,14 @@ class RRT():
         for obstacle in obstacleList:
             if obstacle[0] == "circle":
                 (ox, oy, size) = obstacle[1:]
-                plt.plot(ox, oy, "ok", ms=30 * size)
-            elif obstacle[1] == "rectangle":
+                ax.add_patch(patches.Circle((ox,oy),size,fc="k",ec="k"))
+
+            elif obstacle[0] == "rectangle":
                 (ox, oy, odx, ody) = obstacle[1:]
-                print("implement rectangle drawing")
+                ax.add_patch( patches.Rectangle( (ox, oy), odx, ody, fc="k"))
+
+            else:
+                print("Obstacle {} not found.\n".format(obstacle))
 
         dubins_path_planning.plot_arrow(
             self.start.x, self.start.y, self.start.yaw)
@@ -235,7 +243,7 @@ class RRT():
         plt.grid(True)
         plt.pause(0.01)
 
-        #  plt.show()
+        # plt.show()
         #  input()
 
     def GetNearestListIndex(self, nodeList, rnd):
@@ -250,6 +258,10 @@ class RRT():
         # rectangle, x, y, dx, dy
         # circle, x, y, r
 
+        for (ix, iy) in zip(node.path_x, node.path_y):
+            if ix < self.minrand or ix > self.maxrand or iy < self.minrand or iy > self.maxrand:
+                return False
+
         for obstacle in obstacleList:
             if obstacle[0] == "circle":
                 (ox, oy, size) = obstacle[1:]
@@ -261,12 +273,12 @@ class RRT():
                         return False  # collision
             elif obstacle[0] == "rectangle":
                 (ox, oy, odx, ody) = obstacle[1:]
-                print('Implement collision check for rectangle')
-                return False
+                for (ix, iy) in zip(node.path_x, node.path_y):
+                    if (ox < ix and ix < ox + odx) and (oy < iy and iy < oy + ody):
+                        return False
+
             else:
                 print('Object {} not found!'.format(obstacle[0]))
-                print(obstacle[0])
-
 
         return True  # safe
 
@@ -292,6 +304,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import matplotrecorder
     matplotrecorder.donothing = True
+    fig = plt.figure()
 
     # ====Search Path with RRT====
     obstacleList = [
@@ -301,7 +314,7 @@ if __name__ == '__main__':
         ("circle", 3, 10, 2),
         ("circle", 7, 5, 2),
         ("circle", 9, 5, 2),
-        # ("rectangle",3,4,1,2)
+        ("rectangle", 1, 1, 2, 1),
     ]  # [x,y,size(radius)]
 
     # Set Initial parameters

@@ -276,8 +276,7 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
     0.11*lot_width, 0.06*lot_width, fc="r", ec="r")
     dpp.plot_arrow(end_x, end_y, end_yaw,
     0.11*lot_width, 0.06*lot_width, fc="g", ec="g")
-    ax.add_patch( patches.Rectangle( (0.0, 0.0),
-    lot_width, lot_height, fill=False ))
+    ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fill=False ))
     # plt.legend()
     plt.axis("equal")
     plt.xlim([-visual_boundairy,lot_height+visual_boundairy])
@@ -305,11 +304,9 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
 
     for obj in objects:
         if obj[5]:
-            ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
-            obj[2], obj[3], fc=obj[4]))
+            ax.add_patch( patches.Rectangle( (obj[0], obj[1]), obj[2], obj[3], fc=obj[4]))
         else:
-            ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
-            obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
+            ax.add_patch( patches.Rectangle( (obj[0], obj[1]), obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
     ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fc=(0.3,0.3,0.3),fill=False))
 
     if close_itself:
