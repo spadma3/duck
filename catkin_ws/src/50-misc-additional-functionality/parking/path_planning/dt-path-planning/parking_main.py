@@ -283,7 +283,7 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
     goal = [end_x, end_y, end_yaw]
 
     rrt = rrt_star.RRT(start, goal, randArea=[0.0, lot_width], obstacleList=obstacleList,
-    maxIter=100, fig=fig, curvature=curvature, radius_graph_refinement=lot_width/2.0)
+    maxIter=100, fig=fig, curvature=curvature, radius_graph_refinement=lot_width/4.0)
     path = rrt.Planning(animation=True)
 
     # Draw final path

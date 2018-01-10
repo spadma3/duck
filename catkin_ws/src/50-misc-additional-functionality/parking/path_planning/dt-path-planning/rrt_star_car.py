@@ -182,7 +182,8 @@ class RRT():
 
     def find_near_nodes(self, newNode):
         nnode = len(self.nodeList)
-        r = 50.0 * math.sqrt((math.log(nnode) / nnode))
+        # r = 50.0 * math.sqrt((math.log(nnode) / nnode))
+        r = self.radius_graph_refinement
         #  r = self.expandDis * 5.0
         dlist = [(node.x - newNode.x) ** 2 +
                  (node.y - newNode.y) ** 2 +
