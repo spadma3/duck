@@ -1,12 +1,12 @@
 from collections import namedtuple, OrderedDict
 import os
+import random
 
-from bs4.element import Tag, NavigableString
+from bs4.element import Tag
 
 import duckietown_utils as dtu
 from duckietown_utils.download import get_dropbox_urls
 from easy_logs.app_with_logs import D8AppWithLogs
-from easy_logs.cli.easy_logs_summary_imp import get_logs_description_table
 
 from .easy_logs_summary_imp import format_logs
 
@@ -40,9 +40,15 @@ class Gallery(D8AppWithLogs):
         logs = db.query(query)
 
         logs_valid = OrderedDict()
+        ninvalid = 0
+        length_invalid = 0.0
         for log_name, log in logs.items():
             if log.valid:
                 logs_valid[log_name] = log
+            else:
+                ninvalid += 1
+                if log.length is not None:
+                    length_invalid += log.length
         logs = logs_valid
 
         self.info('Found %d valid logs.' % len(logs))
@@ -54,8 +60,10 @@ class Gallery(D8AppWithLogs):
         fn_html = os.path.join(out, 'index.html')
 
         length = 0
+        vehicles = set()
         for log_name, log in logs.items():
             length += log.length
+            vehicles.add(log.vehicle)
 
         html = Tag(name='html')
         body = Tag(name='body')
@@ -65,6 +73,8 @@ class Gallery(D8AppWithLogs):
         link.attrs['type'] = 'text/css'
         link.attrs['rel'] = 'stylesheet'
         link.attrs['href'] = 'style.css'
+        title = Tag(name='title')
+        title.append('Duckietown Logs Database')
         head.append(link)
         html.append(head)
         html.append(body)
@@ -73,16 +83,38 @@ class Gallery(D8AppWithLogs):
         h.append('Duckietown Logs Database')
         body.append(h)
 
-        c = 'Indexed %d logs, for a total length of %.1f hours.' % (len(logs), length / 3600.0)
+        c = 'Showing %d logs from %d different Duckiebots, for a total length of %.1f hours.' % (len(logs), len(vehicles), length / 3600.0)
+#        c += '\nExcluded %d logs marked invalid totaling %.1f hours.' % (ninvalid, length_invalid / 3600.0)
         p = Tag(name='p')
         p.append(c)
         body.append(p)
 
+        t = summary_table(logs, out)
+        body.append(t)
+
         body.append(html_table_from_table(logs, out))
 
-#        make_sections(body, logs, out)
+        make_sections(body, logs, out)
 
         dtu.write_data_to_file(str(html), fn_html)
+
+
+def summary_table(logs, out):
+    d = Tag(name='div')
+    d.attrs['id'] = 'panvision'
+    seq = list(logs)
+    random.shuffle(seq)
+    for id_log in seq:
+        rel = get_small_video(out, id_log)
+        if rel:
+            video = video_for_source(rel)
+            a = Tag(name='a')
+            a.attrs['href'] = '#%s' % id_log
+            a.attrs['class'] = 'smallicon'
+            a.append(video)
+            d.append(a)
+            d.append("\n")
+    return d
 
 
 def html_table_from_table(logs, destination):
@@ -95,6 +127,7 @@ def html_table_from_table(logs, destination):
     for i, (id_log, log) in enumerate(logs.items()):
         trh, tr = get_row(i, id_log, log, destination)
         tbody.append(tr)
+        tbody.append('\n')
     thead.append(trh)
     return res
 
@@ -223,45 +256,47 @@ def get_row(i, id_log, log, destination):
     else:
         tr.append(td('-'))
 
-    a = Tag(name='a')
-    a.append(log.log_name)
-    a.attrs['href'] = '#%s' % log.log_name
+#    tr.append(td(log.log_name))
 
-    trh.append(td('ID'))
-    tr.append(td(a))
+#    trh.append(td('video'))
 
-    trh.append(td('video'))
+    f = Tag(name='td')
 
     rel = get_large_video(id_log, destination)
     if rel:
         a = Tag(name='a')
         a.attrs['href'] = rel
         a.append('video')
-        tr.append(td(a))
-    else:
-        tr.append(td(''))
 
-    trh.append(td('thumbnails'))
+        f.append(a)
 
     rel = get_thumbnail_for_video(id_log, destination)
     if rel:
+#        f.append(Tag(name='br'))
+        f.append(' ')
+
         a = Tag(name='a')
         a.attrs['href'] = rel
         a.append('thumbnails')
-        tr.append(td(a))
-    else:
-        tr.append(td(''))
-
-    trh.append(td('bag'))
+        f.append(a)
 
     url = get_download_url(log.log_name)
     if url is not None:
+#        f.append(Tag(name='br2'))
+        f.append(' ')
+
         a = Tag(name='a')
         a.attrs['href'] = url
         a.append('bag')
-        tr.append(td(a))
-    else:
-        tr.append(td(''))
+        f.append(a)
+
+    trh.append(td('misc'))
+    tr.append(f)
+
+#
+#        tr.append(td(a))
+#    else:
+#        tr.append(td(''))
 
     trh.append(td('date'))
     tr.append(td(log.date))
@@ -275,12 +310,24 @@ def get_row(i, id_log, log, destination):
 
     trh.append(td('vehicle'))
     tr.append(td(log.vehicle))
-    if log.valid:
-        sr = 'Yes.'
-    else:
-        sr = log.error_if_invalid
-    trh.append(td('valid'))
-    tr.append(td(sr))
+
+    if False:
+        if log.valid:
+            sr = 'Yes.'
+        else:
+            sr = log.error_if_invalid
+
+        trh.append(td('valid'))
+        tr.append(td(sr))
+
+    trh.append(td('ID'))
+
+    a = Tag(name='a')
+    a.append(log.log_name)
+    a.attrs['href'] = '#%s' % log.log_name
+
+    tr.append(td(a))
+
     if not log.valid:
         tr.attrs['class'] = ['invalid']
     else:
@@ -289,7 +336,7 @@ def get_row(i, id_log, log, destination):
     return trh, tr
 
 
-def video_for_source(rel):
+def video_for_source_2(rel):
     video = Tag(name='video')
     video.attrs['width'] = 64
     video.attrs['height'] = 48
@@ -302,7 +349,7 @@ def video_for_source(rel):
     return video
 
 
-def video_for_source_2(rel):
+def video_for_source(rel):
     video = Tag(name='img')
     video.attrs['width'] = 64
     video.attrs['height'] = 48
@@ -311,7 +358,10 @@ def video_for_source_2(rel):
 
 
 def get_small_video(destination, id_log):
-    rel = 'small/%s.mp4' % id_log
+#    rel = 'small/%s.mp4' % id_log
+    rel = 'small-gifs/%s.gif' % id_log
+#    rel = 'small-webm/%s.webm' % id_log
+
     fn = os.path.join(destination, rel)
     if os.path.exists(fn):
         return rel
