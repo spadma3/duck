@@ -45,7 +45,7 @@ class LocalizationNode(object):
     def tag_callback(self, msg_tag):
         # Listen for the transform of the tag in the world
         avg = PoseAverage.PoseAverage()
-        print "test1"
+        print ("test1")
         for tag in msg_tag.detections:
             try:
                 print "test2"
