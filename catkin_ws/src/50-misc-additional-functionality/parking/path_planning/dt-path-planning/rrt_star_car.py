@@ -303,7 +303,7 @@ if __name__ == '__main__':
     print("Start rrt start planning")
     import matplotlib.pyplot as plt
     import matplotrecorder
-    matplotrecorder.donothing = True
+    matplotrecorder.donothing = True # recorder is not tested
     fig = plt.figure()
 
     # ====Search Path with RRT====
