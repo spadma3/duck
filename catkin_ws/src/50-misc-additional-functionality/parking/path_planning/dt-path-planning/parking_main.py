@@ -6,6 +6,7 @@ Samuel Nyffenegger
 """
 
 import dubins_path_planning as dpp
+import rrt_star_car as rrt_star
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
@@ -29,7 +30,7 @@ straight_in_parking_space = True    # robot drives last forward bit straigt (rob
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
 allow_backwards_on_circle = False   # use this later together with reeds sheep
-curvature = 120                     # mm minimal turning radius
+curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
 
@@ -149,6 +150,7 @@ def define_obstacles(objects):
     return obstacles
 
 
+
 # dubins path planning
 def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw):
     # heuristics using path primitives
@@ -221,6 +223,104 @@ def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw):
 
     return px, py, pyaw
 
+# RRT_star_path_planning
+def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles):
+    # heuristics using path primitives
+    detect_space_14 = (start_y < space_length and  (abs(start_yaw+radians(90))<radians(45)))
+    detect_space_56 = lot_height- start_y < space_length and  abs(start_yaw-radians(90))<radians(45) and lot_width/2.0 < start_x
+    if primitive_backwards and (detect_space_14 or detect_space_56):
+        dt = distance_backwards/n_nodes_primitive
+        px_backwards = [start_x]
+        py_backwards = [start_y]
+        pyaw_backwards = [start_yaw]
+        for i in range(n_nodes_primitive):
+            px_backwards.append(px_backwards[-1] - dt * cos(pyaw_backwards[-1]))
+            py_backwards.append(py_backwards[-1] - dt * sin(pyaw_backwards[-1]))
+            pyaw_backwards.append(pyaw_backwards[-1])
+        start_x = px_backwards[-1]
+        start_y = py_backwards[-1]
+        start_yaw = pyaw_backwards[-1]
+
+    start_x_0, start_y_0, start_yaw_0 = pose_from_key(0)
+    straight_at_entrance_ = (straight_at_entrance and abs(start_x-start_x_0)<1.0 and abs(start_y-start_y_0)<1.0 and abs(start_yaw-start_yaw_0)<1.0)
+    if straight_at_entrance_:
+        dt = space_length/2.0/n_nodes_primitive
+        px_straight_entrance = [start_x]
+        py_straight_entrance = [start_y]
+        pyaw_straight_entrance = [start_yaw]
+        for i in range(n_nodes_primitive):
+            px_straight_entrance.append(px_straight_entrance[-1] + dt * cos(pyaw_straight_entrance[-1]))
+            py_straight_entrance.append(py_straight_entrance[-1] + dt * sin(pyaw_straight_entrance[-1]))
+            pyaw_straight_entrance.append(pyaw_straight_entrance[-1])
+        start_x = px_straight_entrance[-1]
+        start_y = py_straight_entrance[-1]
+        start_yaw = pyaw_straight_entrance[-1]
+
+    if straight_in_parking_space:
+        dt = space_length/2.0/n_nodes_primitive
+        px_straight = [end_x]
+        py_straight = [end_y]
+        pyaw_straight = [end_yaw]
+        for i in range(n_nodes_primitive):
+            px_straight.append(px_straight[-1] - dt * cos(pyaw_straight[-1]))
+            py_straight.append(py_straight[-1] - dt * sin(pyaw_straight[-1]))
+            pyaw_straight.append(pyaw_straight[-1])
+        end_x = px_straight[-1]
+        end_y = py_straight[-1]
+        end_yaw = pyaw_straight[-1]
+        px_straight.reverse()
+        py_straight.reverse()
+        pyaw_straight.reverse()
+
+    # actual path plannign using RRT* with dubin curves as steering
+    fig = plt.figure()
+
+    # ====Search Path with RRT====
+    obstacleList = obstacles
+
+    # Set Initial parameters
+    start = [start_x, start_y, start_yaw]
+    goal = [end_x, end_y, end_yaw]
+
+    rrt = rrt_star.RRT(start, goal, randArea=[0.0, lot_width], obstacleList=obstacleList,
+    maxIter=100, fig=fig, curvature=curvature, radius_graph_refinement=lot_width/2.0)
+    path = rrt.Planning(animation=True)
+
+    # Draw final path
+    rrt.DrawGraph()
+    plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
+    plt.grid(True)
+    plt.pause(0.001)
+    plt.show()
+
+    # convert
+    px, py, pyaw = [], [], []
+    for (x, y) in path:
+        px.append(x)
+        py.append(y)
+        pyaw.append(x*0.0) # TODO: change this
+    px = list(reversed(px))
+    py = list(reversed(py))
+    pyaw = list(reversed(pyaw))
+
+    # add path primitives to path
+    if primitive_backwards and (detect_space_14 or detect_space_56):
+        px = px_backwards + px
+        py = py_backwards + py
+        pyaw = pyaw_backwards + pyaw
+
+    if straight_at_entrance_:
+        px = px_straight_entrance + px
+        py = py_straight_entrance + py
+        pyaw = pyaw_straight_entrance + pyaw
+
+    if straight_in_parking_space:
+        px = px + px_straight
+        py = py + py_straight
+        pyaw = pyaw + pyaw_straight
+
+    return px, py, pyaw
+
 # collision check
 def collision_check(px, py, obstacles, start_number, end_number):
     found_path = True
@@ -265,7 +365,8 @@ def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw,
 def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path):
     if close_itself:
         plt.clf()
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     if found_path:
         plt.plot(px, py,'g-',lw=3)
     else:
@@ -321,21 +422,22 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
 
 def path_planning(start_number=None, end_number=None):
     """
-    Stage 1: dubins path
+    Problem definition and heuristics
     """
-    print('\n---------- Stage 1: Dubins path ----------')
-    # define problem
     start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
     objects = define_objects()
     obstacles = define_obstacles(objects)
 
-    # path planning and collision check with dubins path
+    """
+    Stage 1: Dubins path
+    """
+    print('\n-------------------- Stage 1: Dubins --------------------')
+
     px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
     if found_path:
         # show results
-        # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
         if ploting:
             do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
         return
@@ -343,11 +445,18 @@ def path_planning(start_number=None, end_number=None):
     """
     Stage 2: RRT*
     """
-    print('\n---------- Stage 2: RRT* ----------')
+    print('\n-------------------- Stage 2: RRT* --------------------')
 
+    px, py, pyaw = RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles)
+    found_path = collision_check(px, py, obstacles, start_number, end_number)
 
-
-
+    if found_path:
+        # show results
+        if ploting:
+            do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+            print('')
+    else:
+        print('RRT* did not find a path! \n')
 
 
 """
