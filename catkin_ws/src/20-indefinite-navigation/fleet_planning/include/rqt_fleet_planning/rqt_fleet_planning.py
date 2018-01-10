@@ -41,7 +41,7 @@ class RQTFleetPlanning(Plugin):
         self.map_name = rospy.get_param('/map_name', 'tiles_lab')
         self.script_dir = os.path.dirname(__file__)
         self.super_script_dir = self.script_dir + '/../../src/maps/'
-        self.tile_size = rospy.get_param('tile_size',101)
+        self.tile_size = rospy.get_param('tile_size',201)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         # Add widget to the user interface

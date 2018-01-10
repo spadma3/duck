@@ -69,10 +69,10 @@ class MapDrawNode:
 
         # subscribers
         self._sub_draw_request = rospy.Subscriber('~/draw_request', String,
-                                                       self._draw_and_publish_image, queue_size=1)
-        self._sub_draw_duckie_ = rospy.Subscriber('~/draw_path',String, self._draw_path, queue_size=1)
+                                                  self._update_duckiebots_and_customers, queue_size=1)
+        self._sub_draw_duckie_ = rospy.Subscriber('~/draw_path',String, self._update_path_to_draw, queue_size=1)
 
-        self._draw_and_publish_image(None) # publish map without duckies
+        self._update_duckiebots_and_customers(None) # publish map without duckies
 
 
     def graph_node_to_image_location(self, graph, node):
@@ -186,6 +186,7 @@ class MapDrawNode:
         edges_to_draw = None
         if (self._duckie_path_to_draw):
             node_numbers_as_str = self.duckiebots[self._duckie_path_to_draw].path
+            rospy.logwarn('node_numbers_asstr {}'.format(node_numbers_as_str))
             edges_to_draw = []
             for i in range(0,len(node_numbers_as_str)-1):
                 node = node_numbers_as_str[i]
@@ -196,6 +197,7 @@ class MapDrawNode:
                         edges_to_draw.append(edge)
                         break
 
+        rospy.logwarn('edges_to_draw {}'.format(edges_to_draw))
         self.graph_image = self.duckietown_graph.draw(map_dir=self._map_dir, highlight_edges=edges_to_draw, map_name=self._map_name)
 
         overlay = self.prepImage()
@@ -234,15 +236,12 @@ class MapDrawNode:
 
         return self.bridge.cv2_to_imgmsg(overlay, "bgr8")
 
-    def draw_duckiebot_path(self):
-        # TODO: draw path for duckiebot. Only draw path for the latest request? Or the one chosen in the GUI?
-        # Checkout the highlight edges thing in graph.py. Maybe need to add a function there?
-        pass
-
-    def _draw_and_publish_image(self, msg):
+    def _update_duckiebots_and_customers(self, msg):
 
         if msg is None:
-            map_img = self.drawMap({}, [], '')
+            self.duckiebots = {}
+            self.pending_customer_requests = []
+            self._duckie_path_to_draw = ""
         else:
             data_json = msg.data
             data = json.loads(data_json)
@@ -257,15 +256,21 @@ class MapDrawNode:
             self.pending_customer_requests = [
                 BaseCustomerRequest.from_json(cust) for cust in data['pending_customer_requests'] if cust is not None]
 
-            map_img = self.drawMap(self.duckiebots, self.pending_customer_requests, self._duckie_path_to_draw)
+            if self._duckie_path_to_draw not in self.duckiebots.iterkeys(): # remove if not on map anymore
+                self._duckie_path_to_draw=""
 
-        rospy.loginfo('Publish new map.')
-        self._pub_image.publish(map_img)
+        self._publish_new_map()
 
-
-    def _draw_path(self,duckie_name_msg):
+    def _update_path_to_draw(self, duckie_name_msg):
         if duckie_name_msg is not None:
-            self._duckie_path_to_draw = duckie_name_msg.data
+            duckie_name = duckie_name_msg.data
+            if duckie_name in self.duckiebots.iterkeys():
+                self._duckie_path_to_draw = duckie_name
+                self._publish_new_map()
+            else:
+                rospy.logwarn('Cannot draw path of duckiebot, because it does not seem to exist.')
+
+    def _publish_new_map(self):
             map_img = self.drawMap(self.duckiebots, self.pending_customer_requests, self._duckie_path_to_draw)
             rospy.loginfo('Publish new map.')
             self._pub_image.publish(map_img)
