@@ -55,6 +55,7 @@
 	<arg name="/localization/gui" default="false"/>
 
 	<arg name="fsm" default="true"/>
+    <arg name="fsm" default="$(find duckietown)/config/baseline/fsm/fsm_node/default.yaml"/>
 
 	<!-- end switch args -->
 
@@ -65,6 +66,7 @@
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg fsm_file_name)"/>
+            
 		</include>
         
 		<include file="$(find fsm)/launch/logic_gate_node.launch">
