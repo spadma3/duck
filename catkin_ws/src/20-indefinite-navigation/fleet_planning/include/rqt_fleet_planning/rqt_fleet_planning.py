@@ -28,6 +28,8 @@ class RQTFleetPlanning(Plugin):
         self.image = QPixmap()
         self.request_start_node = ''
         self.request_destination_node = ''
+        self._duckie_to_draw_name = ''
+        self._ignore_combo_box_event = None
         self.basic_map_image = []
         self._all_living_duckiebots = []
 
@@ -113,7 +115,7 @@ class RQTFleetPlanning(Plugin):
 
     def shutdown_plugin(self):
         self.pub.unregister()
-        self._subscriber_map_graph.unregister()
+        self.subscriber.unregister()
         pass
 
     def save_settings(self, plugin_settings, instance_settings):
@@ -139,8 +141,15 @@ class RQTFleetPlanning(Plugin):
 
     def updateLivingDuckiebotItems(self):
         living_duckie_list = map(lambda db:db.name,self._all_living_duckiebots)
+        self._ignore_combo_box_event = True
         self._widget.cb_living_duckies.clear()
         self._widget.cb_living_duckies.addItems(living_duckie_list)
+        self._ignore_combo_box_event = None
+        index = self._widget.cb_living_duckies.findText(self._duckie_to_draw_name, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self._widget.cb_living_duckies.setCurrentIndex(index)
+        else:
+            self._widget.cb_living_duckies.setCurrentIndex(0)
 
     def image_callback(self, ros_data):
         bridge = CvBridge()
@@ -158,6 +167,7 @@ class RQTFleetPlanning(Plugin):
             self.updateLivingDuckiebotItems()
 
     def handleComboBox(self, index):
-        if int(index) >= 0:
-            duckie_name = self._widget.cb_living_duckies.currentText()
-            self.duckie_path_pub.publish(duckie_name)
+        if int(index) < 0 or self._ignore_combo_box_event:
+            return
+        self._duckie_to_draw_name = self._widget.cb_living_duckies.currentText()
+        self.duckie_path_pub.publish(self._duckie_to_draw_name)

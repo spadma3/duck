@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1093</width>
-    <height>651</height>
+    <width>1554</width>
+    <height>885</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,9 +16,9 @@
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>800</x>
-     <y>20</y>
-     <width>431</width>
+     <x>1070</x>
+     <y>10</y>
+     <width>481</width>
      <height>251</height>
     </rect>
    </property>
@@ -96,14 +96,16 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>441</width>
-     <height>521</height>
+     <width>1011</width>
+     <height>731</height>
     </rect>
    </property>
    <property name="text">
     <string>TextLabel</string>
    </property>
   </widget>
+  <zorder>label_image</zorder>
+  <zorder>gridLayoutWidget</zorder>
  </widget>
  <resources/>
  <connections/>
