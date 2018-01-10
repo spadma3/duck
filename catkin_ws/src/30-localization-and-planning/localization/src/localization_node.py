@@ -45,9 +45,10 @@ class LocalizationNode(object):
     def tag_callback(self, msg_tag):
         # Listen for the transform of the tag in the world
         avg = PoseAverage.PoseAverage()
+        print "test1"
         for tag in msg_tag.detections:
             try:
-                print "test"
+                print "test2"
                 Tt_w = self.tfbuf.lookup_transform(self.world_frame, "tag_{id}".format(id=tag.id), rospy.Time(), rospy.Duration(1))
                 print (Tt_w.transform)
                 Mtbase_w=self.transform_to_matrix(Tt_w.transform)
