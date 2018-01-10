@@ -36,6 +36,8 @@ im_path = general_path+str(start_file)+"_pics"
 
 rospy.init_node('obstacle_detection_node',disable_signals=True)
 detector = Detector(robot_name=robot_name)
+crop = detector.crop
+print crop
 intrinsics = load_camera_intrinsics(robot_name)
 visualizer = Visualizer(robot_name=robot_name)
 H = load_homography(robot_name)
@@ -82,6 +84,7 @@ while(True):
         obst_image.data = visualizer.visualize_image(rectify(im1[:,:,::-1],intrinsics),obst_list)
         #here i want to display cropped image
         image=rgb_from_ros(obst_image.data)
+        image=image[crop:,:,:]
         #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
         #the visualizer.py modular!!!
         #plt.imshow(image[detector.crop:,:,:]);plt.show() #the cropped image
