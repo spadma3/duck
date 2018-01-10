@@ -18,7 +18,7 @@ Global parameters
 """
 # control parameters
 choose_random_parking_space_combination = False
-close_itself = True
+close_itself = False
 save_figures = True
 pause_per_path = 0.5 # sec
 ploting = True
@@ -54,7 +54,8 @@ Functions
 """
 # init once
 def init():
-    if save_figures:
+    # delete saved images if there are any
+    if save_figures and len([name for name in os.listdir('images/') if os.path.isfile(name)]) > 1:
         os.system("rm images/*")
 
 # init for every new path
@@ -110,7 +111,7 @@ def pose_from_key(key):
 
 # define objects and obstacles
 def define_objects():
-    # x, y, dx, dy, colour, driveable
+    # (x, y, dx, dy, colour, driveable)
     objects = []
     objects.append((0.0,0.0, narrow_tape_width, space_length, "b", True))
     objects.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
@@ -124,6 +125,10 @@ def define_objects():
     objects.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
     objects.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
     # objects.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
+
+    # define object in the middle of parking lot to simulate path planning with RRT*
+    size = 100;
+    objects.append((lot_width/2.0-size/2.0,lot_height/2.0-size/2.0,size,size,'k',False))
 
     return objects
 
@@ -318,6 +323,10 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
         plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
 
 def path_planning(start_number=None, end_number=None):
+    """
+    Stage 1: dubins path
+    """
+    print('\n---------- Stage 1: Dubins path ----------')
     # define problem
     start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
     objects = define_objects()
@@ -327,10 +336,21 @@ def path_planning(start_number=None, end_number=None):
     px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
-    # show results
-    # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
-    if ploting:
-        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+    if found_path:
+        # show results
+        # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
+        if ploting:
+            do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+        return
+
+    """
+    Stage 2: RRT*
+    """
+    print('\n---------- Stage 2: RRT* ----------')
+
+
+
+
 
 
 """
@@ -346,7 +366,7 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        # start_numbers = [4]
-        # end_numbers = [7]
+        start_numbers = [0]
+        end_numbers = [4]
         for start_number, end_number in zip(start_numbers, end_numbers):
             path_planning(start_number, end_number)
