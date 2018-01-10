@@ -18,6 +18,7 @@ from visualization_msgs.msg import Marker
 
 class LocalizationNode(object):
     def __init__(self):
+        print "hello!"
         self.node_name = 'localization_node'
 
         # Constants
