@@ -127,7 +127,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.updatePoseBelief(segmentsRangeArray[0])
         if self.curvature_res > 0:
             for i in range(self.curvature_res):
-                print 'Updating beliefArray[%i]' % i
+                # print 'Updating beliefArray[%i]' % i
                 self.updateCurvatureBelief(segmentsRangeArray[i + 1], i + 1)
 
             

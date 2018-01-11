@@ -65,7 +65,6 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
-        
         self.filter.update(segment_list_msg.segments)
 
         # Step 3: build messages and publish things
