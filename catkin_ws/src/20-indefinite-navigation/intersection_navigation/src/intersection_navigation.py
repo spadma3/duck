@@ -37,6 +37,7 @@ class IntersectionNavigation(object):
                                               self.TurnTypeCallback,
                                               queue_size=1)
 
+
         self.sub_img = rospy.Subscriber("~img",
                                         CompressedImage,
                                         self.ImageCallback,
@@ -54,7 +55,6 @@ class IntersectionNavigation(object):
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
         # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
-        self.pub_pose = rospy.Publisher("~intersection_pose_pred", IntersectionPose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
 
         # main logic parameters
@@ -82,7 +82,6 @@ class IntersectionNavigation(object):
 
         # initializing variables
         self.AprilTags = []
-        self.k = 0
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
@@ -255,6 +254,7 @@ class IntersectionNavigation(object):
 
 
     def ImageCallback(self, msg):
+        print('here')
         # if initialized
         if self.state == self.state_dict['WAITING_FOR_INSTRUCTIONS'] or self.state == self.state_dict['TRAVERSING']:
             # predict pose
@@ -269,27 +269,9 @@ class IntersectionNavigation(object):
 
 
     def CmdCallback(self, msg):
-        #if self.state == self.state_dict['WAITING_FOR_INSTRUCTIONS'] or self.state == self.state_dict['TRAVERSING']:
-        #    self.poseEstimator.FeedCommandQueue(msg)
+        if self.state == self.state_dict['WAITING_FOR_INSTRUCTIONS'] or self.state == self.state_dict['TRAVERSING']:
+            self.poseEstimator.FeedCommandQueue(msg)
 
-        if self.k == 0:
-            pose_init = np.array([0.0,0.0,0.0])
-            self.poseEstimator.Reset(pose_init,msg.header.stamp)
-
-        self.poseEstimator.FeedCommandQueue(msg)
-        self.k += 1
-
-        if self.k == 100:
-            pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
-            msg2 = IntersectionPose()
-            msg2.header.stamp = rospy.Time.now()
-            msg2.x = pose[0]
-            msg2.y = pose[1]
-            msg2.theta = pose[2]
-
-            self.pub_pose.publish(msg2)
-
-            self.k = 0
 
     def AprilTagsCallback(self, msg):
         if self.state == self.state_dict['IDLING'] or self.state == self.state_dict['INITIALIZING']:
