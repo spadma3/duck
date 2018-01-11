@@ -50,7 +50,7 @@ class ObstAvoidNode(object):
 
     def obstacleCallback(self, obstacle_poses):
         amount_obstacles = len(obstacle_poses.poses)
-        rospy.loginfo('Number of obstacles: %d', len(obstacle_poses.poses))
+        # rospy.loginfo('Number of obstacles: %d', len(obstacle_poses.poses))
         amount_obstacles_on_track = 0
         obstacle_poses_on_track = PoseArray()
         obstacle_poses_on_track.header = obstacle_poses.header
@@ -84,9 +84,9 @@ class ObstAvoidNode(object):
             if targets[1]:  # emergency stop
                 target.v_ref = 0
             # self.theta_target_pub.publish(targets[2]) # theta not calculated in current version
+            rospy.loginfo('1 obstacles on track')
             rospy.loginfo('d_target= %f', targets[0])
             rospy.loginfo('emergency_stop = %f', targets[1])
-            rospy.loginfo('1 obstacles on track')
             self.avoid_pub.publish(True)
         else:
             target.v_ref = 0
@@ -97,9 +97,9 @@ class ObstAvoidNode(object):
 
     def LanePoseCallback(self, LanePose):
         self.d_current = LanePose.d
-        rospy.loginfo('Current d: %f', self.d_current)
+        # rospy.loginfo('Current d: %f', self.d_current)
         self.theta_current = LanePose.phi
-        rospy.loginfo('Current theta: %f', self.theta_current)
+        # rospy.loginfo('Current theta: %f', self.theta_current)
         return
 
     def intersectionCallback(self, intersection_update):
