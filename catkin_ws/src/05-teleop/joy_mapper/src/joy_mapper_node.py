@@ -3,9 +3,14 @@ import rospy
 import math
 
 from duckietown_msgs.msg import Twist2DStamped, BoolStamped
+from duckietown_msgs.srv import SetValue
+from std_srvs.srv import Empty
 from sensor_msgs.msg import Joy
 
 from __builtin__ import True
+
+DELTA_GAIN = 0.05
+DELTA_TRIM = 0.01
 
 class JoyMapper(object):
     def __init__(self):
@@ -33,6 +38,14 @@ class JoyMapper(object):
 
         # Subscriptions
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
+
+
+        # Service Proxies
+        self.trim = 0.0
+        self.set_trim_service = rospy.ServiceProxy('~inverse_kinematics_node/set_trim', SetValue)
+        self.gain = 1.0
+        self.set_gain_service = rospy.ServiceProxy('~inverse_kinematics_node/set_trim', SetValue)
+        self.save_calibration = rospy.ServiceProxy('~inverse_kinematics_node/save_calibration', Empty)
 
         # timer
         # self.pub_timer = rospy.Timer(rospy.Duration.from_sec(self.pub_timestep),self.publishControl)
@@ -101,18 +114,25 @@ class JoyMapper(object):
             rospy.set_param('line_detector_node/verbose', self.state_verbose) # bad - should be published for all to hear - not set a specific param
 
         elif (joy_msg.buttons[4] == 1): #Left back button
-            self.state_parallel_autonomy ^= True
-            rospy.loginfo('state_parallel_autonomy = %s' % self.state_parallel_autonomy)
-            parallel_autonomy_msg = BoolStamped()
-            parallel_autonomy_msg.header.stamp = self.joy.header.stamp
-            parallel_autonomy_msg.data = self.state_parallel_autonomy
-            self.pub_parallel_autonomy.publish(parallel_autonomy_msg)
-        elif (joy_msg.buttons[3] == 1):
             anti_instagram_msg = BoolStamped()
             anti_instagram_msg.header.stamp = self.joy.header.stamp
             anti_instagram_msg.data = True
             rospy.loginfo('anti_instagram message')
             self.pub_anti_instagram.publish(anti_instagram_msg)
+        # region UdM demo mapping
+        elif joy_msg.buttons[3] == 1:
+            self.gain += DELTA_GAIN
+            self.set_gain_service(self.gain)
+        elif joy_msg.buttons[0] == 1:
+            self.gain -= DELTA_GAIN
+            self.set_gain_service(self.gain)
+        elif joy_msg.buttons[1] == 1:
+            self.trim += DELTA_TRIM
+            self.set_trim_service(self.trim)
+        elif joy_msg.buttons[2] == 1:
+            self.trim -= DELTA_TRIM
+            self.set_trim_service(self.trim)
+        # endregion
         elif (joy_msg.buttons[8] == 1): #power button (middle)
             e_stop_msg = BoolStamped()
             e_stop_msg.header.stamp = self.joy.header.stamp
