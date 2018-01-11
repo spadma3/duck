@@ -77,7 +77,7 @@ class ObstAvoidNode(object):
                     amount_obstacles_on_track += 1
         if amount_obstacles_on_track == 0:
             rospy.loginfo('0 obstacles on track')
-        if amount_obstacles_on_track == 1:
+        elif amount_obstacles_on_track == 1:
             #ToDo: check if self.d_current can be accessed through forwarding of self
             targets = self.avoider.avoid(obstacle_poses_on_track, self.d_current, self.theta_current)
             target.d_ref = targets[0]
