@@ -62,8 +62,9 @@ class LocalizationNode(object):
                 print ("robo_tag rot y", rot_euler[1])
                 print ("robo_tag rot z", rot_euler[2])
 
-                Mr_t=np.linalg.inv(Mt_r)
-                Mr_w=np.dot(Mt_w,Mr_t)
+                #Mr_t=np.linalg.inv(Mt_r)
+                #Mr_w=np.dot(Mt_w,Mr_t)
+                Mr_w=np.dot(Mt_w,Mt_r)
                 Tr_w = self.matrix_to_transform(Mr_w)
                 print ("robo_world x", Tr_w.translation.x)
                 print ("robo_world y", Tr_w.translation.y)
