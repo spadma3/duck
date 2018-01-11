@@ -54,6 +54,14 @@ class LocalizationNode(object):
                 print Mt_tbase
                 Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
                 Mt_r=self.pose_to_matrix(tag.pose)
+                
+                print tag.pose.position.x
+                print tag.pose.position.y
+                rot_euler=tr.euler_from_quaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w)
+                print rot_euler[0]
+                print rot_euler[1]
+                print rot_euler[2]
+
                 Mr_t=np.linalg.inv(Mt_r)
                 Mr_w=np.dot(Mt_w,Mr_t)
                 Tr_w = self.matrix_to_transform(Mr_w)
