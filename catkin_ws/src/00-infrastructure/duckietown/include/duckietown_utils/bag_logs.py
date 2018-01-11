@@ -105,7 +105,7 @@ def d8n_read_all_images_from_bag(bag, topic0, max_images=None, use_relative_time
 
     logger.info('Returned %d images' % len(data))
     if not data:
-        msg = 'No data found'
+        msg = 'No data found for topic %s' % topic0
         raise ValueError(msg)
 
     H, W, _ = rgb.shape  # (480, 640, 3)

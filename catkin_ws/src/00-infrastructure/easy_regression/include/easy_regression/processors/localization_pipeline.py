@@ -18,9 +18,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         self.anti_instagram = anti_instagram
         self.all_details = False
 
-    def process_log(self, bag_in, prefix_in, bag_out, prefix_out, utils):
-#         bag_in = proxy_transparent(bag_in)
-
+    def process_log(self, bag_in, prefix_in, bag_out, prefix_out, utils):  #@UnusedVariable
         log_name = utils.get_log().log_name
 
         vehicle_name = dtu.which_robot(bag_in)

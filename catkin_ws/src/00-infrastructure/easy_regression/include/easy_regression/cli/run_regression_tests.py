@@ -4,7 +4,10 @@ import os
 import shutil
 import time
 
+from bs4.element import Tag
+
 import duckietown_utils as dtu
+from duckietown_utils.bag_visualization import get_summary_of_bag_messages
 from easy_algo import get_easy_algo_db
 from easy_logs.app_with_logs import D8AppWithLogs, get_log_if_not_exists
 from easy_regression.cli.analysis_and_stat import job_analyze, job_merge, print_results
@@ -35,11 +38,15 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
         default = RTCheck.OK
         params.add_string('expect', help=h, group=g, default=default)
 
+        params.add_flag('debug_no_delete', help='Do not delete temporary files.')
+
     def define_jobs_context(self, context):
         easy_algo_db = get_easy_algo_db()
 
         expect = self.options.expect
         write_to_db = self.options.write
+
+        delete = not self.options.debug_no_delete
 
         if not expect in RTCheck.CHECK_RESULTS:
             msg = 'Invalid expect status %s; must be one of %s.' % (expect, RTCheck.CHECK_RESULTS)
@@ -55,11 +62,11 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
             c = context.child(rt_name)
 
             outd = os.path.join(self.options.output, 'regression_tests', rt_name)
-            jobs_rt(c, rt_name, rt, easy_logs_db, outd, expect, write_data_to_db=write_to_db)
+            jobs_rt(c, rt_name, rt, easy_logs_db, outd, expect, write_data_to_db=write_to_db, delete=delete)
 
 
 @dtu.contract(rt=RegressionTest)
-def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db):
+def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db, delete):
 
     logs = rt.get_logs(easy_logs_db)
 
@@ -90,7 +97,9 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db):
         t1 = log.t1
 
         log_out_ = c.comp_dynamic(process_one_dynamic,
-                                  bag_filename, t0, t1, processors, log_out, log, job_id='process_one_dynamic')
+                                  bag_filename, t0, t1, processors, log_out, log,
+                                  delete=delete, tmpdir=os.path.join(tmpdir, log_name),
+                                   job_id='process_one_dynamic')
 
         for a in analyzers:
             r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id='analyze-%s' % a)
@@ -102,17 +111,25 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db):
             x = x.replace('/', '-')
             return x
 
+        report_filenames = []
+        log_out_dir = os.path.join(out, 'logs', log_name)
         for topic in rt.get_topic_videos():
-            mp4 = os.path.join(out, 'videos', log_name, log_name + '-' + sanitize_topic(topic) + '.mp4')
+            mp4 = os.path.join(log_out_dir, 'videos', log_name + '-' + sanitize_topic(topic) + '.mp4')
             job_id = 'make_video-%s' % sanitize_topic(topic)
             v = c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4, job_id=job_id)
+            report_filenames.append(v)
             do_before_deleting_tmp_dir.append(v)
 
         for topic in rt.get_topic_images():
-            basename = os.path.join(out, 'images', log_name, log_name + '-' + sanitize_topic(topic))
+            basename = os.path.join(log_out_dir, 'images', log_name + '-' + sanitize_topic(topic))
             job_id = 'write_image-%s' % sanitize_topic(topic)
-            v = c.comp(write_image, log_out_, topic, basename, job_id=job_id)
+            v = c.comp(write_images, log_out_, topic, basename, job_id=job_id)
+            report_filenames.append(v)
             do_before_deleting_tmp_dir.append(v)
+
+        index = os.path.join(log_out_dir, 'index.html')
+        v = c.comp(create_report_html, log_name, report_filenames, index)
+        do_before_deleting_tmp_dir.append(v)
 
     for a in analyzers:
         v = results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a, job_id='merge-%s' % a)
@@ -127,15 +144,79 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db):
     if write_data_to_db:
         context.comp(write_to_db, rt_name, results_all, out)
 
-    done = context.comp(delete_tmp_dir, tmpdir, do_before_deleting_tmp_dir)
-    return done
+    if delete:
+        done = context.comp(delete_tmp_dir, tmpdir, do_before_deleting_tmp_dir)
+        return done
+    else:
+        return None
 
 
-def write_image(bag_filename, topic, basename):
+def create_report_html(log_name, filenames, out):
+    html = Tag(name='html')
+    body = Tag(name='body')
+
+    head = Tag(name='head')
+    link = Tag(name='link')
+    link.attrs['type'] = 'text/css'
+    link.attrs['rel'] = 'stylesheet'
+    link.attrs['href'] = 'style.css'
+    title = Tag(name='title')
+    title.append('Report')
+    head.append(link)
+    html.append(head)
+
+    h = Tag(name='h1')
+    h.append('Report for %s' % log_name)
+    body.append(h)
+
+    for f in filenames:
+        f = os.path.realpath(f)
+        out = os.path.realpath(out)
+        d = os.path.dirname(out)
+        rel = os.path.relpath(f, d)
+
+        p = Tag(name='p')
+        if '.jpg' in f or '.png' in f:
+            img = Tag(name='img')
+            img.attrs['src'] = rel
+            p.append(img)
+
+        if '.mp4' in f:
+            v = video_for_source(rel)
+            p.append(v)
+        body.append(p)
+
+    html.append(body)
+    s = str(html)
+    dtu.write_data_to_file(s, out)
+
+
+def video_for_source(rel, width='100%'):
+    video = Tag(name='video')
+    video.attrs['width'] = width
+#    video.attrs['height'] = height
+    video.attrs['loop'] = 1
+    video.attrs['autoplay'] = 1
+    source = Tag(name='source')
+    source.attrs['src'] = rel
+    source.attrs['type'] = 'video/mp4'
+    video.append(source)
+    return video
+
+
+def write_images(bag_filename, topic, basename):
+    ''' Returns the name of the first created file '''
     dtu.logger.info('reading topic %r from %r' % (topic, bag_filename))
     bag = rosbag.Bag(bag_filename)
-    res = dtu.d8n_read_all_images_from_bag(bag, topic,)
+    nfound = bag.get_message_count(topic)
+    if nfound == 0:
+        msg = 'Found 0 messages for topic %s' % topic
+        msg += '\n\n' + dtu.indent(get_summary_of_bag_messages(bag), '  ')
+        raise ValueError(msg)
+
+    res = dtu.d8n_read_all_images_from_bag(bag, topic)
     n = len(res)
+    filenames = []
     for i in range(n):
         rgb = res[i]['rgb']
         data = dtu.png_from_bgr(dtu.bgr_from_rgb(rgb))
@@ -143,9 +224,13 @@ def write_image(bag_filename, topic, basename):
             fn = basename + '.png'
         else:
             fn = basename + '-%02d' % i + '.png'
+
+        filenames.append(fn)
         dtu.write_data_to_file(data, fn)
 
     bag.close()
+
+    return filenames[0]
 
 
 def delete_tmp_dir(tmpdir, _dependencies):

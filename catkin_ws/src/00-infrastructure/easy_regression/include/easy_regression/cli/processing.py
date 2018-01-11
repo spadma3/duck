@@ -2,9 +2,11 @@ import os
 import shutil
 
 import duckietown_utils as dtu
+from duckietown_utils.constants import DuckietownConstants
 from easy_algo import get_easy_algo_db
 from easy_logs.logs_structure import PhysicalLog
-from easy_regression.processor_interface import ProcessorUtilsInterface
+from easy_regression.processor_interface import ProcessorUtilsInterface, \
+    ProcessorInterface
 import numpy as np
 import rosbag
 from std_msgs.msg import Float64, Int64, Float64MultiArray, MultiArrayDimension, MultiArrayLayout
@@ -37,7 +39,7 @@ def interpret_ros(msg):
     return np.array(msg.data)
 
 
-def ros_from_misc(name, value, t):
+def ros_from_misc(name, value, t):  #@UnusedVariable
     if isinstance(value, float):
         return Float64(value)
     elif isinstance(value, int):
@@ -72,7 +74,7 @@ def ros_from_np_array(data):
 
 
 @dtu.contract(log=PhysicalLog)
-def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log):
+def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log, delete, tmpdir):
     dtu.logger.info('process_one_dynamic()')
     dtu.logger.info('   input: %s' % bag_filename)
     dtu.logger.info('   processors: %s' % processors)
@@ -81,12 +83,11 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log)
 
     dtu.d8n_make_sure_dir_exists(log_out)
 
-    tmpdir = dtu.create_tmpdir()
     tmpfiles = []
 
     def get_tmp_bag():
         i = len(tmpfiles)
-        f = os.path.join(tmpdir, 'tmp%d.bag' % i)
+        f = os.path.join(tmpdir, 'process_one_dynamic-tmp%02d.bag' % i)
         tmpfiles.append(f)
         return f
 
@@ -106,11 +107,11 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log)
                                              bag_filename, tmp, t0_absolute, t1_absolute, log,
                                              job_id='process-%d-%s' % (i, processor_name))
 
-    final = context.comp(finalize, bag_filename, log_out, processors, tmpfiles)
+    final = context.comp(finalize, bag_filename, log_out, processors, tmpfiles, delete)
     return final
 
 
-def finalize(bag_filename, log_out, processors, tmpfiles):
+def finalize(bag_filename, log_out, processors, tmpfiles, delete):
     dtu.logger.info('Creating output file %s' % log_out)
     if not processors:
         # just create symlink
@@ -124,17 +125,20 @@ def finalize(bag_filename, log_out, processors, tmpfiles):
             dtu.logger.error('Could not create %s' % log_out)
     dtu.logger.info('I created %s' % log_out)
 
-    for f in tmpfiles:
-        if os.path.exists(f):
-            dtu.logger.info(' deleting %s' % f)
-            os.unlink(f)
+    if delete:
+        for f in tmpfiles:
+            if os.path.exists(f):
+                dtu.logger.info(' deleting %s' % f)
+                os.unlink(f)
     return log_out
 
 
 def process_one_processor(processor_name, prefix_in, prefix_out, bag_filename,
                           next_bag_filename, t0_absolute, t1_absolute, log):
+    DuckietownConstants.show_timeit_benchmarks = True
+
     easy_algo_db = get_easy_algo_db()
-    processor = easy_algo_db.create_instance('processor', processor_name)
+    processor = easy_algo_db.create_instance(ProcessorInterface.FAMILY, processor_name)
     dtu.logger.info('in: bag_filename: %s' % bag_filename)
     dtu.logger.info('out: next_bag_filename: %s' % next_bag_filename)
     dtu.logger.info('t0_absolute: %s' % t0_absolute)
@@ -144,6 +148,7 @@ def process_one_processor(processor_name, prefix_in, prefix_out, bag_filename,
     bag_absolute_t0_ref = original_bag.get_start_time()
     original_bag.close()
 
+    dtu.d8n_make_sure_dir_exists(next_bag_filename)
     out_bag = rosbag.Bag(next_bag_filename, 'w')
 
     bag0 = rosbag.Bag(bag_filename)

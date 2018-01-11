@@ -23,6 +23,8 @@ class ProcessorUtilsInterface(object):
 
 class ProcessorInterface(object):
 
+    FAMILY = 'processor'
+
     __metaclass__ = ABCMeta
 
     @abstractmethod

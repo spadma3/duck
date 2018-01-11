@@ -54,6 +54,7 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
        topic: the topic name (any image-like topic)
        out: an .mp4 file.
 
+        Returns the name of the created file.
 
        raises NotEnoughFramesInSlice if there are less than 3 frames in slice
 
@@ -70,7 +71,9 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
             sudo apt-get update
             sudo apt-get install -y ffmpeg
 
-        #gstreamer0.10-ffmpeg
+
+
+
 
     """
     try:
@@ -124,8 +127,21 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
         info = out_tmp + '.info.yaml'
         if os.path.exists(info):
             os.unlink(info)
+
+        return out
     finally:
         if os.path.exists(out_tmp):
             os.unlink(out_tmp)
         if os.path.exists(tmpdir):
             shutil.rmtree(tmpdir)
+
+
+def get_summary_of_bag_messages(bag):
+    _types, topics = bag.get_type_and_topic_info()
+    s = ""
+    keys = sorted(topics)
+    for topic in keys:
+        topic_info = topics[topic]
+
+        s += "\n%5d  %s" % (topic_info.message_count, topic)
+    return s.strip()

@@ -102,7 +102,6 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
             ax.set_ylabel(label, color=signal_spec.color)
             ax.tick_params('y', colors=color)
 
-#             ax.set_xlim(0, length)
             ax.set_ylim(signal_spec.min, signal_spec.max)
 
             outward_offset = 20
