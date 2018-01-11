@@ -108,7 +108,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         for i in range(len(segmentsRangeArray)):
             print 'Length of segmentRangeArray[%i]: %i' % (i, len(segmentsRangeArray))
             for i in range(len(segmentsRangeArray[i])):
-                print 'Lenght of segment %i: %f' (i, self.getSegmentDistance(segment))
+                print 'Lenght of segment %i: %f' % (i, self.getSegmentDistance(segment))
 
         return segmentsRangeArray
 
