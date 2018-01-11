@@ -11,9 +11,7 @@
 
 """
 
-import random
-import math
-import copy
+import random, time, math, copy
 import numpy as np
 import dubins_path_planning
 
@@ -213,7 +211,7 @@ class RRT():
         """
         import matplotlib.pyplot as plt
         import matplotlib.patches as patches
-        plt.clf()
+        # plt.cla()
         ax = self.fig.add_subplot(111)
 
 
@@ -306,6 +304,9 @@ if __name__ == '__main__':
     print("Start rrt start planning")
     import matplotlib.pyplot as plt
     fig = plt.figure(1)
+    plt.plot([0,12],[0,12])
+    plt.pause(0.001)
+    time.sleep(1)
     curvature = 1
 
     # ====Search Path with RRT====

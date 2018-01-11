@@ -11,7 +11,9 @@ import rrt_star_car
 
 print("Start rrt start planning")
 import matplotlib.pyplot as plt
-fig = plt.figure()
+fig = plt.figure(1)
+plt.plot([0,12],[0,12]);
+plt.draw()
 
 # ====Search Path with RRT====
 obstacleList = [
