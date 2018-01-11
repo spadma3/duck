@@ -127,6 +127,10 @@ class IntersectionNavigation(object):
             elif self.state == self.state_dict['INITIALIZING_PATH']:
                 if self.InitializePath():
                     self.state = self.state_dict['TRAVERSING']
+                    rospy.loginfo("[%s] Initialized path, traversing intersection." % (self.node_name))
+                else:
+                    self.state = self.state_dict['ERROR']
+                    rospy.loginfo("[%s] Could not initialize path." % (self.node_name))
 
             elif self.state == self.state_dict['TRAVERSING']:
                 pass
