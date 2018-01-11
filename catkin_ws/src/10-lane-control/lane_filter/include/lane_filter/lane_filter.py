@@ -114,8 +114,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         print 'Range Array values: %s' % self.range_arr
         for i in range(len(segmentsRangeArray)):
             print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
-            for i in range(len(segmentsRangeArray[i])):
-                print 'Range of segment %i: %f' % (i, self.getSegmentDistance(segment))
+            for j in range(len(segmentsRangeArray[i])):
+                print 'Range of segment %i: %f' % (j, self.getSegmentDistance(segment))
 
         return segmentsRangeArray
 
