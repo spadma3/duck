@@ -18,7 +18,7 @@ class LaneFilterNode(object):
         self.velocity = Twist2DStamped()
 
         # Define Constants
-        self.curvature_res = filter.curvature_res
+        self.curvature_res = self.filter.curvature_res
 
         # Set parameters to server
         rospy.set_param('curvature_res', self.curvature_res) #Write to parameter server for transparancy
