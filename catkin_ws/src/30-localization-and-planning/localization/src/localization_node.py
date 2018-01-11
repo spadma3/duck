@@ -38,7 +38,7 @@ class LocalizationNode(object):
 
         # Use a timer to make the duckiebot disappear
         self.lifetimer = rospy.Time.now()
-        self.publish_duckie_marker()
+        #self.publish_duckie_marker()
 
         rospy.loginfo("[%s] has started", self.node_name)
 
