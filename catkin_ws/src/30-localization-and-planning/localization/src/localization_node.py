@@ -122,7 +122,7 @@ class LocalizationNode(object):
         p.z = 0.15
         c.a, c.r, c.g, c.b = (0.2, 0.9, 0.9, 0.0)
         o.w = 1
-        self.pub_rviz.publish(m)
+        #self.pub_rviz.publish(m)
 
     def pose_to_matrix(self, p):
         # Return the 4x4 homogeneous matrix for a PoseStamped.msg p from the geometry_msgs
