@@ -52,7 +52,7 @@ class LocalizationNode(object):
                 Tt_w = self.tfbuf.lookup_transform(self.world_frame, "tag_{id}".format(id=tag.id), rospy.Time(), rospy.Duration(1))
                 Mtbase_w=self.transform_to_matrix(Tt_w.transform)
                 Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
-                print Mt_tbase
+                #print Mt_tbase
                 Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
                 Mt_r=self.pose_to_matrix(tag.pose)
                 
@@ -82,6 +82,7 @@ class LocalizationNode(object):
 
 
         Tr_w =  avg.get_average() # Average of the opinions
+        print("-------------------------------------------------------------")
         print ("robo_world x_avg", Tr_w.translation.x)
         print ("robo_world y_avg", Tr_w.translation.y)
         rot = Tr_w.rotation
@@ -89,6 +90,7 @@ class LocalizationNode(object):
         print ("robo_world rot x_avg", rot_euler[0])
         print ("robo_world rot y_avg", rot_euler[1])
         print ("robo_world rot z_avg", rot_euler[2])
+        print("-------------------------------------------------------------")
         # Broadcast the robot transform
         if Tr_w is not None:
             # Set the z translation, and x and y rotations to 0
