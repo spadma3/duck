@@ -55,6 +55,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.median_filter_size = 5
         
         self.initialize()
+        self.updateRangeArray(self.curvature_res)
         
     
     def predict(self, dt, v, w):
