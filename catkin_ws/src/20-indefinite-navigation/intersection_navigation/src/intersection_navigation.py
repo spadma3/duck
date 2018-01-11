@@ -229,9 +229,9 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
-        self.poseEstimator.Reset(pose_meas, img_msg.header.stamp) # add time and pose here!
+        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp) # add time and pose here!
 
-        self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
+        self.intersectionLocalizer.DrawModel(img_gray, best_pose_meas)
         self.img_gray2 = img_gray
         img3 = cv2.cvtColor(self.img_gray2, cv2.COLOR_GRAY2BGR)
         msg = dt_utils.d8_compressed_image_from_cv_image(img3)
