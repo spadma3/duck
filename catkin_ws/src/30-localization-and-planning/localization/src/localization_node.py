@@ -57,7 +57,7 @@ class LocalizationNode(object):
                 
                 print tag.pose.pose.position.x
                 print tag.pose.pose.position.y
-                rot_euler=tr.euler_from_quaternion(tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w)
+                rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
                 print rot_euler[0]
                 print rot_euler[1]
                 print rot_euler[2]
