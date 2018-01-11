@@ -52,6 +52,9 @@ class LaneFilterNode(object):
         if not self.active:
             return
 
+        # Get actual timestamp for latency measurement
+        timestamp_now = rospy.Time.now()
+
         # Step 1: predict
         current_time = rospy.get_time()
         self.filter.predict(dt=current_time-self.t_last_update, v = self.velocity.v, w = self.velocity.omega)
@@ -67,19 +70,8 @@ class LaneFilterNode(object):
             range_arr[i] = range_min + (i-1)*range_diff
 
         
-        timestamp_now = rospy.Time.now()
         self.filter.update(segment_list_msg.segments, range_arr)
 
-        # Latency of Estimation including curvature estimation
-        estimation_latency_stamp = rospy.Time.now() - timestamp_now
-        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
-        self.latencyArray.append(estimation_latency)
-
-        if (len(self.latencyArray) >= 20):
-            self.latencyArray.pop(0)
-
-        # print "Latency of segment list: ", segment_latency
-        print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
         # rospy.loginfo("Image_Size: " + str(self.img_size) + " / top_cutoff: " + str(self.top_cutoff))
 
         # Step 3: build messages and publish things
@@ -137,6 +129,18 @@ class LaneFilterNode(object):
         belief_img.header.stamp = segment_list_msg.header.stamp
         
         self.pub_lane_pose.publish(lanePose)
+
+        # Latency of Estimation including curvature estimation
+        estimation_latency_stamp = rospy.Time.now() - timestamp_now
+        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
+        self.latencyArray.append(estimation_latency)
+
+        if (len(self.latencyArray) >= 20):
+            self.latencyArray.pop(0)
+
+        # print "Latency of segment list: ", segment_latency
+        print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
+
         self.pub_belief_img.publish(belief_img)
 
         # also publishing a separate Bool for the FSM
