@@ -61,7 +61,8 @@ class Implicit(object):
         stream.close()
         self.detection_threshold = data['detection_threshold']
 
-        self.right_priority_threshold = data['right_priority_threshold']
+        self.right_priority_thresholdy = data['right_priority_thresholdy']
+        self.right_priority_thresholdx = data['right_priority_thresholdx']
         self.right_priority = data['right_priority']
         self.SlotTime = data['SlotTime']
         # set Field of Interest
@@ -108,7 +109,8 @@ class Implicit(object):
                 if diff_x**2 + diff_y**2 >= self.detection_threshold**2:
                     return True
                 if self.right_priority and \
-                        self.right_priority_threshold < pos_tupel[3]:
+                        self.right_priority_thresholdy < pos_tupel[3] and \
+                        self.right_priority_thresholdx > pos_tupel[1]:
                     return True
                 return False
             return False
