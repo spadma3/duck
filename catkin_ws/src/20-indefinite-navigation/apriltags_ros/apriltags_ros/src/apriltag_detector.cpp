@@ -100,9 +100,9 @@ namespace apriltags_ros{
       tag_pose.header = cv_ptr->header;
 
       rot_euler=tr.euler_from_quaternion(rot_quaternion.x(), rot_quaternion.y(), rot_quaternion.z(), rot_quaternion.w())
-      print (rot_euler[0])
-      print (rot_euler[1])
-      print (rot_euler[2])
+      print rot_euler[0]
+      print rot_euler[1]
+      print rot_euler[2]
 
       duckietown_msgs::AprilTagDetection tag_detection;
       tag_detection.pose = tag_pose;
