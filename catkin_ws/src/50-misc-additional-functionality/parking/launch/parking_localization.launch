@@ -7,8 +7,6 @@
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
 	<arg name = "end_space" default="1"/>
 
-
-
     <!-- Camera -->
  	<include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">
  		<arg name="veh" value="$(arg veh)"/>
@@ -59,6 +57,5 @@
     <node pkg="tf" type="static_transform_publisher" name="test_tag_128_broadcaster" args="1 1 0 0 0 0 world tag_128 100"/>
     <node pkg="tf" type="static_transform_publisher" name="test_tag_126_broadcaster" args="1 1 0 0 0 0 world tag_126 100"/>
     <node pkg="tf" type="static_transform_publisher" name="test_tag_131_broadcaster" args="1 1 0 0 0 0 world tag_131 100"/>
-
 
 </launch>

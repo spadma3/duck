@@ -51,6 +51,7 @@ class LocalizationNode(object):
                 Tt_w = self.tfbuf.lookup_transform(self.world_frame, "tag_{id}".format(id=tag.id), rospy.Time(), rospy.Duration(1))
                 Mtbase_w=self.transform_to_matrix(Tt_w.transform)
                 Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
+                print Mt_tbase
                 Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
                 Mt_r=self.pose_to_matrix(tag.pose)
                 Mr_t=np.linalg.inv(Mt_r)
@@ -61,6 +62,8 @@ class LocalizationNode(object):
             except(tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as ex:
                 rospy.logwarn("Error looking up transform for tag_%s", tag.id)
                 rospy.logwarn(ex.message)
+
+
 
         Tr_w =  avg.get_average() # Average of the opinions
 
