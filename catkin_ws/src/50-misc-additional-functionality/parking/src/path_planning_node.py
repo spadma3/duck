@@ -72,7 +72,6 @@ class parkingPathPlanner():
         print self.plan
         if self.plan == True:    
             # plan the path once during first callback
-            pose = Pose2DStamped()
             self.x_act = pose.x
             self.y_act = pose.y
             self.yaw_act = pose.theta
