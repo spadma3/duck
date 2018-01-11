@@ -12,7 +12,7 @@ import matplotlib.patches as patches
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from numpy import sign
-import os
+import os, pickle
 
 """
 Global parameters
@@ -410,6 +410,9 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
             ax.add_patch( patches.Rectangle( (obj[0], obj[1]), obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
     ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fc=(0.3,0.3,0.3),fill=False))
 
+    # save figure as background
+    pickle.dump(ax, file('images/background.pickle', 'w'))
+
     if close_itself:
         plt.draw()
         plt.pause(pause_per_path)
@@ -419,6 +422,8 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
     if save_figures:
         dic = {True:'driveable', False:'collision'}
         plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
+
+
 
 def path_planning(start_number=None, end_number=None):
     """
@@ -450,7 +455,10 @@ def path_planning(start_number=None, end_number=None):
 
     # show results
     if ploting:
-        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+        plt.show(13)
+        # ax = pickle.load(file('images/rrtstar.pickle'))
+        # plt.draw()
+        # do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
         print('')
 
 

@@ -11,7 +11,7 @@
 
 """
 
-import random, time, math, copy
+import random, time, math, copy, pickle
 import numpy as np
 import dubins_path_planning
 
@@ -211,9 +211,9 @@ class RRT():
         """
         import matplotlib.pyplot as plt
         import matplotlib.patches as patches
-        # plt.cla()
+        plt.cla()
         ax = self.fig.add_subplot(111)
-
+        ax = pickle.load(file('images/background.pickle'))
 
         if rnd is not None:
             plt.plot(rnd.x, rnd.y, "^k")
@@ -242,10 +242,11 @@ class RRT():
 
         plt.axis([self.minrand, self.maxrand, self.minrand, self.maxrand])
         plt.grid(True)
-        plt.pause(0.01)
 
-        # plt.show()
-        #  input()
+        pickle.dump(ax, file('images/rrtstar.pickle', 'w'))
+
+        plt.pause(0.001)
+
 
     def GetNearestListIndex(self, nodeList, rnd):
         dlist = [(node.x - rnd.x) ** 2 +
