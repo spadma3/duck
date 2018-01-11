@@ -55,7 +55,7 @@ class IntersectionNavigation(object):
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
-        # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
+        self.pub_intersection_pose = rospy.Publisher("~intersection_pose", IntersectionPose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         self.pub_debug = rospy.Publisher("~debug/image/compressed",
                                          CompressedImage,
@@ -133,6 +133,14 @@ class IntersectionNavigation(object):
                     rospy.loginfo("[%s] Could not initialize path." % (self.node_name))
 
             elif self.state == self.state_dict['TRAVERSING']:
+                msg = IntersectionPose()
+                msg.header.stamp = rospy.Time.now()
+                pose = self.poseEstimator.PredictState(msg.header.stamp)
+                msg.x = pose[0]
+                msg.y = pose[1]
+                msg.theta = pose[2]
+                self.pub_intersection_pose(msg)
+
                 pass
 
             elif self.state == self.state_dict['DONE']:
