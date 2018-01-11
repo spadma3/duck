@@ -86,9 +86,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     def prepareSegments(self, segments):
         segmentsRangeArray = []
-        # emptyArr = []
+        emptyArr = []
         for i in range(len(self.range_arr)):
-            segmentsRangeArray.append([])
+            segmentsRangeArray.append(emptyArr)
         for segment in segments:
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
