@@ -55,7 +55,7 @@ class LaneFilterNode(object):
             return
 
         # Step 0: get values from server
-        if (rospy.get_param('curvature_res') != self.curvature_res)
+        if (rospy.get_param('curvature_res') is not self.curvature_res):
             self.curvature_res = rospy.get_param('curvature_res')
             self.filter.updateRangeArray(self.curvature_res)
 
