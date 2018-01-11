@@ -139,7 +139,7 @@ class IntersectionNavigation(object):
                 msg.x = pose[0]
                 msg.y = pose[1]
                 msg.theta = pose[2]
-                self.pub_intersection_pose(msg)
+                self.pub_intersection_pose.publish(msg)
 
                 pass
 
