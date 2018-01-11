@@ -55,7 +55,7 @@ class IntersectionNavigation(object):
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
-        self.pub_intersection_pose = rospy.Publisher("~intersection_pose", IntersectionPose, queue_size=1)
+        self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         self.pub_debug = rospy.Publisher("~debug/image/compressed",
                                          CompressedImage,
@@ -139,9 +139,7 @@ class IntersectionNavigation(object):
                 msg.x = pose[0]
                 msg.y = pose[1]
                 msg.theta = pose[2]
-                self.pub_intersection_pose.publish(msg)
-
-                pass
+                #self.pub_intersection_pose.publish(msg)
 
             elif self.state == self.state_dict['DONE']:
                 pass
@@ -237,15 +235,7 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
-        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp) # add time and pose here!
-
-        #self.intersectionLocalizer.DrawModel(img_gray, best_pose_meas)
-        #self.img_gray2 = img_gray
-        #img3 = cv2.cvtColor(self.img_gray2, cv2.COLOR_GRAY2BGR)
-        #msg = dt_utils.d8_compressed_image_from_cv_image(img3)
-        #self.pub_debug.publish(msg)
-
-
+        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
         return True
 
     def InitializePath(self):
@@ -262,10 +252,6 @@ class IntersectionNavigation(object):
             return False
 
         else:
-            #self.pathPlanner.DrawPath(self.img_gray2,pose_init)
-            #img = cv2.cvtColor(self.img_gray2,cv2.COLOR_GRAY2BGR)
-            #msg = dt_utils.d8_compressed_image_from_cv_image(img)
-            #self.pub_debug.publish(msg)
             return True
 
 

@@ -57,7 +57,7 @@ class IntersectionLocalizer(object):
 
         # localization algorithm parameters
         self.line_search_length = 20
-        self.max_num_iter = 2
+        self.max_num_iter = 1
         self.ctrl_pts_density = 80  # number of control points per edge length (in meters)
         self.min_num_ctrl_pts = 10
         self.max_num_ctrl_pts = 100
