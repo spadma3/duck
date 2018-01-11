@@ -7,7 +7,4 @@ from pylab import *
 import matplotlib.pyplot as plt
 
 fig, ax = plt.subplots()
-mngr = plt.get_current_fig_manager()
-
-# to put it into the upper left corner for example:
-mngr.window.setGeometry(50,100,640, 545)
+mng = plt.get_current_fig_manager()

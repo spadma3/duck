@@ -25,7 +25,7 @@ pause_per_path = 0.5 # sec
 ploting = True
 
 # path planning parameters
-radius_robot = 70                   # mm distance point between wheels and most apart point on robot
+radius_robot = 60                   # mm distance point between wheels and most apart point on robot
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
