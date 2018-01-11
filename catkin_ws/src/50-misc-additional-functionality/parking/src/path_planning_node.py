@@ -47,9 +47,9 @@ class parkingPathPlanner():
         rospy.Subscriber("pose_duckiebot", Pose2DStamped, self.localization_callback)
         # init pose
         #pose =  Pose2DStamped()
-        #self.x_act = pose.x #165.0
-        #self.y_act = pose.y #1015
-        #self.yaw_act = pose.theta #-pi/2
+        self.x_act = 0 #165.0
+        self.y_act = 0 #1015
+        self.yaw_act = 0 #-pi/2
         #print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
         self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control,queue_size=10)
@@ -62,8 +62,9 @@ class parkingPathPlanner():
     #  callback for control references
     def sample_callback(self,event):
         state = Reference_for_control()
-        state.d, state.c, state.phi = self.project_to_path(curvature)
-        self.sample_state_pub.publish(state)
+        if plan == False:
+            state.d, state.c, state.phi = self.project_to_path(curvature)
+            self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
