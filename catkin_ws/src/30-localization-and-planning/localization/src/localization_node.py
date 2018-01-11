@@ -56,16 +56,23 @@ class LocalizationNode(object):
                 Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
                 Mt_r=self.pose_to_matrix(tag.pose)
                 
-                print tag.pose.pose.position.x
-                print tag.pose.pose.position.y
+                print ("robo_tag x = ", tag.pose.pose.position.x)
+                print ("robo_tag y = ",tag.pose.pose.position.y)
                 rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
-                print rot_euler[0]
-                print rot_euler[1]
-                print rot_euler[2]
+                print ("robo_tag rot x", rot_euler[0])
+                print ("robo_tag rot y", rot_euler[1])
+                print ("robo_tag rot z", rot_euler[2])
 
                 Mr_t=np.linalg.inv(Mt_r)
                 Mr_w=np.dot(Mt_w,Mr_t)
                 Tr_w = self.matrix_to_transform(Mr_w)
+                print ("robo_world x", Tr_w.translation.x)
+                print ("robo_world y", Tr_w.translation.y)
+                rot = Tr_w.rotation
+                rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
+                print ("robo_world rot x", rot_euler[0])
+                print ("robo_world rot y", rot_euler[1])
+                print ("robo_world rot z", rot_euler[2])
                 avg.add_pose(Tr_w)
                 self.publish_sign_highlight(tag.id)
             except(tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as ex:
@@ -75,7 +82,13 @@ class LocalizationNode(object):
 
 
         Tr_w =  avg.get_average() # Average of the opinions
-
+        print ("robo_world x_avg", Tr_w.translation.x)
+        print ("robo_world y_avg", Tr_w.translation.y)
+        rot = Tr_w.rotation
+        rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
+        print ("robo_world rot x_avg", rot_euler[0])
+        print ("robo_world rot y_avg", rot_euler[1])
+        print ("robo_world rot z_avg", rot_euler[2])
         # Broadcast the robot transform
         if Tr_w is not None:
             # Set the z translation, and x and y rotations to 0
