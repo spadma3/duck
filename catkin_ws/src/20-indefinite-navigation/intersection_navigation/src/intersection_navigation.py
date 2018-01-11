@@ -57,7 +57,7 @@ class IntersectionNavigation(object):
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
         # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
-        self.pub_debug = rospy.Publisher("~debug",
+        self.pub_debug = rospy.Publisher("~debug/image/compressed",
                                          CompressedImage,
                                          queue_size=1)
 
