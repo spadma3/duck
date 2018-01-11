@@ -152,10 +152,10 @@ class IntersectionLocalizer(object):
                 else:
                     return True, ptB + l_max * n, ptB + l_min * n
 
-    def DrawModel(self, img, x, y, theta):
+    def DrawModel(self, img, pose):
         '''compute motion matrix'''
-        R = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
-        t = np.dot(R, np.array([x, y], dtype=float))
+        R = np.array([[np.cos(pose[2]), np.sin(pose[2])], [-np.sin(pose[2]), np.cos(pose[2])]])
+        t = np.dot(R, np.array([pose[0], pose[1]], dtype=float))
 
         '''compute visible segments of edges'''
         edges_img = []
@@ -200,7 +200,11 @@ class IntersectionLocalizer(object):
                     cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 255, -1)
                     cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 255, -1)
 
-    def ComputePose(self, img, x_pred, y_pred, theta_pred):
+    def ComputePose(self, img, pose):
+        x_pred = pose[0]
+        y_pred = pose[1]
+        theta_pred = pose[2]
+
         # solve iterative least square
         for k in range(0, self.max_num_iter):
             '''compute motion matrix'''
@@ -339,7 +343,8 @@ class IntersectionLocalizer(object):
 
             cv2.imshow('canny', img)
 
-        return True, x_pred, y_pred, theta_pred, likelihood
+        pose_meas = np.array([x_pred, y_pred, theta_pred], dtype=float)
+        return True, pose_meas, likelihood
 
     def SetupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)

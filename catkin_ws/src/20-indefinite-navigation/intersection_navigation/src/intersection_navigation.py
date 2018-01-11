@@ -211,10 +211,11 @@ class IntersectionNavigation(object):
         img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(img_msg)
 
         best_likelihood = -1.0
+        best_pose_meas = np.zeros(3,float)
         for dx in dx_init:
             for dy in dy_init:
                 for dtheta in dtheta_init:
-                    valid_meas, x_meas, y_meas, theta_meas, likelihood = self.intersectionLocalizer.ComputePose(
+                    valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(
                         img_processed,
                         x_init + dx,
                         y_init + dy,
@@ -222,18 +223,15 @@ class IntersectionNavigation(object):
 
                     if valid_meas and likelihood > best_likelihood:
                         best_likelihood = likelihood
-                        best_x_meas = x_meas
-                        best_y_meas = y_meas
-                        best_theta_meas = theta_meas
+                        best_pose_meas[:] = pose_meas
 
         if best_likelihood < 0.0:
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
-        pose_init = np.array([best_x_meas, best_y_meas, best_theta_meas])
-        self.poseEstimator.Reset(pose_init, img_msg.header.stamp) # add time and pose here!
+        self.poseEstimator.Reset(pose_meas, img_msg.header.stamp) # add time and pose here!
 
-        self.intersectionLocalizer.DrawModel(img_gray, best_x_meas, best_y_meas, best_theta_meas)
+        self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
         self.img_gray2 = img_gray
         img3 = cv2.cvtColor(self.img_gray2, cv2.COLOR_GRAY2BGR)
         msg = dt_utils.d8_compressed_image_from_cv_image(img3)
@@ -283,11 +281,10 @@ class IntersectionNavigation(object):
 
             # localize Duckiebot, use predicted pose as initial guess
             img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(msg)
-            valid_meas, x_meas, y_meas, theta_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
+            valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
 
             # update pose estimate
             if valid_meas:
-                pose_meas = np.array([x_meas, y_meas, theta_meas])
                 self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, msg.header.stamp)
 
                 self.intersectionLocalizer.DrawModel(img_gray, x_meas, y_meas, theta_meas)
