@@ -54,7 +54,7 @@ class ObstAvoidNode(object):
         amount_obstacles_on_track = 0
         obstacle_poses_on_track = PoseArray()
         obstacle_poses_on_track.header = obstacle_poses.header
-        self.avoid_pub.publish(False)
+        avoidance_active = False
         target = LanePose()
         # target.header.frame_id = self.robot_name
         target.v_ref = 10  # max speed high, current top 0.38
@@ -63,8 +63,8 @@ class ObstAvoidNode(object):
             if obstacle_poses.poses[x].position.z > 0:
                 # Bounding window
                 # get relative coordinates
-                x_obstacle = obstacle_poses.poses[x].position.x * 1000  # mm
-                y_obstacle = obstacle_poses.poses[x].position.y * 1000  # mm
+                x_obstacle = obstacle_poses.poses[x].position.x  # mm
+                y_obstacle = obstacle_poses.poses[x].position.y  # mm
                 # get global coordinates
                 global_pos_vec = self.avoider.coordinatetransform(x_obstacle, y_obstacle,
                                                                   -self.theta_current, self.d_current)
@@ -87,14 +87,16 @@ class ObstAvoidNode(object):
             rospy.loginfo('1 obstacles on track')
             rospy.loginfo('d_target= %f', targets[0])
             rospy.loginfo('emergency_stop = %f', targets[1])
-            self.avoid_pub.publish(True)
+            avoidance_active = True
         else:
             target.v_ref = 0
             rospy.loginfo('%d obstacles on track', amount_obstacles_on_track)
-            self.avoid_pub.publish(True)
+            avoidance_active = True
             target.v_ref = 0
             rospy.loginfo('emergency_stop = 1')
         self.obstavoidpose_topic.publish(target)
+        self.avoid_pub.publish(avoidance_active)
+        rospy.loginfo('Avoidance flag set: %b', avoidance_active)
         return
 
     def LanePoseCallback(self, LanePose):
