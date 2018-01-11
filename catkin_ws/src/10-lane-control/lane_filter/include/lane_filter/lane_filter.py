@@ -104,6 +104,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 for i in range(self.curvature_res):
                     if point_range < self.range_arr[i+1] or point_range > self.range_arr[i]:
                         segmentsRangeArray[i + 1].append(segment)
+
+        print segmentsRangeArray
+        
         return segmentsRangeArray
 
 
