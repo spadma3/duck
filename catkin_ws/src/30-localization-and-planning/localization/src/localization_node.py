@@ -68,21 +68,15 @@ class LocalizationNode(object):
         # Broadcast the robot transform
         if Tr_w is not None:
             # Set the z translation, and x and y rotations to 0
-            print "check 01"
             Tr_w.translation.z = 0
-            print "check 02"
             rot = Tr_w.rotation
-            print "check 03"
             rotz=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[2]
-            print "check 04"
             P = Pose2DStamped()
-            print "check 05"
             P.x = Tr_w.translation.x
-            print "check 06"
             P.y = Tr_w.translation.y
-            print "check 07"
             P.theta = rotz
-            print "check 08"
+            P.header.frame_id = self.duckiebot_frame
+            P.header.stamp = rospy.Time.now()
             self.pub_pose.publish(P)
             #(rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_euler(0, 0, rotz)
             #T = TransformStamped()
