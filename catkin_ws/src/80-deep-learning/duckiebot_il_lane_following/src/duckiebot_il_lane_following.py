@@ -162,11 +162,11 @@ class imitation_lane_following(object):
         # Get the results from NCS
         output, userobj = self.graph.GetResult()
         # Print the results
-        print('\n------- predictions --------')
-        print('input channel: ' + str(self.input_channel))
+        #print('\n------- predictions --------')
+        #print('input channel: ' + str(self.input_channel))
         # first make the array to float data type
         learning_omega = float(output[0])
-        print(learning_omega)
+        #print(learning_omega)
 
         # set car cmd through ros message
 
