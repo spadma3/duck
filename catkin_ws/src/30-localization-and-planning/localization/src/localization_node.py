@@ -82,7 +82,7 @@ class LocalizationNode(object):
 
 
         Tr_w =  avg.get_average() # Average of the opinions
-        print("-------------------------------------------------------------")
+        print("-----------------------------------------------------------")
         print ("robo_world x_avg", Tr_w.translation.x)
         print ("robo_world y_avg", Tr_w.translation.y)
         rot = Tr_w.rotation
