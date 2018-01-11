@@ -212,14 +212,16 @@ class IntersectionNavigation(object):
 
         best_likelihood = -1.0
         best_pose_meas = np.zeros(3,float)
+        pose = np.zeros(3,float)
         for dx in dx_init:
             for dy in dy_init:
                 for dtheta in dtheta_init:
+                    pose[0] = x_init + dx
+                    pose[1] = y_init + dy
+                    pose[2] = theta_init + dtheta
                     valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(
                         img_processed,
-                        x_init + dx,
-                        y_init + dy,
-                        theta_init + dtheta)
+                        pose)
 
                     if valid_meas and likelihood > best_likelihood:
                         best_likelihood = likelihood
