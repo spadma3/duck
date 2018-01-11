@@ -35,6 +35,7 @@
  	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
  	<!-- remap for localization node, not sure why remap has to be put here -->
  	<remap from="apriltags_postprocessing_node/apriltags_out" to="localization_node/apriltags" />
+ 	<remap from="localization_node/pose_duckiebot" to="/path_planning_node/pose_duckiebot" />
  	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
  		<arg name="veh" value="$(arg veh)"/>
         <arg name="local" value="$(arg local)"/>
@@ -43,6 +44,7 @@
  	</include>
 
  	<!-- Localization -->
+
     <include file="$(find localization)/launch/localization_node.launch">
         <arg name="veh" value="$(arg veh)"/>
         <arg name="param_file_name" value="$(arg param_file_name)"/>
