@@ -231,11 +231,11 @@ class IntersectionNavigation(object):
 
         self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp) # add time and pose here!
 
-        self.intersectionLocalizer.DrawModel(img_gray, best_pose_meas)
-        self.img_gray2 = img_gray
-        img3 = cv2.cvtColor(self.img_gray2, cv2.COLOR_GRAY2BGR)
-        msg = dt_utils.d8_compressed_image_from_cv_image(img3)
-        self.pub_debug.publish(msg)
+        #self.intersectionLocalizer.DrawModel(img_gray, best_pose_meas)
+        #self.img_gray2 = img_gray
+        #img3 = cv2.cvtColor(self.img_gray2, cv2.COLOR_GRAY2BGR)
+        #msg = dt_utils.d8_compressed_image_from_cv_image(img3)
+        #self.pub_debug.publish(msg)
 
 
         return True
@@ -254,10 +254,10 @@ class IntersectionNavigation(object):
             return False
 
         else:
-            self.pathPlanner.DrawPath(self.img_gray2,pose_init)
-            img = cv2.cvtColor(self.img_gray2,cv2.COLOR_GRAY2BGR)
-            msg = dt_utils.d8_compressed_image_from_cv_image(img)
-            self.pub_debug.publish(msg)
+            #self.pathPlanner.DrawPath(self.img_gray2,pose_init)
+            #img = cv2.cvtColor(self.img_gray2,cv2.COLOR_GRAY2BGR)
+            #msg = dt_utils.d8_compressed_image_from_cv_image(img)
+            #self.pub_debug.publish(msg)
             return True
 
 
@@ -287,10 +287,11 @@ class IntersectionNavigation(object):
             if valid_meas:
                 self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 20.0*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
 
-                self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
-                img3 = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
-                msg = dt_utils.d8_compressed_image_from_cv_image(img3)
-                self.pub_debug.publish(msg)
+                #self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
+                #img3 = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+                #msg = dt_utils.d8_compressed_image_from_cv_image(img3)
+                #self.pub_debug.publish(msg)
+                print('now')
 
 
     def CmdCallback(self, msg):
