@@ -142,6 +142,7 @@ class IntersectionNavigation(object):
                     dy_init = np.linspace(-0.03, 0.03, 7)
                     dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
 
+                # set the correct template 4 way or T intersection
                 if april_msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
                     self.intersectionLocalizer.SetEdgeModel('FOUR_WAY_INTERSECTION')
                 else:
@@ -234,7 +235,6 @@ class IntersectionNavigation(object):
                         curvature = 0
 
                     pathTracker_msg.curvature = curvature
-
                     pathTracker.header.stamp = rospy.Time.now()
                     self.pub_intersection_pose.publish(pathTracker_msg)
 
@@ -273,7 +273,6 @@ class IntersectionNavigation(object):
             self.pub_done.publish(in_lane_msg)
             rospy.loginfo("[%s] Intersection naviation done.")
             
-
     def TurnTypeCallback(self, msg):
         # TODO
         # will be used to proceed with main loop
