@@ -44,7 +44,7 @@ class JoyMapper(object):
         self.trim = 0.0
         self.set_trim_service = rospy.ServiceProxy('inverse_kinematics_node/set_trim', SetValue)
         self.gain = 1.0
-        self.set_gain_service = rospy.ServiceProxy('inverse_kinematics_node/set_trim', SetValue)
+        self.set_gain_service = rospy.ServiceProxy('inverse_kinematics_node/set_gain', SetValue)
         self.save_calibration = rospy.ServiceProxy('inverse_kinematics_node/save_calibration', Empty)
 
         # timer
