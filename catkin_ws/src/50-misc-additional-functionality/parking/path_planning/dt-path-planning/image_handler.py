@@ -5,7 +5,6 @@ import math, time, pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-# from PIL import Image
 
 def plot_line(ax, x, y):
     ax.plot(x ,y)
@@ -21,10 +20,9 @@ if __name__ == '__main__':
 
     ax = plt.subplot(111)
     plt.plot(x,y)
-    pickle.dump(ax, file('background.pickle', 'w'))
+    pickle.dump(ax, file('images/background.pickle', 'w'))
 
     for i in range(5):
-        ax = pickle.load(file('background.pickle'))
+        ax = pickle.load(file('images/background.pickle'))
         plot_rectangle(ax,math.pi/2.0+math.pi/10.0*i,0.2,math.pi,0.3)
-        plt.pause(0.001)
-        time.sleep(0.2)
+        plt.pause(0.2)
