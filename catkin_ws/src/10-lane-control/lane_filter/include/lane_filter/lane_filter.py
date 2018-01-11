@@ -105,8 +105,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                     if point_range < self.range_arr[i+1] or point_range > self.range_arr[i]:
                         segmentsRangeArray[i + 1].append(segment)
 
+        print 'Range Array values: %s' % range_arr
         for i in range(len(segmentsRangeArray)):
-            print 'Length of segmentRangeArray[%i]: %i' % (i, len(segmentsRangeArray))
+            print 'Length of segmentRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
             for i in range(len(segmentsRangeArray[i])):
                 print 'Lenght of segment %i: %f' % (i, self.getSegmentDistance(segment))
 
