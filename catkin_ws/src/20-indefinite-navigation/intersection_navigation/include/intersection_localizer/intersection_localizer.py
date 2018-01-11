@@ -57,10 +57,10 @@ class IntersectionLocalizer(object):
 
         # localization algorithm parameters
         self.line_search_length = 20
-        self.max_num_iter = 1
-        self.ctrl_pts_density = 40  # number of control points per edge length (in meters)
+        self.max_num_iter = 2
+        self.ctrl_pts_density = 80  # number of control points per edge length (in meters)
         self.min_num_ctrl_pts = 10
-        self.max_num_ctrl_pts = 50
+        self.max_num_ctrl_pts = 100
 
         # likelihood parameters
         self.lambda_visible = 1.0 # exponential probability distribution, sensitivity parameters
@@ -249,33 +249,44 @@ class IntersectionLocalizer(object):
             np.random.shuffle(idx)
 
             num_pts = np.min([self.max_num_ctrl_pts, ctrl_pts_img_offset.shape[1]])
-            dist = np.zeros(shape=(num_pts), dtype=float)
-            num_feasible = 0
-            idx_feasible = []
-            for i in range(0, num_pts):
-                for k in range(0, self.line_search_length):
-                    if img[int(round(ctrl_pts_img_offset[1, i] + k * ctrl_pts_n_perp[1, i])),
-                           int(round(ctrl_pts_img_offset[0, i] + k * ctrl_pts_n_perp[0, i]))]:
-                        dist[num_feasible] = k
-                        idx_feasible.append(i)
-                        num_feasible += 1
-                        break
+            dist = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=float)
+            idx_feasible = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=bool)
+            for l in range(0, num_pts):
+                i = idx[l]
+                if img[int(round(ctrl_pts_img_offset[1, i])), int(round(ctrl_pts_img_offset[0, i]))]:
+                    dist[i] = 0
+                    idx_feasible[i] = 1
 
-                    elif img[int(round(ctrl_pts_img_offset[1, i] - k * ctrl_pts_n_perp[1, i])),
-                             int(round(ctrl_pts_img_offset[0, i] - k * ctrl_pts_n_perp[0, i]))]:
-                        dist[num_feasible] = -k
-                        idx_feasible.append(i)
-                        num_feasible += 1
-                        break
+                else:
+                    u = np.arange(ctrl_pts_img_offset[1, i], ctrl_pts_img_offset[1, i] + (self.line_search_length+0.1) * ctrl_pts_n_perp[1, i],ctrl_pts_n_perp[1, i]).astype(int)
+                    v = np.arange(ctrl_pts_img_offset[0, i], ctrl_pts_img_offset[0, i] + (self.line_search_length+0.1) * ctrl_pts_n_perp[0, i],ctrl_pts_n_perp[0, i]).astype(int)
+                    k_pos = np.argmax(img[u,v])
+
+                    u = np.arange(ctrl_pts_img_offset[1, i],
+                                  ctrl_pts_img_offset[1, i] - (self.line_search_length + 0.1) * ctrl_pts_n_perp[1, i],
+                                  -ctrl_pts_n_perp[1, i]).astype(int)
+                    v = np.arange(ctrl_pts_img_offset[0, i],
+                                  ctrl_pts_img_offset[0, i] - (self.line_search_length + 0.1) * ctrl_pts_n_perp[0, i],
+                                  -ctrl_pts_n_perp[0, i]).astype(int)
+                    k_neg = np.argmax(img[u, v])
+
+                    if k_pos or k_neg:
+                        if 0 < k_pos and k_pos < k_neg:
+                            dist[i] = k_pos
+                        else:
+                            dist[i] = k_neg
+
+                        idx_feasible[i] = 1
 
             # remove invalid entries
-            dist = dist[0:num_feasible]
+            dist = dist[idx_feasible]
             ctrl_pts_h_feasible = ctrl_pts_h[:, idx_feasible]
             ctrl_pts_img_feasible = ctrl_pts_img[:, idx_feasible]
             ctrl_pts_h_img_feasible = ctrl_pts_h_img[:, idx_feasible]
             ctrl_pts_n_perp_feasible = ctrl_pts_n_perp[:, idx_feasible]
 
             # check if there are enough ctrl points left
+            num_feasible = len(dist)
             if num_feasible < self.min_num_ctrl_pts:
                 return False, 0.0, 0.0, 0.0, 0.0
 

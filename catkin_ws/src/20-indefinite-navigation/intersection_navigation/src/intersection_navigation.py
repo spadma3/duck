@@ -231,6 +231,10 @@ class IntersectionNavigation(object):
 
         self.intersectionLocalizer.DrawModel(img_gray, best_x_meas, best_y_meas, best_theta_meas)
         self.img_gray2 = img_gray
+        img3 = cv2.cvtColor(self.img_gray2, cv2.COLOR_GRAY2BGR)
+        msg = dt_utils.d8_compressed_image_from_cv_image(img3)
+        self.pub_debug.publish(msg)
+
 
         return True
 
