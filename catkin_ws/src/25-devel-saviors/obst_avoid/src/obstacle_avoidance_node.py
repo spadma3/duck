@@ -28,7 +28,7 @@ class ObstAvoidNode(object):
         # Emergency brake to be triggered iff == 1
         #self.pub_topic = 'obstacle_emergency_stop_flag'.format(robot_name)
         #self.brake_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
-        self.pub_topic = 'obstacle_avoidance_active_flag'.format(robot_name)
+        self.pub_topic = '/{}/obstacle_avoidance_active_flag'.format(robot_name)
         self.avoid_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
 
         # Target d. Only read when Obstacle is detected
