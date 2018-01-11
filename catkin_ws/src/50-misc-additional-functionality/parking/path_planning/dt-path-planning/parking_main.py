@@ -273,7 +273,7 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
         pyaw_straight.reverse()
 
     # actual path plannign using RRT* with dubin curves as steering
-    fig = plt.figure()
+    fig = plt.figure(1)
 
     # ====Search Path with RRT====
     obstacleList = obstacles
@@ -283,7 +283,7 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
     goal = [end_x, end_y, end_yaw]
 
     rrt = rrt_star.RRT(start, goal, randArea=[0.0, lot_width], obstacleList=obstacleList,
-    maxIter=200, fig=fig, curvature=curvature, radius_graph_refinement=lot_width/4.0)
+    maxIter=50, fig=fig, curvature=curvature, radius_graph_refinement=lot_width/4.0)
     path = rrt.Planning(animation=True)
 
     # Draw final path
@@ -291,7 +291,7 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
     plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
     plt.grid(True)
     plt.pause(0.001)
-    plt.show()
+    # plt.show()
 
     # convert
     px, py, pyaw = [], [], []
@@ -365,7 +365,7 @@ def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw,
 def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path):
     if close_itself:
         plt.clf()
-    fig = plt.figure()
+    fig = plt.figure(1)
     ax = fig.add_subplot(111)
     if found_path:
         plt.plot(px, py,'g-',lw=3)
@@ -436,11 +436,9 @@ def path_planning(start_number=None, end_number=None):
     px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
-    if found_path:
-        # show results
-        if ploting:
-            do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
-        return
+    # show results
+    if ploting:
+        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
 
     """
     Stage 2: RRT*
@@ -450,13 +448,11 @@ def path_planning(start_number=None, end_number=None):
     px, py, pyaw = RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
-    if found_path:
-        # show results
-        if ploting:
-            do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
-            print('')
-    else:
-        print('RRT* did not find a path! \n')
+    # show results
+    if ploting:
+        do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+        print('')
+
 
 
 """

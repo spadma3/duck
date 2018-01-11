@@ -305,7 +305,7 @@ class Node():
 if __name__ == '__main__':
     print("Start rrt start planning")
     import matplotlib.pyplot as plt
-    fig = plt.figure()
+    fig = plt.figure(1)
     curvature = 1
 
     # ====Search Path with RRT====
