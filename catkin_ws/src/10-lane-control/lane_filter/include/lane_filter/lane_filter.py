@@ -87,7 +87,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def prepareSegments(self, segments):
         segmentsRangeArray = []
         emptyArr = []
-        for i in range(len(self.range_arr)):
+        for i in range(self.curvature_res + 1):
             segmentsRangeArray.append(emptyArr)
         for segment in segments:
             # we don't care about RED ones for now
@@ -102,16 +102,18 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             print point_range
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
+                print 'Adding segment %s to segmentsRangeArray[0] (Range: %s)' % (segment, point_range)
             if self.curvature_res is not 0:
                 for i in range(self.curvature_res):
                     if point_range < self.range_arr[i+1] or point_range > self.range_arr[i]:
                         segmentsRangeArray[i + 1].append(segment)
+                        print 'Adding segment %s to segmentsRangeArray[%i] (Range: %s)' % (segment, i+1, point_range)
 
         print 'Range Array values: %s' % self.range_arr
         for i in range(len(segmentsRangeArray)):
             print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
             for i in range(len(segmentsRangeArray[i])):
-                print 'Lenght of segment %i: %f' % (i, self.getSegmentDistance(segment))
+                print 'Range of segment %i: %f' % (i, self.getSegmentDistance(segment))
 
         return segmentsRangeArray
 
