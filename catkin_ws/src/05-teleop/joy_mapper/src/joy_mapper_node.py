@@ -123,15 +123,19 @@ class JoyMapper(object):
         elif joy_msg.buttons[3] == 1:
             self.gain += DELTA_GAIN
             self.set_gain_service(self.gain)
+            self.save_calibration()
         elif joy_msg.buttons[0] == 1:
             self.gain -= DELTA_GAIN
             self.set_gain_service(self.gain)
+            self.save_calibration()
         elif joy_msg.buttons[1] == 1:
             self.trim += DELTA_TRIM
             self.set_trim_service(self.trim)
+            self.save_calibration()
         elif joy_msg.buttons[2] == 1:
             self.trim -= DELTA_TRIM
             self.set_trim_service(self.trim)
+            self.save_calibration()
         # endregion
         elif (joy_msg.buttons[8] == 1): #power button (middle)
             e_stop_msg = BoolStamped()
