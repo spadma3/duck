@@ -5,7 +5,7 @@ from path_planner.path_planner import PathPlanner
 from pose_estimator.pose_estimator import PoseEstimator
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
-from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose
+from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose, LanePose
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int16, String
 import duckietown_utils as dt_utils
@@ -37,25 +37,32 @@ class IntersectionNavigation(object):
                                               Int16,
                                               self.TurnTypeCallback,
                                               queue_size=1)
-
-
         self.sub_img = rospy.Subscriber("~img",
                                         CompressedImage,
                                         self.ImageCallback,
                                         queue_size=1)
+
         self.sub_cmd = rospy.Subscriber("~cmds",
                                         Twist2DStamped,
                                         self.CmdCallback,
                                         queue_size=10)
+
         self.sub_april_tags = rospy.Subscriber('~apriltags',
                                                AprilTagsWithInfos,
                                                self.AprilTagsCallback,
                                                queue_size=1)
+        self.sub_intersection_pose = rospy.Subscriber('~intersection_pose',
+                                               LanePose,
+                                               self.AprilTagsCallback,
+                                               queue_size=1)
+
+        self.on_regular_road = rospy.Subscriber("/" + self.robot_name + "/lane_filter_node/in_lane",
+                                                BoolStamped, self.InLineCallback, queue_size=1)
 
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
-        self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
+        self.pub_intersection_pose = rospy.Publisher("~intersection_lane_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         self.pub_debug = rospy.Publisher("~debug/image/compressed",
                                          CompressedImage,
@@ -133,17 +140,22 @@ class IntersectionNavigation(object):
                     rospy.loginfo("[%s] Could not initialize path." % (self.node_name))
 
             elif self.state == self.state_dict['TRAVERSING']:
-                msg = IntersectionPose()
-                msg.header.stamp = rospy.Time.now()
-                pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
-                msg.x = pose[0]
-                msg.y = pose[1]
-                msg.theta = pose[2]
-                self.pub_intersection_pose.publish(msg)
+                if self.Controller():
+                    self.state = self.state_dict['DONE']
+                    rospy.loginfo("[%s] Intersection navigation done." % (self.node_name))
+                    '''if self.in_line:
+                        self.state = self.state_dict['DONE']
+                        rospy.loginfo("[%s] Intersection navigation done." % (self.node_name))
+                    else:
+                        self.state = self.state_dict['ERROR']
+                        rospy.loginfo("[%s] Could not complete the navigation." % (self.node_name))'''
+                else:
+                    rospy.loginfo("[%s] Navigating." % (self.node_name))
 
             elif self.state == self.state_dict['DONE']:
-                pass
-
+                int_done = BoolStamped()
+                int_done.data = True
+                self.pub_done.publish(int_done)
             else:
                 pass
                 # TODO
@@ -235,7 +247,14 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
-        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
+        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp) # add time and pose here!
+
+        self.intersectionLocalizer.DrawModel(img_gray, best_pose_meas)
+        self.img_gray2 = img_gray
+        img3 = cv2.cvtColor(self.img_gray2, cv2.COLOR_GRAY2BGR)
+        msg = dt_utils.d8_compressed_image_from_cv_image(img3)
+        self.pub_debug.publish(msg)
+
         return True
 
     def InitializePath(self):
@@ -246,13 +265,38 @@ class IntersectionNavigation(object):
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
+        # Path tracking initialization parameters
+        self.s_guess = 0
+        self.in_line = False
 
         if not self.pathPlanner.PlanPath(pose_init, pose_final):
             rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
             return False
 
         else:
+            self.pathPlanner.DrawPath(self.img_gray2,pose_init)
+            img = cv2.cvtColor(self.img_gray2,cv2.COLOR_GRAY2BGR)
+            msg = dt_utils.d8_compressed_image_from_cv_image(img)
+            self.pub_debug.publish(msg)
             return True
+
+    def Controller(self):
+        curr_pose = self.poseEstimator.PredictState(rospy.Time.now())
+
+        d, phi, curvature, self.s_guess = self.pathPlanner.ComputeLaneError(curr_pose, self.s_guess)
+
+        # Ask for lane controller
+        pathTracker_msg = LanePose()
+        pathTracker_msg.d = d
+        pathTracker_msg.phi = phi
+        pathTracker_msg.header.stamp = rospy.Time.now()
+
+        self.pub_intersection_pose.publish(pathTracker_msg)
+
+        if self.s_guess > 0.99:
+            return True
+        else:
+            return False
 
 
     def ModeCallback(self, msg):
@@ -281,10 +325,11 @@ class IntersectionNavigation(object):
             if valid_meas:
                 self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 20.0*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
 
-                #self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
-                #img3 = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
-                #msg = dt_utils.d8_compressed_image_from_cv_image(img3)
-                #self.pub_debug.publish(msg)
+                self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
+                img3 = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+                msg = dt_utils.d8_compressed_image_from_cv_image(img3)
+                self.pub_debug.publish(msg)
+
 
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
@@ -295,6 +340,8 @@ class IntersectionNavigation(object):
         if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
             pass
 
+    def InLineCallback(self, msg):
+        self.in_line = msg.data
 
 
     def SetupParameter(self, param_name, default_value):

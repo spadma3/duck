@@ -4,7 +4,7 @@
   <arg name="config" default="baseline" doc="Specify a config."/>
   <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
   <arg name="joy_mapper_param_file_name" default="$(arg param_file_name)" doc="Specify a joy_mapper param file. ex:high_speed" />
-  <arg name="raw" default="false" doc="If set to true, also publish raw image using decoder."/>
+  <arg name="raw" default="true" doc="If set to true, also publish raw image using decoder. True for AprilTags detection."/> -->
   <arg name="cam_info" default="true" doc="If set to true, use cam_info_reader_node to pusblish CameraInfo."/>
   <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
 
@@ -24,7 +24,47 @@
     <arg name="raw" value="$(arg raw)"/>
     <arg name="cam_info" value="$(arg cam_info)"/> <!-- this should possible change later when we take logs without camera info but let's leave for now -->
     <arg name="live" value="$(arg live)"/>
+    <arg name="rect" value="true" />
   </include>
+
+  <!-- AprilTags Detections -->
+    <remap from="image_rect" to="camera_node/image/rect" />
+    <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
+    <include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="local" value="$(arg local)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+
+ 	<!-- Postprocessing node -->
+ 	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
+ 	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
+ 		<arg name="veh" value="$(arg veh)"/>
+        <arg name="local" value="$(arg local)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+ 	</include>
+
+  <!-- Start Wheels -->
+    <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
+	<remap from="inverse_kinematics_node/car_cmd" to="car_cmd_switch_node/cmd"/>
+	<include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+	</include>
+
+	<!-- Wheel Driver -->
+	<include file="$(find dagu_car)/launch/wheels_driver_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+	</include>
+
+<!-- Lane controller -->
+    <remap from="lane_controller_node/lane_pose" to="intersection_navigation_node/intersection_lane_pose"/>
+	<include file="$(find lane_control)/launch/lane_controller_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
 
 
 	<arg name="robot_name" default="daisy" />
