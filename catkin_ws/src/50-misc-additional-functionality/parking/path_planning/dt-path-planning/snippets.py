@@ -1,17 +1,13 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
+import matplotlib
+matplotlib.use("wx")
+from pylab import *
 import matplotlib.pyplot as plt
-import numpy as np
-import pickle
 
-ax = plt.subplot(111)
-x = np.linspace(0, 10)
-y = np.exp(x)
-plt.plot(x, y)
-pickle.dump(ax, file('background.pickle', 'w'))
+fig, ax = plt.subplots()
+mngr = plt.get_current_fig_manager()
 
-plt.clf()
-
-ax = pickle.load(file('background.pickle'))
-plt.pause(0.5)
+# to put it into the upper left corner for example:
+mngr.window.setGeometry(50,100,640, 545)
