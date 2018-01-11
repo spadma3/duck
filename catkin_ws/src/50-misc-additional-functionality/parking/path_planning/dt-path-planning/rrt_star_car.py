@@ -209,41 +209,41 @@ class RRT():
         u"""
         Draw Graph
         """
+        import pickle
         import matplotlib.pyplot as plt
         import matplotlib.patches as patches
-        plt.cla()
-        ax = self.fig.add_subplot(111)
+
         ax = pickle.load(file('images/background.pickle'))
 
         if rnd is not None:
-            plt.plot(rnd.x, rnd.y, "^k")
+            ax.plot(rnd.x, rnd.y, "^k")
         for node in self.nodeList:
             if node.parent is not None:
-                plt.plot(node.path_x, node.path_y, "-g")
+                ax.plot(node.path_x, node.path_y, "-g")
                 #  plt.plot([node.x, self.nodeList[node.parent].x], [
                 #  node.y, self.nodeList[node.parent].y], "-g")
 
-        for obstacle in self.obstacleList:
-            if obstacle[0] == "circle":
-                (ox, oy, size) = obstacle[1:]
-                ax.add_patch(patches.Circle((ox,oy),size,fc="k",ec="k"))
+        # for obstacle in self.obstacleList:
+        #     if obstacle[0] == "circle":
+        #         (ox, oy, size) = obstacle[1:]
+        #         ax.add_patch(patches.Circle((ox,oy),size,fc="k",ec="k"))
+        #
+        #     elif obstacle[0] == "rectangle":
+        #         (ox, oy, odx, ody) = obstacle[1:]
+        #         ax.add_patch( patches.Rectangle( (ox, oy), odx, ody, fc="k"))
+        #
+        #     else:
+        #         print("Obstacle {} not found.\n".format(obstacle))
 
-            elif obstacle[0] == "rectangle":
-                (ox, oy, odx, ody) = obstacle[1:]
-                ax.add_patch( patches.Rectangle( (ox, oy), odx, ody, fc="k"))
+        # dubins_path_planning.plot_arrow(
+        #     self.start.x, self.start.y, self.start.yaw)
+        # dubins_path_planning.plot_arrow(
+        #     self.end.x, self.end.y, self.end.yaw)
 
-            else:
-                print("Obstacle {} not found.\n".format(obstacle))
+        # plt.axis([self.minrand, self.maxrand, self.minrand, self.maxrand])
+        # plt.grid(True)
 
-        dubins_path_planning.plot_arrow(
-            self.start.x, self.start.y, self.start.yaw)
-        dubins_path_planning.plot_arrow(
-            self.end.x, self.end.y, self.end.yaw)
-
-        plt.axis([self.minrand, self.maxrand, self.minrand, self.maxrand])
-        plt.grid(True)
-
-        pickle.dump(ax, file('images/rrtstar.pickle', 'w'))
+        # pickle.dump(ax, file('images/rrtstar.pickle', 'w'))
 
         plt.pause(0.001)
 

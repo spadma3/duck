@@ -13,13 +13,18 @@ def init():
     ax = fig.add_subplot(111)
     ax.plot(x,y)
     pickle.dump(ax, file('images/background.pickle', 'w'))
+    plt.pause(0.2)
+    plt.close()
+    return x,y
 
-def loop():
+def loop(x,y):
     for i in range(5):
         ax = pickle.load(file('images/background.pickle'))
-        ax.add_patch( patches.Rectangle((math.pi/2.0+math.pi/10.0*i,0.2),math.pi,0.3))
+        ax.plot(x+i/10.0,y)
         plt.pause(0.2)
+        plt.close()
 
 if __name__ == '__main__':
-    init()
-    loop()
+    x,y = init()
+    loop(x,y)
+    plt.show()

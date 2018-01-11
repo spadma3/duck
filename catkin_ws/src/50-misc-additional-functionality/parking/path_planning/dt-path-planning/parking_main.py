@@ -19,13 +19,13 @@ Global parameters
 """
 # control parameters
 choose_random_parking_space_combination = False
-close_itself = False
+close_itself = True
 save_figures = True
 pause_per_path = 0.5 # sec
 ploting = True
 
 # path planning parameters
-radius_robot = 70                  # mm distance point between wheels and most apart point on robot
+radius_robot = 70                   # mm distance point between wheels and most apart point on robot
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
@@ -33,6 +33,8 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
+maxIter = 50                        # iterations for RRT*
+rrt_star_animation = True           # animate RRT* search
 
 # parking lot parameters
 lot_width = 2*585                   # mm, lot = 2x2 squares
@@ -148,8 +150,6 @@ def define_obstacles(objects):
             obstacles.append( ("circle", obj[0]+obj[2], obj[1]+obj[3], radius_robot ))
 
     return obstacles
-
-
 
 # dubins path planning
 def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw):
@@ -283,8 +283,8 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
     goal = [end_x, end_y, end_yaw]
 
     rrt = rrt_star.RRT(start, goal, randArea=[0.0, lot_width], obstacleList=obstacleList,
-    maxIter=50, fig=fig, curvature=curvature, radius_graph_refinement=lot_width/4.0)
-    path = rrt.Planning(animation=True)
+    maxIter=maxIter, fig=fig, curvature=curvature, radius_graph_refinement=lot_width/3.0)
+    path = rrt.Planning(animation=rrt_star_animation)
 
     # Draw final path
     rrt.DrawGraph()
