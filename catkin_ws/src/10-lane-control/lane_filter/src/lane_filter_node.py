@@ -67,7 +67,7 @@ class LaneFilterNode(object):
             range_arr[i] = range_min + (i-1)*range_diff
 
         
-        timestamp_now = rospy.get_time()
+        timestamp_now = rospy.Time.now()
         self.filter.update(segment_list_msg.segments, range_arr)
 
         # Latency of Estimation including curvature estimation
