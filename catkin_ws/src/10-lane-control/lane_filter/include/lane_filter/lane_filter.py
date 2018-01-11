@@ -83,7 +83,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             self.beliefArray[k] = s_belief / np.sum(s_belief)
 
 
-    def prepareSegments(self, segments)
+    def prepareSegments(self, segments):
         segmentsRangeArray = []
         # emptyArr = []
         for i in range(len(self.range_arr)):
