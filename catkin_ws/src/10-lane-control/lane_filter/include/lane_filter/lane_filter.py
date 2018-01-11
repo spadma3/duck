@@ -99,6 +99,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
             # only consider points in a certain range from the Duckiebot
             point_range = self.getSegmentDistance(segment)
+            print point_range
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
             if self.curvature_res is not 0:
