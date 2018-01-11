@@ -18,7 +18,7 @@ import os, pickle
 Global parameters
 """
 # control parameters
-choose_random_parking_space_combination = True
+choose_random_parking_space_combination = False
 close_itself = True
 save_figures = True
 pause_per_path = 0.5 # sec
@@ -33,7 +33,7 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 200                        # iterations for RRT*
+maxIter = 100                        # iterations for RRT*
 rrt_star_animation = True           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 
@@ -340,13 +340,13 @@ def collision_check(px, py, obstacles, start_number, end_number):
                 exit("SN:ERROR: type {} not known.".format(obstacle[0]))
 
     if found_path:
-        print("A collision free path from {} to {} was found!".format(start_number,end_number))
+        print("\t\tA collision free path from {} to {} was found!".format(start_number,end_number))
     else:
-        print("No collision free path from {} to {} was found!".format(start_number,end_number))
+        print("\t\tNo collision free path from {} to {} was found!".format(start_number,end_number))
         if crash:
-            print("\tThe robot will crash into objects on this path!")
+            print("\t\tThe robot will crash into objects on this path!")
         if out_of_parking_lot:
-            print("\tThe robot wants to drive outside the parking lot")
+            print("\t\tThe robot wants to drive outside the parking lot")
 
     return found_path
 
@@ -435,7 +435,7 @@ def path_planning(start_number=None, end_number=None):
     """
     Stage 1: Dubins path
     """
-    print('\n-------------------- Stage 1: Dubins --------------------')
+    print('\n\tStage 1: Dubins')
 
     px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
@@ -445,7 +445,10 @@ def path_planning(start_number=None, end_number=None):
         do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
 
     if found_path:
-        plt.show()
+        if close_itself:
+            plt.pause(pause_per_path)
+        else:
+            plt.show()
         return
     else:
         plt.pause(0.001)
@@ -453,17 +456,24 @@ def path_planning(start_number=None, end_number=None):
     """
     Stage 2: RRT*
     """
-    print('\n-------------------- Stage 2: RRT* --------------------')
+    print('\n\tStage 2: RRT*')
 
     px, py, pyaw = RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
     # show results
     if ploting:
-        plt.show()
+        print('')
+        if save_figures:
+            dic = {True:'driveable', False:'collision'}
+            plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
+        if close_itself:
+            plt.pause(pause_per_path)
+        else:
+            plt.show()
         # ax = pickle.load(file('images/rrtstar.pickle'))
         # do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
-        print('')
+
 
 
 
@@ -471,7 +481,6 @@ def path_planning(start_number=None, end_number=None):
 main file
 """
 if __name__ == '__main__':
-    print('Path planning for duckietown...')
 
     # path calculation
     init()
@@ -480,7 +489,9 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        start_numbers = [4]
-        end_numbers = [7]
+        start_numbers = [0,4]
+        end_numbers = [1,7]
         for start_number, end_number in zip(start_numbers, end_numbers):
+            print("Planning a path from {} to {}: ".format(start_number, end_number))
             path_planning(start_number, end_number)
+            print("\n")
