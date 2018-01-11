@@ -291,8 +291,6 @@ class IntersectionNavigation(object):
                 #img3 = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
                 #msg = dt_utils.d8_compressed_image_from_cv_image(img3)
                 #self.pub_debug.publish(msg)
-                print('now')
-
 
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
