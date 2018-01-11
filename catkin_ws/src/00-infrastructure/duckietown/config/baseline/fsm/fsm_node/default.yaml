@@ -150,6 +150,7 @@ states:
   LANE_FOLLOWING:
     transitions:
       at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
+      deep_lane_following_on: "DEEP_LANE_FOLLOWING"
     active_nodes:
       - decoder_node
       - line_detector_node
