@@ -13,6 +13,7 @@ class LaneFilterNode(object):
         self.active = True
         self.filter = None
         self.updateParams(None)
+        self.latencyArray = []
         
         self.t_last_update = rospy.get_time()
         self.velocity = Twist2DStamped()
@@ -65,7 +66,21 @@ class LaneFilterNode(object):
         for i in range(1,self.filter.num_belief + 1):
             range_arr[i] = range_min + (i-1)*range_diff
 
+        
+        timestamp_now = rospy.get_time()
         self.filter.update(segment_list_msg.segments, range_arr)
+
+        # Latency of Estimation including curvature estimation
+        estimation_latency_stamp = rospy.Time.now() - timestamp_now
+        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
+        self.latencyArray.append(estimation_latency)
+
+        if (len(self.latencyArray) >= 20):
+            self.latencyArray.pop(0)
+
+        # print "Latency of segment list: ", segment_latency
+        print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
+        # rospy.loginfo("Image_Size: " + str(self.img_size) + " / top_cutoff: " + str(self.top_cutoff))
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
