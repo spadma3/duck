@@ -4,7 +4,7 @@ from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32
 from geometry_msgs.msg import PoseArray
-from duckietown_msgs.msg import LanePose
+from duckietown_msgs.msg import LanePose, BoolStamped
 from obst_avoid.avoider import Avoider
 from duckietown_utils import get_base_name, rgb_from_ros, rectify, load_camera_intrinsics
 
@@ -29,7 +29,7 @@ class ObstAvoidNode(object):
         #self.pub_topic = 'obstacle_emergency_stop_flag'.format(robot_name)
         #self.brake_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
         self.pub_topic = '/{}/obstacle_avoidance_active_flag'.format(robot_name)
-        self.avoid_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
+        self.avoid_pub = rospy.Publisher(self.pub_topic, BoolStamped, queue_size=1)
 
         # Target d. Only read when Obstacle is detected
         self.pub_topic = '/{}/obst_avoid/obstacle_avoidance_pose'.format(robot_name)
@@ -54,7 +54,8 @@ class ObstAvoidNode(object):
         amount_obstacles_on_track = 0
         obstacle_poses_on_track = PoseArray()
         obstacle_poses_on_track.header = obstacle_poses.header
-        avoidance_active = False
+        avoidance_active = BoolStamped()
+        avoidance_active.data = False
         target = LanePose()
         # target.header.frame_id = self.robot_name
         target.v_ref = 10  # max speed high, current top 0.38
@@ -87,16 +88,16 @@ class ObstAvoidNode(object):
             rospy.loginfo('1 obstacles on track')
             rospy.loginfo('d_target= %f', targets[0])
             rospy.loginfo('emergency_stop = %f', targets[1])
-            avoidance_active = True
+            avoidance_active.data = True
         else:
             target.v_ref = 0
             rospy.loginfo('%d obstacles on track', amount_obstacles_on_track)
-            avoidance_active = True
+            avoidance_active.data = True
             target.v_ref = 0
             rospy.loginfo('emergency_stop = 1')
         self.obstavoidpose_topic.publish(target)
         self.avoid_pub.publish(avoidance_active)
-        rospy.loginfo('Avoidance flag set: %s', avoidance_active)
+        rospy.loginfo('Avoidance flag set: %s', avoidance_active.data)
         return
 
     def LanePoseCallback(self, LanePose):
