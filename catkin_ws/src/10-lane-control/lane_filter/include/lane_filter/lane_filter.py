@@ -53,10 +53,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.d_med_arr = []
         self.phi_med_arr = []
         self.median_filter_size = 5
-         
+        
         self.initialize()
         
-        
+    
     def predict(self, dt, v, w):
         delta_t = dt
         d_t = self.d + v*delta_t*np.sin(self.phi)
@@ -98,7 +98,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
             # only consider points in a certain range from the Duckiebot
             point_range = self.getSegmentDistance(segment)
-            if point_range < range_est:
+            if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
             if self.curvature_res is not 0:
                 for i in range(self.curvature_res):
@@ -119,9 +119,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             
             # populate range_array
             for i in range(len(self.range_arr)):
-                self.range_arr[i] = range_min + (i * range_diff)
+                self.range_arr[i] = self.range_min + (i * range_diff)
         
-
+        
     def update(self, segments):
         segmentsRangeArray = self.prepareSegments(segments)
         self.updatePoseBelief(segmentsRangeArray[0])
@@ -194,7 +194,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             return self.curvature_left
         elif np.median(self.phi_med_arr) - phi_max[0] > 0.2 and np.median(self.d_med_arr) < -0.02:
             print "Curvature estimation: right curve"
-            return = self.curvature_right
+            return self.curvature_right
         else:
             print "Curvature estimation: straight lane"
             return 0
