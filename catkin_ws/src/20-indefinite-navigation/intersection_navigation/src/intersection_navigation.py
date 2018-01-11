@@ -276,18 +276,24 @@ class IntersectionNavigation(object):
 
 
     def ImageCallback(self, msg):
-        print('here')
         # if initialized
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             # predict pose
-            pose_pred, _ = self.poseEstimator.PredictState()
+            pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
 
             # localize Duckiebot, use predicted pose as initial guess
-            img_processed, _ = self.intersectionLocalizer.ProcessRawImage(msg)
-            self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
+            img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(msg)
+            valid_meas, x_meas, y_meas, theta_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
 
             # update pose estimate
-            self.poseEstimator.UpdateWithPoseMeasurement()
+            if valid_meas:
+                pose_meas = np.array([x_meas, y_meas, theta_meas])
+                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, msg.header.stamp)
+
+                self.intersectionLocalizer.DrawModel(img_gray, x_meas, y_meas, theta_meas)
+                img3 = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+                msg = dt_utils.d8_compressed_image_from_cv_image(img3)
+                self.pub_debug.publish(msg)
 
 
     def CmdCallback(self, msg):
