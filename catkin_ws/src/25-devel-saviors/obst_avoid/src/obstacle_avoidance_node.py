@@ -92,6 +92,8 @@ class ObstAvoidNode(object):
             target.v_ref = 0
             rospy.loginfo('%d obstacles on track', amount_obstacles_on_track)
             self.avoid_pub.publish(True)
+            target.v_ref = 0
+            rospy.loginfo('emergency_stop = 1')
         self.obstavoidpose_topic.publish(target)
         return
 
