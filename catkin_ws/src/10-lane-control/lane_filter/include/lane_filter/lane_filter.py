@@ -89,6 +89,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         emptyArr = []
         for i in range(self.curvature_res + 1):
             segmentsRangeArray.append(emptyArr)
+
+        print segmentsRangeArray
+        
         for segment in segments:
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
@@ -114,9 +117,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         print 'Range Array values: %s' % self.range_arr
         for i in range(len(segmentsRangeArray)):
-            print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
+            print 'Length of segmentsRangeArray[%f]: %f' % (i, len(segmentsRangeArray[i]))
             for j in range(len(segmentsRangeArray[i])):
-                print 'Range of segment %i: %f' % (j, self.getSegmentDistance(segmentsRangeArray[i][j]))
+                print 'Range of segment %f: %f' % (j, self.getSegmentDistance(segmentsRangeArray[i][j]))
 
         return segmentsRangeArray
 
