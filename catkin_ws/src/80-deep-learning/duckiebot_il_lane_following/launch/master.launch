@@ -94,6 +94,8 @@
 	<arg name="/localization/map_name" default="open_house_dp6" />
 	<arg name="/localization/gui" default="false"/>
 
+        <arg name="duckiebot_il_lane_following" default="true"/>
+
 	<!-- end switch args -->
 	
 	<!-- Enable statistics -->
