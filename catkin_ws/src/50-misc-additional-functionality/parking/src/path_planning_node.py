@@ -32,7 +32,7 @@ april_tag_screen_length = 80        # mm
 space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
 
-bool plan = True
+plan = True
 
 # additional constants
 length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0
