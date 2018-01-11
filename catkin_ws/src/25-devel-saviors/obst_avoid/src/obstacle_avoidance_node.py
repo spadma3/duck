@@ -5,11 +5,9 @@ from std_msgs.msg import Bool
 from std_msgs.msg import Float32
 from geometry_msgs.msg import PoseArray
 from duckietown_msgs.msg import LanePose
-
-### note you need to change the name of the robot to yours here
-# from obst_avoid.detector import Detector
 from obst_avoid.avoider import Avoider
 from duckietown_utils import get_base_name, rgb_from_ros, rectify, load_camera_intrinsics
+
 
 class ObstAvoidNode(object):
 
@@ -20,28 +18,22 @@ class ObstAvoidNode(object):
         self.intersection = 0
         self.x_bounding_width = (rospy.get_param("~bb_len", ""))  # mm
         self.y_bounding_width = (rospy.get_param("~bb_wid", ""))  # mm
-
         robot_name = rospy.get_param("~veh", "")
-        self.avoider = Avoider(robot_name=robot_name)
+        self.avoider = Avoider(robot_name)
         rospy.loginfo(robot_name)
         # self.detector = Detector(robot_name=robot_name)  # not sure what that does
 
         ########################
         ###### Publishers ######
         # Emergency brake to be triggered iff == 1
-        self.pub_topic = 'obstacle_emergency_stop_flag'.format(robot_name)
-        self.brake_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
-
+        #self.pub_topic = 'obstacle_emergency_stop_flag'.format(robot_name)
+        #self.brake_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
         self.pub_topic = 'obstacle_avoidance_active_flag'.format(robot_name)
-        self.brake_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
+        self.avoid_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
 
         # Target d. Only read when Obstacle is detected
-        self.pub_topic = '/{}/obst_avoid/d_target'.format(robot_name)
-        self.d_target_pub = rospy.Publisher(self.pub_topic, Float32, queue_size=1)
-        # ToDo: Consider Float32MultiArray if theta will be used.
-        # Target theta for dev-controllers to tune the controls
-        self.pub_topic = '/{}/obst_avoid/theta_target'.format(robot_name)
-        self.theta_target_pub = rospy.Publisher(self.pub_topic, Float32, queue_size=1)
+        self.pub_topic = '/{}/obst_avoid/obstacle_avoidance_pose'.format(robot_name)
+        self.obstavoidpose_topic = rospy.Publisher(self.pub_topic, LanePose, queue_size=1)
 
         ########################
         ###### Subscribers #####
@@ -56,17 +48,16 @@ class ObstAvoidNode(object):
         # self.sub_topic = '/{}/'.format(robot_name)
         # self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.intersectionCallback)
 
-        # ToDo: line_detection
-        self.sub_topic = '/{}/Anti_Instagram'.format(robot_name)
-        self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.lineCallback)
-
     def obstacleCallback(self, obstacle_poses):
         amount_obstacles = len(obstacle_poses.poses)
-        amount_obstacles_on_track = 0
         rospy.loginfo('Number of obstacles: %d', len(obstacle_poses.poses))
         amount_obstacles_on_track = 0
         obstacle_poses_on_track = PoseArray()
         obstacle_poses_on_track.header = obstacle_poses.header
+        self.avoid_pub.publish(False)
+        target = LanePose()
+        # target.header.frame_id = self.robot_name
+        target.v_ref = 10  # max speed high, current top 0.38
         for x in range(amount_obstacles):
             rospy.loginfo(obstacle_poses.poses[x].position.z)
             if obstacle_poses.poses[x].position.z > 0:
@@ -85,21 +76,23 @@ class ObstAvoidNode(object):
                     obstacle_poses_on_track.poses.append(obstacle_poses.poses[x])
                     amount_obstacles_on_track += 1
         if amount_obstacles_on_track == 0:
-            self.brake_pub.publish(0)
             rospy.loginfo('0 obstacles on track')
-            return
         if amount_obstacles_on_track == 1:
             #ToDo: check if self.d_current can be accessed through forwarding of self
             targets = self.avoider.avoid(obstacle_poses_on_track, self.d_current, self.theta_current)
-            self.d_target_pub.publish(targets[0])
-            self.brake_pub.publish(targets[1])
+            target.d_ref = targets[0]
+            if targets[1]:  # emergency stop
+                target.v_ref = 0
             # self.theta_target_pub.publish(targets[2]) # theta not calculated in current version
             rospy.loginfo('d_target= %f', targets[0])
             rospy.loginfo('emergency_stop = %f', targets[1])
             rospy.loginfo('1 obstacles on track')
+            self.avoid_pub.publish(True)
         else:
-            self.brake_pub.publish(1)
+            target.v_ref = 0
             rospy.loginfo('%d obstacles on track', amount_obstacles_on_track)
+            self.avoid_pub.publish(True)
+        self.obstavoidpose_topic.publish(target)
         return
 
     def LanePoseCallback(self, LanePose):
