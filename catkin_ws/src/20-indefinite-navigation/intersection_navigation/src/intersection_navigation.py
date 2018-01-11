@@ -135,7 +135,7 @@ class IntersectionNavigation(object):
             elif self.state == self.state_dict['TRAVERSING']:
                 msg = IntersectionPose()
                 msg.header.stamp = rospy.Time.now()
-                pose = self.poseEstimator.PredictState(msg.header.stamp)
+                pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
                 msg.x = pose[0]
                 msg.y = pose[1]
                 msg.theta = pose[2]
