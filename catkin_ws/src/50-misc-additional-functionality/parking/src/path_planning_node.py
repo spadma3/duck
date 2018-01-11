@@ -54,9 +54,9 @@ class parkingPathPlanner():
         # init publisher
         self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control,queue_size=10)
         #self.path_planning(rospy.get_param('~end_space'))
-        print "The computed x path is ", self.px
-        print "The computed y path is ", self.py
-        print "The computed yaw path is ", self.pyaw
+        #print "The computed x path is ", self.px
+        #print "The computed y path is ", self.py
+        #print "The computed yaw path is ", self.pyaw
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.sample_callback)
 
     #  callback for control references
