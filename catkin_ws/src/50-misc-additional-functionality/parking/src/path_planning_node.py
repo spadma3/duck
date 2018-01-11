@@ -69,7 +69,6 @@ class parkingPathPlanner():
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
-        print self.plan
         if self.plan == True:    
             # plan the path once during first callback
             self.x_act = pose.x
