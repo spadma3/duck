@@ -57,5 +57,4 @@
     <node pkg="tf" type="static_transform_publisher" name="test_tag_126_broadcaster" args="1 1 0 0 0 0 world tag_126 100"/>
     <node pkg="tf" type="static_transform_publisher" name="test_tag_131_broadcaster" args="1 1 0 0 0 0 world tag_131 100"/>
 
-
 </launch>
