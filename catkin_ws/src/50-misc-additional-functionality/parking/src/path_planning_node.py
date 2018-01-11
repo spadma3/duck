@@ -32,6 +32,8 @@ april_tag_screen_length = 80        # mm
 space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
 
+bool plan = True
+
 # additional constants
 length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0
 
@@ -44,14 +46,14 @@ class parkingPathPlanner():
         # init subscriber
         rospy.Subscriber("pose_duckiebot", Pose2DStamped, self.localization_callback)
         # init pose
-        pose =  Pose2DStamped()
-        self.x_act = pose.x #165.0
-        self.y_act = pose.y #1015
-        self.yaw_act = pose.theta #-pi/2
-        print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
+        #pose =  Pose2DStamped()
+        #self.x_act = pose.x #165.0
+        #self.y_act = pose.y #1015
+        #self.yaw_act = pose.theta #-pi/2
+        #print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
         self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control,queue_size=10)
-        self.path_planning(rospy.get_param('~end_space'))
+        #self.path_planning(rospy.get_param('~end_space'))
         print "The computed x path is ", self.px
         print "The computed y path is ", self.py
         print "The computed yaw path is ", self.pyaw
@@ -65,13 +67,21 @@ class parkingPathPlanner():
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
-        self.x_act = pose.x_act
-        self.y_act = pose.y_act
-        self.yaw_act = pose.yaw_act
-        #if self.count == 0:
+        if plan == True:    
             # plan the path once during first callback
-        #    self.path_planning(1)
-        #count += 1
+            pose = Pose2DStamped()
+            self.x_act = pose.x
+            self.y_act = pose.y
+            self.yaw_act = pose.theta
+            self.path_planning(rospy.get_param('~end_space'))
+            print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
+            plan = False
+        else:
+            self.x_act = pose.x
+            self.y_act = pose.y
+            self.yaw_act = pose.theta
+
+
         return self.x_act, self.y_act, self.yaw_act
 
     def project_to_path(self, curvature):
