@@ -167,7 +167,7 @@ class Benchmark():
         ax[0].legend(loc='upper right')
         ax[0].grid(color='grey', linestyle=':', linewidth=1)
         ax[0].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
-        ax[0].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(self.d_mean*100,3), round(self.d_median*100,3)), ha="right", 
+        ax[0].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(np.mean(dArray[:, 0]), 3), round(np.median(dArray[:, 0]), 3)), ha="right", 
             va="center", transform=ax[0].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
         ax[1].set_ylim(-2.5, 2.5)
         ax[1].set_ylabel('tracking angle [deg]')
@@ -175,7 +175,7 @@ class Benchmark():
         ax[1].legend(loc='upper right')
         ax[1].grid(color='grey', linestyle=':', linewidth=1)
         ax[1].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
-        ax[1].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(self.phi_mean,3), round(self.phi_median,3)), ha="right", 
+        ax[1].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(np.mean(phiArray[:, 0]), 3), round(np.mean(phiArray[:, 0]), 3)), ha="right", 
             va="center", transform=ax[1].transAxes,bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
 
         if segmentArray.any():
@@ -207,17 +207,19 @@ class Benchmark():
     def write_Logs(self, dArray, phiArray, segmentArray, SegmentProcessTime, vArray, omegaArray):
         logFile = open(('%s/%s.txt' % (self.output, self.rosbagIN[:-4])), 'w')
         logFile.write('Benchmark results for %s\n' % self.rosbagIN[:-4])
-        logFile.write('\tdist min:\t%s\n' % round(self.d_min, 3))
-        logFile.write('\tdist max:\t%s\n' % round(self.d_max, 3))
-        logFile.write('\tdist mean:\t%s\n' % round(self.d_mean, 3))
-        logFile.write('\tdist med:\t%s\n' % round(self.d_median, 3))
-        logFile.write('\tdist var:\t%s\n' % round(self.d_var, 3))
+        logFile.write('\tdist min:\t%s\n' % round(np.min(dArray[:, 0]), 3))
+        logFile.write('\tdist max:\t%s\n' % round(np.max(dArray[:, 0]), 3))
+        logFile.write('\tdist mean:\t%s\n' % round(np.mean(dArray[:, 0]), 3))
+        logFile.write('\tdist med:\t%s\n' % round(np.median(dArray[:, 0]), 3))
+        logFile.write('\tdist var:\t%s\n' % round(np.var(dArray[:, 0]), 4))
+        logFile.write('\tdist std:\t%s\n\n' % round(np.std(dArray[:, 0]), 4))
 
-        logFile.write('\tphi min:\t%s\n' % round(self.phi_min, 3))
-        logFile.write('\tphi max:\t%s\n' % round(self.phi_max, 3))
-        logFile.write('\tphi mean:\t%s\n' % round(self.phi_mean, 3))
-        logFile.write('\tphi med:\t%s\n' % round(self.phi_median, 3))
-        logFile.write('\tphi var:\t%s\n' % round(self.phi_var, 3))
+        logFile.write('\tphi min:\t%s\n' % round(np.min(phiArray[:, 0]), 3))
+        logFile.write('\tphi max:\t%s\n' % round(np.max(phiArray[:, 0]), 3))
+        logFile.write('\tphi mean:\t%s\n' % round(np.mean(phiArray[:, 0]), 3))
+        logFile.write('\tphi med:\t%s\n' % round(np.median(phiArray[:, 0]), 3))
+        logFile.write('\tphi var:\t%s\n' % round(np.var(phiArray[:, 0]), 4))
+        logFile.write('\tphi std:\t%s\n' % round(np.std(phiArray[:, 0]), 4))
 
         if segmentArray.any():
             logFile.write('\nImage segments statistics:')
@@ -233,10 +235,10 @@ class Benchmark():
         logFile.write('Distance; Angle; Speed, Omega, Segments:\n')
         if segmentArray.any():
             for d, phi, v, omega, seg in zip(dArray, phiArray, vArray[:, 0], omegaArray[:, 0], segmentArray[:, 0]):
-                logFile.write('%f; %f; %f; %f; %f\n' % (d, phi, v, omega, seg))
+                logFile.write('%s; %s; %s; %s; %s\n' % (d, phi, v, omega, seg))
         else:
             for d, phi, in zip(dArray, phiArray):
-                logFile.write('%f; %f\n' % (d, phi))
+                logFile.write('%s; %s\n' % (d, phi))
 
     def getMessages(self, messages):
         result = []
@@ -374,24 +376,12 @@ class Benchmark():
             dArray = dComputedArray
             phiArray = phiComputedArray
 
-        self.d_min = np.min(dArray[:, 0])
-        self.d_max = np.max(dArray[:, 0])
-        self.d_mean = np.mean(dArray[:, 0])
-        self.d_median = np.median(dArray[:, 0])
-        self.d_var = np.var(dArray[:, 0])
-
-        self.phi_min = np.min(phiArray[:, 0])
-        self.phi_max = np.max(phiArray[:, 0])
-        self.phi_mean = np.mean(phiArray[:, 0])
-        self.phi_median = np.median(phiArray[:, 0])
-        self.phi_var = np.var(phiArray[:, 0])
-
         print('\nDone')
         self.toc = time.time()
         print('Time Elapsed: %f' % (self.toc - self.tic))
 
         self.create_Plots(dArray, phiArray, dComputedArray, phiComputedArray, segmentArray, vArray, omegaArray)
-        self.write_Logs(dArray[:, 0], phiArray[:, 0], segmentArray, SegmentProcessTime, vArray, omegaArray)
+        self.write_Logs(dArray, phiArray, segmentArray, SegmentProcessTime, vArray, omegaArray)
 
 if __name__ == '__main__':
     # Create new Benchmark Instance
