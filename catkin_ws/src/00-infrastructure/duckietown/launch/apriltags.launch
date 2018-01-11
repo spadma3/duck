@@ -19,7 +19,7 @@
  	</include>
  
  	<!-- AprilTags Detections -->
-    <!-- remap from="image_rect" to="camera_node/image/rect" -->
+    <remap from="image_rect" to="camera_node/image/rect" />
     <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
     <include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
         <arg name="veh" value="$(arg veh)"/>
@@ -29,7 +29,7 @@
     </include>
  
  	<!-- Postprocessing node -->
- 	<remap from="apriltags_postprocessing_node/apriltags_in" to="super_wierd" />
+ 	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
  	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
  		<arg name="veh" value="$(arg veh)"/>
         <arg name="local" value="$(arg local)"/>
