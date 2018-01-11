@@ -219,9 +219,7 @@ class IntersectionNavigation(object):
                     pose[0] = x_init + dx
                     pose[1] = y_init + dy
                     pose[2] = theta_init + dtheta
-                    valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(
-                        img_processed,
-                        pose)
+                    valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose)
 
                     if valid_meas and likelihood > best_likelihood:
                         best_likelihood = likelihood
