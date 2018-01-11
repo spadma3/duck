@@ -49,9 +49,9 @@
     </include>
 
     <!-- Path Planning -->
-	<!--include file="$(find parking)/launch/path_planning_node.launch"-->
-	 	<!--arg name="end_space" value="$(arg end_space)"/-->
- 	<!--/include-->
+	<include file="$(find parking)/launch/path_planning_node.launch">
+	 	<arg name="end_space" value="$(arg end_space)"/>
+ 	</include>
 
 	<!-- Run a static transform to test with -->
     <node pkg="tf" type="static_transform_publisher" name="test_tag_128_broadcaster" args="1 1 0 0 0 0 1 world tag_128 100"/>
