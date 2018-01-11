@@ -96,7 +96,7 @@ class ObstAvoidNode(object):
             rospy.loginfo('emergency_stop = 1')
         self.obstavoidpose_topic.publish(target)
         self.avoid_pub.publish(avoidance_active)
-        rospy.loginfo('Avoidance flag set: %b', avoidance_active)
+        rospy.loginfo('Avoidance flag set: %s', avoidance_active)
         return
 
     def LanePoseCallback(self, LanePose):
