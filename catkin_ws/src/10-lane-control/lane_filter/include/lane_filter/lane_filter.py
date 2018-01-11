@@ -127,6 +127,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.updatePoseBelief(segmentsRangeArray[0])
         if self.curvature_res > 0:
             for i in range(self.curvature_res):
+                print 'Updating beliefArray[%i]' % i
                 self.updateCurvatureBelief(segmentsRangeArray[i + 1], i + 1)
 
             
@@ -210,7 +211,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         pos[:,:,1]=self.phi
         self.cov_0
         RV = multivariate_normal(self.mean_0,self.cov_0)
-        for i in range(self.curvature_res):
+        for i in range(self.curvature_res + 1):
             self.beliefArray[i]=RV.pdf(pos)
 
 
