@@ -6,7 +6,6 @@
  	<arg name="camera" default="true" doc="camera set to false means only apriltags no camera nodes are launched"/>
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
  	<remap from="apriltags_postprocessing_node/apriltags_in" to="super_wierd1" />
- 	<remap from="apriltags_postprocessing_node/apriltags_out" to="super_wierd2" />
 
 
     <!-- Camera -->
@@ -41,6 +40,7 @@
  	</include>
 
  	<!-- Localization -->
+ 	<remap from="apriltags_postprocessing_node/apriltags_out" to="super_wierd2" />
     <include file="$(find localization)/launch/localization_node.launch">
         <arg name="veh" value="$(arg veh)"/>
         <arg name="param_file_name" value="$(arg param_file_name)"/>
