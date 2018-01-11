@@ -152,4 +152,6 @@ class calcTransform:
             print(tpl_param.x)
             self.scale[channel] = tpl_param.x[0]
             self.shift[channel] = tpl_param.x[1]
+            print('cost:')
+            print(tpl_param.cost)
         return self.scale, self.shift

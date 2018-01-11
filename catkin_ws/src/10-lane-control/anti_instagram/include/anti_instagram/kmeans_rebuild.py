@@ -128,7 +128,7 @@ class kMeansClass:
         trueBlack = [70, 50, 60]
         trueYellow = [50, 240, 230]
         trueWhite = [250, 250, 250]
-        if withRed:
+        if (withRed):
             trueRed = [50, 70, 240]
 
         # initialize arrays which save the errors to each true center

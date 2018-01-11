@@ -94,7 +94,7 @@ class AntiInstagram():
         self.KM.applyKM(img)
 
         # get the indices of the matched centers
-        idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(True, self.KM.trained_centers)
+        idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(self.KM.trained_centers, True)
 
         # get centers with red
         trained_centers = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxRed],
@@ -107,7 +107,7 @@ class AntiInstagram():
 
         # print('average error: ' + str(averageError))
 
-        if averageError <= 300:
+        if averageError <= 200:
 
             centers_name = ['black', 'red', 'yellow', 'white']
             # print('idx of detected outlier: ' + str(centers_name[outlierIndex]))

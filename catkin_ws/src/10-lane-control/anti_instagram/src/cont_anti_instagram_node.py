@@ -106,7 +106,6 @@ class ContAntiInstagramNode():
     def processImage(self, event):
         # if we have seen an image:
         if self.image_msg is not None:
-            rospy.loginfo('ai: Computing color transform...')
             tk = TimeKeeper(self.image_msg)
 
             try:
@@ -148,7 +147,7 @@ class ContAntiInstagramNode():
 
                 # not yet initialized
                 if not self.initialized:
-                    #if self.ai.calculateTransform(colorBalanced_image):
+                    # if self.ai.calculateTransform(colorBalanced_image):
                     if self.ai.calculateBoundedTransform(colorBalanced_image):
                         # init successful. set interval on desired by input
                         self.initialized = True
@@ -170,7 +169,7 @@ class ContAntiInstagramNode():
                 else:
 
                     # find color transform
-                    #if self.ai.calculateTransform(colorBalanced_image):
+                    # if self.ai.calculateTransform(colorBalanced_image):
                     if self.ai.calculateBoundedTransform(colorBalanced_image):
                         tk.completed('calculateTransform')
 
