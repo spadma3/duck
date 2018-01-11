@@ -36,6 +36,7 @@ class LaneFilterNode(object):
       
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+        self.latencyArray = []
 
 
     def updateParams(self, event):
