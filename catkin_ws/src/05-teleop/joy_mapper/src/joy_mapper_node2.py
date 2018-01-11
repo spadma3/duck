@@ -66,7 +66,7 @@ class JoyMapperNode2(EasyNode):
         self.publishers.car_cmd.publish(car_cmd_msg)
     
     def process_buttons(self, joy_msg):
-        BT_A = 0  # @UnusedVariable
+        BT_A = 0  # used for deep learning lane following toggle
         BT_B = 1  # @UnusedVariable
         BT_X = 2  # @UnusedVariable
         BT_Y = 3
@@ -109,7 +109,10 @@ class JoyMapperNode2(EasyNode):
         elif (joy_msg.buttons[BT_LEFT_JOY] == 1):
             self.info('start lane following with avoidance mode')
             self._send_bool_stamped(self.publishers.avoidance, True, joy_msg)
-
+            
+        elif (joy_msg.buttons[BT_A] == 1):
+            self.info('start deep learning lane following')
+            self._send_bool_stamped(self.publishers.deep_lane_following, True, joy_msg)    
         else:
             some_active = sum(joy_msg.buttons) > 0
             if some_active:

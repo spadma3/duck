@@ -57,6 +57,11 @@ publishers:
         type: duckietown_msgs/BoolStamped
         topic: ~start_avoidance
         queue_size: 1
+    deep_lane_following:
+        desc:
+        typr: duckietown_msgs/BoolStamped
+        topic: ~deep_lane_following
+        queue_size: 1
 
 subscriptions:
     joy:
