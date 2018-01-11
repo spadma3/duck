@@ -285,9 +285,9 @@ class IntersectionNavigation(object):
 
             # update pose estimate
             if valid_meas:
-                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, msg.header.stamp)
+                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1.0.np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
 
-                self.intersectionLocalizer.DrawModel(img_gray, x_meas, y_meas, theta_meas)
+                self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
                 img3 = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
                 msg = dt_utils.d8_compressed_image_from_cv_image(img3)
                 self.pub_debug.publish(msg)
