@@ -23,4 +23,7 @@ mappings: #Mapping from FSMStates.state to cmd source names. Allows different FS
   PARALLEL_AUTONOMY: "parallel_autonomy"  
   LOCALIZATION: "stop"
   DEEP_LANE_FOLLOWING: "deep_learning"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 16262958d... Reordered joystick button press ifs so theyre in numerical order, changed dagu_car deep_learning command
