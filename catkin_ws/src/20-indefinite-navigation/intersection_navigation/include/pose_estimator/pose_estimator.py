@@ -23,7 +23,7 @@ class PoseEstimator(object):
         # state = (x,y,theta)
         self.state_est = np.zeros(shape=3, dtype=float)
         self.cov_est = np.zeros(shape=(3, 3), dtype=float)
-        self.time_est = 0.0
+        self.time_est = rospy.Time.now()
 
         # vehicle command queue
         # inputs = (v,omega)
@@ -40,7 +40,7 @@ class PoseEstimator(object):
 
         self.cov_est[:] = self.cov_est_init
 
-        self.cmd_queue = deque([VehicleCommand(0.0, 0.0, -1.0)])
+        self.cmd_queue = deque([VehicleCommand(0.0, 0.0, time_init)])
 
     def PredictState(self, time_pred, predict_cov=False):
         '''predict estimate forward until time_pred'''
@@ -55,9 +55,11 @@ class PoseEstimator(object):
             # find current command
             if idx_cmd + 1 < num_cmd:
                 dt = min(self.cmd_queue[idx_cmd + 1].time,
-                         time_pred) - time_est  # careful, this could eventually cause problems if running long
+                         time_pred) - time_est
+                dt_sec = dt.to_sec()  # careful, this could eventually cause problems if running long
             else:
                 dt = time_pred - time_est
+                dt_sec = dt.to_sec()
 
             # predict covariance
             if predict_cov:
@@ -68,20 +70,20 @@ class PoseEstimator(object):
                               [np.sin(state_est[2]), 0.0],
                               [0.0, 1.0]])
                 cov_dot = np.dot(A, cov_est) + np.dot(cov_est, A.T) + np.dot(L, np.dot(self.cov_proc, L.T))
-                cov_est = cov_est + cov_dot * dt
+                cov_est = cov_est + cov_dot * dt_sec
 
             # predict state
             if np.abs(self.cmd_queue[idx_cmd].omega) > 1e-6:
                 radius = self.cmd_queue[idx_cmd].v / self.cmd_queue[idx_cmd].omega
 
                 state_est[0] = (state_est[0] - radius * np.sin(state_est[2])) + radius * np.sin(
-                    state_est[2] + self.cmd_queue[idx_cmd].omega * dt)
+                    state_est[2] + self.cmd_queue[idx_cmd].omega * dt_sec)
                 state_est[1] = (state_est[1] + radius * np.cos(state_est[2])) - radius * np.cos(
-                    state_est[2] + self.cmd_queue[idx_cmd].omega * dt)
+                    state_est[2] + self.cmd_queue[idx_cmd].omega * dt_sec)
             else:
-                state_est[0] = state_est[0] + self.cmd_queue[idx_cmd].v * np.cos(state_est[2]) * dt
-                state_est[1] = state_est[1] + self.cmd_queue[idx_cmd].v * np.sin(state_est[2]) * dt
-            state_est[2] = state_est[2] + self.cmd_queue[idx_cmd].omega * dt
+                state_est[0] = state_est[0] + self.cmd_queue[idx_cmd].v * np.cos(state_est[2]) * dt_sec
+                state_est[1] = state_est[1] + self.cmd_queue[idx_cmd].v * np.sin(state_est[2]) * dt_sec
+            state_est[2] = state_est[2] + self.cmd_queue[idx_cmd].omega * dt_sec
 
             time_est = time_est + dt
             idx_cmd += 1

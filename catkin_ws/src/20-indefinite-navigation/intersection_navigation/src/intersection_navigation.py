@@ -36,19 +36,25 @@ class IntersectionNavigation(object):
                                               Int16,
                                               self.TurnTypeCallback,
                                               queue_size=1)
-        self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed",
+
+        self.sub_img = rospy.Subscriber("~img",
                                         CompressedImage,
                                         self.ImageCallback,
                                         queue_size=1)
-        self.sub_cmd = rospy.Subscriber("/" + self.robot_name + "/forward_kinematics_node/velocity",
+        self.sub_cmd = rospy.Subscriber("~cmds",
                                         Twist2DStamped,
                                         self.CmdCallback,
                                         queue_size=10)
+        self.sub_april_tags = rospy.Subscriber('~apriltags',
+                                               AprilTagsWithInfos,
+                                               self.AprilTagsCallback,
+                                               queue_size=1)
 
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
         # self.pub_intersection_pose = rospy.Publisher("~intersection_pose", LanePose, queue_size=1)
+        self.pub_pose = rospy.Publisher("~intersection_pose_pred", IntersectionPose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
 
         # main logic parameters
@@ -73,6 +79,10 @@ class IntersectionNavigation(object):
                                         [0.508, 0.159, 0.0],
                                         [0.400, 0.508, 0.5 * np.pi],
                                         [0.0508, 0.400, np.pi]]
+
+        # initializing variables
+        self.AprilTags = []
+        self.k = 0
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
@@ -259,8 +269,32 @@ class IntersectionNavigation(object):
 
 
     def CmdCallback(self, msg):
-        if self.state == self.state_dict['WAITING_FOR_INSTRUCTIONS'] or self.state == self.state_dict['TRAVERSING']:
-            self.poseEstimator.FeedCommandQueue(msg)
+        #if self.state == self.state_dict['WAITING_FOR_INSTRUCTIONS'] or self.state == self.state_dict['TRAVERSING']:
+        #    self.poseEstimator.FeedCommandQueue(msg)
+
+        if self.k == 0:
+            pose_init = np.array([0.0,0.0,0.0])
+            self.poseEstimator.Reset(pose_init,msg.header.stamp)
+
+        self.poseEstimator.FeedCommandQueue(msg)
+        self.k += 1
+
+        if self.k == 100:
+            pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
+            msg2 = IntersectionPose()
+            msg2.header.stamp = rospy.Time.now()
+            msg2.x = pose[0]
+            msg2.y = pose[1]
+            msg2.theta = pose[2]
+
+            self.pub_pose.publish(msg2)
+
+            self.k = 0
+
+    def AprilTagsCallback(self, msg):
+        if self.state == self.state_dict['IDLING'] or self.state == self.state_dict['INITIALIZING']:
+            pass
+
 
 
     def SetupParameter(self, param_name, default_value):
