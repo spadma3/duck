@@ -6,6 +6,7 @@ import tf2_ros
 from tf2_msgs.msg import TFMessage
 import tf.transformations as tr
 from geometry_msgs.msg import Transform, TransformStamped
+from duckietown_msgs import Pose2DStamped
 import numpy as np
 from localization import PoseAverage
 from visualization_msgs.msg import Marker
@@ -29,8 +30,9 @@ class LocalizationNode(object):
 
         # Setup the publishers and subscribers
         self.sub_april = rospy.Subscriber("~apriltags", AprilTagsWithInfos, self.tag_callback)
-        self.pub_tf = rospy.Publisher("/tf", TFMessage, queue_size=1, latch=True)
-        self.pub_rviz = rospy.Publisher("/sign_highlights", Marker, queue_size=1, latch=True)
+        #self.pub_tf = rospy.Publisher("/tf", TFMessage, queue_size=1, latch=True)
+        self.pub_pose = rospy.Publisher("~pose_duckiebot", Pose2DStamped, queue_size=1, latch=True)
+        #self.pub_rviz = rospy.Publisher("/sign_highlights", Marker, queue_size=1, latch=True)
 
         # Setup the transform listener
         self.tfbuf = tf2_ros.Buffer()
@@ -38,19 +40,16 @@ class LocalizationNode(object):
 
         # Use a timer to make the duckiebot disappear
         self.lifetimer = rospy.Time.now()
-        #self.publish_duckie_marker()
+        self.publish_duckie_marker()
 
         rospy.loginfo("[%s] has started", self.node_name)
 
     def tag_callback(self, msg_tag):
         # Listen for the transform of the tag in the world
         avg = PoseAverage.PoseAverage()
-        print ("test1")
         for tag in msg_tag.detections:
             try:
-                print "test2"
                 Tt_w = self.tfbuf.lookup_transform(self.world_frame, "tag_{id}".format(id=tag.id), rospy.Time(), rospy.Duration(1))
-                print (Tt_w.transform)
                 Mtbase_w=self.transform_to_matrix(Tt_w.transform)
                 Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
                 Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
@@ -72,13 +71,18 @@ class LocalizationNode(object):
             Tr_w.translation.z = 0
             rot = Tr_w.rotation
             rotz=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[2]
-            (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_euler(0, 0, rotz)
-            T = TransformStamped()
-            T.transform = Tr_w
-            T.header.frame_id = self.world_frame
-            T.header.stamp = rospy.Time.now()
-            T.child_frame_id = self.duckiebot_frame
-            self.pub_tf.publish(TFMessage([T]))
+            P = Pose2DStamped()
+            P.x = Tr_w.translation.x
+            P.y = Tr_w.translation.y
+            P.theta = rotz
+            self.pub_pose.publish(P)
+            #(rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_euler(0, 0, rotz)
+            #T = TransformStamped()
+            #T.transform = Tr_w
+            #T.header.frame_id = self.world_frame
+            #T.header.stamp = rospy.Time.now()
+            #T.child_frame_id = self.duckiebot_frame
+            #self.pub_tf.publish(TFMessage([T]))
             self.lifetimer = rospy.Time.now()
 
     def publish_duckie_marker(self):
