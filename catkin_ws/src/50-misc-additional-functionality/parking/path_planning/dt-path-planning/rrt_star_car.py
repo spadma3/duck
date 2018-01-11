@@ -21,7 +21,7 @@ class RRT():
     Class for RRT Planning
     """
 
-    def __init__(self, start, goal, obstacleList, randArea, fig, curvature,
+    def __init__(self, start, goal, obstacleList, randArea, curvature,
                  radius_graph_refinement, goalSampleRate=10, maxIter=1000):
         u"""
         Setting Parameter
@@ -41,7 +41,6 @@ class RRT():
         self.goalSampleRate = goalSampleRate
         self.radius_graph_refinement = radius_graph_refinement
         self.maxIter = maxIter
-        self.fig = fig
 
     def Planning(self, animation=True):
         u"""
@@ -246,6 +245,7 @@ class RRT():
         # pickle.dump(ax, file('images/rrtstar.pickle', 'w'))
 
         plt.pause(0.001)
+        plt.close()
 
 
     def GetNearestListIndex(self, nodeList, rnd):
@@ -326,7 +326,7 @@ if __name__ == '__main__':
     goal = [10.0, 10.0, math.radians(0.0)]
 
     rrt = RRT(start, goal, randArea=[-2.0, 15.0], obstacleList=obstacleList, maxIter=50,
-    fig=fig, curvature=curvature, radius_graph_refinement=0.5)
+    curvature=curvature, radius_graph_refinement=0.5)
     path = rrt.Planning(animation=True)
 
     # start, goal, obstacleList, randArea, goalSampleRate=10, maxIter=1000

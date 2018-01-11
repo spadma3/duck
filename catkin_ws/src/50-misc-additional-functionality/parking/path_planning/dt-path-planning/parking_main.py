@@ -272,8 +272,6 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
         py_straight.reverse()
         pyaw_straight.reverse()
 
-    # actual path plannign using RRT* with dubin curves as steering
-    fig = plt.figure(1)
 
     # ====Search Path with RRT====
     obstacleList = obstacles
@@ -283,15 +281,13 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
     goal = [end_x, end_y, end_yaw]
 
     rrt = rrt_star.RRT(start, goal, randArea=[0.0, lot_width], obstacleList=obstacleList,
-    maxIter=maxIter, fig=fig, curvature=curvature, radius_graph_refinement=lot_width/3.0)
+    maxIter=maxIter, curvature=curvature, radius_graph_refinement=lot_width/3.0)
     path = rrt.Planning(animation=rrt_star_animation)
 
     # Draw final path
     rrt.DrawGraph()
-    plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-    plt.grid(True)
+    plt.plot([x for (x, y) in path], [y for (x, y) in path], '-g',lw=3)
     plt.pause(0.001)
-    # plt.show()
 
     # convert
     px, py, pyaw = [], [], []
@@ -413,15 +409,16 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
     # save figure as background
     pickle.dump(ax, file('images/background.pickle', 'w'))
 
-    if close_itself:
-        plt.draw()
-        plt.pause(pause_per_path)
-    else:
-        plt.show()
+    # if close_itself:
+    #     plt.draw()
+    #     plt.pause(pause_per_path)
+    # else:
+    #     plt.show()
 
     if save_figures:
         dic = {True:'driveable', False:'collision'}
         plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
+
 
 
 
@@ -455,10 +452,9 @@ def path_planning(start_number=None, end_number=None):
 
     # show results
     if ploting:
-        plt.show(13)
+        plt.show()
         # ax = pickle.load(file('images/rrtstar.pickle'))
-        # plt.draw()
-        # do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+        # do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
         print('')
 
 
