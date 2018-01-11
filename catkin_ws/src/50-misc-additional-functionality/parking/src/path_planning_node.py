@@ -44,12 +44,12 @@ class parkingPathPlanner():
         # init counter
         #self.count = 0
         # init subscriber
-        rospy.Subscriber("pose_duckiebot", Pose2DStamped, self.localization_callback)
+        rospy.Subscriber("~pose_duckiebot", Pose2DStamped, self.localization_callback)
         # init pose
         #pose =  Pose2DStamped()
-        self.x_act = 0 #165.0
-        self.y_act = 0 #1015
-        self.yaw_act = 0 #-pi/2
+        #self.x_act = 0 #165.0
+        #self.y_act = 0 #1015
+        #self.yaw_act = 0 #-pi/2
         #print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
         self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control,queue_size=10)
