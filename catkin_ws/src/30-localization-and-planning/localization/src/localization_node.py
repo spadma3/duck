@@ -30,7 +30,7 @@ class LocalizationNode(object):
 
         # Setup the publishers and subscribers
         self.sub_april = rospy.Subscriber("~apriltags", AprilTagsWithInfos, self.tag_callback)
-        #self.pub_tf = rospy.Publisher("/tf", TFMessage, queue_size=1, latch=True)
+        self.pub_tf = rospy.Publisher("/tf", TFMessage, queue_size=1, latch=True)
         self.pub_pose = rospy.Publisher("~pose_duckiebot", Pose2DStamped, queue_size=1, latch=True)
         #self.pub_rviz = rospy.Publisher("/sign_highlights", Marker, queue_size=1, latch=True)
 
@@ -78,13 +78,13 @@ class LocalizationNode(object):
             P.header.frame_id = self.duckiebot_frame
             P.header.stamp = rospy.Time.now()
             self.pub_pose.publish(P)
-            #(rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_euler(0, 0, rotz)
-            #T = TransformStamped()
-            #T.transform = Tr_w
-            #T.header.frame_id = self.world_frame
-            #T.header.stamp = rospy.Time.now()
-            #T.child_frame_id = self.duckiebot_frame
-            #self.pub_tf.publish(TFMessage([T]))
+            (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_euler(0, 0, rotz)
+            T = TransformStamped()
+            T.transform = Tr_w
+            T.header.frame_id = self.world_frame
+            T.header.stamp = rospy.Time.now()
+            T.child_frame_id = self.duckiebot_frame
+            self.pub_tf.publish(TFMessage([T]))
             self.lifetimer = rospy.Time.now()
 
     def publish_duckie_marker(self):
