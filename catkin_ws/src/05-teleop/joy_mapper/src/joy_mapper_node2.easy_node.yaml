@@ -60,7 +60,7 @@ publishers:
     deep_lane_following:
         desc:
         typr: duckietown_msgs/BoolStamped
-        topic: ~deep_lane_following
+        topic: ~deep_learn_toggle
         queue_size: 1
 
 subscriptions:

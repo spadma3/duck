@@ -30,7 +30,7 @@ class JoyMapper(object):
         self.pub_anti_instagram = rospy.Publisher("anti_instagram_node/click",BoolStamped, queue_size=1)
         self.pub_e_stop = rospy.Publisher("wheels_driver_node/emergency_stop",BoolStamped,queue_size=1)
         self.pub_avoidance = rospy.Publisher("~start_avoidance",BoolStamped,queue_size=1)
-        self.pub_deep_lane_following = rospy.Publisher("~deep_lane_following",BoolStamped,queue_size=1)
+        self.pub_deep_lane_following = rospy.Publisher("~deep_learn_toggle",BoolStamped,queue_size=1)
 
         # Subscriptions
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
