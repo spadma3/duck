@@ -110,17 +110,6 @@ class calcTransform:
 
 
 
-
-        #for j in range(3):
-        #    self.matrices_Aw[j] = np.dot(self.matrices_A[j], self.weights_MA)
-        #    self.vectors_bw[j] = np.dot(self.vectors_b[j], self.weights_MA)
-
-
-        #print('matrices A: ' + str(self.matrices_A))
-        #print('vectors b: ' + str(self.vectors_b))
-
-        # print('created instance of calcTransform!')
-
     def returnResidualNorm(self):
         return self.residualNorm
 

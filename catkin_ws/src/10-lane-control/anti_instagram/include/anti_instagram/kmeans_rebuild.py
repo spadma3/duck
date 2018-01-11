@@ -43,41 +43,17 @@ class kMeansClass:
         self.blur_kernel = int(blurKer)
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
-        self.img_geom = None
-        self.mask = None
-        self.mask_255 = None
+
 
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img, fancyGeom=False):
         x, y, p = cv2img.shape
-        if not fancyGeom:
-            self.img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
-            x_new, y_new, p = self.img_geom.shape
-            cv2_tpose = self.img_geom.transpose()
-            cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
-
-            self.mask_255 = np.zeros((x, y), np.uint8)
-        else:
-            print("fancy geom")
-            self.mask = processGeom2(cv2img)
-            self.mask_255 = self.mask
-            self.mask_255[self.mask_255==1] = 255
-            self.img_geom = np.expand_dims(self.mask, axis=-1)*cv2img
-            self.mask = self.mask.transpose()
-            inds = np.array(np.nonzero(self.mask))
-            cv2_tpose = np.transpose(self.img_geom)
-            cv2_arr_tpose = cv2_tpose[:, inds[0, :], inds[1, :]]
-            print("fancy geom out.")
+        cv2_tpose = cv2img.transpose()
+        cv2_arr_tpose = np.reshape(cv2_tpose, [p, x * y])
         npdata = np.transpose(cv2_arr_tpose)
         return npdata
 
-    # czuidema trial:
-    def returnMaskedImage(self):
-        return self.img_geom
 
-    # milansc trial:
-    def returnMask(self):
-        return self.mask_255
 
     def _blurImg(self):
         # blur image using median:

@@ -68,7 +68,7 @@ class AntiInstagram():
 
         # print('average error: ' + str(averageError))
 
-        if averageError <= 200:
+        if averageError <= 1000:
 
             centers_name = ['black', 'red', 'yellow', 'white']
             # print('idx of detected outlier: ' + str(centers_name[outlierIndex]))
@@ -107,7 +107,7 @@ class AntiInstagram():
 
         # print('average error: ' + str(averageError))
 
-        if averageError <= 200:
+        if averageError <= 400:
 
             centers_name = ['black', 'red', 'yellow', 'white']
             # print('idx of detected outlier: ' + str(centers_name[outlierIndex]))
@@ -141,11 +141,3 @@ class AntiInstagram():
         corrected_image = self.CB.applyTrafo(img, ThLow, ThHi)
         return corrected_image
 
-
-    # czuidema trial
-    def getMaskedImage(self):
-        return self.KM.returnMaskedImage()
-
-    # milansc trial
-    def getMask(self):
-        return self.KM.returnMask()
