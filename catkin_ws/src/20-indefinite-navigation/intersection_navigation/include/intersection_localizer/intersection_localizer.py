@@ -236,7 +236,7 @@ class IntersectionLocalizer(object):
 
             # check if there are enough ctrl points left
             if num_visible < self.min_num_ctrl_pts:
-                return False, 0.0, 0.0, 0.0, 0.0
+                return False, np.zeros(3,float), 0.0
 
             '''compute edge normal'''
             ctrl_pts_n_par_h_img = np.dot(np.dot(self.H[:, 0:2], R),
@@ -292,7 +292,7 @@ class IntersectionLocalizer(object):
             # check if there are enough ctrl points left
             num_feasible = len(dist)
             if num_feasible < self.min_num_ctrl_pts:
-                return False, 0.0, 0.0, 0.0, 0.0
+                return False, np.zeros(3,float), 0.0
 
             '''compute gradients'''
             # compute L1
