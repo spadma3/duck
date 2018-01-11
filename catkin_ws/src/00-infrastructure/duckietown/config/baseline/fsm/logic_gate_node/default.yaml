@@ -43,10 +43,12 @@ events:
     msg_type: "BoolStamped"
     trigger: False
   deep_lane_following_on: 
+    default: False
     topic: "joy_mapper_node/deep_learn_toggle"
     msg_type: "BoolStamped"
     trigger: True
   deep_lane_following_off: 
+    default: True
     topic: "joy_mapper_node/deep_learn_toggle"
     msg_type: "BoolStamped"
     trigger: False
