@@ -251,7 +251,7 @@ class IntersectionNavigation(object):
             self.pathPlanner.DrawPath(self.img_gray2,pose_init)
             img = cv2.cvtColor(self.img_gray2,cv2.COLOR_GRAY2BGR)
             msg = dt_utils.d8_compressed_image_from_cv_image(img)
-            self.pub_debug(msg)
+            self.pub_debug.Publish(msg)
             return True
 
 
