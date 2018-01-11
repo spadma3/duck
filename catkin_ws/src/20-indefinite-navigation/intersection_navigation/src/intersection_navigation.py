@@ -21,12 +21,21 @@ class IntersectionNavigation(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.robot_name = self.SetupParameter("~robot_name", "daisy")
+        self.robot_name = self.SetupParameter("~veh", "bob")
 
         # set up path planner, state estimator, ...
         self.intersectionLocalizer = IntersectionLocalizer(self.robot_name)
         self.pathPlanner = PathPlanner(self.robot_name)
         self.poseEstimator = PoseEstimator()
+
+        # main logic parameters
+        self.rate = 10  # main logic runs at 10Hz
+        self.timeout = 1.0
+        self.state_dict = dict()
+        for counter, key in enumerate(
+                ['IDLE', 'INITIALIZING_LOCALIZATION', 'INITIALIZING_PATH', 'TRAVERSING', 'DONE', 'ERROR']):
+            self.state_dict.update({key: counter})
+        self.state = self.state_dict['IDLE']
 
         # set up subscribers
         self.sub_mode = rospy.Subscriber("~mode",
@@ -67,14 +76,6 @@ class IntersectionNavigation(object):
         self.pub_debug = rospy.Publisher("~debug/image/compressed",
                                          CompressedImage,
                                          queue_size=1)
-
-        # main logic parameters
-        self.rate = 10  # main logic runs at 10Hz
-        self.timeout = 1.0
-        self.state_dict = dict()
-        for counter, key in enumerate(['IDLE', 'INITIALIZING_LOCALIZATION', 'INITIALIZING_PATH', 'TRAVERSING', 'DONE', 'ERROR']):
-            self.state_dict.update({key: counter})
-        self.state = self.state_dict['IDLE']
 
         # auxiliary variables
         self.tag_info = TagInfo()
@@ -265,6 +266,11 @@ class IntersectionNavigation(object):
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
+        self.pose_final = pose_final
+        print('initial_pose')
+        print(pose_init)
+        print('final_pose')
+        print(pose_final)
         # Path tracking initialization parameters
         self.s_guess = 0
         self.in_line = False
@@ -281,9 +287,18 @@ class IntersectionNavigation(object):
             return True
 
     def Controller(self):
-        curr_pose = self.poseEstimator.PredictState(rospy.Time.now())
+        curr_pose, _ = self.poseEstimator.PredictState(rospy.Time.now())
+
+        print('curr_pose')
+        print(curr_pose)
 
         d, phi, curvature, self.s_guess = self.pathPlanner.ComputeLaneError(curr_pose, self.s_guess)
+        print('d')
+        print(d)
+        print('phi')
+        print(phi)
+        print('s')
+        print(self.s_guess)
 
         # Ask for lane controller
         pathTracker_msg = LanePose()
@@ -293,23 +308,21 @@ class IntersectionNavigation(object):
 
         self.pub_intersection_pose.publish(pathTracker_msg)
 
-        if self.s_guess > 0.99:
+        #if self.s_guess > 0.999:
+        if (np.abs(curr_pose[0] - self.pose_final[0]) < 0.01) and (np.abs(curr_pose[1] - self.pose_final[1]) < 0.01):
             return True
         else:
             return False
-
 
     def ModeCallback(self, msg):
         # update state if we are at an intersection
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
-            
 
     def TurnTypeCallback(self, msg):
         # TODO
         pass
-
 
     def ImageCallback(self, msg):
         # if initialized
@@ -334,10 +347,11 @@ class IntersectionNavigation(object):
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             self.poseEstimator.FeedCommandQueue(msg)
+            self.cmd = msg
 
 
     def AprilTagsCallback(self, msg):
-        if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
+        #if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
             pass
 
     def InLineCallback(self, msg):
