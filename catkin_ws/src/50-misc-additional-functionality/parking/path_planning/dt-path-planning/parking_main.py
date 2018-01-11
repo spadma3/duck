@@ -18,7 +18,7 @@ import os, pickle
 Global parameters
 """
 # control parameters
-choose_random_parking_space_combination = False
+choose_random_parking_space_combination = True
 close_itself = True
 save_figures = True
 pause_per_path = 0.5 # sec
@@ -33,8 +33,9 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 50                        # iterations for RRT*
+maxIter = 200                        # iterations for RRT*
 rrt_star_animation = True           # animate RRT* search
+radius_graph_refinement = 400       # mm radius arround new point for rewire
 
 # parking lot parameters
 lot_width = 2*585                   # mm, lot = 2x2 squares
@@ -281,13 +282,9 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
     goal = [end_x, end_y, end_yaw]
 
     rrt = rrt_star.RRT(start, goal, randArea=[0.0, lot_width], obstacleList=obstacleList,
-    maxIter=maxIter, curvature=curvature, radius_graph_refinement=lot_width/3.0)
+    maxIter=maxIter, curvature=curvature, radius_graph_refinement=radius_graph_refinement)
     path = rrt.Planning(animation=rrt_star_animation)
 
-    # Draw final path
-    rrt.DrawGraph()
-    plt.plot([x for (x, y) in path], [y for (x, y) in path], '-g',lw=3)
-    plt.pause(0.001)
 
     # convert
     px, py, pyaw = [], [], []
@@ -314,6 +311,11 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
         px = px + px_straight
         py = py + py_straight
         pyaw = pyaw + pyaw_straight
+
+    # Draw final path
+    rrt.DrawGraph()
+    plt.plot(px,py, '-g',lw=3)
+    plt.pause(0.001)
 
     return px, py, pyaw
 
@@ -442,6 +444,12 @@ def path_planning(start_number=None, end_number=None):
     if ploting:
         do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
 
+    if found_path:
+        plt.show()
+        return
+    else:
+        plt.pause(0.001)
+
     """
     Stage 2: RRT*
     """
@@ -454,7 +462,7 @@ def path_planning(start_number=None, end_number=None):
     if ploting:
         plt.show()
         # ax = pickle.load(file('images/rrtstar.pickle'))
-        # do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+        # do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
         print('')
 
 
@@ -472,7 +480,7 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        start_numbers = [0]
-        end_numbers = [4]
+        start_numbers = [4]
+        end_numbers = [7]
         for start_number, end_number in zip(start_numbers, end_numbers):
             path_planning(start_number, end_number)
