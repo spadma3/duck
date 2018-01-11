@@ -52,3 +52,6 @@ demo-line_detector-quiet-%: check-environment
 # traffic lights
 traffic-light: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch traffic_light traffic_light_node.launch veh:=$(vehicle_name)"
+
+demo-imitation-learning: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckiebot_il_lane_following il_lane_following_simp.launch veh:=$(vehicle_name)"

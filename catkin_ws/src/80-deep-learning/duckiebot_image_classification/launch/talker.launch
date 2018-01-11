@@ -1,0 +1,3 @@
+<launch>
+  <node name="talker" pkg="duckiebot_image_classification" type="talker.py" />
+</launch>
