@@ -5,7 +5,9 @@
 	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
  	<arg name="camera" default="true" doc="camera set to false means only apriltags no camera nodes are launched"/>
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
- 	<remap from="apriltags_postprocessing_node/apriltags_in" to="super_wierd" />
+ 	<remap from="apriltags_postprocessing_node/apriltags_in" to="super_wierd1" />
+ 	<remap from="apriltags_postprocessing_node/apriltags_out" to="super_wierd2" />
+
 
     <!-- Camera -->
  	<include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">
