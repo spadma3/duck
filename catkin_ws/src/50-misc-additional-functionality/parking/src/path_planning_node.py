@@ -32,7 +32,7 @@ april_tag_screen_length = 80        # mm
 space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
 
-plan = True
+
 
 # additional constants
 length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) / 2.0
@@ -40,6 +40,7 @@ length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) 
 class parkingPathPlanner():
 
     def __init__(self):
+        self.plan = True
         self.sample_freq = 50
         # init counter
         #self.count = 0
@@ -62,14 +63,14 @@ class parkingPathPlanner():
     #  callback for control references
     def sample_callback(self,event):
         state = Reference_for_control()
-        if plan == False:
+        if self.plan == False:
             state.d, state.c, state.phi = self.project_to_path(curvature)
             self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
-        print plan
-        if plan == True:    
+        print self.plan
+        if self.plan == True:    
             # plan the path once during first callback
             pose = Pose2DStamped()
             self.x_act = pose.x
@@ -77,7 +78,7 @@ class parkingPathPlanner():
             self.yaw_act = pose.theta
             self.path_planning(rospy.get_param('~end_space'))
             print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
-            plan = False
+            self.plan = False
         else:
             self.x_act = pose.x
             self.y_act = pose.y
