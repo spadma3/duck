@@ -55,9 +55,9 @@ class LocalizationNode(object):
                 Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
                 Mt_r=self.pose_to_matrix(tag.pose)
                 
-                print tag.pose.position.x
-                print tag.pose.position.y
-                rot_euler=tr.euler_from_quaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w)
+                print tag.pose.pose.position.x
+                print tag.pose.pose.position.y
+                rot_euler=tr.euler_from_quaternion(tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w)
                 print rot_euler[0]
                 print rot_euler[1]
                 print rot_euler[2]
