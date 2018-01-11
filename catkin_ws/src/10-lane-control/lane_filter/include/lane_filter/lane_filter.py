@@ -103,11 +103,13 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
                 print 'Adding segment to segmentsRangeArray[0] (Range: %s)' % (point_range)
+                print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
             if self.curvature_res is not 0:
                 for i in range(self.curvature_res):
                     if point_range < self.range_arr[i+1] and point_range > self.range_arr[i]:
                         segmentsRangeArray[i + 1].append(segment)
                         print 'Adding segment to segmentsRangeArray[%i] (Range: %s)' % (i+1, point_range)
+                        print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[i+1][-1])
 
         print 'Range Array values: %s' % self.range_arr
         for i in range(len(segmentsRangeArray)):
