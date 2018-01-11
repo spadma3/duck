@@ -1,8 +1,8 @@
 <launch>
 	<arg name="robot_name" default="daisy" />
 
-    <remap from="intersection_navigation_node/apriltags_out" to="$(arg robot_name)/apriltags_postprocessing_node/apriltags_out" />
-	<node name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation.py" output="screen">
+    <remap from="$(arg robot_name)/intersection_navigation_node/apriltags_out" to="$(arg robot_name)/apriltags_postprocessing_node/apriltags_out" />
+	<node ns="$(arg robot_name)" name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation.py" output="screen">
 		<!-- Setup parameters -->
 		<param name="~robot_name" value="$(arg robot_name)"/>
 	</node>

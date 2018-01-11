@@ -28,16 +28,23 @@ class IntersectionNavigation(object):
         self.poseEstimator = PoseEstimator()
 
         # set up subscribers
-        self.sub_mode = rospy.Subscriber("~mode", FSMState, self.ModeCallback, queue_size=1)
-        self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.TurnTypeCallback, queue_size=1)
-        self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed", CompressedImage,
-                                        self.ImageCallback, queue_size=1)
-        self.sub_intersection_pose_meas = rospy.Subscriber("~intersection_pose_meas", IntersectionPose, 
-                                        self.poseEstimator.UpdateWithPoseMeasurement, queue_size=1)
-        self.sub_car_cmd = rospy.Subscriber("/" + self.robot_name + "/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
-         
-        # self.poseEstimator.FeedCommandQueue, queue_size=10)
-        self.on_regular_road = rospy.Subscriber("~in_lane",BoolStamped, self.ModeCallback, queue_size=1)
+        self.sub_mode = rospy.Subscriber("~mode",
+                                         FSMState,
+                                         self.ModeCallback,
+                                         queue_size=1)
+        self.sub_turn_type = rospy.Subscriber("~turn_type",
+                                              Int16,
+                                              self.TurnTypeCallback,
+                                              queue_size=1)
+        self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed",
+                                        CompressedImage,
+                                        self.ImageCallback,
+                                        queue_size=1)
+        self.sub_cmd = rospy.Subscriber("/" + self.robot_name + "/forward_kinematics_node/velocity",
+                                        Twist2DStamped,
+                                        self.CmdCallback,
+                                        queue_size=10)
+
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
@@ -48,9 +55,9 @@ class IntersectionNavigation(object):
         self.rate = 10  # main logic runs at 10Hz
         self.timeout = 1.0
         self.state_dict = dict()
-        for counter, key in enumerate(['WAITING', 'INITIALIZING', 'WAITING_FOR_INSTRUCTIONS', 'TRAVERSING', 'DONE', 'ERROR']):
+        for counter, key in enumerate(['IDLE', 'INITIALIZING', 'WAITING_FOR_INSTRUCTIONS', 'TRAVERSING', 'DONE', 'ERROR']):
             self.state_dict.update({key: counter})
-        self.state = self.state_dict['WAITING']
+        self.state = self.state_dict['IDLE']
 
         # auxiliary variables
         self.tag_info = TagInfo()
@@ -96,106 +103,17 @@ class IntersectionNavigation(object):
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             # run state machine
-            if self.state == self.state_dict['WAITING']:
+            if self.state == self.state_dict['IDLE']:
                 # waiting for FSMState to tell us that Duckiebot is at an intersection (see ModeCallback)
-                continue
+                pass
 
-            elif self.state == self.state_dict['INITIALIZING']:
-                # waiting for april tag info (type intersection and which exit)
-                try:
-                    april_msg = rospy.wait_for_message('~apriltags_out', AprilTagsWithInfos, self.timeout)
-                except rospy.ROSException:
-                    rospy.loginfo("[%s] Timeout waiting for april tag info." % (self.node_name))
-                    continue
+            elif self.state == self.state_dict['INITIALIZING_LOCALIZATION']:
+                if self.Initialize():
+                    self.state = self.state_dict['WAITING_FOR_INSTRUCTIONS']
 
-                # find closest (valid) april tag
-                closest_distance = 1e6
-                closest_idx = -1
-                for idx, detection in enumerate(april_msg.detections):
-                    if april_msg.infos[idx].tag_type == self.tag_info.SIGN:
-                        if april_msg.infos[idx].traffic_sign_type in self.intersection_signs:
-                            position = detection.pose.pose.position
-                            distance = np.sqrt(position.x ** 2 + position.y ** 2 + position.z ** 2)
-
-                            if distance < closest_distance:
-                                closest_distance = distance
-                                closest_idx = idx
-
-                # return if no valid april tag was found
-                if closest_idx < 0:
-                    continue
-
-                # initial position estimate
-                x_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][0]
-                y_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][1]
-                theta_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][2]
-
-                if april_msg.infos[closest_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
-                                                                self.tag_info.LEFT_T_INTERSECT]:
-                    dx_init = np.linspace(-0.03, 0.03, 7)
-                    dy_init = np.linspace(-0.05, 0.05, 11)
-                    dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
-                else:
-                    dx_init = np.linspace(-0.05, 0.05, 11)
-                    dy_init = np.linspace(-0.03, 0.03, 7)
-                    dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
-
-                if april_msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
-                    self.intersectionLocalizer.SetEdgeModel('FOUR_WAY_INTERSECTION')
-                else:
-                    self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
-
-                # waiting for camera image
-                try:
-                    img_msg = rospy.wait_for_message("/" + self.robot_name + "/camera_node/image/compressed",
-                                                 CompressedImage, self.timeout)
-                except rospy.ROSException:
-                    rospy.loginfo("[%s] Timeout waiting for camera image." % (self.node_name))
-                    continue
-
-                # initialize intersection localizer
-                img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(img_msg)
-
-                best_likelihood = -1.0
-                for dx in dx_init:
-                    for dy in dy_init:
-                        for dtheta in dtheta_init:
-                            valid_meas, x_meas, y_meas, theta_meas, likelihood = self.intersectionLocalizer.ComputePose(
-                                img_processed,
-                                x_init + dx,
-                                y_init + dy,
-                                theta_init + dtheta)
-
-                            if valid_meas and likelihood > best_likelihood:
-                                best_likelihood = likelihood
-                                best_x_meas = x_meas
-                                best_y_meas = y_meas
-                                best_theta_meas = theta_meas
-
-                if best_likelihood < 0.0:
-                    rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
-                    continue
-
-                # waiting for instructions where to go
-                # TODO
-                self.turn_type = TurnTypeCallback()
-                # 0: straight, 1: left, 2: right
-                turn_type = 2            
-                pose_init = [best_x_meas, best_y_meas, best_theta_meas]
-                pose_final = self.ComputeFinalPose(april_msg.infos[closest_idx].traffic_sign_type, turn_type)
-
-                if not self.pathPlanner.PlanPath(pose_init, pose_final):
-                    rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
-                    continue
-
-
-                # debugging
-                if 1:
-                    self.intersectionLocalizer.DrawModel(img_gray, best_x_meas, best_y_meas, best_theta_meas)
-                    self.pathPlanner.DrawPath(img_gray, [best_x_meas, best_y_meas, best_theta_meas])
-                    cv2.imshow('initialization', img_gray)
-                    cv2.waitKey(10)
-
+            elif self.state == self.state_dict['WAITING_FOR_INSTRUCTIONS']:
+                if self.ProcessInstructions():
+                    self.state = self.state_dict['TRAVERSING']
 
             elif self.state == self.state_dict['TRAVERSING']:
                 pass
@@ -208,6 +126,103 @@ class IntersectionNavigation(object):
                 # TODO
 
             rate.sleep()
+
+    def Initialize(self):
+        # waiting for april tag info (type intersection and which exit)
+        try:
+            april_msg = rospy.wait_for_message('~apriltags_out', AprilTagsWithInfos, self.timeout)
+        except rospy.ROSException:
+            rospy.loginfo("[%s] Timeout waiting for april tag info." % (self.node_name))
+            return False
+
+        # find closest (valid) april tag
+        closest_distance = 1e6
+        closest_idx = -1
+        for idx, detection in enumerate(april_msg.detections):
+            if april_msg.infos[idx].tag_type == self.tag_info.SIGN:
+                if april_msg.infos[idx].traffic_sign_type in self.intersection_signs:
+                    position = detection.pose.pose.position
+                    distance = np.sqrt(position.x ** 2 + position.y ** 2 + position.z ** 2)
+
+                    if distance < closest_distance:
+                        closest_distance = distance
+                        closest_idx = idx
+
+        # return if no valid april tag was found
+        if closest_idx < 0:
+            return False
+
+        # initial position estimate
+        x_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][0]
+        y_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][1]
+        theta_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][2]
+
+        if april_msg.infos[closest_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
+                                                              self.tag_info.LEFT_T_INTERSECT]:
+            dx_init = np.linspace(-0.03, 0.03, 7)
+            dy_init = np.linspace(-0.05, 0.05, 11)
+            dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
+        else:
+            dx_init = np.linspace(-0.05, 0.05, 11)
+            dy_init = np.linspace(-0.03, 0.03, 7)
+            dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
+
+        if april_msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
+            self.intersectionLocalizer.SetEdgeModel('FOUR_WAY_INTERSECTION')
+        else:
+            self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
+
+        # waiting for camera image
+        try:
+            img_msg = rospy.wait_for_message("/" + self.robot_name + "/camera_node/image/compressed",
+                                             CompressedImage, self.timeout)
+        except rospy.ROSException:
+            rospy.loginfo("[%s] Timeout waiting for camera image." % (self.node_name))
+            return False
+
+        # initialize intersection localizer
+        img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(img_msg)
+
+        best_likelihood = -1.0
+        for dx in dx_init:
+            for dy in dy_init:
+                for dtheta in dtheta_init:
+                    valid_meas, x_meas, y_meas, theta_meas, likelihood = self.intersectionLocalizer.ComputePose(
+                        img_processed,
+                        x_init + dx,
+                        y_init + dy,
+                        theta_init + dtheta)
+
+                    if valid_meas and likelihood > best_likelihood:
+                        best_likelihood = likelihood
+                        best_x_meas = x_meas
+                        best_y_meas = y_meas
+                        best_theta_meas = theta_meas
+
+        if best_likelihood < 0.0:
+            rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
+            return False
+
+        self.poseEstimator.Reset() # add time and pose here!
+
+        return True
+
+    def ProcessInstructions(self):
+        # waiting for instructions where to go
+        # TODO
+        '''turn_type = 2
+
+        # 0: straight, 1: left, 2: right
+        pose_init,_ = self.poseEstimator.PredictState() # add here current time
+        pose_final = self.ComputeFinalPose(april_msg.infos[closest_idx].traffic_sign_type, turn_type)
+
+        if not self.pathPlanner.PlanPath(pose_init, pose_final):
+            rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
+            return False
+
+        else:
+            return True'''
+        return False
 
     def ModeCallback(self, msg):
         # update state if we are at an intersection
@@ -226,36 +241,27 @@ class IntersectionNavigation(object):
 
     def TurnTypeCallback(self, msg):
         # TODO
-        # will be used to proceed with main loop
-        if self.sub_turn_type ==1: # straight
-            turn_type = 0
-        elif self.sub_turn_type == 2: # right
-            turn_type = 2
-        elif self.sub_turn_type == 0: # left
-            turn_type = 1
-        else:
-            pass
+        pass
+
 
     def ImageCallback(self, msg):
-        # TODO
-        # gathering the predicted measurements form PoseEstimator
-        state_est, cov_est = PredictState()
-        x_pred = state_est[0]
-        y_pred = state_est[1]
-        theta_pred = state_est[2]
+        # if initialized
+        if self.state == self.state_dict['WAITING_FOR_INSTRUCTIONS'] or self.state == self.state_dict['TRAVERSING']:
+            # predict pose
+            pose_pred, _ = self.poseEstimator.PredictState()
 
-        msg_pose_pred = IntersectionPose()
-        # msg_pose_pred.header.stamp = msg_img.header.stamp
-        msg_pose_pred.x = x_pred
-        msg_pose_pred.y = y_pred
-        msg_pose_meas.theta = theta_pred
+            # localize Duckiebot, use predicted pose as initial guess
+            img_processed, _ = self.intersectionLocalizer.ProcessRawImage(msg)
+            self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
 
-        #still needs a while loop until image timestamps or something like that
+            # update pose estimate
+            self.poseEstimator.UpdateWithPoseMeasurement()
 
-        # predict state estimate until image timestamp and publish "~intersection_pose_pred"
-        self.pub_intersection_pose_pred.publish(msg_pose_pred)
 
-        pass
+    def CmdCallback(self, msg):
+        if self.state == self.state_dict['WAITING_FOR_INSTRUCTIONS'] or self.state == self.state_dict['TRAVERSING']:
+            self.poseEstimator.FeedCommandQueue(msg)
+
 
     def SetupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
