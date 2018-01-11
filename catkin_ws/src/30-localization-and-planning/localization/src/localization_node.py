@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 import rospy
 #from apriltags_ros.msg import AprilTagDetectionArray
-from duckietown_msgs.msg import AprilTagsWithInfos
+from duckietown_msgs.msg import AprilTagsWithInfos, Pose2DStamped
 import tf2_ros
 from tf2_msgs.msg import TFMessage
 import tf.transformations as tr
 from geometry_msgs.msg import Transform, TransformStamped
-from duckietown_msgs import Pose2DStamped
 import numpy as np
 from localization import PoseAverage
 from visualization_msgs.msg import Marker
@@ -106,7 +105,7 @@ class LocalizationNode(object):
                 T.header.frame_id = self.world_frame
                 T.header.stamp = rospy.Time.now()
                 T.child_frame_id = self.duckiebot_frame
-                self.pub_tf.publish(TFMessage([T]))
+                #self.pub_tf.publish(TFMessage([T]))
 
     def publish_sign_highlight(self, id):
         # Publish a highlight marker on the sign that is seen by the robot
