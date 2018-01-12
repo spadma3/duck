@@ -51,10 +51,10 @@ class LocalizationNode(object):
             try:
                 Tt_w = self.tfbuf.lookup_transform(self.world_frame, "tag_{id}".format(id=tag.id), rospy.Time(), rospy.Duration(1))
                 Mtbase_w=self.transform_to_matrix(Tt_w.transform)
-                #Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
+                Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
                 #print Mt_tbase
-                #Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
-                Mt_w = Mtbase_w
+                Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
+                #Mt_w = Mtbase_w
                 Mt_r=self.pose_to_matrix(tag.pose)
                 
                 print ("robo_tag x = ", tag.pose.pose.position.x)
@@ -65,9 +65,9 @@ class LocalizationNode(object):
                 print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
                 print ("robo_tag rot z", rot_euler[2]*(180/np.pi))
 
-                #Mr_t=np.linalg.inv(Mt_r)
-                #Mr_w=np.dot(Mt_w,Mr_t)
-                Mr_w=np.dot(Mt_w,Mt_r)
+                Mr_t=np.linalg.inv(Mt_r)
+                Mr_w=np.dot(Mt_w,Mr_t)
+                #Mr_w=np.dot(Mt_w,Mt_r)
                 Tr_w = self.matrix_to_transform(Mr_w)
                 print ("robo_world x", Tr_w.translation.x)
                 print ("robo_world y", Tr_w.translation.y)
