@@ -21,7 +21,7 @@ class LaneFilterNode(object):
         self.curvature_res = self.filter.curvature_res
 
         # Set parameters to server
-        rospy.set_param("~curvature_res", self.curvature_res) #Write to parameter server for transparancy
+        rospy.set_param('~curvature_res', self.curvature_res) #Write to parameter server for transparancy
         
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
@@ -59,8 +59,8 @@ class LaneFilterNode(object):
             return
 
         # Step 0: get values from server
-        if (rospy.get_param('curvature_res') is not self.curvature_res):
-            self.curvature_res = rospy.get_param('curvature_res')
+        if (rospy.get_param('~curvature_res') is not self.curvature_res):
+            self.curvature_res = rospy.get_param('~curvature_res')
             self.filter.updateRangeArray(self.curvature_res)
 
         # Step 1: predict
