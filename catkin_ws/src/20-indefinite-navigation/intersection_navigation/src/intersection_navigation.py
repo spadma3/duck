@@ -53,6 +53,7 @@ class IntersectionNavigation(object):
 
         # initializing variables
         #TODO
+        self.s = 0.0
 
         # set up subscribers
         self.sub_mode = rospy.Subscriber("~mode",
@@ -141,13 +142,16 @@ class IntersectionNavigation(object):
                 msg.theta = pose[2]
                 self.pub_intersection_pose.publish(msg)
 
-                msg2 = LanePose()
-                msg2.header.stamp = rospy.Time.now()
-                msg2.d = 0.0
-                msg2.phi = 0.0
-                msg2.status = 0
-                msg2.in_lane = True
-                self.pub_lane_pose.publish(msg2)
+                if self.s < 0.5:
+                    dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
+
+                    msg2 = LanePose()
+                    msg2.header.stamp = rospy.Time.now()
+                    msg2.d = dist
+                    msg2.phi = theta
+                    msg2.status = 0
+                    msg2.in_lane = True
+                    self.pub_lane_pose.publish(msg2)
 
             elif self.state == self.state_dict['DONE']:
                 pass
