@@ -311,7 +311,6 @@ class IntersectionLocalizer(object):
 
 
             # remove invalid entries
-            #dist = dist[0:num_feasible]
             dist = dist[idx_feasible]
             ctrl_pts_h_feasible = ctrl_pts_h[:, idx_feasible]
             ctrl_pts_img_feasible = ctrl_pts_img[:, idx_feasible]

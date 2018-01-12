@@ -89,6 +89,7 @@ class IntersectionNavigation(object):
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
+
     def ComputeFinalPose(self, intersection_type, turn_type):
         if intersection_type == self.tag_info.FOUR_WAY or intersection_type == self.tag_info.T_INTERSECTION:
             if turn_type == 0: # straight
@@ -200,9 +201,9 @@ class IntersectionNavigation(object):
         y_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][1]
         theta_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][2]
 
-        dx_init = np.array([0.0])  #np.linspace(-0.05, 0.05, 11)
-        dy_init = np.array([0.0]) #np.linspace(-0.03, 0.03, 7)
-        dtheta_init = np.array([0.0]) #np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
+        dx_init = np.linspace(-0.05, 0.05, 11)
+        dy_init = np.linspace(-0.03, 0.03, 7)
+        dtheta_init = np.linspace(-10.0 / 180.0 * np.pi, 10.0 / 180.0 * np.pi, 3)
 
         self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
