@@ -118,22 +118,7 @@
 	</group>
 	<!-- End Camera -->
 
-	<!-- Start Wheels -->
-	<group if="$(arg wheels)">
 
-	    <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
-		<remap from="inverse_kinematics_node/car_cmd" to="car_cmd_switch_node/cmd"/>
-		<include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-		</include>
-
-		<!-- Wheel Driver -->
-		<include file="$(find dagu_car)/launch/wheels_driver_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-		</include>
-	</group>
-
-	<!-- End Wheels -->
 
 
 	<!-- Start Joystick -->
