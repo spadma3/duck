@@ -3,6 +3,7 @@ import rospy
 import numpy as np
 from matplotlib import pyplot as plt
 from collections import deque
+import copy
 from duckietown_msgs.msg import Twist2DStamped
 
 
@@ -46,7 +47,7 @@ class PoseEstimator(object):
         '''predict estimate forward until time_pred'''
         state_est = np.copy(self.state_est)
         time_est = self.time_est
-        cmd_queue = self.cmd_queue
+        cmd_queue = copy.deepcopy(self.cmd_queue)
 
         # integrate forward with vehicle commands
         idx_cmd = 0
