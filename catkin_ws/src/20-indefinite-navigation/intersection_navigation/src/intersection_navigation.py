@@ -215,7 +215,7 @@ class IntersectionNavigation(object):
 
         # waiting for camera image
         try:
-            img_msg = rospy.wait_for_message("/" + self.robot_name + "/camera_node/image/compressed",
+            img_msg = rospy.wait_for_message("~img",
                                              CompressedImage, self.timeout)
         except rospy.ROSException:
             rospy.loginfo("[%s] Timeout waiting for camera image." % (self.node_name))
