@@ -322,8 +322,7 @@ class IntersectionNavigation(object):
             self.pub_intersection_pose_img.publish(msg_out)
 
     def PoseCallback(self, msg):
-        #pose_meas = np.array([msg.x, msg.y, msg.theta])
-        pose_meas, _ = self.poseEstimator.PredictState(msg.header.stamp)
+        pose_meas = np.array([msg.x, msg.y, msg.theta])
         self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1e-5*np.diag([1.0,1.0,1.0]), msg.header.stamp)
 
 
