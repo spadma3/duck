@@ -115,7 +115,7 @@ class ActionsDispatcherNode:
             if actions:
                 # remove 'f' (follow line) from actions
                 self.actions = [x for x in actions if x != 'f']
-                print '\n \n ************ \n At node {} \n \n Actions to be executed: {}'.format(source_node, self.actions)
+                print '\n \n ************ \n {} at node {} \n \n Actions to be executed: {}'.format(self.duckiebot_name, source_node, self.actions)
             else:
                 print 'No actions to be executed'
 
@@ -138,7 +138,7 @@ class ActionsDispatcherNode:
             elif action == 'w':
                 action_name = 'WAIT'
                 self.pub_action.publish(Int16(-1))
-            print 'Duckiebot {}, go {}!\n\n ************\n'.format(rospy.get_param('/veh'), action_name)
+            print 'Action: go {}!\n\n ************\n'.format(action_name)
 
     def on_shutdown(self):
         rospy.loginfo("[ActionsDispatcherNode] Shutdown.")
