@@ -202,6 +202,8 @@ class TaxiCentralNode:
         else:
             duckiebot = self._registered_duckiebots[duckiebot_name]
             new_duckiebot_state, taxi_event = duckiebot.update_location_check_target_reached(node, route)
+            if taxi_event == TaxiEvent.DROPOFF_CUSTOMER:
+                self._publish_duckiebot_mission(duckiebot, taxi_event)
 
         if new_duckiebot_state == TaxiState.WITHOUT_MISSION: # mission accomplished or without mission
             request = duckiebot.pop_customer_request()
