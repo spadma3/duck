@@ -150,7 +150,7 @@ class IntersectionNavigation(object):
                 msg.theta = pose[2]
                 self.pub_intersection_pose.publish(msg)
 
-                if self.s < 0.8:
+                '''if self.s < 0.8:
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                     msg2 = LanePose()
@@ -159,22 +159,33 @@ class IntersectionNavigation(object):
                     msg2.phi = theta
                     msg2.status = 0
                     msg2.in_lane = True
-                    self.pub_lane_pose.publish(msg2)
+                    self.pub_lane_pose.publish(msg2)'''
 
-                '''if not self.init_debug:
+                if not self.init_debug:
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
                 msg2 = Twist2DStamped()
                 msg2.header.stamp = rospy.Time.now()
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
-                    msg2.v = 0.3
-                    msg2.omega = 3.0*0.3/0.4
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 10.0 :
+                    alpha = 6.0
+                    s = alpha*(rospy.Time.now() - self.debug_start - 4.0).to_sec()
+                    pos, vel = self.pathPlanner.EvaluatePath(s)
+                    dir = vel/np.linalg.norm(vel)
+                    theta = np.arctan2(dir[1],dir[0])
+
+                    pos2, vel2 = self.pathPlanner.EvaluatePath(s+0.01)
+                    dir2 = vel2 / np.linalg.norm(vel2)
+                    theta2 = np.arctan2(dir2[1], dir2[0])
+
+                    msg2.v = 1.0/alpha*np.linalg.norm(vel)
+                    msg2.omega = 1.0/alpha*(theta2-theta)/0.01
+
                 else:
                     msg2.v = 0.0
                     msg2.omega = 0.0
 
-                self.pub_cmds.publish(msg2)'''
+                self.pub_cmds.publish(msg2)
 
             elif self.state == self.state_dict['DONE']:
                 pass
