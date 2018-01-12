@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # first save .bag file as robot_name.bag in duckiefleet/calibrations/sysid
 
@@ -25,9 +26,13 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 class calib():
-    def __init__(self, robot_name="shamrock"):
+    def __init__(self):
+
+	# Initialize the node with rospy
+        rospy.init_node('command', anonymous=True)
+
         # defaults overwritten by param
-        self.robot_name = robot_name
+        self.robot_name = rospy.get_param("~veh")
 
         # Load homography
         self.H = self.load_homography()
@@ -58,7 +63,7 @@ class calib():
 
         #make plots & visualizations
         # self.plot=self.visualize()
-        plt.show()
+        #plt.show()
 
 
     # wait until we have recieved the camera info message through ROS and then initialize
@@ -173,7 +178,7 @@ class calib():
 
         # Create the axis points
         axisPoints = np.float32([[3*chSeize, 0, 0], [0, 3*chSeize, 0], [0, 0, -3*chSeize]]).reshape(-1, 3)
-        inputbag = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/sysid/" + self.robot_name + "_calibration.bag")
+	inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
         topicname = "/" + self.robot_name + "/camera_node/image/compressed"
         indexcounter=1
 
@@ -193,6 +198,7 @@ class calib():
        
 
         for topic, msg, t in rosbag.Bag(inputbag).read_messages(topics=topicname):
+	    Recording=False
             indexcounter+=1
             dt = rospy.Duration(secs=1.0/30.) # start recording approx one frame before first wheel cmd
             for i in range(len(stopTime)):
@@ -308,7 +314,7 @@ class calib():
         omg=[]
         vel=[]
         timestamp=[]
-        inputbag = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/" + self.robot_name + "_calibration.bag")
+	inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
         topicname = "/" + self.robot_name + "/joy_mapper_node/car_cmd"
         for topic, msg, t in rosbag.Bag(inputbag).read_messages(topics=topicname):
             vel.append(msg.v)
@@ -322,14 +328,13 @@ class calib():
         }
         return cmd
 
-    # Get joystick command
+    # Get wheels command
     def get_wheels_command(self):
         vel_l = []
         vel_r = []
         timestamp = []
-        inputbag = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/sysid/" + self.robot_name + "_calibration.bag")
+	inputbag = rospy.get_param("~path")+self.robot_name+"_calibration.bag"
         topicname = "/" + self.robot_name + "/wheels_driver_node/wheels_cmd"
-        # topicname = "/wheels_driver_node/wheels_cmd" #for eve robot
 
         for topic, msg, t in rosbag.Bag(inputbag).read_messages(topics=topicname):
             vel_l.append(msg.vel_left)
@@ -672,6 +677,4 @@ class calib():
 # Main part of the script
 
 if __name__ == '__main__':
-    calib=calib('eve') #specify robot name that the bag was recorded with
-    #change the topic name in line 269 when using bags made by robot eve
-
+    calib=calib()
