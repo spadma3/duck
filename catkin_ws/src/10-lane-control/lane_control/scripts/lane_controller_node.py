@@ -33,7 +33,7 @@ class lane_controller(object):
         return value
 
     def setGains(self):
-        v_bar = 0.5 # nominal speed, 0.5m/s
+        v_bar = 0.1 # nominal speed, 0.5m/s
         k_theta = -2.0
         k_d = - (k_theta ** 2) / ( 4.0 * v_bar)
         theta_thres = math.pi / 6
