@@ -55,7 +55,7 @@ class calibration:
 
 
 if __name__ == '__main__':
-
+	rospy.sleep(5) #wait for the bag to start recording
 	calib=calibration()
 
 	calib.StraightCalib()
