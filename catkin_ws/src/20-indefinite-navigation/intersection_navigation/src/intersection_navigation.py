@@ -5,7 +5,7 @@ from path_planner.path_planner import PathPlanner
 from pose_estimator.pose_estimator import PoseEstimator
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
-from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose, LanePose
+from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose, IntersectionPoseImg, LanePose
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int16, String
 import duckietown_utils as dt_utils
@@ -71,6 +71,10 @@ class IntersectionNavigation(object):
                                         CompressedImage,
                                         self.ImageCallback,
                                         queue_size=1)
+        self.sub_pose = rospy.Subscriber("~pose_in",
+                                         IntersectionPose,
+                                         self.PoseCallback,
+                                         queue_size=1)
         self.sub_cmd = rospy.Subscriber("~cmds",
                                         Twist2DStamped,
                                         self.CmdCallback,
@@ -83,6 +87,7 @@ class IntersectionNavigation(object):
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
+        self.pub_intersection_pose_img = rospy.Publisher("~pose_img_out", IntersectionPoseImg, queue_size=1)
         self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
@@ -306,16 +311,19 @@ class IntersectionNavigation(object):
     def ImageCallback(self, msg):
         if self.state == self.state_dict['TRAVERSING']:
             # predict pose
-            delay = rospy.Duration(0,200000000)
-            pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp + delay)
+            pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
 
-            # localize Duckiebot, use predicted pose as initial guess
-            img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(msg)
-            valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
+            msg_out = IntersectionPoseImg()
+            msg_out.header = msg.header
+            msg_out.x = pose_pred[0]
+            msg_out.y = pose_pred[1]
+            msg_out.theta = pose_pred[2]
+            msg_out.img = msg
+            self.pub_intersection_pose_img.publish(msg_out)
 
-            # update pose estimate
-            if valid_meas:
-                self.poseEstimator.UpdateWithPoseMeasurement(pose_pred, 1e-5*np.diag([1.0, 1.0, 0.5]), msg.header.stamp)
+    def PoseCallback(self, msg):
+        pose_meas = np.array([msg.x, msg.y, msg.theta])
+        self.poseEstimator.UpdateWithPoseMeasurement(msg, 1e-5*np.diag([1.0,1.0,1.0]), msg.header.stamp)
 
 
     def CmdCallback(self, msg):
