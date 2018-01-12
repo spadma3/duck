@@ -3,6 +3,7 @@ import rospy
 import numpy as np
 from matplotlib import pyplot as plt
 from collections import deque
+import time
 from duckietown_msgs.msg import Twist2DStamped
 
 
@@ -33,6 +34,8 @@ class PoseEstimator(object):
         self.cov_est_init = np.diag([1.0, 1.0, 0.5])
         self.cov_proc = np.diag([10, 50])  # process noise is assumed to be on inputs
 
+        self.blocked = False
+
     def Reset(self, pose_init, time_init):
         '''reset state estimate'''
         self.state_est[:] = pose_init
@@ -44,7 +47,11 @@ class PoseEstimator(object):
 
     def PredictState(self, time_pred, predict_cov=False):
         '''predict estimate forward until time_pred'''
-        print('start')
+        while self.blocked:
+            time.sleep(0.00001)
+
+        self.blocked = True
+
         state_est = np.copy(self.state_est)
         cov_est = np.copy(self.cov_est)
         time_est = self.time_est
@@ -89,7 +96,7 @@ class PoseEstimator(object):
             time_est = time_est + dt
             idx_cmd += 1
 
-        print('done')
+        self.blocked = False
 
         # make sure covariance matrix is symmetric
         cov_est = 0.5 * (cov_est + cov_est.T)
@@ -107,8 +114,12 @@ class PoseEstimator(object):
         # prior update
         state_prior, cov_prior = self.PredictState(time_meas, True)
 
+        while self.blocked:
+            time.sleep(0.00001)
+
+        self.blocked = True
+
         # remove old commands from queue
-        print('deleting')
         while self.cmd_queue[0].time < time_meas and len(self.cmd_queue) > 1:
             self.cmd_queue.popleft()
 
@@ -121,6 +132,8 @@ class PoseEstimator(object):
         self.state_est[:] = state_posterior
         self.cov_est[:] = cov_posterior
         self.time_est = time_meas
+
+        self.blocked = False
 
 
 if __name__ == '__main__':
