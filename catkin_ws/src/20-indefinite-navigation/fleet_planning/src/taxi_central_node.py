@@ -83,7 +83,7 @@ class TaxiCentralNode:
 
         request = duckiebot.pop_customer_request
         if request is not None:
-            self._pending_customer_requests[:0] = [duckiebot.pop_customer_request()]  # prepend, high priority
+            self._pending_customer_requests[:0] = [request]  # prepend, high priority
 
         try:
             del self._registered_duckiebots[duckiebot.name]
