@@ -87,12 +87,25 @@ namespace apriltags_ros{
       detection.draw(cv_ptr->image);
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
+
+      Eigen::Vector3d euler_angles;
+      euler_angles(0) = atan2(rot(2, 1), rot(2, 2));
+      euler_angles(1) = -atan2(rot(2, 0), sqrt(pow(rot(2, 1), 2.0) + pow(rot(2, 2), 2.0)));
+      euler_angles(2) = atan2(rot(1, 0), rot(0, 0));
+
+      std::cout << "euler_x= " << euler_angles(0)*180/3.14159 << std::endl;
+      std::cout << "euler_y= " << euler_angles(1)*180/3.14159 << std::endl;
+      std::cout << "euler_z= " << euler_angles(2)*180/3.14159 << std::endl;
+      std::cout << "______________________" << std::endl;
+
+
       Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
 
       std::cout << "quat_x= " << rot_quaternion.x() << std::endl;
       std::cout << "quat_y= " << rot_quaternion.y() << std::endl;
       std::cout << "quat_z= " << rot_quaternion.z() << std::endl;
       std::cout << "quat_w= " << rot_quaternion.w() << std::endl;
+      std::cout << "______________________" << std::endl;
       std::cout << "______________________" << std::endl;
 
       geometry_msgs::PoseStamped tag_pose;
