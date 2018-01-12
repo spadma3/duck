@@ -21,11 +21,11 @@ class IntersectionNavigation(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.veh_name = self.SetupParameter("~veh")
+        self.veh = self.SetupParameter("~veh")
 
         # set up path planner, state estimator, ...
-        self.intersectionLocalizer = IntersectionLocalizer(self.robot_name)
-        self.pathPlanner = PathPlanner(self.robot_name)
+        self.intersectionLocalizer = IntersectionLocalizer(self.veh)
+        self.pathPlanner = PathPlanner(self.veh)
         self.poseEstimator = PoseEstimator()
 
         # main logic parameters
