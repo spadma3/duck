@@ -61,12 +61,20 @@ namespace apriltags_ros{
     cv::Mat gray;
     cv::cvtColor(cv_ptr->image, gray, CV_BGR2GRAY);
     std::vector<AprilTags::TagDetection> detections = tag_detector_->extractTags(gray);
+    std::cout << "image size = " << gray.size() << std::endl;
+
     ROS_DEBUG("%d tag detected", (int)detections.size());
     
     double fx = cam_info->K[0];
     double fy = cam_info->K[4];
     double px = cam_info->K[2];
     double py = cam_info->K[5];
+
+    std::cout << "fx = " << fx << std::endl;
+    std::cout << "fy = " << fy << std::endl;
+    std::cout << "px = " << px << std::endl;
+    std::cout << "py = " << py << std::endl;
+
     
     if(!sensor_frame_id_.empty())
       cv_ptr->header.frame_id = sensor_frame_id_;
@@ -88,6 +96,8 @@ namespace apriltags_ros{
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
 
+      std::cout << "transform = " << transform << std::endl;
+
       Eigen::Vector3d euler_angles;
       euler_angles(0) = atan2(rot(2, 1), rot(2, 2));
       euler_angles(1) = -atan2(rot(2, 0), sqrt(pow(rot(2, 1), 2.0) + pow(rot(2, 2), 2.0)));
@@ -107,6 +117,9 @@ namespace apriltags_ros{
       std::cout << "quat_w= " << rot_quaternion.w() << std::endl;
       std::cout << "______________________" << std::endl;
       std::cout << "______________________" << std::endl;
+
+
+
 
       geometry_msgs::PoseStamped tag_pose;
       tag_pose.pose.position.x = transform(0,3);
