@@ -176,7 +176,7 @@ class IntersectionNavigation(object):
                     msg_lanePose.header.stamp = rospy.Time.now()
                     msg_lanePose.d = dist
                     msg_lanePose.d_ref = 0
-                    msg_lanePose.phi = theta
+                    msg_lanePose.phi = - theta
                     msg_lanePose.curvature_ref = 1/0.4
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
