@@ -156,8 +156,8 @@ class ActionsDispatcherNode:
     def _play_led_pattern(self, pattern):
         play_pattern_service = rospy.ServiceProxy("/LEDPatternNode/play_pattern", PlayLEDPattern)
         try:
-            response = play_pattern_service(pattern, -1)
-            rospy.loginfo("Called play patter service. Got response: {}".format(response))
+            response = play_pattern_service(pattern, 10)
+            rospy.loginfo("Called play pattern service ({}). Got response: {}".format(pattern,response))
         except rospy.ServiceException as exc:
             rospy.logwarn("Call to play LED pattern service failed")
             rospy.logwarn(exc)
