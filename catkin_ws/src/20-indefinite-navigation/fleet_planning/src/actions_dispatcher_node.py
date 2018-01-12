@@ -111,8 +111,7 @@ class ActionsDispatcherNode:
             if actions:
                 # remove 'f' (follow line) from actions
                 self.actions = [x for x in actions if x != 'f']
-                print 'Actions to be executed:', self.actions
-                print 'Path to be followed: ', self.path
+                print '\n \n Actions to be executed:', self.actions
             else:
                 print 'No actions to be executed'
 
@@ -122,15 +121,20 @@ class ActionsDispatcherNode:
     def dispatch_action(self):
         if len(self.actions) > 0:
             action = self.actions.pop(0)
-            print 'Dispatched action:', action
+            action_name = None
             if action == 's':
+                action_name = 'straight'
                 self.pub_action.publish(Int16(1))
             elif action == 'r':
+                action_name = 'right'
                 self.pub_action.publish(Int16(2))
             elif action == 'l':
+                action_name = 'left'
                 self.pub_action.publish(Int16(0))
             elif action == 'w':
+                action_name = 'wait'
                 self.pub_action.publish(Int16(-1))
+            print '\n \n Duckiebot {}, go {}:'.format(rospy.get_param('/veh'), action_name)
 
     def on_shutdown(self):
         rospy.loginfo("[ActionsDispatcherNode] Shutdown.")
