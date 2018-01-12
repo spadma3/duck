@@ -160,6 +160,7 @@ class IntersectionNavigation(object):
                 #Condition on s
                 #if self.s < 0.99:
                 if (np.abs(pose[0] - self.pose_final[0]) > 0.01) and (np.abs(pose[1] - self.pose_final[1]) > 0.01):
+
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                     print('dist')
@@ -176,7 +177,7 @@ class IntersectionNavigation(object):
                     msg_lanePose.d = dist
                     msg_lanePose.d_ref = 0
                     msg_lanePose.phi = theta
-                    msg_lanePose.curvature_ref = curvature
+                    msg_lanePose.curvature_ref = 1/0.4
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
                 else:
