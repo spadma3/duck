@@ -50,9 +50,10 @@ class LocalizationNode(object):
             try:
                 Tt_w = self.tfbuf.lookup_transform(self.world_frame, "tag_{id}".format(id=tag.id), rospy.Time(), rospy.Duration(1))
                 Mtbase_w=self.transform_to_matrix(Tt_w.transform)
-                Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
+                #Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
                 #print Mt_tbase
-                Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
+                #Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
+                Mt_w = Mtbase_w
                 Mt_r=self.pose_to_matrix(tag.pose)
                 
                 print ("robo_tag x = ", tag.pose.pose.position.x)
