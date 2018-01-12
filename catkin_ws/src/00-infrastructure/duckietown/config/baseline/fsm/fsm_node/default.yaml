@@ -22,10 +22,6 @@ events: # Maps from subscribing topic to signal ids
     topic: "joy_mapper_node/start_avoidance"
     msg_type: "BoolStamped"
     trigger: True
-  # intersection_done:
-  #   topic: "intersection_navigation_node/intersection_done"
-  #   msg_type: "BoolStamped"
-  #   trigger: True
   apriltag_intersection:
     topic: "apriltag_postprocessing_node/apriltag_intersection" 
     msg_type: "BoolStamped"
@@ -188,9 +184,12 @@ states:
       - line_detector_node
       - lane_filter_node
       - lane_controller_node
+      ###### TO USE OPEN LOOP INTERSECTION CONTROL:
+      # COMMENT OUT intersection_navigation_node and intersection_localization_node
       - intersection_navigation_node
       - intersection_localization_node
     current_status: "in_progress"
+
   # LANE_RECOVERY: # not implemented
   #   transitions:
   #     found_lane: "LANE_FOLLOWING"
