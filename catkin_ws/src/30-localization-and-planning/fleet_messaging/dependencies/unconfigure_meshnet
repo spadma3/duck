@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+# Read /etc/network/interfaces
+with open("/etc/network/interfaces", "r") as IFACES:
+    IFACES_LINES = IFACES.readlines()
+
+# Write back the part without the mesh network
+START = False
+STOP = False
+TAG = "### MESH NETWORK ###"
+IFACES = open("/etc/network/interfaces", "w")
+for line in IFACES_LINES:
+    if not START and TAG in line:
+        START = True
+    elif START and TAG in line:
+        START = False
+        STOP = True
+    if not START and not STOP:
+        IFACES.write(line)
+    if STOP:
+        STOP = False
+IFACES.close()

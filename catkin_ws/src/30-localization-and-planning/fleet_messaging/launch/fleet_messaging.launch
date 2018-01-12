@@ -1,0 +1,14 @@
+<launch>
+    <arg name="config" default="$(find fleet_messaging)/config/config.yaml" />
+    <arg name="iface" default="bat0" />
+    <arg name="timeout" default="1" />
+    <include file="$(find fleet_messaging)/launch/sender.launch">
+        <arg name="config" value="$(arg config)" />
+        <arg name="iface" value="$(arg iface)" />
+    </include>
+    <include file="$(find fleet_messaging)/launch/receiver.launch">
+        <arg name="config" value="$(arg config)" />
+        <arg name="iface" value="$(arg iface)" />
+        <arg name="timeout" value="$(arg timeout)" />
+    </include>
+</launch>

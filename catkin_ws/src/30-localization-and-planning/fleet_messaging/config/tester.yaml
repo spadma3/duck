@@ -1,0 +1,5 @@
+- name: "test"
+  description: "used for tester node"
+  port: "12345"
+  pub: "test_send"
+  sub: "test_receive"

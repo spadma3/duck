@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+package duckietown.fleet_messaging;
+
+message MultiArrayDimension {
+    required string label  = 1;
+    optional uint32 size   = 2;
+    optional uint32 stride = 3;
+}
+
+message MultiArrayLayout {
+    repeated MultiArrayDimension dim         = 1;
+    required uint32              data_offset = 2;
+}
+
+message ByteMultiArray {
+    optional MultiArrayLayout layout = 1;
+    required bytes            data   = 2;
+}

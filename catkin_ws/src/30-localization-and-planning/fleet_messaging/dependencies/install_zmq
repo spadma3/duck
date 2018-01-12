@@ -1,0 +1,60 @@
+#!/bin/bash
+
+source $DUCKIETOWN_ROOT/environment.sh
+if [[ $? -ne 0 ]] ; then
+    echo "Return code: "$?
+    exit 1
+fi
+
+# Cleanup
+sudo pip uninstall -y pyzmq
+sudo apt purge -y libzmq
+sudo apt autoremove -y
+
+# Versions
+LZMQ_VERSION=4.2.3
+PYZMQ_VERSION=17.0.0b3
+
+# Install dependencies
+sudo apt install -y autoconf automake build-essential cython libpgm-dev libtool python-dev
+# Download and extract the source code
+wget https://github.com/zeromq/libzmq/releases/download/v$LZMQ_VERSION/zeromq-$LZMQ_VERSION.tar.gz
+tar -xzvf zeromq-$LZMQ_VERSION.tar.gz
+# Configure
+cd zeromq-$LZMQ_VERSION
+./autogen.sh
+if [[ $? -ne 0 ]] ; then
+    echo "Return code: "$?
+    exit 2
+fi
+./configure --with-pgm
+if [[ $? -ne 0 ]] ; then
+    echo "Return code: "$?
+    exit 3
+fi
+# Build
+make
+if [[ $? -ne 0 ]] ; then
+    echo "Return code: "$?
+    exit 4
+fi
+ulimit -n 1200 # increase the maximum allowed file handles
+make check
+if [[ $? -ne 0 ]] ; then
+    echo "Return code: "$?
+    exit 5
+fi
+# Install the library
+sudo make install
+if [[ $? -ne 0 ]] ; then
+    echo "Return code: "$?
+    exit 6
+fi
+cd ..
+# Download and extract the python binding
+wget https://github.com/zeromq/pyzmq/archive/v$PYZMQ_VERSION.tar.gz
+tar -xzvf v$PYZMQ_VERSION.tar.gz
+# Install the python bindings
+cd pyzmq-$PYZMQ_VERSION
+python setup.py install --user
+cd ..

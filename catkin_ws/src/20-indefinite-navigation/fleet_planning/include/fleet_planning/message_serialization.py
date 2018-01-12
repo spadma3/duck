@@ -9,7 +9,7 @@ class LocalizationMessageSerializer:
     def serialize(robotName, tile, route):
         serialized_name = NameSerializer.serialize(robotName)
         serialized_tile = IntegerSerializer.serialize(tile)
-        serialized_route = IntegerListSerializer.serialize(route)
+        serialized_route = StringListSerializer.serialize(route)
 
         return bytearray(serialized_tile + serialized_route + serialized_name )
 
@@ -24,8 +24,8 @@ class LocalizationMessageSerializer:
         # Deserialize the list
         route_length = IntegerSerializer.deserialize(bytes[integer_size:2*integer_size])
         route_start = 2 * integer_size
-        route_end = route_start + route_length * integer_size
-        route = IntegerListSerializer.deserialize(bytes[route_start:route_start + route_end], route_length)
+        route_end = route_start + route_length
+        route = StringListSerializer.deserialize(bytes[route_start:route_end])
 
         name = NameSerializer.deserialize(bytes[route_end:])
 
@@ -64,15 +64,32 @@ class NameSerializer:
     """
     @staticmethod
     def serialize(name):
-        return name
+        return StringSerializer.serialize(name)
+
+    @staticmethod
+    def deserialize(bytes):
+        return StringSerializer.deserialize(bytes)
+
+    @staticmethod
+    def size(name):
+        return StringSerializer.size(name)
+
+
+class StringSerializer:
+    """
+    Provides functionality to serialize and deserialize the strings
+    """
+    @staticmethod
+    def serialize(string):
+        return string
 
     @staticmethod
     def deserialize(bytes):
         return bytes
 
     @staticmethod
-    def size(name):
-        return len(name)
+    def size(string):
+        return len(string)
 
 class TransformationSerializer(object):
     """
@@ -99,6 +116,30 @@ class TransformationSerializer(object):
     @staticmethod
     def size():
         return calcsize(TransformationSerializer.serialization_format)
+
+
+class StringListSerializer:
+    """
+    Serializer for a list of strings.
+    """
+    SEPARATOR = ","
+
+    @staticmethod
+    def serialize(string_list):
+        long_string = StringListSerializer.SEPARATOR.join(string_list)
+        length = StringSerializer.size(long_string)
+        return IntegerSerializer.serialize(length) + StringSerializer.serialize(long_string)
+
+    @staticmethod
+    def deserialize(bytes):
+        long_string = StringSerializer.deserialize(bytes)
+        return long_string.split(StringListSerializer.SEPARATOR)
+
+    @staticmethod
+    def size(string_list):
+        long_string = StringListSerializer.SEPARATOR.join(string_list)
+        return StringSerializer.size(long_string) + IntegerSerializer.size()
+
 
 
 class IntegerListSerializer:

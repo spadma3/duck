@@ -37,7 +37,7 @@ class TestMessageSerialization(unittest.TestCase):
     def test_localization_message_serialization(self):
         tile = 42
         name = 'harpy'
-        route = [5, 6, 3, 2]
+        route = ["5", "node 6", "3", "2"]
         serialized_message = LocalizationMessageSerializer.serialize(name, tile, route)
         new_name, new_tile, new_route = LocalizationMessageSerializer.deserialize(serialized_message)
 
@@ -53,6 +53,15 @@ class TestMessageSerialization(unittest.TestCase):
 
         deserialized_list = IntegerListSerializer.deserialize(serialized[IntegerSerializer.size():], length)
         self.assertEqual(integer_list, deserialized_list)
+
+    def test_string_list_serialization(self):
+        string_list = ["this", "is", "a", "test"]
+        serialized = StringListSerializer.serialize(string_list)
+        length = IntegerSerializer.deserialize(serialized[0:IntegerSerializer.size()])
+        self.assertEqual(length, 14)
+
+        deserialized_list = StringListSerializer.deserialize(serialized[IntegerSerializer.size():])
+        self.assertEqual(string_list, deserialized_list)
 
 if __name__ == '__main__':
     import rostest

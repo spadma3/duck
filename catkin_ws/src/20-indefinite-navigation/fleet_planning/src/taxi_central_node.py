@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 
-from enum import Enum, IntEnum
-import os
+from enum import Enum
 import rospy
 from fleet_planning.generate_duckietown_map import graph_creator
 from std_msgs.msg import ByteMultiArray, String
 from duckietown_msgs.msg import SourceTargetNodes
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
-
 from fleet_planning.duckiebot import *
 import json
 import random
-from sensor_msgs.msg import Image
+
 
 class FleetPlanningStrategy(Enum): # for future expansion
     DEACTIVATED = 0
     CLOSEST_DUCKIEBOT = 1
 
+
 class RebalancingStrategy(Enum):
     DEACTIVATED = 0
     RANDOM = 1
+
 
 class TaxiCentralNode:
     TIME_OUT_CRITERIUM = 60.0
@@ -58,7 +58,7 @@ class TaxiCentralNode:
     @property
     def available_duckiebots(self):
         """
-        :return: A list of all available duckiebots.
+        :return: A list of all available _duckiebots.
         """
         return filter(lambda bot: bot.taxi_state == TaxiState.IDLE or bot.taxi_state == TaxiState.WITHOUT_MISSION,
                       self._registered_duckiebots.values())
@@ -81,9 +81,9 @@ class TaxiCentralNode:
         """unregister given duckiebot, remove from map drawing. If it currently has been assigned a customer,
         put customer request back to _pending_customer_requests"""
 
-        request = duckiebot.pop_customer_request
+        request = duckiebot.pop_customer_request()
         if request is not None:
-            self._pending_customer_requests[:0] = [duckiebot.pop_customer_request()]  # prepend, high priority
+            self._pending_customer_requests[:0] = [request]  # prepend, high priority
 
         try:
             del self._registered_duckiebots[duckiebot.name]
@@ -173,7 +173,7 @@ class TaxiCentralNode:
                 duckiebot.assign_customer_request(pending_request)
                 self._publish_duckiebot_mission(duckiebot, TaxiEvent.ACCEPTED_REQUEST)
             else:
-                rospy.logwarn("There are available duckiebots but they were not found in the graph. Aborting assignment procedure.")
+                rospy.logwarn("There are available _duckiebots but they were not found in the graph. Aborting assignment procedure.")
                 break
 
     def _location_update(self, message):
@@ -258,7 +258,6 @@ class TaxiCentralNode:
     def _publish_draw_request(self):
         dict = {'duckiebots': [db[1].to_dict() for db in self._registered_duckiebots.items()],
                 'pending_customer_requests': [cr.to_dict() for cr in self._pending_customer_requests if cr is not None]}
-        rospy.loginfo('Published draw request.')
         self._pub_draw_command.publish(json.dumps(dict))
 
     def save_metrics(self): # implementation has rather low priority

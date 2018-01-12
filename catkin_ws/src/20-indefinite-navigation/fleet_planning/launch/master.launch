@@ -13,6 +13,8 @@
 	<arg name="loc" default="-1"/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" />
+	<arg name="messaging_config"/>
+	<arg name="messaging_iface"/>
 	<!-- end basic args -->
  
 <!-- the things that are "on" by default: 
@@ -55,10 +57,23 @@
 	<arg name="/localization/map_name" default="tags_tiles_lab" />
 	<arg name="/localization/gui" default="false"/>
 
+	<arg name="fleet_communication" default="true"/>
+	<arg name="joystick_demo" default="true"/>
+
 	<!-- end switch args -->
 	
 	<!-- Enable statistics -->
 	<param name="enable_statistics" value="$(arg statistics)"/>
+
+	
+	<!-- Start fleet communication -->  
+	<group if="$(arg fleet_communication)">
+		<include file="$(find fleet_messaging)/launch/fleet_messaging.launch">
+			<arg name="iface" value="$(arg messaging_iface)"/>
+			<arg name="config" value="$(arg messaging_config)"/>
+		</include>
+	</group>
+	<!-- End fleet communication -->
 
 	<!-- Start Camera -->  
 	<group if="$(arg camera)">
@@ -120,40 +135,58 @@
 	<!-- End Camera -->
 
 	<!-- Start Wheels -->
-	<group if="$(arg wheels)">
+	<group unless="$(arg joystick_demo)">
+		<group if="$(arg wheels)">
 
-	    <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
-		<remap from="inverse_kinematics_node/car_cmd" to="car_cmd_switch_node/cmd"/>
-		<include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-		</include>
+			<remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
+			<remap from="inverse_kinematics_node/car_cmd" to="car_cmd_switch_node/cmd"/>
+			<include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+			</include>
 
-		<!-- Wheel Driver -->
-		<include file="$(find dagu_car)/launch/wheels_driver_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-		</include>
+			<!-- Wheel Driver -->
+			<include file="$(find dagu_car)/launch/wheels_driver_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+			</include>
+		</group>
+
+		<!-- End Wheels -->
+
+
+		<!-- Start Joystick -->
+		<group if="$(arg joystick)">
+			<!-- joy -->
+			<include file="$(find joy_mapper)/launch/joy_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>
+
+			<!-- joy_mapper -->
+			<include file="$(find joy_mapper)/launch/joy_mapper_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>
+		</group>
+		<!-- End Joystick -->
 	</group>
 
-	<!-- End Wheels -->
-
-
-	<!-- Start Joystick -->
-	<group if="$(arg joystick)">
-		<!-- joy -->
-		<include file="$(find joy_mapper)/launch/joy_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-
-		<!-- joy_mapper -->
-		<include file="$(find joy_mapper)/launch/joy_mapper_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
+	<!-- Only joystick control, no lane following etc. -->
+	<group if="$(arg joystick_demo)">
+		<!-- Start Joystick -->
+		<group if="$(arg joystick)">
+			<!-- joy -->
+			<include file="$(find duckietown_demos)/launch/joystick.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>
+		</group>
+		<!-- End Joystick -->
 	</group>
-	<!-- End Joystick -->
+
+
 
 
 	<!-- Start Lane Following -->

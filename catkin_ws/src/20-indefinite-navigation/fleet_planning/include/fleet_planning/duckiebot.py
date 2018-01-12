@@ -82,6 +82,10 @@ class BaseDuckiebot:
     @property
     def name(self):
         return self._name
+    
+    @property
+    def path(self):
+        return self._path
 
     @property
     def customer_request(self):
@@ -143,19 +147,22 @@ class Duckiebot(BaseDuckiebot):
 
         return dict_
 
-    def update_location_check_target_reached(self, reported_location, route):
+    def update_location_check_target_reached(self, reported_location, path):
         """
         updates member _last_known_location. If duckiebot is now at target location and has a customer request,
         it checks whether current location is customer start location or customer target location.
         It updates its _taxi_state correspondingly and updates sets _last_time_seen_alive and CustomerRequest time stamps.
         :param reported_location: reported from localization
         :param next_location: where duckiebot is expected to show up next
+        :param path: path that duckiebot is going to execute
         :return: None if status has not changed, or duckiebot is new. Returns self_taxi state if customer has been
                 picked up or customer target location has been reached.
         """
 
         if reported_location is None:
             return None, TaxiEvent.NONE_EVENT
+
+        route = [p for p in path if p.isdigit()]
 
         # Find the next node
         next_location = '-1'
@@ -167,7 +174,7 @@ class Duckiebot(BaseDuckiebot):
 
         self._last_known_location = reported_location
         self._next_expected_location = next_location
-        self._path = route
+        self._path = path
         self._last_time_seen_alive = rospy.get_time()
 
         if self._customer_request is not None:

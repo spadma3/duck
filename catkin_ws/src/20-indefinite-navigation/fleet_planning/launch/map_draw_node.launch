@@ -11,6 +11,6 @@
 	<param name="map_dir" value="$(arg map_dir)"/>
 	<param name="gui_img_dir" value="$(arg gui_img_dir)"/>
 	    <!-- Local -->
-	    <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true"></node>
+	    <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="log" clear_params="true" required="true"></node>
 
 </launch>
