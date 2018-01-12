@@ -226,6 +226,7 @@ class IntersectionNavigation(object):
 
             elif self.state == self.state_dict['DONE']:
                 # TODO: Now just go straight
+                print('Intersection done')
                 msg_lanePose = LanePose()
                 msg_lanePose.header.stamp = rospy.Time.now()
                 msg_lanePose.d = 0
@@ -394,7 +395,7 @@ class IntersectionNavigation(object):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
             cmd_msg.v = msg.v * 0.67
-            cmd_msg.omega = msg.omega * 0.45 * 2 * math.pi
+            cmd_msg.omega = msg.omega * 0.45 #* 2 * math.pi
             self.poseEstimator.FeedCommandQueue(msg)
 
     def AprilTagsCallback(self, msg):
