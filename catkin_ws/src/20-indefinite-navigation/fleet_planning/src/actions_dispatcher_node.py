@@ -52,8 +52,7 @@ class ActionsDispatcherNode:
         return value
 
     def localize_at_red_line(self, message):
-        if rospy.get_time() - self.last_red_line < 5.0 and message is not None:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
-            rospy.logwarn('Location not updated, red line too soon detected after last one.')
+        if rospy.get_time() - self.last_red_line < 5.0 and message is not None:  # time out filter in case that this is triggered more than once at intersection
             return
         self.last_red_line = rospy.get_time()
 
@@ -111,7 +110,7 @@ class ActionsDispatcherNode:
             if actions:
                 # remove 'f' (follow line) from actions
                 self.actions = [x for x in actions if x != 'f']
-                print '\n \n Actions to be executed:', self.actions
+                print '\n \n ************ \n Actions to be executed:', self.actions
             else:
                 print 'No actions to be executed'
 
@@ -134,7 +133,7 @@ class ActionsDispatcherNode:
             elif action == 'w':
                 action_name = 'wait'
                 self.pub_action.publish(Int16(-1))
-            print '\n \n Duckiebot {}, go {}:'.format(rospy.get_param('/veh'), action_name)
+            print 'Duckiebot {}, go {}:\n\n ************\n'.format(rospy.get_param('/veh'), action_name)
 
     def on_shutdown(self):
         rospy.loginfo("[ActionsDispatcherNode] Shutdown.")
