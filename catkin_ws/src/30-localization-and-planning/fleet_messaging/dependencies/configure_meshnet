@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+
+import argparse
+
+# Parse the WiFi interface
+DESCRIPTION = "Parse the mesh network WiFi interface."
+PARSER = argparse.ArgumentParser(description=DESCRIPTION)
+PARSER.add_argument("iface", type=str)
+PARSER.add_argument("ip", type=str)
+PARSER.add_argument("subnet", type=str)
+ARGS = PARSER.parse_args()
+
+# Arguments are not checked in this script. They are already checked outside.
+
+# Create start_batman
+with open("start_batman", "w") as START_BATMAN:
+    SCRIPT = """#!/bin/sh
+
+if [ "$IFACE" = {} ] ; then
+    sudo modprobe batman-adv
+    sudo batctl if add {}
+fi
+
+""".format(ARGS.iface, ARGS.iface)
+    START_BATMAN.write(SCRIPT)
+
+# Create rem_bat_iface
+with open("rem_bat_iface", "w") as REM_BAT_IFACE:
+    SCRIPT = """#!/bin/sh
+
+if [ "$IFACE" = {} ] ; then
+    sudo batctl if del {}
+fi
+
+""".format(ARGS.iface, ARGS.iface)
+    REM_BAT_IFACE.write(SCRIPT)
+
+# Create stop_batman
+with open("stop_batman", "w") as STOP_BATMAN:
+    SCRIPT = """#!/bin/sh
+
+if [ "$IFACE" = {} ] ; then
+    sudo modprobe -r batman-adv
+fi
+
+""".format(ARGS.iface, ARGS.iface)
+    STOP_BATMAN.write(SCRIPT)
+
+# Modify /etc/network/interfaces
+with open("/etc/network/interfaces", "a") as IFACES:
+    ENTRIES = """
+### MESH NETWORK ###############################################################
+auto {}
+iface {} inet manual
+    wireless-channel 1
+    wireless-essid ducknet
+    wireless-mode ad-hoc
+    wireless-ap 02:12:34:56:78:9A
+
+auto bat0
+iface bat0 inet static
+    address {}
+    netmask {}
+### MESH NETWORK ###############################################################
+
+""".format(ARGS.iface, ARGS.iface, ARGS.ip, ARGS.subnet)
+    IFACES.write(ENTRIES)

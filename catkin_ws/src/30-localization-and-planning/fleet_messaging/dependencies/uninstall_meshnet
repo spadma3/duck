@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Deactivate bat0
+sudo ifdown bat0
+
+# Remove the scripts
+sudo rm /etc/network/if-pre-up.d/start_batman
+sudo rm /etc/network/if-post-down.d/stop_batman
+
+# Remove the mesh network configuration
+sudo ./unconfigure_meshnet

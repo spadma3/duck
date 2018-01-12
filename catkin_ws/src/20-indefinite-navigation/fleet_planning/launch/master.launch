@@ -13,6 +13,8 @@
 	<arg name="loc" default="-1"/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" />
+	<arg name="messaging_config"/>
+	<arg name="messaging_iface"/>
 	<!-- end basic args -->
  
 <!-- the things that are "on" by default: 
@@ -54,10 +56,22 @@
 	<arg name="/localization/map_name" default="tags_tiles_lab" />
 	<arg name="/localization/gui" default="false"/>
 
+	<arg name="fleet_communication" default="true"/>
+
 	<!-- end switch args -->
 	
 	<!-- Enable statistics -->
 	<param name="enable_statistics" value="$(arg statistics)"/>
+
+	
+	<!-- Start fleet communication -->  
+	<group if="$(arg fleet_communication)">
+		<include file="$(find fleet_messaging)/launch/fleet_messaging.launch">
+			<arg name="iface" value="$(arg messaging_iface)"/>
+			<arg name="config" value="$(arg messaging_config)"/>
+		</include>
+	</group>
+	<!-- End fleet communication -->
 
 	<!-- Start Camera -->  
 	<group if="$(arg camera)">

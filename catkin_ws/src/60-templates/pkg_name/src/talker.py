@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import rospy
-from pkg_name.util import HelloGoodbye #Imports module. Not limited to modules in this pkg. 
+#from pkg_name.util import HelloGoodbye #Imports module. Not limited to modules in this pkg.
+import pkg_name.util
+
 from std_msgs.msg import String #Imports msg
 
 class Talker(object):
@@ -13,7 +15,7 @@ class Talker(object):
         # Setup publishers
         self.pub_topic_a = rospy.Publisher("~topic_a",String, queue_size=1)
         # Setup subscriber
-        self.sub_topic_b = rospy.Subscriber("~topic_b", String, self.cbTopic)
+        self.sub_topic_b = rospy.Subscriber("~topic_a", String, self.cbTopic)
         # Read parameters
         self.pub_timestep = self.setupParameter("~pub_timestep",1.0)
         # Create a timer that calls the cbTimer function every 1.0 second
@@ -29,12 +31,13 @@ class Talker(object):
 
     def cbTopic(self,msg):
         rospy.loginfo("[%s] %s" %(self.node_name,msg.data))
+        return
 
     def cbTimer(self,event):
         singer = HelloGoodbye()
         # Simulate hearing something
         msg = String()
-        msg.data = singer.sing("duckietown")
+        msg.data = singer.sing("Pat's town")
         self.pub_topic_a.publish(msg)
 
     def on_shutdown(self):
