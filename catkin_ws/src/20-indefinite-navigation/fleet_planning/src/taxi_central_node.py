@@ -256,7 +256,6 @@ class TaxiCentralNode:
     def _publish_draw_request(self):
         dict = {'duckiebots': [db[1].to_dict() for db in self._registered_duckiebots.items()],
                 'pending_customer_requests': [cr.to_dict() for cr in self._pending_customer_requests if cr is not None]}
-        rospy.loginfo('Published draw request.')
         self._pub_draw_command.publish(json.dumps(dict))
 
     def save_metrics(self): # implementation has rather low priority
