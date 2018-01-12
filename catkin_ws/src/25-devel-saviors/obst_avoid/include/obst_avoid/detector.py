@@ -10,6 +10,8 @@ import socket
 from matplotlib import pyplot as plt
 import time
 from skimage import measure
+import colorsys
+
 
 import rospy
 from sensor_msgs.msg import CompressedImage
@@ -36,12 +38,19 @@ class Detector():
 	#define where to cut the image, color range,...
 	self.crop = 150 #default value but is overwritten in init_homo
 	#self.lower_yellow = np.array([20,100,150]) #more restrictive -> if you can be sure for "no reddish yellow"
-	self.lower_yellow = np.array([15,100,200])
-	self.upper_yellow = np.array([35,255,255])
-	self.lower_orange = np.array([0,100,100])
-	self.upper_orange = np.array([15,255,255])
-	self.lower_white = np.array([0,0,150])
-	self.upper_white = np.array([255,25,255])
+	self.lower_yellow_gt = np.array([15,100,200]) #ground truth values
+	self.upper_yellow_gt = np.array([35,255,255])
+	self.lower_orange_gt = np.array([0,100,100])
+	self.upper_orange_gt = np.array([15,255,255])
+	self.lower_white_gt = np.array([0,0,150])
+	self.upper_white_gt = np.array([255,25,255])
+
+	self.lower_yellow = self.lower_yellow_gt #current values
+	self.upper_yellow = self.upper_yellow_gt
+	self.lower_orange = self.lower_orange_gt
+	self.upper_orange = self.upper_orange_gt
+	self.lower_white = self.lower_white_gt
+	self.upper_white = self.upper_white_gt
 
 	self.ref_world_point_x = 1.7 #this is the reference world point where we crop the img
 	self.major_intertia_thres = 20 #if you want to detect very little ducks might lower it to 10, not smaller,..
@@ -299,3 +308,33 @@ class Detector():
      	points = np.transpose(np.float32(bird_view_pixel))
      	trans_points = np.float32(cv2.perspectiveTransform(np.array([points]),self.inv_M))
         return np.concatenate((np.reshape(trans_points[:,:,0],(1,-1)), np.reshape(trans_points[:,:,1]+self.crop,(1,-1))), axis=0)
+
+
+    def update_filter_values (self,trafo_arr):
+	shift = trafo_arr[0:3]
+        scale = trafo_arr[3:6]     	
+        
+        #effectifely update all the values
+        self.lower_white = self.update_single_val(self.lower_white_gt,shift,scale)
+        self.upper_white = self.update_single_val(self.upper_white_gt,shift,scale)
+        self.lower_yellow = self.update_single_val(self.lower_yellow_gt,shift,scale)
+        self.upper_yellow = self.update_single_val(self.upper_yellow_gt,shift,scale)
+        # ORANGE FILTER DID NOT WORK OUT
+
+        #self.lower_orange = self.update_single_val(self.lower_orange_gt,shift,scale)
+        #self.upper_orange = self.update_single_val(self.upper_orange_gt,shift,scale)
+        print "succesfully updated all color filter values!"
+
+    def update_single_val (self,color,shift,scale):
+    	prev_color = np.uint8([[color]])
+    	print prev_color #old color_val
+	prev_color = cv2.cvtColor(prev_color,cv2.COLOR_HSV2BGR) #color to BGR room
+	abc = (prev_color[0][0]-shift)/scale #help variable to detect overflow in both directions
+	print abc
+	prev_color[0][0] = (prev_color[0][0]-shift)/scale #update val in BGR
+	prev_color[0][0][abc>255] = 255 #undo possible overflows
+	prev_color[0][0][abc<0] = 0 #undo possible overflows
+	print prev_color
+	prev_color = cv2.cvtColor(prev_color,cv2.COLOR_BGR2HSV) #convert back to hsv
+	print prev_color #new color value
+	return prev_color[0][0] #new refined color value in hsv

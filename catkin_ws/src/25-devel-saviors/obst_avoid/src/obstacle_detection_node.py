@@ -10,6 +10,7 @@ import threading
 from obst_avoid.detector import Detector
 from obst_avoid.visualizer import Visualizer
 from duckietown_utils import get_base_name, rgb_from_ros, rectify, load_camera_intrinsics, d8_compressed_image_from_cv_image
+from duckietown_msgs.msg import AntiInstagramTransform #to be able to compute the trafo!
 
 class ObstDetectNode(object):
     """
@@ -21,7 +22,9 @@ class ObstDetectNode(object):
         self.show_marker = (rospy.get_param("~show_marker", ""))
         self.show_image = (rospy.get_param("~show_image", ""))
         self.use_ai = (rospy.get_param("~use_ai", ""))
-        
+        #param to be set to let the filter values be adapted LINEARLY!!! (to be set to true then -> subscribes to trafo of ai!!!!)
+        self.efficient_trafo = True  
+
         self.r = rospy.Rate(3) # Rate in Hz
         self.thread_lock = threading.Lock()
 
@@ -48,14 +51,18 @@ class ObstDetectNode(object):
                 print "show_image is active: image will be published as /veh/obst_detect/image_cropped/compressed"
 
         # Create a Subscriber
-        if (self.use_ai):
+        if (self.use_ai and not(self.efficient_trafo)): #if we subscribe on the corrected image by AI
+            print "HERE"    
             self.sub_topic = '/{}/image_transformer_node/corrected_image'.format(robot_name)
             self.subscriber = rospy.Subscriber(self.sub_topic, Image, self.callback_img,queue_size=1, buff_size=2**24)
             #buff size to approximately close to 2^24 such that always most recent pic is taken
             #essentail 
-        else:
+        else: #subscribe to normal topic and if the ai trafo is published we make the efficient linear approach
+            print "THERE"
             self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
             self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback_img,queue_size=1, buff_size=2**24)
+            self.sub_topic_lin_trafo = '/{}/cont_anti_instagram_node/transform'.format(robot_name)
+            self.subscriber_lin_trafo = rospy.Subscriber(self.sub_topic_lin_trafo, AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
 
     def callback_img(self, image):
         thread = threading.Thread(target=self.callback,args=(image,))
@@ -110,6 +117,14 @@ class ObstDetectNode(object):
 
     def onShutdown(self):
         rospy.loginfo('Shutting down Obstacle Detection, back to unsafe mode')
+
+
+    def cbNewTrafo(self, trafo_msg):
+        print "OBSTACLE DETECTION RECIEVED NEW LINEAR TRAFO!!!"
+        #print trafo_msg.s
+        self.detector.update_filter_values(trafo_msg.s)
+
+
 
 # MEINER MEINUNG NACH HIER DANN WARSCH 2.NODE AUCH NOCH REIN WO DANN DIE OBST AVOIDANCE GEMACHT WIRD ODER SO
 
