@@ -1,9 +1,9 @@
 <launch>
 	<arg name="robot_name" default="daisy" />
 
-    <remap from="~img" to="$(arg robot_name)/camera_node/image/compressed" />
-    <remap from="~cmds" to="$(arg robot_name)/forward_kinematics_node/velocity" />
-    <remap from="~apriltags" to="$(arg robot_name)/apriltags_postprocessing_node/apriltags_out" />
+    <remap from="~img" to="camera_node/image/compressed" />
+    <remap from="~cmds" to="forward_kinematics_node/velocity" />
+    <remap from="~apriltags" to="apriltags_postprocessing_node/apriltags_out" />
 
 	<node ns="$(arg robot_name)" name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation.py" output="screen">
 		<!-- Setup parameters -->

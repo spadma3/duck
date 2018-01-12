@@ -30,15 +30,15 @@ class IntersectionVisualizer(object):
                                         IntersectionPose,
                                         self.PoseCallback,
                                         queue_size=1)
-        self.pose = np.zeros(3,float)
+        self.pose = np.array([0.400, -0.105, 0.5 * np.pi])
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
 
     def ImageCallback(self, msg):
-
         _, img_gray = self.intersectionLocalizer.ProcessRawImage(msg)
         self.intersectionLocalizer.DrawModel(img_gray, self.pose)
+
         cv2.imshow('Estimate', img_gray)
         cv2.waitKey(1)
 

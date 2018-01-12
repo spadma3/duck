@@ -28,6 +28,32 @@ class IntersectionNavigation(object):
         self.pathPlanner = PathPlanner(self.robot_name)
         self.poseEstimator = PoseEstimator()
 
+        # main logic parameters
+        self.rate = 10  # main logic runs at 10Hz
+        self.timeout = 1.0
+        self.state_dict = dict()
+        for counter, key in enumerate(['IDLE', 'INITIALIZING_LOCALIZATION', 'INITIALIZING_PATH', 'TRAVERSING', 'DONE', 'ERROR']):
+            self.state_dict.update({key: counter})
+        self.state = self.state_dict['IDLE']
+
+        # auxiliary variables
+        self.tag_info = TagInfo()
+        self.intersection_signs = [self.tag_info.FOUR_WAY, self.tag_info.RIGHT_T_INTERSECT,
+                                   self.tag_info.LEFT_T_INTERSECT, self.tag_info.T_INTERSECTION]
+
+        # nominal start positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
+        self.nominal_start_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
+                                       self.tag_info.LEFT_T_INTERSECT: [0.664, 0.400, np.pi],
+                                       self.tag_info.RIGHT_T_INTERSECT: [-0.105, 0.121, 0.0 * np.pi],
+                                       self.tag_info.T_INTERSECTION: [0.400, -0.105, 0.5 * np.pi]}
+        self.nominal_final_positions = [[0.159, 0.0508, -0.5 * np.pi],
+                                        [0.508, 0.159, 0.0],
+                                        [0.400, 0.508, 0.5 * np.pi],
+                                        [0.0508, 0.400, np.pi]]
+
+        # initializing variables
+        #TODO
+
         # set up subscribers
         self.sub_mode = rospy.Subscriber("~mode",
                                          FSMState,
@@ -60,31 +86,6 @@ class IntersectionNavigation(object):
         self.pub_debug = rospy.Publisher("~debug/image/compressed",
                                          CompressedImage,
                                          queue_size=1)
-
-        # main logic parameters
-        self.rate = 10  # main logic runs at 10Hz
-        self.timeout = 1.0
-        self.state_dict = dict()
-        for counter, key in enumerate(['IDLE', 'INITIALIZING_LOCALIZATION', 'INITIALIZING_PATH', 'TRAVERSING', 'DONE', 'ERROR']):
-            self.state_dict.update({key: counter})
-        self.state = self.state_dict['IDLE']
-
-        # auxiliary variables
-        self.tag_info = TagInfo()
-        self.intersection_signs = [self.tag_info.FOUR_WAY, self.tag_info.RIGHT_T_INTERSECT,
-                                   self.tag_info.LEFT_T_INTERSECT, self.tag_info.T_INTERSECTION]
-
-        # nominal start positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
-        self.nominal_start_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
-                                       self.tag_info.LEFT_T_INTERSECT: [0.664, 0.400, np.pi],
-                                       self.tag_info.RIGHT_T_INTERSECT: [-0.105, 0.121, 0.0 * np.pi],
-                                       self.tag_info.T_INTERSECTION: [0.400, -0.105, 0.5 * np.pi]}
-        self.nominal_final_positions = [[0.159, 0.0508, -0.5 * np.pi],
-                                        [0.508, 0.159, 0.0],
-                                        [0.400, 0.508, 0.5 * np.pi],
-                                        [0.0508, 0.400, np.pi]]
-
-        # initializing variables
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
@@ -199,9 +200,9 @@ class IntersectionNavigation(object):
         y_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][1]
         theta_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][2]
 
-        dx_init = np.linspace(-0.05, 0.05, 11)
-        dy_init = np.linspace(-0.03, 0.03, 7)
-        dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
+        dx_init = np.array([0.0])  #np.linspace(-0.05, 0.05, 11)
+        dy_init = np.array([0.0]) #np.linspace(-0.03, 0.03, 7)
+        dtheta_init = np.array([0.0]) #np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
 
         self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
@@ -268,7 +269,6 @@ class IntersectionNavigation(object):
 
 
     def ImageCallback(self, msg):
-        # if initialized
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             # predict pose
             pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
@@ -279,12 +279,8 @@ class IntersectionNavigation(object):
 
             # update pose estimate
             if valid_meas:
-                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 20.0*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
+                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 0.01*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
 
-                #self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
-                #img3 = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
-                #msg = dt_utils.d8_compressed_image_from_cv_image(img3)
-                #self.pub_debug.publish(msg)
 
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
