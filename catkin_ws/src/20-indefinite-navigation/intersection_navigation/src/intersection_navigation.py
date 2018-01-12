@@ -170,7 +170,7 @@ class IntersectionNavigation(object):
                 if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 10.0 :
                     msg2.v = 0.38*0.67
                     msg2.omega = 0.38/0.4*0.45
-
+                    
                 else:
                     msg2.v = 0.0
                     msg2.omega = 0.0
