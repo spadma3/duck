@@ -18,6 +18,7 @@ class LaneFilterNode(object):
         self.velocity = Twist2DStamped()
         self.d_median = []
         self.phi_median = []
+        self.latencyArray = []
         
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
