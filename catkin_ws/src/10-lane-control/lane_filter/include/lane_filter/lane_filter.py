@@ -139,7 +139,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     def update(self, segments):
         segmentsRangeArray = self.prepareSegments(segments)
-        self.updatePoseBelief(segmentsRangeArray[0])
         for i in range(self.curvature_res + 1):
             measurement_likelihood = self.generate_measurement_likelihood(segmentsRangeArray[i])
             if measurement_likelihood is not None:
