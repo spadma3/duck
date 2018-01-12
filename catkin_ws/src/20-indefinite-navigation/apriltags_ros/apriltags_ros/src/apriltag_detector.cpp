@@ -89,7 +89,11 @@ namespace apriltags_ros{
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
       Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
 
-      std::cout << rot_quaternion.vec() << std::endl;
+      std::cout << "quat_x= " << rot_quaternion.x() << std::endl;
+      std::cout << "quat_y= " << rot_quaternion.y() << std::endl;
+      std::cout << "quat_z= " << rot_quaternion.z() << std::endl;
+      std::cout << "quat_w= " << rot_quaternion.w() << std::endl;
+      std::cout << "______________________" << std::endl;
 
       geometry_msgs::PoseStamped tag_pose;
       tag_pose.pose.position.x = transform(0,3);
