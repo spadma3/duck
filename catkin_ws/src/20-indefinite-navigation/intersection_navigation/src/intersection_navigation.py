@@ -309,7 +309,8 @@ class IntersectionNavigation(object):
             time_delay = rospy.Time()
             time_delay.secs = 0
             time_delay.nsecs = 200000000
-            pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp + time_delay)
+            time_new = msg.header.stamp + time_delay
+            pose_pred, _ = self.poseEstimator.PredictState(time_new)
 
             # localize Duckiebot, use predicted pose as initial guess
             img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(msg)
