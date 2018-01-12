@@ -21,7 +21,7 @@ class LaneFilterNode(object):
         self.curvature_res = self.filter.curvature_res
 
         # Set parameters to server
-        rospy.set_param('curvature_res', self.curvature_res) #Write to parameter server for transparancy
+        rospy.set_param("~curvature_res", self.curvature_res) #Write to parameter server for transparancy
         
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
@@ -86,7 +86,6 @@ class LaneFilterNode(object):
         lanePose.phi = phi_max[0]
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
-        lanePose.curvature = None
 
         if self.curvature_res > 0:
             lanePose.curvature = self.filter.getCurvature(d_max[1:], phi_max[1:])
