@@ -87,8 +87,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def prepareSegments(self, segments):
         segmentsRangeArray = map(list, [[]] * (self.curvature_res + 1))
 
-        print segmentsRangeArray
-
         for segment in segments:
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
@@ -99,26 +97,24 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
             # only consider points in a certain range from the Duckiebot
             point_range = self.getSegmentDistance(segment)
-            print point_range
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
-                print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
+                # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
                 # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
                 # print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
             if self.curvature_res is not 0:
                 for i in range(self.curvature_res):
                     if point_range < self.range_arr[i + 1] and point_range > self.range_arr[i]:
                         segmentsRangeArray[i + 1].append(segment)
-                        print 'Adding segment to segmentsRangeArray[%i] (Range: %s < %s < %s)' % (i + 1, self.range_arr[i], point_range, self.range_arr[i + 1])
+                        # print 'Adding segment to segmentsRangeArray[%i] (Range: %s < %s < %s)' % (i + 1, self.range_arr[i], point_range, self.range_arr[i + 1])
                         # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[i + 1][-1])
                         # print 'Length of segmentsRangeArray[%i] up to now: %s' % (i + 1, len(segmentsRangeArray[i + 1]))
                         continue
 
-        print 'Range Array values: %s' % self.range_arr
-        for i in range(len(segmentsRangeArray)):
-            print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
-            for j in range(len(segmentsRangeArray[i])):
-                print 'Range of segment %i: %f' % (j, self.getSegmentDistance(segmentsRangeArray[i][j]))
+        # for i in range(len(segmentsRangeArray)):
+        #     print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
+        #     for j in range(len(segmentsRangeArray[i])):
+        #         print 'Range of segment %i: %f' % (j, self.getSegmentDistance(segmentsRangeArray[i][j]))
 
         return segmentsRangeArray
 
