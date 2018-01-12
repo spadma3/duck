@@ -179,7 +179,7 @@ class IntersectionNavigation(object):
                     theta2 = np.arctan2(dir2[1], dir2[0])
 
                     msg2.v = alpha*np.linalg.norm(vel)
-                    msg2.omega = alpha*(theta2-theta)/0.01
+                    msg2.omega = 3.8*alpha*(theta2-theta)/0.01
 
                 else:
                     msg2.v = 0.0
