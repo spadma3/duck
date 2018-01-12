@@ -103,15 +103,15 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
                 print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
-                print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
-                print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
+                # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
+                # print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
             if self.curvature_res is not 0:
                 for i in range(self.curvature_res):
                     if point_range < self.range_arr[i + 1] and point_range > self.range_arr[i]:
                         segmentsRangeArray[i + 1].append(segment)
                         print 'Adding segment to segmentsRangeArray[%i] (Range: %s < %s < %s)' % (i + 1, self.range_arr[i], point_range, self.range_arr[i + 1])
-                        print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[i + 1][-1])
-                        print 'Length of segmentsRangeArray[%i] up to now: %s' % (i + 1, len(segmentsRangeArray[i + 1]))
+                        # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[i + 1][-1])
+                        # print 'Length of segmentsRangeArray[%i] up to now: %s' % (i + 1, len(segmentsRangeArray[i + 1]))
                         continue
 
         print 'Range Array values: %s' % self.range_arr
@@ -140,27 +140,14 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def update(self, segments):
         segmentsRangeArray = self.prepareSegments(segments)
         self.updatePoseBelief(segmentsRangeArray[0])
-        if self.curvature_res > 0:
-            for i in range(self.curvature_res):
-                # print 'Updating beliefArray[%i]' % (i + 1)
-                self.updateCurvatureBelief(segmentsRangeArray[i + 1], i + 1)
-
-    def updatePoseBelief(self, segments):
-        measurement_likelihood = self.generate_measurement_likelihood(segments)
-        if measurement_likelihood is not None:
-            self.beliefArray[0] = np.multiply(
-                self.beliefArray[0], measurement_likelihood)
-
-    def updateCurvatureBelief(self, segments, index):
-        measurement_likelihood = self.generate_measurement_likelihood(segments)
-        if measurement_likelihood is not None:
-            self.beliefArray[index] = np.multiply(
-                self.beliefArray[index], measurement_likelihood)
-            if np.sum(self.beliefArray[index]) == 0:
-                self.beliefArray[index] = measurement_likelihood
-            else:
-                self.beliefArray[index] = self.beliefArray[index] / \
-                    np.sum(self.beliefArray[index])
+        for i in range(self.curvature_res + 1):
+            measurement_likelihood = self.generate_measurement_likelihood(segmentsRangeArray[i])
+            if measurement_likelihood is not None:
+                self.beliefArray[i] = np.multiply(self.beliefArray[i], measurement_likelihood)
+                if np.sum(self.beliefArray[i]) == 0:
+                    self.beliefArray[i] = measurement_likelihood
+                else:
+                    self.beliefArray[i] = self.beliefArray[i] / np.sum(self.beliefArray[i])
 
     def generate_measurement_likelihood(self, segments):
         # initialize measurement likelihood to all zeros
