@@ -154,12 +154,13 @@ class ActionsDispatcherNode:
             print 'Duckiebot {}, go {}!\n\n ************\n'.format(rospy.get_param('/veh'), action_name)
 
     def _play_led_pattern(self, pattern):
-        play_pattern_service = rospy.ServiceProxy("LEDPatternNode/play_pattern", PlayLEDPattern)
+        play_pattern_service = rospy.ServiceProxy("/LEDPatternNode/play_pattern", PlayLEDPattern)
         try:
             response = play_pattern_service(pattern, -1)
             rospy.loginfo("Called play patter service. Got response: {}".format(response))
         except rospy.ServiceException as exc:
-            rospy.loginfo("Call to play LED pattern service failed")
+            rospy.logwarn("Call to play LED pattern service failed")
+            rospy.logwarn(exc)
 
     def on_shutdown(self):
         rospy.loginfo("[ActionsDispatcherNode] Shutdown.")
