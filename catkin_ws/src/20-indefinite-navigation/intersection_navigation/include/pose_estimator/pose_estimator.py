@@ -105,7 +105,7 @@ class PoseEstimator(object):
 
     def FeedCommandQueue(self, msg):
         '''store applied commands in command queue'''
-        self.cmd_queue.append(VehicleCommand(msg.v,msg.omega,msg.header.stamp))
+        self.cmd_queue.append(VehicleCommand(msg.v,msg.omega/3.5,msg.header.stamp))
 
 
     def UpdateWithPoseMeasurement(self, pose_meas, cov_meas, time_meas):
