@@ -63,8 +63,7 @@
     <!-- <remap from="~cmds_out" to="inverse_kinematics_node/car_cmd" /> -->
     <remap from="~intersection_navigation_pose" to="lane_controller_node/intersection_navigation_pose" />
     <remap from="~img" to="camera_node/image/compressed" />
-    <!-- <remap from="~cmds" to="forward_kinematics_node/velocity" /> -->
-    <remap from="~cmds" to="lane_controller_node/car_cmd" />
+    <remap from="~cmds" to="forward_kinematics_node/velocity" />
     <remap from="~apriltags" to="apriltags_postprocessing_node/apriltags_out" />
 
 	<node ns="$(arg veh)" name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation.py" output="screen">
