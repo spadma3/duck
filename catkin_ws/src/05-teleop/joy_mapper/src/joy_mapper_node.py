@@ -9,7 +9,9 @@ from sensor_msgs.msg import Joy
 
 from __builtin__ import True
 
+INITIAL_GAIN = 1.0
 DELTA_GAIN = 0.05
+INITIAL_TRIM = 0.00
 DELTA_TRIM = 0.01
 
 class JoyMapper(object):
@@ -41,9 +43,9 @@ class JoyMapper(object):
 
 
         # Service Proxies
-        self.trim = 0.0
+        self.trim = INITIAL_TRIM
         self.set_trim_service = rospy.ServiceProxy('inverse_kinematics_node/set_trim', SetValue)
-        self.gain = 1.0
+        self.gain = INITIAL_GAIN
         self.set_gain_service = rospy.ServiceProxy('inverse_kinematics_node/set_gain', SetValue)
         self.save_calibration = rospy.ServiceProxy('inverse_kinematics_node/save_calibration', Empty)
 
@@ -120,7 +122,7 @@ class JoyMapper(object):
             rospy.loginfo('anti_instagram message')
             self.pub_anti_instagram.publish(anti_instagram_msg)
         # region UdM demo mapping
-        elif joy_msg.buttons[3] == 1:
+        elif joy_msg.buttons[3] == 1: # 
             self.gain += DELTA_GAIN
             self.set_gain_service(self.gain)
             self.save_calibration()
