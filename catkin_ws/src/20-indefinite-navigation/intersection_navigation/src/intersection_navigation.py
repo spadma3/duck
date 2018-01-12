@@ -92,7 +92,7 @@ class IntersectionNavigation(object):
         self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~intersection_navigation_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
-        self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
+        #self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
 
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
@@ -401,7 +401,7 @@ class IntersectionNavigation(object):
             print(cmd_msg.v)
             print('w')
             print(cmd_msg.omega)
-            self.poseEstimator.FeedCommandQueue(msg)
+            self.poseEstimator.FeedCommandQueue(cmd_msg)
 
     def AprilTagsCallback(self, msg):
         '''if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
