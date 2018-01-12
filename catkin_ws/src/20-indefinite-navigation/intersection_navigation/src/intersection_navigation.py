@@ -90,7 +90,7 @@ class IntersectionNavigation(object):
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
         self.pub_intersection_pose_img = rospy.Publisher("~pose_img_out", IntersectionPoseImg, queue_size=1)
         self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
-        self.pub_lane_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
+        self.pub_lane_pose = rospy.Publisher("~intersection_navigation_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
 
@@ -137,6 +137,7 @@ class IntersectionNavigation(object):
             elif self.state == self.state_dict['INITIALIZING_PATH']:
                 if self.InitializePath():
                     self.state = self.state_dict['TRAVERSING']
+                    self.s = 0
                     rospy.loginfo("[%s] Initialized path, traversing intersection." % (self.node_name))
                 else:
                     self.state = self.state_dict['ERROR']
@@ -151,6 +152,24 @@ class IntersectionNavigation(object):
                 msg.theta = pose[2]
                 self.pub_intersection_pose.publish(msg)
 
+                #Condition on s
+                if self.s < 0.99:
+                    dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
+
+                    msg_lanePose = LanePose()
+                    msg_lanePose.header.stamp = rospy.Time.now()
+                    msg_lanePose.d = dist
+                    msg_lanePose.d_ref = 0
+                    msg_lanePose.phi = theta
+                    msg_lanePose.curvature_ref = curvature
+                    msg_lanePose.v_ref = 0.38
+                    self.pub_lane_pose.publish(msg_lanePose)
+                else:
+                    self.state = self.state_dict['DONE']
+
+
+
+
                 '''if self.s < 0.8:
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
@@ -162,7 +181,7 @@ class IntersectionNavigation(object):
                     msg2.in_lane = True
                     self.pub_lane_pose.publish(msg2)'''
 
-                if not self.init_debug:
+                '''if not self.init_debug:
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
@@ -187,10 +206,18 @@ class IntersectionNavigation(object):
                     msg2.v = 0.0
                     msg2.omega = 0.0
 
-                self.pub_cmds.publish(msg2)
+                self.pub_cmds.publish(msg2)'''
 
             elif self.state == self.state_dict['DONE']:
-                pass
+                # TODO: Now just go straight
+                msg_lanePose = LanePose()
+                msg_lanePose.header.stamp = rospy.Time.now()
+                msg_lanePose.d = 0
+                msg_lanePose.d_ref = 0
+                msg_lanePose.phi = 0
+                msg_lanePose.curvature_ref = 0
+                msg_lanePose.v_ref = 0
+                self.pub_lane_pose.publish(msg_lanePose)
 
             else:
                 pass
@@ -253,7 +280,7 @@ class IntersectionNavigation(object):
 
         self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
-        rospy.set_param("/daisy/lane_controller_node/v_bar", 0.3)
+        #rospy.set_param("/daisy/lane_controller_node/v_ref", 0.3)
 
         # waiting for camera image
         try:
@@ -298,7 +325,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = 1
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
@@ -344,20 +371,21 @@ class IntersectionNavigation(object):
 
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
+            cmd_msg = Twist2DStamped()
+            cmd_msg.v = msg.v * 0.67
+            cmd_msg.omega = msg.omega * 0.45 * 2 * math.pi
             self.poseEstimator.FeedCommandQueue(msg)
 
     def AprilTagsCallback(self, msg):
-        if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
-            pass
-
-
+        '''if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
+            pass'''
+        pass
 
     def SetupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
-
 
     def OnShutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
