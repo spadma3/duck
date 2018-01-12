@@ -113,7 +113,7 @@ class ActionsDispatcherNode:
             if actions:
                 # remove 'f' (follow line) from actions
                 self.actions = [x for x in actions if x != 'f']
-                print '\n \n ************ \n Actions to be executed:', self.actions
+                print '\n \n ************ \n At node {} \n \n Actions to be executed:', self.actions
             else:
                 print 'No actions to be executed'
 
