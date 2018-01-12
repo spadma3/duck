@@ -303,7 +303,10 @@ class IntersectionNavigation(object):
         # Ask for lane controller
         pathTracker_msg = LanePose()
         pathTracker_msg.d = d
+        pathTracker_msg.d_ref = 0.0
         pathTracker_msg.phi = phi
+        pathTracker_msg.curvature_ref = curvature
+        pathTracker_msg.v_ref = 0.38
         pathTracker_msg.header.stamp = rospy.Time.now()
 
         self.pub_intersection_pose.publish(pathTracker_msg)
