@@ -3,7 +3,6 @@ import rospy
 import numpy as np
 from matplotlib import pyplot as plt
 from collections import deque
-import copy
 from duckietown_msgs.msg import Twist2DStamped
 
 
@@ -43,45 +42,9 @@ class PoseEstimator(object):
 
         self.cmd_queue = deque([VehicleCommand(0.0, 0.0, time_init)])
 
-    def PredictStateSafe(self, time_pred):
-        '''predict estimate forward until time_pred'''
-        state_est = np.copy(self.state_est)
-        time_est = self.time_est
-        cmd_queue = copy.deepcopy(self.cmd_queue)
-
-        # integrate forward with vehicle commands
-        idx_cmd = 0
-        num_cmd = len(cmd_queue)
-        while time_est < time_pred:
-            # find current command
-            if idx_cmd + 1 < num_cmd:
-                dt = min(cmd_queue[idx_cmd + 1].time,
-                         time_pred) - time_est
-                dt_sec = dt.to_sec()  # careful, this could eventually cause problems if running long
-            else:
-                dt = time_pred - time_est
-                dt_sec = dt.to_sec()
-
-            # predict state
-            if np.abs(cmd_queue[idx_cmd].omega) > 1e-6:
-                radius = cmd_queue[idx_cmd].v / cmd_queue[idx_cmd].omega
-
-                state_est[0] = (state_est[0] - radius * np.sin(state_est[2])) + radius * np.sin(
-                    state_est[2] + cmd_queue[idx_cmd].omega * dt_sec)
-                state_est[1] = (state_est[1] + radius * np.cos(state_est[2])) - radius * np.cos(
-                    state_est[2] + cmd_queue[idx_cmd].omega * dt_sec)
-            else:
-                state_est[0] = state_est[0] + cmd_queue[idx_cmd].v * np.cos(state_est[2]) * dt_sec
-                state_est[1] = state_est[1] + cmd_queue[idx_cmd].v * np.sin(state_est[2]) * dt_sec
-            state_est[2] = state_est[2] + cmd_queue[idx_cmd].omega * dt_sec
-
-            time_est = time_est + dt
-            idx_cmd += 1
-
-        return state_est
-
     def PredictState(self, time_pred, predict_cov=False):
         '''predict estimate forward until time_pred'''
+        print('start')
         state_est = np.copy(self.state_est)
         cov_est = np.copy(self.cov_est)
         time_est = self.time_est
@@ -126,6 +89,8 @@ class PoseEstimator(object):
             time_est = time_est + dt
             idx_cmd += 1
 
+        print('done')
+
         # make sure covariance matrix is symmetric
         cov_est = 0.5 * (cov_est + cov_est.T)
 
@@ -143,6 +108,7 @@ class PoseEstimator(object):
         state_prior, cov_prior = self.PredictState(time_meas, True)
 
         # remove old commands from queue
+        print('deleting')
         while self.cmd_queue[0].time < time_meas and len(self.cmd_queue) > 1:
             self.cmd_queue.popleft()
 
