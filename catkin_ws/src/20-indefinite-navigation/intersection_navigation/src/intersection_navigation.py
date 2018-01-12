@@ -159,12 +159,16 @@ class IntersectionNavigation(object):
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
+                msg2 = Twist2DStamped()
+                msg2.header = rospy.Time.now()
                 if (rospy.Time.now() - self.debug_start).to_sec() < 4.0:
-                    msg2 = Twist2DStamped()
-                    msg2.header = rospy.Time.now()
                     msg2.v = 0.1
                     msg2.omega = 0.0
-                    self.pub_cmds.publish(msg2)
+                else:
+                    msg2.v = 0.0
+                    msg2.omega = 0.0
+
+                self.pub_cmds.publish(msg2)
 
             elif self.state == self.state_dict['DONE']:
                 pass
