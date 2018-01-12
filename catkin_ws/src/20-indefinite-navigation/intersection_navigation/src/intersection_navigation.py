@@ -314,7 +314,7 @@ class IntersectionNavigation(object):
 
             # update pose estimate
             if valid_meas:
-                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 0.001*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
+                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 0.0001*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
 
 
     def CmdCallback(self, msg):
