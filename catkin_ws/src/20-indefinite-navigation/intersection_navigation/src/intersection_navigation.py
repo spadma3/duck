@@ -298,7 +298,7 @@ class IntersectionNavigation(object):
 
     def ImageCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
-            '''# predict pose
+            # predict pose
             pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
 
             # localize Duckiebot, use predicted pose as initial guess
@@ -307,7 +307,7 @@ class IntersectionNavigation(object):
 
             # update pose estimate
             if valid_meas:
-                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 0.01*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)'''
+                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 0.01*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
 
 
     def CmdCallback(self, msg):
