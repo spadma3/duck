@@ -78,7 +78,7 @@ class IntersectionNavigation(object):
         self.sub_cmd = rospy.Subscriber("~cmds",
                                         Twist2DStamped,
                                         self.CmdCallback,
-                                        queue_size=10)
+                                        queue_size=30)
         self.sub_april_tags = rospy.Subscriber('~apriltags',
                                                AprilTagsWithInfos,
                                                self.AprilTagsCallback,
