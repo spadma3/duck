@@ -166,8 +166,8 @@ class IntersectionNavigation(object):
 
                 msg2 = Twist2DStamped()
                 msg2.header.stamp = rospy.Time.now()
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
-                    msg2.v = 0.05
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
+                    msg2.v = 0.1
                     msg2.omega = 0.0
                 else:
                     msg2.v = 0.0
