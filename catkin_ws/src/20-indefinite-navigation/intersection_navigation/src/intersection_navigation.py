@@ -10,6 +10,7 @@ from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int16, String
 import duckietown_utils as dt_utils
 import numpy as np
+import math
 
 
 class IntersectionNavigation(object):
@@ -167,10 +168,20 @@ class IntersectionNavigation(object):
 
                 msg2 = Twist2DStamped()
                 msg2.header.stamp = rospy.Time.now()
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
 
+
+                #Left turn
+                #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
+
+                #Right turn
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
+                    #Left turn
+                    #msg2.v = 0.38*0.67
+                    #msg2.omega = 0.38*0.67/0.4 * 0.45 * 2 * math.pi
+
+                    #Rigth turn
                     msg2.v = 0.38*0.67
-                    msg2.omega = 3.8/0.4 * 0.45
+                    msg2.omega = -0.38*0.67/0.175 * 0.45 * 2 * math.pi
 
                 else:
                     msg2.v = 0.0
@@ -287,7 +298,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 1
+        turn_type = 2
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
