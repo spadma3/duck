@@ -168,18 +168,8 @@ class IntersectionNavigation(object):
                 msg2 = Twist2DStamped()
                 msg2.header.stamp = rospy.Time.now()
                 if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 10.0 :
-                    alpha = 1.0/6.0
-                    s = alpha*((rospy.Time.now() - self.debug_start).to_sec() - 4.0)
-                    pos, vel = self.pathPlanner.EvaluatePath(s)
-                    dir = vel/np.linalg.norm(vel)
-                    theta = np.arctan2(dir[1],dir[0])
-
-                    pos2, vel2 = self.pathPlanner.EvaluatePath(s+0.01)
-                    dir2 = vel2 / np.linalg.norm(vel2)
-                    theta2 = np.arctan2(dir2[1], dir2[0])
-
-                    msg2.v = alpha*np.linalg.norm(vel)
-                    msg2.omega = 12.0*alpha*(theta2-theta)/0.01
+                    msg2.v = 0.38*0.67
+                    msg2.omega = 0.38/0.4*0.45
 
                 else:
                     msg2.v = 0.0
@@ -253,6 +243,8 @@ class IntersectionNavigation(object):
 
         rospy.set_param("/daisy/lane_controller_node/v_bar", 0.3)
 
+        '''
+
         # waiting for camera image
         try:
             img_msg = rospy.wait_for_message("~img",
@@ -281,7 +273,9 @@ class IntersectionNavigation(object):
 
         if best_likelihood < 0.0:
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
-            return False
+            return False'''
+
+        best_pose_meas = np.array([x_init,y_init,theta_init])
 
         msg = IntersectionPose()
         msg.header.stamp = rospy.Time.now()
@@ -290,7 +284,8 @@ class IntersectionNavigation(object):
         msg.theta = best_pose_meas[2]
         self.pub_intersection_pose.publish(msg)
 
-        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
+        #self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
+        self.poseEstimator.Reset(best_pose_meas, rospy.Time.now())
         return True
 
     def InitializePath(self):
