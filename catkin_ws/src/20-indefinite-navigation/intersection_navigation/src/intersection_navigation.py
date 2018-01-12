@@ -162,7 +162,7 @@ class IntersectionNavigation(object):
                 msg2 = Twist2DStamped()
                 msg2.header.stamp = rospy.Time.now()
                 if (rospy.Time.now() - self.debug_start).to_sec() < 4.0:
-                    msg2.v = 0.1
+                    msg2.v = 0.05
                     msg2.omega = 0.0
                 else:
                     msg2.v = 0.0
@@ -264,6 +264,13 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
+        msg = IntersectionPose()
+        msg.header.stamp = rospy.Time.now()
+        msg.x = pose_meas[0]
+        msg.y = pose_meas[1]
+        msg.theta = pose_meas[2]
+        self.pub_intersection_pose.publish(msg)
+
         self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
         return True
 
@@ -297,7 +304,7 @@ class IntersectionNavigation(object):
 
 
     def ImageCallback(self, msg):
-        if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
+        if self.state == self.state_dict['TRAVERSING']:
             # predict pose
             pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
 
