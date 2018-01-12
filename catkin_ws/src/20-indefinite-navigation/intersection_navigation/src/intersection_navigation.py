@@ -153,8 +153,6 @@ class IntersectionNavigation(object):
                     msg2.in_lane = True
                     self.pub_lane_pose.publish(msg2)
 
-                    self.s = 1.0
-
             elif self.state == self.state_dict['DONE']:
                 pass
 
@@ -298,6 +296,7 @@ class IntersectionNavigation(object):
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             self.poseEstimator.FeedCommandQueue(msg)
+            print(msg)
 
 
     def AprilTagsCallback(self, msg):
