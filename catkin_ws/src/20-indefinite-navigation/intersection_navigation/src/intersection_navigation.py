@@ -150,7 +150,7 @@ class IntersectionNavigation(object):
                 msg.theta = pose[2]
                 self.pub_intersection_pose.publish(msg)
 
-                '''if self.s < 0.5:
+                if self.s < 0.5:
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                     msg2 = LanePose()
@@ -159,8 +159,8 @@ class IntersectionNavigation(object):
                     msg2.phi = theta
                     msg2.status = 0
                     msg2.in_lane = True
-                    self.pub_lane_pose.publish(msg2)'''
-                if not self.init_debug:
+                    self.pub_lane_pose.publish(msg2)
+                '''if not self.init_debug:
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
@@ -173,7 +173,7 @@ class IntersectionNavigation(object):
                     msg2.v = 0.0
                     msg2.omega = 0.0
 
-                self.pub_cmds.publish(msg2)
+                self.pub_cmds.publish(msg2)'''
 
             elif self.state == self.state_dict['DONE']:
                 pass
