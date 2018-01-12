@@ -169,7 +169,7 @@ class IntersectionNavigation(object):
                 msg2.header.stamp = rospy.Time.now()
                 if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 10.0 :
                     alpha = 6.0
-                    s = alpha*(rospy.Time.now() - self.debug_start - 4.0).to_sec()
+                    s = alpha*((rospy.Time.now() - self.debug_start).to_sec() - 4.0)
                     pos, vel = self.pathPlanner.EvaluatePath(s)
                     dir = vel/np.linalg.norm(vel)
                     theta = np.arctan2(dir[1],dir[0])
