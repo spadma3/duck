@@ -21,7 +21,7 @@ class IntersectionNavigation(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.veh = self.SetupParameter("~veh")
+        self.veh = self.SetupParameter("~veh", "daisy")
 
         # set up path planner, state estimator, ...
         self.intersectionLocalizer = IntersectionLocalizer(self.veh)
