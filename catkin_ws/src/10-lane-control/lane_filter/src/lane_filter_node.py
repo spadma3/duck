@@ -4,12 +4,13 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 import numpy as np
 from std_msgs.msg import Float32
-from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
+from duckietown_msgs.msg import (SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped,
+    FSMState)
 from duckietown_utils.instantiate_utils import instantiate
 
 class LaneFilterNode(object):
     def __init__(self):
-        self.node_name = "Lane Filter"
+        self.node_name = rospy.get_name()
         self.active = True
         self.filter = None
         self.updateParams(None)
@@ -30,6 +31,12 @@ class LaneFilterNode(object):
         self.pub_ml_img = rospy.Publisher("~ml_img",Image,queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
+        
+        # FSM 
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
+        self.active = True
+     
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -45,7 +52,11 @@ class LaneFilterNode(object):
 
 
     def cbSwitch(self, switch_msg):
-        self.active = switch_msg.data
+        self.active = switch_msg.data # true or false given by FSM
+
+    def cbMode(self,switch_msg):
+        self.fsm_state = switch_msg.state # String of current FSM state
+        print "fsm_state: " , self.fsm_state
 
     def processSegments(self,segment_list_msg):
         if not self.active:
@@ -107,13 +118,13 @@ class LaneFilterNode(object):
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
         if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
-            print "left curve"
+            # print "left curve"
             lanePose.curvature = 0.025
         elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
-            print "right curve"
+            # print "right curve"
             lanePose.curvature = -0.054
         else:
-            print "straight line"
+            # print "straight line"
             lanePose.curvature = 0.0
 
         # publish the belief image

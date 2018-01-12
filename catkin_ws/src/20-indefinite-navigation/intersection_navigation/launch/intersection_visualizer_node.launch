@@ -1,0 +1,11 @@
+<launch>
+	<arg name="robot_name" default="daisy" />
+
+    <remap from="~img" to="camera_node/image/compressed" />
+    <remap from="~pose" to="intersection_navigation_node/pose" />
+
+	<node ns="$(arg robot_name)" name="intersection_visualizer_node" pkg="intersection_navigation" type="intersection_visualizer.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~robot_name" value="$(arg robot_name)"/>
+	</node>
+</launch>

@@ -21,6 +21,7 @@ add_message_files(
   DuckieSensor.msg
   LanePose.msg
   IntersectionPose.msg
+  IntersectionPoseImg.msg
 #  LEDControl.msg
   LEDDetection.msg
   LEDDetectionArray.msg
@@ -65,7 +66,6 @@ add_message_files(
   ObstacleImageDetectionList.msg
   ObstacleProjectedDetection.msg
   ObstacleProjectedDetectionList.msg
-  ActuatorParameters.msg
 
 )
 

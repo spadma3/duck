@@ -16,6 +16,7 @@ class IntersectionLocalizer(object):
         self.intrinsics = dt.load_camera_intrinsics(self.robot_name)
         homography = dt.load_homography(self.robot_name)
         self.H = np.linalg.inv(homography)
+        self.rect_init = False
 
         # edge detection parameters
         self.canny_lower_threshold = 100  # self.SetupParameter("~canny_lower_threshold", 100)
@@ -56,11 +57,11 @@ class IntersectionLocalizer(object):
         # distance from duckiebot
 
         # localization algorithm parameters
-        self.line_search_length = 20
+        self.line_search_length = 30
         self.max_num_iter = 2
-        self.ctrl_pts_density = 80  # number of control points per edge length (in meters)
+        self.ctrl_pts_density = 60  # number of control points per edge length (in meters)
         self.min_num_ctrl_pts = 10
-        self.max_num_ctrl_pts = 100
+        self.max_num_ctrl_pts = 80
 
         # likelihood parameters
         self.lambda_visible = 1.0 # exponential probability distribution, sensitivity parameters
@@ -92,7 +93,8 @@ class IntersectionLocalizer(object):
 
     def ProcessRawImage(self, img_raw):
         # rectify image
-        img_undistorted = dt.rectify(dt.rgb_from_ros(img_raw), self.intrinsics)
+        img = dt.rgb_from_ros(img_raw)
+        img_undistorted = self.Rectify(img, self.intrinsics)
 
         # compute grayscale image
         img_gray = cv2.cvtColor(img_undistorted, cv2.COLOR_RGB2GRAY)
@@ -152,10 +154,10 @@ class IntersectionLocalizer(object):
                 else:
                     return True, ptB + l_max * n, ptB + l_min * n
 
-    def DrawModel(self, img, x, y, theta):
+    def DrawModel(self, img, pose):
         '''compute motion matrix'''
-        R = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
-        t = np.dot(R, np.array([x, y], dtype=float))
+        R = np.array([[np.cos(pose[2]), np.sin(pose[2])], [-np.sin(pose[2]), np.cos(pose[2])]])
+        t = np.dot(R, np.array([pose[0], pose[1]], dtype=float))
 
         '''compute visible segments of edges'''
         edges_img = []
@@ -200,9 +202,14 @@ class IntersectionLocalizer(object):
                     cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 255, -1)
                     cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 255, -1)
 
-    def ComputePose(self, img, x_pred, y_pred, theta_pred):
+    def ComputePose(self, img, pose):
+        x_pred = pose[0]
+        y_pred = pose[1]
+        theta_pred = pose[2]
+
         # solve iterative least square
-        for k in range(0, self.max_num_iter):
+        k_range = np.arange(0.0, self.line_search_length)
+        for m in range(0, self.max_num_iter):
             '''compute motion matrix'''
             R = np.array([[np.cos(theta_pred), np.sin(theta_pred)], [-np.sin(theta_pred), np.cos(theta_pred)]])
             t = np.dot(R, np.array([x_pred, y_pred], dtype=float))
@@ -232,7 +239,7 @@ class IntersectionLocalizer(object):
 
             # check if there are enough ctrl points left
             if num_visible < self.min_num_ctrl_pts:
-                return False, 0.0, 0.0, 0.0, 0.0
+                return False, np.zeros(3,float), 0.0
 
             '''compute edge normal'''
             ctrl_pts_n_par_h_img = np.dot(np.dot(self.H[:, 0:2], R),
@@ -249,35 +256,71 @@ class IntersectionLocalizer(object):
             np.random.shuffle(idx)
 
             num_pts = np.min([self.max_num_ctrl_pts, ctrl_pts_img_offset.shape[1]])
-            dist = np.zeros(shape=(num_pts), dtype=float)
-            num_feasible = 0
-            idx_feasible = []
+            dist = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=float)
+            idx_feasible = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=bool)
+            '''dist2 = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=float)
+            idx_feasible2 = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=bool)'''
             for i in range(0, num_pts):
-                for k in range(0, self.line_search_length):
-                    if img[int(round(ctrl_pts_img_offset[1, i] + k * ctrl_pts_n_perp[1, i])),
-                           int(round(ctrl_pts_img_offset[0, i] + k * ctrl_pts_n_perp[0, i]))]:
-                        dist[num_feasible] = k
-                        idx_feasible.append(i)
-                        num_feasible += 1
+                #i = idx[l]
+                '''for k in range(0, self.line_search_length):
+                    if img[int(round(ctrl_pts_img_offset[1, i] + k * ctrl_pts_n_perp[1, i])), int(
+                            round(ctrl_pts_img_offset[0, i] + k * ctrl_pts_n_perp[0, i]))]:
+                        dist2[i] = k
+                        idx_feasible2[i] = True
                         break
 
-                    elif img[int(round(ctrl_pts_img_offset[1, i] - k * ctrl_pts_n_perp[1, i])),
-                             int(round(ctrl_pts_img_offset[0, i] - k * ctrl_pts_n_perp[0, i]))]:
-                        dist[num_feasible] = -k
-                        idx_feasible.append(i)
-                        num_feasible += 1
-                        break
+                    elif img[int(round(ctrl_pts_img_offset[1, i] - k * ctrl_pts_n_perp[1, i])), int(
+                            round(ctrl_pts_img_offset[0, i] - k * ctrl_pts_n_perp[0, i]))]:
+                        dist2[i] = -k
+                        idx_feasible2[i] = True
+                        break'''
+
+                if img[int(round(ctrl_pts_img_offset[1, i])), int(round(ctrl_pts_img_offset[0, i]))]:
+                    dist[i] = 0
+                    idx_feasible[i] = True
+
+                else:
+                    coord_pos = np.rint(
+                        k_range * ctrl_pts_n_perp[:, i, np.newaxis] + ctrl_pts_img_offset[:, i, np.newaxis]).astype(
+                        np.int)
+                    coord_neg = np.rint(
+                        -k_range * ctrl_pts_n_perp[:, i, np.newaxis] + ctrl_pts_img_offset[:, i, np.newaxis]).astype(
+                        np.int)
+
+                    k_pos = np.argmax(img[coord_pos[1,:], coord_pos[0,:]])
+                    k_neg = np.argmax(img[coord_neg[1,:], coord_neg[0,:]])
+
+                    if not k_pos:
+                        if k_neg:
+                            dist[i] = -k_neg
+                            idx_feasible[i] = True
+
+                    elif not k_neg:
+                        if k_pos:
+                            dist[i] = k_pos
+                            idx_feasible[i] = True
+
+                    else:
+                        if k_pos < k_neg:
+                            dist[i] = k_pos
+                            idx_feasible[i] = True
+
+                        else:
+                            dist[i] = -k_neg
+                            idx_feasible[i] = True
+
 
             # remove invalid entries
-            dist = dist[0:num_feasible]
+            dist = dist[idx_feasible]
             ctrl_pts_h_feasible = ctrl_pts_h[:, idx_feasible]
             ctrl_pts_img_feasible = ctrl_pts_img[:, idx_feasible]
             ctrl_pts_h_img_feasible = ctrl_pts_h_img[:, idx_feasible]
             ctrl_pts_n_perp_feasible = ctrl_pts_n_perp[:, idx_feasible]
 
             # check if there are enough ctrl points left
+            num_feasible = len(dist)
             if num_feasible < self.min_num_ctrl_pts:
-                return False, 0.0, 0.0, 0.0, 0.0
+                return False, np.zeros(3,float), 0.0
 
             '''compute gradients'''
             # compute L1
@@ -320,15 +363,28 @@ class IntersectionLocalizer(object):
         # compute likelihood of estimate
         likelihood = np.exp(-self.lambda_visible*(num_pts-num_feasible)/num_pts)*np.exp(-self.lambda_dist*np.mean(np.abs(dist)))
 
-        # debugging
         if 0:
-            img_canny = np.array(img,dtype=np.uint8)
             for i in range(0, ctrl_pts_img_offset.shape[1]):
-                cv2.circle(img_canny, tuple(np.round(ctrl_pts_img_offset[:, i]).astype(np.int)), 2, 180, -1)
+                cv2.circle(img, tuple(np.round(ctrl_pts_img_offset[:, i]).astype(np.int)), 2, 180, -1)
 
             cv2.imshow('canny', img)
+            cv2.waitKey(5000)
+            cv2.destroyAllWindows()
 
-        return True, x_pred, y_pred, theta_pred, likelihood
+        pose_meas = np.array([x_pred, y_pred, theta_pred], dtype=float)
+        return True, pose_meas, likelihood
+
+    def Rectify(self, image, intrinsics):
+        if not self.rect_init:
+            self.rect_init = True
+            height, width, channels = image.shape
+            rectified_image = np.zeros(np.shape(image))
+            self.rect_mapx = np.ndarray(shape=(height, width, 1), dtype='float32')
+            self.rect_mapy = np.ndarray(shape=(height, width, 1), dtype='float32')
+            self.rect_mapx, self.rect_mapy = cv2.initUndistortRectifyMap(intrinsics['K'], intrinsics['D'], intrinsics['R'], intrinsics['P'],
+                                                     (width, height), cv2.CV_32FC1, self.rect_mapx, self.rect_mapy)
+
+        return cv2.remap(image, self.rect_mapx, self.rect_mapy, cv2.INTER_CUBIC)
 
     def SetupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
