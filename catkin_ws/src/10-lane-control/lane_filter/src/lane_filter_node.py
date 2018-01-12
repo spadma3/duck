@@ -30,6 +30,7 @@ class LaneFilterNode(object):
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+        self.latencyArray = []
 
 
     def updateParams(self, event):
@@ -90,7 +91,7 @@ class LaneFilterNode(object):
 
         # print "Latency of segment list: ", segment_latency
         print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
-        
+
         self.pub_belief_img.publish(belief_img)
 
         # also publishing a separate Bool for the FSM
