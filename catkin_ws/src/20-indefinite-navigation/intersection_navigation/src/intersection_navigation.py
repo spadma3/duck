@@ -161,7 +161,7 @@ class IntersectionNavigation(object):
 
                 msg2 = Twist2DStamped()
                 msg2.header.stamp = rospy.Time.now()
-                if (rospy.Time.now() - self.debug_start).to_sec() < 4.0:
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
                     msg2.v = 0.05
                     msg2.omega = 0.0
                 else:
@@ -315,7 +315,7 @@ class IntersectionNavigation(object):
 
             # update pose estimate
             if valid_meas:
-                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 0.0001*np.diag([1.0, 1.0, 1.0]), msg.header.stamp)
+                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1e-5*np.diag([1.0, 1.0, 0.5]), msg.header.stamp)
 
 
     def CmdCallback(self, msg):

@@ -30,8 +30,8 @@ class PoseEstimator(object):
         self.cmd_queue = deque([VehicleCommand(0.0, 0.0, -1.0)])
 
         # estimator parameters
-        self.cov_est_init = np.diag([1.0, 1.0, 1.0])
-        self.cov_proc = np.diag([0.1, 0.1])  # process noise is assumed to be on inputs
+        self.cov_est_init = np.diag([1.0, 1.0, 0.5])
+        self.cov_proc = np.diag([0.1, 0.5])  # process noise is assumed to be on inputs
 
     def Reset(self, pose_init, time_init):
         '''reset state estimate'''
