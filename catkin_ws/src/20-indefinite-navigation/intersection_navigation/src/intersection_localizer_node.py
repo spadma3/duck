@@ -69,5 +69,4 @@ if __name__ == '__main__':
     # setup proper shutdown behavior
     rospy.on_shutdown(node.OnShutdown)
 
-    # run main logic
-    node.MainLoop()
+    rospy.spin()
