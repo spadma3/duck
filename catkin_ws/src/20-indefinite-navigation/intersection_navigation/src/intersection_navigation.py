@@ -153,6 +153,8 @@ class IntersectionNavigation(object):
                     msg2.in_lane = True
                     self.pub_lane_pose.publish(msg2)
 
+                    self.s = 1.0
+
             elif self.state == self.state_dict['DONE']:
                 pass
 
