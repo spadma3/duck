@@ -60,9 +60,9 @@ class LocalizationNode(object):
                 print ("robo_tag x = ", tag.pose.pose.position.x)
                 print ("robo_tag y = ",tag.pose.pose.position.y)
                 rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
-                print ("robo_tag rot x", rot_euler[0])
-                print ("robo_tag rot y", rot_euler[1])
-                print ("robo_tag rot z", rot_euler[2])
+                print ("robo_tag rot x", rot_euler[0]*(180/np.pi))
+                print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
+                print ("robo_tag rot z", rot_euler[2]*(180/np.pi))
 
                 #Mr_t=np.linalg.inv(Mt_r)
                 #Mr_w=np.dot(Mt_w,Mr_t)
@@ -72,9 +72,9 @@ class LocalizationNode(object):
                 print ("robo_world y", Tr_w.translation.y)
                 rot = Tr_w.rotation
                 rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
-                print ("robo_world rot x", rot_euler[0])
-                print ("robo_world rot y", rot_euler[1])
-                print ("robo_world rot z", rot_euler[2])
+                print ("robo_world rot x", rot_euler[0]*(180/np.pi))
+                print ("robo_world rot y", rot_euler[1]*(180/np.pi))
+                print ("robo_world rot z", rot_euler[2]*(180/np.pi))
                 avg.add_pose(Tr_w)
                 self.publish_sign_highlight(tag.id)
             except(tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as ex:
@@ -89,9 +89,9 @@ class LocalizationNode(object):
         print ("robo_world y_avg", Tr_w.translation.y)
         rot = Tr_w.rotation
         rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
-        print ("robo_world rot x_avg", rot_euler[0])
-        print ("robo_world rot y_avg", rot_euler[1])
-        print ("robo_world rot z_avg", rot_euler[2])
+        print ("robo_world rot x_avg", rot_euler[0]*(180/np.pi))
+        print ("robo_world rot y_avg", rot_euler[1]*(180/np.pi))
+        print ("robo_world rot z_avg", rot_euler[2]*(180/np.pi))
         print("-------------------------------------------------------------")
         # Broadcast the robot transform
         if Tr_w is not None:
