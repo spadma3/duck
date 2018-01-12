@@ -58,6 +58,7 @@ class LocalizationNode(object):
                 
                 print ("robo_tag x = ", tag.pose.pose.position.x)
                 print ("robo_tag y = ",tag.pose.pose.position.y)
+                print ("robo_tag z = ",tag.pose.pose.position.z)                
                 rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
                 print ("robo_tag rot x", rot_euler[0]*(180/np.pi))
                 print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
@@ -69,6 +70,8 @@ class LocalizationNode(object):
                 Tr_w = self.matrix_to_transform(Mr_w)
                 print ("robo_world x", Tr_w.translation.x)
                 print ("robo_world y", Tr_w.translation.y)
+                print ("robo_world z = ",tag.pose.pose.position.z)
+
                 rot = Tr_w.rotation
                 rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
                 print ("robo_world rot x", rot_euler[0]*(180/np.pi))
@@ -86,6 +89,8 @@ class LocalizationNode(object):
         print("-----------------------------------------------------------")
         print ("robo_world x_avg", Tr_w.translation.x)
         print ("robo_world y_avg", Tr_w.translation.y)
+        print ("robo_world z_avg", Tr_w.translation.z)
+
         rot = Tr_w.rotation
         rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
         print ("robo_world rot x_avg", rot_euler[0]*(180/np.pi))
