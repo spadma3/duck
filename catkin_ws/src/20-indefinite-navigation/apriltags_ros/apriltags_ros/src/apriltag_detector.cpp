@@ -60,7 +60,7 @@ namespace apriltags_ros{
     }
     cv::Mat gray;
     cv::cvtColor(cv_ptr->image, gray, CV_BGR2GRAY);
-    std::vector<AprilTags::TagDetection>	detections = tag_detector_->extractTags(gray);
+    std::vector<AprilTags::TagDetection> detections = tag_detector_->extractTags(gray);
     ROS_DEBUG("%d tag detected", (int)detections.size());
     
     double fx = cam_info->K[0];
@@ -88,6 +88,8 @@ namespace apriltags_ros{
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
       Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
+
+      std::cout << rot_quaternion << std::endl;
 
       geometry_msgs::PoseStamped tag_pose;
       tag_pose.pose.position.x = transform(0,3);
