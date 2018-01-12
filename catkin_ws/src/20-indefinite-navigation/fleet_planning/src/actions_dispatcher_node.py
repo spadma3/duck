@@ -60,7 +60,7 @@ class ActionsDispatcherNode:
 
         start_time = rospy.get_time()
         node = None
-        rate = rospy.Rate(5)
+        rate = rospy.Rate(1)
         while not node and rospy.get_time() - start_time < 5.0:  # TODO: tune this
 
             try:
@@ -72,7 +72,8 @@ class ActionsDispatcherNode:
             except tf2_ros.LookupException:
                 rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(self.duckiebot_name))
 
-            rate.sleep()
+            if not node:
+                rate.sleep(1)
 
         if not node:
             rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(self.duckiebot_name))
