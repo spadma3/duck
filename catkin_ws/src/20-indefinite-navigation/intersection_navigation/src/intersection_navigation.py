@@ -5,7 +5,7 @@ from path_planner.path_planner import PathPlanner
 from pose_estimator.pose_estimator import PoseEstimator
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
-from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose
+from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose, LanePose
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int16, String
 import duckietown_utils as dt_utils
@@ -21,7 +21,7 @@ class IntersectionNavigation(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.robot_name = self.SetupParameter("~robot_name", "daisy")
+        self.veh_name = self.SetupParameter("~veh")
 
         # set up path planner, state estimator, ...
         self.intersectionLocalizer = IntersectionLocalizer(self.robot_name)
@@ -82,10 +82,8 @@ class IntersectionNavigation(object):
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
         self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
+        self.pub_lane_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
-        self.pub_debug = rospy.Publisher("~debug/image/compressed",
-                                         CompressedImage,
-                                         queue_size=1)
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
@@ -142,6 +140,14 @@ class IntersectionNavigation(object):
                 msg.y = pose[1]
                 msg.theta = pose[2]
                 self.pub_intersection_pose.publish(msg)
+
+                msg2 = LanePose()
+                msg2.header.stamp = rospy.Time.now()
+                msg2.d = 0.0
+                msg2.phi = 0.0
+                msg2.status = 0
+                msg2.in_lane = True
+                self.pub_lane_pose.publish(msg2)
 
             elif self.state == self.state_dict['DONE']:
                 pass
