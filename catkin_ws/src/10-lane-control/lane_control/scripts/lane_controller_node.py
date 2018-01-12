@@ -212,7 +212,7 @@ class lane_controller(object):
 
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
-        print("Image delay: %s" % image_delay)
+        # print("Image delay: %s" % image_delay)
 
         prev_cross_track_err = self.cross_track_err
         prev_heading_err = self.heading_err
