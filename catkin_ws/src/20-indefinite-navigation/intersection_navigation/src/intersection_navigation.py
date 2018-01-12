@@ -239,6 +239,8 @@ class IntersectionNavigation(object):
 
         self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
+        rospy.set_param("/daisy/lane_controller_node/v_bar", 0.1)
+
         # waiting for camera image
         try:
             img_msg = rospy.wait_for_message("~img",

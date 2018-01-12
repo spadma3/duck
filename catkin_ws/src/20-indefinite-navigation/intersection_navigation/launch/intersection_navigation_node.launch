@@ -57,7 +57,7 @@
 		<param name="~veh" value="$(arg veh)"/>
 	</node>
 
-    <remap from="~cmds_out" to="inverse_kinematics_node/car_cmd" />
+    <!--<remap from="~cmds_out" to="inverse_kinematics_node/car_cmd" />-->
     <remap from="~lane_pose" to="lane_controller_node/lane_pose" />
     <remap from="~img" to="camera_node/image/compressed" />
     <remap from="~cmds" to="forward_kinematics_node/velocity" />
