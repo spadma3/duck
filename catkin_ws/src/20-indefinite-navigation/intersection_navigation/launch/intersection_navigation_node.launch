@@ -44,6 +44,7 @@
     </include>
 
     <!-- Lane controller -->
+    <!-- <remap from="lane_controller_node/intersection_navigation_pose" to="intersection_navigation_node/intersection_navigation_pose"/> -->
 	<include file="$(find lane_control)/launch/lane_controller_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="config" value="$(arg config)"/>
@@ -58,7 +59,7 @@
 	</node>
 
     <remap from="~cmds_out" to="inverse_kinematics_node/car_cmd" />
-    <remap from="~intersection_navigation_pose" to="lane_controller_node/lane_pose" />
+    <remap from="~intersection_navigation_pose" to="lane_controller_node/intersection_navigation_pose" />
     <remap from="~img" to="camera_node/image/compressed" />
     <remap from="~cmds" to="forward_kinematics_node/velocity" />
     <remap from="~apriltags" to="apriltags_postprocessing_node/apriltags_out" />
