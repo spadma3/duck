@@ -54,6 +54,7 @@ class IntersectionNavigation(object):
         # initializing variables
         #TODO
         self.s = 0.0
+        self.init_debug = False
 
         # set up subscribers
         self.sub_mode = rospy.Subscriber("~mode",
@@ -85,6 +86,8 @@ class IntersectionNavigation(object):
         self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
+        self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
+
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
@@ -142,7 +145,7 @@ class IntersectionNavigation(object):
                 msg.theta = pose[2]
                 self.pub_intersection_pose.publish(msg)
 
-                if self.s < 0.5:
+                '''if self.s < 0.5:
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                     msg2 = LanePose()
@@ -151,7 +154,17 @@ class IntersectionNavigation(object):
                     msg2.phi = theta
                     msg2.status = 0
                     msg2.in_lane = True
-                    self.pub_lane_pose.publish(msg2)
+                    self.pub_lane_pose.publish(msg2)'''
+                if not self.init_debug:
+                    self.init_debug = True
+                    self.debug_start = rospy.Time.now()
+
+                if (rospy.Time.now() - self.debug_start).to_sec() < 4.0:
+                    msg2 = Twist2DStamped()
+                    msg2.header = rospy.Time.now()
+                    msg2.v = 0.1
+                    msg2.omega = 0.0
+                    self.pub_cmds.publish(msg2)
 
             elif self.state == self.state_dict['DONE']:
                 pass
@@ -296,8 +309,6 @@ class IntersectionNavigation(object):
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             self.poseEstimator.FeedCommandQueue(msg)
-            print(msg)
-
 
     def AprilTagsCallback(self, msg):
         if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
