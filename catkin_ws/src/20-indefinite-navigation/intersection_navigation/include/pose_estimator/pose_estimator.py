@@ -31,7 +31,7 @@ class PoseEstimator(object):
 
         # estimator parameters
         self.cov_est_init = np.diag([1.0, 1.0, 0.5])
-        self.cov_proc = np.diag([1, 5])  # process noise is assumed to be on inputs
+        self.cov_proc = np.diag([10, 50])  # process noise is assumed to be on inputs
 
     def Reset(self, pose_init, time_init):
         '''reset state estimate'''

@@ -306,8 +306,8 @@ class IntersectionNavigation(object):
     def ImageCallback(self, msg):
         if self.state == self.state_dict['TRAVERSING']:
             # predict pose
-            delay = rospy.Duration(0,200000000)
-            pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp + delay)
+            delay = rospy.Duration(0,000000000)
+            pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp - delay)
 
             # localize Duckiebot, use predicted pose as initial guess
             img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(msg)
