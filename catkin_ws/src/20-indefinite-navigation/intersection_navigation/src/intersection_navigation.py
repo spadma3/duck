@@ -152,9 +152,24 @@ class IntersectionNavigation(object):
                 msg.theta = pose[2]
                 self.pub_intersection_pose.publish(msg)
 
+                print('x')
+                print(pose[0])
+                print('y')
+                print(pose[1])
+
                 #Condition on s
-                if self.s < 0.99:
+                #if self.s < 0.99:
+                if (np.abs(pose[0] - self.pose_final[0]) > 0.01) and (np.abs(pose[1] - self.pose_final[1]) > 0.01):
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
+
+                    print('dist')
+                    print(dist)
+                    print('theta')
+                    print(theta)
+                    print('s')
+                    print(self.s)
+                    print('curvature')
+                    print(curvature)
 
                     msg_lanePose = LanePose()
                     msg_lanePose.header.stamp = rospy.Time.now()
@@ -329,9 +344,14 @@ class IntersectionNavigation(object):
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
-        pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
+        self.pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
 
-        if not self.pathPlanner.PlanPath(pose_init, pose_final):
+        print('inital pose')
+        print(pose_init)
+        print('final pose')
+        print(self.pose_final)
+
+        if not self.pathPlanner.PlanPath(pose_init, self.pose_final):
             rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
             return False
 
