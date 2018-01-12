@@ -68,6 +68,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
             omsg = dtu.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=mp.msg)
             t = rospy.Time.from_sec(mp.time_absolute)  # @UndefinedVariable
+            print('written %r at t = %s' % (otopic, t.to_sec()))
             bag_out.write(prefix_out + '/' + otopic, omsg, t=t)
 
             for name, value in stats.items():

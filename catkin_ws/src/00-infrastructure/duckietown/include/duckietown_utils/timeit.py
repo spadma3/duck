@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import sys
 import time
 
 from .constants import DuckietownConstants
@@ -30,38 +31,35 @@ def rospy_timeit_wall(s):
     rospy.loginfo('%10d ms: %s' % (1000 * delta, s))
 
 
-class Stack:
+class Stack(object):
     stack = []
 
 
 @contextmanager
 def timeit_generic(desc, minimum, time_function):
 #     logger.debug('timeit %s ...' % desc)
-    t0 = time_function()
     Stack.stack.append(desc)
+    t0 = time_function()
     yield
-    Stack.stack.pop()
     t1 = time_function()
     delta = t1 - t0
+    Stack.stack.pop()
     if minimum is not None:
         if delta < minimum:
             return
-#     logger.debug('timeit result: %.2f s (>= %s) for %s' % (delta, minimum, desc))
-
     if DuckietownConstants.show_timeit_benchmarks or minimum is not None:
         pre = '   ' * len(Stack.stack)
-    #     logger.debug('timeit_clock: %s %6.1f ms (>= %s) for %s' % (pre, delta*1000, minimum, desc))
         msg = 'timeit_clock: %s %6.2f ms  for %s' % (pre, delta * 1000, desc)
-        logger.debug(msg)
-
-#        import rospy  # XXX
-#        rospy.loginfo(msg)
+        t0 = time_function()
+        print(msg)
+        t1 = time_function()
+        delta = t1 - t0
 
 
 @contextmanager
 def timeit_clock(desc, minimum=None):
-    with timeit_generic(desc=desc, minimum=minimum, time_function=time.clock) as f:
-        yield f
+    with timeit_generic(desc=desc, minimum=minimum, time_function=time.clock):
+        yield
 
 
 @contextmanager

@@ -24,7 +24,14 @@ class RegressionTest(object):
 
         self.processors = []
         for p in processors:
-            p2 = ProcessorEntry(**p)
+            p = copy.deepcopy(p)
+            processor = p.pop('processor')
+            prefix_in = p.pop('prefix_in', '')
+            prefix_out = p.pop('prefix_out', '')
+            if p:
+                msg = 'Extra keys: %s' % p
+                raise ValueError(msg)
+            p2 = ProcessorEntry(prefix_in=prefix_in, processor=processor, prefix_out=prefix_out)
             self.processors.append(p2)
 
         self.analyzers = analyzers

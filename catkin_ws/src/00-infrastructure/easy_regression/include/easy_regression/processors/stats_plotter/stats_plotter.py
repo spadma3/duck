@@ -74,13 +74,20 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
     figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
 
+    use_legend = len(signals) >= 3
+    # todo: check same units
+
     with a as pylab:
         axes = []
         _fig, ax0 = pylab.subplots()
         ax0.set_xlabel('time (s)')
         axes.append(ax0)
-        for i in range(len(signals) - 1):
-            axes.append(ax0.twinx())
+        if use_legend:
+            for i in range(len(signals) - 1):
+                axes.append(ax0)
+        else:
+            for i in range(len(signals) - 1):
+                axes.append(ax0.twinx())
 
         for i, signal_spec in enumerate(signals):
             ax = axes[i]
@@ -98,9 +105,10 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
             ax.plot(t, data_converted, 'o', color=color, label=signal_spec.label,
                         markersize=markersize, clip_on=False)
 
-            label = '%s [%s]' % (signal_spec.label, signal_spec.units_display)
-            ax.set_ylabel(label, color=signal_spec.color)
-            ax.tick_params('y', colors=color)
+            if not use_legend:
+                label = '%s [%s]' % (signal_spec.label, signal_spec.units_display)
+                ax.set_ylabel(label, color=signal_spec.color)
+                ax.tick_params('y', colors=color)
 
             ax.set_ylim(signal_spec.min, signal_spec.max)
 
@@ -116,6 +124,12 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
             ax.spines[pos].set_color(color)
 
             ax.xaxis.set_ticks_position('bottom')
+
+        if use_legend:
+            label = '[%s]' % (signal_spec.units_display)
+            ax.set_ylabel(label)
+
+            pylab.legend()
 
     bgr = a.get_bgr()
     plot_name = plot_name.replace('/', '')

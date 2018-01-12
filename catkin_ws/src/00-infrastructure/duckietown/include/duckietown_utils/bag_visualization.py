@@ -1,13 +1,14 @@
 import os
 import shutil
 
+import rosbag
+
 from .bag_info import rosbag_info
 from .bag_reading import BagReadProxy
 from .contracts_ import contract
 from .disk_hierarchy import create_tmpdir, mkdirs_thread_safe
 from .instantiate_utils import indent
 from .logging_logger import logger
-from .yaml_pretty import yaml_dump
 
 __all__ = ['d8n_make_video_from_bag']
 
@@ -18,13 +19,12 @@ def count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=None):
         Counts the number of messages in a slice of time.
         Stops at stop_at, if given.
 
-        Returns (count, total), where total is the total number in the log.
+        Returns (count, total, stopped_early), where total is the total number in the log.
     '''
-
-    import rosbag
     bag0 = rosbag.Bag(bag_filename)
-    count = bag0.get_message_count(topic_filters=topic)
+    count = bag0.get_message_count(topic_filters=[topic])
 
+    stopped_early = False
     if t0 is None and t1 is None:
         actual_count = count
     else:
@@ -36,11 +36,12 @@ def count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=None):
 
             if stop_at is not None:
                 if actual_count >= stop_at:
+                    stopped_early = True
                     break
 
     bag0.close()
 
-    return actual_count, count
+    return actual_count, count, stopped_early
 
 
 class NotEnoughFramesInSlice(Exception):
@@ -87,22 +88,30 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
     stop_at = 10
     min_messages = 5
 
-    actual_count, count = count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=stop_at)
+    actual_count, count, stopped_early = \
+        count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=stop_at)
 
-    msg = 'Creating video for topic %r, which has %d messages in the entire log.' % (topic, count)
+    msg = ('Creating video for topic %r, which has %d messages '
+           'in the entire log.' % (topic, count))
     logger.info(msg)
 
-    if (actual_count != stop_at) and (actual_count != count):
+    if not stopped_early and (actual_count != count):
         msg = 'However, the actual count in [%s, %s] is %s' % (t0, t1, actual_count)
         logger.info(msg)
 
     if actual_count < min_messages:
-        msg = ('Topic %r has only %d messages in slice (%d total), too few to make a video (min: %s).\nFile: %s'
-               % (topic, actual_count, count, bag_filename, min_messages))
+        msg = ('Topic %r has only %d messages in slice (%d total), too few'
+               ' to make a video (min: %s).\nFile: %s'
+               % (topic, actual_count, count, min_messages, bag_filename))
 
+        msg += '\nt0: %s' % t0
+        msg += '\nt1: %s' % t1
+        bag = rosbag.Bag(bag_filename)
+        msg += '\nstart: %s' % bag.get_start_time()
+        msg += '\nend: %s' % bag.get_end_time()
         if actual_count == count:
-            info = rosbag_info(bag_filename)
-            msg += '\n' + indent(yaml_dump(info), '  info: ')
+            msg += '\n' + indent(get_summary_of_bag_messages(bag), '  info: ')
+        bag.close()
         raise NotEnoughFramesInSlice(msg)
 
     model = 'bag2mp4_fixfps_limit'
@@ -138,10 +147,10 @@ def d8n_make_video_from_bag(bag_filename, topic, out, t0=None, t1=None):
 
 def get_summary_of_bag_messages(bag):
     _types, topics = bag.get_type_and_topic_info()
-    s = ""
     keys = sorted(topics)
+    s = []
     for topic in keys:
         topic_info = topics[topic]
 
-        s += "\n%5d  %s" % (topic_info.message_count, topic)
-    return s.strip()
+        s.append("%5d  %s" % (topic_info.message_count, topic))
+    return "\n".join(s)

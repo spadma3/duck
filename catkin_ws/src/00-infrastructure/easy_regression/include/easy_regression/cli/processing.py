@@ -4,6 +4,7 @@ import shutil
 import duckietown_utils as dtu
 from duckietown_utils.constants import DuckietownConstants
 from easy_algo import get_easy_algo_db
+from easy_algo.algo_db import name_from_spec
 from easy_logs.logs_structure import PhysicalLog
 from easy_regression.processor_interface import ProcessorUtilsInterface, \
     ProcessorInterface
@@ -98,12 +99,12 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log,
     t1_absolute = bag.get_start_time() + t1
 
     for i, processor_entry in enumerate(processors):
-        processor_name = processor_entry.processor
+        processor_name = name_from_spec(processor_entry.processor)
         prefix_in = processor_entry.prefix_in
         prefix_out = processor_entry.prefix_out
         tmp = get_tmp_bag()
 
-        bag_filename = context.comp(process_one_processor, processor_name, prefix_in, prefix_out,
+        bag_filename = context.comp(process_one_processor, processor_entry.processor, prefix_in, prefix_out,
                                              bag_filename, tmp, t0_absolute, t1_absolute, log,
                                              job_id='process-%d-%s' % (i, processor_name))
 
@@ -133,12 +134,13 @@ def finalize(bag_filename, log_out, processors, tmpfiles, delete):
     return log_out
 
 
-def process_one_processor(processor_name, prefix_in, prefix_out, bag_filename,
+def process_one_processor(processor_name_or_spec, prefix_in, prefix_out, bag_filename,
                           next_bag_filename, t0_absolute, t1_absolute, log):
     DuckietownConstants.show_timeit_benchmarks = True
 
     easy_algo_db = get_easy_algo_db()
-    processor = easy_algo_db.create_instance(ProcessorInterface.FAMILY, processor_name)
+    processor = easy_algo_db.create_instance(ProcessorInterface.FAMILY, processor_name_or_spec)
+
     dtu.logger.info('in: bag_filename: %s' % bag_filename)
     dtu.logger.info('out: next_bag_filename: %s' % next_bag_filename)
     dtu.logger.info('t0_absolute: %s' % t0_absolute)
