@@ -103,7 +103,7 @@ class AprilPostPros(object):
                     msg_parking.data = True
                 else:
                     msg_parking.data = False
-                self.pub_postPros_parking.Publish(msg_parking)
+                self.pub_postPros_parking.publish(msg_parking)
 
                 # intersection apriltag event
                 msg_intersection = BoolStamped()
