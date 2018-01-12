@@ -47,6 +47,9 @@ class LaneFilterNode(object):
         self.active = switch_msg.data
 
     def processSegments(self,segment_list_msg):
+        # Get actual timestamp for latency measurement
+        timestamp_now = rospy.Time.now()
+
         if not self.active:
             return
 
@@ -121,6 +124,19 @@ class LaneFilterNode(object):
         belief_img.header.stamp = segment_list_msg.header.stamp
         
         self.pub_lane_pose.publish(lanePose)
+
+        # Latency of Estimation including curvature estimation
+        estimation_latency_stamp = rospy.Time.now() - timestamp_now
+        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
+        self.latencyArray.append(estimation_latency)
+
+        if (len(self.latencyArray) >= 20):
+            self.latencyArray.pop(0)
+
+        # print "Latency of segment list: ", segment_latency
+        print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
+
+
         self.pub_belief_img.publish(belief_img)
 
         # also publishing a separate Bool for the FSM
