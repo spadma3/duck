@@ -16,7 +16,7 @@ class IntersectionLocalization(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.robot_name = self.SetupParameter("~robot_name", "daisy")
+        self.robot_name = self.SetupParameter("~robot_name", "bluck")
 
         # set up subscribers
         # self.sub_mode = rospy.Subscriber("~mode", FSMState, self.ModeCallback, queue_size=1)

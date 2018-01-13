@@ -2,7 +2,7 @@
 import rospy
 import cv2
 from path_planner.path_planner import PathPlanner
-from pose_estimator.pose_estimator import PoseEstimator
+from pose_estimator.pose_estimator import PoseEstimator, VehicleCommands
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose, IntersectionPoseImg, LanePose
@@ -28,6 +28,7 @@ class IntersectionNavigation(object):
         self.intersectionLocalizer = IntersectionLocalizer(self.veh)
         self.pathPlanner = PathPlanner(self.veh)
         self.poseEstimator = PoseEstimator()
+        
 
         # main logic parameters
         self.rate = 10  # main logic runs at 10Hz
@@ -41,9 +42,10 @@ class IntersectionNavigation(object):
         self.tag_info = TagInfo()
         self.intersection_signs = [self.tag_info.FOUR_WAY, self.tag_info.RIGHT_T_INTERSECT,
                                    self.tag_info.LEFT_T_INTERSECT, self.tag_info.T_INTERSECTION]
+        #self.VehicleCommands = VehicleCommands()
 
-        # nominal start positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
-        self.nominal_start_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
+        # nominal stop positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
+        self.nominal_stop_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
                                        self.tag_info.LEFT_T_INTERSECT: [0.664, 0.400, np.pi],
                                        self.tag_info.RIGHT_T_INTERSECT: [-0.105, 0.121, 0.0 * np.pi],
                                        self.tag_info.T_INTERSECTION: [0.400, -0.105, 0.5 * np.pi]}
@@ -116,8 +118,9 @@ class IntersectionNavigation(object):
                 return self.nominal_final_positions[1]
             else: # right
                 return self.nominal_final_positions[0]
-
-
+                
+    def CarCmdCallback(self,cmd_msg):
+        return cmd_msg
 
     def MainLoop(self):
         rate = rospy.Rate(self.rate)
@@ -219,6 +222,16 @@ class IntersectionNavigation(object):
                 msg2 = Twist2DStamped()
                 msg2.header.stamp = rospy.Time.now()
 
+                # Path Planner
+                self.pathPlanner.PlanPath(pose_init, alphas_init, pose_final, alphas_final)
+                numPathPoints = 10
+                s = np.linnspace(0.0, 1.0, numPathPoints)
+                pathPoints, _ = self.pathPlanner.path.Evaluate(s)
+                trackingPoints = 0
+                currPos = pose_init
+                self.state == self.state_dict['TRAVERSING']
+                # print(pose_init)
+                # print(pose_final)
 
                 #Left turn
                 #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
@@ -384,7 +397,6 @@ class IntersectionNavigation(object):
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
             
-
     def TurnTypeCallback(self, msg):
         # TODO
         pass
