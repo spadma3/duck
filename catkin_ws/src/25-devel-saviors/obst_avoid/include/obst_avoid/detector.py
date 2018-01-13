@@ -164,8 +164,8 @@ class Detector():
 					point_calc=self.bird_view_pixel2ground(np.array([[left+0.5*total_width,left],[bottom,bottom]]))
 					obst_object.position.x = point_calc[0,0] #obstacle coord x
 					if (point_calc[0,0]<0.35):
-						print "Obstacle"
-						print  point_calc[0:2,0]
+						# print "Obstacle"
+						# print  point_calc[0:2,0]
 					obst_object.position.y = point_calc[1,0] #obstacle coord y
 					#calculate radius:
 					obst_object.position.z = point_calc[1,1]-point_calc[1,0] #this is the radius!
@@ -179,7 +179,7 @@ class Detector():
 	    		                if (np.sum(line1==255)>3):
 	    			                obst_object.position.z = -1*obst_object.position.z #means it is out of bounds!
 				        else:
-				                print "Dangerous Obstacle"
+				                # print "Dangerous Obstacle"
 
 					#fill in the pixel boundaries of bird view image!!!
 					obst_object.orientation.x = top
