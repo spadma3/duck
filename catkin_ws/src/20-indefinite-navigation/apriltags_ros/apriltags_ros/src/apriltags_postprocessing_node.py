@@ -58,7 +58,6 @@ class AprilPostPros(object):
 # ---- end tag info stuff 
 
 
-
         self.sub_prePros        = rospy.Subscriber("~apriltags_in", AprilTagDetectionArray, self.callback, queue_size=1)
         self.pub_postPros       = rospy.Publisher("~apriltags_out", AprilTagsWithInfos, queue_size=1)
         self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
@@ -131,7 +130,6 @@ class AprilPostPros(object):
             tag_infos.append(new_info)
             # --- end tag info processing
 
-
             # Define the transforms
             veh_t_camxout = tr.translation_matrix((self.camera_x, self.camera_y, self.camera_z))
             veh_R_camxout = tr.euler_matrix(0, self.camera_theta*np.pi/180, 0, 'rxyz')
@@ -155,8 +153,6 @@ class AprilPostPros(object):
             # Overwrite transformed value
             (trans.x, trans.y, trans.z) = tr.translation_from_matrix(veh_T_tagxout)
             (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_matrix(veh_T_tagxout)
-
-
 
             detection.pose.pose.position = trans
             detection.pose.pose.orientation = rot

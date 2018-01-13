@@ -2,7 +2,7 @@
 import rospy
 import unittest
 import rostest
-from apriltags_ros.msg import AprilTagDetectionArray
+from duckietown_msgs.msg import AprilTagDetectionArray
 from sensor_msgs.msg import CameraInfo, Image
 from cv_bridge import CvBridge
 import cv2

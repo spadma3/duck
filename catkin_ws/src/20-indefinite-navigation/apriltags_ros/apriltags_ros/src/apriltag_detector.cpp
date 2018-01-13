@@ -70,13 +70,6 @@ namespace apriltags_ros{
     double px = cam_info->K[2];
     double py = cam_info->K[5];
 
-/*
-    std::cout << "fx = " << fx << std::endl;
-    std::cout << "fy = " << fy << std::endl;
-    std::cout << "px = " << px << std::endl;
-    std::cout << "py = " << py << std::endl;
-*/
-
     if(!sensor_frame_id_.empty())
       cv_ptr->header.frame_id = sensor_frame_id_;
     
@@ -97,8 +90,8 @@ namespace apriltags_ros{
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
 
-      std::cout << "transform = " << transform << std::endl;
-
+      // Publish euler angles and transformation
+/*
       Eigen::Vector3d euler_angles;
       euler_angles(0) = atan2(rot(2, 1), rot(2, 2));
       euler_angles(1) = -atan2(rot(2, 0), sqrt(pow(rot(2, 1), 2.0) + pow(rot(2, 2), 2.0)));
@@ -114,62 +107,14 @@ namespace apriltags_ros{
       std::cout << "z= " << transform(2,3) << std::endl;
       std::cout << "______________________" << std::endl;
       std::cout << "______________________" << std::endl;
+*/
 
       Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
-
-/*
-      std::cout << "quat_x= " << rot_quaternion.x() << std::endl;
-      std::cout << "quat_y= " << rot_quaternion.y() << std::endl;
-      std::cout << "quat_z= " << rot_quaternion.z() << std::endl;
-      std::cout << "quat_w= " << rot_quaternion.w() << std::endl;
-      std::cout << "______________________" << std::endl;
-      std::cout << "______________________" << std::endl;
-*/
-
-/*
-      cv::Mat1f K = (cv::Mat1f(3, 3) <<
-      fx, 0, px,
-      0, fy, py,
-      0, 0,   1);
-
-      cv::Mat1f H = (cv::Mat1f(3, 3) <<
-      -2.2560989876164053e-05, -0.0001736156319980996, -0.16576109319095061,
-      0.000792344792257354, 2.951386923765282e-06, -0.277329318738063,
-      0.000179617312656656, -0.006251160181100328, 1.0);
-
-      // decompose using identity as internal parameters matrix
-      std::vector<cv::Mat> Rs, Ts;
-      cv::decomposeHomographyMat(H,
-                                 K,
-                                 Rs, Ts,
-                                 cv::noArray());
-
-      std::cout << "-------------------------------------------\n";
-      std::cout << "Estimated decomposition:\n\n";
-      std::cout << "rvec = " << std::endl;
-
-      for (auto R_ : Rs)
-      {
-        cv::Mat1d rvec;
-        cv::Rodrigues(R_, rvec);
-        std::cout << rvec*180/CV_PI << std::endl << std::endl;
-      }
-
-      std::cout << std::endl;
-
-      std::cout << "t = " << std::endl;
-      for (auto t_ : Ts)
-      {
-        std::cout << t_ << std::endl << std::endl;
-      }
-
-*/
 
       geometry_msgs::PoseStamped tag_pose;
       tag_pose.pose.position.x = transform(0,3);
       tag_pose.pose.position.y = transform(1,3);
       tag_pose.pose.position.z = transform(2,3);
-
 
       tag_pose.pose.orientation.x = rot_quaternion.x();
       tag_pose.pose.orientation.y = rot_quaternion.y();
