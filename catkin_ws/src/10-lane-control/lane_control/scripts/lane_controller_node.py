@@ -40,8 +40,8 @@ class lane_controller(object):
         # self.sub_fleet_planning_lane_following_override_active = rospy.Subscriber("~fleet_planning_lane_following_override_active", BoolStamped, self.setFlag, "fleet_planning_lane_following_override_active", queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
 
         #TO DO find node/topic in their branch
-        # self.sub_implicit_coord_pose = rospy.Subscriber("~implicit_coord", LanePose, self.PoseHandling, "implicit_coord",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
-        # self.sub_implicit_coord_velocity_limit_active = rospy.Subscriber("~implicit_coord_velocity_limit_active", BoolStamped, self.setFlag, "implicit_coord_velocity_limit_active", queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
+        self.sub_implicit_coord_pose = rospy.Subscriber("~implicit_coord", LanePose, self.PoseHandling, "implicit_coord",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
+        self.sub_implicit_coord_velocity_limit_active = rospy.Subscriber("~implicit_coord_velocity_limit_active", BoolStamped, self.setFlag, "implicit_coord_velocity_limit_active", queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
 
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_limits = rospy.Subscriber("~actuator_limits", Twist2DStamped, self.updateActuatorLimits, queue_size=1)

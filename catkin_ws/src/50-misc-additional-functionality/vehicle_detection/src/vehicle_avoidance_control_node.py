@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from duckietown_msgs.msg import Twist2DStamped, BoolStamped, VehiclePose, Pose2DStamped
+from duckietown_msgs.msg import Twist2DStamped, BoolStamped, VehiclePose, Pose2DStamped, LanePose
 
 import os
 import rospkg
@@ -8,7 +8,7 @@ import yaml
 import time
 from twisted.words.protocols.oscar import CAP_SERV_REL
 from math import sqrt, sin, cos
-from std_msgs.msg import Float32
+
 
 class VehicleAvoidanceControlNode(object):
 
@@ -18,7 +18,7 @@ class VehicleAvoidanceControlNode(object):
 		self.active = True
 		
 		self.car_vel_pub = rospy.Publisher("~car_vel",
-				Float32, queue_size = 1)
+				LanePose, queue_size = 1)
 		self.vehicle_detected_pub = rospy.Publisher("~vehicle_detected",
 				BoolStamped, queue_size=1)
 		self.subscriber = rospy.Subscriber("~detection",
@@ -148,17 +148,18 @@ class VehicleAvoidanceControlNode(object):
 # 		car_cmd_msg_current = car_cmd_msg
 # 		car_cmd_msg_current.header.stamp = rospy.Time.now()
 
+		car_vel_msg = LanePose()
 		if self.detection:
-			car_vel_msg = self.v
+			car_vel_msg.v_ref = self.v
 # 			car_cmd_msg_current.v = self.v
 # 			if self.v == 0:
 # 				car_cmd_msg_current.omega = 0
 		else:
-			car_vel_msg = car_cmd_msg.v
+			car_vel_msg.v_ref = car_cmd_msg.v
 
 # 		self.v_follower = car_cmd_msg_current.v	
 # 		self.car_cmd_pub.publish(car_cmd_msg_current)
-		self.v_follower = car_vel_msg
+		self.v_follower = car_vel_msg.v_ref
 		self.car_vel_pub.publish(car_vel_msg)
    
 if __name__ == '__main__':
