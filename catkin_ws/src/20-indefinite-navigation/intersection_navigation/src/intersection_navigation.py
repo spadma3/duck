@@ -68,8 +68,6 @@ class IntersectionNavigation(object):
                                               Int16,
                                               self.TurnTypeCallback,
                                               queue_size=1)
-
-
         self.sub_img = rospy.Subscriber("~img",
                                         CompressedImage,
                                         self.ImageCallback,
@@ -141,50 +139,68 @@ class IntersectionNavigation(object):
                 if self.InitializePath():
                     self.state = self.state_dict['TRAVERSING']
                     self.s = 0
+                    self.poseEstimator.Reset(self.pose_init, rospy.Time.now())
                     rospy.loginfo("[%s] Initialized path, traversing intersection." % (self.node_name))
                 else:
                     self.state = self.state_dict['ERROR']
                     rospy.loginfo("[%s] Could not initialize path." % (self.node_name))
 
             elif self.state == self.state_dict['TRAVERSING']:
-                msg = IntersectionPose()
-                msg.header.stamp = rospy.Time.now()
-                pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
-                msg.x = pose[0]
-                msg.y = pose[1]
-                msg.theta = pose[2]
-                self.pub_intersection_pose.publish(msg)
-
-                print('x')
-                print(pose[0])
-                print('y')
-                print(pose[1])
 
                 #Condition on s
-                if self.s < 0.99:
+                #if self.s < 0.99:
                 #if (np.abs(pose[0] - self.pose_final[0]) > 0.01) and (np.abs(pose[1] - self.pose_final[1]) > 0.01):
+
+                if not self.init_debug:
+                    self.init_debug = True
+                    self.debug_start = rospy.Time.now()
+
+                #if (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
+
+                if (self.s < 0.99):
+                    msg = IntersectionPose()
+                    msg.header.stamp = rospy.Time.now()
+                    pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
+                    msg.x = pose[0]
+                    msg.y = pose[1]
+                    msg.theta = pose[2]
+                    self.pub_intersection_pose.publish(msg)
+
+                    print('x')
+                    print(pose[0])
+                    print('y')
+                    print(pose[1])
+                    print('theta')
+                    print(pose[2])
+
+                    msg_lanePose = LanePose()
+                    msg_lanePose.header.stamp = rospy.Time.now()
 
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                     print('dist')
                     print(dist)
-                    print('theta')
+                    print('phi')
                     print(theta)
                     print('s')
                     print(self.s)
                     print('curvature')
                     print(curvature)
 
-                    msg_lanePose = LanePose()
-                    msg_lanePose.header.stamp = rospy.Time.now()
+
                     msg_lanePose.d = dist
                     msg_lanePose.d_ref = 0
                     msg_lanePose.phi = theta
-                    msg_lanePose.curvature_ref = 1/0.4
+                    msg_lanePose.curvature_ref = curvature
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
-                else:
+
+                if (rospy.Time.now() - self.debug_start).to_sec() > 8.0:
                     self.state = self.state_dict['DONE']
+
+
+                #else:
+                    #self.state = self.state_dict['DONE']
 
 
 
@@ -342,6 +358,8 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
+        self.pose_init = np.array([best_pose_meas[0], best_pose_meas[1], best_pose_meas[2]])
+
         msg = IntersectionPose()
         msg.header.stamp = rospy.Time.now()
         msg.x = best_pose_meas[0]
@@ -349,24 +367,24 @@ class IntersectionNavigation(object):
         msg.theta = best_pose_meas[2]
         self.pub_intersection_pose.publish(msg)
 
-        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
+        #self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
         return True
 
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 1
+        turn_type = 2
 
         # 0: straight, 1: left, 2: right
-        pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
+        #self.pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         self.pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
 
         print('inital pose')
-        print(pose_init)
+        print(self.pose_init)
         print('final pose')
         print(self.pose_final)
 
-        if not self.pathPlanner.PlanPath(pose_init, self.pose_final):
+        if not self.pathPlanner.PlanPath(self.pose_init, self.pose_final):
             rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
             return False
 
@@ -406,8 +424,8 @@ class IntersectionNavigation(object):
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
-            cmd_msg.v = msg.v * 0.67
-            cmd_msg.omega = msg.omega * 0.45 #* 2 * math.pi
+            cmd_msg.v = msg.v / 0.67
+            cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2 * math.pi)
 
             print('v')
             print(cmd_msg.v)

@@ -221,7 +221,7 @@ class PathPlanner(object):
                                        dir_path[0] * dir[0] + dir_path[1] * dir[1])
 
                     # compute curvature
-                    curvature = self.path.EvaluateCurvature(s_new)
+                    curvature = self.path.EvaluateCurvatureWithSign(s_new)
 
                     return dist_new, theta, curvature, s_new
 
@@ -239,7 +239,7 @@ class PathPlanner(object):
                                        dir_path[0] * dir[0] + dir_path[1] * dir[1])
 
                     # compute curvature
-                    curvature = self.path.EvaluateCurvature(s_new)
+                    curvature = self.path.EvaluateCurvatureWithSign(s_new)
 
                     return dist_new, theta, curvature, s_new
 
@@ -260,8 +260,8 @@ class PathPlanner(object):
                 theta = np.arctan2(dir_path[0] * dir[1] - dir_path[1] * dir[0],
                                    dir_path[0] * dir[0] + dir_path[1] * dir[1])
 
-                # compute curvature
-                curvature = self.path.EvaluateCurvature(s_new)
+                # compute curvatureEvaluateCurvature
+                curvature = self.path.EvaluateCurvatureWithSign(s_new)
 
                 return dist_new, theta, curvature, s_new
 

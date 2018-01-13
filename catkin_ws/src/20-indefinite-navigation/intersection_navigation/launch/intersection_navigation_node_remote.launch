@@ -1,5 +1,5 @@
 <launch>
-	<arg name="robot_name" default="daisy" />
+	<arg name="robot_name" default="bob" />
 
     <remap from="~img" to="camera_node/image/compressed" />
     <remap from="~cmds" to="forward_kinematics_node/velocity" />

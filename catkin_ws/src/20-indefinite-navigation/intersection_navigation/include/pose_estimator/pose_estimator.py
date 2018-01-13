@@ -63,11 +63,16 @@ class PoseEstimator(object):
             # find current command
             if idx_cmd + 1 < num_cmd:
                 dt = min(self.cmd_queue[idx_cmd + 1].time,
-                         time_pred) - time_est
-                dt_sec = dt.to_sec()  # careful, this could eventually cause problems if running long
+                         time_pred) - self.cmd_queue[idx_cmd].time #time_est
+                dt_sec = 0.01 #dt.to_sec()  # careful, this could eventually cause problems if running long
+                print('dt_sec')
+                print(dt_sec)
             else:
-                dt = time_pred - time_est
-                dt_sec = dt.to_sec()
+                #dt = time_pred - time_est
+                dt = time_pred - self.cmd_queue[num_cmd-1].time #TODO: Might give problems if num_cmd = 0
+                dt_sec = 0.01 #dt.to_sec()
+                print('dt_sec2')
+                print(dt_sec)
 
             # predict covariance
             if predict_cov:
@@ -100,6 +105,9 @@ class PoseEstimator(object):
 
         # make sure covariance matrix is symmetric
         cov_est = 0.5 * (cov_est + cov_est.T)
+
+        self.state_est = state_est
+        self.time_est = time_est
 
         return state_est, cov_est
 
