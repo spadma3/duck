@@ -5,8 +5,7 @@ import rospy
 import dubins_path_planning as dpp
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
-from parking.msg import Reference_for_control  # custom message to publish
-from duckietown_msgs.msg import Pose2DStamped  # custom message to subscribe to
+from duckietown_msgs.msg import Pose2DStamped, LanePose  # custom message to subscribe to
 
 """
 Global parameters
@@ -42,6 +41,7 @@ class parkingPathPlanner():
     def __init__(self):
         self.plan = True
         self.sample_freq = 50
+        self.d_ref = 0 #for parking, d_ref = 0
         # init counter
         #self.count = 0
         # init subscriber
@@ -53,7 +53,7 @@ class parkingPathPlanner():
         #self.yaw_act = 0 #-pi/2
         #print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
-        self.sample_state_pub = rospy.Publisher('reference_for_control', Reference_for_control,queue_size=10)
+        self.sample_state_pub = rospy.Publisher('~parking_pose', LanePose,queue_size=10)
         #self.path_planning(rospy.get_param('~end_space'))
         #print "The computed x path is ", self.px
         #print "The computed y path is ", self.py
@@ -65,6 +65,7 @@ class parkingPathPlanner():
         state = Reference_for_control()
         if self.plan == False:
             state.d, state.c, state.phi = self.project_to_path(curvature)
+            state.d_ref = self.d_ref
             self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization
