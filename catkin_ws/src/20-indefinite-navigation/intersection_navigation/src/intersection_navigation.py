@@ -144,18 +144,6 @@ class IntersectionNavigation(object):
                     rospy.loginfo("[%s] Could not initialize path." % (self.node_name))
 
             elif self.state == self.state_dict['TRAVERSING']:
-                msg = IntersectionPose()
-                msg.header.stamp = rospy.Time.now()
-                pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
-                msg.x = pose[0]
-                msg.y = pose[1]
-                msg.theta = pose[2]
-                self.pub_intersection_pose.publish(msg)
-
-                print('x')
-                print(pose[0])
-                print('y')
-                print(pose[1])
 
                 #Condition on s
                 #if self.s < 0.99:
@@ -166,6 +154,19 @@ class IntersectionNavigation(object):
                     self.debug_start = rospy.Time.now()
 
                 if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
+
+                    msg = IntersectionPose()
+                    msg.header.stamp = rospy.Time.now()
+                    pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
+                    msg.x = pose[0]
+                    msg.y = pose[1]
+                    msg.theta = pose[2]
+                    self.pub_intersection_pose.publish(msg)
+
+                    print('x')
+                    print(pose[0])
+                    print('y')
+                    print(pose[1])
 
                     msg_lanePose = LanePose()
                     msg_lanePose.header.stamp = rospy.Time.now()
@@ -188,6 +189,11 @@ class IntersectionNavigation(object):
                     msg_lanePose.curvature_ref = curvature
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
+
+                if (rospy.Time.now() - self.debug_start).to_sec() > 8.0:
+                    self.state = self.state_dict['DONE']
+
+
                 #else:
                     #self.state = self.state_dict['DONE']
 
