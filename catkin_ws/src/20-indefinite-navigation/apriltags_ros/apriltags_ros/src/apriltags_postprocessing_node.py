@@ -22,14 +22,6 @@ class AprilPostPros(object):
         self.scale_y      = 1 #self.setupParam("~scale_y", 1)
         self.scale_z      = 1 #self.setupParam("~scale_z", 1)
 
-        #self.camera_x     = self.setupParam("~camera_x", 0.065)
-        #self.camera_y     = self.setupParam("~camera_y", 0.0)
-        #self.camera_z     = self.setupParam("~camera_z", 0.11)
-        #self.camera_theta = self.setupParam("~camera_theta", 19.0)
-        #self.scale_x      = self.setupParam("~scale_x", 1)
-        #self.scale_y      = self.setupParam("~scale_y", 1)
-        #self.scale_z      = self.setupParam("~scale_z", 1)
-
 # -------- Start adding back the tag info stuff
 
         rospack = rospkg.RosPack()
