@@ -3,7 +3,7 @@ from __future__ import print_function
 from random import random
 import rospy
 from duckietown_msgs.msg import CoordinationClearance, FSMState, BoolStamped, Twist2DStamped
-from duckietown_msgs.msg import SignalsDetection, CoordinationSignal
+from duckietown_msgs.msg import SignalsDetection, CoordinationSignal, AprilTagsWithInfos
 from std_msgs.msg import String
 from time import time
 
@@ -33,7 +33,7 @@ class VehicleCoordinator():
         rospy.loginfo('The Coordination Mode has Started')
 
         # Determine the state of the bot
-        self.state = State.AT_STOP_CLEARING
+        self.state = State.LANE_FOLLOWING
         self.last_state_transition = time()
         self.random_delay = 0
 
@@ -42,30 +42,22 @@ class VehicleCoordinator():
         self.node = rospy.init_node('veh_coordinator', anonymous=True)
 
         # Parameters
-
         # Are we in a situation with traffic lights? Initially always false.
-        if rospy.get_param("~intersectionType") == "trafficLight":
-            self.traffic_light_intersection = True
-        else:
-            self.traffic_light_intersection = False
-
-        rospy.loginfo('[coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
+        # if rospy.get_param("~intersectionType") == "trafficLight":
+        #    self.traffic_light_intersection = True
+        # else:
+        #    self.traffic_light_intersection = False
 
         # Subscriptions
-
         self.mode = 'LANE_FOLLOWING'
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
+        rospy.Subscriber('~apriltags', AprilTagsWithInfos, self.set_traffic_light)
 
         self.traffic_light = UNKNOWN
-
-        # Do we detect a vehicle?
-
-        self.right_veh = UNKNOWN
-        self.opposite_veh = UNKNOWN
-        # self.veh_detected = UNKNOWN
+        self.right_veh     = UNKNOWN
+        self.opposite_veh  = UNKNOWN
 
         # Initializing the unknown presence of a car
-        #self.detected_car = UNKNOWN
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection) # see below for the def. of process_signals_detection
 
         # Publishing
@@ -85,6 +77,17 @@ class VehicleCoordinator():
         while not rospy.is_shutdown():
             self.loop()
             rospy.sleep(0.1)
+
+#############################################################################################################
+    def set_traffic_light(self,msg):
+        for item in msg.infos:
+            if item.traffic_ligh_sign == 76:
+                self.traffic_light_intersection = True
+            else:
+                self.traffic_light_intersection = False
+
+        if self.traffic_light_intersection:
+            rospy.loginfo('[coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
 
 #############################################################################################################
     def set_state(self, state):
@@ -119,16 +122,12 @@ class VehicleCoordinator():
         self.set('traffic_light', msg.traffic_light_state)
         self.set('right_veh', msg.right)
         self.set('opposite_veh', msg.front)
-        #self.set('veh_detected', msg.led_detected)
-        #self.set('veh_not_detected',msg.no_led_detected)
 
     # definition which resets everything we know
     def reset_signals_detection(self):
         self.traffic_light = UNKNOWN
-        self.right_veh = UNKNOWN
-        self.opposite_veh = UNKNOWN
-        #self.veh_detected = UNKNOWN
-        #self.veh_not_detected = UNKNOWN
+        self.right_veh     = UNKNOWN
+        self.opposite_veh  = UNKNOWN
 
     # publishing the topics
     def publish_topics(self):
@@ -205,7 +204,6 @@ class VehicleCoordinator():
         elif self.state == State.TL_SENSING:
             if self.traffic_light == SignalsDetection.GO:
                 self.set_state(State.GO)
-
 
         # If not GO, pusblish wait
         if self.state != State.GO:
