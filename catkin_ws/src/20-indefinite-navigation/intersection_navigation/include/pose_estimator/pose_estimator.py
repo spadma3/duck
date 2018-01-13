@@ -63,11 +63,11 @@ class PoseEstimator(object):
             # find current command
             if idx_cmd + 1 < num_cmd:
                 dt = min(self.cmd_queue[idx_cmd + 1].time,
-                         time_pred) - self.cmd_queue[idx_cmd].time #time_est
+                         time_pred) - time_est #self.cmd_queue[idx_cmd].time
                 dt_sec = dt.to_sec()  # careful, this could eventually cause problems if running long
             else:
-                #dt = time_pred - time_est
-                dt = time_pred - self.cmd_queue[num_cmd-1].time
+                dt = time_pred - time_est
+                #dt = time_pred - self.cmd_queue[num_cmd-1].time
                 dt_sec = dt.to_sec()
                 print(dt_sec)
 
