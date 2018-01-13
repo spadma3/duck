@@ -645,6 +645,7 @@
 
 		<!-- localization -->
 		<remap from="localization_node/apriltags" to="apriltags_postprocessing_node/apriltags_out"/>
+		<remap from="localization_node/pose_duckiebot" to="path_planning_node/pose_duckiebot" />
 		<include file="$(find localization)/launch/localization_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="local" value="$(arg /localization/local)"/>
@@ -655,7 +656,6 @@
 	<!-- End localization -->
 
     <!-- Path Planning -->
-    <remap from="localization_node/pose_duckiebot" to="path_planning_node/pose_duckiebot" />
     <remap from="path_planning_node/parking_pose" to="lane_controller_node/parking_pose" />
     <include file="$(find parking)/launch/path_planning_node.launch">
         <arg name="veh" value="$(arg veh)"/>
