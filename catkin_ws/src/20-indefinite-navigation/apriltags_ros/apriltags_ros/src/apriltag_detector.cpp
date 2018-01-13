@@ -118,8 +118,41 @@ namespace apriltags_ros{
       std::cout << "______________________" << std::endl;
       std::cout << "______________________" << std::endl;
 
+      cv::Mat1f K = (cv::Mat1f(3, 3) <<
+      fx, 0, px,
+      0, fy, py,
+      0, 0,   1);
 
+      cv::Mat1f H = (cv::Mat1f(3, 3) <<
+      -2.2560989876164053e-05, -0.0001736156319980996, -0.16576109319095061,
+      0.000792344792257354, 2.951386923765282e-06, -0.277329318738063,
+      0.000179617312656656, -0.006251160181100328, 1.0);
 
+      // decompose using identity as internal parameters matrix
+      std::vector<cv::Mat> Rs, Ts;
+      cv::decomposeHomographyMat(H,
+                                 K,
+                                 Rs, Ts,
+                                 cv::noArray());
+
+      std::cout << "-------------------------------------------\n";
+      std::cout << "Estimated decomposition:\n\n";
+      std::cout << "rvec = " << std::endl;
+
+      for (auto R_ : Rs)
+      {
+        cv::Mat1d rvec;
+        cv::Rodrigues(R_, rvec);
+        std::cout << rvec*180/CV_PI << std::endl << std::endl;
+      }
+
+      std::cout << std::endl;
+
+      std::cout << "t = " << std::endl;
+      for (auto t_ : Ts)
+      {
+        std::cout << t_ << std::endl << std::endl;
+      }
 
       geometry_msgs::PoseStamped tag_pose;
       tag_pose.pose.position.x = transform(0,3);

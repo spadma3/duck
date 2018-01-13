@@ -45,6 +45,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_compile_options(-std=c++11)
+
 add_library(apriltag_detector
   src/apriltag_detector.cpp
 )
