@@ -54,8 +54,7 @@ class PoseEstimator(object):
 
         state_est = np.copy(self.state_est)
         cov_est = np.copy(self.cov_est)
-        time_est = self.time_est.to_sec()
-        time_pred = time_pred.to_sec()
+        time_est = self.time_est
 
         # integrate forward with vehicle commands
         idx_cmd = 0
@@ -63,16 +62,15 @@ class PoseEstimator(object):
         while time_est < time_pred:
             # find current command
             if idx_cmd + 1 < num_cmd:
-                dt = min(self.cmd_queue[idx_cmd + 1].time.to_sec(),
-                         time_pred) - self.cmd_queue[idx_cmd].time.to_sec() #time_est
-                #dt_sec = dt.to_sec()  # careful, this could eventually cause problems if running long
-                dt_sec = dt
+                dt = min(self.cmd_queue[idx_cmd + 1].time,
+                         time_pred) - self.cmd_queue[idx_cmd].time #time_est
+                dt_sec = dt.to_sec()  # careful, this could eventually cause problems if running long
                 print('dt_sec')
                 print(dt_sec)
             else:
                 #dt = time_pred - time_est
-                dt = time_pred - self.cmd_queue[num_cmd-1].time.to_sec()
-                dt_sec = dt
+                dt = time_pred - self.cmd_queue[num_cmd-1].time #TODO: Might give problems if num_cmd = 0
+                dt_sec = dt.to_sec()
                 print('dt_sec2')
                 print(dt_sec)
 
@@ -107,6 +105,9 @@ class PoseEstimator(object):
 
         # make sure covariance matrix is symmetric
         cov_est = 0.5 * (cov_est + cov_est.T)
+
+        self.state_est = state_est
+        self.time_est = time_est
 
         return state_est, cov_est
 
