@@ -54,7 +54,7 @@
  	</include>
 
     <!-- Control -->
-    <include file="$(find lane_contol)/launch/lane_controller_node.launch">
+    <include file="$(find lane_control)/launch/lane_controller_node.launch">
         <arg name="veh"/>
         <arg name="config" default="baseline"/>
         <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
