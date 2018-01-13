@@ -653,4 +653,12 @@
 	</group>
 	<!-- End localization -->
 
+    <!-- Path Planning -->
+    <remap from="localization_node/pose_duckiebot" to="path_planning_node/pose_duckiebot" />
+    <remap from="path_planning_node/parking_pose" to="lane_controller_node/parking_pose" />
+    <include file="$(find parking)/launch/path_planning_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="end_space" value="$(arg end_space)"/>
+    </include>
+
 </launch>
