@@ -188,8 +188,8 @@ class IntersectionNavigation(object):
                     msg_lanePose.curvature_ref = curvature
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
-                else:
-                    self.state = self.state_dict['DONE']
+                #else:
+                    #self.state = self.state_dict['DONE']
 
 
 
