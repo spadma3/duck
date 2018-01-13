@@ -46,7 +46,7 @@ class parkingPathPlanner():
         # init counter
         #self.count = 0
         # init subscriber
-        rospy.Subscriber("~pose_duckiebot", Pose2DStamped, self.localization_callback)
+        rospy.Subscriber('~pose_duckiebot', Pose2DStamped, self.localization_callback)
         # init pose
         #pose =  Pose2DStamped()
         #self.x_act = 0 #165.0
