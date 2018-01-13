@@ -44,7 +44,7 @@ class Detector():
 	self.upper_white = np.array([255,25,255])
 
 	self.ref_world_point_x = 1.7 #this is the reference world point where we crop the img
-	self.major_intertia_thres = 20 #if you want to detect very little ducks might lower it to 10, not smaller,..
+	self.major_intertia_thres = 30 #if you want to detect very little ducks might lower it to 10, not smaller,..
  
 	
 	self.img_width = 0 #to be set in init_inv_homography
