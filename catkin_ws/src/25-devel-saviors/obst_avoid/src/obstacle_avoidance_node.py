@@ -64,8 +64,8 @@ class ObstAvoidNode(object):
             if obstacle_poses.poses[x].position.z > 0:
                 # Bounding window
                 # get relative coordinates
-                x_obstacle = obstacle_poses.poses[x].position.x  # mm
-                y_obstacle = obstacle_poses.poses[x].position.y  # mm
+                x_obstacle = obstacle_poses.poses[x].position.x * 1000 # mm
+                y_obstacle = obstacle_poses.poses[x].position.y * 1000 # mm
                 # get global coordinates
                 global_pos_vec = self.avoider.coordinatetransform(x_obstacle, y_obstacle,
                                                                   -self.theta_current, self.d_current)
