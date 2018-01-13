@@ -87,11 +87,11 @@ class ObstAvoidNode(object):
             #ToDo: check if self.d_current can be accessed through forwarding of self
             targets = self.avoider.avoid(obstacle_poses_on_track, self.d_current, self.theta_current)
             target.d_ref = targets[0]
+            target.v_ref = 0  # due to inaccuracies in theta, stop in any case
             if targets[1]:  # emergency stop
                 target.v_ref = 0
             # self.theta_target_pub.publish(targets[2]) # theta not calculated in current version
             rospy.loginfo('1 obstacles on track')
-
             rospy.loginfo('d_target= %f', targets[0])
             rospy.loginfo('emergency_stop = %f', targets[1])
             avoidance_active.data = True
