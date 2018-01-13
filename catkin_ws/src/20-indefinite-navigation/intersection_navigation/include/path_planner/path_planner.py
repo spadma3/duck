@@ -98,7 +98,7 @@ class Path(object):
 
         bumav = b*u - a*v
         if np.abs(bumav) > 1e-6:
-            det = -bumav*bumav * (3.0EvaluateCurvatureWithSign*c*c*u*u + w*(4.0*b*b*u - 4.0*a*b*v + 3.0*a*a*w) +
+            det = -bumav*bumav * (3.0*c*c*u*u + w*(4.0*b*b*u - 4.0*a*b*v + 3.0*a*a*w) +
                                      c*(-4.0*b*u*v + 4.0*a*v*v - 6.0*a*u*w))
             if det > 0:
                 s = -(bumav*(c*u - a*w) + np.sqrt(det))/(2*bumav*bumav)
@@ -160,7 +160,7 @@ class PathPlanner(object):
                 val_denom_roots = path.EvaluateDenominator(path.roots_denom)
 
                 # bound numerator, denominator
-                bound_num = np.zeros(EvaluateCurvatureWithSignshape=(1, self.num_intervals), dtype=float)
+                bound_num = np.zeros(shape=(1, self.num_intervals), dtype=float)
                 roots_num = np.append(path.roots_num, 10.0)
                 idx_roots_num = 0
 

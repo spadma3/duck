@@ -158,8 +158,17 @@ class IntersectionNavigation(object):
                 print(pose[1])
 
                 #Condition on s
-                if self.s < 0.99:
+                #if self.s < 0.99:
                 #if (np.abs(pose[0] - self.pose_final[0]) > 0.01) and (np.abs(pose[1] - self.pose_final[1]) > 0.01):
+
+                if not self.init_debug:
+                    self.init_debug = True
+                    self.debug_start = rospy.Time.now()
+
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
+
+                    msg_lanePose = LanePose()
+                    msg_lanePose.header.stamp = rospy.Time.now()
 
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
@@ -172,12 +181,11 @@ class IntersectionNavigation(object):
                     print('curvature')
                     print(curvature)
 
-                    msg_lanePose = LanePose()
-                    msg_lanePose.header.stamp = rospy.Time.now()
+
                     msg_lanePose.d = dist
                     msg_lanePose.d_ref = 0
                     msg_lanePose.phi = theta
-                    msg_lanePose.curvature_ref = 1/0.4
+                    msg_lanePose.curvature_ref = curvature
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
                 else:
@@ -394,8 +402,8 @@ class IntersectionNavigation(object):
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
-            cmd_msg.v = msg.v * 0.67
-            cmd_msg.omega = msg.omega * 0.45 #* 2 * math.pi
+            cmd_msg.v = msg.v / 0.67
+            cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2 * math.pi)
 
             print('v')
             print(cmd_msg.v)
