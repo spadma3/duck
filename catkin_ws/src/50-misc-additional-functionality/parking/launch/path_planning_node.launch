@@ -1,6 +1,10 @@
 <launch>
     <arg name = "end_space" default="1"/>
-    <node name="path_planning_node" pkg="parking" type="path_planning_node.py" output="screen" clear_params="true">
-        <param name="end_space" value="$(arg end_space)" />
-    </node>
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>  
+      
+    <group ns="$(arg veh)">
+
+	    <node name="path_planning_node" pkg="parking" type="path_planning_node.py" output="screen" clear_params="true">
+	        <param name="end_space" value="$(arg end_space)" />
+	    </node>
 </launch>
