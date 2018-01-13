@@ -86,11 +86,14 @@ def write_bgr_to_file_as_jpg(image_cv, fn):
     write_data_to_file(data, fn)
 
 
-def bgr_from_raspistill():
+def bgr_from_raspistill(frame=None):
     with tmpfile(".jpg") as filename:
+        if frame is not None:
+            filename = frame
         cmd = ['raspistill', '-o', filename,
-              '--awb', 'off',
-              '--exposure', 'off', ]
+            '--awb', 'off',
+#              '--exposure', 'off',
+              ]
         cwd = '.'
         _ = system_cmd_result(cwd, cmd, raise_on_error=True)
         res = bgr_from_jpg_fn(filename)
