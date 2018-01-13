@@ -88,8 +88,9 @@ class VehicleCoordinator():
 #############################################################################################################
     def set_traffic_light(self,msg):
         for item in msg.infos:
-            if item.traffic_sign_type == 76:
+            if item.traffic_sign_type == 17:
                 self.traffic_light_intersection = True
+		break
             else:
                 self.traffic_light_intersection = False
 		
@@ -114,6 +115,8 @@ class VehicleCoordinator():
             self.roof_light = CoordinationSignal.SIGNAL_A
         elif self.state == State.GO and not self.traffic_light_intersection:
             self.roof_light = CoordinationSignal.SIGNAL_GREEN
+	elif self.state == State.TL_SENSING:
+	   self.root_light = CoordinationSignal.OFF
 
         rospy.logdebug('[coordination_node] Transitioned to state' + self.state)
 #################################################################################################################
@@ -124,6 +127,8 @@ class VehicleCoordinator():
 
     def set(self, name, value):
         self.__dict__[name] = value
+	if name == 'mode':
+		self.traffic_light_intersection = UNKNOWN
 
     # Definition of each signal detection
     def process_signals_detection(self, msg):
