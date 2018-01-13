@@ -70,7 +70,7 @@ class PoseEstimator(object):
             else:
                 #dt = time_pred - time_est
                 dt = time_pred - self.cmd_queue[num_cmd-1].time #TODO: Might give problems if num_cmd = 0
-                dt_sec = 0.01 #dt.to_sec()
+                dt_sec = 0.005 #dt.to_sec()
                 print('dt_sec2')
                 print(dt_sec)
 
