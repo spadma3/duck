@@ -14,13 +14,21 @@ class AprilPostPros(object):
         self.node_name = "apriltags_postprocessing_node"
 
         # Load parameters
-        self.camera_x     = self.setupParam("~camera_x", 0.065)
-        self.camera_y     = self.setupParam("~camera_y", 0.0)
-        self.camera_z     = self.setupParam("~camera_z", 0.11)
-        self.camera_theta = self.setupParam("~camera_theta", 19.0)
-        self.scale_x     = self.setupParam("~scale_x", 1)
-        self.scale_y     = self.setupParam("~scale_y", 1)
-        self.scale_z     = self.setupParam("~scale_z", 1)
+        self.camera_x     = 0.065 #self.setupParam("~camera_x", 0.065)
+        self.camera_y     = 0.0 #self.setupParam("~camera_y", 0.0)
+        self.camera_z     = 0.11 #self.setupParam("~camera_z", 0.11)
+        self.camera_theta = 19.0 #self.setupParam("~camera_theta", 19.0)
+        self.scale_x      = 1 #self.setupParam("~scale_x", 1)
+        self.scale_y      = 1 #self.setupParam("~scale_y", 1)
+        self.scale_z      = 1 #self.setupParam("~scale_z", 1)
+
+        #self.camera_x     = self.setupParam("~camera_x", 0.065)
+        #self.camera_y     = self.setupParam("~camera_y", 0.0)
+        #self.camera_z     = self.setupParam("~camera_z", 0.11)
+        #self.camera_theta = self.setupParam("~camera_theta", 19.0)
+        #self.scale_x      = self.setupParam("~scale_x", 1)
+        #self.scale_y      = self.setupParam("~scale_y", 1)
+        #self.scale_z      = self.setupParam("~scale_z", 1)
 
 # -------- Start adding back the tag info stuff
 
@@ -63,6 +71,10 @@ class AprilPostPros(object):
         self.pub_postPros       = rospy.Publisher("~apriltags_out", AprilTagsWithInfos, queue_size=1)
         self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
 
+        # topics for state machine
+        self.pub_postPros_parking = rospy.Publisher("~apriltags_parking", BoolStamped, queue_size=1)
+        self.pub_postPros_intersection = rospy.Publisher("~apriltags_intersection", BoolStamped, queue_size=1)
+
         rospy.loginfo("[%s] has started", self.node_name)
 
     def setupParam(self,param_name,default_value):
@@ -90,6 +102,26 @@ class AprilPostPros(object):
                 new_info.street_name = id_info['street_name']
             elif new_info.tag_type == self.info.SIGN:
                 new_info.traffic_sign_type = self.traffic_sign_types[id_info['traffic_sign_type']]
+
+                # publish for FSM
+                # parking apriltag event
+                msg_parking = BoolStamped()
+                msg_parking.header.stamp = rospy.Time(0)
+                if new_info.traffic_sign_type == TagInfo.PARKING:
+                    msg_parking.data = True
+                else:
+                    msg_parking.data = False
+                self.pub_postPros_parking.Publish(msg_parking)
+
+                # intersection apriltag event
+                msg_intersection = BoolStamped()
+                msg_intersection.header.stamp = rospy.Time(0)
+                if (new_info.traffic_sign_type == TagInfo.FOUR_WAY) or (new_info.traffic_sign_type == TagInfo.RIGHT_T_INTERSECT) or (new_info.traffic_sign_type == TagInfo.LEFT_T_INTERSECT) or (new_info.traffic_sign_type == TagInfo.T_INTERSECTION):
+                    msg_intersection.data = True
+                else:
+                    msg_intersection.data = False
+                self.pub_postPros_intersection.Publish(msg_intersection)
+
             elif new_info.tag_type == self.info.VEHICLE:
                 new_info.vehicle_name = id_info['vehicle_name']
             
@@ -131,6 +163,8 @@ class AprilPostPros(object):
             # Overwrite transformed value
             (trans.x, trans.y, trans.z) = tr.translation_from_matrix(veh_T_tagxout)
             (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_matrix(veh_T_tagxout)
+
+
 
             detection.pose.pose.position = trans
             detection.pose.pose.orientation = rot
