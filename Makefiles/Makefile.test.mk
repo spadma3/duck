@@ -106,3 +106,9 @@ test-documentation:
 	# compmake out/test-documentation -c "ls failed"
 	# compmake out/test-documentation -c "why failed"
 	rm -f catkin_ws/00_main_template.html
+
+
+test-publish:
+	python -m SimpleHTTPServer 8000 ..
+
+	

@@ -7,6 +7,7 @@ import os
 import cv2
 
 from duckietown_utils.disk_hierarchy import tmpfile
+from duckietown_utils.mkdirs import d8n_make_sure_dir_exists
 from duckietown_utils.system_cmd_imp import system_cmd_result
 import numpy as np
 
@@ -88,12 +89,15 @@ def write_bgr_to_file_as_jpg(image_cv, fn):
 
 def bgr_from_raspistill(frame=None):
     with tmpfile(".jpg") as filename:
+
         if frame is not None:
             filename = frame
+        d8n_make_sure_dir_exists(filename)
         cmd = ['raspistill', '-o', filename,
-            '--awb', 'off',
+            '--awb', 'auto',
 #              '--exposure', 'off',
               ]
+        logger.debug('Capturing using command:\n   %s' % " ".join(cmd))
         cwd = '.'
         _ = system_cmd_result(cwd, cmd, raise_on_error=True)
         res = bgr_from_jpg_fn(filename)

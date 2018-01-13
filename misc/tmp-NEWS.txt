@@ -1,4 +1,10 @@
 
+
+    dt-complete_image_pipeline-single_image_pipeline
+    dt-complete_image_pipeline-validate_calibration
+
+./misc/tmp-NEWS.txt
+
 How to validate calibration:
 
     rosrun complete_image_pipeline validate_calibration  gummi
