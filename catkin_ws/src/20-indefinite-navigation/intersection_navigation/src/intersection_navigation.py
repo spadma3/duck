@@ -70,10 +70,10 @@ class IntersectionNavigation(object):
                                         CompressedImage,
                                         self.ImageCallback,
                                         queue_size=1)
-        self.sub_pose = rospy.Subscriber("~pose_in",
+        '''self.sub_pose = rospy.Subscriber("~pose_in",
                                          IntersectionPose,
                                          self.PoseCallback,
-                                         queue_size=1)
+                                         queue_size=1)'''
         self.sub_cmd = rospy.Subscriber("~cmds",
                                         Twist2DStamped,
                                         self.CmdCallback,
@@ -166,6 +166,8 @@ class IntersectionNavigation(object):
                     print(pose[0])
                     print('y')
                     print(pose[1])
+                    print('theta')
+                    print(theta)
 
                     msg_lanePose = LanePose()
                     msg_lanePose.header.stamp = rospy.Time.now()
@@ -174,7 +176,7 @@ class IntersectionNavigation(object):
 
                     print('dist')
                     print(dist)
-                    print('theta')
+                    print('phi')
                     print(theta)
                     print('s')
                     print(self.s)
