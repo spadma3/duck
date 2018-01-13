@@ -72,8 +72,8 @@ class IntersectionNavigation(object):
                                         CompressedImage,
                                         self.ImageCallback,
                                         queue_size=1)
-        #self.sub_pose = rospy.Subscriber("~pose_in",
-        self.sub_pose = rospy.Subscriber("~pose",
+        self.sub_pose = rospy.Subscriber("~pose_in",
+        #self.sub_pose = rospy.Subscriber("~pose",
                                          IntersectionPose,
                                          self.PoseCallback,
                                          queue_size=1)
