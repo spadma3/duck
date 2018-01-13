@@ -72,7 +72,8 @@ class IntersectionNavigation(object):
                                         CompressedImage,
                                         self.ImageCallback,
                                         queue_size=1)
-        self.sub_pose = rospy.Subscriber("~pose_in",
+        #self.sub_pose = rospy.Subscriber("~pose_in",
+        self.sub_pose = rospy.Subscriber("~pose",
                                          IntersectionPose,
                                          self.PoseCallback,
                                          queue_size=1)
@@ -153,7 +154,7 @@ class IntersectionNavigation(object):
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
+                if 0.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 5.0:
 
                     msg = IntersectionPose()
                     msg.header.stamp = rospy.Time.now()
@@ -190,7 +191,7 @@ class IntersectionNavigation(object):
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
 
-                if (rospy.Time.now() - self.debug_start).to_sec() > 8.0:
+                if (rospy.Time.now() - self.debug_start).to_sec() > 5.0:
                     self.state = self.state_dict['DONE']
 
 
