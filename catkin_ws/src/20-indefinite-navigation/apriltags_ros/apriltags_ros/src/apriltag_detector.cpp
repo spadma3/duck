@@ -24,7 +24,7 @@ namespace apriltags_ros{
       try{
 	descriptions_ = parse_tag_descriptions(april_tag_descriptions);
       } catch(XmlRpc::XmlRpcException e){
-	ROS_ERROR_STREAM("Error loading tag descriptions: "<<eö.getMessage());
+	ROS_ERROR_STREAM("Error loading tag descriptions: "<<e.getMessage());
       }
     }
     
