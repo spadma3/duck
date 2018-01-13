@@ -6,6 +6,8 @@ import os
 
 import cv2
 
+from duckietown_utils.disk_hierarchy import tmpfile
+from duckietown_utils.system_cmd_imp import system_cmd_result
 import numpy as np
 
 from .contracts_ import contract
@@ -82,6 +84,17 @@ def write_bgr_to_file_as_jpg(image_cv, fn):
     """ Assuming image_cv is a BGR image, write to the file fn. """
     data = jpg_from_bgr(image_cv)
     write_data_to_file(data, fn)
+
+
+def bgr_from_raspistill():
+    with tmpfile(".jpg") as filename:
+        cmd = ['raspistill', '-o', filename,
+              '--awb', 'off',
+              '--exposure', 'off', ]
+        cwd = '.'
+        _ = system_cmd_result(cwd, cmd, raise_on_error=True)
+        res = bgr_from_jpg_fn(filename)
+        return res
 
 # class Storage:
 #     dst = None

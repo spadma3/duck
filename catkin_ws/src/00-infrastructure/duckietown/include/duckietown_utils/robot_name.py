@@ -19,7 +19,7 @@ def get_current_robot_name():
     """
     if not on_duckiebot():
         msg = 'This is not a Duckiebot. You will have to set the name in a different way.'
-        raise ThisIsNotADuckiebot()
+        raise ThisIsNotADuckiebot(msg)
     import socket
     robot_name = socket.gethostname()
 
