@@ -60,8 +60,7 @@ namespace apriltags_ros{
     }
     cv::Mat gray;
     cv::cvtColor(cv_ptr->image, gray, CV_BGR2GRAY);
-    std::vector<AprilTags::TagDetection> detections = tag_detector_->extractTags(gray);
-
+    std::vector<AprilTags::TagDetection>	detections = tag_detector_->extractTags(gray);
     ROS_DEBUG("%d tag detected", (int)detections.size());
     
     double fx = cam_info->K[0];
@@ -69,6 +68,12 @@ namespace apriltags_ros{
     double px = cam_info->K[2];
     double py = cam_info->K[5];
 
+    std::cout << "The loaded intrinsic parameters are:"  << std::endl;
+    std::cout << "fx: " << fx << std::endl;
+    std::cout << "fx: " << fy << std::endl;
+    std::cout << "px: " << px << std::endl;
+    std::cout << "py: " << py << std::endl;
+    
     if(!sensor_frame_id_.empty())
       cv_ptr->header.frame_id = sensor_frame_id_;
     
@@ -76,38 +81,24 @@ namespace apriltags_ros{
     geometry_msgs::PoseArray tag_pose_array;
     tag_pose_array.header = cv_ptr->header;
     
-    BOOST_FOREACH(AprilTags::TagDetection detection, detections){
+    BOOST_FOREACH(AprilTags::TagDetection detection, detections)
+    {
       std::map<int, AprilTagDescription>::const_iterator description_itr = descriptions_.find(detection.id);
-      if(description_itr == descriptions_.end()){
-	ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
-	continue;
+
+      if(description_itr == descriptions_.end())
+      {
+	  ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
+	  continue;
       }
+
+      std::cout << "Detected tag ID: " << detection.id << std::endl;
+
       AprilTagDescription description = description_itr->second;
       double tag_size = description.size();
       
       detection.draw(cv_ptr->image);
       Eigen::Matrix4d transform = detection.getRelativeTransform(tag_size, fx, fy, px, py);
       Eigen::Matrix3d rot = transform.block(0,0,3,3);
-
-      // Publish euler angles and transformation
-/*
-      Eigen::Vector3d euler_angles;
-      euler_angles(0) = atan2(rot(2, 1), rot(2, 2));
-      euler_angles(1) = -atan2(rot(2, 0), sqrt(pow(rot(2, 1), 2.0) + pow(rot(2, 2), 2.0)));
-      euler_angles(2) = atan2(rot(1, 0), rot(0, 0));
-
-      std::cout << "euler_x= " << euler_angles(0)*180/3.14159 << std::endl;
-      std::cout << "euler_y= " << euler_angles(1)*180/3.14159 << std::endl;
-      std::cout << "euler_z= " << euler_angles(2)*180/3.14159 << std::endl;
-      std::cout << "______________________" << std::endl;
-
-      std::cout << "x= " << transform(0,3) << std::endl;
-      std::cout << "y= " << transform(1,3) << std::endl;
-      std::cout << "z= " << transform(2,3) << std::endl;
-      std::cout << "______________________" << std::endl;
-      std::cout << "______________________" << std::endl;
-*/
-
       Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
 
       geometry_msgs::PoseStamped tag_pose;
@@ -115,10 +106,14 @@ namespace apriltags_ros{
       tag_pose.pose.position.y = transform(1,3);
       tag_pose.pose.position.z = transform(2,3);
 
+      std::cout << "x dist: " << transform(0,3) << std::endl;
+      std::cout << "y dist: " << transform(1,3) << std::endl;
+      std::cout << "z dist: " << transform(2,3) << std::endl;
+
       tag_pose.pose.orientation.x = rot_quaternion.x();
       tag_pose.pose.orientation.y = rot_quaternion.y();
       tag_pose.pose.orientation.z = rot_quaternion.z();
-      tag_pose.pose.orientation.w = rot_quaternion.w();      
+      tag_pose.pose.orientation.w = rot_quaternion.w();
       tag_pose.header = cv_ptr->header;
 
       duckietown_msgs::AprilTagDetection tag_detection;
