@@ -54,7 +54,7 @@ class parkingPathPlanner():
         #self.yaw_act = 0 #-pi/2
         #print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
-        self.sample_state_pub = rospy.Publisher("~parking_pose", LanePose,queue_size=10)
+        self.sample_state_pub = rospy.Publisher("~parking_pose", LanePose, queue_size=1)
         #self.path_planning(rospy.get_param('~end_space'))
         #print "The computed x path is ", self.px
         #print "The computed y path is ", self.py
