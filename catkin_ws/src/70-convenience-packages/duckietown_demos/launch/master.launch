@@ -15,7 +15,8 @@
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" />
 	<!-- end basic args -->
- 
+    <arg name = "end_space" default="1"/>
+
 <!-- the things that are "on" by default: 
  - camera stack (raw imagery defaults to false)
  - wheels stack
@@ -644,6 +645,7 @@
 
 		<!-- localization -->
 		<remap from="localization_node/apriltags" to="apriltags_postprocessing_node/apriltags_out"/>
+		<remap from="localization_node/pose_duckiebot" to="path_planning_node/pose_duckiebot" />
 		<include file="$(find localization)/launch/localization_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="local" value="$(arg /localization/local)"/>
@@ -652,5 +654,12 @@
 		</include>
 	</group>
 	<!-- End localization -->
+
+    <!-- Path Planning -->
+    <remap from="path_planning_node/parking_pose" to="lane_controller_node/parking_pose" />
+    <include file="$(find parking)/launch/path_planning_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="end_space" value="$(arg end_space)"/>
+    </include>
 
 </launch>
