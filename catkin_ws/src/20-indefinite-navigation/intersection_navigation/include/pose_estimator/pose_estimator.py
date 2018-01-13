@@ -71,7 +71,7 @@ class PoseEstimator(object):
                 #dt = time_pred - time_est
                 dt = time_pred - self.cmd_queue[num_cmd-1].time
                 dt_sec = dt.to_sec()
-                print('dt_sec')
+                print('dt_sec2')
                 print(dt_sec)
 
             # predict covariance
