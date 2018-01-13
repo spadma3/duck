@@ -136,6 +136,7 @@ class IntersectionNavigation(object):
                 if self.InitializePath():
                     self.state = self.state_dict['TRAVERSING']
                     self.s = 0
+                    self.poseEstimator.Reset(self.pose_init, rospy.Time.now())
                     rospy.loginfo("[%s] Initialized path, traversing intersection." % (self.node_name))
                 else:
                     self.state = self.state_dict['ERROR']
@@ -348,7 +349,7 @@ class IntersectionNavigation(object):
         msg.theta = best_pose_meas[2]
         self.pub_intersection_pose.publish(msg)
 
-        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
+        #self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
         return True
 
     def InitializePath(self):
@@ -357,15 +358,15 @@ class IntersectionNavigation(object):
         turn_type = 1
 
         # 0: straight, 1: left, 2: right
-        pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
+        self.pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         self.pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
 
         print('inital pose')
-        print(pose_init)
+        print(self.pose_init)
         print('final pose')
         print(self.pose_final)
 
-        if not self.pathPlanner.PlanPath(pose_init, self.pose_final):
+        if not self.pathPlanner.PlanPath(self.pose_init, self.pose_final):
             rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
             return False
 
