@@ -61,7 +61,6 @@ namespace apriltags_ros{
     cv::Mat gray;
     cv::cvtColor(cv_ptr->image, gray, CV_BGR2GRAY);
     std::vector<AprilTags::TagDetection> detections = tag_detector_->extractTags(gray);
-    std::cout << "image size = " << gray.size() << std::endl;
 
     ROS_DEBUG("%d tag detected", (int)detections.size());
     
