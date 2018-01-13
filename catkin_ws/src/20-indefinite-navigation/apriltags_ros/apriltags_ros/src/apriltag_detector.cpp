@@ -24,7 +24,7 @@ namespace apriltags_ros{
       try{
 	descriptions_ = parse_tag_descriptions(april_tag_descriptions);
       } catch(XmlRpc::XmlRpcException e){
-	ROS_ERROR_STREAM("Error loading tag descriptions: "<<e.getMessage());
+	ROS_ERROR_STREAM("Error loading tag descriptions: "<<eö.getMessage());
       }
     }
     
@@ -70,12 +70,13 @@ namespace apriltags_ros{
     double px = cam_info->K[2];
     double py = cam_info->K[5];
 
+/*
     std::cout << "fx = " << fx << std::endl;
     std::cout << "fy = " << fy << std::endl;
     std::cout << "px = " << px << std::endl;
     std::cout << "py = " << py << std::endl;
+*/
 
-    
     if(!sensor_frame_id_.empty())
       cv_ptr->header.frame_id = sensor_frame_id_;
     
@@ -108,16 +109,24 @@ namespace apriltags_ros{
       std::cout << "euler_z= " << euler_angles(2)*180/3.14159 << std::endl;
       std::cout << "______________________" << std::endl;
 
+      std::cout << "x= " << transform(0,3) << std::endl;
+      std::cout << "y= " << transform(1,3) << std::endl;
+      std::cout << "z= " << transform(2,3) << std::endl;
+      std::cout << "______________________" << std::endl;
+      std::cout << "______________________" << std::endl;
 
       Eigen::Quaternion<double> rot_quaternion = Eigen::Quaternion<double>(rot);
 
+/*
       std::cout << "quat_x= " << rot_quaternion.x() << std::endl;
       std::cout << "quat_y= " << rot_quaternion.y() << std::endl;
       std::cout << "quat_z= " << rot_quaternion.z() << std::endl;
       std::cout << "quat_w= " << rot_quaternion.w() << std::endl;
       std::cout << "______________________" << std::endl;
       std::cout << "______________________" << std::endl;
+*/
 
+/*
       cv::Mat1f K = (cv::Mat1f(3, 3) <<
       fx, 0, px,
       0, fy, py,
@@ -154,10 +163,14 @@ namespace apriltags_ros{
         std::cout << t_ << std::endl << std::endl;
       }
 
+*/
+
       geometry_msgs::PoseStamped tag_pose;
       tag_pose.pose.position.x = transform(0,3);
       tag_pose.pose.position.y = transform(1,3);
       tag_pose.pose.position.z = transform(2,3);
+
+
       tag_pose.pose.orientation.x = rot_quaternion.x();
       tag_pose.pose.orientation.y = rot_quaternion.y();
       tag_pose.pose.orientation.z = rot_quaternion.z();
