@@ -54,8 +54,7 @@ class PoseEstimator(object):
 
         state_est = np.copy(self.state_est)
         cov_est = np.copy(self.cov_est)
-        time_est = self.time_est.to_sec()
-        time_pred = time_pred.to_sec()
+        time_est = self.time_est
 
         # integrate forward with vehicle commands
         idx_cmd = 0
