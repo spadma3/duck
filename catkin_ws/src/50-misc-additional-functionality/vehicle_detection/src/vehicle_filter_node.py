@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from cv_bridge import CvBridge, CvBridgeError
-from duckietown_msgs.msg import VehicleCorners, VehiclePose, Pose2DStamped
+from duckietown_msgs.msg import VehicleCorners, VehiclePose, Pose2DStamped, BoolStamped
 from geometry_msgs.msg import Point32
 from image_geometry import PinholeCameraModel
 from mutex import mutex
