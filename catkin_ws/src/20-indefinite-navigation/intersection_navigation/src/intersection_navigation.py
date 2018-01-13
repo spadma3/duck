@@ -152,7 +152,7 @@ class IntersectionNavigation(object):
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
-                if (rospy.Time.now() - self.debug_start).to_sec() < 10.0:
+                if (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
 
                     msg = IntersectionPose()
                     msg.header.stamp = rospy.Time.now()
@@ -191,7 +191,7 @@ class IntersectionNavigation(object):
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
 
-                if (rospy.Time.now() - self.debug_start).to_sec() > 1.0:
+                if (rospy.Time.now() - self.debug_start).to_sec() > 8.0:
                     self.state = self.state_dict['DONE']
 
 
