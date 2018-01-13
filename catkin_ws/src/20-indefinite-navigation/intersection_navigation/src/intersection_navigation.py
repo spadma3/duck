@@ -403,9 +403,7 @@ class IntersectionNavigation(object):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
             cmd_msg.v = msg.v / 0.67
-            #cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2 * math.pi)
-
-            cmd_msg.omega = (msg.v / 0.67) / (0.45 * 2 * math.pi)
+            cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2 * math.pi)
 
             print('v')
             print(cmd_msg.v)
