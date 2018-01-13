@@ -70,10 +70,10 @@ class IntersectionNavigation(object):
                                         CompressedImage,
                                         self.ImageCallback,
                                         queue_size=1)
-        '''self.sub_pose = rospy.Subscriber("~pose_in",
+        self.sub_pose = rospy.Subscriber("~pose_in",
                                          IntersectionPose,
                                          self.PoseCallback,
-                                         queue_size=1)'''
+                                         queue_size=1)
         self.sub_cmd = rospy.Subscriber("~cmds",
                                         Twist2DStamped,
                                         self.CmdCallback,
@@ -152,8 +152,9 @@ class IntersectionNavigation(object):
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
-                if (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
+                #if (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
 
+                if (self.s < 0.99):
                     msg = IntersectionPose()
                     msg.header.stamp = rospy.Time.now()
                     pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
@@ -359,7 +360,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = 1
 
         # 0: straight, 1: left, 2: right
         #self.pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
