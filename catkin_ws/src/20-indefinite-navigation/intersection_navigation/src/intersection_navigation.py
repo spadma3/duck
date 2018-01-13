@@ -167,7 +167,7 @@ class IntersectionNavigation(object):
                     print('y')
                     print(pose[1])
                     print('theta')
-                    print(theta)
+                    print(pose[2])
 
                     msg_lanePose = LanePose()
                     msg_lanePose.header.stamp = rospy.Time.now()
