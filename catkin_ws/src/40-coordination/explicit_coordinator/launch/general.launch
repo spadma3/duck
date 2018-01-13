@@ -14,7 +14,7 @@
 		<!-- Run local -->
 
 		<!-- Run coordination node -->
-		<node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_light_old.py" output="screen" clear_params="true" required="true">
+		<node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_FINAL.py" output="screen" clear_params="true" required="true">
 			<!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/veh_coordinator/simple_coordinator_node/$(arg param_file_name).yaml"/> -->
 			<param name="verbose" value="false"/>
 			<param name="intersectionType" value="$(arg intersectionType)"/>
@@ -39,7 +39,7 @@
 		</node>
 
 		<!-- Run with emitter node -->
-		<node if="$(arg local)" pkg="led_emitter" type="led_emitter_node.py"  name="led_emitter_node" output="screen" clear_params="true" required="true">
+		<node if="$(arg local)" pkg="led_emitter" type="led_emitter_node_ETHZ17.py"  name="led_emitter_node" output="screen" clear_params="true" required="true">
 			<!-- other -->
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
 			<!-- Input from coordination node -->
@@ -51,7 +51,7 @@
 	    <!-- run on vehicle -->
 
 	    <!-- Run coordination node -->
-		<node unless="$(arg local)" machine="$(arg veh)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_light_old.py" output="screen" clear_params="true" required="true">
+		<node unless="$(arg local)" machine="$(arg veh)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_FINAL.py" output="screen" clear_params="true" required="true">
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/veh_coordinator/simple_coordinator_node/$(arg param_file_name).yaml"/>
 			<param name="verbose" value="false"/>
 			<param name="intersectionType" value="$(arg intersectionType)"/>
@@ -76,7 +76,7 @@
 		</node>
 
 		<!-- Run with emitter node -->
-		<node unless="$(arg local)" machine="$(arg veh)" pkg="led_emitter" type="led_emitter_node.py"  name="led_emitter_node" output="screen" clear_params="true" required="true">
+		<node unless="$(arg local)" machine="$(arg veh)" pkg="led_emitter" type="led_emitter_node_ETHZ17.py"  name="led_emitter_node" output="screen" clear_params="true" required="true">
 			<!-- other -->
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
 			<!-- Input from coordination node -->

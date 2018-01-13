@@ -33,11 +33,12 @@ class VehicleCoordinator():
         rospy.loginfo('The Coordination Mode has Started')
 
         # Determine the state of the bot
-        self.state = State.LANE_FOLLOWING
+        self.state = State.AT_STOP_CLEARING
         self.last_state_transition = time()
         self.random_delay = 0
 
         self.intersection_go_published = False
+	self.traffic_light_published   = False
 
         self.node = rospy.init_node('veh_coordinator', anonymous=True)
 
@@ -51,11 +52,16 @@ class VehicleCoordinator():
         # Subscriptions
         self.mode = 'LANE_FOLLOWING'
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
-        rospy.Subscriber('~apriltags', AprilTagsWithInfos, self.set_traffic_light)
+        # rospy.Subscriber('~apriltags', AprilTagsWithInfos, self.set_traffic_light)
+	
+	self.traffic_light_intersection = UNKNOWN
 
         self.traffic_light = UNKNOWN
         self.right_veh     = UNKNOWN
         self.opposite_veh  = UNKNOWN
+	
+	# Output of the apriltag node
+	rospy.Subscriber('~apriltags', AprilTagsWithInfos, self.set_traffic_light)
 
         # Initializing the unknown presence of a car
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection) # see below for the def. of process_signals_detection
@@ -75,18 +81,20 @@ class VehicleCoordinator():
         self.coordination_state_pub = rospy.Publisher('~coordination_state', String, queue_size=10)
 
         while not rospy.is_shutdown():
-            self.loop()
-            rospy.sleep(0.1)
+	    if self.traffic_light_intersection != UNKNOWN:
+            	self.loop()
+            	rospy.sleep(0.1)
 
 #############################################################################################################
     def set_traffic_light(self,msg):
         for item in msg.infos:
-            if item.traffic_ligh_sign == 76:
+            if item.traffic_sign_type == 76:
                 self.traffic_light_intersection = True
             else:
                 self.traffic_light_intersection = False
-
-        if self.traffic_light_intersection:
+		
+        if not self.traffic_light_published:
+	    self.traffic_light_published = True
             rospy.loginfo('[coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
 
 #############################################################################################################
@@ -183,6 +191,8 @@ class VehicleCoordinator():
 
         elif self.state == State.GO:
             self.clearance_to_go = CoordinationClearance.GO
+	    # Start publishing AprilTag
+	    self.traffic_light_published = False
             if self.mode == 'LANE_FOLLOWING':
                 self.set_state(State.LANE_FOLLOWING)
 
@@ -207,7 +217,7 @@ class VehicleCoordinator():
 
         # If not GO, pusblish wait
         if self.state != State.GO:
-            # Initialize intersection_go_published
+            # Initialize intersection_go_published and intersection type
             self.intersection_go_published = False
             # Publish wait
             self.clearance_to_go = CoordinationClearance.WAIT
