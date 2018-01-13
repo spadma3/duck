@@ -136,7 +136,6 @@ class IntersectionNavigation(object):
                 if self.InitializePath():
                     self.state = self.state_dict['TRAVERSING']
                     self.s = 0
-                    self.poseEstimator.Reset(self.pose_init, rospy.Time.now())
                     rospy.loginfo("[%s] Initialized path, traversing intersection." % (self.node_name))
                 else:
                     self.state = self.state_dict['ERROR']
@@ -192,12 +191,12 @@ class IntersectionNavigation(object):
                     msg_lanePose.v_ref = 0.38
                     self.pub_lane_pose.publish(msg_lanePose)
 
-                if (rospy.Time.now() - self.debug_start).to_sec() > 8.0:
-                    self.state = self.state_dict['DONE']
-
-
-                #else:
+                #if (rospy.Time.now() - self.debug_start).to_sec() > 8.0:
                     #self.state = self.state_dict['DONE']
+
+
+                else:
+                    self.state = self.state_dict['DONE']
 
 
 
@@ -241,7 +240,7 @@ class IntersectionNavigation(object):
                 self.pub_cmds.publish(msg2)'''
 
             elif self.state == self.state_dict['DONE']:
-                # TODO: Now just go straight
+                # TODO: Now just stop
                 print('Intersection done')
                 msg_lanePose = LanePose()
                 msg_lanePose.header.stamp = rospy.Time.now()
@@ -354,7 +353,7 @@ class IntersectionNavigation(object):
         msg.theta = best_pose_meas[2]
         self.pub_intersection_pose.publish(msg)
 
-        #self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
+        self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
         return True
 
     def InitializePath(self):
