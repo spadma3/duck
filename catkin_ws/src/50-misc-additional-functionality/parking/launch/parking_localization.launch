@@ -55,7 +55,7 @@
 
     <!-- Control -->
     <include file="$(find lane_control)/launch/lane_controller_node.launch">
-        <arg name="veh"/>
+        <arg name="veh" value="$(arg veh)"/>
         <arg name="config" default="baseline"/>
         <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
         <arg name="param_file_name_wheels_driver_node" default="default" doc="Specify a param file. ex:megaman"/>
