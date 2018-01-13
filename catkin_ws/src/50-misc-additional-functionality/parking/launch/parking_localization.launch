@@ -34,6 +34,7 @@
  	<!-- remap for localization node, not sure why remap has to be put here -->
  	<remap from="apriltags_postprocessing_node/apriltags_out" to="localization_node/apriltags" />
  	<remap from="localization_node/pose_duckiebot" to="path_planning_node/pose_duckiebot" />
+    <remap from="path_planning_node/parking_pose" to="lane_controller_node/parking_pose" />
  	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
  		<arg name="veh" value="$(arg veh)"/>
         <arg name="local" value="$(arg local)"/>
@@ -54,7 +55,6 @@
  	</include>
 
     <!-- Control -->
-    <remap from="path_planning_node/parking_pose" to="lane_controller_node/parking_pose" />
     <include file="$(find lane_control)/launch/lane_controller_node.launch">
         <arg name="veh" value="$(arg veh)"/>
         <arg name="config" default="baseline"/>
