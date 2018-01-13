@@ -67,6 +67,7 @@ class parkingPathPlanner():
         if self.plan == False:
             state.d, state.curvature, state.phi = self.project_to_path(curvature)
             state.d_ref = self.d_ref
+            state.v_ref = self.v_ref
             self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization
