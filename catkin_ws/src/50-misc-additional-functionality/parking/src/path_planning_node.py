@@ -41,7 +41,8 @@ class parkingPathPlanner():
     def __init__(self):
         self.plan = True
         self.sample_freq = 50
-        self.d_ref = 0 #for parking, d_ref = 0
+        self.d_ref = 0  # for parking, d_ref = 0
+        self.v_ref = 0.05  # reference vel for parking
         # init counter
         #self.count = 0
         # init subscriber
@@ -64,7 +65,7 @@ class parkingPathPlanner():
     def sample_callback(self,event):
         state = LanePose()
         if self.plan == False:
-            state.d, state.c, state.phi = self.project_to_path(curvature)
+            state.d, state.curvature, state.phi = self.project_to_path(curvature)
             state.d_ref = self.d_ref
             self.sample_state_pub.publish(state)
 
