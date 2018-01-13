@@ -342,6 +342,8 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
+        self.pose_init = np.array([best_pose_meas[0], best_pose_meas[1], best_pose_meas[2]])
+
         msg = IntersectionPose()
         msg.header.stamp = rospy.Time.now()
         msg.x = best_pose_meas[0]
@@ -358,7 +360,7 @@ class IntersectionNavigation(object):
         turn_type = 1
 
         # 0: straight, 1: left, 2: right
-        self.pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
+        #self.pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         self.pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
 
         print('inital pose')
