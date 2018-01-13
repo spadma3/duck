@@ -62,7 +62,7 @@ class parkingPathPlanner():
 
     #  callback for control references
     def sample_callback(self,event):
-        state = Reference_for_control()
+        state = LanePose()
         if self.plan == False:
             state.d, state.c, state.phi = self.project_to_path(curvature)
             state.d_ref = self.d_ref
