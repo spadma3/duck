@@ -60,7 +60,7 @@ class ObstAvoidNode(object):
         # target.header.frame_id = self.robot_name
         target.v_ref = 10  # max speed high, current top 0.38
         for x in range(amount_obstacles):
-            rospy.loginfo(obstacle_poses.poses[x].position.z)
+            # rospy.loginfo(obstacle_poses.poses[x].position.z)
             if obstacle_poses.poses[x].position.z > 0:
                 # Bounding window
                 # get relative coordinates
@@ -68,16 +68,21 @@ class ObstAvoidNode(object):
                 y_obstacle = obstacle_poses.poses[x].position.y * 1000 # mm
                 # get global coordinates
                 global_pos_vec = self.avoider.coordinatetransform(x_obstacle, y_obstacle,
-                                                                  -self.theta_current, self.d_current)
+                                                                  self.theta_current, self.d_current)
+                rospy.loginfo('x_obstacle = %f', x_obstacle)
+                rospy.loginfo('y_obstacle = %f', y_obstacle)
+                rospy.loginfo('theta_current = %f', self.theta_current)
+                rospy.loginfo('d_current = %f', self.d_current)
                 x_global = global_pos_vec[0]  # mm
                 y_global = global_pos_vec[1]  # mm
+                rospy.loginfo(global_pos_vec)
                 # check if obstacle is within boundaries
                 if x_global < self.x_bounding_width and abs(y_global) < self.y_bounding_width:
                     rospy.loginfo('Obstacle in range - Beware')
                     obstacle_poses_on_track.poses.append(obstacle_poses.poses[x])
                     amount_obstacles_on_track += 1
-        if amount_obstacles_on_track == 0:
-            rospy.loginfo('0 obstacles on track')
+        if amount_obstacles_on_track == 0:  # rospy.loginfo('0 obstacles on track')
+            v = 0
         elif amount_obstacles_on_track == 1:
             #ToDo: check if self.d_current can be accessed through forwarding of self
             targets = self.avoider.avoid(obstacle_poses_on_track, self.d_current, self.theta_current)
@@ -86,6 +91,7 @@ class ObstAvoidNode(object):
                 target.v_ref = 0
             # self.theta_target_pub.publish(targets[2]) # theta not calculated in current version
             rospy.loginfo('1 obstacles on track')
+
             rospy.loginfo('d_target= %f', targets[0])
             rospy.loginfo('emergency_stop = %f', targets[1])
             avoidance_active.data = True
@@ -97,7 +103,7 @@ class ObstAvoidNode(object):
             rospy.loginfo('emergency_stop = 1')
         self.obstavoidpose_topic.publish(target)
         self.avoid_pub.publish(avoidance_active)
-        rospy.loginfo('Avoidance flag set: %s', avoidance_active.data)
+        # rospy.loginfo('Avoidance flag set: %s', avoidance_active.data)
         return
 
     def LanePoseCallback(self, LanePose):
