@@ -64,17 +64,17 @@ For example:
 
         od = self.options.output
 
-        local_db = get_easy_logs_db_fresh()
+#        local_db = get_easy_logs_db_fresh()
         for log_name, log in logs_valid.items():
             out = os.path.join(od, log_name)
 
-            present = local_db.query(log.log_name)
-            if not present:
-                print('I will have to download %s' % log.log_name)
-                job_id = 'download-%s' % log.log_name
-                log_downloaded = context.comp(download_if_necessary, log, job_id=job_id)
-            else:
-                log_downloaded = log
+#            present = local_db.query(log.log_name)
+#            if not present:
+#                print('I will have to download %s' % log.log_name)
+            job_id = 'download-%s' % log.log_name
+            log_downloaded = context.comp(download_if_necessary, log, job_id=job_id)
+#            else:
+#                log_downloaded = log
 
             job_id = 'setup-%s' % log_name
             context.comp_dynamic(jobs_videos, log_downloaded, log_name, out, only_camera, job_id=job_id)
