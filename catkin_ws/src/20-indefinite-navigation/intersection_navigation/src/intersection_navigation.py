@@ -2,7 +2,7 @@
 import rospy
 import cv2
 from path_planner.path_planner import PathPlanner
-from pose_estimator.pose_estimator import PoseEstimator, VehicleCommands
+from pose_estimator.pose_estimator import PoseEstimator, VehicleCommand
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TagInfo, Twist2DStamped, BoolStamped, IntersectionPose, IntersectionPoseImg, LanePose
