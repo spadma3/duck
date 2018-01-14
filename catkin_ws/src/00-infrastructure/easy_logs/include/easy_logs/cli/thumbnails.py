@@ -147,6 +147,6 @@ def work(log, outd, max_images, only_camera, write_frames):
             dtu.write_rgb_as_jpg(grid, fn)
 
         if topic == main:
-            fn = outd + '.jpg'
+            fn = outd + '.thumbnails.jpg'
             dtu.write_rgb_as_jpg(grid, fn)
 

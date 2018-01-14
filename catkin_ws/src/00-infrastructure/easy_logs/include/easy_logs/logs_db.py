@@ -1,8 +1,10 @@
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
+from collections import defaultdict
 import copy
 import os
 
 import duckietown_utils as dtu
+from duckietown_utils.memoization import memoize_simple
 
 from .logs_structure import PhysicalLog
 from .time_slice import filters_slice
@@ -97,10 +99,10 @@ class EasyLogsDB(object):
             return result
 
 
-def read_stats(pl):
+def _read_stats(pl, use_filename):
     assert isinstance(pl, PhysicalLog)
 
-    info = dtu.rosbag_info_cached(pl.filename)
+    info = dtu.rosbag_info_cached(use_filename)
     if info is None:
         return pl._replace(valid=False, error_if_invalid='Not indexed')
 
@@ -148,30 +150,71 @@ def is_valid_name(basename):
     return True
 
 
-def load_all_logs(which='*'):
-    pattern = which + '.bag'
-    basename2filename = dtu.look_everywhere_for_bag_files(pattern=pattern)
+def _get_base_base(x):
+    if not '.' in x:
+        msg = 'Invalid: %s' % x
+        raise ValueError(msg)
+    return x[:x.index('.')]
+
+
+AllResources = namedtuple('AllResources',
+                          'basename2filename base2basename2filename')
+
+
+@dtu.memoize_simple
+def get_all_resources():
+    patterns = ['*.bag', '*.mp4',
+                '*.jpg',
+#                '*.png',
+                '*.mov', '*.mts'
+                ]
+    basename2filename = dtu.look_everywhere_for_files(patterns=patterns, silent=True)
+    base2basename2filename = defaultdict(lambda: {})
+    for basename, fn in basename2filename.items():
+        if 'ii-datasets' in basename:
+            continue
+        base = _get_base_base(basename)
+#        print('basename: %s base: %s filename: %s' % (basename, base, fn))
+        base2basename2filename[base][basename] = fn
+    return AllResources(basename2filename=basename2filename,
+                        base2basename2filename=base2basename2filename)
+
+
+def load_all_logs():
+
+    all_resources = get_all_resources()
+
     logs = OrderedDict()
-    for basename, filename in basename2filename.items():
+
+    for basename, filename in all_resources.basename2filename.items():
+        if not basename.endswith('.bag'):
+            continue
+
         if not is_valid_name(basename):
             msg = 'Ignoring Bag file with invalid file name "%r".' % (basename)
             msg += '\n Full path: %s' % filename
             dtu.logger.warn(msg)
             continue
-        l = physical_log_from_filename(filename)
+
+        base = _get_base_base(basename)
+
+        if basename != base + '.bag':
+            continue
+#        print('basename: %s base: %s filename: %s related : %s' % (basename, base, filename,
+#                                                      related))
+        l = physical_log_from_filename(filename, all_resources.base2basename2filename)
 
         logs[l.log_name] = l
 
     return logs
 
 
-@dtu.memoize_simple
-def get_dir_list(dirname):
-    return list(os.listdir(dirname))
-
-
 @dtu.contract(returns=PhysicalLog, filename=str)
-def physical_log_from_filename(filename):
+def physical_log_from_filename(filename, base2basename2filename):
+    """
+
+        related: basename -> filename
+    """
     date = None
     size = os.stat(filename).st_size
     b = os.path.basename(filename)
@@ -193,55 +236,14 @@ def physical_log_from_filename(filename):
 #                msg = 'Ignoring resource %s' % rname
 #                dtu.logger.warning(msg)
                 return True
-#        dtu.logger.warning(rname)
 
         return False
 
     description = OrderedDict()
-    dirname = os.path.dirname(filename)
-    siblings = get_dir_list(dirname)
+
     resources = OrderedDict()
-    for s in siblings:
-        basedot = base + '.'
-        if s.startswith(basedot):
-            rest = s[len(basedot):]
-#            print('rest: %s' % rest)
-#            ndots = rest.count(".")
-#            if ndots == 1:
-#                record_name, rest_ext = os.path.splitext(rest)
-#                print('rest: %s ' % record_name)
 
-            record_name = rest.lower()
-            fn = os.path.join(dirname, s)
-            if not ignore_record(record_name):
-                resources[record_name] = dtu.create_hash_url(fn)
-#            else:
-#                print('will not interpret %r' % s)
-#    records = [
-#        ('bag', '{base}.bag'),
-#        ('external', '{base}.external.mp4'),
-#        ('external', '{base}.external.MP4'),
-##        ('video', '{log_name}.video.mp4'),
-##        ('thumbnails', '{log_name}.thumbnails.png'),
-##        ('info', '{log_name}.info.yaml'),
-#    ]
-#    rep = dict(base=base)
-#
-#    print(filename)
-#    for record_name, pattern in records:
-#        supposed0 = pattern.format(**rep)
-#        supposed = os.path.join(dirname, supposed0)
-#        if os.path.exists(supposed):
-##            print(supposed)
-#            resources[record_name] = dtu.create_hash_url(supposed)
-
-#    print resources
-
-    # at least the bag file should be present
-    assert 'bag' in resources
-
-    l = PhysicalLog(log_name=base,
-#                    map_name=None,
+    l = PhysicalLog(log_name=base,  # might be replaced later
                     resources=resources,
                     description=description,
                     length=None,
@@ -250,11 +252,13 @@ def physical_log_from_filename(filename):
                     size=size,
                     has_camera=None,
                     vehicle=None,
-                    filename=filename,
+                    filename=None,
+#                    filename=filename,
                     bag_info=None,
                     valid=True,
                     error_if_invalid=None)
-    l = read_stats(l)
+
+    l = _read_stats(l, use_filename=filename)
     if l.bag_info is not None:
         start = l.bag_info['start']
         canonical = dtu.format_time_as_YYYYMMDDHHMMSS(start)
@@ -269,6 +273,23 @@ def physical_log_from_filename(filename):
         canonical = canonical + '_' + s
         #print('canonical: %s' % canonical)
         l = l._replace(log_name=canonical)
+
+    possible_bases = set()
+    possible_bases.add(base)
+    possible_bases.add(l.log_name)
+
+    for _base in possible_bases:
+        for s in base2basename2filename[_base]:
+            basedot = _base + '.'
+            if s.startswith(basedot):
+                rest = s[len(basedot):]
+                record_name = rest.lower()
+                if not ignore_record(record_name):
+                    fn = base2basename2filename[_base][s]
+                    resources[record_name] = dtu.create_hash_url(fn)
+
+    # at least the bag file should be present
+    assert 'bag' in resources
 
     return l
 

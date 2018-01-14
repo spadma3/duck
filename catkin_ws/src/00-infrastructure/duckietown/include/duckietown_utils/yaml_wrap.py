@@ -120,7 +120,8 @@ def look_everywhere_for_config_files2(pattern, all_yaml):
     return results
 
 
-def look_everywhere_for_bag_files(pattern='*.bag', strict=False):
+@contract(patterns='list(str)')
+def look_everywhere_for_files(patterns, strict=False, silent=False):
     """
         Looks for all the bag files
         Returns a list of basename -> filename.
@@ -137,29 +138,31 @@ def look_everywhere_for_bag_files(pattern='*.bag', strict=False):
     if os.path.exists(p):
         sources.append(p)
 
-    logger.debug('Looking for files with pattern %s...' % pattern)
-
     results = OrderedDict()
     for s in sources:
-        filenames = locate_files(s, pattern)
-        logger.debug('%5d files in %s' % (len(filenames), friendly_path(s)))
-        for filename in filenames:
-            basename, _ = os.path.splitext(os.path.basename(filename))
-            if basename in results:
-                one = filename
-                two = results[basename]
-                if not same_file_content(one, two):
-                    msg = 'Two bags with same name but different content:\n%s\n%s' % (one, two)
-                    if strict:
-                        raise DTConfigException(msg)
+        for pattern in patterns:
+            logger.debug('Looking for files with pattern %s...' % pattern)
+            filenames = locate_files(s, pattern, case_sensitive=False)
+            logger.debug('%5d files in %s' % (len(filenames), friendly_path(s)))
+            for filename in filenames:
+                basename = os.path.basename(filename)
+                if basename in results:
+                    one = filename
+                    two = results[basename]
+                    if not same_file_content(one, two):
+                        msg = 'Two files with same name but different content:\n%s\n%s' % (one, two)
+                        if strict:
+                            raise DTConfigException(msg)
+                        else:
+                            if not silent:
+                                logger.error(msg)
+                            continue
                     else:
-                        logger.error(msg)
+                        msg = 'Two copies of same file found:\n%s\n%s' % (one, two)
+                        if not silent:
+                            logger.warn(msg)
                         continue
-                else:
-                    msg = 'Two copies of bag found:\n%s\n%s' % (one, two)
-                    logger.warn(msg)
-                    continue
-            results[basename] = filename
+                results[basename] = filename
     return results
 
 

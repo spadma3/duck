@@ -89,7 +89,7 @@ def jobs_videos(context, log, name, outd, only_camera):
     topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag, min_messages=min_messages)]
     bag.close()
 
-    only_camera_fn = outd + '.mp4'
+    only_camera_fn = outd + 'video.mp4'
     for topic in topics:
         stop_at = min_messages + 2
         actual_count, count, _stopped_early = count_messages_in_slice(log.filename, topic, log.t0, log.t1, stop_at=stop_at)
