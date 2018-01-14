@@ -423,19 +423,19 @@ class IntersectionNavigation(object):
 
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
-            #cmd_msg = Twist2DStamped()
-            #cmd_msg.v = msg.v / 0.67
-            #cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2 * math.pi)
-            #cmd_msg.header.stamp = rospy.Time.now()
+            cmd_msg = Twist2DStamped()
+            cmd_msg.v = msg.v / 0.67
+            cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2 * math.pi)
+            cmd_msg.header.stamp = rospy.Time.now()
 
-            msg.omega = msg.omega / (2 * math.pi)
+            #msg.omega = msg.omega / (2 * math.pi)
 
             #print('v')
             #print(cmd_msg.v)
             #print('w')
             #print(cmd_msg.omega)
-            #self.poseEstimator.FeedCommandQueue(cmd_msg)
-            self.poseEstimator.FeedCommandQueue(msg)
+            self.poseEstimator.FeedCommandQueue(cmd_msg)
+            #self.poseEstimator.FeedCommandQueue(msg)
 
     def AprilTagsCallback(self, msg):
         '''if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
