@@ -136,8 +136,6 @@ class PoseEstimator(object):
         self.state_est[:] = state_posterior
         self.cov_est[:] = cov_posterior
         self.time_est = time_meas
-        print("TIME")
-        print(time_meas)
 
         self.blocked = False
 
