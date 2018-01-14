@@ -55,20 +55,6 @@ class LocalizationNode(object):
                 Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
                 Mt_r=self.pose_to_matrix(tag.pose)
 
-                '''
-                #print ("robo_tag x = ", tag.pose.pose.position.x)
-                #print ("robo_tag y = ",tag.pose.pose.position.y)
-                #print ("robo_tag z = ",tag.pose.pose.position.z)
-                rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
-                print ("robo_tag quat x = ",tag.pose.pose.orientation.x)
-                print ("robo_tag quat y = ",tag.pose.pose.orientation.y)
-                print ("robo_tag quat z = ",tag.pose.pose.orientation.z)
-                print ("robo_tag quat w = ",tag.pose.pose.orientation.w)
-                #print ("robo_tag rot x", rot_euler[0]*(180/np.pi))
-                #print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
-                #print ("robo_tag rot z", rot_euler[2]*(180/np.pi))
-                '''
-
                 Mr_t=np.linalg.inv(Mt_r)
                 Mr_w=np.dot(Mt_w,Mr_t)
                 Tr_w = self.matrix_to_transform(Mr_w)
@@ -79,6 +65,14 @@ class LocalizationNode(object):
                 print ("robo_world y: ", Tr_w.translation.y)
                 print ("robo_world z: ", Tr_w.translation.z)
 
+                rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
+                #print ("robo_tag quat x = ",tag.pose.pose.orientation.x)
+                #print ("robo_tag quat y = ",tag.pose.pose.orientation.y)
+                #print ("robo_tag quat z = ",tag.pose.pose.orientation.z)
+                #print ("robo_tag quat w = ",tag.pose.pose.orientation.w)
+                print ("robo_tag rot x", rot_euler[0]*(180/np.pi))
+                print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
+                print ("robo_tag rot z", rot_euler[2]*(180/np.pi))
 
                 #rot = Tr_w.rotation
                 #rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
