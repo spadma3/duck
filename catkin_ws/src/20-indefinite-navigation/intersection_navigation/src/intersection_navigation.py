@@ -45,7 +45,7 @@ class IntersectionNavigation(object):
         #self.VehicleCommands = VehicleCommands()
 
         # nominal stop positions: centered in lane, 0.13m in front of center of red stop line, 0 relative orientation error
-        self.nominal_stop_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
+        self.nominal_start_positions = {self.tag_info.FOUR_WAY: [0.400, -0.105, 0.5 * np.pi],
                                        self.tag_info.LEFT_T_INTERSECT: [0.664, 0.400, np.pi],
                                        self.tag_info.RIGHT_T_INTERSECT: [-0.105, 0.121, 0.0 * np.pi],
                                        self.tag_info.T_INTERSECTION: [0.400, -0.105, 0.5 * np.pi]}
