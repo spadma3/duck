@@ -58,7 +58,7 @@ class LocalizationNode(object):
                 
                 #print ("robo_tag x = ", tag.pose.pose.position.x)
                 #print ("robo_tag y = ",tag.pose.pose.position.y)
-                #print ("robo_tag z = ",tag.pose.pose.position.z)                
+                #print ("robo_tag z = ",tag.pose.pose.position.z)
                 rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
                 print ("robo_tag quat x = ",tag.pose.pose.orientation.x)
                 print ("robo_tag quat y = ",tag.pose.pose.orientation.y)
@@ -110,7 +110,7 @@ class LocalizationNode(object):
             P = Pose2DStamped()
             P.x = Tr_w.translation.x
             P.y = Tr_w.translation.y
-            P.theta = rotz
+            P.theta = rotz*180/np.pi
             P.header.frame_id = self.duckiebot_frame
             P.header.stamp = rospy.Time.now()
             self.pub_pose.publish(P)

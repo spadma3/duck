@@ -17,7 +17,7 @@ class AprilPostPros(object):
         self.camera_x     = 0.065 #self.setupParam("~camera_x", 0.065)
         self.camera_y     = 0.0 #self.setupParam("~camera_y", 0.0)
         self.camera_z     = 0.11 #self.setupParam("~camera_z", 0.11)
-        self.camera_theta = 19.0 #self.setupParam("~camera_theta", 19.0)
+        self.camera_theta = 18.5 #self.setupParam("~camera_theta", 19.0)
         self.scale_x      = 1 #self.setupParam("~scale_x", 1)
         self.scale_y      = 1 #self.setupParam("~scale_y", 1)
         self.scale_z      = 1 #self.setupParam("~scale_z", 1)
