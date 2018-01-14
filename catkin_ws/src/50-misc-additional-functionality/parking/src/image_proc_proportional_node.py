@@ -26,7 +26,7 @@ class image_converter:
     self.bridge=CvBridge()
 
     self.sub_raw = rospy.Subscriber("/"+self.robot_name+"/camera_node/image/raw", Image, self.callback)
-    self.pub_rect  = rospy.Publisher("~image_rect", Image, queue_size=1, latch=True)
+    self.pub_rect  = rospy.Publisher("~image_rect", Image, queue_size=1) #, latch=True
 
     camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
     rospy.loginfo("camera info topic is " + camera_info_topic)
