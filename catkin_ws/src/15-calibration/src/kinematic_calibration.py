@@ -63,7 +63,7 @@ class calib():
 
         #make plots & visualizations
         # self.plot=self.visualize()
-        #plt.show()
+        plt.show()
 
 
     # wait until we have recieved the camera info message through ROS and then initialize

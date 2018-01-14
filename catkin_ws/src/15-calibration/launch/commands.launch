@@ -12,10 +12,10 @@
     <arg name="Nstep" default="180" doc="Step size for straight calibration."/>
     <!-- arg name="stepTime" default="0.5" doc="Step duration for straight calibration."/ -->
 
-    <arg name="k1" default="0.06" doc="Mean command for sine calibration."/>
+    <arg name="k1" default="0.12" doc="Mean command for sine calibration."/>
     <arg name="k2" default="0.05" doc="Amplitude of sines."/>
     <arg name="omega" default="0.003" doc="Angular velocity."/>   
-    <arg name="duration" default="3500" doc="Duration of sine calibration."/>
+    <arg name="duration" default="1500" doc="Duration of sine calibration."/>
 
     <node pkg="rosbag" type="record" args="record -O /media/logs/$(arg veh)_calibration -a" name="record" output="screen"/>
 
