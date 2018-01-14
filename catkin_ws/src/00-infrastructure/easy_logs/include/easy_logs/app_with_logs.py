@@ -3,7 +3,7 @@ import os
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
 from duckietown_utils.test_hash import parse_hash_url
-from easy_logs.logs_db import get_all_resources
+from easy_logs.logs_db import get_all_resources, delete_easy_logs_cache
 
 from .logs_db import get_easy_logs_db_cached_if_possible, \
     get_easy_logs_db_cloud, get_easy_logs_db_fresh
@@ -27,7 +27,9 @@ class D8AppWithLogs(D8App):
 
     def _define_my_options(self, params):
         g = "Options regarding the logs database"
-        params.add_flag('cache', help="Use local log cache.", group=g)
+        params.add_flag('cache', help="Use local log cache if it exists. Write cache if it does not.", group=g)
+        params.add_flag('cache_reset', help="Delete the local log cache if it exists.", group=g)
+
         params.add_flag('cloud', help="Use cloud DB", group=g)
         self._db = None
 
@@ -40,6 +42,9 @@ class D8AppWithLogs(D8App):
         if use_cache and use_cloud:
             msg = 'Cannot use --cache and --cloud together.'
             raise dtu.DTUserError(msg)
+
+        if self.options.cache_reset:
+            delete_easy_logs_cache()
 
         if use_cache:
             db = get_easy_logs_db_cached_if_possible()

@@ -88,7 +88,7 @@ def get_duckietown_data_dirs():
 
 @contract(returns='str')
 def get_duckietown_cache_dir():
-    dirname = os.path.join(get_duckietown_root(), 'caches', 'download')
+    dirname = os.path.join(get_duckietown_root(), 'caches')
     return dirname
 
 

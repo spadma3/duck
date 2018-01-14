@@ -5,6 +5,7 @@ import os
 
 import duckietown_utils as dtu
 from duckietown_utils.memoization import memoize_simple
+from duckietown_utils.test_hash import parse_hash_url
 
 from .logs_structure import PhysicalLog
 from .time_slice import filters_slice
@@ -14,12 +15,24 @@ def get_easy_logs_db():
     return get_easy_logs_db_cached_if_possible()
 
 
+def delete_easy_logs_cache():
+    dtu.get_cached('EasyLogsDB', lambda:None, just_delete=True)
+
+    cache_dir = dtu.get_duckietown_cache_dir()
+    fn = os.path.join(cache_dir, 'candidate_cloud.yaml')
+
+    if os.path.exists(fn):
+        dtu.logger.info('Removing %s' % fn)
+        os.unlink(fn)
+
+
 def get_easy_logs_db_cached_if_possible():
     if EasyLogsDB._singleton is None:
         f = EasyLogsDB
         EasyLogsDB._singleton = dtu.get_cached('EasyLogsDB', f)
 
-        fn = os.path.join(dtu.get_duckietown_root(), 'caches', 'candidate_cloud.yaml')
+        cache_dir = dtu.get_duckietown_cache_dir()
+        fn = os.path.join(cache_dir, 'candidate_cloud.yaml')
 
         if not os.path.exists(fn):
             logs = copy.deepcopy(EasyLogsDB._singleton.logs)
@@ -171,8 +184,6 @@ def get_all_resources():
     basename2filename = dtu.look_everywhere_for_files(patterns=patterns, silent=True)
     base2basename2filename = defaultdict(lambda: {})
     for basename, fn in basename2filename.items():
-        if 'ii-datasets' in basename:
-            continue
         base = _get_base_base(basename)
 #        print('basename: %s base: %s filename: %s' % (basename, base, fn))
         base2basename2filename[base][basename] = fn
@@ -181,13 +192,23 @@ def get_all_resources():
 
 
 def load_all_logs():
-
+    raise_if_duplicated = False
     all_resources = get_all_resources()
 
     logs = OrderedDict()
-
+    ignored = []
     for basename, filename in all_resources.basename2filename.items():
         if not basename.endswith('.bag'):
+            continue
+
+        censor = ['ii-datasets', 'RCDP']
+        to_censor = False
+        for c in censor:
+            if c in filename:
+                to_censor = True
+        if to_censor:
+            ignored.append(filename)
+            dtu.logger.warn('Ignoring %s' % filename)
             continue
 
         if not is_valid_name(basename):
@@ -203,6 +224,31 @@ def load_all_logs():
 #        print('basename: %s base: %s filename: %s related : %s' % (basename, base, filename,
 #                                                      related))
         l = physical_log_from_filename(filename, all_resources.base2basename2filename)
+
+        if l.log_name in logs:
+            old = logs[l.log_name]
+
+            old_sha1 = parse_hash_url(old.resources['bag']).sha1
+            new_sha1 = parse_hash_url(l.resources['bag']).sha1
+            if old_sha1 == new_sha1:
+                # just a duplicate
+                msg = 'File is a duplicate: %s ' % filename
+                dtu.logger.warn(msg)
+                continue
+            # Actually a different log
+            msg = 'Found twice this log: %s' % l.log_name
+            msg += '\nProbably it is a processed version.'
+            msg += "\n\nVersion 1:"
+
+            msg += '\n\n' + dtu.indent(str(old), '  ')
+            msg += "\n\n\nVersion 2:"
+            msg += '\n\ncurrent: %s' % filename
+            msg += '\n\ncurrent: %s' % ("RCDP" in filename)
+            msg += '\n\n' + dtu.indent(str(l), '  ')
+            if raise_if_duplicated:
+                raise Exception(msg)
+            else:
+                dtu.logger.error(msg)
 
         logs[l.log_name] = l
 
