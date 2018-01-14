@@ -12,6 +12,7 @@
 #include <AprilTags/Tag36h9.h>
 #include <AprilTags/Tag36h11.h>
 #include <XmlRpcException.h>
+#include <tf/transform_datatypes.h>
 
 namespace apriltags_ros{
 
@@ -105,6 +106,12 @@ namespace apriltags_ros{
       tag_pose.pose.position.x = transform(0,3);
       tag_pose.pose.position.y = transform(1,3);
       tag_pose.pose.position.z = transform(2,3);
+
+      tf::Quaternion q(rot_quaternion.x(), rot_quaternion.y(), rot_quaternion.z(), rot_quaternion.w());
+      tf::Matrix3x3 m(q);
+      double roll, pitch, yaw;
+      m.getRPY(roll, pitch, yaw);
+      std::cout << "Roll: " << roll << ", Pitch: " << pitch << ", Yaw: " << yaw << std::endl;
 
       std::cout << "x dist: " << transform(0,3) << std::endl;
       std::cout << "y dist: " << transform(1,3) << std::endl;
