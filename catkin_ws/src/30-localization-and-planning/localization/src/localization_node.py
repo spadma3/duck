@@ -87,6 +87,7 @@ class LocalizationNode(object):
 
 
         Tr_w =  avg.get_average() # Average of the opinions
+        '''
         print("-----------------------------------------------------------")
         print ("robo_world x_avg", Tr_w.translation.x)
         print ("robo_world y_avg", Tr_w.translation.y)
@@ -98,6 +99,7 @@ class LocalizationNode(object):
         print ("robo_world rot y_avg", rot_euler[1]*(180/np.pi))
         print ("robo_world rot z_avg", rot_euler[2]*(180/np.pi))
         print("-------------------------------------------------------------")
+        '''
         # Broadcast the robot transform
         if Tr_w is not None:
             # Set the z translation, and x and y rotations to 0
