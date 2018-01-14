@@ -372,7 +372,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = 1
 
         # 0: straight, 1: left, 2: right
         #self.pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
@@ -425,6 +425,7 @@ class IntersectionNavigation(object):
             cmd_msg = Twist2DStamped()
             cmd_msg.v = msg.v / 0.67
             cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2 * math.pi)
+            cmd_msg.header.stamp = rospy.Time.now()
 
             print('v')
             print(cmd_msg.v)
