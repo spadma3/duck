@@ -491,30 +491,22 @@
 		<!-- <remap from="simple_coordinator_node/intersection_go" to="coordinator_node/intersection_go" /> -->
 		<!-- <remap from="simple_coordinator_node/car_cmd" to="coordinator_node/car_cmd" /> -->
 		<!-- <remap from="coordinator_node/signals_detection" to="LED_interpreter_node/signals_detection" />-->
-                <remap from="coordinator_node/apriltags" to="apriltags_postprocessing_node/apriltags_out" />
+        <remap from="coordinator_node/apriltags" to="apriltags_postprocessing_node/apriltags_out" />
 
 		<!--the following remap is done through led_patter_switch_node -->
        	<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 
-       	<!-- First approach -->
+       	<!-- First approach
 		<include file="$(find explicit_coordinator)/launch/general.launch">
 			<arg name="veh" value="$(arg veh)"/>        
 			<arg name="config" value="$(arg config)"/>        
 			<arg name="param_file_name" value="$(arg param_file_name)"/>    
            		<arg name="intersectionType" value="$(arg intersectionType)" />
 		</include>
-		
-		<!-- Second approach
-		<include file="$(find explicit_coordinator)/launch/general_ETHZ17.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-            		<arg name="intersectionType" value="$(arg intersectionType)" />
-		</include>
 		-->
 
-		<!-- Third approach
-		<include file="$(find explicit_coordinator)/launch/general_ETHZ17_FINAL.launch">
+		<!-- Second approach
+		<include file="$(find explicit_coordinator)/launch/general_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
@@ -522,18 +514,26 @@
 		</include>
 		-->
 
+		<!-- Third approach -->
+		<include file="$(find explicit_coordinator)/launch/general_ETHZ17_FINAL.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+            <arg name="intersectionType" value="$(arg intersectionType)" />
+		</include>
+
 	</group>
 
 	<group unless="$(arg coordination)">
-	  <!-- Vehicle Coordinator-->
-	  <remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
-	  <include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
-	    <arg name="veh" value="$(arg veh)"/>        
-	    <arg name="config" value="$(arg config)"/>        
-	    <arg name="param_file_name" value="$(arg param_file_name)"/>        
-	  </include>
-	  <!-- Extra Remapping to make the fake coordination car cmds look real -->
-	  <remap from="fake_coordinator_node/car_cmd" to="simple_coordinator_node/car_cmd"/>
+	    <!-- Vehicle Coordinator-->
+	    <remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
+	    <include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
+	        <arg name="veh" value="$(arg veh)"/>
+	        <arg name="config" value="$(arg config)"/>
+	        <arg name="param_file_name" value="$(arg param_file_name)"/>
+	    </include>
+	    <!-- Extra Remapping to make the fake coordination car cmds look real -->
+	    <remap from="fake_coordinator_node/car_cmd" to="simple_coordinator_node/car_cmd"/>
 	</group>
 
 	<!-- End Coordination -->
