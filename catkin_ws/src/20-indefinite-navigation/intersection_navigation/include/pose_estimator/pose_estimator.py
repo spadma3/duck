@@ -65,13 +65,13 @@ class PoseEstimator(object):
                 dt = min(self.cmd_queue[idx_cmd + 1].time,
                          time_pred) - time_est
                 dt_sec = dt.to_sec()  # careful, this could eventually cause problems if running long
-                print('dt_sec')
-                print(dt_sec)
+                #print('dt_sec')
+                #print(dt_sec)
             else:
                 dt = time_pred - time_est
                 dt_sec = dt.to_sec()
-                print('dt_sec2')
-                print(dt_sec)
+                #print('dt_sec2')
+                #print(dt_sec)
 
             # predict covariance
             if predict_cov:
