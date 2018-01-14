@@ -154,9 +154,9 @@ class IntersectionNavigation(object):
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
-                #if (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
+                if (rospy.Time.now() - self.debug_start).to_sec() < 8.0:
 
-                if (self.s < 0.99):
+                #if (self.s < 0.99):
                     msg = IntersectionPose()
                     msg.header.stamp = rospy.Time.now()
                     pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
