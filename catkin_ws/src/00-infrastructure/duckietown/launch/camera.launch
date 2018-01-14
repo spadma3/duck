@@ -20,7 +20,7 @@
     <!-- decoder_node -->
     <group if="$(arg raw)">
         <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
-        <remap from="decoder_node/image/raw" to="image_proc_proportional_node/image/raw"/>
+        <remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
         <include file="$(find pi_camera)/launch/decoder_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="local" value="$(arg local)"/>
