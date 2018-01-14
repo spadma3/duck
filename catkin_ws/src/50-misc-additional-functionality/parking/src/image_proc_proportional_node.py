@@ -17,7 +17,8 @@ class image_converter:
   def __init__(self):
   	#self.node_name = rospy.get_name()
     self.node_name="image_proc_proportional_node"
-    self.robot_name = "alvin" 
+    #self.robot_name = "schumi" 
+    self.robot_name = rospy.get_param("~veh")
 
     self.pcm = PinholeCameraModel()
 
@@ -43,14 +44,14 @@ class image_converter:
 
   def callback(self,data):
     try:
-      cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+      cv_image = self.bridge.imgmsg_to_cv2(data, "mono8")
     except CvBridgeError as e:
       print(e)
 
     cv_image = self.rectify_full(cv_image)
 
     try:
-      self.pub_rect.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
+      self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "mono8"))
     except CvBridgeError as e:
       print(e)
 
