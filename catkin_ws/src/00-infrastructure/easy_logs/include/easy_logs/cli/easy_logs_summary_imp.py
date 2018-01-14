@@ -61,7 +61,8 @@ def get_logs_description_table(logs, color=True):
         row.append(len(log.resources))
 #        row.append(log.map_name)
         row.append(log.description)
-        row.append(log.resources['bag'])
+        parsed = dtu.parse_hash_url(log.resources['bag'])
+        row.append('%s  %.1fmb\n%s' % (parsed.name, parsed.size / (1000.0 * 1000), parsed.sha1))
         row.append(log.date)
         if log.length is not None:
             l = '%5.1f s' % log.length

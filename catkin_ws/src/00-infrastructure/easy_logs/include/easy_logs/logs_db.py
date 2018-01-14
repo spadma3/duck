@@ -3,7 +3,6 @@ import copy
 import os
 
 import duckietown_utils as dtu
-from duckietown_utils.test_hash import parse_hash_url
 
 from .logs_structure import PhysicalLog
 from .time_slice import filters_slice
@@ -107,10 +106,11 @@ class EasyLogsDB(object):
             filters.update(dtu.filters0)
             aliases = OrderedDict()
             aliases.update(self.logs)
-            # adding aliases
-            for _, log in self.logs.items():
-                original_name = parse_hash_url(log.resources['bag']).name.replace('.bag', '')
-                aliases[original_name] = log
+            # adding aliases unless we are asking for everything
+            if query != '*':
+                for _, log in self.logs.items():
+                    original_name = dtu.parse_hash_url(log.resources['bag']).name.replace('.bag', '')
+                    aliases[original_name] = log
 
             result = dtu.fuzzy_match(query, aliases, filters=filters,
                                  raise_if_no_matches=raise_if_no_matches)
@@ -245,8 +245,8 @@ def load_all_logs():
         if l.log_name in logs:
             old = logs[l.log_name]
 
-            old_sha1 = parse_hash_url(old.resources['bag']).sha1
-            new_sha1 = parse_hash_url(l.resources['bag']).sha1
+            old_sha1 = dtu.parse_hash_url(old.resources['bag']).sha1
+            new_sha1 = dtu.parse_hash_url(l.resources['bag']).sha1
             if old_sha1 == new_sha1:
                 # just a duplicate
                 msg = 'File is a duplicate: %s ' % filename

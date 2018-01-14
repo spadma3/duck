@@ -13,6 +13,7 @@ __all__ = [
     'get_md5',
     'sha1_for_file',
     'create_hash_url',
+    'parse_hash_url',
 ]
 
 

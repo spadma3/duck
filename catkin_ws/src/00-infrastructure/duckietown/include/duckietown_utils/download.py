@@ -2,16 +2,14 @@
 
 import os
 
-from duckietown_utils.paths import get_duckietown_cache_dir
-from duckietown_utils.test_hash import parse_hash_url
-
 from .exceptions import DTConfigException
 from .friendly_path_imp import friendly_path
 from .logging_logger import logger
 from .memoization import memoize_simple
 from .mkdirs import d8n_make_sure_dir_exists
+from .paths import get_duckietown_cache_dir
 from .system_cmd_imp import system_cmd_result
-from .test_hash import get_md5
+from .test_hash import get_md5, parse_hash_url
 from .text_utils import indent
 from .yaml_pretty import yaml_load
 

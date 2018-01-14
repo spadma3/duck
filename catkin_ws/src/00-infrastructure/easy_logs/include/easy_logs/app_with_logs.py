@@ -2,10 +2,8 @@ import os
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from duckietown_utils.test_hash import parse_hash_url
-from easy_logs.logs_db import get_all_resources, delete_easy_logs_cache
 
-from .logs_db import get_easy_logs_db_cached_if_possible, \
+from .logs_db import get_all_resources, delete_easy_logs_cache, get_easy_logs_db_cached_if_possible, \
     get_easy_logs_db_cloud, get_easy_logs_db_fresh
 from .logs_structure import PhysicalLog
 
@@ -91,7 +89,7 @@ def get_log_if_not_exists(log):
     bag_url = log.resources['bag']
     print('bag url: %s' % bag_url)
 
-    parsed = parse_hash_url(bag_url)
+    parsed = dtu.parse_hash_url(bag_url)
     print('parsed: %s' % str(parsed))
 
     all_resources = get_all_resources()
