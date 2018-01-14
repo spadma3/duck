@@ -36,7 +36,11 @@ build-machines-clean:
 
 build-clean: \
 	build-catkin-clean \
-	build-machines-clean
+	build-machines-clean\
+	build-pyc-clean
+
+build-pyc-clean:
+	find $(catkin_ws)/src/ -name '*pyc' -delete
 
 build-catkin:
 	catkin_make -C $(catkin_ws) --make-args --no-print-directory
