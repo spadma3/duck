@@ -1,5 +1,4 @@
-from collections import OrderedDict, namedtuple
-from collections import defaultdict
+from collections import OrderedDict, namedtuple, defaultdict
 import copy
 import os
 

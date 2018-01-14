@@ -146,7 +146,7 @@ def get_download_url(log_name):
     return url
 
 
-def make_section(i, id_log, log, destination):
+def make_section(_i, id_log, log, destination):
 
     d = Tag(name='div')
     classes = ['log-details']
