@@ -859,6 +859,7 @@ ii-datasets.zip: "https://www.dropbox.com/s/xhb2zg9tunshxga/ii-datasets.zip?dl=1
 
 frame0002.jpg: "https://www.dropbox.com/s/bzezpw8ivlfu4b0/frame0002.jpg?dl=1"
 
+cloud.yaml: https://github.com/duckietown/logs/raw/master/index/v0/cloud.yaml
 # cloud.yaml: "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
 
-cloud.yaml: "https://www.dropbox.com/s/z1y0mvn5fakx3qp/201708-duckietown-cloud.yaml?dl=1"
+# cloud.yaml: "https://www.dropbox.com/s/z1y0mvn5fakx3qp/201708-duckietown-cloud.yaml?dl=1"
