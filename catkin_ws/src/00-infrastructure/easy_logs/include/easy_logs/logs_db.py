@@ -40,11 +40,6 @@ def get_easy_logs_db_fresh():
 def get_easy_logs_db_cloud():
     cloud_file = dtu.require_resource('cloud.yaml')
 
-#     cloud_file = os.path.join(get_ros_package_path('easy_logs'), 'cloud.yaml')
-#     if not os.path.exists(cloud_file):
-#         url = "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
-#         download_url_to_file(url, cloud_file)
-
     with dtu.timeit_wall("loading DB"):
         dtu.logger.info('Loading cloud DB %s' % dtu.friendly_path(cloud_file))
         logs = dtu.yaml_load_file(cloud_file, plain_yaml=True)
@@ -170,16 +165,85 @@ def load_all_logs(which='*'):
     return logs
 
 
+@dtu.memoize_simple
+def get_dir_list(dirname):
+    return list(os.listdir(dirname))
+
+
+@dtu.contract(returns=PhysicalLog, filename=str)
 def physical_log_from_filename(filename):
     date = None
     size = os.stat(filename).st_size
     b = os.path.basename(filename)
-    log_name, bagext = os.path.splitext(b)
+    base, bagext = os.path.splitext(b)
     if bagext != '.bag':
-        raise Exception(bagext)
-    l = PhysicalLog(log_name=log_name,
-                    map_name=None,
-                    description=None,
+        raise Exception(filename)
+
+    def ignore_record(rname):
+        forbidden = [' ',  #names with spaces,
+                     'active.avi',
+                     'bag.info.yaml',
+                     'bag.info ',
+                     'zip',
+                     ".timestamps",
+                     ".metadata.yaml",
+                     ]
+        for f in forbidden:
+            if f in rname:
+#                msg = 'Ignoring resource %s' % rname
+#                dtu.logger.warning(msg)
+                return True
+#        dtu.logger.warning(rname)
+
+        return False
+
+    description = OrderedDict()
+    dirname = os.path.dirname(filename)
+    siblings = get_dir_list(dirname)
+    resources = OrderedDict()
+    for s in siblings:
+        basedot = base + '.'
+        if s.startswith(basedot):
+            rest = s[len(basedot):]
+#            print('rest: %s' % rest)
+#            ndots = rest.count(".")
+#            if ndots == 1:
+#                record_name, rest_ext = os.path.splitext(rest)
+#                print('rest: %s ' % record_name)
+
+            record_name = rest.lower()
+            fn = os.path.join(dirname, s)
+            if not ignore_record(record_name):
+                resources[record_name] = dtu.create_hash_url(fn)
+#            else:
+#                print('will not interpret %r' % s)
+#    records = [
+#        ('bag', '{base}.bag'),
+#        ('external', '{base}.external.mp4'),
+#        ('external', '{base}.external.MP4'),
+##        ('video', '{log_name}.video.mp4'),
+##        ('thumbnails', '{log_name}.thumbnails.png'),
+##        ('info', '{log_name}.info.yaml'),
+#    ]
+#    rep = dict(base=base)
+#
+#    print(filename)
+#    for record_name, pattern in records:
+#        supposed0 = pattern.format(**rep)
+#        supposed = os.path.join(dirname, supposed0)
+#        if os.path.exists(supposed):
+##            print(supposed)
+#            resources[record_name] = dtu.create_hash_url(supposed)
+
+#    print resources
+
+    # at least the bag file should be present
+    assert 'bag' in resources
+
+    l = PhysicalLog(log_name=base,
+#                    map_name=None,
+                    resources=resources,
+                    description=description,
                     length=None,
                     t0=None, t1=None,
                     date=date,
@@ -191,4 +255,20 @@ def physical_log_from_filename(filename):
                     valid=True,
                     error_if_invalid=None)
     l = read_stats(l)
+    if l.bag_info is not None:
+        start = l.bag_info['start']
+        canonical = dtu.format_time_as_YYYYMMDDHHMMSS(start)
+
+        if l.vehicle is not None:
+            s = l.vehicle
+            M = 8
+            if len(s) > M:
+                s = s[:M]
+        else:
+            s = 'unknown'
+        canonical = canonical + '_' + s
+        #print('canonical: %s' % canonical)
+        l = l._replace(log_name=canonical)
+
     return l
+

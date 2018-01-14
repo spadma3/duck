@@ -120,7 +120,7 @@ def look_everywhere_for_config_files2(pattern, all_yaml):
     return results
 
 
-def look_everywhere_for_bag_files(pattern='*.bag'):
+def look_everywhere_for_bag_files(pattern='*.bag', strict=False):
     """
         Looks for all the bag files
         Returns a list of basename -> filename.
@@ -150,7 +150,11 @@ def look_everywhere_for_bag_files(pattern='*.bag'):
                 two = results[basename]
                 if not same_file_content(one, two):
                     msg = 'Two bags with same name but different content:\n%s\n%s' % (one, two)
-                    raise DTConfigException(msg)
+                    if strict:
+                        raise DTConfigException(msg)
+                    else:
+                        logger.error(msg)
+                        continue
                 else:
                     msg = 'Two copies of bag found:\n%s\n%s' % (one, two)
                     logger.warn(msg)

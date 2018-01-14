@@ -2,12 +2,13 @@
 
 import os
 
+from duckietown_utils.paths import get_duckietown_cache_dir
+
 from .exceptions import DTConfigException
 from .friendly_path_imp import friendly_path
 from .logging_logger import logger
 from .memoization import memoize_simple
 from .mkdirs import d8n_make_sure_dir_exists
-from .paths import get_duckietown_root
 from .system_cmd_imp import system_cmd_result
 from .test_hash import get_md5
 from .text_utils import indent
@@ -96,7 +97,9 @@ def get_file_from_url(url):
     basename = get_md5(url)
     if 'jpg' in url:
         basename += '.jpg'
-    filename = os.path.join(get_duckietown_root(), 'caches', 'downloads', basename)
+
+    cachedir = get_duckietown_cache_dir()
+    filename = os.path.join(cachedir, basename)
     download_if_not_exist(url, filename)
     return filename
 
@@ -113,7 +116,7 @@ def require_resource(basename, destination=None):
     else:
         url = urls[basename]
         if destination is None:
-            dirname = os.path.join(get_duckietown_root(), 'caches', 'download')
+            dirname = get_duckietown_cache_dir()
             destination = os.path.join(dirname, basename)
         d8n_make_sure_dir_exists(destination)
         download_if_not_exist(url, destination)

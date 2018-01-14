@@ -87,6 +87,12 @@ def get_duckietown_data_dirs():
 
 
 @contract(returns='str')
+def get_duckietown_cache_dir():
+    dirname = os.path.join(get_duckietown_root(), 'caches', 'download')
+    return dirname
+
+
+@contract(returns='str')
 def get_duckietown_local_log_downloads():
     """ Returns the directory to use for local downloads of logs"""
     d = DuckietownConstants.default_download_dir

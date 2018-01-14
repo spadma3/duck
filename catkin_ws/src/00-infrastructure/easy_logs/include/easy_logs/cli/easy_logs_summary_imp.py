@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from ruamel import yaml
 
 import duckietown_utils as dtu
@@ -23,15 +25,27 @@ def format_logs(logs):
         dtu.remove_table_field(table, 'filename')
         dtu.remove_table_field(table, 'topics')
         dtu.remove_table_field(table, 'description')
-        dtu.remove_table_field(table, 'map')
+#        dtu.remove_table_field(table, 'map')
         s += dtu.indent(dtu.format_table_plus(table, colspacing=4), '| ')
+
+        counts = defaultdict(lambda:set())
+        for l in logs.values():
+            for rname, url in l.resources.items():
+                counts[rname].add(url)
+        s += '\n\nCount of resources: '
+        rsort = sorted(counts, key=lambda _:-len(counts[_]))
+        for rname in rsort:
+            rcount = len(counts[rname])
+            s += '\n %3d %s' % (rcount, rname)
+            if rcount <= 3:
+                s += '  ' + ' '.join(counts[rname])
         return s
 
 
 def get_logs_description_table(logs, color=True):
     table = []
     table.append(['#', 'Log name',
-                  'map',
+                'rc',
                   'description',
                   'date',
                   'length',
@@ -43,7 +57,8 @@ def get_logs_description_table(logs, color=True):
         row = []
         row.append(i)
         row.append(log.log_name)
-        row.append(log.map_name)
+        row.append(len(log.resources))
+#        row.append(log.map_name)
         row.append(log.description)
         row.append(log.date)
         if log.length is not None:
