@@ -119,8 +119,8 @@ class IntersectionNavigation(object):
             else: # right
                 return self.nominal_final_positions[0]
                 
-    def CarCmdCallback(self,cmd_msg):
-        return cmd_msg
+    '''def CarCmdCallback(self,cmd_msg):
+        return cmd_msg'''
 
     def MainLoop(self):
         rate = rospy.Rate(self.rate)
