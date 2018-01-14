@@ -5,6 +5,7 @@ import duckietown_utils as dtu
 from duckietown_utils.constants import DuckietownConstants
 from easy_algo import get_easy_algo_db
 from easy_algo.algo_db import name_from_spec
+from easy_logs.app_with_logs import download_if_necessary
 from easy_logs.logs_structure import PhysicalLog
 from easy_regression.processor_interface import ProcessorUtilsInterface, \
     ProcessorInterface
@@ -142,11 +143,15 @@ def process_one_processor(processor_name_or_spec, prefix_in, prefix_out, bag_fil
     processor = easy_algo_db.create_instance(ProcessorInterface.FAMILY, processor_name_or_spec)
 
     dtu.logger.info('in: bag_filename: %s' % bag_filename)
+    if not os.path.exists(bag_filename):
+        msg = 'File does not exist: %s' % bag_filename
+        raise ValueError(msg)
     dtu.logger.info('out: next_bag_filename: %s' % next_bag_filename)
     dtu.logger.info('t0_absolute: %s' % t0_absolute)
     dtu.logger.info('t1_absolute: %s' % t1_absolute)
 
-    original_bag = rosbag.Bag(log.filename)
+    log2 = download_if_necessary(log)
+    original_bag = rosbag.Bag(log2.filename)
     bag_absolute_t0_ref = original_bag.get_start_time()
     original_bag.close()
 
