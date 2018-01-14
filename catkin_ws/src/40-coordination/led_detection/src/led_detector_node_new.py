@@ -31,15 +31,16 @@ class LEDDetectorNode(object):
         self.bridge = CvBridge()
 
         # Parameters
-        self.capture_time = 0.5 # capture time
-        self.DTOL = 25
+        self.capture_time = 0.89 # capture time
+        self.DTOL_car           = 25
+	self.DTOL_traffic_light = 10
 
         # Setup SimpleBlobDetector parameters
         params = cv2.SimpleBlobDetector_Params()  # Change thresholds
         params.minThreshold = 5
         # params.maxThreshold = 200
-        params.maxThreshold = 200
-        params.thresholdStep = 10
+        params.maxThreshold = 100
+        params.thresholdStep = 5
 
         # Filter by Area.
         params.filterByArea = True
@@ -63,7 +64,7 @@ class LEDDetectorNode(object):
 
         # Traffic light
         params_traffic_light         = params
-        params_traffic_light.minArea = 10
+        params_traffic_light.minArea = 5
 
         # Create a detector with the parameters
         self.detector_car           = cv2.SimpleBlobDetector_create(params_car)
@@ -124,12 +125,12 @@ class LEDDetectorNode(object):
         debug_msg  = LEDDetectionDebugInfo()
 
         if self.trigger:
-            rospy.loginfo('[%s] GOT TRIGGER! Starting...')
+            rospy.loginfo('[%s] GOT TRIGGER! Starting...' %self.node_name)
             self.trigger          = False
             self.data             = []
             self.capture_finished = False
             # Start capturing images
-            rospy.loginfo('[%s] Start capturing frames'%self.node_name)
+            rospy.loginfo('[%s] Start capturing frames' %self.node_name)
             self.first_timestamp = msg.header.stamp.to_sec()
             self.tinit           = time.time()
 
@@ -186,7 +187,7 @@ class LEDDetectorNode(object):
         imFront = self.data[H/10:H/2,W/8:W/2,:]
 
         # Crop image traffic light
-        imTL    = self.data[0:H/3,W/8:W/2,:]
+        imTL    = self.data[0:H/4,1*W/5:3*W/5,:]
 
         # Allocate space
         FrameRight = []
@@ -220,7 +221,7 @@ class LEDDetectorNode(object):
                     Distance = np.empty(len(BlobsRight))
                     for k in range(len(BlobsRight)):
                         Distance[k] = np.linalg.norm(BlobsRight[k]['p'] - FrameRight[t][:, n])
-                    if np.min(Distance) < self.DTOL:
+                    if np.min(Distance) < self.DTOL_car:
                         # print np.min(Distance)
                         # print np.argmin(Distance)
                         if BlobsRight[np.argmin(Distance)]['Signal'][t] == 0:
@@ -252,7 +253,7 @@ class LEDDetectorNode(object):
                     Distance = np.empty(len(BlobsFront))
                     for k in range(len(BlobsFront)):
                         Distance[k] = np.linalg.norm(BlobsFront[k]['p'] - FrameFront[t][:, n])
-                    if np.min(Distance) < self.DTOL:
+                    if np.min(Distance) < self.DTOL_car:
                         # print np.min(Distance)
                         # print np.argmin(Distance)
                         if BlobsFront[np.argmin(Distance)]['Signal'][t] == 0:
@@ -284,7 +285,7 @@ class LEDDetectorNode(object):
                     Distance = np.empty(len(BlobsTL))
                     for k in range(len(BlobsTL)):
                         Distance[k] = np.linalg.norm(BlobsTL[k]['p'] - FrameTL[t][:, n])
-                    if np.min(Distance) < self.DTOL:
+                    if np.min(Distance) < self.DTOL_traffic_light:
                         # print np.min(Distance)
                         # print np.argmin(Distance)
                         if BlobsTL[np.argmin(Distance)]['Signal'][t] == 0:
@@ -292,43 +293,47 @@ class LEDDetectorNode(object):
                             BlobsTL[np.argmin(Distance)]['Signal'][t] = 1
                     else:
                         BlobsTL.append(
-                            {'p': FrameTL[t][:, n], 'N': 1, 'Signal': np.zeros(imFront.shape[2])})
+                            {'p': FrameTL[t][:, n], 'N': 1, 'Signal': np.zeros(imTL.shape[2])})
                         BlobsTL[-1]['Signal'][t] = 1
 
         # Extract blobs (right)
         keypointBlobRight = []
         for k in range(len(BlobsRight)):
-            keypointBlobRight.append(cv2.KeyPoint(BlobsRight[k]['p'][0], BlobsRight[k]['p'][1], self.DTOL))
+            keypointBlobRight.append(cv2.KeyPoint(BlobsRight[k]['p'][0], BlobsRight[k]['p'][1], self.DTOL_car))
 
         # Extract blobs (front)
         keypointBlobFront = []
         for k in range(len(BlobsFront)):
-            keypointBlobFront.append(cv2.KeyPoint(BlobsFront[k]['p'][0], BlobsFront[k]['p'][1], self.DTOL))
+            keypointBlobFront.append(cv2.KeyPoint(BlobsFront[k]['p'][0], BlobsFront[k]['p'][1], self.DTOL_car))
 
         # Extract blobs (TL)
         keypointBlobTL = []
         for k in range(len(BlobsTL)):
-            keypointBlobTL.append(cv2.KeyPoint(BlobsTL[k]['p'][0], BlobsTL[k]['p'][1], self.DTOL))
+            keypointBlobTL.append(cv2.KeyPoint(BlobsTL[k]['p'][0], BlobsTL[k]['p'][1], self.DTOL_traffic_light))
 
         # Images
         imPublishRight = cv2.drawKeypoints(imRight[:,:,-1], keypointBlobRight, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         imPublishFront = cv2.drawKeypoints(imFront[:,:,-1], keypointBlobFront, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        imPublishTL    = cv2.drawKeypoints(imFront[:,:,-1], keypointBlobTL, np.array([]), (0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        imPublishTL    = cv2.drawKeypoints(imTL[:,:,-1], keypointBlobTL, np.array([]), (0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
         # Initialize detection
         self.right         = SignalsDetection.NO_CAR
         self.front         = SignalsDetection.NO_CAR
         self.traffic_light = SignalsDetection.NO_TRAFFIC_LIGHT
 
+	# Sampling time
+	T = 1.0*self.capture_time/(NIm)	
+
         # Decide whether LED or not (right)
         for i in range(len(BlobsRight)):
             # Frequency estimation based on FFT
-            T = 1.0/30 # TODO expecting 30 fps, but RESAMPLE to be sure
             # f = np.linspace(0.0, 1.0/(2.0*T), n/2)
             signal_f      = scipy.fftpack.fft(BlobsRight[i]['Signal']-np.mean(BlobsRight[i]['Signal']))
             y_f           = 2.0/NIm * np.abs(signal_f[:NIm/2])
-            fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
-            print fft_peak_freq
+            fft_peak_freq = 1.0*np.argmax(y_f)/(T*NIm)
+          
+            rospy.loginfo("Right, frequency = %s, sampling = %s " %(fft_peak_freq,T))
+		
 
             if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
                 self.right = SignalsDetection.SIGNAL_A
@@ -337,31 +342,33 @@ class LEDDetectorNode(object):
         # Decide whether LED or not (front)
         for i in range(len(BlobsFront)):
             # Frequency estimation based on FFT
-            T = 1.0 / 30  # TODO expecting 30 fps, but RESAMPLE to be sure
             # f = np.linspace(0.0, 1.0/(2.0*T), n/2)
             signal_f = scipy.fftpack.fft(BlobsFront[i]['Signal'] - np.mean(BlobsFront[i]['Signal']))
-            y_f = 2.0 / NIm * np.abs(signal_f[:NIm / 2])
-            fft_peak_freq = 1.0 * np.argmax(y_f) / T / NIm
-            print fft_peak_freq
-
+            y_f = 2.0 / NIm * np.abs(signal_f[:NIm/2])
+            fft_peak_freq = 1.0 * np.argmax(y_f)/(T*NIm)
+        
+	    rospy.loginfo("Front, frequency = %s, sampling = %s " %(fft_peak_freq,T))
+          
             if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (TL)
         for i in range(len(BlobsTL)):
+	    print BlobsTL[i]['Signal']
             # Frequency estimation based on FFT
-            T = 1.0 / 30  # TODO expecting 30 fps, but RESAMPLE to be sure
+ 	    T = 1.0*self.capture_time/NIm
             # f = np.linspace(0.0, 1.0/(2.0*T), n/2)
             signal_f = scipy.fftpack.fft(BlobsTL[i]['Signal'] - np.mean(BlobsTL[i]['Signal']))
-            y_f = 2.0 / NIm * np.abs(signal_f[:NIm / 2])
-            fft_peak_freq = 1.0 * np.argmax(y_f) / T / NIm
-            print fft_peak_freq
+            y_f = 2.0 / NIm * np.abs(signal_f[:NIm/2])
+            fft_peak_freq = 1.0 * np.argmax(y_f)/(T*NIm)
 
-            if np.abs(fft_peak_freq - 5.7) < 0.1:
+            rospy.loginfo("TL, frequency = %s, sampling = %s " %(fft_peak_freq,T))
+
+            if np.abs(fft_peak_freq - 5.7) <= 0.3:
                 self.traffic_light = SignalsDetection.STOP
                 break
-            elif np.abs(fft_peak_freq - 4.0) < 0.1:
+            elif np.abs(fft_peak_freq - 7.8) <= 0.3:
                 self.traffic_light = SignalsDetection.GO
                 break
 
@@ -380,7 +387,7 @@ class LEDDetectorNode(object):
         #  Publish image with circles
         imRightCircle_msg = self.bridge.cv2_to_imgmsg(imRight,encoding="passthrough")
         imFrontCircle_msg = self.bridge.cv2_to_imgmsg(imFront,encoding="passthrough")
-        imTLCircle_msg    = self.bridge.cv2_to_imgmsg(imTLding="passthrough")
+        imTLCircle_msg    = self.bridge.cv2_to_imgmsg(imTL,encoding="passthrough")
 
         # Publish image
         self.pub_image_right.publish(imRightCircle_msg)
