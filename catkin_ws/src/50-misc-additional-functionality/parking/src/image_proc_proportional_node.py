@@ -25,10 +25,6 @@ class image_converter:
     self.active = True
     self.bridge=CvBridge()
 
-    self.sub_raw = rospy.Subscriber("/"+self.robot_name+"/camera_node/image/raw", Image, self.callback)
-    self.sub_raw = rospy.Subscriber("/"+self.robot_name+"/camera_node/raw_camera_info", CameraInfo, self.CIcallback)
-    self.pub_rect  = rospy.Publisher("~image_rect", Image, queue_size=1) #, latch=True
-
     self.stamp = rospy.Time.now()
 
     #camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
@@ -38,6 +34,10 @@ class image_converter:
     camera_info = rospy.wait_for_message(camera_info_topic,CameraInfo)
     rospy.loginfo("camera info received")
     self.initialize_pinhole_camera_model(camera_info)
+
+    self.sub_raw = rospy.Subscriber("/"+self.robot_name+"/camera_node/image/raw", Image, self.callback)
+    self.sub_raw = rospy.Subscriber("/"+self.robot_name+"/camera_node/raw_camera_info", CameraInfo, self.CIcallback)
+    self.pub_rect  = rospy.Publisher("~image_rect", Image, queue_size=1) #, latch=True
 
 
 # wait until we have recieved the camera info message through ROS and then initialize
