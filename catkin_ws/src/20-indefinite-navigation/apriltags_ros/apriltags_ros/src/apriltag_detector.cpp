@@ -111,7 +111,7 @@ namespace apriltags_ros{
       tf::Matrix3x3 m(q);
       double roll, pitch, yaw;
       m.getRPY(roll, pitch, yaw);
-      std::cout << "Roll: " << roll << ", Pitch: " << pitch << ", Yaw: " << yaw << std::endl;
+      std::cout << "Roll: " << roll*180/3.14159 << ", Pitch: " << pitch*180/3.14159 << ", Yaw: " << yaw*180/3.14159 << std::endl;
 
       std::cout << "x dist: " << transform(0,3) << std::endl;
       std::cout << "y dist: " << transform(1,3) << std::endl;
