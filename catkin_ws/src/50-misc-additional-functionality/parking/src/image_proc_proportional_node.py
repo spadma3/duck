@@ -17,7 +17,7 @@ class image_converter:
   def __init__(self):
   	#self.node_name = rospy.get_name()
     self.node_name="image_proc_proportional_node"
-    self.robot_name = "schumi" 
+    self.robot_name = "alvin" 
 
     self.pcm = PinholeCameraModel()
 
