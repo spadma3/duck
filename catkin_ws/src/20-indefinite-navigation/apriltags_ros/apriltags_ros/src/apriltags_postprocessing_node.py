@@ -75,7 +75,7 @@ class AprilPostPros(object):
         return value
 
     def callback(self, msg):
-
+        # tag_infos
         tag_infos = []
 
         # Load tag detections message
