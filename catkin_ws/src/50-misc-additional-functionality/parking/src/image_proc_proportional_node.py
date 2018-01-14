@@ -51,7 +51,7 @@ class image_converter:
     cv_image = self.rectify_full(cv_image)
 
     try:
-      self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "mono8"))
+      self.pub_rect.publish(self.bridge.cv2_to_imgmsg(cv_image, "mono8"))
     except CvBridgeError as e:
       print(e)
 
