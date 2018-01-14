@@ -37,7 +37,7 @@ class ApriltagsTesterNode(unittest.TestCase):
         self.assertGreaterEqual(self.pub_info.get_num_connections(), 1, "No connections found on camera_info topic")
         self.assertGreaterEqual(self.sub_tag.get_num_connections(), 1, "No connections found on apriltags topic")
 
-    def test_with_known_image(self):
+    def test_with_known_image20(self):
         filename = rospy.get_param("~filename")
         self.setup()    # Setup the node
 
@@ -45,11 +45,12 @@ class ApriltagsTesterNode(unittest.TestCase):
         msg_info = CameraInfo()
         msg_info.height = 480
         msg_info.width = 640
-        msg_info.K = [331.026328, 0.0, 319.035097, 0.0, 335.330339, 216.450133, 0.0, 0.0, 1.0]
+        msg_info.K = [337.27528732814227, 0.0, 331.1903596380628, 0.0, 334.41950735662476, 246.80442900695877, 0.0, 0.0, 1.0]
         self.pub_info.publish(msg_info)
 
         # Publish the test image
-        img = cv2.imread(filename)
+        #img = cv2.imread(filename)
+        img = cv2.imread("/home/nilsiism/duckietown/catkin_ws/src/20-indefinite-navigation/apriltags_ros/apriltags_ros/tests/apriltag_test_img_rect_dist_30.png")
         cvb = CvBridge()
         msg_raw = cvb.cv2_to_imgmsg(img, encoding="bgr8")
         self.pub_raw.publish(msg_raw)
@@ -66,17 +67,17 @@ class ApriltagsTesterNode(unittest.TestCase):
 
             print "Dectected tag ID: ", tag.id
 
-            if tag.id == 108:
+            if tag.id == 128:
                 found +=1
-                self.assertAlmostEqual(tag.pose.pose.position.x, 0.0, delta=0.1) # Allow 10 cm of error margin
-                self.assertAlmostEqual(tag.pose.pose.position.y, 0.0, delta=0.1) # Allow 10 cm of error margin
-                self.assertAlmostEqual(tag.pose.pose.position.z, 0.2, delta=0.1) # Allow 10 cm of error margin
+                self.assertAlmostEqual(tag.pose.pose.position.x, 0.0, delta=0.02) # Allow 5 cm of error margin
+                self.assertAlmostEqual(tag.pose.pose.position.y, 0.0, delta=0.02) # Allow 5 cm of error margin
+                self.assertAlmostEqual(tag.pose.pose.position.z, 0.35, delta=0.001) # Allow 5 cm of error margin
                 # Convert the quat to an angle about z
                 rot = tag.pose.pose.orientation
                 ang = tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[2] #z axis angle only
                 self.assertAlmostEqual(ang, 0, delta=15*np.pi/180) # Allow up to 15 degrees of error margin
                 
-        self.assertGreaterEqual(found,1, "Expected apriltag with id=108 not found.")
+        self.assertGreaterEqual(found,1, "Expected apriltag with id=128 not found.")
 
 
 
