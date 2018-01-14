@@ -192,6 +192,7 @@ class IntersectionNavigation(object):
                     msg_lanePose.phi = theta
                     msg_lanePose.curvature_ref = curvature
                     msg_lanePose.v_ref = 0.38
+                    msg_lanePose.header.stamp = rospy.Time.now()
                     self.pub_lane_pose.publish(msg_lanePose)
 
                 #if (rospy.Time.now() - self.debug_start).to_sec() > 8.0:
@@ -357,8 +358,6 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
-        self.pose_init = np.array([best_pose_meas[0], best_pose_meas[1], best_pose_meas[2]])
-
         msg = IntersectionPose()
         msg.header.stamp = rospy.Time.now()
         msg.x = best_pose_meas[0]
@@ -375,15 +374,15 @@ class IntersectionNavigation(object):
         turn_type = 1
 
         # 0: straight, 1: left, 2: right
-        #self.pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
+        pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         self.pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
 
         print('inital pose')
-        print(self.pose_init)
+        print(pose_init)
         print('final pose')
         print(self.pose_final)
 
-        if not self.pathPlanner.PlanPath(self.pose_init, self.pose_final):
+        if not self.pathPlanner.PlanPath(pose_init, self.pose_final):
             rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
             return False
 
