@@ -432,7 +432,8 @@ class IntersectionNavigation(object):
             print(cmd_msg.v)
             print('w')
             print(cmd_msg.omega)
-            self.poseEstimator.FeedCommandQueue(cmd_msg)
+            #self.poseEstimator.FeedCommandQueue(cmd_msg)
+            self.poseEstimator.FeedCommandQueue(msg)
 
     def AprilTagsCallback(self, msg):
         '''if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
