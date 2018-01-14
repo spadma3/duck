@@ -85,8 +85,6 @@ class LocalizationNode(object):
                 rospy.logwarn("Error looking up transform for tag_%s", tag.id)
                 rospy.logwarn(ex.message)
 
-
-
         Tr_w =  avg.get_average() # Average of the opinions
 
         print("-----------------------------------------------------------")
@@ -110,9 +108,9 @@ class LocalizationNode(object):
             rot = Tr_w.rotation
             rotz=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[2]
             P = Pose2DStamped()
-            P.x = Tr_w.translation.x
-            P.y = Tr_w.translation.y
-            P.theta = rotz*180/np.pi
+            P.x = Tr_w.translation.y        # coordiante transform form world to planning
+            P.y = -Tr_w.translation.x       # coordinate transform from world to planning
+            P.theta = rotz*180/np.pi - 90
             P.header.frame_id = self.duckiebot_frame
             P.header.stamp = rospy.Time.now()
             self.pub_pose.publish(P)
