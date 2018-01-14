@@ -92,7 +92,7 @@ class AprilPostPros(object):
             if new_info.tag_type == self.info.S_NAME:
                 new_info.street_name = id_info['street_name']
             elif new_info.tag_type == self.info.SIGN:
-                new_info.traffic_sign_type = self.traffic_sign_types[id_info['traffic_sign_type']]
+                    new_info.traffic_sign_type = self.traffic_sign_types[id_info['traffic_sign_type']]
 
                 # publish for FSM
                 # parking apriltag event
