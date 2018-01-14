@@ -61,8 +61,8 @@ class image_converter:
     H = self.pcm.height
     mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
     mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
-    print('K: %s' % self.pcm.K)
-    print('P: %s' % self.pcm.P)
+    #print('K: %s' % self.pcm.K)
+    #print('P: %s' % self.pcm.P)
 
 #        alpha = 1
 #        new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H, W), alpha)
