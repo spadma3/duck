@@ -108,8 +108,8 @@ class LocalizationNode(object):
             rot = Tr_w.rotation
             rotz=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[2]
             P = Pose2DStamped()
-            P.x = Tr_w.translation.y        # coordiante transform form world to planning
-            P.y = -Tr_w.translation.x       # coordinate transform from world to planning
+            P.x = Tr_w.translation.y*1000        # coordiante transform form world to planning
+            P.y = -Tr_w.translation.x*1000       # coordinate transform from world to planning
             P.theta = rotz*180/np.pi - 90
             P.header.frame_id = self.duckiebot_frame
             P.header.stamp = rospy.Time.now()
