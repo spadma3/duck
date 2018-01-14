@@ -20,6 +20,12 @@ class Sender(object):
 
         rospy.loginfo("[%s] 1" %(self.node_name))
 
+        # List the parameters (&FEF - DEBUG)
+        params = rospy.get_param_names()
+        rospy.loginfo("[%s] Parameters:" %(self.node_name))
+        for param in params:
+            rospy.loginfo("[%s] %s" %(self.node_name, param))
+
         # Load the parameters
         config_path = self.__setup_parameter("~config")
         rospy.loginfo("[%s] 2" %(self.node_name))
@@ -76,7 +82,7 @@ class Sender(object):
         rospy.loginfo("[%s] config 1" %(self.node_name))
         value = rospy.get_param(param_name, default_value)
         rospy.loginfo("[%s] name: %s (%s), value: %s" %(self.node_name, param_name, rospy.resolve_name(param_name), value))
-        rospy.set_param(param_name, value)
+        #rospy.set_param(param_name, value)
 
         rospy.loginfo("[%s] %s = %s " %(self.node_name, param_name, value))
 

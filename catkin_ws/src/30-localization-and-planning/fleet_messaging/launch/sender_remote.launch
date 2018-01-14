@@ -1,15 +1,20 @@
 <launch>
-    <arg name="veh" />
+    <arg name="veh" default="frankbot" />
     <arg name="local" default="false" />
     <arg name="config" default="$(find fleet_messaging)/config/config.yaml" />
     <arg name="iface" default="bat0" />
     <include file="$(find duckietown)/machines"/>
-    <node ns="$(arg veh)" if="$(arg local)" name="sender" pkg="fleet_messaging" type="sender_node.py" output="screen">
-        <param name="~config" value="$(arg config)" />
-        <param name="~iface" value="$(arg iface)" />
-    </node>
-    <node ns="$(arg veh)" unless="$(arg local)" machine="$(arg veh)" name="sender" pkg="fleet_messaging" type="sender_node.py" clear_params="true" output="screen">
-        <param name="~config" value="$(arg config)" />
-        <param name="~iface" value="$(arg iface)" />
-    </node>
+    <param name="/frankbot/sender/config" value="/home/fef/duckietown/catkin_ws/src/30-localization-and-planning/fleet_messaging/config/tester.yaml" />
+    <param name="/frankbot/sender/iface" value="bat0" />
+    <group ns="$(arg veh)">
+        <node if="$(arg local)" name="sender" pkg="fleet_messaging" type="sender_node.py" output="screen">
+            <param name="~config" value="$(arg config)" />
+            <param name="~iface" value="$(arg iface)" />
+        </node>
+        <node unless="$(arg local)" machine="$(arg veh)" name="sender" pkg="fleet_messaging" type="sender_node.py" clear_params="true" output="screen">
+            <param name="~config" value="$(arg config)" />
+            <param name="~iface" value="$(arg iface)" />
+            <param name="~test" value="test" />
+        </node>
+    </group>
 </launch>

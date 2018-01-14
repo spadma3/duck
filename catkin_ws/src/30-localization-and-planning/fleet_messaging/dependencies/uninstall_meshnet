@@ -1,24 +1,24 @@
 #!/bin/bash
 
 # Argument check: show usage
-if [[ $# -ne 1 ]] ; then
-    echo "Usage:"
-    echo "./uninstall_meshnet <wifi-iface>"
-    echo "Write the argument without <>."
-    echo "<wifi-iface> is a the interface used for the mesh network."
-    exit 1
-fi
+# if [[ $# -ne 1 ]] ; then
+#     echo "Usage:"
+#     echo "./uninstall_meshnet <wifi-iface>"
+#     echo "Write the argument without <>."
+#     echo "<wifi-iface> is a the interface used for the mesh network."
+#     exit 1
+# fi
 
 # Check the interface
-WIFACE=$1
-CHECK=$(iwconfig $WIFACE | grep "ducknet")
-if [[ $? -ne 0 ]] ; then
-    echo "Aborting...Interface" $WIFACE "is either not a WiFi interface or not used for the mesh network!"
-    exit 2
-fi
+# WIFACE=$1
+# CHECK=$(iwconfig $WIFACE | grep "ducknet")
+# if [[ $? -ne 0 ]] ; then
+#     echo "Aborting...Interface" $WIFACE "is either not a WiFi interface or not used for the mesh network!"
+#     exit 2
+# fi
 
 # Deactivate bat0
-#sudo batctl if del $WIFACE # For safety reasons
+# sudo batctl if del $WIFACE # For safety reasons
 sudo ifdown bat0
 
 # Remove the scripts
