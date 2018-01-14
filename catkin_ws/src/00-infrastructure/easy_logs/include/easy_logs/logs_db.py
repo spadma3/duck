@@ -108,11 +108,23 @@ class EasyLogsDB(object):
             filters.update(dtu.filters0)
             aliases = OrderedDict()
             aliases.update(self.logs)
+            # adding aliases
             for _, log in self.logs.items():
                 original_name = parse_hash_url(log.resources['bag']).name.replace('.bag', '')
                 aliases[original_name] = log
+
             result = dtu.fuzzy_match(query, aliases, filters=filters,
                                  raise_if_no_matches=raise_if_no_matches)
+            # remove doubles after
+            # XXX: this still has bugs
+            present = set()
+            c = OrderedDict()
+            for k, v in result.items():
+                if id(v) in present:
+                    continue
+                else:
+                    c[k] = v
+                    present.add(id(v))
             return result
 
 
@@ -207,7 +219,7 @@ def load_all_logs():
         if not basename.endswith('.bag'):
             continue
 
-        censor = ['ii-datasets', 'RCDP']
+        censor = ['ii-datasets', 'RCDP', '160122_3cars_dark-mercedes']
         to_censor = False
         for c in censor:
             if c in filename:
