@@ -1,12 +1,13 @@
-
-
+from collections import OrderedDict
 import os
 
-from .exceptions import DTConfigException
 from .friendly_path_imp import friendly_path
+from .locate_files_impl import locate_files
 from .logging_logger import logger
 from .memoization import memoize_simple
 from .mkdirs import d8n_make_sure_dir_exists
+from .paths import get_duckiefleet_root, get_duckietown_root, \
+    get_duckietown_data_dirs
 from .paths import get_duckietown_cache_dir
 from .system_cmd_imp import system_cmd_result
 from .test_hash import get_md5, parse_hash_url
@@ -14,21 +15,29 @@ from .text_utils import indent
 from .yaml_pretty import yaml_load
 
 
-def get_urls_path():
-    from .path_utils import get_ros_package_path
-    d = get_ros_package_path('easy_logs')
-    f = os.path.join(d, 'dropbox.urls.yaml')
-    return f
-
-
 @memoize_simple
 def get_dropbox_urls():
-    f = get_urls_path()
-    if not os.path.exists(f):
-        raise DTConfigException(f)
-    data = open(f).read()
+    sources = []
+    sources.append(get_duckiefleet_root())
+    sources.append(get_duckietown_root())
+    sources.extend(get_duckietown_data_dirs())
 
-    urls = yaml_load(data)
+    found = []
+    urls = OrderedDict()
+    for s in sources:
+        pattern = '*.urls.yaml'
+
+        filenames = locate_files(s, pattern, case_sensitive=False)
+        for f in filenames:
+            found.append(f)
+            data = open(f).read()
+            f_urls = yaml_load(data)
+            for k, v in f_urls.items():
+                urls[k] = v
+
+    msg = 'Found %d urls in %s files:\n' % (len(urls), len(found))
+    msg += '\n'.join(found)
+    logger.info(msg)
 
     def sanitize(url):
         if url.endswith('?dl=0'):
