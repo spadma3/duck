@@ -5,7 +5,7 @@ import rospy
 import dubins_path_planning as dpp
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
-from duckietown_msgs.msg import Pose2DStamped, LanePose  # custom message to subscribe to
+from duckietown_msgs.msg import Pose2DStamped, LanePose, BoolStamped  # custom message to subscribe to
 
 """
 Global parameters
@@ -55,20 +55,29 @@ class parkingPathPlanner():
         #print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
         self.sample_state_pub = rospy.Publisher("~parking_pose", LanePose, queue_size=1)
+        self.parking_active_pub = rospy.Publisher("~parking_active", BoolStamped, queue_size=1)
+
         #self.path_planning(rospy.get_param('~end_space'))
         #print "The computed x path is ", self.px
         #print "The computed y path is ", self.py
         #print "The computed yaw path is ", self.pyaw
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.sample_callback)
+        self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
     #  callback for control references
-    def sample_callback(self,event):
+    def sample_callback(self):
         state = LanePose()
         if self.plan == False:
             state.d, state.curvature, state.phi = self.project_to_path(curvature)
             state.d_ref = self.d_ref
             state.v_ref = self.v_ref
             self.sample_state_pub.publish(state)
+
+    def parking_active_callback(self):
+        state = BoolStamped()
+        state.data = True
+        state.header.stamp = rospy.Time.now()
+        self.parking_active_pub.publish(state)
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
