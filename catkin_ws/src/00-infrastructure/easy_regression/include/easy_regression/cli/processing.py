@@ -2,7 +2,6 @@ import os
 import shutil
 
 import duckietown_utils as dtu
-from duckietown_utils.constants import DuckietownConstants
 from easy_algo import get_easy_algo_db
 from easy_algo.algo_db import name_from_spec
 from easy_logs.app_with_logs import download_if_necessary
@@ -137,7 +136,7 @@ def finalize(bag_filename, log_out, processors, tmpfiles, delete):
 
 def process_one_processor(processor_name_or_spec, prefix_in, prefix_out, bag_filename,
                           next_bag_filename, t0_absolute, t1_absolute, log):
-    DuckietownConstants.show_timeit_benchmarks = True
+    dtu.DuckietownConstants.show_timeit_benchmarks = True
 
     easy_algo_db = get_easy_algo_db()
     processor = easy_algo_db.create_instance(ProcessorInterface.FAMILY, processor_name_or_spec)
