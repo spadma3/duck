@@ -65,7 +65,7 @@ class parkingPathPlanner():
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
     #  callback for control references
-    def sample_callback(self):
+    def sample_callback(self,event):
         state = LanePose()
         if self.plan == False:
             state.d, state.curvature, state.phi = self.project_to_path(curvature)
@@ -73,7 +73,7 @@ class parkingPathPlanner():
             state.v_ref = self.v_ref
             self.sample_state_pub.publish(state)
 
-    def parking_active_callback(self):
+    def parking_active_callback(self,event):
         state = BoolStamped()
         state.data = True
         state.header.stamp = rospy.Time.now()
