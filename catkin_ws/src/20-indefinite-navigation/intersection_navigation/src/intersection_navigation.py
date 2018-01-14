@@ -404,12 +404,12 @@ class IntersectionNavigation(object):
     def ImageCallback(self, msg):
         if self.state == self.state_dict['TRAVERSING']:
             # predict pose
-            #img_time_stamp = rospy.Time.now()
-            pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
-            #pose_pred, _ = self.poseEstimator.PredictState(img_time_stamp)
+            img_time_stamp = rospy.Time.now()
+            #pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
+            pose_pred, _ = self.poseEstimator.PredictState(img_time_stamp)
             msg_out = IntersectionPoseImg()
-            msg_out.header.stamp = msg.header.stamp
-            #msg_out.header.stamp = img_time_stamp
+            #msg_out.header.stamp = msg.header.stamp
+            msg_out.header.stamp = img_time_stamp
             msg_out.x = pose_pred[0]
             msg_out.y = pose_pred[1]
             msg_out.theta = pose_pred[2]
