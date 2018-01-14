@@ -1,6 +1,6 @@
 duckietown_package=$(catkin_ws)/src/00-infrastructure/duckietown
 machines=$(duckietown_package)/machines
-cloud_db=$(catkin_ws)/src/00-infrastructure/easy_logs/cloud.yaml
+# cloud_db=$(catkin_ws)/src/00-infrastructure/easy_logs/cloud.yaml
 
 build:
 	@echo "$(sep)Building commands"
@@ -24,10 +24,10 @@ build-machines:
 	rosrun duckieteam create-machines
 
 
-cloud-download: $(cloud_db)
+# cloud-download: $(cloud_db)
 
-$(cloud_db):
-	wget -O $@ "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
+# $(cloud_db):
+# 	wget -O $@ "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
 
 build-machines-clean:
 	@echo
