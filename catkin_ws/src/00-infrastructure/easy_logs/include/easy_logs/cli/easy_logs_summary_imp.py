@@ -47,6 +47,7 @@ def get_logs_description_table(logs, color=True):
     table.append(['#', 'Log name',
                 'rc',
                   'description',
+                  'hash bag',
                   'date',
                   'length',
                   'vehicle name',
@@ -60,6 +61,7 @@ def get_logs_description_table(logs, color=True):
         row.append(len(log.resources))
 #        row.append(log.map_name)
         row.append(log.description)
+        row.append(log.resources['bag'])
         row.append(log.date)
         if log.length is not None:
             l = '%5.1f s' % log.length

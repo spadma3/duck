@@ -4,7 +4,6 @@ import copy
 import os
 
 import duckietown_utils as dtu
-from duckietown_utils.memoization import memoize_simple
 from duckietown_utils.test_hash import parse_hash_url
 
 from .logs_structure import PhysicalLog
@@ -107,7 +106,12 @@ class EasyLogsDB(object):
             filters = OrderedDict()
             filters.update(filters_slice)
             filters.update(dtu.filters0)
-            result = dtu.fuzzy_match(query, self.logs, filters=filters,
+            aliases = OrderedDict()
+            aliases.update(self.logs)
+            for _, log in self.logs.items():
+                original_name = parse_hash_url(log.resources['bag']).name.replace('.bag', '')
+                aliases[original_name] = log
+            result = dtu.fuzzy_match(query, aliases, filters=filters,
                                  raise_if_no_matches=raise_if_no_matches)
             return result
 
@@ -156,7 +160,9 @@ def which_robot_from_bag_info(info):
 
 
 def is_valid_name(basename):
-    forbidden = [',', '(', 'conflicted', ' ']
+    forbidden = [',', '(', 'conflicted'
+                 #, ' '
+                 ]
     for f in forbidden:
         if f in basename:
             return False
