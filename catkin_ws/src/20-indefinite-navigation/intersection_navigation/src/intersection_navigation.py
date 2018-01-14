@@ -408,8 +408,8 @@ class IntersectionNavigation(object):
             #pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
             pose_pred, _ = self.poseEstimator.PredictState(img_time_stamp)
             msg_out = IntersectionPoseImg()
+            msg_out.header = msg.header
             msg_out.header.stamp = img_time_stamp
-            #msg_out.header = msg.header
             msg_out.x = pose_pred[0]
             msg_out.y = pose_pred[1]
             msg_out.theta = pose_pred[2]
