@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-2
 
 import rospy
 import numpy as np
 import roslib
-roslib.load_manifest('my_package')
+from image_geometry import PinholeCameraModel
 import sys
 import cv2
+from sensor_msgs.msg import Image, CompressedImage, CameraInfo
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -14,17 +15,16 @@ from cv_bridge import CvBridge, CvBridgeError
 class image_converter:
 
   def __init__(self):
-  	self.node_name = rospy.get_name()
-  	#self.node_name="image_proc_proportional_node"
-
-    self.robot_name = rospy.get_param("~config_file_name","robot_not_specified")
+  	#self.node_name = rospy.get_name()
+    self.node_name="image_proc_proportional_node"
+    self.robot_name = "schumi" 
 
     self.pcm = PinholeCameraModel()
 
     self.active = True
     self.bridge=CvBridge()
 
-    self.sub_raw = rospy.Subscriber("~camera_node/image/raw,Image,self.callback")
+    self.sub_raw = rospy.Subscriber("~image/raw", Image, self.callback)
     self.pub_rect  = rospy.Publisher("~image_rect", Image, queue_size=1, latch=True)
 
     camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
@@ -47,19 +47,15 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
-    cv_image = rectify_full(cv_image)
+    cv_image = self.rectify_full(cv_image)
 
     try:
       self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "mono8"))
     except CvBridgeError as e:
       print(e)
 
-   def rectify_full(self, cv_image_raw, interpolation=cv2.INTER_NEAREST):
-	    ''' 
-        Undistort an image by maintaining the proportions.
+  def rectify_full(self, cv_image_raw, interpolation=cv2.INTER_NEAREST):
 
-        To be more precise, pass interpolation= cv2.INTER_CUBIC
-    '''
     W = self.pcm.width
     H = self.pcm.height
     mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
@@ -83,17 +79,11 @@ class image_converter:
     return res
 
 
-
-def main(args):
-  ic = image_converter()
-  rospy.init_node('image_proc_proportional_node', anonymous=True)
-  try:
-    rospy.spin()
-  except KeyboardInterrupt:
-    print("Shutting down")
-  cv2.destroyAllWindows()
-
 if __name__ == '__main__':
-    main(sys.argv)
-
-
+    rospy.init_node('image_proc_proportional_node', anonymous=True)
+    ic = image_converter()
+    try:
+        rospy.spin()
+    except KeyboardInterrupt:
+        print("Shutting down")
+    cv2.destroyAllWindows()

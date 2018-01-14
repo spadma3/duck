@@ -41,7 +41,7 @@
         </include>
 
         <group if="$(arg raw)">
-            <remap from="raw_cam_info_reader_node/camera_info" to="camera_node/raw_camera_info"/>
+            <remap from="raw_cam_info_reader_node/camera_info" to="image_proc_proportional_node/raw_camera_info"/>
             <remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
             <include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
@@ -54,7 +54,7 @@
 
             <!-- Rectification -->
             <group if="$(arg rect)">
-                <remap from="image_raw" to="camera_node/image/raw"/>
+                <!--remap from="camera_node/image/raw" to="image_proc_proportional_node/image/raw"/-->
                 <remap from="camera_info" to="camera_node/raw_camera_info"/>
                 <remap from="image_rect_color" to="camera_node/image/rect" />
                 <include file="$(find pi_camera)/launch/image_proc_proportional_node.launch">

@@ -10,13 +10,11 @@
     <group ns="$(arg veh)">
 
         <!-- run local -->
-        <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg pkg_name)"
-              output="screen">
+        <node if="$(arg local)" name="image_proc_proportional_node" pkg="parking" type="image_proc_proportional_node.py" output="screen">
         </node>
 
         <!-- run remote -->
-        <node unless="$(arg local)" machine="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)"
-              type="$(arg pkg_name)" output="screen">
+        <node unless="$(arg local)" name="image_proc_proportional_node" pkg="parking" type="image_proc_proportional_node.py" output="screen">
         </node>
     </group>
 </launch>
