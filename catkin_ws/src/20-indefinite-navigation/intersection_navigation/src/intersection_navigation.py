@@ -408,6 +408,7 @@ class IntersectionNavigation(object):
 
             msg_out = IntersectionPoseImg()
             msg_out.header = msg.header
+            msg_out.header.stamp = msg.header.stamp
             msg_out.x = pose_pred[0]
             msg_out.y = pose_pred[1]
             msg_out.theta = pose_pred[2]
