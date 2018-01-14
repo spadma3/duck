@@ -51,7 +51,9 @@ class image_converter:
     cv_image = self.rectify_full(cv_image)
 
     try:
-      self.pub_rect.publish(self.bridge.cv2_to_imgmsg(cv_image, "mono8"))
+      img_rect = self.bridge.cv2_to_imgmsg(cv_image, "mono8")
+      img_rect.header.stamp = rospy.Time.now()
+      self.pub_rect.publish(img_rect)
     except CvBridgeError as e:
       print(e)
 
