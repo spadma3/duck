@@ -1,5 +1,6 @@
 # cloud.yaml: "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
-cloud.yaml: "https://www.dropbox.com/s/397qwqeujhct9jp/20180106-candidate_cloud.yaml?dl=0"
+# cloud.yaml: "https://www.dropbox.com/s/397qwqeujhct9jp/20180106-candidate_cloud.yaml?dl=0"
+cloud.yaml: https://github.com/duckietown/logs/raw/master/index/v0/cloud.yaml
 
 tori_ETHZ_2017-12-22-17-18-41.bag: "https://www.dropbox.com/s/mktlvpp5i0prkr6/tori_ETHZ_2017-12-22-17-18-41.bag?dl=1"
 

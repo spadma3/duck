@@ -9,7 +9,7 @@ __all__ = [
 
 # @contract(returns='list(str)', directory='str',
 #           pattern='str', followlinks='bool')
-def locate_files(directory, pattern, followlinks=True, alsodirs=False):
+def locate_files(directory, pattern, normalize=True, followlinks=True, alsodirs=False):
     # print('locate_files %r %r' % (directory, pattern))
     filenames = []
 
@@ -27,7 +27,10 @@ def locate_files(directory, pattern, followlinks=True, alsodirs=False):
 
     real2norm = defaultdict(lambda: [])
     for norm in filenames:
-        real = os.path.realpath(norm)
+        if normalize:
+            real = os.path.realpath(norm)
+        else:
+            real = norm    
         real2norm[real].append(norm)
         # print('%s -> %s' % (real, norm))
 

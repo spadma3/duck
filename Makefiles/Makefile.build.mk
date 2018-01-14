@@ -36,7 +36,11 @@ build-machines-clean:
 
 build-clean: \
 	build-catkin-clean \
-	build-machines-clean
+	build-machines-clean\
+	build-pyc-clean
+
+build-pyc-clean:
+	find $(catkin_ws)/src/ -name '*pyc' -delete
 
 build-catkin:
 	catkin_make -C $(catkin_ws) --make-args --no-print-directory
@@ -107,3 +111,6 @@ python-module-stats:
 		networkx\
 		Pillow\
 		qtfaststart
+
+rudolf-make-urls:
+	rosrun easy_logs dropbox-links /home/andrea/Dropbox/ "*.bag" ./catkin_ws/src/00-infrastructure/easy_logs/dropbox2.urls.yaml
