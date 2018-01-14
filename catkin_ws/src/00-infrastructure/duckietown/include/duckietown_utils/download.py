@@ -110,7 +110,9 @@ def get_sha12url():
     sha12url = {}
     urls = get_dropbox_urls()
     for u, v in urls.items():
-        if urls.startswith('hash:'):
+        u = unicode(u)  #.encode('utf-8')
+#        print('%s' % u)
+        if u.startswith('hash:'):
             parsed = parse_hash_url(u)
             sha12url[parsed.sha1] = v
     return sha12url
@@ -118,11 +120,13 @@ def get_sha12url():
 
 def require_resource_from_hash_url(hash_url, destination=None):
     url = resolve_url(hash_url)
+
     if destination is None:
         parsed = parse_hash_url(hash_url)
         basename = parsed.name if parsed.name is not None else parsed.sha1
         dirname = get_duckietown_cache_dir()
         destination = os.path.join(dirname, basename)
+
     d8n_make_sure_dir_exists(destination)
     download_if_not_exist(url, destination)
     return destination
@@ -133,9 +137,11 @@ def resolve_url(hash_url):
     parsed = parse_hash_url(hash_url)
     sha12url = get_sha12url()
     if parsed.sha1 in sha12url:
+        logger.info('found match via sha1: %s' % parsed.sha1)
         return sha12url[parsed.sha1]
     else:
         if parsed.name in urls:
+            logger.info('found match via name: %s' % parsed.name)
             return urls[parsed.name]
         else:
             msg = 'Cannot find url for %r' % hash_url

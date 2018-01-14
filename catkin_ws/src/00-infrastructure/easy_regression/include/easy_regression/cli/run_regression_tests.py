@@ -92,7 +92,7 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db, d
         # process one
         log_out = os.path.join(tmpdir, 'logs', log_name + '/' + 'out.bag')
 
-        bag_filename = c.comp(get_log_if_not_exists, easy_logs_db.logs, log.filename)
+        bag_filename = c.comp(get_log_if_not_exists, log)
         t0 = log.t0
         t1 = log.t1
 

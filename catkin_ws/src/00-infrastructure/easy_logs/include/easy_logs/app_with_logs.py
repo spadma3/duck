@@ -70,15 +70,16 @@ def download_if_necessary(log):
     """
     dtu.check_isinstance(log, PhysicalLog)
     # XXX: this is a bit convoluted
-    local_db = get_easy_logs_db_fresh()
-    logs = local_db.query(log.log_name, raise_if_no_matches=False)
+#    local_db = get_easy_logs_db_fresh()
+#    logs = local_db.query(log.log_name, raise_if_no_matches=False)
 
-    filename = get_log_if_not_exists(logs, log)
+    filename = get_log_if_not_exists(log)
     log2 = log._replace(filename=filename)
     return log2
 
 
-def get_log_if_not_exists(logs, log):
+@dtu.contract(log=PhysicalLog, returns=str)
+def get_log_if_not_exists(log):
     """" Returns the path to the log. """
     downloads = dtu.get_duckietown_local_log_downloads()
 
@@ -108,7 +109,7 @@ def get_log_if_not_exists(logs, log):
 
     dtu.logger.info('We do not have %s locally.' % parsed.name)
 
-    filename = os.path.join(downloads, parsed.name + '.bag')
+    filename = os.path.join(downloads, parsed.name)
     if os.path.exists(filename):
         dtu.logger.info('It was already downloaded as %s' % filename)
         return filename
