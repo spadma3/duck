@@ -26,14 +26,19 @@ class image_converter:
     self.bridge=CvBridge()
 
     self.sub_raw = rospy.Subscriber("/"+self.robot_name+"/camera_node/image/raw", Image, self.callback)
+    self.sub_raw = rospy.Subscriber("/"+self.robot_name+"/camera_node/raw_camera_info", CameraInfo, self.CIcallback)
     self.pub_rect  = rospy.Publisher("~image_rect", Image, queue_size=1) #, latch=True
 
-    camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
+    self.stamp = rospy.Time.now()
+
+    #camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
+    camera_info_topic = "/" + self.robot_name + "/camera_node/raw_camera_info"
     rospy.loginfo("camera info topic is " + camera_info_topic)
     rospy.loginfo("waiting for camera info")
     camera_info = rospy.wait_for_message(camera_info_topic,CameraInfo)
     rospy.loginfo("camera info received")
     self.initialize_pinhole_camera_model(camera_info)
+
 
 # wait until we have recieved the camera info message through ROS and then initialize
   def initialize_pinhole_camera_model(self,camera_info):
@@ -52,10 +57,14 @@ class image_converter:
 
     try:
       img_rect = self.bridge.cv2_to_imgmsg(cv_image, "mono8")
-      img_rect.header.stamp = rospy.Time.now()
+      #img_rect.header.stamp = rospy.Time.now()
+      img_rect.header.stamp = self.stamp
       self.pub_rect.publish(img_rect)
     except CvBridgeError as e:
       print(e)
+
+  def CIcallback(self,data):
+    self.stamp = data.header.stamp
 
   def rectify_full(self, cv_image_raw, interpolation=cv2.INTER_NEAREST):
 
