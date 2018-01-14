@@ -70,6 +70,10 @@ class image_converter:
 
     W = self.pcm.width
     H = self.pcm.height
+
+    print ("W: ", W)
+    print ("H: ", H)
+
     mapx = np.ndarray(shape=(H, W, 1), dtype='int')
     mapy = np.ndarray(shape=(H, W, 1), dtype='int')
     #print('K: %s' % self.pcm.K)
