@@ -8,15 +8,17 @@ from easy_logs import get_easy_logs_db
 import sys
 
 
-def my_unicode_repr(self, data):
-    return self.represent_str(data.encode('utf-8'))
-
-#ruamel.yaml.representer.Representer.add_representer(unicode, my_unicode_repr)
 
 def dropbox_links_main(query):
-    
+    if len(sys.argv) < 4:
+        msg = """
+
+dropbox-links  ~/Dropbox "*.bag" my.urls.yaml
+
+        """
     base = sys.argv[1]
-    output = sys.argv[2] 
+    pattern = sys.argv[2]
+    output = sys.argv[3] 
     
     # dtu.get_urls_path()
     if os.path.exists(output):
@@ -28,9 +30,11 @@ def dropbox_links_main(query):
         urls = {}
     command = 'dropbox'
     
-    files = dtu.locate_files(base, "*.bag", normalize=False)
+    files = dtu.locate_files(base, pattern, normalize=False)
     print('base: %s found %d' % (base, len(files)))
     for filename in files:
+        if '.dropbox.cache' in filename:
+            continue
         logname = os.path.basename(filename)
         if logname in urls:
             dtu.logger.info('Already have %s' % logname)
@@ -49,6 +53,9 @@ def dropbox_links_main(query):
                       capture_keyboard_interrupt=False,
                       env=None)
         link = res.stdout.strip()
+        if 'unknown error' in link.lower():
+            msg = 'Could not get link: %s' % link
+            raise Exception(msg)
         link = link.replace('dl=0','dl=1')
 
         if 'responding' in link:
@@ -64,7 +71,12 @@ def dropbox_links_main(query):
         url = create_hash_url(filename)
 	urls[url] = link
         dtu.logger.info('url : %s' % url)
-    
+
+    from collections import OrderedDict
+    urls_sorted = OrderedDict()
+    for k in sorted(urls):
+        urls_sorted[k] = urls[k]
+    urls = urls_sorted
     yaml.default_flow_style = False
     with open(output, 'w') as f:
         yaml.dump(urls, f, default_flow_style=False, allow_unicode=True)

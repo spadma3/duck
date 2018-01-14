@@ -111,3 +111,6 @@ python-module-stats:
 		networkx\
 		Pillow\
 		qtfaststart
+
+rudolf-make-urls:
+	rosrun easy_logs dropbox-links /home/andrea/Dropbox/ "*.bag" ./catkin_ws/src/00-infrastructure/easy_logs/dropbox2.urls.yaml
