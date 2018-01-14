@@ -56,6 +56,7 @@
     </include>
 
     <!-- Control -->
+    <!--
     <include file="$(find lane_control)/launch/lane_controller_node.launch">
         <arg name="veh" value="$(arg veh)"/>
         <arg name="config" default="baseline"/>
@@ -67,7 +68,7 @@
         <arg name="node_name" default="lane_controller_node" doc="name of the node"/>
         <arg name="node_name_wheels_driver_node" default="wheels_driver_node" doc="name of the node"/>
     </include>
-
+    -->
     <!-- Run a static transform to test with -->
     <node pkg="tf" type="static_transform_publisher" name="test_tag_128_broadcaster" args="0 0 0 0 0 0 world tag_128 100"/>
     <node pkg="tf" type="static_transform_publisher" name="test_tag_126_broadcaster" args="0 -0.2 0 0 0 0 world tag_126 100"/>
