@@ -258,7 +258,7 @@ class IntersectionNavigation(object):
                     msg2.v = 0.38*0.67
                     msg2.omega = self.alpha*omega*(0.67 * 0.45 * 2 * math.pi)
 
-                    self.s = self.s + 0.1/self.alpha
+                    self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
 
                     if (self.s > 1.0):
                         msg2.v = 0.0
@@ -277,6 +277,7 @@ class IntersectionNavigation(object):
                     msg2.v = 0.0
                     msg2.omega = 0.0
 
+                self.debug_time = rospy.Time.now()
                 self.pub_cmds.publish(msg2)
 
             elif self.state == self.state_dict['DONE']:
