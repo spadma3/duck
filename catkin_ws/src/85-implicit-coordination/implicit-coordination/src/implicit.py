@@ -39,8 +39,7 @@ class Implicit(object):
                                              Twist2DStamped, queue_size=1)
         self.pub_implicit_coordination = rospy.Publisher(
             "~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
-        self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1)
-
+        
         # Setup subscriber
         # self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection",
         #                                            BoolStamped, self.cbCSMA)
@@ -102,7 +101,7 @@ class Implicit(object):
             else:
                 print "lost"
                 self.detected_bots.pop(bot.id)
-                print self.detected_bots
+            print self.detected_bots
 
     def DetectPotCollision(self):
         for key in self.detected_bots:
@@ -144,14 +143,14 @@ class Implicit(object):
                 self.iteration += 1
                 if self.iteration > self.iteration_threshold:
                     flag.data = True
+		    self.pub_implicit_coordination.publish(flag)
+		    self.active = False
             else:
                 rospy.loginfo("[%s] no potential" % (self.node_name))
                 self.iteration = 0
                 flag.data = True
-                turn_type = Int16(1)
-                self.active = False
-            self.pub_turn_type.publish(turn_type)
-            self.pub_implicit_coordination.publish(flag)
+            	self.pub_implicit_coordination.publish(flag)
+		self.active = False
 
     def on_shutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
