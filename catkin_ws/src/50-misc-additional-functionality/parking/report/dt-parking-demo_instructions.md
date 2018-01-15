@@ -32,7 +32,7 @@ Here, describe the assumptions about the Duckietown, including:
 * 4 april tags					
 Do not write instructions here. The instructions should be somewhere in [the part about Duckietowns](#duckietowns). Here, merely point to them.
 
-![Duckietown parking lot](https://github.com/duckietown/Software/blob/devel-parking/catkin_ws/src/50-misc-additional-functionality/parking/report/map_0_1.pdf "Duckietown parking lot")
+![Duckietown parking lot](https://raw.githubusercontent.com/duckietown/Software/devel-parking/catkin_ws/src/50-misc-additional-functionality/parking/report/map_0_1.png "Duckietown parking lot")
 
 
 ## Duckiebot setup notes {#demo-template-duckiebot-setup}
