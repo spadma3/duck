@@ -84,7 +84,7 @@ class LocalizationNode(object):
 
         Tr_w =  avg.get_average() # Average of the opinions
 
-        '''
+        
         # Print average transformation from world to duckiebot
         print("-----------------------------------------------------------")
         print("Average pose values")
@@ -99,7 +99,7 @@ class LocalizationNode(object):
         print ("robo_world rot z_avg", rot_euler[2]*(180/np.pi))
         print("-------------------------------------------------------------")
         print("-------------------------------------------------------------")
-        '''
+        
 
         # Broadcast the robot transform
         if Tr_w is not None:
