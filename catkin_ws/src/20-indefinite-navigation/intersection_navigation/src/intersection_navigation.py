@@ -213,8 +213,8 @@ class IntersectionNavigation(object):
                         msg_cmds.v = 0.061 + 0.5 * math.fabs(msg_cmds.omega) * 0.1
                         #self.alpha = self.alpha*msg_cmds.v/0.15
 
-                    msg_cmds.v = msg_cmds.v * 1.467
-                    msg_cmds.omega = msg_cmds.omega * 4.65
+                    msg_cmds.v = msg_cmds.v * 1.5
+                    msg_cmds.omega = msg_cmds.omega * 4.75
 
                     #self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
 
