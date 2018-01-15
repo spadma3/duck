@@ -118,7 +118,7 @@ class ImageTransformerNode():
             corrected_image_cv2 = colorBalanced_image_cv2
 
         # store image to ros message
-        self.corrected_image = self.bridge.cv2_to_imgmsg(
+        self.corrected_image = self.bridge.cv2_to_compressed_imgmsg(
             corrected_image_cv2, "bgr8")
         tk.completed('encode')
 
