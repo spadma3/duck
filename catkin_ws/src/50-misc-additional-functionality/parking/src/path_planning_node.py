@@ -142,7 +142,7 @@ class parkingPathPlanner():
             c_ref = 0.0
         else:
             c_ref = 1.0/curvature
-            if sign(pyaw[idx_proj-1]-pyaw[idx_proj]) > 0:
+            if np.sign(self.pyaw[idx_proj-1]-self.pyaw[idx_proj]) > 0:
                 c_ref = -c_ref
 
         # differential var_heading
@@ -420,7 +420,11 @@ class parkingPathPlanner():
         if save_figures:
             dic = {True: 'driveable', False: 'collision'}
             #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
+<<<<<<< HEAD
             plt.savefig('/home/brett/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path.png')
+=======
+            plt.savefig('/home/nilsiism/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path_new.png')
+>>>>>>> b98eb5f10be0fab875c4abaa03ee9e3ddbef8073
 
 """
 main file

@@ -84,7 +84,7 @@ class LocalizationNode(object):
 
         Tr_w =  avg.get_average() # Average of the opinions
 
-        '''
+        
         # Print average transformation from world to duckiebot
         print("-----------------------------------------------------------")
         print("Average pose values")
@@ -99,7 +99,7 @@ class LocalizationNode(object):
         print ("robo_world rot z_avg", rot_euler[2]*(180/np.pi))
         print("-------------------------------------------------------------")
         print("-------------------------------------------------------------")
-        '''
+        
 
         # Broadcast the robot transform
         if Tr_w is not None:
@@ -110,7 +110,8 @@ class LocalizationNode(object):
             P = Pose2DStamped()
             P.x = Tr_w.translation.y*1000        # coordiante transform form world to planning
             P.y = -Tr_w.translation.x*1000       # coordinate transform from world to planning
-            P.theta = rotz*180/np.pi - 90
+            # P.theta = rotz*180/np.pi - 90
+            P.theta = rotz - np.pi
             P.header.frame_id = self.duckiebot_frame
             P.header.stamp = rospy.Time.now()
             self.pub_pose.publish(P)
