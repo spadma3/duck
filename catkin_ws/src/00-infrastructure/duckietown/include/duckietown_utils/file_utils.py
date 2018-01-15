@@ -31,6 +31,6 @@ def write_data_to_file(data, filename):
          
     with open(filename, 'w') as f:
         f.write(data)
-    logger.debug('Written to: %s' % friendly_path(filename))
+    # logger.debug('Written to: %s' % friendly_path(filename))
      
     
