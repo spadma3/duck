@@ -52,6 +52,7 @@ length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) 
 
 # plotting parameters
 visual_boundairy = 100              # mm
+add_april_tags = True               # enable dark green rectangles for april tags
 
 """
 Functions
@@ -132,12 +133,22 @@ def define_objects():
 
     # define object in the middle of parking lot to simulate path planning with RRT*
     size = 100;
-    objects.append((lot_width/2.0-size/2.0,lot_height/2.0-size/2.0,size,size,'k',False))
+    objects.append((lot_width/2.0-size/2.0,lot_height/2.0-size/2.0,size,size,'k',True))
 
     # parked duckiebot at space 5
     x, y ,yaw = pose_from_key(5)
-    objects.append((x-radius_robot*0.75,y-radius_robot,radius_robot*2*0.75,2.0*radius_robot,'k',False))
+    objects.append((x-radius_robot*0.75,y-radius_robot,radius_robot*2*0.75,2.0*radius_robot,'k',True))
 
+    # april tags
+    size = [80,50] # dx, dy
+    dark_green = (0.0, 0.2, 0.0)
+    if add_april_tags:
+        for i in range(6):
+            x, y, yaw = pose_from_key(i+1)
+            if i+1 < 5: # lower parking space
+                objects.append((x-size[0]/2.0,0.0,size[0],size[1],dark_green, False))
+            else: # upper parking space
+                objects.append((x-size[0]/2.0,lot_height-size[1],size[0],size[1],dark_green, False))
 
     return objects
 
