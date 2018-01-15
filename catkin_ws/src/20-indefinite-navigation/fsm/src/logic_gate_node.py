@@ -102,11 +102,11 @@ class LogicGateNode(object):
 
     def cbBoolStamped(self, msg, event_name):
         self.event_msg_dict[event_name] = msg
-        print "got something"
+        # print "got something"
         for gate_name, gate_dict in self.gates_dict.items():
             inputs = gate_dict.get("inputs")
             if event_name in inputs:
-                print "in the inputs"
+                #print "in the inputs"
                 self.publish(self.getOutputMsg(gate_name,inputs),gate_name)
 
     def on_shutdown(self):
