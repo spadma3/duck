@@ -420,9 +420,11 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
         dic = {True:'driveable', False:'collision'}
         plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
 
-        # save RRT pathes
-        # ax = pickle.load(file('images/RRT_star.pickle'))
-        # plt.savefig('images/path_{}_{}_RRT_star_pathes.pdf'.format(start_number,end_number))
+
+        # if save_figures:
+        #     ax = pickle.load(file('images/RRT_star.pickle'))
+        #     plt.savefig('images/path_{}_{}_pathes.pdf'.format(start_number,end_number))
+
 
 
 
@@ -476,6 +478,11 @@ def path_planning(start_number=None, end_number=None):
             plt.show()
         # ax = pickle.load(file('images/rrtstar.pickle'))
         # do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+
+        if save_figures:
+            ax = pickle.load(file('images/RRT_star.pickle'))
+            plt.plot(px, py,'g-',lw=3)
+            plt.savefig('images/path_{}_{}_pathes.pdf'.format(start_number,end_number))
 
 
 

@@ -218,7 +218,7 @@ class RRT():
             ax.plot(rnd.x, rnd.y, "^k")
         for node in self.nodeList:
             if node.parent is not None:
-                ax.plot(node.path_x, node.path_y, "-g")
+                ax.plot(node.path_x, node.path_y, "-g",lw=0.5)
                 #  plt.plot([node.x, self.nodeList[node.parent].x], [
                 #  node.y, self.nodeList[node.parent].y], "-g")
 
@@ -246,8 +246,7 @@ class RRT():
 
         # save RRT* pathes
         pickle.dump(ax, file('images/RRT_star.pickle', 'w'))
-        plt.savefig('images/RRT_star.pdf')
-
+        # plt.savefig('images/RRT_star.pdf')
 
         plt.pause(0.001)
         plt.close()
