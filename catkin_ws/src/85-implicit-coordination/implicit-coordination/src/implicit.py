@@ -4,7 +4,7 @@ import time
 import rospkg
 import os
 import yaml
-from random import randrange, randint
+from random import randrange, randint, seed
 from duckietown_msgs.msg import BoolStamped, Twist2DStamped, FSMState
 from multivehicle_tracker.msg import Tracklet, TrackletList
 from std_msgs.msg import Int16
@@ -18,7 +18,7 @@ class Implicit(object):
         self.active = False
         self.iteration = 0
         self.detected_bots = {}
-
+	
         self.config = self.setupParameter("~config", "baseline")
         self.cali_file_name = self.setupParameter("~cali_file_name", "default")
         rospack = rospkg.RosPack()
@@ -30,7 +30,10 @@ class Implicit(object):
             rospy.logwarn("[%s] Can't find calibration file: %s.\n"
                           % (self.node_name, self.cali_file))
         self.loadConfig(self.cali_file)
-
+	
+	#set seed
+	seed()
+	
         # Setup publishers
         self.pub_coord_cmd = rospy.Publisher('simple_coordinator_node/car_cmd',
                                              Twist2DStamped, queue_size=1)
