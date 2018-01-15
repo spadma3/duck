@@ -43,6 +43,7 @@ class calibration:
 if __name__ == '__main__':
         calib=calibration()
         rospy.loginfo("straight")
+        rospy.sleep(5)
         calib.straight()
         rospy.loginfo("prepare for circle")
         rospy.sleep(5)
