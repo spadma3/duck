@@ -80,7 +80,7 @@ class parkingPathPlanner():
     def sample_callback(self,event):
         state = LanePose()
         if self.plan == False:
-            state.d, state.curvature, state.phi = self.project_to_path(curvature)
+            state.d, state.curvature_ref, state.phi = self.project_to_path(curvature)
             state.d_ref = self.d_ref
             state.v_ref = self.v_ref
             self.sample_state_pub.publish(state)
@@ -422,7 +422,7 @@ class parkingPathPlanner():
             #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
             plt.savefig('path_tester.png')
         """
-        plt.savefig('path_tester.pdf')
+        fig.savefig('path_tester.pdf')
 
 """
 main file
