@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 #from apriltags_ros.msg import AprilTagDetectionArray
-from duckietown_msgs.msg import AprilTagsWithInfos
+from duckietown_msgs.msg import AprilTagsWithInfos, Pose2DStamped
 import tf2_ros
 from tf2_msgs.msg import TFMessage
 import tf.transformations as tr
@@ -30,7 +30,8 @@ class LocalizationNode(object):
         # Setup the publishers and subscribers
         self.sub_april = rospy.Subscriber("~apriltags", AprilTagsWithInfos, self.tag_callback)
         self.pub_tf = rospy.Publisher("/tf", TFMessage, queue_size=1, latch=True)
-        self.pub_rviz = rospy.Publisher("/sign_highlights", Marker, queue_size=1, latch=True)
+        self.pub_pose = rospy.Publisher("~pose_duckiebot", Pose2DStamped, queue_size=1) #), latch=True)
+        #self.pub_rviz = rospy.Publisher("/sign_highlights", Marker, queue_size=1, latch=True)
 
         # Setup the transform listener
         self.tfbuf = tf2_ros.Buffer()
@@ -43,18 +44,38 @@ class LocalizationNode(object):
         rospy.loginfo("[%s] has started", self.node_name)
 
     def tag_callback(self, msg_tag):
+        # Start timer to detect time to run callback
+        begin = rospy.get_rostime()
+        
         # Listen for the transform of the tag in the world
         avg = PoseAverage.PoseAverage()
         for tag in msg_tag.detections:
             try:
                 Tt_w = self.tfbuf.lookup_transform(self.world_frame, "tag_{id}".format(id=tag.id), rospy.Time(), rospy.Duration(1))
                 Mtbase_w=self.transform_to_matrix(Tt_w.transform)
-                Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
+                #Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,np.pi))
+                Mt_tbase = tr.concatenate_matrices(tr.translation_matrix((0,0,0.17)), tr.euler_matrix(0,0,0))
                 Mt_w = tr.concatenate_matrices(Mtbase_w,Mt_tbase)
                 Mt_r=self.pose_to_matrix(tag.pose)
+
                 Mr_t=np.linalg.inv(Mt_r)
                 Mr_w=np.dot(Mt_w,Mr_t)
                 Tr_w = self.matrix_to_transform(Mr_w)
+
+                '''
+                # Print transformation from world to duckiebot based on current tag
+                print("-----------------------------------------------------------")
+                print ("tag ID: ", tag.id)
+                print ("robo_world x: ", Tr_w.translation.x)
+                print ("robo_world y: ", Tr_w.translation.y)
+                print ("robo_world z: ", Tr_w.translation.z)
+
+                rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
+                print ("robo_tag rot x", rot_euler[0]*(180/np.pi))
+                print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
+                print ("robo_tag rot z", rot_euler[2]*(180/np.pi))
+                '''
+
                 avg.add_pose(Tr_w)
                 self.publish_sign_highlight(tag.id)
             except(tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as ex:
@@ -63,12 +84,37 @@ class LocalizationNode(object):
 
         Tr_w =  avg.get_average() # Average of the opinions
 
+        '''        
+        # Print average transformation from world to duckiebot
+        print("-----------------------------------------------------------")
+        print("Average pose values")
+        print ("robo_world x_avg: ", Tr_w.translation.x)
+        print ("robo_world y_avg: ", Tr_w.translation.y)
+        print ("robo_world z_avg: ", Tr_w.translation.z)
+
+        rot = Tr_w.rotation
+        rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
+        print ("robo_world rot x_avg", rot_euler[0]*(180/np.pi))
+        print ("robo_world rot y_avg", rot_euler[1]*(180/np.pi))
+        print ("robo_world rot z_avg", rot_euler[2]*(180/np.pi))
+        print("-------------------------------------------------------------")
+        print("-------------------------------------------------------------")
+        '''
+
         # Broadcast the robot transform
         if Tr_w is not None:
             # Set the z translation, and x and y rotations to 0
             Tr_w.translation.z = 0
             rot = Tr_w.rotation
             rotz=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[2]
+            P = Pose2DStamped()
+            P.x = Tr_w.translation.y*1000        # coordiante transform form world to planning
+            P.y = -Tr_w.translation.x*1000       # coordinate transform from world to planning
+            # P.theta = rotz*180/np.pi - 90
+            P.theta = rotz - np.pi/2
+            P.header.frame_id = self.duckiebot_frame
+            P.header.stamp = rospy.Time.now()
+            self.pub_pose.publish(P)
             (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_euler(0, 0, rotz)
             T = TransformStamped()
             T.transform = Tr_w
@@ -77,6 +123,10 @@ class LocalizationNode(object):
             T.child_frame_id = self.duckiebot_frame
             self.pub_tf.publish(TFMessage([T]))
             self.lifetimer = rospy.Time.now()
+        
+        #  Print time to run callback in [s]
+        end = rospy.get_rostime()
+        #print ("Localization Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
     def publish_duckie_marker(self):
         # Publish a duckiebot transform far away unless the timer was reset
@@ -90,7 +140,7 @@ class LocalizationNode(object):
                 T.header.frame_id = self.world_frame
                 T.header.stamp = rospy.Time.now()
                 T.child_frame_id = self.duckiebot_frame
-                self.pub_tf.publish(TFMessage([T]))
+                #self.pub_tf.publish(TFMessage([T]))
 
     def publish_sign_highlight(self, id):
         # Publish a highlight marker on the sign that is seen by the robot
@@ -108,7 +158,7 @@ class LocalizationNode(object):
         p.z = 0.15
         c.a, c.r, c.g, c.b = (0.2, 0.9, 0.9, 0.0)
         o.w = 1
-        self.pub_rviz.publish(m)
+        #self.pub_rviz.publish(m)
 
     def pose_to_matrix(self, p):
         # Return the 4x4 homogeneous matrix for a PoseStamped.msg p from the geometry_msgs

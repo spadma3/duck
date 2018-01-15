@@ -12,6 +12,7 @@
 #include <AprilTags/Tag36h9.h>
 #include <AprilTags/Tag36h11.h>
 #include <XmlRpcException.h>
+#include <tf/transform_datatypes.h>
 
 namespace apriltags_ros{
 
@@ -50,6 +51,9 @@ namespace apriltags_ros{
   }
   
   void AprilTagDetector::imageCb(const sensor_msgs::ImageConstPtr& msg,const sensor_msgs::CameraInfoConstPtr& cam_info){
+    // Start timer to detect time to run callback
+    ros::Time begin = ros::Time::now();
+    
     cv_bridge::CvImagePtr cv_ptr;
     try{
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -75,12 +79,16 @@ namespace apriltags_ros{
     geometry_msgs::PoseArray tag_pose_array;
     tag_pose_array.header = cv_ptr->header;
     
-    BOOST_FOREACH(AprilTags::TagDetection detection, detections){
+    BOOST_FOREACH(AprilTags::TagDetection detection, detections)
+    {
       std::map<int, AprilTagDescription>::const_iterator description_itr = descriptions_.find(detection.id);
-      if(description_itr == descriptions_.end()){
-	ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
-	continue;
+
+      if(description_itr == descriptions_.end())
+      {
+	  ROS_WARN_THROTTLE(10.0, "Found tag: %d, but no description was found for it", detection.id);
+	  continue;
       }
+
       AprilTagDescription description = description_itr->second;
       double tag_size = description.size();
       
@@ -93,6 +101,23 @@ namespace apriltags_ros{
       tag_pose.pose.position.x = transform(0,3);
       tag_pose.pose.position.y = transform(1,3);
       tag_pose.pose.position.z = transform(2,3);
+
+      /*
+      //Print detected transform
+      std::cout << "Detected tag ID: " << detection.id << std::endl;
+
+      tf::Quaternion q(rot_quaternion.x(), rot_quaternion.y(), rot_quaternion.z(), rot_quaternion.w());
+      tf::Matrix3x3 m(q);
+      double roll, pitch, yaw;
+      m.getRPY(roll, pitch, yaw);
+      
+      std::cout << "Roll: " << roll*180/3.14159 << ", Pitch: " << pitch*180/3.14159 << ", Yaw: " << yaw*180/3.14159 << std::endl;
+
+      std::cout << "x dist: " << transform(0,3) << std::endl;
+      std::cout << "y dist: " << transform(1,3) << std::endl;
+      std::cout << "z dist: " << transform(2,3) << std::endl;
+      */
+
       tag_pose.pose.orientation.x = rot_quaternion.x();
       tag_pose.pose.orientation.y = rot_quaternion.y();
       tag_pose.pose.orientation.z = rot_quaternion.z();
@@ -113,6 +138,11 @@ namespace apriltags_ros{
     detections_pub_.publish(tag_detection_array);
     pose_pub_.publish(tag_pose_array);
     image_pub_.publish(cv_ptr->toImageMsg());
+
+    // Print time to run callback in [s]
+    ros::Time end = ros::Time::now();
+    //std::cout << "AprilTag Detection Callback [s]: " << (end-begin) << std::endl;
+    //std::cout << (end-begin) << std::endl;
   }
 
 
