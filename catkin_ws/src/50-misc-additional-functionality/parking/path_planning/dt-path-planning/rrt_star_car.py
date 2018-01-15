@@ -218,7 +218,7 @@ class RRT():
             ax.plot(rnd.x, rnd.y, "^k")
         for node in self.nodeList:
             if node.parent is not None:
-                ax.plot(node.path_x, node.path_y, "-c",lw=0.5)
+                ax.plot(node.path_x, node.path_y, "-y",lw=0.3)
                 #  plt.plot([node.x, self.nodeList[node.parent].x], [
                 #  node.y, self.nodeList[node.parent].y], "-g")
 
