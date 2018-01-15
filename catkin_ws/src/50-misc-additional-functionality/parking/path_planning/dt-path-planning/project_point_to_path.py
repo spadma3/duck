@@ -101,6 +101,11 @@ def project_to_path(px, py, pyaw, x_act, y_act, yaw_act, curvature):
         c_ref = 0.0
     else:
         c_ref = 1.0/curvature
+        # indicate left,right for curvature: does not work for RRT star unless pyaw-bug is fixed
+        if sign(pyaw[idx_proj-1]-pyaw[idx_proj]) > 0:
+            c_ref = -c_ref
+
+
 
     # differential var_heading
     theta_est = yaw_act - pyaw[idx_proj]
@@ -184,4 +189,4 @@ main file
 if __name__ == '__main__':
     print('Path planning and projection for duckietown...')
 
-    path_planning(0,3)
+    path_planning(0,2)
