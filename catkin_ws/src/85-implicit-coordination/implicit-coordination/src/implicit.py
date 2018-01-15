@@ -60,8 +60,10 @@ class Implicit(object):
         data = yaml.load(stream)
         stream.close()
         self.detection_threshold = data['detection_threshold']
+        self.iteration_threshold = data['iteration_threshold']
+        self.right_priority_thresholdy = data['right_priority_thresholdy']
+        self.right_priority_thresholdx = data['right_priority_thresholdx']
 
-        self.right_priority_threshold = data['right_priority_threshold']
         self.right_priority = data['right_priority']
         self.SlotTime = data['SlotTime']
         # set Field of Interest
@@ -70,6 +72,8 @@ class Implicit(object):
         self.FOI_left = data['FOI_left']
         rospy.loginfo('[%s] detection_threshold: %.4f' % (self.node_name,
                       self.detection_threshold))
+        rospy.loginfo('[%s] iteration_threshold: %.4f' % (self.node_name,
+                      self.iteration_threshold))
         rospy.loginfo('[%s] SlotTime: %.4f' % (self.node_name, self.SlotTime))
         rospy.loginfo('[%s] right priority: %s' % (self.node_name,
                                                      self.right_priority))
@@ -108,7 +112,8 @@ class Implicit(object):
                 if diff_x**2 + diff_y**2 >= self.detection_threshold**2:
                     return True
                 if self.right_priority and \
-                        self.right_priority_threshold < pos_tupel[3]:
+                        self.right_priority_thresholdy < pos_tupel[3] and \
+                        self.right_priority_thresholdx > pos_tupel[1]:
                     return True
                 return False
             return False
@@ -134,6 +139,8 @@ class Implicit(object):
                 self.pub_implicit_coordination.publish(flag)
                 time.sleep(backoff_time)
                 self.iteration += 1
+                if self.iteration > self.iteration_threshold:
+                    return False
             elif not self.detected_bots == None:
                 rospy.loginfo("[%s] no potential" % (self.node_name))
                 self.iteration = 0
