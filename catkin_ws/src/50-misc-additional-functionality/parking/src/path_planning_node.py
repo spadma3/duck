@@ -358,12 +358,9 @@ class parkingPathPlanner():
     #                obstacles, found_path):
     def do_plotting(self, start_x, start_y, start_yaw, end_x, end_y, end_yaw, end_number, px, py, objects,
                     obstacles, found_path):
-        """
         if close_itself:
             plt.clf()
-        """
         fig, ax = plt.subplots()
-
         if found_path:
             plt.plot(px, py, 'g-', lw=3)
         else:
@@ -409,20 +406,23 @@ class parkingPathPlanner():
                                                obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
         ax.add_patch(patches.Rectangle((0.0, 0.0), lot_width, lot_height, fc=(0.3, 0.3, 0.3), fill=False))
 
-        """
         if close_itself:
             plt.draw()
             plt.pause(pause_per_path)
         else:
             plt.show()
-        
 
         if save_figures:
             dic = {True: 'driveable', False: 'collision'}
             #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
+<<<<<<< HEAD
             plt.savefig('path_tester.png')
         """
         fig.savefig('path_tester.pdf')
+=======
+            plt.savefig('/home/nilsiism/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path.png')
+
+>>>>>>> e22d61734f99e3b107fea44b5923184c4ed41646
 
 """
 main file
