@@ -52,7 +52,7 @@ class LineDetectorNode(object):
         self.pub_image = rospy.Publisher("~image_with_lines", Image, queue_size=1)
        
         # Subscribers
-        self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cbImage, queue_size=1)
+        self.sub_image = rospy.Subscriber("~corrected_image", CompressedImage, self.cbImage, queue_size=1)
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
 
@@ -161,14 +161,16 @@ class LineDetectorNode(object):
 
         tk.completed('resized')
 
+        # milansc: color correction is now done within the image_tranformer_node (antiInstagram pkg)
+        """
         # apply color correction: AntiInstagram
         image_cv_corr = self.ai.applyTransform(image_cv)
         image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
 
         tk.completed('corrected')
-
+        """
         # Set the image to be detected
-        self.detector.setImage(image_cv_corr)
+        self.detector.setImage(image_cv)
 
         # Detect lines and normals
 

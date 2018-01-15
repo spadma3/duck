@@ -32,7 +32,7 @@ class ImageTransformerNode():
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
-            "~corrected_image", Image, queue_size=1)
+            "~corrected_image", CompressedImage, queue_size=1)
 
         self.sub_image = rospy.Subscriber(
             # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
