@@ -420,18 +420,10 @@ class parkingPathPlanner():
             plt.show()
 
         if save_figures:
-<<<<<<< HEAD
             file_path = os.getcwd()
             file_path = os.file_path.split(os.path.dirname(file_path))[0]
             print (file_path)
             plt.savefig(os.path.join(file_path, '/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path_new.png'))
-=======
-            dic = {True: 'driveable', False: 'collision'}
-            #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
-            print(os.getcwd())
-            plt.savefig('path_example.png')
-
->>>>>>> 5bbbe6287a63394f060da59f6969f2339842e628
 
 """
 main file
