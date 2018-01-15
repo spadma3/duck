@@ -358,9 +358,12 @@ class parkingPathPlanner():
     #                obstacles, found_path):
     def do_plotting(self, start_x, start_y, start_yaw, end_x, end_y, end_yaw, end_number, px, py, objects,
                     obstacles, found_path):
+        """
         if close_itself:
             plt.clf()
+        """
         fig, ax = plt.subplots()
+
         if found_path:
             plt.plot(px, py, 'g-', lw=3)
         else:
@@ -412,13 +415,14 @@ class parkingPathPlanner():
             plt.pause(pause_per_path)
         else:
             plt.show()
-        """
+        
 
         if save_figures:
             dic = {True: 'driveable', False: 'collision'}
             #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
             plt.savefig('path_tester.png')
-
+        """
+        plt.savefig('path_tester.pdf')
 
 """
 main file
