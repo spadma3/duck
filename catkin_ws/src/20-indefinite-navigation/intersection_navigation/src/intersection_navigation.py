@@ -395,15 +395,16 @@ class IntersectionNavigation(object):
 
 
     def PoseCallback(self, msg):
-        pose_meas = np.array([msg.x, msg.y, msg.theta])
-        self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1e7*np.diag([0.1,0.1,1.0]), msg.header.stamp)
+        '''pose_meas = np.array([msg.x, msg.y, msg.theta])
+        self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1e7*np.diag([0.1,0.1,1.0]), msg.header.stamp)'''
+        pass
 
 
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
-            cmd_msg.v = msg.v / 1.467
-            cmd_msg.omega = msg.omega /4.24
+            cmd_msg.v = msg.v / 1.53
+            cmd_msg.omega = msg.omega /4.75
             cmd_msg.header.stamp = msg.header.stamp
             self.poseEstimator.FeedCommandQueue(cmd_msg)
 

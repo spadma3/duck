@@ -140,8 +140,8 @@ class lane_controller(object):
         use_radius_limit = rospy.get_param("~use_radius_limit")
 
         #FeedForward
-        self.velocity_to_m_per_s = 1.467 # TODO: change according to information from team System ID!
-        self.omega_to_rad_per_s = 4.24
+        self.velocity_to_m_per_s = 1.53 # TODO: change according to information from team System ID!
+        self.omega_to_rad_per_s = 4.75
         self.curvature_outer = 1 / (0.39)
         self.curvature_inner = 1 / 0.175
         use_feedforward_part = rospy.get_param("~use_feedforward_part")
