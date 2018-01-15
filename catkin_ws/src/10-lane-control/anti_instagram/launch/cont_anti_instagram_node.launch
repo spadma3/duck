@@ -16,7 +16,7 @@
 
 
 	    <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen">
-	        <param name="~trafo_mode" type="str" value="$(arg trafo_mode)"/>
+	        <param name="~trafo_mode" type="str" value="$(arg ai_trafo_mode)"/>
             <!--remap from="/tesla/camera_node/image/compressed" to="~uncorrected_image" /-->
         </node>
 
