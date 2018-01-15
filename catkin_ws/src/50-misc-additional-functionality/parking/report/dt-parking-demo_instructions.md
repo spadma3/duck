@@ -19,7 +19,9 @@ Requires: Camera calibration completed.
 
 ## Video of expected results {#demo-template-expected}
 
-First, we show a video of the expected behavior. It can be found at TODO!
+First, we show a video of the expected behavior. It can be found
+[here](https://youtu.be/dS-TWh8cGXk)
+ 
 
 ## Duckietown setup notes {#demo-template-duckietown-setup}
 
@@ -125,5 +127,3 @@ This error says that no path was found. It can be reproduced by setting `maxIter
 
 ### Part B: Duckiebot
 Finally, put here a video of how the demo can fail, when the assumptions are not respected.
-
-TODO
