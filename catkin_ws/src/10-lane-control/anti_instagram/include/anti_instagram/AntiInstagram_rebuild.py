@@ -107,7 +107,7 @@ class AntiInstagram():
 
         # print('average error: ' + str(averageError))
 
-        if averageError <= 400:
+        if averageError <= 250:
 
             centers_name = ['black', 'red', 'yellow', 'white']
             # print('idx of detected outlier: ' + str(centers_name[outlierIndex]))
