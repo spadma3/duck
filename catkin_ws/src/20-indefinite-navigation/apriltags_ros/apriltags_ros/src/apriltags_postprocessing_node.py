@@ -2,7 +2,7 @@
 import rospkg
 import rospy
 import yaml
-from duckietown_msgs.msg import AprilTagsWithInfos, TagInfo, AprilTagDetectionArray
+from duckietown_msgs.msg import AprilTagsWithInfos, TagInfo, AprilTagDetectionArray, BoolStamped
 import numpy as np
 import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped
@@ -63,6 +63,10 @@ class AprilPostPros(object):
         self.pub_postPros       = rospy.Publisher("~apriltags_out", AprilTagsWithInfos, queue_size=1)
         self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
 
+        # topics for state machine
+        self.pub_postPros_parking = rospy.Publisher("~apriltags_parking", BoolStamped, queue_size=1)
+        self.pub_postPros_intersection = rospy.Publisher("~apriltags_intersection", BoolStamped, queue_size=1)
+
         rospy.loginfo("[%s] has started", self.node_name)
 
     def setupParam(self,param_name,default_value):
@@ -90,6 +94,26 @@ class AprilPostPros(object):
                 new_info.street_name = id_info['street_name']
             elif new_info.tag_type == self.info.SIGN:
                 new_info.traffic_sign_type = self.traffic_sign_types[id_info['traffic_sign_type']]
+
+                # publish for FSM
+                # parking apriltag event
+                msg_parking = BoolStamped()
+                msg_parking.header.stamp = rospy.Time(0)
+                if new_info.traffic_sign_type == TagInfo.PARKING:
+                    msg_parking.data = True
+                else:
+                    msg_parking.data = False
+                self.pub_postPros_parking.publish(msg_parking)
+
+                # intersection apriltag event
+                msg_intersection = BoolStamped()
+                msg_intersection.header.stamp = rospy.Time(0)
+                if (new_info.traffic_sign_type == TagInfo.FOUR_WAY) or (new_info.traffic_sign_type == TagInfo.RIGHT_T_INTERSECT) or (new_info.traffic_sign_type == TagInfo.LEFT_T_INTERSECT) or (new_info.traffic_sign_type == TagInfo.T_INTERSECTION):
+                    msg_intersection.data = True
+                else:
+                    msg_intersection.data = False
+                self.pub_postPros_intersection.publish(msg_intersection)
+
             elif new_info.tag_type == self.info.VEHICLE:
                 new_info.vehicle_name = id_info['vehicle_name']
             

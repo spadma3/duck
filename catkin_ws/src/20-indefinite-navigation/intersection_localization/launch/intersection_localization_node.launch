@@ -1,0 +1,7 @@
+<launch>
+	<arg name="robot_name" default="bluck" />
+	<node name="intersection_localization_node" pkg="intersection_localization" type="intersection_localization.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~robot_name" value="$(arg robot_name)"/>
+	</node>
+</launch>

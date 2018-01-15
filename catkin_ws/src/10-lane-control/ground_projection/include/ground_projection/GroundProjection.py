@@ -106,7 +106,7 @@ class GroundProjection():
         cv_image_rectified = self.rectify(cv_image)
         logger.info("image rectified")
 
-        ret, corners = cv2.findChessboardCorners(cv_image_rectified, (self.board_['width'], self.board_['height']))
+        ret, corners = cv2.findChessboardCorners(cv_image_rectified, (self.board_['width'], self.board_['height']), cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
         if ret == False:
             logger.error("No corners found in image")
             exit(1)
@@ -115,6 +115,12 @@ class GroundProjection():
             exit(2)
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
         corners2 = cv2.cornerSubPix(cv_image_rectified, corners, (11,11), (-1,-1), criteria)
+
+
+        cv2.drawChessboardCorners(cv_image_rectified, (7,5), corners2, ret)
+        cv2.imshow('corners',cv_image_rectified)
+        cv2.waitKey(10000)
+        cv2.destroyAllWindows()
 
         #TODO flip checks
         src_pts = []
