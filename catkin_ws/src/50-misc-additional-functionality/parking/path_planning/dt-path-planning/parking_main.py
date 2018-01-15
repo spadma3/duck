@@ -6,12 +6,13 @@ Samuel Nyffenegger
 """
 
 import dubins_path_planning as dpp
+import rrt_star_car as rrt_star
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from numpy import sign
-import os
+import os, pickle
 
 """
 Global parameters
@@ -24,14 +25,17 @@ pause_per_path = 0.5 # sec
 ploting = True
 
 # path planning parameters
-radius_robot = 70                  # mm distance point between wheels and most apart point on robot
+radius_robot = 60                   # mm distance point between wheels and most apart point on robot
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
 allow_backwards_on_circle = False   # use this later together with reeds sheep
-curvature = 120                     # mm minimal turning radius
+curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
+maxIter = 300                        # iterations for RRT*
+rrt_star_animation = True           # animate RRT* search
+radius_graph_refinement = 400       # mm radius arround new point for rewire
 
 # parking lot parameters
 lot_width = 2*585                   # mm, lot = 2x2 squares
@@ -54,7 +58,8 @@ Functions
 """
 # init once
 def init():
-    if save_figures:
+    # delete saved images if there are any
+    if save_figures and len([name for name in os.listdir('images/') if os.path.isfile(name)]) > 1:
         os.system("rm images/*")
 
 # init for every new path
@@ -110,7 +115,7 @@ def pose_from_key(key):
 
 # define objects and obstacles
 def define_objects():
-    # x, y, dx, dy, colour, driveable
+    # (x, y, dx, dy, colour, driveable)
     objects = []
     objects.append((0.0,0.0, narrow_tape_width, space_length, "b", True))
     objects.append((lot_width/4.0-narrow_tape_width/2.0,0.0, narrow_tape_width, space_length, "b", True))
@@ -124,6 +129,10 @@ def define_objects():
     objects.append((wide_tape_width,lot_height-lanes_length,length_red_line, wide_tape_width, "r", True))
     objects.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-wide_tape_width,length_red_line, wide_tape_width, "r", True))
     # objects.append((wide_tape_width+narrow_tape_width+length_red_line, lot_height-lanes_length,length_red_line, wide_tape_width, "m", False))
+
+    # define object in the middle of parking lot to simulate path planning with RRT*
+    size = 100;
+    objects.append((lot_width/2.0-size/2.0,lot_height/2.0-size/2.0,size,size,'k',False))
 
     return objects
 
@@ -142,7 +151,6 @@ def define_obstacles(objects):
             obstacles.append( ("circle", obj[0]+obj[2], obj[1]+obj[3], radius_robot ))
 
     return obstacles
-
 
 # dubins path planning
 def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw):
@@ -216,6 +224,101 @@ def dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw):
 
     return px, py, pyaw
 
+# RRT_star_path_planning
+def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles):
+    # heuristics using path primitives
+    detect_space_14 = (start_y < space_length and  (abs(start_yaw+radians(90))<radians(45)))
+    detect_space_56 = lot_height- start_y < space_length and  abs(start_yaw-radians(90))<radians(45) and lot_width/2.0 < start_x
+    if primitive_backwards and (detect_space_14 or detect_space_56):
+        dt = distance_backwards/n_nodes_primitive
+        px_backwards = [start_x]
+        py_backwards = [start_y]
+        pyaw_backwards = [start_yaw]
+        for i in range(n_nodes_primitive):
+            px_backwards.append(px_backwards[-1] - dt * cos(pyaw_backwards[-1]))
+            py_backwards.append(py_backwards[-1] - dt * sin(pyaw_backwards[-1]))
+            pyaw_backwards.append(pyaw_backwards[-1])
+        start_x = px_backwards[-1]
+        start_y = py_backwards[-1]
+        start_yaw = pyaw_backwards[-1]
+
+    start_x_0, start_y_0, start_yaw_0 = pose_from_key(0)
+    straight_at_entrance_ = (straight_at_entrance and abs(start_x-start_x_0)<1.0 and abs(start_y-start_y_0)<1.0 and abs(start_yaw-start_yaw_0)<1.0)
+    if straight_at_entrance_:
+        dt = space_length/2.0/n_nodes_primitive
+        px_straight_entrance = [start_x]
+        py_straight_entrance = [start_y]
+        pyaw_straight_entrance = [start_yaw]
+        for i in range(n_nodes_primitive):
+            px_straight_entrance.append(px_straight_entrance[-1] + dt * cos(pyaw_straight_entrance[-1]))
+            py_straight_entrance.append(py_straight_entrance[-1] + dt * sin(pyaw_straight_entrance[-1]))
+            pyaw_straight_entrance.append(pyaw_straight_entrance[-1])
+        start_x = px_straight_entrance[-1]
+        start_y = py_straight_entrance[-1]
+        start_yaw = pyaw_straight_entrance[-1]
+
+    if straight_in_parking_space:
+        dt = space_length/2.0/n_nodes_primitive
+        px_straight = [end_x]
+        py_straight = [end_y]
+        pyaw_straight = [end_yaw]
+        for i in range(n_nodes_primitive):
+            px_straight.append(px_straight[-1] - dt * cos(pyaw_straight[-1]))
+            py_straight.append(py_straight[-1] - dt * sin(pyaw_straight[-1]))
+            pyaw_straight.append(pyaw_straight[-1])
+        end_x = px_straight[-1]
+        end_y = py_straight[-1]
+        end_yaw = pyaw_straight[-1]
+        px_straight.reverse()
+        py_straight.reverse()
+        pyaw_straight.reverse()
+
+
+    # ====Search Path with RRT====
+    obstacleList = obstacles
+
+    # Set Initial parameters
+    start = [start_x, start_y, start_yaw]
+    goal = [end_x, end_y, end_yaw]
+
+    rrt = rrt_star.RRT(start, goal, randArea=[0.0, lot_width], obstacleList=obstacleList,
+    maxIter=maxIter, curvature=curvature, radius_graph_refinement=radius_graph_refinement)
+    path = rrt.Planning(animation=rrt_star_animation)
+
+
+    # convert
+    px, py, pyaw = [], [], []
+    for (x, y) in path:
+        px.append(x)
+        py.append(y)
+        pyaw.append(x*0.0) # TODO: change this
+    px = list(reversed(px))
+    py = list(reversed(py))
+    pyaw = list(reversed(pyaw))
+
+    # add path primitives to path
+    if primitive_backwards and (detect_space_14 or detect_space_56):
+        px = px_backwards + px
+        py = py_backwards + py
+        pyaw = pyaw_backwards + pyaw
+
+    if straight_at_entrance_:
+        px = px_straight_entrance + px
+        py = py_straight_entrance + py
+        pyaw = pyaw_straight_entrance + pyaw
+
+    if straight_in_parking_space:
+        px = px + px_straight
+        py = py + py_straight
+        pyaw = pyaw + pyaw_straight
+
+    # Draw final path
+    rrt.DrawGraph()
+    plt.plot(px,py, '-g',lw=3)
+    plt.pause(0.001)
+
+    return px, py, pyaw
+
 # collision check
 def collision_check(px, py, obstacles, start_number, end_number):
     found_path = True
@@ -237,13 +340,13 @@ def collision_check(px, py, obstacles, start_number, end_number):
                 exit("SN:ERROR: type {} not known.".format(obstacle[0]))
 
     if found_path:
-        print("A collision free path from {} to {} was found!".format(start_number,end_number))
+        print("\t\tA collision free path from {} to {} was found!".format(start_number,end_number))
     else:
-        print("No collision free path from {} to {} was found!".format(start_number,end_number))
+        print("\t\tNo collision free path from {} to {} was found!".format(start_number,end_number))
         if crash:
-            print("\tThe robot will crash into objects on this path!")
+            print("\t\tThe robot will crash into objects on this path!")
         if out_of_parking_lot:
-            print("\tThe robot wants to drive outside the parking lot")
+            print("\t\tThe robot wants to drive outside the parking lot")
 
     return found_path
 
@@ -260,7 +363,8 @@ def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw,
 def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path):
     if close_itself:
         plt.clf()
-    fig, ax = plt.subplots()
+    fig = plt.figure(1)
+    ax = fig.add_subplot(111)
     if found_path:
         plt.plot(px, py,'g-',lw=3)
     else:
@@ -271,8 +375,7 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
     0.11*lot_width, 0.06*lot_width, fc="r", ec="r")
     dpp.plot_arrow(end_x, end_y, end_yaw,
     0.11*lot_width, 0.06*lot_width, fc="g", ec="g")
-    ax.add_patch( patches.Rectangle( (0.0, 0.0),
-    lot_width, lot_height, fill=False ))
+    ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fill=False ))
     # plt.legend()
     plt.axis("equal")
     plt.xlim([-visual_boundairy,lot_height+visual_boundairy])
@@ -300,44 +403,84 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
 
     for obj in objects:
         if obj[5]:
-            ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
-            obj[2], obj[3], fc=obj[4]))
+            ax.add_patch( patches.Rectangle( (obj[0], obj[1]), obj[2], obj[3], fc=obj[4]))
         else:
-            ax.add_patch( patches.Rectangle( (obj[0], obj[1]),
-            obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
+            ax.add_patch( patches.Rectangle( (obj[0], obj[1]), obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
     ax.add_patch( patches.Rectangle( (0.0, 0.0), lot_width, lot_height, fc=(0.3,0.3,0.3),fill=False))
 
-    if close_itself:
-        plt.draw()
-        plt.pause(pause_per_path)
-    else:
-        plt.show()
+    # save figure as background
+    pickle.dump(ax, file('images/background.pickle', 'w'))
+
+    # if close_itself:
+    #     plt.draw()
+    #     plt.pause(pause_per_path)
+    # else:
+    #     plt.show()
 
     if save_figures:
         dic = {True:'driveable', False:'collision'}
         plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
 
+
+
+
 def path_planning(start_number=None, end_number=None):
-    # define problem
+    """
+    Problem definition and heuristics
+    """
     start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number = initialize(start_number, end_number)
     objects = define_objects()
     obstacles = define_obstacles(objects)
 
-    # path planning and collision check with dubins path
+    """
+    Stage 1: Dubins path
+    """
+    print('\n\tStage 1: Dubins')
+
     px, py, pyaw = dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
     found_path = collision_check(px, py, obstacles, start_number, end_number)
 
     # show results
-    # do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number)
     if ploting:
         do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+
+    if found_path:
+        if close_itself:
+            plt.pause(pause_per_path)
+        else:
+            plt.show()
+        return
+    else:
+        plt.pause(0.001)
+
+    """
+    Stage 2: RRT*
+    """
+    print('\n\tStage 2: RRT*')
+
+    px, py, pyaw = RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, obstacles)
+    found_path = collision_check(px, py, obstacles, start_number, end_number)
+
+    # show results
+    if ploting:
+        print('')
+        if save_figures:
+            dic = {True:'driveable', False:'collision'}
+            plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
+        if close_itself:
+            plt.pause(pause_per_path)
+        else:
+            plt.show()
+        # ax = pickle.load(file('images/rrtstar.pickle'))
+        # do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path)
+
+
 
 
 """
 main file
 """
 if __name__ == '__main__':
-    print('Path planning for duckietown...')
 
     # path calculation
     init()
@@ -346,7 +489,9 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        # start_numbers = [4]
+        # start_numbers = [6]
         # end_numbers = [7]
         for start_number, end_number in zip(start_numbers, end_numbers):
+            print("Planning a path from {} to {}: ".format(start_number, end_number))
             path_planning(start_number, end_number)
+            print("\n")

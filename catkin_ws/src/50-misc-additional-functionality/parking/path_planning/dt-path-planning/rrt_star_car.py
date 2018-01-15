@@ -5,13 +5,13 @@
 
 @author: AtsushiSakai(@Atsushi_twi)
 
+@adapted: Samuel Nyffenegger (samueln@ethz.ch)
+
 @license: MIT
 
 """
 
-import random
-import math
-import copy
+import random, time, math, copy, pickle
 import numpy as np
 import dubins_path_planning
 
@@ -21,8 +21,8 @@ class RRT():
     Class for RRT Planning
     """
 
-    def __init__(self, start, goal, obstacleList, randArea,
-                 goalSampleRate=10, maxIter=1000):
+    def __init__(self, start, goal, obstacleList, randArea, curvature,
+                 radius_graph_refinement, goalSampleRate=10, maxIter=1000):
         u"""
         Setting Parameter
 
@@ -36,7 +36,10 @@ class RRT():
         self.end = Node(goal[0], goal[1], goal[2])
         self.minrand = randArea[0]
         self.maxrand = randArea[1]
+        self.obstacleList = obstacleList
+        self.curvature = curvature
         self.goalSampleRate = goalSampleRate
+        self.radius_graph_refinement = radius_graph_refinement
         self.maxIter = maxIter
 
     def Planning(self, animation=True):
@@ -54,7 +57,7 @@ class RRT():
             newNode = self.steer(rnd, nind)
             #  print(newNode.cost)
 
-            if self.CollisionCheck(newNode, obstacleList):
+            if self.CollisionCheck(newNode):
                 nearinds = self.find_near_nodes(newNode)
                 newNode = self.choose_parent(newNode, nearinds)
                 self.nodeList.append(newNode)
@@ -62,7 +65,6 @@ class RRT():
 
             if animation and i % 5 == 0:
                 self.DrawGraph(rnd=rnd)
-                matplotrecorder.save_frame()  # save each frame
 
         # generate coruse
         lastIndex = self.get_best_last_index()
@@ -77,7 +79,7 @@ class RRT():
         dlist = []
         for i in nearinds:
             tNode = self.steer(newNode, i)
-            if self.CollisionCheck(tNode, obstacleList):
+            if self.CollisionCheck(tNode):
                 dlist.append(tNode.cost)
             else:
                 dlist.append(float("inf"))
@@ -103,13 +105,11 @@ class RRT():
         return angle
 
     def steer(self, rnd, nind):
-        #  print(rnd)
-        curvature = 1.0
 
         nearestNode = self.nodeList[nind]
 
         px, py, pyaw, mode, clen = dubins_path_planning.dubins_path_planning(
-            nearestNode.x, nearestNode.y, nearestNode.yaw, rnd.x, rnd.y, rnd.yaw, curvature)
+            nearestNode.x, nearestNode.y, nearestNode.yaw, rnd.x, rnd.y, rnd.yaw, self.curvature)
 
         newNode = copy.deepcopy(nearestNode)
         newNode.x = px[-1]
@@ -142,7 +142,8 @@ class RRT():
         #  print("get_best_last_index")
 
         YAWTH = math.radians(1.0)
-        XYTH = 0.5
+
+        XYTH = self.radius_graph_refinement
 
         goalinds = []
         for (i, node) in enumerate(self.nodeList):
@@ -178,7 +179,8 @@ class RRT():
 
     def find_near_nodes(self, newNode):
         nnode = len(self.nodeList)
-        r = 50.0 * math.sqrt((math.log(nnode) / nnode))
+        # r = 50.0 * math.sqrt((math.log(nnode) / nnode))
+        r = self.radius_graph_refinement
         #  r = self.expandDis * 5.0
         dlist = [(node.x - newNode.x) ** 2 +
                  (node.y - newNode.y) ** 2 +
@@ -195,7 +197,7 @@ class RRT():
             nearNode = self.nodeList[i]
             tNode = self.steer(nearNode, nnode - 1)
 
-            obstacleOK = self.CollisionCheck(tNode, obstacleList)
+            obstacleOK = self.CollisionCheck(tNode)
             imporveCost = nearNode.cost > tNode.cost
 
             if obstacleOK and imporveCost:
@@ -206,30 +208,45 @@ class RRT():
         u"""
         Draw Graph
         """
+        import pickle
         import matplotlib.pyplot as plt
-        plt.clf()
+        import matplotlib.patches as patches
+
+        ax = pickle.load(file('images/background.pickle'))
+
         if rnd is not None:
-            plt.plot(rnd.x, rnd.y, "^k")
+            ax.plot(rnd.x, rnd.y, "^k")
         for node in self.nodeList:
             if node.parent is not None:
-                plt.plot(node.path_x, node.path_y, "-g")
+                ax.plot(node.path_x, node.path_y, "-g")
                 #  plt.plot([node.x, self.nodeList[node.parent].x], [
                 #  node.y, self.nodeList[node.parent].y], "-g")
 
-        for (ox, oy, size) in obstacleList:
-            plt.plot(ox, oy, "ok", ms=30 * size)
+        # for obstacle in self.obstacleList:
+        #     if obstacle[0] == "circle":
+        #         (ox, oy, size) = obstacle[1:]
+        #         ax.add_patch(patches.Circle((ox,oy),size,fc="k",ec="k"))
+        #
+        #     elif obstacle[0] == "rectangle":
+        #         (ox, oy, odx, ody) = obstacle[1:]
+        #         ax.add_patch( patches.Rectangle( (ox, oy), odx, ody, fc="k"))
+        #
+        #     else:
+        #         print("Obstacle {} not found.\n".format(obstacle))
 
-        dubins_path_planning.plot_arrow(
-            self.start.x, self.start.y, self.start.yaw)
-        dubins_path_planning.plot_arrow(
-            self.end.x, self.end.y, self.end.yaw)
+        # dubins_path_planning.plot_arrow(
+        #     self.start.x, self.start.y, self.start.yaw)
+        # dubins_path_planning.plot_arrow(
+        #     self.end.x, self.end.y, self.end.yaw)
 
-        plt.axis([-2, 15, -2, 15])
-        plt.grid(True)
-        plt.pause(0.01)
+        # plt.axis([self.minrand, self.maxrand, self.minrand, self.maxrand])
+        # plt.grid(True)
 
-        #  plt.show()
-        #  input()
+        # pickle.dump(ax, file('images/rrtstar.pickle', 'w'))
+
+        plt.pause(0.001)
+        plt.close()
+
 
     def GetNearestListIndex(self, nodeList, rnd):
         dlist = [(node.x - rnd.x) ** 2 +
@@ -239,15 +256,31 @@ class RRT():
 
         return minind
 
-    def CollisionCheck(self, node, obstacleList):
+    def CollisionCheck(self, node):
+        # rectangle, x, y, dx, dy
+        # circle, x, y, r
 
-        for (ox, oy, size) in obstacleList:
-            for (ix, iy) in zip(node.path_x, node.path_y):
-                dx = ox - ix
-                dy = oy - iy
-                d = dx * dx + dy * dy
-                if d <= size ** 2:
-                    return False  # collision
+        for (ix, iy) in zip(node.path_x, node.path_y):
+            if ix < self.minrand or ix > self.maxrand or iy < self.minrand or iy > self.maxrand:
+                return False
+
+        for obstacle in self.obstacleList:
+            if obstacle[0] == "circle":
+                (ox, oy, size) = obstacle[1:]
+                for (ix, iy) in zip(node.path_x, node.path_y):
+                    dx = ox - ix
+                    dy = oy - iy
+                    d = dx * dx + dy * dy
+                    if d <= size ** 2:
+                        return False  # collision
+            elif obstacle[0] == "rectangle":
+                (ox, oy, odx, ody) = obstacle[1:]
+                for (ix, iy) in zip(node.path_x, node.path_y):
+                    if (ox < ix and ix < ox + odx) and (oy < iy and iy < oy + ody):
+                        return False
+
+            else:
+                print('Object {} not found!'.format(obstacle[0]))
 
         return True  # safe
 
@@ -271,35 +304,35 @@ class Node():
 if __name__ == '__main__':
     print("Start rrt start planning")
     import matplotlib.pyplot as plt
-    import matplotrecorder
-    matplotrecorder.donothing = True
+    fig = plt.figure(1)
+    plt.plot([0,12],[0,12])
+    plt.pause(0.001)
+    time.sleep(1)
+    curvature = 1
 
     # ====Search Path with RRT====
     obstacleList = [
-        (5, 5, 1),
-        (3, 6, 2),
-        (3, 8, 2),
-        (3, 10, 2),
-        (7, 5, 2),
-        (9, 5, 2)
+        ("circle", 5, 5, 1),
+        ("circle", 3, 6, 2),
+        ("circle", 3, 8, 2),
+        ("circle", 3, 10, 2),
+        ("circle", 7, 5, 2),
+        ("circle", 9, 5, 2),
+        ("rectangle", 1, 1, 2, 1),
     ]  # [x,y,size(radius)]
 
     # Set Initial parameters
     start = [0.0, 0.0, math.radians(0.0)]
     goal = [10.0, 10.0, math.radians(0.0)]
 
-    rrt = RRT(start, goal, randArea=[-2.0, 15.0], obstacleList=obstacleList)
+    rrt = RRT(start, goal, randArea=[-2.0, 15.0], obstacleList=obstacleList, maxIter=50,
+    curvature=curvature, radius_graph_refinement=0.5)
     path = rrt.Planning(animation=True)
 
+    # start, goal, obstacleList, randArea, goalSampleRate=10, maxIter=1000
     # Draw final path
     rrt.DrawGraph()
     plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
     plt.grid(True)
     plt.pause(0.001)
-
-    for i in range(10):
-        matplotrecorder.save_frame()  # save each frame
-
     plt.show()
-
-    matplotrecorder.save_movie("animation.gif", 0.1)
