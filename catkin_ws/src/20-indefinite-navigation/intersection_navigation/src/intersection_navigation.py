@@ -82,10 +82,10 @@ class IntersectionNavigation(object):
                                         Twist2DStamped,
                                         self.CmdCallback,
                                         queue_size=30)
-        self.sub_april_tags = rospy.Subscriber('~apriltags',
+        '''self.sub_april_tags = rospy.Subscriber('~apriltags',
                                                AprilTagsWithInfos,
                                                self.AprilTagsCallback,
-                                               queue_size=1)
+                                               queue_size=1)'''
 
 
         # set up publishers
@@ -207,7 +207,7 @@ class IntersectionNavigation(object):
             rate.sleep()
 
     def InitializeLocalization(self):
-        '''# waiting for april tag info (type intersection and which exit)
+        # waiting for april tag info (type intersection and which exit)
         try:
             april_msg = rospy.wait_for_message('~apriltags_out', AprilTagsWithInfos, self.timeout)
         except rospy.ROSException:
@@ -249,9 +249,9 @@ class IntersectionNavigation(object):
         if april_msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
             self.intersectionLocalizer.SetEdgeModel('FOUR_WAY_INTERSECTION')
         else:
-            self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')'''
+            self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
-        x_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][0]
+        '''x_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][0]
         y_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][1]
         theta_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][2]
 
@@ -259,7 +259,7 @@ class IntersectionNavigation(object):
         dy_init = np.linspace(-0.03, 0.03, 7)
         dtheta_init = np.linspace(-10.0 / 180.0 * np.pi, 10.0 / 180.0 * np.pi, 3)
 
-        self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
+        self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')'''
 
         #rospy.set_param("/daisy/lane_controller_node/v_ref", 0.3)
 
@@ -306,7 +306,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = 1
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
