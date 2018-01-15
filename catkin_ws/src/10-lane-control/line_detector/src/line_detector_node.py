@@ -52,7 +52,7 @@ class LineDetectorNode(object):
         self.pub_image = rospy.Publisher("~image_with_lines", Image, queue_size=1)
        
         # Subscribers
-        self.sub_image = rospy.Subscriber("~corrected_image", CompressedImage, self.cbImage, queue_size=1)
+        self.sub_image = rospy.Subscriber("~corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
 

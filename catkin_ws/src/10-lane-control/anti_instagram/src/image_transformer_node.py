@@ -32,7 +32,7 @@ class ImageTransformerNode():
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
-            "~corrected_image", CompressedImage, queue_size=1)
+            "~corrected_image/compressed", CompressedImage, queue_size=1)
 
         self.sub_image = rospy.Subscriber(
             # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
@@ -119,7 +119,7 @@ class ImageTransformerNode():
 
         # store image to ros message
         self.corrected_image = self.bridge.cv2_to_compressed_imgmsg(
-            corrected_image_cv2, "bgr8")
+            corrected_image_cv2)# , "bgr8")
         tk.completed('encode')
 
         self.corrected_image.header.stamp = image_msg.header.stamp  # for synchronization
