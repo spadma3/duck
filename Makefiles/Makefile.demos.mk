@@ -5,7 +5,7 @@ demos:
 	@echo
 	@echo TODO: to write
 	@echo
-	
+
 ### These are not using master.launch
 demo-joystick: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh;  roslaunch duckietown joystick.launch veh:=$(vehicle_name)"
@@ -38,6 +38,8 @@ demo-led-fancy2: check-environment
 demo-led-blink-%: check-environment
 	bash -c "source environment.sh; rosrun rgb_led blink $*"
 
+demo-implicit_coordination: check-environment
+	bash -c "source environment.sh; source set_vehicle_name.sh; roslaunch duckietown_demos implicit_coordination.launch"
 demo-line_detector-default:     demo-line_detector-quiet-default
 demo-line_detector-guy:         demo-line_detector-quiet-guy
 demo-line_detector-universal:   demo-line_detector-quiet-universal
