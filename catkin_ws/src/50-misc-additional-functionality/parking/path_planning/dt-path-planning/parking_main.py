@@ -33,7 +33,7 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 50                        # iterations for RRT*
+maxIter = 300                        # iterations for RRT*
 rrt_star_animation = True           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 
@@ -500,7 +500,7 @@ if __name__ == '__main__':
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
         start_numbers = [0]
-        end_numbers = [4]
+        end_numbers = [2]
         for start_number, end_number in zip(start_numbers, end_numbers):
             print("Planning a path from {} to {}: ".format(start_number, end_number))
             path_planning(start_number, end_number)
