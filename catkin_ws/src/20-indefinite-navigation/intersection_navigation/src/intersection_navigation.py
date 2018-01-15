@@ -239,7 +239,7 @@ class IntersectionNavigation(object):
 
 
                 #Left turn
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec(): #and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
 
                 #Right turn
                 #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
