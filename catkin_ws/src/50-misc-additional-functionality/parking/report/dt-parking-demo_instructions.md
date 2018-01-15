@@ -28,7 +28,7 @@ Here, describe the assumptions about the Duckietown, including:
 * Layout (tiles types)
 * Instrastructure (traffic lights, wifi networks, ...) required
 * Weather (lights, ...)
-* TODO Sam: add our 4 tile structure here with a description of the layout (where we place parking spaces, etc.) Please include a picture of your python plot here to make it clear with numbered parking spaces and the origin of our parking lot
+* It is assumed that the parking lot has six parking spaces as depicted in figure 1.
 * 4 april tags					
 Do not write instructions here. The instructions should be somewhere in [the part about Duckietowns](#duckietowns). Here, merely point to them.
 
