@@ -38,7 +38,7 @@ class IntersectionLocalizerNode(object):
         valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
 
         # update pose estimate
-        if valid_meas and likelihood > 0.7:
+        if valid_meas and likelihood > 0.6:
             msg_ret = IntersectionPose()
             msg_ret.header.stamp = msg.header.stamp
             msg_ret.x = pose_meas[0]
