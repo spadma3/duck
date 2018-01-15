@@ -334,8 +334,8 @@ class LEDDetectorNode(object):
           
             rospy.loginfo("Right, frequency = %s, sampling = %s " %(fft_peak_freq,T))
 		
-
-            if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
+	    if np.abs(fft_peak_freq - 4.0/2.1) <= 0.3:
+            #if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
                 self.right = SignalsDetection.SIGNAL_A
                 break
 
@@ -348,8 +348,9 @@ class LEDDetectorNode(object):
             fft_peak_freq = 1.0 * np.argmax(y_f)/(T*NIm)
         
 	    rospy.loginfo("Front, frequency = %s, sampling = %s " %(fft_peak_freq,T))
-          
-            if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
+          	
+	    if np.abs(fft_peak_freq - 4.0/2.1) <= 0.3:
+            #if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
 
