@@ -165,7 +165,7 @@ class IntersectionNavigation(object):
 
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
-                    if (self.s > 0.7):
+                    if (self.s > 0.999):
                         msg_lanePose.d = 0
                         msg_lanePose.d_ref = 0
                         msg_lanePose.phi = 0
@@ -355,7 +355,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = 1
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
