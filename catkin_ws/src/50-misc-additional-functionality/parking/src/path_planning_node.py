@@ -155,7 +155,9 @@ class parkingPathPlanner():
         found_path = self.collision_check(self.px, self.py, obstacles)
 
         if ploting:
-            self.do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
+            #self.do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
+            #            obstacles, found_path)
+            self.do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, end_number, px, py, objects,
                         obstacles, found_path)
 
     def collision_check(self,px, py, obstacles):
@@ -342,7 +344,9 @@ class parkingPathPlanner():
         return px, py, pyaw
 
     # plot
-    def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
+    #def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
+    #                obstacles, found_path):
+    def do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, end_number, px, py, objects,
                     obstacles, found_path):
         if close_itself:
             plt.clf()
@@ -400,7 +404,8 @@ class parkingPathPlanner():
 
         if save_figures:
             dic = {True: 'driveable', False: 'collision'}
-            plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
+            #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
+            plt.savefig('images/path_{}_{}_{}.pdf'.format(end_number, dic[found_path]))
 
 
 """
