@@ -170,7 +170,7 @@ class calib():
         # termination criteria
         # if resolution is low keep iteration to minimum otherwise it messes up the code
         # the process of corner refinement stops either after critera.max.count iteration or when the corner moves by less than criteria.epsilon on some iteration
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,30,0.01)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,20,0.01)  # befor was 30 instead of 20
         # find_chessboard_flags = cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE | cv2.CALIB_CB_FAST_CHECK | cv2.CALIB_CB_FILTER_QUADS
         find_chessboard_flags = cv2.CALIB_CB_ADAPTIVE_THRESH
 
@@ -196,8 +196,6 @@ class calib():
         startTime=[self.wheels_cmd_['timestamp'][i] for i in startIndex]
         counter=0
         
-        print(startIndex)
-        print(stopIndex)
         #for i in range(0,np.size(self.wheels_cmd_['timestamp'])):
         #    self.wheels_cmd_['timestamp'][i] = self.wheels_cmd_['timestamp'][i].to_sec()
 
@@ -222,6 +220,11 @@ class calib():
                     counter=0 # reset counter
                     print "checkerboard in frame %d found" %indexcounter
                     corners2 = cv2.cornerSubPix(gray, corners, (5,5), (-1, -1), criteria)
+                    
+                    # only reverse order if first point is at bottom right corner
+                    if corners2[0][0][0]>corners2[34][0][0]:
+                        #print "Reversing order of points."
+                        corners2=corners2[::-1]
 
                     # Draw and display the corners
                     img = cv2.drawChessboardCorners(img, (chw, chh), corners2, ret)
@@ -233,6 +236,9 @@ class calib():
                     #Blue X-axis = pointing right or left
                     #Green Y-axis = pointing down or up
 
+
+                    # OLD CALCULATION OF VEH POSITION
+                    '''
                     # camera pose from object points
                     R_chess_cam = cv2.Rodrigues(rvecs)[0]
                     cam_pos = -np.matrix(R_chess_cam).T * np.matrix(tvecs) #camera pose from perspective of chessboard
@@ -253,6 +259,52 @@ class calib():
                     veh_pos = np.matrix(R_chess_veh).T * np.matrix(tvecs) #camera pose from perspective of chessboard
                     # get euler angles [x,y,z] in radians
                     veh_eulerangles=self.rot2ZYXEuler(R_chess_veh)
+                    '''
+
+
+
+                    t_chess_cam=tvecs
+
+                    # camera pose from object points
+                    R_cam_chess = cv2.Rodrigues(rvecs)[0]
+                    R_chess_cam=np.matrix(R_cam_chess).T
+                    t_cam_chess =-np.matrix(R_cam_chess).T * np.matrix(tvecs)
+
+                    T_chess_cam = np.zeros((4, 4))
+                    T_chess_cam[3, 3] = 1
+                    T_chess_cam[:3, :3] = R_chess_cam
+                    # T_chess_cam[:3, :3] = R_cam_chess
+                    T_chess_cam[:3, 3] = t_cam_chess.transpose()
+                    # T_chess_cam[:3, 3] = t_chess_cam.transpose()
+
+                    # change direction of coordinates system
+                    R_world_chess=np.matrix('0 0 1;-1 0 0;0 -1 0')
+                    # R_world_chess=np.matrix('1 0 0;0 0 1;0 -1 0')
+
+                    # R_world_chess=np.eye(3)
+                    T_world_chess = np.zeros((4, 4))
+                    T_world_chess[3, 3] = 1
+                    T_world_chess[:3, :3] = R_world_chess
+                    T_world_chess[:3, 3] = [0, 0, 0]
+
+                    #translate coordinate cam_pose to vehicle pose
+                    angle =0/180.0*math.pi #guess of camera angle in degree to veh
+                    R_cam_veh=self.ZYXEuler2rot([0,float(angle),0.0])
+                    assert(self.isRotationMatrix(R_cam_veh))
+                    T_cam_veh = np.zeros((4, 4))
+                    T_cam_veh[3, 3] = 1
+                    T_cam_veh[:3, :3] = R_cam_veh
+
+                    T_world_veh=T_world_chess.dot(T_chess_cam).dot(T_cam_veh)
+
+                    veh_pos = T_world_veh[:3, 3]
+                    # get euler angles of vehicles with respect to world coordinate frame [x,y,z] in radians
+                    veh_eulerangles=self.rot2ZYXEuler(T_world_veh[:3, :3])
+
+
+
+
+
 
                     # print "-------Euler Angles-------"
                     # print eulerangles
@@ -277,7 +329,7 @@ class calib():
 
                     # project 3D points to image plane
                     imgpts, jac = cv2.projectPoints(axisPoints, rvecs, tvecs, self.cam.K, self.cam.D)
-                    img = self.draw(img, corners, imgpts)
+                    img = self.draw(img, corners2, imgpts)
                     cv2.imshow('img', img)
                     cv2.waitKey(1)
 
@@ -464,9 +516,9 @@ class calib():
     def nonlinear_model_fit(self):
         
         x_ramp_meas    = self.veh_pose_['straight']['x_veh']
-        x_ramp_meas    = -np.reshape(x_ramp_meas,np.size(x_ramp_meas))  # fixing some totally fucked up dimensions
+        x_ramp_meas    = np.reshape(x_ramp_meas,np.size(x_ramp_meas))  # fixing some totally fucked up dimensions
         y_ramp_meas    = self.veh_pose_['straight']['y_veh']
-        y_ramp_meas    = -np.reshape(y_ramp_meas,np.size(y_ramp_meas))  # fixing some totally fucked up dimensions
+        y_ramp_meas    = np.reshape(y_ramp_meas,np.size(y_ramp_meas))  # fixing some totally fucked up dimensions
         yaw_ramp_meas  = self.veh_pose_['straight']['yaw_veh']
         yaw_ramp_meas  = ( np.array(yaw_ramp_meas) + np.pi*0.5 + np.pi) % (2 * np.pi ) - np.pi # shift by pi/2 and wrap to +-pi
         time_ramp_meas = self.veh_pose_['straight']['timestamp']
@@ -484,9 +536,9 @@ class calib():
         time_ramp_cmd = np.array(time_ramp_cmd)
 
         x_sine_meas    = self.veh_pose_['curve']['x_veh']
-        x_sine_meas    = -np.reshape(x_sine_meas,np.size(x_sine_meas))  # fixing some totally fucked up dimensions
+        x_sine_meas    = np.reshape(x_sine_meas,np.size(x_sine_meas))  # fixing some totally fucked up dimensions
         y_sine_meas    = self.veh_pose_['curve']['y_veh']
-        y_sine_meas    = -np.reshape(y_sine_meas,np.size(y_sine_meas))  # fixing some totally fucked up dimensions
+        y_sine_meas    = np.reshape(y_sine_meas,np.size(y_sine_meas))  # fixing some totally fucked up dimensions
         yaw_sine_meas  = self.veh_pose_['curve']['yaw_veh']
         yaw_sine_meas  = ( np.array(yaw_sine_meas) + np.pi*0.5 + np.pi) % (2 * np.pi ) - np.pi # shift by pi/2 and wrap to +-pi
         time_sine_meas = self.veh_pose_['curve']['timestamp']
