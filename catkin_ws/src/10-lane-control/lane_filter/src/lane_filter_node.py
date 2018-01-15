@@ -53,11 +53,22 @@ class LaneFilterNode(object):
         self.filter.predict(dt=current_time-self.t_last_update, v = self.velocity.v, w = self.velocity.omega)
         self.t_last_update = current_time
 
-        # Step 2: update
-        ml = self.filter.update(segment_list_msg.segments)
-        if ml is not None:
-            ml_img = self.getDistributionImage(ml,segment_list_msg.header.stamp)
-            self.pub_ml_img.publish(ml_img)
+        # # Step 2: update
+        # ml = self.filter.update(segment_list_msg.segments)
+        # if ml is not None:
+        #     ml_img = self.getDistributionImage(ml,segment_list_msg.header.stamp)
+        #     self.pub_ml_img.publish(ml_img)
+
+        # Step 2: update [devel-controllers-curvatureestimation-stable]
+        range_arr = np.zeros(self.filter.num_belief+1)
+        range_max = 0.6  # range to consider edges in general
+        range_min = 0.2
+        range_diff = (range_max - range_min)/(self.filter.num_belief - 1)
+        
+        for i in range(1,self.filter.num_belief + 1):
+            range_arr[i] = range_min + (i-1)*range_diff
+
+        self.filter.update(segment_list_msg.segments, range_arr)
         
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
@@ -68,8 +79,10 @@ class LaneFilterNode(object):
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
-        lanePose.d = d_max
-        lanePose.phi = phi_max
+        # lanePose.d = d_max
+        # lanePose.phi = phi_max
+        lanePose.d = d_max[0]
+        LanePose.phi = phi_max[0]
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
 

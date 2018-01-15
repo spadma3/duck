@@ -167,17 +167,27 @@ class Benchmark():
             segmentList_transformed.segments.append(new_segment)
 
         # Get Estimation
-        self.lf.update(segmentList_transformed.segments)
+        # self.lf.update(segmentList_transformed.segments)
 
+        # Step 2: update [devel-controllers-curvatureestimation-stable]
+        range_arr = np.zeros(self.lf.num_belief+1)
+        range_max = 0.6  # range to consider edges in general
+        range_min = 0.2
+        range_diff = (range_max - range_min)/(self.lf.num_belief - 1)
+        
+        for i in range(1,self.lf.num_belief + 1):
+            range_arr[i] = range_min + (i-1)*range_diff
+
+        self.lf.update(segmentList_transformed.segments, range_arr)
+        
+        # Step 3: build messages and publish things
         result = vs_fancy_display(input_rectified, segmentList)
         [d_max, phi_max] = self.lf.getEstimate()
-        max_val = self.lf.getMax()
-        in_lane = max_val > self.lf.min_max
-
+        
         result = self.add_Pose_text(result, d_max, phi_max)
 
-        dComputedArray.append([d_max, imgArray[1]])
-        phiComputedArray.append([phi_max, imgArray[1]])
+        dComputedArray.append([d_max[0], imgArray[1]])
+        phiComputedArray.append([phi_max[0], imgArray[1]])
         return result
 
     def add_Pose_text(self, img, d_max, phi_max):
