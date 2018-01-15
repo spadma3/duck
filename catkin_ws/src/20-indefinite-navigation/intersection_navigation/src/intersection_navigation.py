@@ -92,7 +92,7 @@ class IntersectionNavigation(object):
         self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~intersection_navigation_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
-        #self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
+        self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
 
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
@@ -154,7 +154,7 @@ class IntersectionNavigation(object):
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 10.0:
+                '''if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 10.0:
 
                 #if (self.s < 0.99):
                     msg = IntersectionPose()
@@ -199,7 +199,7 @@ class IntersectionNavigation(object):
                     #self.state = self.state_dict['DONE']
 
 
-                '''else:
+                else:
                     self.state = self.state_dict['DONE']'''
 
 
@@ -232,26 +232,30 @@ class IntersectionNavigation(object):
                 currPos = pose_init
                 self.state == self.state_dict['TRAVERSING']
                 # print(pose_init)
-                # print(pose_final)
+                # print(pose_final)'''
 
                 #Left turn
-                #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
 
                 #Right turn
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
+                #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
                     #Left turn
-                    #msg2.v = 0.38*0.67
-                    #msg2.omega = 0.38*0.67/0.4 * 0.45 * 2 * math.pi
+
+                    msg2 = Twist2DStamped()
+
+                    msg2.v = 0.38*0.67
+                    msg2.omega = 0.38*0.67/0.4 * 0.45 * 2 * math.pi
+                    msg2.header.stamp = rospy.Time.now()
 
                     #Rigth turn
-                    msg2.v = 0.38*0.67
-                    msg2.omega = -0.38*0.67/0.175 * 0.45 * 2 * math.pi
+                    #msg2.v = 0.38*0.67
+                    #msg2.omega = -0.38*0.67/0.175 * 0.45 * 2 * math.pi
 
                 else:
                     msg2.v = 0.0
                     msg2.omega = 0.0
 
-                self.pub_cmds.publish(msg2)'''
+                self.pub_cmds.publish(msg2)
 
             elif self.state == self.state_dict['DONE']:
                 # TODO: Now just stop

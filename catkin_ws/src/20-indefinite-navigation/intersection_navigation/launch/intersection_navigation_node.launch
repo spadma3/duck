@@ -11,7 +11,7 @@
     <!-- TODO: Add FSM node in order to switch between joystick and lane following -->
 
     <!-- run inverse_kinematics_node -->
-    <remap from="inverse_kinematics_node/car_cmd" to="lane_controller_node/car_cmd"/>
+    <!-- <remap from="inverse_kinematics_node/car_cmd" to="lane_controller_node/car_cmd"/> -->
     <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd"/>
     <remap from="inverse_kinematics_node/actuator_limits_received" to="lane_controller_node/actuator_limits_received" />
 	<remap from="wheels_driver_node/radius_limit" to="lane_controller_node/radius_limit" />
@@ -60,7 +60,7 @@
 		<param name="~veh" value="$(arg veh)"/>
 	</node>
 
-    <!-- <remap from="~cmds_out" to="inverse_kinematics_node/car_cmd" /> -->
+    <remap from="~cmds_out" to="inverse_kinematics_node/car_cmd" />
     <remap from="~intersection_navigation_pose" to="lane_controller_node/intersection_navigation_pose" />
     <remap from="~img" to="camera_node/image/compressed" />
     <remap from="~cmds" to="forward_kinematics_node/velocity" />
