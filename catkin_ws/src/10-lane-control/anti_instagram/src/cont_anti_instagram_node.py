@@ -142,7 +142,7 @@ class ContAntiInstagramNode():
 
             if self.trafo_mode == "cb" or self.trafo_mode == "both":
                 # find color balance thresholds
-                rospy.loginfo('ai: Computing color balance thresholds...')
+                # rospy.loginfo('ai: Computing color balance thresholds...')
                 self.ai.calculateColorBalanceThreshold(self.geomImage, self.cb_percentage)
                 tk.completed('calculateColorBalanceThresholds')
 
@@ -152,7 +152,7 @@ class ContAntiInstagramNode():
 
                 # publish color balance thresholds
                 self.pub_trafo_CB.publish(self.transform_CB)
-                rospy.loginfo('ai: Color balance thresholds published.')
+                # rospy.loginfo('ai: Color balance thresholds published.')
 
 
 
@@ -200,7 +200,7 @@ class ContAntiInstagramNode():
 
                             # publish color trafo
                             self.pub_trafo.publish(self.transform)
-                            rospy.loginfo('ai: Color transform published.')
+                            # rospy.loginfo('ai: Color transform published.')
                         else:
                             rospy.loginfo('ai: average error too large. transform NOT updated.')
 
@@ -226,7 +226,7 @@ class ContAntiInstagramNode():
             geomImgMsg = self.bridge.cv2_to_imgmsg(
                 self.geomImage, "bgr8")
             self.pub_geomImage.publish(geomImgMsg)
-            rospy.loginfo('published geometry Image!')
+            # rospy.loginfo('published geometry Image!')
 
 
 
