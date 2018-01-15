@@ -165,7 +165,7 @@ class IntersectionNavigation(object):
 
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
-                    if (self.s > 0.999):
+                    if (self.s > 0.7):
                         msg_lanePose.d = 0
                         msg_lanePose.d_ref = 0
                         msg_lanePose.phi = 0
