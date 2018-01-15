@@ -56,7 +56,7 @@ class ContAntiInstagramNode():
         self.resize = self.setupParameter("~resize", 0.2)
         self.blur_kernel = self.setupParameter("~blur_kernel", 5)
         self.cb_percentage = self.setupParameter("~cb_percentage", 2)
-        self.trafo_mode = self.setupParameter("~trafo_mode", 'both')
+        self.trafo_mode = self.setupParameter("~trafo_mode", 'cb')
         if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
             rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
             self.trafo_mode == "both"
