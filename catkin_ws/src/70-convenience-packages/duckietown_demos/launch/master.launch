@@ -665,17 +665,18 @@
         <arg name="end_space" value="$(arg end_space)"/>
     </include>
 
-	<!-- Run a static transform to test with -->
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_128_broadcaster" args="0 0 0 0 0 0 world tag_128 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_126_broadcaster" args="0 -0.2 0 0 0 0 world tag_126 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_131_broadcaster" args="1 -0.1 0 0 0 0 world tag_131 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_125_broadcaster" args="0 0 0 0 0 0 world tag_125 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_132_broadcaster" args="0 0 0 0 0 0 world tag_132 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_133_broadcaster" args="0 0 0 0 0 0 world tag_133 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_134_broadcaster" args="0 0 0 0 0 0 world tag_134 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_135_broadcaster" args="0 0 0 0 0 0 world tag_135 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_136_broadcaster" args="0 0 0 0 0 0 world tag_136 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="test_tag_137_broadcaster" args="0 0 0 0 0 0 world tag_137 100"/>
+	<!--  Run a static transform to test with  -->
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_125_broadcaster" args="0 0 0 0 0 0 world tag_125 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_126_broadcaster" args="0 0.1 0 0 0 0 world tag_126 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_128_broadcaster" args="0 0.2 0 0 0 0 world tag_128 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_129_broadcaster" args="0 0.3 0 0 0 0 world tag_129 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_131_broadcaster" args="0 0.4 0 0 0 0 world tag_131 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_132_broadcaster" args="0 0 0 0 0 0 world tag_132 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_133_broadcaster" args="0 0 0 0 0 0 world tag_133 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_134_broadcaster" args="0 0 0 0 0 0 world tag_134 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_135_broadcaster" args="0 0 0 0 0 0 world tag_135 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_136_broadcaster" args="0 0 0 0 0 0 world tag_136 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="test_tag_137_broadcaster" args="0 0 0 0 0 0 world tag_137 100"/>
 
 
 
