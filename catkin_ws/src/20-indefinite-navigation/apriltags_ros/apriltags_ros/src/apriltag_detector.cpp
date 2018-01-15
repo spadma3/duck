@@ -139,7 +139,7 @@ namespace apriltags_ros{
     pose_pub_.publish(tag_pose_array);
     image_pub_.publish(cv_ptr->toImageMsg());
     ros::Time end = ros::Time::now();
-    std::cout << "AprilTag Detection Callback [Hz]: " << 1/(end-begin) << "AprilTag Detection Callback [s]: " << (end-begin) << std::endl;
+    std::cout << "AprilTag Detection Callback [s]: " << (end-begin) << std::endl;
   }
 
 
