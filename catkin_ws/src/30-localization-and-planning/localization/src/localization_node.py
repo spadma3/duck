@@ -125,7 +125,7 @@ class LocalizationNode(object):
             self.lifetimer = rospy.Time.now()
         end = rospy.get_rostime()
         #print ("Localization Callback [Hz]: ", 1/(end-begin), "Localization Callback [s]: ", (end-begin))
-        print ("Localization Callback [ns]: ", end.nsecs-begin.nsecs)
+        print ("Localization Callback [s]: ", (end.nsecs-begin.nsecs)/1000000000)
 
     def publish_duckie_marker(self):
         # Publish a duckiebot transform far away unless the timer was reset
