@@ -12,7 +12,7 @@ import matplotlib.patches as patches
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from numpy import sign
-import os, pickle
+import os, pickle, sys
 
 """
 Global parameters
@@ -33,7 +33,7 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 300                        # iterations for RRT*
+maxIter = 50                        # iterations for RRT*
 rrt_star_animation = True           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 
@@ -491,17 +491,25 @@ def path_planning(start_number=None, end_number=None):
 main file
 """
 if __name__ == '__main__':
+    argv = sys.argv[1:]
 
-    # path calculation
-    init()
-    if choose_random_parking_space_combination:
-        path_planning()
+    # terminal launch
+    if len(argv) == 2:
+        print("Planning a path from {} to {}: ".format(int(argv[0]),int(argv[1])))
+        path_planning(int(argv[0]),int(argv[1]))
+
+    # file launch
     else:
-        start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
-        end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        start_numbers = [0]
-        end_numbers = [2]
-        for start_number, end_number in zip(start_numbers, end_numbers):
-            print("Planning a path from {} to {}: ".format(start_number, end_number))
-            path_planning(start_number, end_number)
-            print("\n")
+        # path calculation
+        init()
+        if choose_random_parking_space_combination:
+            path_planning()
+        else:
+            # start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
+            # end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
+            start_numbers = [0]
+            end_numbers = [4]
+            for start_number, end_number in zip(start_numbers, end_numbers):
+                print("Planning a path from {} to {}: ".format(start_number, end_number))
+                path_planning(start_number, end_number)
+                print("\n")
