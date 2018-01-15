@@ -31,7 +31,7 @@ class LEDDetectorNode(object):
         self.bridge = CvBridge()
 
         # Parameters
-        self.capture_time = 0.89 # capture time
+        self.capture_time = 1.0/2.1 #0.89 # capture time
         self.DTOL_car           = 25
 	self.DTOL_traffic_light = 10
 
@@ -39,7 +39,7 @@ class LEDDetectorNode(object):
         params = cv2.SimpleBlobDetector_Params()  # Change thresholds
         params.minThreshold = 5
         # params.maxThreshold = 200
-        params.maxThreshold = 100
+        params.maxThreshold = 200
         params.thresholdStep = 5
 
         # Filter by Area.
@@ -331,11 +331,11 @@ class LEDDetectorNode(object):
             signal_f      = scipy.fftpack.fft(BlobsRight[i]['Signal']-np.mean(BlobsRight[i]['Signal']))
             y_f           = 2.0/NIm * np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/(T*NIm)
-          
+            print BlobsRight[i]['Signal'] 
             rospy.loginfo("Right, frequency = %s, sampling = %s " %(fft_peak_freq,T))
 		
-	    if np.abs(fft_peak_freq - 4.0/2.1) <= 0.3:
-            #if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
+	    #if np.abs(fft_peak_freq - 8.0/2.1) <= 0.5:
+            if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
                 self.right = SignalsDetection.SIGNAL_A
                 break
 
@@ -346,11 +346,11 @@ class LEDDetectorNode(object):
             signal_f = scipy.fftpack.fft(BlobsFront[i]['Signal'] - np.mean(BlobsFront[i]['Signal']))
             y_f = 2.0 / NIm * np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0 * np.argmax(y_f)/(T*NIm)
-        
+            print BlobsFront[i]['Signal']
 	    rospy.loginfo("Front, frequency = %s, sampling = %s " %(fft_peak_freq,T))
           	
-	    if np.abs(fft_peak_freq - 4.0/2.1) <= 0.3:
-            #if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
+	    #if np.abs(fft_peak_freq - 8.0/2.1) <= 0.5:
+            if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
 
