@@ -239,7 +239,7 @@ class IntersectionNavigation(object):
 
 
                 #Left turn
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 12.0 :
 
                 #Right turn
                 #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
@@ -421,7 +421,8 @@ class IntersectionNavigation(object):
     def ModeCallback(self, msg):
         # update state if we are at an intersection
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
-            self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+            #self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+            self.state = self.state_dict['TRAVERSING']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
             
     def TurnTypeCallback(self, msg):
