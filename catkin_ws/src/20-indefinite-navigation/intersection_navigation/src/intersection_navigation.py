@@ -199,8 +199,8 @@ class IntersectionNavigation(object):
                     #self.state = self.state_dict['DONE']
 
 
-                else:
-                    self.state = self.state_dict['DONE']
+                '''else:
+                    self.state = self.state_dict['DONE']'''
 
 
 
