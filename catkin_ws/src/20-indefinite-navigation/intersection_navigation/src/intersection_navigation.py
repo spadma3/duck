@@ -392,18 +392,11 @@ class IntersectionNavigation(object):
             msg_out.theta = pose_pred[2]
             msg_out.img = msg
             self.pub_intersection_pose_img.publish(msg_out)
-
-            print('----------')
-            print('pose pred')
-            print(msg.header.stamp)
-            print(pose_pred)
+            
 
     def PoseCallback(self, msg):
         pose_meas = np.array([msg.x, msg.y, msg.theta])
-        self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1e-7*np.diag([1.0,1.0,1.0]), msg.header.stamp)
-        print('pose meas')
-        print(msg.header.stamp)
-        print(pose_meas)
+        self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1e-2*np.diag([1.0,1.0,1.0]), msg.header.stamp)
 
 
     def CmdCallback(self, msg):

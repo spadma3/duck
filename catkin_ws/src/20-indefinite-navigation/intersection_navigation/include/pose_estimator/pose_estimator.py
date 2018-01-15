@@ -128,9 +128,6 @@ class PoseEstimator(object):
         state_posterior = state_prior + np.dot(K, pose_meas - state_prior)
         cov_posterior = cov_prior - np.dot(K, cov_prior)
 
-        state_posterior[:] = pose_meas
-        cov_posterior[:] = self.cov_est_init
-
         # store results
         self.state_est[:] = state_posterior
         self.cov_est[:] = cov_posterior
