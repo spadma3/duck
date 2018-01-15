@@ -193,7 +193,7 @@ class IntersectionNavigation(object):
             elif self.state == self.state_dict['DONE']:
                 # Now just stop
                 msg_done_cmds = Twist2DStamped()
-                msg_done_cmds.stamp = rospy.Time.now()
+                msg_done_cmds.header.stamp = rospy.Time.now()
                 msg_done_cmds.v = 0.0
                 msg_done_cmds.omega = 0.0
                 self.pub_cmds.publish(msg_done_cmds)
