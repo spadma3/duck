@@ -8,7 +8,7 @@
 
     <include file="$(find duckietown)/machines"/>
 <!--
-    <!-- joy -->
+
     <node ns="$(arg veh)" if="$(arg local)" pkg="joy" type="joy_node" name="joy" output="screen">
         <rosparam command="load" file="$(find duckietown)/config/$(arg config)/joy/joy_node/$(arg param_file_name).yaml"/>
     </node>
@@ -16,7 +16,7 @@
         <rosparam command="load" file="$(find duckietown)/config/$(arg config)/joy/joy_node/$(arg param_file_name).yaml"/>
     </node>
 
-    <!-- joy_mapper -->
+
     <include file="$(find joy_mapper)/launch/joy_mapper_node.launch">
         <arg name="veh" value="$(arg veh)"/>
         <arg name="local" value="$(arg local)"/>
@@ -24,6 +24,12 @@
         <arg name="param_file_name" value="$(arg joy_mapper_param_file_name)"/>
     </include>
 -->
+
+    <node  pkg="calibration" type="test.py" name="test" output="screen" clear_params="true" required="true">
+                 <param name="veh" value="$(arg veh)"/>
+                 <param name="omega" value="0.2"/>
+    </node>
+
 
     <!-- run inverse_kinematics_node -->
     <remap from="inverse_kinematics_node/car_cmd" to="joy_mapper_node/car_cmd"/>
