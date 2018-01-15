@@ -355,7 +355,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = 1
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
@@ -372,8 +372,8 @@ class IntersectionNavigation(object):
     def ModeCallback(self, msg):
         # update state if we are at an intersection
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
-            #self.state = self.state_dict['INITIALIZING_LOCALIZATION']
-            self.state = self.state_dict['TRAVERSING']
+            self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+            #self.state = self.state_dict['TRAVERSING']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
             
     def TurnTypeCallback(self, msg):
