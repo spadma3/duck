@@ -245,25 +245,25 @@ class IntersectionNavigation(object):
                 #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
                     #Left turn
 
-                    '''pos, vel = self.pathPlanner.EvaluatePath(self.s)
+                    pos, vel = self.pathPlanner.EvaluatePath(self.s)
                     _, vel2 = self.pathPlanner.EvaluatePath(self.s + 0.01)
-                    self.alpha = 0.38/np.linalg.norm(vel)
+                    self.alpha = 0.15/np.linalg.norm(vel)
 
                     dir = vel/np.linalg.norm(vel)
                     dir2 = vel2/np.linalg.norm(vel2)
                     theta = np.arctan2(dir[1],dir[0])
                     theta2 = np.arctan2(dir2[1], dir2[0])
-                    omega = (theta2 - theta)/0.01'''
+                    omega = (theta2 - theta)/0.01
 
-                    msg2.v = 0.38*0.67
-                    msg2.omega = 0.0#self.alpha*omega*(0.67 * 0.45 * 2 * math.pi)
+                    msg2.v = 0.15*0.67*2.45
+                    msg2.omega = self.alpha*omega*(0.67 * 0.45 * 2 * math.pi)
 
-                    '''self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
+                    self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
                     print(self.s)
 
                     if (self.s > 1.0):
                         msg2.v = 0.0
-                        msg2.omega = 0.0'''
+                        msg2.omega = 0.0
 
 
 
@@ -421,8 +421,7 @@ class IntersectionNavigation(object):
     def ModeCallback(self, msg):
         # update state if we are at an intersection
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
-            #self.state = self.state_dict['INITIALIZING_LOCALIZATION']
-            self.state = self.state_dict['TRAVERSING']
+            self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
             
     def TurnTypeCallback(self, msg):
