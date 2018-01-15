@@ -406,16 +406,18 @@ class parkingPathPlanner():
                                                obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
         ax.add_patch(patches.Rectangle((0.0, 0.0), lot_width, lot_height, fc=(0.3, 0.3, 0.3), fill=False))
 
+        """
         if close_itself:
             plt.draw()
             plt.pause(pause_per_path)
         else:
             plt.show()
+        """
 
         if save_figures:
             dic = {True: 'driveable', False: 'collision'}
             #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
-            plt.savefig('images/path.png')
+            plt.savefig('path_tester.png')
 
 
 """
