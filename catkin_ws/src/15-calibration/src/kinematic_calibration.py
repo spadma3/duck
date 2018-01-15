@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import scipy.interpolate as interp
 from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
+import yaml
 
 
 class calib():
@@ -37,31 +38,34 @@ class calib():
         # Load homography
         self.H = self.load_homography()
 
-        #define PinholeCameraModel
+        # define PinholeCameraModel
         self.pcm_ = PinholeCameraModel()
 
-        #load camera info
+        # load camera info
         self.cam = self.load_camera_info()
 
-        #load information about duckietown chessboard
+        # load information about duckietown chessboard
         self.board_ = self.load_board_info()
 
 
 
-        #load joystick commands
+        # load joystick commands
         # self.joy_cmd_=self.get_joy_command()
 
-        #load wheel commands
+        # load wheel commands
         self.wheels_cmd_=self.get_wheels_command()
 
         # load veh pose
         self.veh_pose_ = self.load_camera_pose_estimation()
 
 
-        #uncomment to try nonlinear_model
+        # uncomment to try nonlinear_model
         self.fit_=self.nonlinear_model_fit()
 
-        #make plots & visualizations
+        # write to the kinematic calibration file
+        self.write_calibration()
+
+        # make plots & visualizations
         # self.plot=self.visualize()
         plt.show()
 
@@ -178,7 +182,7 @@ class calib():
 
         # Create the axis points
         axisPoints = np.float32([[3*chSeize, 0, 0], [0, 3*chSeize, 0], [0, 0, -3*chSeize]]).reshape(-1, 3)
-	inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
+        inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
         topicname = "/" + self.robot_name + "/camera_node/image/compressed"
         indexcounter=1
 
@@ -457,17 +461,6 @@ class calib():
         return Y
 
     def nonlinear_model_fit(self):
-        #x_meas =  self.data_['z_veh']# This is just for readability
-        #y_meas = self.data_['x_veh']
-        #yaw_meas = self.data_['yaw_veh']
-        #cmd_right = self.wheels_cmd_['vel_r']
-        #cmd_left = self.wheels_cmd_['vel_l']
-
-        
-        print('size veh pose ramp:       ',np.size(self.veh_pose_['straight']['z_veh']))   # 51
-        print('size timestamps ramp:     ',np.size(self.veh_pose_['straight']['timestamp']))   # 53
-        print('size veh pose sine:       ',np.size(self.veh_pose_['curve']['z_veh']))   # 274
-        print('size timestamps sine:     ',np.size(self.veh_pose_['curve']['timestamp']))   # 276 
         
         x_ramp_meas    = self.veh_pose_['straight']['x_veh']
         x_ramp_meas    = -np.reshape(x_ramp_meas,np.size(x_ramp_meas))  # fixing some totally fucked up dimensions
@@ -538,9 +531,6 @@ class calib():
         Y = np.concatenate((x_ramp_meas, y_ramp_meas, yaw_ramp_meas), axis=0)
         beta0 = np.array([0.6, 6, 0, x_ramp_meas[0], y_ramp_meas[0], yaw_ramp_meas[0], 0.07])
         
-        print('size X:',np.size(X))  # 160
-        print('size Y:',np.size(Y))  # 153
-        
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
         popt_ramp, pcov = curve_fit(self.modelfun, X, Y, p0=beta0)
@@ -600,23 +590,91 @@ class calib():
         plt.ylabel('position [m] / heading [rad]')
         plt.show(block=False)
         
-        print('\nThe Estimated Model Parameters are:')
-        print('gain =',popt_ramp[0])
-        print('turn =',popt_sine[1])
-        print('trim =',popt_ramp[2])
-        print('The Mean Squared Error of the Ramp Manouver is',MSE_ramp)
-        print('The Mean Squared Error of the Sine Manouver is',MSE_sine)
+        print("\nThe Estimated Model Parameters are:")
+        print("c  = {}".format(popt_ramp[0]))  # using ramp estimation
+        print("cl = {}".format(popt_sine[1]))  # using sine estimation
+        print("tr = {}".format(+popt_ramp[2]))  # using ramp estimation
+        print("The Mean Squared Error of the Ramp Manouver is {}".format(MSE_ramp))
+        print("The Mean Squared Error of the Sine Manouver is {}".format(MSE_sine))
+        
+        fit ={'c':popt_ramp[0],'cl':popt_sine[1],'tr':popt_ramp[2]}
+
+        return fit
 
 
 
 
 
+    def write_calibration(self):
+        '''Load kinematic calibration file'''
+        filename = (get_duckiefleet_root() + "/calibrations/kinematics/" + self.robot_name + ".yaml")
+        if not os.path.isfile(filename):
+            logger.warn("no kinematic calibration parameters for {}, taking some from default".format(self.robot_name))
+            filename = (get_duckiefleet_root() + "/calibrations/kinematics/default.yaml")
+            if not os.path.isfile(filename):
+                logger.error("can't find default either, something's wrong, is the duckiefleet root correctly set?")
+            else:
+                data = yaml_load_file(filename)
+        else:
+            rospy.loginfo("Loading some kinematic calibration parameters of " + self.robot_name)
+            data = yaml_load_file(filename)
+        logger.info("Loaded homography for {}".format(os.path.basename(filename)))
+        
+        # Load some of the parameters that will not be changed
+        param_k        = data['k']
+        param_limit    = data['limit']
+        param_radius   = data['radius']
+
+        # simply to increase readability
+        c  = self.fit_['c']
+        cl = self.fit_['cl']
+        tr = self.fit_['tr']
+        
+        # Calculation of Kinematic Calibration parameters from our model parameters
+        # Due to the redundancy of the k and radius parameter, the read parameters are taken into account
+        # We chose to overwrite the gain parameter, but instead the motor constant could be changed
+        gain = param_radius * param_k / c
+        trim = - tr * param_radius * param_k * param_radius * param_k / (cl * c)
+        baseline = 2 * c / cl
+        
+        # Write to yaml
+        #datasave = {  # This is similar to the inverse_kinematics_node, but it did not work...
+        #    "calibration_time": time.strftime("%Y-%m-%d-%H-%M-%S"),
+        #    "gain": gain,
+        #    "trim": trim,
+        #    "baseline": baseline,
+        #    "radius": param_radius,
+        #    "k": param_k,
+        #    "limit": param_limit,
+        #}
+        datasave = \
+        "calibration_time: {}".format(time.strftime("%Y-%m-%d-%H-%M-%S")) + \
+        "\ngain: {}".format(gain) + \
+        "\ntrim: {}".format(trim) + \
+        "\nbaseline: {}".format(baseline) + \
+        "\nradius: {}".format(param_radius) + \
+        "\nk: {}".format(param_k) + \
+        "\nlimit: {}".format(param_limit)
 
 
+        print("\nThe Estimated Kinematic Calibration is:")
+        print("gain     = {}".format(gain))
+        print("trim     = {}".format(trim))
+        print("baseline = {}".format(baseline))
+
+        # Write to yaml file
+        filename = (get_duckiefleet_root() + "/calibrations/kinematics/" + self.robot_name + ".yaml")
+        with open(filename, 'w') as outfile:
+            outfile.write(datasave)
+            #outfile.write(yaml.dump(datasave, default_flow_style=False))  # This did not work and gave very weird results
+
+        print("Saved Parameters to " + self.robot_name + ".yaml" )
+        
+        print("\nPlease check the plots and judge if the parameters are reasonable.")
+        print("Once done inspecting the plot, close them to terminate the program.")
 
 
-
-    def visualize(self):
+    def visualize(self):  # For Debugging only
         Ts = 1.0 / 30
         time = np.arange(0, Ts * self.veh_pose_['straight']['z_veh'].size, Ts)
         # PLOTTING
