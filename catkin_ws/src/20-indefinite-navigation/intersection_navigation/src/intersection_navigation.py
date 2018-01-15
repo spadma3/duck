@@ -31,7 +31,7 @@ class IntersectionNavigation(object):
         
 
         # main logic parameters
-        self.rate = 30  # main logic runs at 10Hz
+        self.rate = 10  # main logic runs at 10Hz
         self.timeout = 1.0
         self.state_dict = dict()
         for counter, key in enumerate(['IDLE', 'INITIALIZING_LOCALIZATION', 'INITIALIZING_PATH', 'TRAVERSING', 'DONE', 'ERROR']):
@@ -259,6 +259,7 @@ class IntersectionNavigation(object):
                     msg2.omega = self.alpha*omega*(0.67 * 0.45 * 2 * math.pi)
 
                     self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
+                    print(self.s)
 
                     if (self.s > 1.0):
                         msg2.v = 0.0
