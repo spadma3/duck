@@ -64,15 +64,10 @@ class PoseEstimator(object):
             if idx_cmd + 1 < num_cmd:
                 dt = min(self.cmd_queue[idx_cmd + 1].time,
                          time_pred) - time_est
-                #dt = max(min(self.cmd_queue[idx_cmd + 1].time, time_pred), time_est) - time_est
                 dt_sec = dt.to_sec()  # careful, this could eventually cause problems if running long
-                #print('dt_sec')
-                #print(dt_sec)
             else:
                 dt = time_pred - time_est
                 dt_sec = dt.to_sec()
-                #print('dt_sec2')
-                #print(dt_sec)
 
             # predict covariance
             if predict_cov:
@@ -132,6 +127,9 @@ class PoseEstimator(object):
         K = np.dot(cov_prior, np.linalg.inv(cov_prior + cov_meas))
         state_posterior = state_prior + np.dot(K, pose_meas - state_prior)
         cov_posterior = cov_prior - np.dot(K, cov_prior)
+
+        state_posterior[:] = pose_meas
+        cov_posterior[:] = self.cov_est_init
 
         # store results
         self.state_est[:] = state_posterior
