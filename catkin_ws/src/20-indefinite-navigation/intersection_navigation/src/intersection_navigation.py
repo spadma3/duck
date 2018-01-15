@@ -161,7 +161,7 @@ class IntersectionNavigation(object):
                 msg_lanePose = LanePose()
                 msg_lanePose.header.stamp = rospy.Time.now()
 
-                #if 2.0 < (rospy.Time.now() - self.debug_start).to_sec():
+                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec():
 
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
