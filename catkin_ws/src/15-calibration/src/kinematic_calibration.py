@@ -187,7 +187,7 @@ class calib():
         indexcounter=1
 
         #initialize recording state
-        startRecording=False
+        Recording=False
 
 
         stopIndex = [i for i, j in enumerate(self.wheels_cmd_['vel_r']) if j == 0]
@@ -196,13 +196,14 @@ class calib():
         startTime=[self.wheels_cmd_['timestamp'][i] for i in startIndex]
         counter=0
         
+        print(startIndex)
+        print(stopIndex)
         #for i in range(0,np.size(self.wheels_cmd_['timestamp'])):
         #    self.wheels_cmd_['timestamp'][i] = self.wheels_cmd_['timestamp'][i].to_sec()
 
        
 
         for topic, msg, t in rosbag.Bag(inputbag).read_messages(topics=topicname):
-	    Recording=False
             indexcounter+=1
             dt = rospy.Duration(secs=1.0/30.) # start recording approx one frame before first wheel cmd
             for i in range(len(stopTime)):
@@ -282,11 +283,11 @@ class calib():
 
                 else:
                     print "checkerboard in frame %d not found" %indexcounter
-                    counter+=1
-                    if counter==15:
-                        print "Finished recording"
-                        Recording=False
-                        break
+                    #counter+=1
+                    #if counter==15:
+                    #    print "Finished recording"
+                    #    Recording=False
+                    #    break
 
         cv2.destroyAllWindows() #close window
 
