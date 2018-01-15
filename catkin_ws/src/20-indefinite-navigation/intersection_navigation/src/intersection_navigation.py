@@ -326,7 +326,7 @@ class IntersectionNavigation(object):
 
         self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
-        #rospy.set_param("/daisy/lane_controller_node/v_ref", 0.3)
+        rospy.set_param("/daisy/lane_controller_node/v_ref", 0.3)
 
         # waiting for camera image
         try:
@@ -425,8 +425,8 @@ class IntersectionNavigation(object):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
             cmd_msg.v = msg.v / 0.67
-            cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2 * math.pi)
-            cmd_msg.header.stamp = rospy.Time.now()
+            cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2.0 * math.pi)
+            cmd_msg.header.stamp = msg.header.stamp
 
             #msg.omega = msg.omega / (2 * math.pi * 0.45)
 
