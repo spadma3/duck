@@ -51,6 +51,7 @@ namespace apriltags_ros{
   }
   
   void AprilTagDetector::imageCb(const sensor_msgs::ImageConstPtr& msg,const sensor_msgs::CameraInfoConstPtr& cam_info){
+    ros::Time begin = ros::Time::now();
     cv_bridge::CvImagePtr cv_ptr;
     try{
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -137,6 +138,8 @@ namespace apriltags_ros{
     detections_pub_.publish(tag_detection_array);
     pose_pub_.publish(tag_pose_array);
     image_pub_.publish(cv_ptr->toImageMsg());
+    ros::Time end = ros::Time::now();
+    std::cout << "AprilTag Detection Callback [s]: " << (end-begin) << std::endl;
   }
 
 
