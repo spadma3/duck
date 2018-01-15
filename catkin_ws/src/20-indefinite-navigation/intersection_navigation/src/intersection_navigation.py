@@ -234,6 +234,10 @@ class IntersectionNavigation(object):
                 # print(pose_init)
                 # print(pose_final)'''
 
+                msg2 = Twist2DStamped()
+                msg2.header.stamp = rospy.Time.now()
+
+
                 #Left turn
                 if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
 
@@ -241,11 +245,9 @@ class IntersectionNavigation(object):
                 #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
                     #Left turn
 
-                    msg2 = Twist2DStamped()
 
                     msg2.v = 0.38*0.67
                     msg2.omega = 0.38*0.67/0.4 * 0.45 * 2 * math.pi
-                    msg2.header.stamp = rospy.Time.now()
 
                     #Rigth turn
                     #msg2.v = 0.38*0.67
