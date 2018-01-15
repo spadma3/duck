@@ -200,25 +200,26 @@ class lane_controller(object):
             self.v_ref_possible["default"] = v_ref_possible_default
             self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
 
-        if self.fsm_state == "INTERSECTION_CONTROL":
-            if pose_source == "intersection_navigation":
-                self.pose_msg = input_pose_msg
-                self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
-                self.main_pose_source = pose_source
-                self.pose_initialized = True
-        elif self.fsm_state == "PARKING":
-            if pose_source == "parking":
-                self.pose_msg = input_pose_msg
-                self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
-                self.main_pose_source = pose_source
-                self.pose_initialized = True
-        else:
-            if pose_source == "lane_filter":
-                self.pose_msg = input_pose_msg
-                self.pose_msg.curvature_ref = input_pose_msg.curvature
-                self.v_ref_possible["main_pose"] = self.v_bar
-                self.main_pose_source = pose_source
-                self.pose_initialized = True
+        # if self.fsm_state == "INTERSECTION_CONTROL":
+        #     if pose_source == "intersection_navigation":
+        #         self.pose_msg = input_pose_msg
+        #         self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+        #         self.main_pose_source = pose_source
+        #         self.pose_initialized = True
+        # elif self.fsm_state == "PARKING":
+        if pose_source == "parking":
+            rospy.loginfo("in if parking")
+            self.pose_msg = input_pose_msg
+            self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+            self.main_pose_source = pose_source
+            self.pose_initialized = True
+        # else:
+        #     if pose_source == "lane_filter":
+        #         self.pose_msg = input_pose_msg
+        #         self.pose_msg.curvature_ref = input_pose_msg.curvature
+        #         self.v_ref_possible["main_pose"] = self.v_bar
+        #         self.main_pose_source = pose_source
+        #         self.pose_initialized = True
 
         if self.flag_dict["fleet_planning_lane_following_override_active"] == True:
             if "fleet_planning" in self.pose_msg_dict:
@@ -272,6 +273,8 @@ class lane_controller(object):
 
 
     def cbPose(self, pose_msg):
+        rospy.loginfo("pose_msg in lane_controller_node: ")
+        rospy.loginfo(pose_msg)
         self.lane_reading = pose_msg
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
@@ -335,8 +338,9 @@ class lane_controller(object):
         self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
 
         if omega > self.omega_max:
-            self.cross_track_integral -= self.cross_track_err * dt
-            self.heading_integral -= self.heading_err * dt
+            if self.last_ms is not None:
+                self.cross_track_integral -= self.cross_track_err * dt
+                self.heading_integral -= self.heading_err * dt
             car_control_msg.omega = self.omega_max
         else:
             car_control_msg.omega = omega
