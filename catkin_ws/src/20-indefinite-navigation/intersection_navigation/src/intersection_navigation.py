@@ -41,7 +41,9 @@ class IntersectionNavigation(object):
         self.state_dict = dict()
         for counter, key in enumerate(['IDLE', 'INITIALIZING_LOCALIZATION', 'INITIALIZING_PATH', 'TRAVERSING', 'DONE', 'ERROR']):
             self.state_dict.update({key: counter})
-        self.state = self.state_dict['IDLE']
+        #self.state = self.state_dict['IDLE']
+        self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+
 
         # auxiliary variables
         self.tag_info = TagInfo()
@@ -131,6 +133,7 @@ class IntersectionNavigation(object):
                 pass
 
             elif self.state == self.state_dict['INITIALIZING_LOCALIZATION']:
+                rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
                 if self.InitializeLocalization():
                     self.state = self.state_dict['INITIALIZING_PATH']
                     rospy.loginfo("[%s] Initialized intersection localization, initializing path." % (self.node_name))
@@ -371,10 +374,11 @@ class IntersectionNavigation(object):
 
     def ModeCallback(self, msg):
         # update state if we are at an intersection
-        if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
+        '''if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             #self.state = self.state_dict['TRAVERSING']
-            rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
+            rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))'''
+        pass
             
     def TurnTypeCallback(self, msg):
         # TODO
