@@ -31,7 +31,7 @@ class LEDDetectorNode(object):
         self.bridge = CvBridge()
 
         # Parameters
-        self.capture_time = 0.89 # capture time
+        self.capture_time = 0.5 # capture time
         self.DTOL_car           = 25
 	self.DTOL_traffic_light = 10
 
@@ -39,13 +39,13 @@ class LEDDetectorNode(object):
         params = cv2.SimpleBlobDetector_Params()  # Change thresholds
         params.minThreshold = 5
         # params.maxThreshold = 200
-        params.maxThreshold = 100
-        params.thresholdStep = 5
+        params.maxThreshold = 50
+        params.thresholdStep = 10
 
         # Filter by Area.
         params.filterByArea = True
         params.minArea = 50
-        params.maxArea = 400
+        params.maxArea = 200
 
         # Filter by Circularity
         params.filterByCircularity = True
@@ -334,8 +334,8 @@ class LEDDetectorNode(object):
           
             rospy.loginfo("Right, frequency = %s, sampling = %s " %(fft_peak_freq,T))
 		
-	    if np.abs(fft_peak_freq - 4.0/2.1) <= 0.3:
-            #if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
+	    #if np.abs(fft_peak_freq - 4.0/2.1) <= 0.3:
+            if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
                 self.right = SignalsDetection.SIGNAL_A
                 break
 
@@ -349,8 +349,8 @@ class LEDDetectorNode(object):
         
 	    rospy.loginfo("Front, frequency = %s, sampling = %s " %(fft_peak_freq,T))
           	
-	    if np.abs(fft_peak_freq - 4.0/2.1) <= 0.3:
-            #if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
+	    #if np.abs(fft_peak_freq - 4.0/2.1) <= 0.3:
+            if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
 
