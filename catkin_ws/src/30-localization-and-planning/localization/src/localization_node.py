@@ -74,7 +74,7 @@ class LocalizationNode(object):
                 print ("robo_tag rot x", rot_euler[0]*(180/np.pi))
                 print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
                 print ("robo_tag rot z", rot_euler[2]*(180/np.pi))
-                
+
 
                 avg.add_pose(Tr_w)
                 self.publish_sign_highlight(tag.id)
