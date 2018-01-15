@@ -30,6 +30,8 @@ april_tag_basement_length = 50      # mm,
 april_tag_screen_length = 80        # mm
 space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
+ploting = True
+
 
 
 
@@ -150,7 +152,11 @@ class parkingPathPlanner():
 
         # path planning and collision check with dubins path
         self.px, self.py, self.pyaw = self.dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
-        self.collision_check(self.px, self.py, obstacles)
+        found_path = self.collision_check(self.px, self.py, obstacles)
+
+        if ploting:
+            do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
+                        obstacles, found_path)
 
     def collision_check(self,px, py, obstacles):
         found_path = True
@@ -334,6 +340,67 @@ class parkingPathPlanner():
             pyaw = pyaw + pyaw_straight
 
         return px, py, pyaw
+
+    # plot
+    def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
+                    obstacles, found_path):
+        if close_itself:
+            plt.clf()
+        fig, ax = plt.subplots()
+        if found_path:
+            plt.plot(px, py, 'g-', lw=3)
+        else:
+            plt.plot(px, py, 'm-', lw=3)
+
+        # plt.plot(px, py, label="final course " + "".join(mode))
+        dpp.plot_arrow(start_x, start_y, start_yaw,
+                       0.11 * lot_width, 0.06 * lot_width, fc="r", ec="r")
+        dpp.plot_arrow(end_x, end_y, end_yaw,
+                       0.11 * lot_width, 0.06 * lot_width, fc="g", ec="g")
+        ax.add_patch(patches.Rectangle((0.0, 0.0),
+                                       lot_width, lot_height, fill=False))
+        # plt.legend()
+        plt.axis("equal")
+        plt.xlim([-visual_boundairy, lot_height + visual_boundairy])
+        plt.ylim([-visual_boundairy, lot_width + visual_boundairy])
+
+        # background
+        ax.add_patch(patches.Rectangle((0.0, 0.0), lot_width, lot_height, fc=(0.3, 0.3, 0.3)))
+
+        #  obstacles
+        for obstacle in obstacles:
+            if obstacle[0] == "rectangle":
+                ax.add_patch(patches.Rectangle((obstacle[1], obstacle[2]),
+                                               obstacle[3], obstacle[4], fc="m", ec="m", hatch='x', lw=0.0))
+            if obstacle[0] == "circle":
+                ax.add_patch(patches.Circle((obstacle[1], obstacle[2]),
+                                            obstacle[3], fc="m", ec="m", hatch='x', lw=0.0))
+
+        # boundairies
+        r = 1.1 * radius_robot
+        ax.add_patch(patches.Rectangle((0.0 - r, 0.0 - r), r, lot_height + 2.0 * r, fc="w", ec="w"))
+        ax.add_patch(patches.Rectangle((0.0 - r, 0.0 - r), lot_height + 2.0 * r, r, fc="w", ec="w"))
+        ax.add_patch(patches.Rectangle((0.0 - r, lot_height), lot_width + 2.0 * r, lot_height, fc="w", ec="w"))
+        ax.add_patch(patches.Rectangle((lot_width, 0.0 - r), r, lot_height + 2.0 * r, fc="w", ec="w"))
+
+        for obj in objects:
+            if obj[5]:
+                ax.add_patch(patches.Rectangle((obj[0], obj[1]),
+                                               obj[2], obj[3], fc=obj[4]))
+            else:
+                ax.add_patch(patches.Rectangle((obj[0], obj[1]),
+                                               obj[2], obj[3], fc=obj[4], ec="m", hatch='x'))
+        ax.add_patch(patches.Rectangle((0.0, 0.0), lot_width, lot_height, fc=(0.3, 0.3, 0.3), fill=False))
+
+        if close_itself:
+            plt.draw()
+            plt.pause(pause_per_path)
+        else:
+            plt.show()
+
+        if save_figures:
+            dic = {True: 'driveable', False: 'collision'}
+            plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
 
 
 """
