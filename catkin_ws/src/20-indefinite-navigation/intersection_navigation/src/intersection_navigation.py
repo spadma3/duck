@@ -195,7 +195,7 @@ class IntersectionNavigation(object):
                 msg_cmds = Twist2DStamped()
                 msg_cmds.header.stamp = rospy.Time.now()
 
-                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 12.47: #Wait a bit before starting
+                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 2.1: #Wait a bit before starting
 
                     '''pos, vel = self.pathPlanner.EvaluatePath(self.s)
                     dt = 0.01
@@ -219,7 +219,7 @@ class IntersectionNavigation(object):
                         self.state = self.state_dict['DONE']'''
 
                     msg_cmds.v = 0.15*1.467
-                    msg_cmds.omega = 0.15/1.0*4.24
+                    msg_cmds.omega = 0.15/0.2*4.24
 
                 else:
                     msg_cmds.v = 0.0
