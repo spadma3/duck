@@ -356,7 +356,7 @@ class parkingPathPlanner():
     #                obstacles, found_path):
     def do_plotting(self, start_x, start_y, start_yaw, end_x, end_y, end_yaw, end_number, px, py, objects,
                     obstacles, found_path):
-        if close_itself:
+        #if close_itself:
             #plt.clf()
         fig, ax = plt.subplots()
         if found_path:
