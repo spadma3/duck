@@ -46,14 +46,14 @@ class Detector():
         self.upper_white = np.array([255, 25, 255])
 
         self.ref_world_point_x = 1.7  # this is the reference world point where we crop the img
-        self.major_intertia_thres = 20  # if you want to detect very little ducks might lower it to 10, not smaller,..
+        self.major_intertia_thres = 10  # if you want to detect very little ducks might lower it to 10, not smaller,..
 
         self.img_width = 0  # to be set in init_inv_homography
         self.img_height = 0  # to be set in init_inv_homography
         self.maximum_height = 0  # to be set in ground2bird_view_pixel_init
         self.maximum_left = 0
         self.factor = 1.0  # to be set in ground2bird_view_pixel_init
-        self.obst_thres = 35  # to be set in init_inv_homography, this is default
+        self.obst_thres = 20  # to be set in init_inv_homography, this is default was 35
         self.minimum_tracking_distance = 60
         self.new_track_array = np.array([])
 
