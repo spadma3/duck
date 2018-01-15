@@ -33,7 +33,7 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 200                        # iterations for RRT*
+maxIter = 100                        # iterations for RRT*
 rrt_star_animation = True           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 
