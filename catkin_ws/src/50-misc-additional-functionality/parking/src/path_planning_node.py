@@ -157,7 +157,7 @@ class parkingPathPlanner():
         if ploting:
             #self.do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
             #            obstacles, found_path)
-            self.do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, end_number, px, py, objects,
+            self.do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, end_number, self.px, self.py, objects,
                         obstacles, found_path)
 
     def collision_check(self,px, py, obstacles):
