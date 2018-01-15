@@ -62,7 +62,7 @@ class LocalizationNode(object):
                 Mr_w=np.dot(Mt_w,Mr_t)
                 Tr_w = self.matrix_to_transform(Mr_w)
 
-
+'''
                 # Print transformation from world to duckiebot based on current tag
                 print("-----------------------------------------------------------")
                 print ("tag ID: ", tag.id)
@@ -74,7 +74,7 @@ class LocalizationNode(object):
                 print ("robo_tag rot x", rot_euler[0]*(180/np.pi))
                 print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
                 print ("robo_tag rot z", rot_euler[2]*(180/np.pi))
-
+'''
 
                 avg.add_pose(Tr_w)
                 self.publish_sign_highlight(tag.id)
@@ -84,7 +84,7 @@ class LocalizationNode(object):
 
         Tr_w =  avg.get_average() # Average of the opinions
 
-        
+'''        
         # Print average transformation from world to duckiebot
         print("-----------------------------------------------------------")
         print("Average pose values")
@@ -99,7 +99,7 @@ class LocalizationNode(object):
         print ("robo_world rot z_avg", rot_euler[2]*(180/np.pi))
         print("-------------------------------------------------------------")
         print("-------------------------------------------------------------")
-        
+'''
 
         # Broadcast the robot transform
         if Tr_w is not None:

@@ -421,7 +421,7 @@ class parkingPathPlanner():
             dic = {True: 'driveable', False: 'collision'}
             #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
 
-            fig.savefig('path_example')
+            fig.savefig('path_example.png')
 
 
 """
