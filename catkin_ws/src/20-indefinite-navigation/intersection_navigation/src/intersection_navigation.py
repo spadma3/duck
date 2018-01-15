@@ -161,13 +161,13 @@ class IntersectionNavigation(object):
                 msg_lanePose = LanePose()
                 msg_lanePose.header.stamp = rospy.Time.now()
 
-                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec():
+                #if 2.0 < (rospy.Time.now() - self.debug_start).to_sec():
 
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                     # Limit curvature for right turn
-                    if curvature < - 2:
-                        curvature = - 2
+                    if curvature < - 2.5:
+                        curvature = - 2.5
 
                     if (self.s > 0.999):
                         msg_lanePose.d = 0
