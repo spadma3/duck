@@ -2,6 +2,20 @@
 This is the first part of our devel saviors package
 FIRST OF ALL: WE NEED AN ADDITIONAL LIBRARY: install via: "pip install scikit-image"
 
+THE NORMAL USAGE OF THE CODE IS AS FOLLOWS: (EVERYTHING TO BE RUN ON THE DUCKIEBOT!!!)
+
+1. "make demo-lane-following"
+
+2. "roslaunch obst_avoid obst_avoid_lane_follow_light.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori")"
+
+3. press x ON YOUR JOYSTICK then wait for about 10 seconds and ONLY START THE LANE FOLLOWING MODE IF IN THE TERMINAL WHERE YOU STARTED 2. comes a message IN YELLOW: "!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!"
+
+IF THIS YELLOW MESSAGE DID NOT APPEAR: repeat number 3
+
+
+
+IF YOU WANT TO FURTHER UNDERSTAND OUR CODE AND LAUNCHING OPTIONS THEN YOU CAN READ THE STUFF BELOW!!!
+
 The other files can be used as follows:
 
 There are currently two nodes implemented which can be used as follows:
