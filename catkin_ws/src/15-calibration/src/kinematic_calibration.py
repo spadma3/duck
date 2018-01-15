@@ -479,6 +479,7 @@ class calib():
     def modelfun(self, X, c, cl, tr, x_0, y_0, yaw_0, d):
         Ts=1.0/30 # Sampling Time of Euler Integration step
         
+        d = 0.06  # Distance of camera from Baseline is fixed and not part of the optimization for now
         #X=X.reshape((int(X.size/2),2),order='F')
         #cmd_right = X[:,0];
         #cmd_left  = X[:,1];
@@ -577,12 +578,14 @@ class calib():
         timepoints_ramp = ((time_ramp_meas-time_ramp_meas[0])*30+0.5).astype(int)
         timepoints_sine = ((time_sine_meas-time_sine_meas[0])*30+0.5).astype(int)
 
-        
+        ### Define if part of the measurement should be cut off
+        start = 0
+        stop  = -10
         ### IDENTIFICATION FOR RAMP MANOUVER ###
         # Setup Measurements Vectors
-        X = np.concatenate((cmd_ramp_right, cmd_ramp_left, timepoints_ramp, [np.size(cmd_ramp_right)]), axis=0)
-        Y = np.concatenate((x_ramp_meas, y_ramp_meas, yaw_ramp_meas), axis=0)
-        beta0 = np.array([0.6, 6, 0, x_ramp_meas[0], y_ramp_meas[0], yaw_ramp_meas[0], 0.07])
+        X = np.concatenate((cmd_ramp_right[start:stop], cmd_ramp_left[start:stop], timepoints_ramp[start:stop], [np.size(cmd_ramp_right[start:stop])]), axis=0)
+        Y = np.concatenate((x_ramp_meas[start:stop], y_ramp_meas[start:stop], yaw_ramp_meas[start:stop]), axis=0)
+        beta0 = np.array([0.6, 6, 0, x_ramp_meas[start], y_ramp_meas[start], yaw_ramp_meas[start], 0.06])
         
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
@@ -592,16 +595,16 @@ class calib():
         # Make a prediction based on the fitted parameters
         y_pred_ramp = self.modelfun(X, *popt_ramp) # Predict to calculate Error
         MSE_ramp = np.sum((Y-y_pred_ramp)**2)/y_pred_ramp.size # Calculate the Mean Squared Error
-        X = np.concatenate((cmd_ramp_right, cmd_ramp_left, np.arange(0,np.size(time_ramp),1), [np.size(cmd_ramp_right)]), axis=0)
+        X = np.concatenate((cmd_ramp_right[start:stop], cmd_ramp_left[start:stop], np.arange(0,np.size(time_ramp[start:stop]),1), [np.size(cmd_ramp_right[start:stop])]), axis=0)
         y_pred_ramp = self.modelfun(X, *popt_ramp) # Predict for Plotting
         y_pred_ramp = y_pred_ramp.reshape((int(y_pred_ramp.size/3),3),order='F')
         
         
         ### IDENTIFICATION FOR SINE MANOUVER ###
         # Setup Measurements Vectors
-        X = np.concatenate((cmd_sine_right, cmd_sine_left, timepoints_sine, [np.size(cmd_sine_right)]), axis=0)
-        Y = np.concatenate((x_sine_meas, y_sine_meas, yaw_sine_meas), axis=0)
-        beta0 = np.array([0.6, 6, 0, x_sine_meas[0], y_sine_meas[0], yaw_sine_meas[0], 0.07])
+        X = np.concatenate((cmd_sine_right[start:stop], cmd_sine_left[start:stop], timepoints_sine[start:stop], [np.size(cmd_sine_right[start:stop])]), axis=0)
+        Y = np.concatenate((x_sine_meas[start:stop], y_sine_meas[start:stop], yaw_sine_meas[start:stop]), axis=0)
+        beta0 = np.array([0.6, 6, 0, x_sine_meas[start], y_sine_meas[start], yaw_sine_meas[start], 0.06])
         
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
@@ -611,19 +614,19 @@ class calib():
         # Make a prediction based on the fitted parameters
         y_pred_sine = self.modelfun(X, *popt_sine) # Predict to calculate Error
         MSE_sine = np.sum((Y-y_pred_sine)**2)/y_pred_sine.size # Calculate the Mean Squared Error
-        X = np.concatenate((cmd_sine_right, cmd_sine_left, np.arange(0,np.size(time_sine),1), [np.size(cmd_sine_right)]), axis=0)
+        X = np.concatenate((cmd_sine_right[start:stop], cmd_sine_left[start:stop], np.arange(0,np.size(time_sine[start:stop]),1), [np.size(cmd_sine_right[start:stop])]), axis=0)
         y_pred_sine = self.modelfun(X, *popt_sine) # Predict for Plotting
         y_pred_sine = y_pred_sine.reshape((int(y_pred_sine.size/3),3),order='F')
         
         
         # PLOTTING
         plt.figure(1)
-        plt.plot(time_ramp[timepoints_ramp],x_ramp_meas,'x',color=(0.5,0.5,1))
-        plt.plot(time_ramp[timepoints_ramp],y_ramp_meas,'x',color=(0.5,1,0.5))
-        plt.plot(time_ramp[timepoints_ramp],yaw_ramp_meas,'x',color=(1,0.5,0.5))
-        plt.plot(time_ramp,y_pred_ramp[:,0],'b')
-        plt.plot(time_ramp,y_pred_ramp[:,1],'g')
-        plt.plot(time_ramp,y_pred_ramp[:,2],'r')
+        plt.plot(time_ramp[timepoints_ramp[start:stop]],x_ramp_meas[start:stop],'x',color=(0.5,0.5,1))
+        plt.plot(time_ramp[timepoints_ramp[start:stop]],y_ramp_meas[start:stop],'x',color=(0.5,1,0.5))
+        plt.plot(time_ramp[timepoints_ramp[start:stop]],yaw_ramp_meas[start:stop],'x',color=(1,0.5,0.5))
+        plt.plot(time_ramp[start:stop],y_pred_ramp[:,0],'b')
+        plt.plot(time_ramp[start:stop],y_pred_ramp[:,1],'g')
+        plt.plot(time_ramp[start:stop],y_pred_ramp[:,2],'r')
         plt.legend(['x measured','y measured','yaw measured','x predicted','y predicted','yaw predicted'],loc=4)
         plt.title('Measurements vs Prediction - Ramp Manouver')
         plt.xlabel('time [s]')
@@ -631,12 +634,12 @@ class calib():
         plt.show(block=False)
         
         plt.figure(2)
-        plt.plot(time_sine[timepoints_sine],x_sine_meas,'x',color=(0.5,0.5,1))
-        plt.plot(time_sine[timepoints_sine],y_sine_meas,'x',color=(0.5,1,0.5))
-        plt.plot(time_sine[timepoints_sine],yaw_sine_meas,'x',color=(1,0.5,0.5))
-        plt.plot(time_sine,y_pred_sine[:,0],'b')
-        plt.plot(time_sine,y_pred_sine[:,1],'g')
-        plt.plot(time_sine,y_pred_sine[:,2],'r')
+        plt.plot(time_sine[timepoints_sine[start:stop]],x_sine_meas[start:stop],'x',color=(0.5,0.5,1))
+        plt.plot(time_sine[timepoints_sine[start:stop]],y_sine_meas[start:stop],'x',color=(0.5,1,0.5))
+        plt.plot(time_sine[timepoints_sine[start:stop]],yaw_sine_meas[start:stop],'x',color=(1,0.5,0.5))
+        plt.plot(time_sine[start:stop],y_pred_sine[:,0],'b')
+        plt.plot(time_sine[start:stop],y_pred_sine[:,1],'g')
+        plt.plot(time_sine[start:stop],y_pred_sine[:,2],'r')
         plt.legend(['x measured','y measured','yaw measured','x predicted','y predicted','yaw predicted'],loc=4)
         plt.title('Measurements vs Prediction - Sine Manouver')
         plt.xlabel('time [s]')
