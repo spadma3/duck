@@ -109,9 +109,9 @@ class Implicit(object):
             diff_x = pos_tupel[0] - pos_tupel[1]
             diff_y = pos_tupel[2] - pos_tupel[3]
             #check if in Field of Interest
-            if pos_tupel[1] < self.FOI_front and pos_tupel[3] > self.FOI_right and \
-                    pos_tupel[3] < self.FOI_left:
-                if diff_x**2 + diff_y**2 >= self.detection_threshold**2:
+            if (pos_tupel[1] < self.FOI_front) and (pos_tupel[3] > self.FOI_right) and \
+                    (pos_tupel[3] < self.FOI_left):
+                if (diff_x**2 + diff_y**2 >= self.detection_threshold**2):
                     return True
                 if self.right_priority and \
                         self.right_priority_thresholdy > pos_tupel[3] and \
@@ -127,16 +127,16 @@ class Implicit(object):
             self.CSMA()
 
     def CSMA(self):
+	print "entering csma"
         while self.active:
             rospy.loginfo("[%s] activated" % (self.node_name))
             flag = BoolStamped()
             backoff_time = 0.0  # in seconds
-            time.sleep(1.0)
+            time.sleep(0.5)
             if self.DetectPotCollision():
                 rospy.loginfo("[%s] potential collision" % (self.node_name))
                 if self.iteration > 0:
-                    backoff_time = randrange(0, 2**self.iteration - 1) * \
-                        self.SlotTime
+                    backoff_time = randrange(0, 5)
                 flag.data = False
                 self.pub_implicit_coordination.publish(flag)
                 time.sleep(backoff_time)
@@ -145,7 +145,7 @@ class Implicit(object):
                     flag.data = True
 		    self.pub_implicit_coordination.publish(flag)
 		    self.active = False
-            else:
+            if self.detected_bots == None or not self.DetectPotCollision():
                 rospy.loginfo("[%s] no potential" % (self.node_name))
                 self.iteration = 0
                 flag.data = True
