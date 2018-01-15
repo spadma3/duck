@@ -11,7 +11,7 @@ import tf2_ros
 from fleet_planning.generate_duckietown_map import graph_creator
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
-from fleet_planning.duckiebot import TaxiEvent
+from fleet_planning.duckiebot import TaxiEvent, NO_TARGET_LOCATION
 from rgb_led.srv import PlayLEDPattern
 
 
@@ -100,14 +100,11 @@ class ActionsDispatcherNode:
 
     def new_duckiebot_mission(self, message):
         duckiebot_name, target_node, taxi_event = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
-        if duckiebot_name != self.duckiebot_name:
+        if duckiebot_name != self.duckiebot_name or target_node == NO_TARGET_LOCATION:
             return
         self.target_node = target_node
 
-        taxi_state = TaxiEvent(taxi_event)
-
         # Signal using the LEDs.
-        rospy.loginfo("Received ")
         if taxi_event == TaxiEvent.ACCEPTED_REQUEST:
             self._play_led_pattern("fleet_planning/going_to_customer")
         elif taxi_event == TaxiEvent.DROPOFF_CUSTOMER:

@@ -20,6 +20,11 @@ class Instruction(Enum):
     STRAIGHT = 's'
 
 
+# The value that is returned by the target_location property if the duckiebot
+# has no target location. This may not be negative.
+NO_TARGET_LOCATION = 1111
+
+
 class BaseCustomerRequest:
     def __init__(self, start_node, target_node):
         self.start_location = start_node  # node number
@@ -110,7 +115,7 @@ class BaseDuckiebot:
         """returns target location of Duckiebots current mission,
         depending on the status of the customer request it is handling."""
         if self._taxi_state == TaxiState.WITHOUT_MISSION:
-            return -1
+            return NO_TARGET_LOCATION
 
         if self._taxi_state == TaxiState.IDLE:
             return self._rebalancing_target
