@@ -178,9 +178,10 @@ class IntersectionNavigation(object):
                     msg_cmds.omega = self.alpha * omega * (self.v_scale * self.w_scale * 2 * math.pi)
 
                     self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
-                    print(self.s)
 
                     if (self.s > 1.0):
+                        msg_cmds.v = 0.0
+                        msg_cmds.omega = 0.0
                         self.state = self.state_dict['DONE']
 
                 else:
