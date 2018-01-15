@@ -211,7 +211,7 @@ class LineDetectorNode(object):
         
         if self.verbose:
 
-            print('line_detect_node: verbose is on!')
+            # print('line_detect_node: verbose is on!')
 
             # Draw lines and normals
             image_with_lines = np.copy(image_cv_corr)
