@@ -17,7 +17,8 @@ class calibration:
                 self.pub_wheels_cmd = rospy.Publisher(publisher,Twist2DStamped,queue_size=1)
 
 #                self.omega = rospy.get_param("~omega")
-		self.omega=2.0*pi / 5.0
+		self.omega1=2.0*pi / 8.0
+           self.omega2=-2.0*pi / 8.0
 
 	def sendCommand(self, vel_right, vel_left):
 		# Put the wheel commands in a message and publish
@@ -33,21 +34,33 @@ class calibration:
                         rospy.sleep(0.5)
                 self.sendCommand(0, 0)
 
-        def turn(self):
-                for i in range(0,10):
-                        self.sendCommand(0.2,self.omega)
+        def turn1(self):
+                for i in range(0,16):
+                        self.sendCommand(0.2,self.omega1)
+                        rospy.sleep(0.5)
+                self.sendCommand(0,0)
+                
+        def turn2(self):
+                for i in range(0,16):
+                        self.sendCommand(0.2,self.omega2)
                         rospy.sleep(0.5)
                 self.sendCommand(0,0)
 
 
 if __name__ == '__main__':
         calib=calibration()
-        rospy.loginfo("straight")
         rospy.sleep(5)
+        rospy.loginfo("SYSTEM IDENTIFICATION - VALIDATION RUN")
+        rospy.loginfo("STRAIGHT FOR 1 m at 0.2 m/s")
         calib.straight()
-        rospy.loginfo("prepare for circle")
+        rospy.loginfo("prepare for circle...")
         rospy.sleep(5)
-        rospy.loginfo("circle")
-        calib.turn()
+        rospy.loginfo("FULL CIRCLE TO THE LEFT")
+        calib.turn1()
+        rospy.sleep(5)
+        rospy.loginfo("FULL CIRCLE TO THE RIGHT")
+        calib.turn2()
+        
+
 
         #os.system("rosnode kill /record")
