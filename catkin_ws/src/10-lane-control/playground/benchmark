@@ -176,8 +176,8 @@ class Benchmark():
 
         result = self.add_Pose_text(result, d_max, phi_max)
 
-        dComputedArray.append([d_max, imgArray[1]])
-        phiComputedArray.append([phi_max, imgArray[1]])
+        dComputedArray.append([d_max[0], imgArray[1]])
+        phiComputedArray.append([phi_max[0], imgArray[1]])
         return result
 
     def add_Pose_text(self, img, d_max, phi_max):
