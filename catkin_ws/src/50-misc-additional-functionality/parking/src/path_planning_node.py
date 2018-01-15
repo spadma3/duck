@@ -6,6 +6,8 @@ import dubins_path_planning as dpp
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from duckietown_msgs.msg import Pose2DStamped, LanePose, BoolStamped  # custom message to subscribe to
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 """
 Global parameters
@@ -31,6 +33,12 @@ april_tag_screen_length = 80        # mm
 space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
 ploting = True
+close_itself = True
+save_figures = True
+pause_per_path = 0.5 # sec
+
+# plotting parameters
+visual_boundairy = 100
 
 
 
