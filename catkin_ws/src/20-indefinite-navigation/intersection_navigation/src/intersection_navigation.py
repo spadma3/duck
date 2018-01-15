@@ -349,7 +349,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = 1
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
@@ -394,10 +394,11 @@ class IntersectionNavigation(object):
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
-            cmd_msg.v = msg.v / (self.v_scale)
-            cmd_msg.omega = msg.omega / (self.v_scale * self.w_scale * 2.0 * math.pi)
+            cmd_msg.v = msg.v / 1.467
+            cmd_msg.omega = msg.omega /4.24
             cmd_msg.header.stamp = msg.header.stamp
             self.poseEstimator.FeedCommandQueue(cmd_msg)
+
 
     def AprilTagsCallback(self, msg):
         '''if self.state == self.state_dict['IDLE'] or self.state == self.state_dict['INITIALIZING']:
