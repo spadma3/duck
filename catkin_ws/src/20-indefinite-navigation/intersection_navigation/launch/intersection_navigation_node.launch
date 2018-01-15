@@ -9,7 +9,7 @@
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
 
     <!-- run inverse_kinematics_node -->
-    <!-- <remap from="inverse_kinematics_node/car_cmd" to="lane_controller_node/car_cmd"/> -->
+    <remap from="inverse_kinematics_node/car_cmd" to="lane_controller_node/car_cmd"/>
     <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd"/>
     <remap from="inverse_kinematics_node/actuator_limits_received" to="lane_controller_node/actuator_limits_received" />
 	<remap from="wheels_driver_node/radius_limit" to="lane_controller_node/radius_limit" />
@@ -80,7 +80,7 @@
 	</node>
 
     <!-- Intersection navigation -->
-    <remap from="~cmds_out" to="inverse_kinematics_node/car_cmd" />
+    <!-- <remap from="~cmds_out" to="inverse_kinematics_node/car_cmd" /> -->
     <remap from="~intersection_navigation_pose" to="lane_controller_node/intersection_navigation_pose" />
     <remap from="~img" to="camera_node/image/compressed" />
     <remap from="~cmds" to="forward_kinematics_node/velocity" />

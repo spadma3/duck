@@ -171,6 +171,7 @@ class IntersectionNavigation(object):
                         msg_lanePose.phi = 0
                         msg_lanePose.curvature_ref = 0
                         msg_lanePose.v_ref = 0
+                        self.state = self.state_dict['DONE']
                     else:
                         msg_lanePose.d = dist
                         msg_lanePose.d_ref = 0
@@ -233,9 +234,19 @@ class IntersectionNavigation(object):
                 # Now just stop
                 msg_done_cmds = Twist2DStamped()
                 msg_done_cmds.header.stamp = rospy.Time.now()
-                msg_done_cmds.v = 0.0
-                msg_done_cmds.omega = 0.0
-                self.pub_cmds.publish(msg_done_cmds)
+                '''msg_done_cmds.v = 0.0
+                msg_done_cmds.omega = 0.0'''
+
+
+
+                msg_done_cmds.d = 0
+                msg_done_cmds.d_ref = 0
+                msg_done_cmds.phi = 0
+                msg_done_cmds.curvature_ref = 0
+                msg_done_cmds.v_ref = 0
+
+                self.pub_lane_pose.publish(msg_done_cmds)
+                #self.pub_cmds.publish(msg_done_cmds)
                 rospy.loginfo("[%s] Intersection done." % (self.node_name))
 
             else:
@@ -344,7 +355,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = 1
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
