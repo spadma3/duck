@@ -140,8 +140,8 @@ class lane_controller(object):
         use_radius_limit = rospy.get_param("~use_radius_limit")
 
         #FeedForward
-        self.velocity_to_m_per_s = 0.67 * 2.45 # TODO: change according to information from team System ID!
-        self.omega_to_rad_per_s = 0.45 * 2.45
+        self.velocity_to_m_per_s = 1.467 # TODO: change according to information from team System ID!
+        self.omega_to_rad_per_s = 4.24
         self.curvature_outer = 1 / (0.39)
         self.curvature_inner = 1 / 0.175
         use_feedforward_part = rospy.get_param("~use_feedforward_part")
@@ -290,6 +290,7 @@ class lane_controller(object):
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
         car_control_msg.v = pose_msg.v_ref #*self.speed_gain #Left stick V-axis. Up is positive
+        self.v_bar = car_control_msg.v
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
@@ -324,7 +325,7 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.heading_integral = 0
 
-        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * pose_msg.curvature_ref * 2 * math.pi
+        omega_feedforward = self.v_bar * pose_msg.curvature_ref
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
@@ -333,7 +334,11 @@ class lane_controller(object):
         omega -= self.k_Iphi * self.heading_integral
         omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
-        self.omega_max_radius_limitation = self.v_bar * self.velocity_to_m_per_s / self.min_radius * 2 * math.pi * self.omega_to_rad_per_s
+        # increase velocity to make sure all wheels spin properly
+        if (self.v_bar - 0.5*math.fabs(omega)*0.1) < 0.061:
+            self.v_bar = 0.061 + 0.5*math.fabs(omega)*0.1
+
+        self.omega_max_radius_limitation = self.v_bar / self.min_radius * self.omega_to_rad_per_s
         self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
 
         if omega > self.omega_max:
