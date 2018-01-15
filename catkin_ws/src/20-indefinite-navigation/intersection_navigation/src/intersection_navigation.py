@@ -33,6 +33,8 @@ class IntersectionNavigation(object):
         # main logic parameters
         self.rate = 10  # main logic runs at 10Hz
         self.timeout = 1.0
+        self.active = True
+        #self.mode = None
 
         self.v = 0.15 # Navigation velocity
         self.v_scale = 0.67 * 2.45  # Scaling factor for the velocity
@@ -62,6 +64,10 @@ class IntersectionNavigation(object):
         self.init_debug = False
 
         # set up subscribers
+        self.sub_switch = rospy.Subscriber("~switch", 
+                                        BoolStamped, 
+                                        self.SwitchCallback,
+                                        queue_size=1)
         self.sub_mode = rospy.Subscriber("~mode",
                                          FSMState,
                                          self.ModeCallback,
@@ -126,6 +132,9 @@ class IntersectionNavigation(object):
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             # run state machine
+            #if not self.active:
+                #return
+
             if self.state == self.state_dict['IDLE']:
                 # waiting for FSMState to tell us that Duckiebot is at an intersection (see ModeCallback)
                 pass
@@ -366,7 +375,9 @@ class IntersectionNavigation(object):
         else:
             return True
 
-
+    def SwitchCallback(self, msg):
+        self.active = msg.data #True or False
+            
     def ModeCallback(self, msg):
         # update state if we are at an intersection
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
