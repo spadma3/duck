@@ -219,7 +219,7 @@ class IntersectionNavigation(object):
                         self.state = self.state_dict['DONE']'''
 
                     msg_cmds.v = 0.15*1.467
-                    msg_cmds.omega = (0.15*1.467)/1.3*(0.46*2.0*math.pi)
+                    msg_cmds.omega = -0.15/1.3*4.24
 
                 else:
                     msg_cmds.v = 0.0
