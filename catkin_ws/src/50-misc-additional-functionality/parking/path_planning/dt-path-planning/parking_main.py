@@ -19,7 +19,7 @@ Global parameters
 """
 # control parameters
 choose_random_parking_space_combination = False
-close_itself = True
+close_itself = False
 save_figures = True
 pause_per_path = 0.5 # sec
 ploting = True
