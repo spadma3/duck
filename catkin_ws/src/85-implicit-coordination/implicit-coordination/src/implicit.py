@@ -143,15 +143,15 @@ class Implicit(object):
                 time.sleep(backoff_time)
                 self.iteration += 1
                 if self.iteration > self.iteration_threshold:
-                    return False
-            elif not self.detected_bots == None:
+                    flag.data = True
+            else:
                 rospy.loginfo("[%s] no potential" % (self.node_name))
                 self.iteration = 0
                 flag.data = True
                 turn_type = Int16(1)
                 self.active = False
-                self.pub_turn_type.publish(turn_type)
-                self.pub_implicit_coordination.publish(flag)
+            self.pub_turn_type.publish(turn_type)
+            self.pub_implicit_coordination.publish(flag)
 
     def on_shutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
