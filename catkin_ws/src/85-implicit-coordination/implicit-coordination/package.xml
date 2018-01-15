@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>implicit_coord</name>
+  <name>implicit_coordination</name>
   <version>1.0.0</version>
   <description>
 The package 'implicit_coord' coordinates the Duckiebots at intersetions

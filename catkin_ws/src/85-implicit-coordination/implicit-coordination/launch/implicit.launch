@@ -2,9 +2,9 @@
     <arg name="veh" doc="name of vehicle"/>
 		<arg name="local" default="false"/>
 		<group ns="$(arg veh)">
-			<node name="implicit_coordination" pkg="implicit_coord" type="implicit.py" output="screen">
+			<node name="implicit_coordination_node" pkg="implicit_coordination" type="implicit.py" output="screen">
 			     <!-- Remapping topics -->
-			  <remap from="implicit_coordination/vehicle_detection_node" to="/duckbrown/multivehicle_tracker_node/tracking" />
+			  <remap from="implicit_coordination_node/vehicle_detection_node" to="/duckbrown/multivehicle_tracker_node/tracking" />
 			</node>
 		</group>
 </launch>
