@@ -239,7 +239,7 @@ class IntersectionNavigation(object):
 
 
                 #Left turn
-                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec():# and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
 
                 #Right turn
                 #if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 6.0:
@@ -256,14 +256,14 @@ class IntersectionNavigation(object):
                     omega = (theta2 - theta)/0.01
 
                     msg2.v = 0.38*0.67
-                    msg2.omega = self.alpha*omega*(0.67 * 0.45 * 2 * math.pi)
+                    msg2.omega = 0.0#self.alpha*omega*(0.67 * 0.45 * 2 * math.pi)
 
-                    self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
+                    '''self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
                     print(self.s)
 
                     if (self.s > 1.0):
                         msg2.v = 0.0
-                        msg2.omega = 0.0
+                        msg2.omega = 0.0'''
 
 
 
