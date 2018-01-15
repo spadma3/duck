@@ -209,8 +209,8 @@ class IntersectionNavigation(object):
 
                     '''msg_cmds.v = 0.15
                     msg_cmds.omega = 0.15/0.2'''
-                    if (msg_cmds.v - 0.5 * math.fabs(msg_cmds.omega) * 0.1) < 0.061:
-                        msg_cmds.v = 0.061 + 0.5 * math.fabs(msg_cmds.omega) * 0.1
+                    if (msg_cmds.v - 0.5 * math.fabs(msg_cmds.omega) * 0.1) < 0.065:
+                        msg_cmds.v = 0.065 + 0.5 * math.fabs(msg_cmds.omega) * 0.1
                         self.alpha = self.alpha*msg_cmds.v/0.15
 
                     msg_cmds.v = msg_cmds.v * 1.53
@@ -355,7 +355,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 1
+        turn_type = 2
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
