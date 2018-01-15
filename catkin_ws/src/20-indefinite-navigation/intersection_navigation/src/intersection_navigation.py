@@ -237,6 +237,13 @@ class IntersectionNavigation(object):
                 msg2 = Twist2DStamped()
                 msg2.header.stamp = rospy.Time.now()
 
+                msg = IntersectionPose()
+                msg.header.stamp = rospy.Time.now()
+                pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
+                msg.x = pose[0]
+                msg.y = pose[1]
+                msg.theta = pose[2]
+                self.pub_intersection_pose.publish(msg)
 
                 #Left turn
                 if 4.0 < (rospy.Time.now() - self.debug_start).to_sec(): #and (rospy.Time.now() - self.debug_start).to_sec() < 8.0 :
