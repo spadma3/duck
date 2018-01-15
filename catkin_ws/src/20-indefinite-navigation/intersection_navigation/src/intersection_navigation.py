@@ -31,7 +31,7 @@ class IntersectionNavigation(object):
         
 
         # main logic parameters
-        self.rate = 10  # main logic runs at 10Hz
+        self.rate = 30  # main logic runs at 10Hz
         self.timeout = 1.0
         self.state_dict = dict()
         for counter, key in enumerate(['IDLE', 'INITIALIZING_LOCALIZATION', 'INITIALIZING_PATH', 'TRAVERSING', 'DONE', 'ERROR']):
