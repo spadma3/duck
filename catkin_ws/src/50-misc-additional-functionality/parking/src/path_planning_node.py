@@ -8,6 +8,7 @@ import numpy as np
 import os
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from duckietown_msgs.msg import Pose2DStamped, LanePose, BoolStamped  # custom message to subscribe to
+import os
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -55,7 +56,7 @@ class parkingPathPlanner():
         self.plan = True
         self.sample_freq = 50
         self.d_ref = 0  # for parking, d_ref = 0
-        self.v_ref = 0.05  # reference vel for parking
+        self.v_ref = 0.005  # reference vel for parking
         # init counter
         #self.count = 0
         # init subscriber
@@ -419,10 +420,18 @@ class parkingPathPlanner():
             plt.show()
 
         if save_figures:
+<<<<<<< HEAD
             file_path = os.getcwd()
             file_path = os.file_path.split(os.path.dirname(file_path))[0]
             print (file_path)
             plt.savefig(os.path.join(file_path, '/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path_new.png'))
+=======
+            dic = {True: 'driveable', False: 'collision'}
+            #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
+            print(os.getcwd())
+            plt.savefig('path_example.png')
+
+>>>>>>> 5bbbe6287a63394f060da59f6969f2339842e628
 
 """
 main file
