@@ -244,6 +244,11 @@ class RRT():
 
         # pickle.dump(ax, file('images/rrtstar.pickle', 'w'))
 
+        # save RRT* pathes
+        pickle.dump(ax, file('images/RRT_star.pickle', 'w'))
+        plt.savefig('images/RRT_star.pdf')
+
+
         plt.pause(0.001)
         plt.close()
 

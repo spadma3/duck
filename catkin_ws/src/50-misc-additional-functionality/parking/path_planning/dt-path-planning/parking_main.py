@@ -33,7 +33,7 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 300                        # iterations for RRT*
+maxIter = 50                        # iterations for RRT*
 rrt_star_animation = True           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 
@@ -285,7 +285,6 @@ def RRT_star_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw, o
     maxIter=maxIter, curvature=curvature, radius_graph_refinement=radius_graph_refinement)
     path = rrt.Planning(animation=rrt_star_animation)
 
-
     # convert
     px, py, pyaw = [], [], []
     for (x, y) in path:
@@ -421,6 +420,10 @@ def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw
         dic = {True:'driveable', False:'collision'}
         plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number,end_number,dic[found_path]))
 
+        # save RRT pathes
+        # ax = pickle.load(file('images/RRT_star.pickle'))
+        # plt.savefig('images/path_{}_{}_RRT_star_pathes.pdf'.format(start_number,end_number))
+
 
 
 
@@ -489,8 +492,8 @@ if __name__ == '__main__':
     else:
         start_numbers = [0,0,0,0,0,0,1,2,3,4,5,6]
         end_numbers = [1,2,3,4,5,6,7,7,7,7,7,7]
-        # start_numbers = [6]
-        # end_numbers = [7]
+        start_numbers = [0]
+        end_numbers = [4]
         for start_number, end_number in zip(start_numbers, end_numbers):
             print("Planning a path from {} to {}: ".format(start_number, end_number))
             path_planning(start_number, end_number)
