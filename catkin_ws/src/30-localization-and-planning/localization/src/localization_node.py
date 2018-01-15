@@ -124,7 +124,8 @@ class LocalizationNode(object):
             self.pub_tf.publish(TFMessage([T]))
             self.lifetimer = rospy.Time.now()
         end = rospy.get_rostime()
-        print ("Localization Callback [Hz]: ", 1/(end-begin), "Localization Callback [s]: ", (end-begin))
+        #print ("Localization Callback [Hz]: ", 1/(end-begin), "Localization Callback [s]: ", (end-begin))
+        print ("Localization Callback [s]: ", end-begin)
 
     def publish_duckie_marker(self):
         # Publish a duckiebot transform far away unless the timer was reset

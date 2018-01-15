@@ -64,7 +64,8 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
     end = rospy.get_rostime()
-    print ("Image Rect Callback [Hz]: ", 1 / (end - begin), "Image Rect Callback [s]: ", (end - begin))
+    #print ("Image Rect Callback [Hz]: ", 1 / (end - begin), "Image Rect Callback [s]: ", (end - begin))
+    print ("Image Rect Callback [s]: ", end - begin)
 
   def CIcallback(self,data):
     self.stamp = data.header.stamp
