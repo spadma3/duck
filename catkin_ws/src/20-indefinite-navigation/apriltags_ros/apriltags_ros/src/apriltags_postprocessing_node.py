@@ -165,7 +165,7 @@ class AprilPostPros(object):
         self.pub_postPros.publish(new_tag_data)
         end = rospy.get_rostime()
         #print ("AprilTag Postprocessing Callback [Hz]: ", 1/(end-begin), "AprilTag Postprocessing Callback [s]: ", (end-begin))
-        print ("AprilTag Postprocessing Callback [s]: ", end.secs-begin.secs)
+        print ("AprilTag Postprocessing Callback [ns]: ", end.nsecs-begin.nsecs)
 
 if __name__ == '__main__': 
     rospy.init_node('AprilPostPros',anonymous=False)
