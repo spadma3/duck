@@ -453,8 +453,8 @@ class IntersectionNavigation(object):
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
-            cmd_msg.v = msg.v / 0.67
-            cmd_msg.omega = msg.omega / (0.67 * 0.45 * 2.0 * math.pi)
+            cmd_msg.v = msg.v / (0.67*2.45)
+            cmd_msg.omega = msg.omega / (0.67*2.45 * 0.45 * 2.0 * math.pi)
             cmd_msg.header.stamp = msg.header.stamp
 
             #msg.omega = msg.omega / (2 * math.pi * 0.45)
