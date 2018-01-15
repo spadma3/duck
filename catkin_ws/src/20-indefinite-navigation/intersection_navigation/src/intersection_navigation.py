@@ -158,7 +158,7 @@ class IntersectionNavigation(object):
                 msg_pose.theta = pose[2]
                 self.pub_intersection_pose.publish(msg_pose)
 
-                msg_lanePose = LanePose()
+                '''msg_lanePose = LanePose()
                 msg_lanePose.header.stamp = rospy.Time.now()
 
                 if 0.0 < (rospy.Time.now() - self.debug_start).to_sec():
@@ -186,12 +186,12 @@ class IntersectionNavigation(object):
                     msg_lanePose.curvature_ref = 0
                     msg_lanePose.v_ref = 0
 
-                self.pub_lane_pose.publish(msg_lanePose)
+                self.pub_lane_pose.publish(msg_lanePose)'''
 
-                '''msg_cmds = Twist2DStamped()
+                msg_cmds = Twist2DStamped()
                 msg_cmds.header.stamp = rospy.Time.now()
 
-                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 4.1: #Wait a bit before starting
+                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec(): #Wait a bit before starting
 
                     pos, vel = self.pathPlanner.EvaluatePath(self.s)
                     dt = 0.01
@@ -204,8 +204,8 @@ class IntersectionNavigation(object):
                     theta2 = np.arctan2(dir2[1], dir2[0])
                     omega = (theta2 - theta)/dt
 
-                    msg_cmds.v = self.v * self.v_scale
-                    msg_cmds.omega = self.alpha * omega * (self.v_scale * self.w_scale * 2 * math.pi)
+                    msg_cmds.v = 0.15 * 1.467
+                    msg_cmds.omega = self.alpha * omega * 4.24
 
                     self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
 
@@ -213,9 +213,6 @@ class IntersectionNavigation(object):
                         msg_cmds.v = 0.0
                         msg_cmds.omega = 0.0
                         self.state = self.state_dict['DONE']
-
-                    msg_cmds.v = 0.15*1.467
-                    msg_cmds.omega = 0.15/0.2*4.24
 
                 else:
                     msg_cmds.v = 0.0
