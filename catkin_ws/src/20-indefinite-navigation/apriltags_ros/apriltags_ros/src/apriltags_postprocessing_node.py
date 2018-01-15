@@ -75,7 +75,9 @@ class AprilPostPros(object):
         return value
 
     def callback(self, msg):
+        # Start timer to detect time to run callback
         begin = rospy.get_rostime()
+        
         # tag_infos
         tag_infos = []
 
@@ -164,7 +166,8 @@ class AprilPostPros(object):
         # Publish Message
         self.pub_postPros.publish(new_tag_data)
         end = rospy.get_rostime()
-        #print ("AprilTag Postprocessing Callback [Hz]: ", 1/(end-begin), "AprilTag Postprocessing Callback [s]: ", (end-begin))
+        
+        #  Print time to run callback in [s]
         print ("AprilTag Postprocessing Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
 if __name__ == '__main__': 

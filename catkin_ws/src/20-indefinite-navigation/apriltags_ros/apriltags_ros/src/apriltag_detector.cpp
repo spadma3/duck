@@ -51,7 +51,9 @@ namespace apriltags_ros{
   }
   
   void AprilTagDetector::imageCb(const sensor_msgs::ImageConstPtr& msg,const sensor_msgs::CameraInfoConstPtr& cam_info){
+    // Start timer to detect time to run callback
     ros::Time begin = ros::Time::now();
+    
     cv_bridge::CvImagePtr cv_ptr;
     try{
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -69,12 +71,6 @@ namespace apriltags_ros{
     double fy = cam_info->K[4];
     double px = cam_info->K[2];
     double py = cam_info->K[5];
-
-    std::cout << "The loaded intrinsic parameters are:"  << std::endl;
-    std::cout << "fx: " << fx << std::endl;
-    std::cout << "fx: " << fy << std::endl;
-    std::cout << "px: " << px << std::endl;
-    std::cout << "py: " << py << std::endl;
     
     if(!sensor_frame_id_.empty())
       cv_ptr->header.frame_id = sensor_frame_id_;
@@ -93,8 +89,6 @@ namespace apriltags_ros{
 	  continue;
       }
 
-      std::cout << "Detected tag ID: " << detection.id << std::endl;
-
       AprilTagDescription description = description_itr->second;
       double tag_size = description.size();
       
@@ -108,15 +102,21 @@ namespace apriltags_ros{
       tag_pose.pose.position.y = transform(1,3);
       tag_pose.pose.position.z = transform(2,3);
 
+      /*
+      //Print detected transform
+      std::cout << "Detected tag ID: " << detection.id << std::endl;
+
       tf::Quaternion q(rot_quaternion.x(), rot_quaternion.y(), rot_quaternion.z(), rot_quaternion.w());
       tf::Matrix3x3 m(q);
       double roll, pitch, yaw;
       m.getRPY(roll, pitch, yaw);
+      
       std::cout << "Roll: " << roll*180/3.14159 << ", Pitch: " << pitch*180/3.14159 << ", Yaw: " << yaw*180/3.14159 << std::endl;
 
       std::cout << "x dist: " << transform(0,3) << std::endl;
       std::cout << "y dist: " << transform(1,3) << std::endl;
       std::cout << "z dist: " << transform(2,3) << std::endl;
+      */
 
       tag_pose.pose.orientation.x = rot_quaternion.x();
       tag_pose.pose.orientation.y = rot_quaternion.y();
@@ -138,6 +138,8 @@ namespace apriltags_ros{
     detections_pub_.publish(tag_detection_array);
     pose_pub_.publish(tag_pose_array);
     image_pub_.publish(cv_ptr->toImageMsg());
+
+    // Print time to run callback in [s]
     ros::Time end = ros::Time::now();
     std::cout << "AprilTag Detection Callback [s]: " << (end-begin) << std::endl;
   }

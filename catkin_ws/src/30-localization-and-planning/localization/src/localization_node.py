@@ -44,7 +44,9 @@ class LocalizationNode(object):
         rospy.loginfo("[%s] has started", self.node_name)
 
     def tag_callback(self, msg_tag):
+        # Start timer to detect time to run callback
         begin = rospy.get_rostime()
+        
         # Listen for the transform of the tag in the world
         avg = PoseAverage.PoseAverage()
         for tag in msg_tag.detections:
@@ -60,6 +62,8 @@ class LocalizationNode(object):
                 Mr_w=np.dot(Mt_w,Mr_t)
                 Tr_w = self.matrix_to_transform(Mr_w)
 
+                '''
+                # Print transformation from world to duckiebot based on current tag
                 print("-----------------------------------------------------------")
                 print ("tag ID: ", tag.id)
                 print ("robo_world x: ", Tr_w.translation.x)
@@ -67,19 +71,11 @@ class LocalizationNode(object):
                 print ("robo_world z: ", Tr_w.translation.z)
 
                 rot_euler=tr.euler_from_quaternion((tag.pose.pose.orientation.x, tag.pose.pose.orientation.y, tag.pose.pose.orientation.z, tag.pose.pose.orientation.w))
-                #print ("robo_tag quat x = ",tag.pose.pose.orientation.x)
-                #print ("robo_tag quat y = ",tag.pose.pose.orientation.y)
-                #print ("robo_tag quat z = ",tag.pose.pose.orientation.z)
-                #print ("robo_tag quat w = ",tag.pose.pose.orientation.w)
                 print ("robo_tag rot x", rot_euler[0]*(180/np.pi))
                 print ("robo_tag rot y", rot_euler[1]*(180/np.pi))
                 print ("robo_tag rot z", rot_euler[2]*(180/np.pi))
+                '''
 
-                #rot = Tr_w.rotation
-                #rot_euler=tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))
-                #print ("robo_world rot x", rot_euler[0]*(180/np.pi))
-                #print ("robo_world rot y", rot_euler[1]*(180/np.pi))
-                #print ("robo_world rot z", rot_euler[2]*(180/np.pi))
                 avg.add_pose(Tr_w)
                 self.publish_sign_highlight(tag.id)
             except(tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as ex:
@@ -88,6 +84,8 @@ class LocalizationNode(object):
 
         Tr_w =  avg.get_average() # Average of the opinions
 
+        '''
+        # Print average transformation from world to duckiebot
         print("-----------------------------------------------------------")
         print("Average pose values")
         print ("robo_world x_avg: ", Tr_w.translation.x)
@@ -101,6 +99,7 @@ class LocalizationNode(object):
         print ("robo_world rot z_avg", rot_euler[2]*(180/np.pi))
         print("-------------------------------------------------------------")
         print("-------------------------------------------------------------")
+        '''
 
         # Broadcast the robot transform
         if Tr_w is not None:
@@ -123,8 +122,9 @@ class LocalizationNode(object):
             T.child_frame_id = self.duckiebot_frame
             self.pub_tf.publish(TFMessage([T]))
             self.lifetimer = rospy.Time.now()
+        
+        #  Print time to run callback in [s]
         end = rospy.get_rostime()
-        #print ("Localization Callback [Hz]: ", 1/(end-begin), "Localization Callback [s]: ", (end-begin))
         print ("Localization Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
     def publish_duckie_marker(self):

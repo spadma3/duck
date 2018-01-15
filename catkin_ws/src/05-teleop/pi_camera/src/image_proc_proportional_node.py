@@ -27,7 +27,6 @@ class image_converter:
 
     self.stamp = rospy.Time.now()
 
-    #camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
     camera_info_topic = "/" + self.robot_name + "/camera_node/raw_camera_info"
     rospy.loginfo("camera info topic is " + camera_info_topic)
     rospy.loginfo("waiting for camera info")
@@ -77,8 +76,6 @@ class image_converter:
 
     mapx = np.ndarray(shape=(H, W, 1), dtype='int')
     mapy = np.ndarray(shape=(H, W, 1), dtype='int')
-    #print('K: %s' % self.pcm.K)
-    #print('P: %s' % self.pcm.P)
 
 #        alpha = 1
 #        new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H, W), alpha)
