@@ -20,7 +20,7 @@ Global parameters
 # control parameters
 choose_random_parking_space_combination = False
 close_itself = True
-save_figures = False
+save_figures = True
 pause_per_path = 0.5 # sec
 ploting = True
 
@@ -33,7 +33,7 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 100                        # iterations for RRT*
+maxIter = 300                        # iterations for RRT*
 rrt_star_animation = True           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 
@@ -133,6 +133,11 @@ def define_objects():
     # define object in the middle of parking lot to simulate path planning with RRT*
     size = 100;
     objects.append((lot_width/2.0-size/2.0,lot_height/2.0-size/2.0,size,size,'k',False))
+
+    # parked duckiebot at space 5
+    x, y ,yaw = pose_from_key(5)
+    objects.append((x-radius_robot*0.75,y-radius_robot,radius_robot*2*0.75,2.0*radius_robot,'k',False))
+
 
     return objects
 
