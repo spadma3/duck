@@ -254,7 +254,7 @@ class IntersectionNavigation(object):
 
                     pos, vel = self.pathPlanner.EvaluatePath(self.s)
                     _, vel2 = self.pathPlanner.EvaluatePath(self.s + 0.01)
-                    self.alpha = 0.1/np.linalg.norm(vel)
+                    self.alpha = 0.12/np.linalg.norm(vel)
 
                     dir = vel/np.linalg.norm(vel)
                     dir2 = vel2/np.linalg.norm(vel2)
@@ -262,7 +262,7 @@ class IntersectionNavigation(object):
                     theta2 = np.arctan2(dir2[1], dir2[0])
                     omega = (theta2 - theta)/0.01
 
-                    msg2.v = 0.1*0.67*2.45
+                    msg2.v = 0.12*0.67*2.45
                     msg2.omega = self.alpha*omega*(0.67 * 2.45 * 0.45 * 2 * math.pi)
 
                     self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
