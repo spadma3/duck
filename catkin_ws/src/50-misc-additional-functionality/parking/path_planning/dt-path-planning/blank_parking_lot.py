@@ -36,11 +36,9 @@ def blank_map(start_number=None, end_number=None):
     plt.annotate('obstacles', xy=(lot_width/2.0+50, lot_width/2.0+50), xytext=(lot_width/2.0+150,lot_width/2.0+100), arrowprops=dict(fc='w', ec='w', shrink=0.03),color='w', fontsize=10)
     plt.annotate('obstacles', xy=(lot_width/2.0-wide_tape_width+wide_tape_width, lot_height-lanes_length), xytext=(lot_width/2.0+150,lot_width/2.0+100), arrowprops=dict(fc='w', ec='w', shrink=0.03),color='w', fontsize=10)
     plt.annotate('obstacles', xy=(start_x,start_y-radius_robot), xytext=(lot_width/2.0+150,lot_width/2.0+100), arrowprops=dict(fc='w', ec='w', shrink=0.03),color='w', fontsize=10)
-    # plt.text(int(start_x), int(start_y)+20, "exit\n(7)",fontsize=10, horizontalalignment='center', color="w" )
-
     start_x, start_y, start_yaw = pose_from_key(4)
     plt.text(int(lot_width/2.0), int(lot_width/2.0)-10, "duckies",fontsize=10, horizontalalignment='center', color="w" )
-
+    plt.annotate('april tags', xy=(500,50), xytext=(650,50), arrowprops=dict(fc='w', ec='w', shrink=0.03),color='w', fontsize=10)
 
 
     # save
@@ -55,7 +53,7 @@ if __name__ == '__main__':
     # path calculation
     init()
     start_numbers = [0]
-    end_numbers = [4]
+    end_numbers = [1]
     for start_number, end_number in zip(start_numbers, end_numbers):
         print("Planning a path from {} to {}: ".format(start_number, end_number))
         blank_map(start_number, end_number)

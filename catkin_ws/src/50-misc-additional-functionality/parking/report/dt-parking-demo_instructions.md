@@ -28,16 +28,15 @@ Here, describe the assumptions about the Duckietown, including:
 * Layout (tiles types)
 * Instrastructure (traffic lights, wifi networks, ...) required
 * Weather (lights, ...)
-* April tags on parking lot
-
+* TODO Sam: add our 4 tile structure here with a description of the layout (where we place parking spaces, etc.) Please include a picture of your python plot here to make it clear with numbered parking spaces and the origin of our parking lot
+* 4 april tags					
 Do not write instructions here. The instructions should be somewhere in [the part about Duckietowns](#duckietowns). Here, merely point to them.
 
 
 ## Duckiebot setup notes {#demo-template-duckiebot-setup}
 
 Write here any special setup for the Duckiebot, if needed.
-TODO: We don't use any, do we?
-
+No special setup needed
 
 Do not write instructions here. The instructions should be somewhere in the appropriate setup part.
 
@@ -47,11 +46,9 @@ Do not write instructions here. The instructions should be somewhere in the appr
 The pre-flight checklist describes the steps that are sufficient to
 ensure that the demo will be correct:
 
-TODO: @Nils, Brett: describe ROS setup
+Check: Ensure that your bot is in the correct configuration (DB17-wjd or DB17-wjdl)
 
-Check: operation 1 done
-
-Check: operation 2 done
+Check: You have a duck safely secured to your duckiebot
 
 ## Demo instructions {#demo-template-run}
 ### Part A: simulation
@@ -79,12 +76,15 @@ The terminal output should tell you that a collision free path was found in stag
 ### Part B: Duckiebot
 instructions to reproduce the demo on the duckiebot:
 
-TODO: @Nils, Brett: describe 
-
-Step 1: XXX
-
-Step 2: XXX
-
+Step 1: Switch to the parking branch 
+`git checkout devel-parking`
+Step 2: Source your environment
+`source environment.sh`
+Step 3: Place your duckiebot at the entrance of the parking lot, behind the red line
+Step 4: Launch the following file with the appropiate arguments:
+`roslaunch duckietown_demos master.launch veh:=myvehicle localization:=true apriltags:=true /camera/raw:=true /camera/raw/rect:=true LED:=false lane_following:=true` where the argument "veh" is the name of your duckiebot
+Step 5: Press the R1 key on the controller to initialize the parking mode
+Step 6: Your duckiebot will locate itself with respect to the parking spaces and navigate to parking space number 1
 
 ## Troubleshooting {#demo-template-troubleshooting}
 
@@ -96,9 +96,9 @@ Step 3 can generate an error in case of unlucky sampling. See Demo failure demon
 
 ### Part B: Duckiebot
 
-Add here any troubleshooting / tips and tricks required.
-
-TODO: @Nils, Brett: describe 
+Step 5: The command line should output the following:
+`[INFO]: [/myvehicle/fsm_node] Event: apriltag_parking_and_parking_active`
+If you do not recieve this message, please try relaunching the file in step 4. 
 
 ## Demo failure demonstration {#demo-template-failure}
 
@@ -124,4 +124,4 @@ This error says that no path was found. It can be reproduced by setting `maxIter
 ### Part B: Duckiebot
 Finally, put here a video of how the demo can fail, when the assumptions are not respected.
 
-TODO: @Nils, Brett describe
+TODO
