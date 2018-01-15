@@ -86,8 +86,7 @@ class parkingPathPlanner():
             state.v_ref = self.v_ref
             self.sample_state_pub.publish(state)
         end = rospy.get_rostime()
-        #print ("Pathplanning/Sample Callback [Hz]: ", 1/(end-begin), "Pathplanning/Sample Callback [s]: ", (end-begin))
-        print ("Pathplanning/Sample Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
+        #print ("Pathplanning/Sample Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
     def parking_active_callback(self,event):
         state = BoolStamped()

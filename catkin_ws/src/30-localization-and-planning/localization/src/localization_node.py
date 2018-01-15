@@ -84,7 +84,7 @@ class LocalizationNode(object):
 
         Tr_w =  avg.get_average() # Average of the opinions
 
-        '''
+        
         # Print average transformation from world to duckiebot
         print("-----------------------------------------------------------")
         print("Average pose values")
@@ -99,7 +99,7 @@ class LocalizationNode(object):
         print ("robo_world rot z_avg", rot_euler[2]*(180/np.pi))
         print("-------------------------------------------------------------")
         print("-------------------------------------------------------------")
-        '''
+        
 
         # Broadcast the robot transform
         if Tr_w is not None:
@@ -125,7 +125,7 @@ class LocalizationNode(object):
         
         #  Print time to run callback in [s]
         end = rospy.get_rostime()
-        print ("Localization Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
+        #print ("Localization Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
     def publish_duckie_marker(self):
         # Publish a duckiebot transform far away unless the timer was reset

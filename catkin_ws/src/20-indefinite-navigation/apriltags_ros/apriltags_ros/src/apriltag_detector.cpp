@@ -141,7 +141,7 @@ namespace apriltags_ros{
 
     // Print time to run callback in [s]
     ros::Time end = ros::Time::now();
-    std::cout << "AprilTag Detection Callback [s]: " << (end-begin) << std::endl;
+    //std::cout << "AprilTag Detection Callback [s]: " << (end-begin) << std::endl;
   }
 
 
