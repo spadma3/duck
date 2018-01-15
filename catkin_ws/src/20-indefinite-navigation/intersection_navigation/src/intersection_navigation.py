@@ -150,16 +150,16 @@ class IntersectionNavigation(object):
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
-                msg = IntersectionPose()
-                msg.header.stamp = rospy.Time.now()
-                pose, _ = self.poseEstimator.PredictState(msg.header.stamp)
-                msg.x = pose[0]
-                msg.y = pose[1]
-                msg.theta = pose[2]
-                self.pub_intersection_pose.publish(msg)
+                msg_pose = IntersectionPose()
+                msg_pose.header.stamp = rospy.Time.now()
+                pose, _ = self.poseEstimator.PredictState(msg_pose.header.stamp)
+                msg_pose.x = pose[0]
+                msg_pose.y = pose[1]
+                msg_pose.theta = pose[2]
+                self.pub_intersection_pose.publish(msg_pose)
 
-                msg2 = Twist2DStamped()
-                msg2.header.stamp = rospy.Time.now()
+                msg_cmds = Twist2DStamped()
+                msg_cmds.header.stamp = rospy.Time.now()
 
                 if 2.0 < (rospy.Time.now() - self.debug_start).to_sec(): #Wait a bit before starting
 
@@ -174,8 +174,8 @@ class IntersectionNavigation(object):
                     theta2 = np.arctan2(dir2[1], dir2[0])
                     omega = (theta2 - theta)/dt
 
-                    msg2.v = self.v * self.v_scale
-                    msg2.omega = self.alpha * omega * (self.v_scale * self.w_scale * 2 * math.pi)
+                    msg_cmds.v = self.v * self.v_scale
+                    msg_cmds.omega = self.alpha * omega * (self.v_scale * self.w_scale * 2 * math.pi)
 
                     self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
                     print(self.s)
@@ -184,16 +184,19 @@ class IntersectionNavigation(object):
                         self.state = self.state_dict['DONE']
 
                 else:
-                    msg2.v = 0.0
-                    msg2.omega = 0.0
+                    msg_cmds.v = 0.0
+                    msg_cmds.omega = 0.0
 
                 self.debug_time = rospy.Time.now()
-                self.pub_cmds.publish(msg2)
+                self.pub_cmds.publish(msg_cmds)
 
             elif self.state == self.state_dict['DONE']:
                 # Now just stop
-                msg2.v = 0.0
-                msg2.omega = 0.0
+                msg_done_cmds = Twist2DStamped()
+                msg.done_cmds.stamp = rospy.Time.now()
+                msg_done_cmds.v = 0.0
+                msg_done_cmds.omega = 0.0
+                self.pub_cmds.publish(msg_done_cmds)
                 rospy.loginfo("[%s] Intersection done." % (self.node_name))
 
             else:
