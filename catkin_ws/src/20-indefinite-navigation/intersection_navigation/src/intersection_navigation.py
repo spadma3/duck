@@ -191,9 +191,9 @@ class IntersectionNavigation(object):
                 msg_cmds = Twist2DStamped()
                 msg_cmds.header.stamp = rospy.Time.now()
 
-                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 10.4: #Wait a bit before starting
+                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec():
 
-                    '''pos, vel = self.pathPlanner.EvaluatePath(self.s)
+                    pos, vel = self.pathPlanner.EvaluatePath(self.s)
                     dt = 0.01
                     _, vel2 = self.pathPlanner.EvaluatePath(self.s + dt)
                     self.alpha = 0.15/np.linalg.norm(vel)
@@ -205,23 +205,23 @@ class IntersectionNavigation(object):
                     omega = (theta2 - theta)/dt
 
                     msg_cmds.v = 0.15
-                    msg_cmds.omega = self.alpha * omega'''
+                    msg_cmds.omega = self.alpha * omega
 
-                    msg_cmds.v = 0.15
-                    msg_cmds.omega = 0.15/0.2
+                    '''msg_cmds.v = 0.15
+                    msg_cmds.omega = 0.15/0.2'''
                     if (msg_cmds.v - 0.5 * math.fabs(msg_cmds.omega) * 0.1) < 0.061:
                         msg_cmds.v = 0.061 + 0.5 * math.fabs(msg_cmds.omega) * 0.1
-                        #self.alpha = self.alpha*msg_cmds.v/0.15
+                        self.alpha = self.alpha*msg_cmds.v/0.15
 
-                    msg_cmds.v = msg_cmds.v * 1.5
+                    msg_cmds.v = msg_cmds.v * 1.53
                     msg_cmds.omega = msg_cmds.omega * 4.75
 
-                    #self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
+                    self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
 
-                    '''if (self.s > 1.0):
+                    if (self.s > 1.0):
                         msg_cmds.v = 0.0
                         msg_cmds.omega = 0.0
-                        self.state = self.state_dict['DONE']'''
+                        self.state = self.state_dict['DONE']
 
                 else:
                     msg_cmds.v = 0.0
