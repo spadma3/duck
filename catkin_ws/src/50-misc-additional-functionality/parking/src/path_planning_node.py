@@ -54,7 +54,7 @@ class parkingPathPlanner():
         self.plan = True
         self.sample_freq = 50
         self.d_ref = 0  # for parking, d_ref = 0
-        self.v_ref = 0.01  # reference vel for parking
+        self.v_ref = 0.005  # reference vel for parking
         # init counter
         #self.count = 0
         # init subscriber

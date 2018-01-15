@@ -15,7 +15,7 @@
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" />
 	<!-- end basic args -->
-    <arg name = "end_space" default="1"/>
+    <arg name = "end_space" default="2"/>
 
 <!-- the things that are "on" by default: 
  - camera stack (raw imagery defaults to false)
