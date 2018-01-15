@@ -14,6 +14,11 @@ SUBNET=$(./get_subnet $NETADDR)
 
 # Install B.A.T.M.A.N. advanced and dependencies
 sudo apt install -y bridge-utils wireless-tools batctl
+sudo ./install_batman
+if [[ $? -ne 0 ]] ; then
+    echo "Aborting...There was something wrong with the installation of batman!"
+    exit 2
+fi
 
 # Configure the mesh network
 sudo ./configure_meshnet $WIFACE $IPADDR $SUBNET

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Set the version
+BATVERSION=2017.4
+
+# Download and install batman advanced
+MODULE=batman-adv-$BATVERSION
+wget https://downloads.open-mesh.org/batman/releases/$MODULE/$MODULE.tar.gz
+tar -xzvf $MODULE.tar.gz
+cd $MODULE
+make
+sudo make install
