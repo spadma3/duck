@@ -19,7 +19,7 @@ Global parameters
 """
 # control parameters
 choose_random_parking_space_combination = False
-close_itself = True
+close_itself = False
 save_figures = True
 pause_per_path = 0.5 # sec
 ploting = True
@@ -33,7 +33,7 @@ allow_backwards_on_circle = False   # use this later together with reeds sheep
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 50                        # iterations for RRT*
+maxIter = 100                        # iterations for RRT*
 rrt_star_animation = True           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 

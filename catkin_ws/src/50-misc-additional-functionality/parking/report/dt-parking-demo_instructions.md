@@ -54,8 +54,25 @@ Check: operation 1 done
 Check: operation 2 done
 
 ## Demo instructions {#demo-template-run}
+### Part A: Simulation
+instuctions to reproduce the demo simulation:
 
-Here, give step by step instructions to reproduce the demo.
+Step 1: Switch to the parking branch and go to the simulation folder dt-path-planning.
+
+`git checkout devel-parking`
+
+`cd DUCKIETOWN_ROOT/catkin_ws/src/50-misc-additional-functionality/parking/path_planning/dt-path-planning`
+
+Step 2: Start the parking_main file, input parameters are start position and end position. Numbers between 0 and 7 are accepted. 0: entrance, 1-6: parking space 1-6, 7: exit. Reproduce the Dubins path from entrance (0) to parking space 2 (2). 
+
+`./parking_main.py 0 2`
+
+Compare the terminal output and the opened figure to this one - they should be exactly the same. 
+
+
+
+### Part B: run path planning on duckiebot
+instructions to reproduce the demo on the duckiebot:
 
 TODO: @Nils, Brett: describe 
 
