@@ -166,9 +166,9 @@ class IntersectionNavigation(object):
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                     # Limit curvature for right turn
-                    if curvature < - 4.5:
-                        curvature = - 4.5
-                        
+                    if curvature < - 3.5:
+                        curvature = - 3.5
+
                     if (self.s > 0.999):
                         msg_lanePose.d = 0
                         msg_lanePose.d_ref = 0
