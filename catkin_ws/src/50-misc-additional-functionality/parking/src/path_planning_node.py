@@ -142,6 +142,8 @@ class parkingPathPlanner():
             c_ref = 0.0
         else:
             c_ref = 1.0/curvature
+            if sign(pyaw[idx_proj-1]-pyaw[idx_proj]) > 0:
+                c_ref = -c_ref
 
         # differential var_heading
         theta_est = self.yaw_act - self.pyaw[idx_proj]
