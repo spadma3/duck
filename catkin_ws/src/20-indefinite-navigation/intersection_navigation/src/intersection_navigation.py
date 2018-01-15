@@ -258,7 +258,7 @@ class IntersectionNavigation(object):
                     msg2.v = 0.38*0.67
                     msg2.omega = self.alpha*omega*(0.67 * 0.45 * 2 * math.pi)
 
-                    self.s = self.s + self.alpha*0.1
+                    self.s = self.s + 0.1/self.alpha
 
                     if (self.s > 1.0):
                         msg2.v = 0.0
