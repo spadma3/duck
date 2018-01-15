@@ -255,7 +255,7 @@ class IntersectionNavigation(object):
                     theta2 = np.arctan2(dir2[1], dir2[0])
                     omega = (theta2 - theta)/0.01
 
-                    msg2.vel = 0.38*0.67
+                    msg2.v = 0.38*0.67
                     msg2.omega = self.alpha*omega*(0.67 * 0.45 * 2 * math.pi)
 
                     self.s = self.s + self.alpha*0.1
