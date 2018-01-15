@@ -214,7 +214,7 @@ class LineDetectorNode(object):
             # print('line_detect_node: verbose is on!')
 
             # Draw lines and normals
-            image_with_lines = np.copy(image_cv_corr)
+            image_with_lines = np.copy(image_cv)
             drawLines(image_with_lines, white.lines, (0, 0, 0))
             drawLines(image_with_lines, yellow.lines, (255, 0, 0))
             drawLines(image_with_lines, red.lines, (0, 255, 0))
