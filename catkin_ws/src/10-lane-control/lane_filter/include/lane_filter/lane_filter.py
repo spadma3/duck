@@ -45,6 +45,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.range_arr = np.zeros(self.curvature_res + 1)
         for i in range(self.curvature_res + 1):
             self.beliefArray.append(np.empty(self.d.shape))
+        self.range_fac = self.curvature_res / (self.rang_max - self.range_min)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
@@ -97,15 +98,20 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
             # only consider points in a certain range from the Duckiebot
             point_range = self.getSegmentDistance(segment)
+            if point_range > self.range_max:
+                continue
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
+            if self.curvature_res is not 0 and point_range > range_min:
+                segment_index = int(1 + (point_range - range_min) * self.range_fac)
+                segmentsRangeArray[segment_index].append(segment)
                 # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
                 # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
                 # print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
-            if self.curvature_res is not 0:
-                for i in range(self.curvature_res):
-                    if point_range < self.range_arr[i + 1] and point_range > self.range_arr[i]:
-                        segmentsRangeArray[i + 1].append(segment)
+            #if self.curvature_res is not 0:
+                #for i in range(self.curvature_res):
+                    #if point_range < self.range_arr[i + 1] and point_range > self.range_arr[i]:
+                        #segmentsRangeArray[i + 1].append(segment)
                         # print 'Adding segment to segmentsRangeArray[%i] (Range: %s < %s < %s)' % (i + 1, self.range_arr[i], point_range, self.range_arr[i + 1])
                         # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[i + 1][-1])
                         # print 'Length of segmentsRangeArray[%i] up to now: %s' % (i + 1, len(segmentsRangeArray[i + 1]))
@@ -120,6 +126,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     def updateRangeArray(self, curvature_res):
         self.curvature_res = curvature_res
+        self.range_fac = self.curvature_res / (self.range_max - self.range_min)
         self.beliefArray = []
         for i in range(self.curvature_res + 1):
             self.beliefArray.append(np.empty(self.d.shape))
