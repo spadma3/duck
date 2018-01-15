@@ -1,0 +1,34 @@
+/pagewidth 8.5 72 mul def                      
+/pageheight 11 72 mul def                      
+/maketag                                       
+{                                              
+  /img exch def                                
+  /name exch def                               
+  gsave                                        
+  pagewidth 2 div pageheight 2 div translate   
+  0 0 moveto                                   
+  1.0 pagewidth mul dup scale                  
+  1 -1 scale                                   
+  -.5 -.5 translate                            
+  10 10 1 [ 10 0 0 10 0 0 ] { img } image 
+  0 setlinewidth .5 setgray [0.002 0.01] 0 setdash 
+  0 0 moveto 1 0 lineto 1 1 lineto 0 1 lineto  
+  closepath stroke                             
+  grestore                                     
+  gsave                                        
+  pagewidth 2 div 72 translate                 
+  /Helvetica-Bold findfont 20 scalefont setfont 
+  name                                         
+  dup stringwidth pop -.5 mul 0 moveto         
+  show                                         
+  grestore                                     
+  showpage                                     
+} def                                          
+
+(april.tag.Tag36h11, id = 126) <ffc0804088408340ac4096408f4091408040ffc0> maketag
+(april.tag.Tag36h11, id = 127) <ffc080409e40bb40aa408f4090408e408040ffc0> maketag
+(april.tag.Tag36h11, id = 128) <ffc08040a5409b40b24094409040ad408040ffc0> maketag
+(april.tag.Tag36h11, id = 129) <ffc0804090409c408240b5408d4098408040ffc0> maketag
+(april.tag.Tag36h11, id = 130) <ffc08040a340a940b140ac40b24081408040ffc0> maketag
+(april.tag.Tag36h11, id = 131) <ffc080408340ab40954089409940b0408040ffc0> maketag
+

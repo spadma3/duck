@@ -5,6 +5,7 @@ matplotlib.use('Agg')
 import rospy
 import dubins_path_planning as dpp
 import numpy as np
+import os
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from duckietown_msgs.msg import Pose2DStamped, LanePose, BoolStamped  # custom message to subscribe to
 
@@ -418,9 +419,10 @@ class parkingPathPlanner():
             plt.show()
 
         if save_figures:
-            dic = {True: 'driveable', False: 'collision'}
-            #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
-            plt.savefig('/home/nilsiism/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path_new.png')
+            file_path = os.getcwd()
+            file_path = os.file_path.split(os.path.dirname(file_path))[0]
+            print (file_path)
+            plt.savefig(os.path.join(file_path, '/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path_new.png'))
 
 """
 main file
