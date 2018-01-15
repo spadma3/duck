@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import matplotlib
+matplotlib.use('Agg')
 import rospy
 import dubins_path_planning as dpp
 import numpy as np
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from duckietown_msgs.msg import Pose2DStamped, LanePose, BoolStamped  # custom message to subscribe to
-import matplotlib
-matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
@@ -415,7 +415,7 @@ class parkingPathPlanner():
         if save_figures:
             dic = {True: 'driveable', False: 'collision'}
             #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
-            plt.savefig('path0000.pdf')
+            plt.savefig('images/path.pdf')
 
 
 """
