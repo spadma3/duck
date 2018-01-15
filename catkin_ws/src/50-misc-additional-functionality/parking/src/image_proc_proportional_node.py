@@ -48,6 +48,7 @@ class image_converter:
 
 
   def callback(self,data):
+    begin = rospy.get_rostime()
     try:
       cv_image = self.bridge.imgmsg_to_cv2(data, "mono8")
     except CvBridgeError as e:
@@ -62,6 +63,8 @@ class image_converter:
       self.pub_rect.publish(img_rect)
     except CvBridgeError as e:
       print(e)
+    end = rospy.get_rostime()
+    print ("Image Rect Callback [Hz]: ", 1 / (end - begin), "Image Rect Callback [s]: ", (end - begin))
 
   def CIcallback(self,data):
     self.stamp = data.header.stamp

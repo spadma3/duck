@@ -78,12 +78,15 @@ class parkingPathPlanner():
 
     #  callback for control references
     def sample_callback(self,event):
+        begin = rospy.get_rostime()
         state = LanePose()
         if self.plan == False:
             state.d, state.curvature_ref, state.phi = self.project_to_path(curvature)
             state.d_ref = self.d_ref
             state.v_ref = self.v_ref
             self.sample_state_pub.publish(state)
+        end = rospy.get_rostime()
+        print ("Pathplanning/Sample Callback [Hz]: ", 1/(end-begin), "Pathplanning/Sample Callback [s]: ", (end-begin))
 
     def parking_active_callback(self,event):
         state = BoolStamped()

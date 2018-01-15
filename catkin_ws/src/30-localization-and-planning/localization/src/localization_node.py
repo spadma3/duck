@@ -44,6 +44,7 @@ class LocalizationNode(object):
         rospy.loginfo("[%s] has started", self.node_name)
 
     def tag_callback(self, msg_tag):
+        begin = rospy.get_rostime()
         # Listen for the transform of the tag in the world
         avg = PoseAverage.PoseAverage()
         for tag in msg_tag.detections:
@@ -122,6 +123,8 @@ class LocalizationNode(object):
             T.child_frame_id = self.duckiebot_frame
             self.pub_tf.publish(TFMessage([T]))
             self.lifetimer = rospy.Time.now()
+        end = rospy.get_rostime()
+        print ("Localization Callback [Hz]: ", 1/(end-begin), "Localization Callback [s]: ", (end-begin))
 
     def publish_duckie_marker(self):
         # Publish a duckiebot transform far away unless the timer was reset
