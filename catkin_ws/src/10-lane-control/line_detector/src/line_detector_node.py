@@ -90,7 +90,7 @@ class LineDetectorNode(object):
         self.active = switch_msg.data
 
     def cbImage(self, image_msg):
-        print('line_detector_node: image received!!')
+        # print('line_detector_node: image received!!')
         self.stats.received()
 
         if not self.active:
