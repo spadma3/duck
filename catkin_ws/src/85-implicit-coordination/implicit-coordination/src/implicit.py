@@ -115,7 +115,7 @@ class Implicit(object):
                 if diff_x**2 + diff_y**2 >= self.detection_threshold**2:
                     return True
                 if self.right_priority and \
-                        self.right_priority_thresholdy < pos_tupel[3] and \
+                        self.right_priority_thresholdy > pos_tupel[3] and \
                         self.right_priority_thresholdx > pos_tupel[1]:
                     return True
                 return False
