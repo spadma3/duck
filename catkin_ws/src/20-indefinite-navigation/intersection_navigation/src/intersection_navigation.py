@@ -154,7 +154,7 @@ class IntersectionNavigation(object):
                     self.init_debug = True
                     self.debug_start = rospy.Time.now()
 
-                if (rospy.Time.now() - self.debug_start).to_sec() < 5.0:
+                if 4.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 10.0:
 
                 #if (self.s < 0.99):
                     msg = IntersectionPose()
@@ -417,8 +417,9 @@ class IntersectionNavigation(object):
             self.pub_intersection_pose_img.publish(msg_out)
 
     def PoseCallback(self, msg):
-        pose_meas = np.array([msg.x, msg.y, msg.theta])
-        self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1e-7*np.diag([1.0,1.0,1.0]), msg.header.stamp)
+        '''pose_meas = np.array([msg.x, msg.y, msg.theta])
+        self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1e-7*np.diag([1.0,1.0,1.0]), msg.header.stamp)'''
+        pass
 
 
     def CmdCallback(self, msg):
