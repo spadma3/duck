@@ -26,6 +26,7 @@ class image_converter:
     self.bridge=CvBridge()
 
     self.stamp = rospy.Time.now()
+    self.frame_id = rospy.get_namespace().strip('/') + "/camera_optical_frame_rect"
 
     camera_info_topic = "/" + self.robot_name + "/camera_node/raw_camera_info"
     rospy.loginfo("camera info topic is " + camera_info_topic)
@@ -59,6 +60,7 @@ class image_converter:
       img_rect = self.bridge.cv2_to_imgmsg(cv_image, "mono8")
       #img_rect.header.stamp = rospy.Time.now()
       img_rect.header.stamp = self.stamp
+      img_rect.header.frame_id = self.frame_id
       self.pub_rect.publish(img_rect)
     except CvBridgeError as e:
       print(e)
