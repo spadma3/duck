@@ -24,7 +24,7 @@ class LEDEmitter(object):
         self.onOff = True
 
         if self.onOff:
-            self.dt          = 0.2
+            self.dt          = 1.0/(4.0/2.1)
             self.is_on       = False
             self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(self.dt/(2.0)),self.cycleTimer)
 
