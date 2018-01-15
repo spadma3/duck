@@ -111,7 +111,7 @@ class LocalizationNode(object):
             P.x = Tr_w.translation.y*1000        # coordiante transform form world to planning
             P.y = -Tr_w.translation.x*1000       # coordinate transform from world to planning
             # P.theta = rotz*180/np.pi - 90
-            P.theta = rotz - np.pi
+            P.theta = rotz - np.pi/2
             P.header.frame_id = self.duckiebot_frame
             P.header.stamp = rospy.Time.now()
             self.pub_pose.publish(P)
