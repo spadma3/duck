@@ -421,7 +421,7 @@ class parkingPathPlanner():
 
         if save_figures:
             file_path = os.getcwd()
-            file_path = os.file_path.split(os.path.dirname(file_path))[0]
+            file_path = os.path.split(os.path.dirname(file_path))[0]
             print (file_path)
             plt.savefig(os.path.join(file_path, '/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path_new.png'))
 
