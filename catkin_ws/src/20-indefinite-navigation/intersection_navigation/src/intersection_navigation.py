@@ -158,7 +158,7 @@ class IntersectionNavigation(object):
                 msg_pose.theta = pose[2]
                 self.pub_intersection_pose.publish(msg_pose)
 
-                msg_lanePose = LanePose()
+                '''msg_lanePose = LanePose()
                 msg_lanePose.header.stamp = rospy.Time.now()
 
                 if 0.0 < (rospy.Time.now() - self.debug_start).to_sec():
@@ -183,15 +183,6 @@ class IntersectionNavigation(object):
                         msg_lanePose.curvature_ref = curvature
                         msg_lanePose.v_ref = self.v
 
-                        print('dist')
-                        print(dist)
-                        print('phi')
-                        print(theta)
-                        print('s')
-                        print(self.s)
-                        print('curvature')
-                        print(curvature)
-
                 else:
                     msg_lanePose.d = 0
                     msg_lanePose.d_ref = 0
@@ -199,14 +190,14 @@ class IntersectionNavigation(object):
                     msg_lanePose.curvature_ref = 0
                     msg_lanePose.v_ref = 0
 
-                self.pub_lane_pose.publish(msg_lanePose)
+                self.pub_lane_pose.publish(msg_lanePose)'''
 
-                '''msg_cmds = Twist2DStamped()
+                msg_cmds = Twist2DStamped()
                 msg_cmds.header.stamp = rospy.Time.now()
 
-                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec(): #Wait a bit before starting
+                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 22.0: #Wait a bit before starting
 
-                    pos, vel = self.pathPlanner.EvaluatePath(self.s)
+                    '''pos, vel = self.pathPlanner.EvaluatePath(self.s)
                     dt = 0.01
                     _, vel2 = self.pathPlanner.EvaluatePath(self.s + dt)
                     self.alpha = self.v/np.linalg.norm(vel)
@@ -225,14 +216,17 @@ class IntersectionNavigation(object):
                     if (self.s > 1.0):
                         msg_cmds.v = 0.0
                         msg_cmds.omega = 0.0
-                        self.state = self.state_dict['DONE']
+                        self.state = self.state_dict['DONE']'''
+
+                    msg_cmds.v = 0.15*0.67*2.45
+                    msg_cmds.omega = 0.0
 
                 else:
                     msg_cmds.v = 0.0
                     msg_cmds.omega = 0.0
 
                 self.debug_time = rospy.Time.now()
-                self.pub_cmds.publish(msg_cmds)'''
+                self.pub_cmds.publish(msg_cmds)
 
             elif self.state == self.state_dict['DONE']:
                 # Now just stop
@@ -376,7 +370,8 @@ class IntersectionNavigation(object):
     def ModeCallback(self, msg):
         # update state if we are at an intersection
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
-            self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+            #self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+            self.state = self.state_dict['TRAVERSING']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
             
     def TurnTypeCallback(self, msg):
