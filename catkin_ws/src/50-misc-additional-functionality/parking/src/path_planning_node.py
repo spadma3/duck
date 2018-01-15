@@ -420,11 +420,9 @@ class parkingPathPlanner():
         if save_figures:
             dic = {True: 'driveable', False: 'collision'}
             #plt.savefig('images/path_{}_{}_{}.pdf'.format(start_number, end_number, dic[found_path]))
-<<<<<<< HEAD
+
             plt.savefig('/home/brett/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path.png')
-=======
-            plt.savefig('/home/nilsiism/duckietown/catkin_ws/src/50-misc-additional-functionality/parking/src/path_new.png')
->>>>>>> b98eb5f10be0fab875c4abaa03ee9e3ddbef8073
+
 
 """
 main file
