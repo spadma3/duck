@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # path calculation
     init()
     start_numbers = [0]
-    end_numbers = [4]
+    end_numbers = [1]
     for start_number, end_number in zip(start_numbers, end_numbers):
         print("Planning a path from {} to {}: ".format(start_number, end_number))
         blank_map(start_number, end_number)
