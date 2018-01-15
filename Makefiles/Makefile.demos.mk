@@ -27,7 +27,7 @@ demo-joystick-perception: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos master.launch fsm_file_name:=joystick"
 
 demo-lane_following-%: check-environment
-	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos lane_following.launch line_detector_param_file_name:=$*"
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos lane_following.launch ai_interval:=$(ai_interval) line_detector_param_file_name:=$*"
 
 demo-led-fancy1: check-environment
 	bash -c "source environment.sh; rosrun rgb_led fancy1"
