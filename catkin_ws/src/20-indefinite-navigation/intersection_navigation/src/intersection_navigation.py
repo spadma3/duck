@@ -64,7 +64,7 @@ class IntersectionNavigation(object):
         self.init_debug = False
 
         # set up subscribers
-        ####CONTINUE HERE
+        #FSM
         self.sub_switch = rospy.Subscriber("~switch", 
                                         BoolStamped, 
                                         self.SwitchCallback,
@@ -73,6 +73,7 @@ class IntersectionNavigation(object):
                                          FSMState,
                                          self.ModeCallback,
                                          queue_size=1)
+
         self.sub_turn_type = rospy.Subscriber("~turn_type",
                                               Int16,
                                               self.TurnTypeCallback,
@@ -403,12 +404,13 @@ class IntersectionNavigation(object):
 
     def SwitchCallback(self, msg):
         self.active = msg.data #True or False
+        rospy.loginfo("active: " + str(self.active))
             
     def ModeCallback(self, msg):
         # update state if we are at an intersection
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
-            #self.state = self.state_dict['INITIALIZING_LOCALIZATION']
-            self.state = self.state_dict['TRAVERSING']
+            self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+            #self.state = self.state_dict['TRAVERSING']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
             
     def TurnTypeCallback(self, msg):
