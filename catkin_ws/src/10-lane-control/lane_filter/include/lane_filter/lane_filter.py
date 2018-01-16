@@ -102,8 +102,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 continue
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
-            if self.curvature_res is not 0 and point_range > range_min:
-                segment_index = int(1 + (point_range - range_min) * self.range_fac)
+            if self.curvature_res is not 0 and point_range > self.range_min:
+                segment_index = int(1 + (point_range - self.range_min) * self.range_fac)
                 segmentsRangeArray[segment_index].append(segment)
                 continue
                 # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
