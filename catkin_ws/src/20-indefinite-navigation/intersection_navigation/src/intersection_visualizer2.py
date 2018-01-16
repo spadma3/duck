@@ -42,7 +42,7 @@ class IntersectionVisualizer2(object):
         _, img_gray = self.intersectionLocalizer.ProcessRawImage(msg.img)
         pose_pred = np.array([msg.x_init,msg.y_init, msg.theta_init])
         pose_meas = np.array([msg.x,msg.y, msg.theta])
-        self.intersectionLocalizer.DrawModel(img_gray, pose_pred)
+        self.intersectionLocalizer.DrawModel(img_gray, pose_pred, True)
         self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
 
         cv2.imshow('Estimate' + str(self.k) , img_gray)
