@@ -250,7 +250,7 @@ class IntersectionNavigation(object):
                             if counter < 2:
                                 self.counter = self.counter + 1
                             
-                            elif counter >= 2 and self.sub_in_lane == True
+                            elif counter >= 2 and self.sub_in_lane == True:
 
                                 msg_cmds.v = 0.0
                                 msg_cmds.omega = 0.0
