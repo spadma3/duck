@@ -45,7 +45,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.range_arr = np.zeros(self.curvature_res + 1)
         for i in range(self.curvature_res + 1):
             self.beliefArray.append(np.empty(self.d.shape))
-        self.range_fac = self.curvature_res / (self.rang_max - self.range_min)
+        self.range_fac = 0 #self.curvature_res / (self.rang_max - self.range_min)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
