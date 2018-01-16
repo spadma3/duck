@@ -33,7 +33,8 @@ class IntersectionNavigation(object):
         # main logic parameters
         self.rate = 10  # main logic runs at 10Hz
         self.timeout = 1.0
-        self.active = True
+        self.counter = 0
+        '''self.active = True #uncomment for debugging'''
         #self.mode = None
 
         self.v = 0.15 # Navigation velocity
@@ -70,7 +71,7 @@ class IntersectionNavigation(object):
                                         self.SwitchCallback,
                                         queue_size=1)
 
-        # we do not need to listen to the FSM mode anymore: FSM "switches" us on or off
+        # we do not need to listen to the FSM mode anymore: FSM "switches" us on or off.
         '''self.sub_mode = rospy.Subscriber("~mode",
                                          FSMState,
                                          self.ModeCallback,
@@ -97,10 +98,10 @@ class IntersectionNavigation(object):
                                                self.AprilTagsCallback,
                                                queue_size=1)'''
 
-        '''self.sub_in_lane = rospy.Subscriber("~in_lane",
+        self.sub_in_lane = rospy.Subscriber("~in_lane",
                                         BoolStamped,
                                         self.InLaneCallback,
-                                        queue_size=1)'''
+                                        queue_size=1)
 
 
 
@@ -240,15 +241,20 @@ class IntersectionNavigation(object):
 
                     self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
 
-                    '''if (self.s > 1.0)
+                    '''if (self.s > 0.99)
                         msg_cmds.v = 0.0
                         msg_cmds.omega = 0.0
                         self.state = self.state_dict['DONE']'''
 
-                    if self.s > 0.99 and self.sub_in_lane == True:
-                        msg_cmds.v = 0.0
-                        msg_cmds.omega = 0.0
-                        self.state = self.state_dict['DONE']
+                    if self.s > 0.99:
+                            if counter < 2:
+                                self.counter = self.counter + 1
+                            
+                            elif counter >= 2 and self.sub_in_lane == True
+
+                                msg_cmds.v = 0.0
+                                msg_cmds.omega = 0.0
+                                self.state = self.state_dict['DONE']
 
 
                 else:
