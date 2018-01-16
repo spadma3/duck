@@ -62,6 +62,7 @@ class IntersectionLocalizer(object):
         self.ctrl_pts_density = 60  # number of control points per edge length (in meters)
         self.min_num_ctrl_pts = 10
         self.max_num_ctrl_pts = 80
+        self.max_pos_corr = 0.02
 
         # likelihood parameters
         self.lambda_visible = 1.0 # exponential probability distribution, sensitivity parameters
@@ -260,8 +261,8 @@ class IntersectionLocalizer(object):
             idx_feasible = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=bool)
             '''dist2 = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=float)
             idx_feasible2 = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=bool)'''
-            for i in range(0, num_pts):
-                #i = idx[l]
+            for l in range(0, num_pts):
+                i = idx[l]
                 '''for k in range(0, self.line_search_length):
                     if img[int(round(ctrl_pts_img_offset[1, i] + k * ctrl_pts_n_perp[1, i])), int(
                             round(ctrl_pts_img_offset[0, i] + k * ctrl_pts_n_perp[0, i]))]:
@@ -352,6 +353,8 @@ class IntersectionLocalizer(object):
 
             '''update prediction'''
             t = np.dot(R.T, res[0:2])
+            if np.linalg.norm(t) > self.max_pos_corr:
+                t = t/np.linalg.norm(t)*self.max_pos_corr
             x_pred = x_pred - t[0]
             y_pred = y_pred - t[1]
             theta_pred = theta_pred + res[2]
