@@ -200,10 +200,10 @@ class IntersectionLocalizer(object):
                 if visible:
                     if black:
                         cv2.line(img, tuple(np.round(ptA_img).astype(np.int)), tuple(np.round(ptB_img).astype(np.int)),
-                                 255,
+                                 0,
                                  1)
-                        cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 255, -1)
-                        cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 255, -1)
+                        cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 0, -1)
+                        cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 0, -1)
                     else:
                         cv2.line(img, tuple(np.round(ptA_img).astype(np.int)), tuple(np.round(ptB_img).astype(np.int)), 255,
                                  1)
@@ -360,8 +360,8 @@ class IntersectionLocalizer(object):
 
             '''update prediction'''
             t = np.dot(R.T, res[0:2])
-            if np.linalg.norm(t) > self.max_pos_corr:
-                t = t/np.linalg.norm(t)*self.max_pos_corr
+            t[0] = self.constrain(t[0], -self.max_pos_corr, self.max_pos_corr)
+            t[1] = self.constrain(t[1], -self.max_pos_corr, self.max_pos_corr)
             x_pred = x_pred - t[0]
             y_pred = y_pred - t[1]
             theta_pred = theta_pred + res[2]
@@ -401,3 +401,9 @@ class IntersectionLocalizer(object):
         rospy.set_param(param_name, value)
         rospy.loginfo("%s = %s " % (param_name, value))
         return value
+
+
+    def constrain(self, val, min_val, max_val):
+        if val < min_val: return min_val
+        if val > max_val: return max_val
+        return val
