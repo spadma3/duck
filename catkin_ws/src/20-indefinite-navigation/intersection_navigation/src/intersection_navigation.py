@@ -87,6 +87,8 @@ class IntersectionNavigation(object):
                                                self.AprilTagsCallback,
                                                queue_size=1)'''
 
+        self.k = 0
+
 
         # set up publishers
         # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
@@ -398,6 +400,11 @@ class IntersectionNavigation(object):
         if msg.likelihood > 0.2:
             pose_meas = np.array([msg.x, msg.y, msg.theta])
             self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1.0*np.diag([0.1,0.1,1.0]), msg.header.stamp)
+
+        print('-----------')
+        print('k', self.k)
+        print('pose est', self.poseEstimator.state_est)
+        print('pose meas', msg.x, msg.y, msg.theta)
 
 
     def CmdCallback(self, msg):
