@@ -82,7 +82,7 @@ class ContAntiInstagramNode():
 
         # timer for continuous image process
         # TODO find shortest possible interval on duckiebot
-        self.timer_init = rospy.Timer(rospy.Duration(2), self.processImage)
+        self.timer_init = rospy.Timer(rospy.Duration(5), self.processImage)
         self.timer_cont = None
         self.timer_counter = 0
         rospy.loginfo('ai: Looking for initial trafo.')
@@ -171,7 +171,7 @@ class ContAntiInstagramNode():
                         # init successful. set interval on desired by input
                         self.initialized = True
                         self.timer_init.shutdown()
-                        self.timer_cont = rospy.Timer(rospy.Duration(2), self.processImage)
+                        self.timer_cont = rospy.Timer(rospy.Duration(5), self.processImage)
 
                         # store color transform to ros message
                         self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
