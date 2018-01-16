@@ -10,6 +10,7 @@ import threading
 from obst_avoid.detector import Detector
 from obst_avoid.visualizer import Visualizer
 from duckietown_utils import get_base_name, rgb_from_ros, rectify, load_camera_intrinsics, d8_compressed_image_from_cv_image
+from duckietown_msgs.msg import BoolStamped, FSMState
 
 class ObstDetectNode(object):
     """
@@ -22,6 +23,7 @@ class ObstDetectNode(object):
         self.show_image = (rospy.get_param("~show_image", ""))
         self.use_ai = (rospy.get_param("~use_ai", ""))
         
+        self.active = True #initialize our node as active!!
         self.r = rospy.Rate(3) # Rate in Hz
         self.thread_lock = threading.Lock()
 
@@ -57,7 +59,27 @@ class ObstDetectNode(object):
             self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
             self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback_img,queue_size=1, buff_size=2**24)
 
+
+        # FSM 
+        self.sub_switch = rospy.Subscriber('/{}/obstacle_avoidance_node/switch'.format(robot_name), BoolStamped, self.cbSwitch,  queue_size=1)     # for this topic, no remapping is required, since it is directly defined in the namespace lane_controller_node by the fsm_node (via it's default.yaml file)
+        self.sub_fsm_mode = rospy.Subscriber('/{}/fsm_node/mode'.format(robot_name), FSMState, self.cbMode, queue_size=1)
+
+
+    # FSM
+    def cbSwitch(self,fsm_switch_msg):
+        self.active = fsm_switch_msg.data # True or False
+        rospy.loginfo("IS OBSTACLE_AVOIDANCE_NODE ACTIVE: " + str(self.active))
+
+    # FSM
+    def cbMode(self,fsm_state_msg):
+        self.fsm_state = fsm_state_msg.state # String of current FSM state
+        print "fsm_state changed in obstacle_avoidance_node to: " , self.fsm_state
+
+
+
     def callback_img(self, image):
+        if not self.active: #if node is turned off -> nothing happens!!!
+                return
         thread = threading.Thread(target=self.callback,args=(image,))
         thread.setDaemon(True)
         thread.start()
