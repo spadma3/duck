@@ -332,16 +332,16 @@ class lane_controller(object):
         omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
         omega -= self.k_Id * self.cross_track_integral
         omega -= self.k_Iphi * self.heading_integral
-        omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
+        omega +=  ( omega_feedforward)
 
         # increase velocity to make sure all wheels spin properly
-        if (self.v_bar - 0.5*math.fabs(omega)*0.1) < 0.061:
-            self.v_bar = 0.061 + 0.5*math.fabs(omega)*0.1
+        if (self.v_bar - 0.5*math.fabs(omega)*0.1) < 0.065:
+            self.v_bar = 0.065 + 0.5*math.fabs(omega)*0.1
 
-        self.omega_max_radius_limitation = self.v_bar / self.min_radius * self.omega_to_rad_per_s
-        self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
+        '''self.omega_max_radius_limitation = self.v_bar / self.min_radius * self.omega_to_rad_per_s
+        self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)'''
 
-        if omega > self.omega_max:
+        '''if omega > self.omega_max:
             self.cross_track_integral -= self.cross_track_err * dt
             self.heading_integral -= self.heading_err * dt
             car_control_msg.omega = self.omega_max
@@ -349,10 +349,13 @@ class lane_controller(object):
             car_control_msg.omega = omega
 
         if car_control_msg.v > self.actuator_limits.v:
-            car_control_msg.v = self.actuator_limits.v
+            car_control_msg.v = self.actuator_limits.v'''
 
+        car_control_msg.v = self.v_bar * self.velocity_to_m_per_s
+        car_control_msg.omega = omega * self.omega_to_rad_per_s
         if car_control_msg.v == 0:
             car_control_msg.omega = 0
+
 
         # rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
         # rospy.loginfo("heading_err: " + str(self.heading_err))
