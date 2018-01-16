@@ -71,12 +71,12 @@
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
 
-	 <!-- Lane Filter -->
+	 <!-- Lane Filter 
     <include file="$(find lane_control)/launch/lane_filter_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
-	 </include>
+	 </include> -->
 
 	 <!-- Random Turn April Tag -->
 	 <remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
@@ -101,10 +101,10 @@
     <remap from="~cmds" to="forward_kinematics_node/velocity" />
     <remap from="~apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
 	 <remap from="~in_lane" to="lane_filter_node/in_lane" />
-	 <!--remap from="~turn_type" to="_node/in_lane" />
-	
+	 	
 	<node ns="$(arg veh)" name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation.py" output="screen">
-		<!-- Setup parameters -->
+		
+	 <!-- Setup parameters -->
 		<param name="~veh" value="$(arg veh)"/>
 	</node>
 </launch>
