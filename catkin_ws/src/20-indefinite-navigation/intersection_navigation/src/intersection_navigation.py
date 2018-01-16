@@ -405,6 +405,9 @@ class IntersectionNavigation(object):
         print('k', self.k)
         print('pose est', self.poseEstimator.state_est)
         print('pose meas', msg.x, msg.y, msg.theta)
+        print('likelihood', msg.likelihood)
+
+        self.k += 1
 
 
     def CmdCallback(self, msg):
