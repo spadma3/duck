@@ -25,3 +25,7 @@ mappings: #Mapping from FSMStates.state to cmd source names. Allows different FS
   LOCALIZATION: "stop"
   DEEP_LANE_FOLLOWING: "deep_learning"
   PARKING: "parking"
+<<<<<<< HEAD
+=======
+
+>>>>>>> d2602f0725ac6d4431442e95fc539b5c4f4fa956
