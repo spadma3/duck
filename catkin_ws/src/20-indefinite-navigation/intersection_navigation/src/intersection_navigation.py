@@ -69,6 +69,7 @@ class IntersectionNavigation(object):
                                         BoolStamped, 
                                         self.SwitchCallback,
                                         queue_size=1)
+
         self.sub_mode = rospy.Subscriber("~mode",
                                          FSMState,
                                          self.ModeCallback,
@@ -243,7 +244,7 @@ class IntersectionNavigation(object):
                         msg_cmds.omega = 0.0
                         self.state = self.state_dict['DONE']'''
 
-                    if self.s > 1.0 and self.sub_in_lane == True:
+                    if self.s > 0.99 and self.sub_in_lane == True:
                         msg_cmds.v = 0.0
                         msg_cmds.omega = 0.0
                         self.state = self.state_dict['DONE']
@@ -408,6 +409,7 @@ class IntersectionNavigation(object):
             
     def ModeCallback(self, msg):
         # update state if we are at an intersection
+        print "FSMState changed to:", self.msg.state
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             #self.state = self.state_dict['TRAVERSING']
