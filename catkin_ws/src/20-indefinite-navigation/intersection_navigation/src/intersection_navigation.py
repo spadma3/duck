@@ -140,9 +140,7 @@ class IntersectionNavigation(object):
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             # run state machine
-            #if not self.active:
-                #return
-
+            
             if self.state == self.state_dict['IDLE']:
                 # waiting for FSMState to tell us that Duckiebot is at an intersection (see ModeCallback)
                 pass
@@ -239,15 +237,15 @@ class IntersectionNavigation(object):
 
                     self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
 
-                    if (self.s > 1.0)
-                        msg_cmds.v = 0.0
-                        msg_cmds.omega = 0.0
-                        self.state = self.state_dict['DONE']
-
-                    '''if self.s > 1.0 and self.sub_in_lane == True:
+                    '''if (self.s > 1.0)
                         msg_cmds.v = 0.0
                         msg_cmds.omega = 0.0
                         self.state = self.state_dict['DONE']'''
+
+                    if self.s > 1.0 and self.sub_in_lane == True:
+                        msg_cmds.v = 0.0
+                        msg_cmds.omega = 0.0
+                        self.state = self.state_dict['DONE']
 
 
                 else:
@@ -277,6 +275,7 @@ class IntersectionNavigation(object):
                 msg_done.data = True
 
                 self.pub_lane_pose.publish(msg_done_cmds)
+                #self.pub_cmds.publish(msg_done_cmds
                 self.pub_done.publish(msg_done)
                 rospy.loginfo("[%s] Intersection done." % (self.node_name))
 
