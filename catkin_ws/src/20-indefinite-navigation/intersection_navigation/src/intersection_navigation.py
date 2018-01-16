@@ -232,7 +232,7 @@ class IntersectionNavigation(object):
                 self.debug_time = rospy.Time.now()
                 self.pub_cmds.publish(msg_cmds)'''
 
-            '''elif self.state == self.state_dict['DONE']:
+                '''elif self.state == self.state_dict['DONE']:
                 # Now just stop'''
                 '''msg_done_cmds = Twist2DStamped()
                 msg_done_cmds.header.stamp = rospy.Time.now()
