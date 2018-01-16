@@ -372,7 +372,7 @@ class IntersectionLocalizer(object):
             cv2.destroyAllWindows()
 
         if debug:
-            print('here:', x_pred, y_pred, theta_pred)
+            print('here:', x_pred, y_pred, theta_pred, res[0], res[1], res[2])
 
         pose_meas = np.array([x_pred, y_pred, theta_pred], dtype=float)
         return True, pose_meas, likelihood

@@ -398,8 +398,9 @@ class IntersectionNavigation(object):
 
     def PoseCallback(self, msg):
         if msg.likelihood > 0.2:
-            pose_meas = np.array([msg.x, msg.y, msg.theta])
-            self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1.0*np.diag([0.1,0.1,1.0]), msg.header.stamp)
+            if math.fabs(msg.x) < 10.0 and math.fabs(msg.y) < 10.0:
+                pose_meas = np.array([msg.x, msg.y, msg.theta])
+                self.poseEstimator.UpdateWithPoseMeasurement(pose_meas, 1.0*np.diag([0.1,0.1,1.0]), msg.header.stamp)
 
         print('-----------')
         print('k', self.k)
