@@ -202,7 +202,7 @@ class IntersectionLocalizer(object):
                     cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 255, -1)
                     cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 255, -1)
 
-    def ComputePose(self, img, pose):
+    def ComputePose(self, img, pose, debug=False):
         x_pred = pose[0]
         y_pred = pose[1]
         theta_pred = pose[2]
@@ -370,6 +370,9 @@ class IntersectionLocalizer(object):
             cv2.imshow('canny', img)
             cv2.waitKey(5000)
             cv2.destroyAllWindows()
+
+        if debug:
+            print('here:', x_pred, y_pred, theta_pred)
 
         pose_meas = np.array([x_pred, y_pred, theta_pred], dtype=float)
         return True, pose_meas, likelihood
