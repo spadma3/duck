@@ -64,6 +64,7 @@ class IntersectionNavigation(object):
         self.init_debug = False
 
         # set up subscribers
+        ####CONTINUE HERE
         self.sub_switch = rospy.Subscriber("~switch", 
                                         BoolStamped, 
                                         self.SwitchCallback,
@@ -92,6 +93,13 @@ class IntersectionNavigation(object):
                                                AprilTagsWithInfos,
                                                self.AprilTagsCallback,
                                                queue_size=1)'''
+
+        '''self.sub_in_lane = rospy.Subscriber("~in_lane",
+                                        BoolStamped,
+                                        self.InLaneCallback,
+                                        queue_size=1)'''
+
+
 
 
         # set up publishers
@@ -204,12 +212,12 @@ class IntersectionNavigation(object):
                 msg_cmds = Twist2DStamped()
                 msg_cmds.header.stamp = rospy.Time.now()
 
-                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec() and (rospy.Time.now() - self.debug_start).to_sec() < 22.0: #Wait a bit before starting
+                 if 2.0 < (rospy.Time.now() - self.debug_start).to_sec():
 
-                    '''pos, vel = self.pathPlanner.EvaluatePath(self.s)
+                    pos, vel = self.pathPlanner.EvaluatePath(self.s)
                     dt = 0.01
                     _, vel2 = self.pathPlanner.EvaluatePath(self.s + dt)
-                    self.alpha = self.v/np.linalg.norm(vel)
+                    self.alpha = 0.15/np.linalg.norm(vel)
 
                     dir = vel/np.linalg.norm(vel)
                     dir2 = vel2/np.linalg.norm(vel2)
@@ -217,18 +225,30 @@ class IntersectionNavigation(object):
                     theta2 = np.arctan2(dir2[1], dir2[0])
                     omega = (theta2 - theta)/dt
 
-                    msg_cmds.v = self.v * self.v_scale
-                    msg_cmds.omega = self.alpha * omega * (self.v_scale * self.w_scale * 2 * math.pi)
+                    msg_cmds.v = 0.15
+                    msg_cmds.omega = self.alpha * omega
+
+                    #msg_cmds.v = 0.15
+                    #msg_cmds.omega = 0.15/0.2
+                    if (msg_cmds.v - 0.5 * math.fabs(msg_cmds.omega) * 0.1) < 0.065:
+                        msg_cmds.v = 0.065 + 0.5 * math.fabs(msg_cmds.omega) * 0.1
+                        self.alpha = self.alpha*msg_cmds.v/0.15
+
+                    msg_cmds.v = msg_cmds.v * 1.53
+                    msg_cmds.omega = msg_cmds.omega * 4.75
 
                     self.s = self.s + self.alpha*(rospy.Time.now() - self.debug_time).to_sec()
 
-                    if (self.s > 1.0):
+                    if (self.s > 1.0)
+                        msg_cmds.v = 0.0
+                        msg_cmds.omega = 0.0
+                        self.state = self.state_dict['DONE']
+
+                    '''if self.s > 1.0 and self.sub_in_lane == True:
                         msg_cmds.v = 0.0
                         msg_cmds.omega = 0.0
                         self.state = self.state_dict['DONE']'''
 
-                    msg_cmds.v = 0.15*0.67*2.45
-                    msg_cmds.omega = 0.0
 
                 else:
                     msg_cmds.v = 0.0
@@ -252,8 +272,12 @@ class IntersectionNavigation(object):
                 msg_done_cmds.curvature_ref = 0
                 msg_done_cmds.v_ref = 0
 
+                msg_done = BoolStamped()
+                msg_done.header.stamp = rospy.Time.now()
+                msg_done.data = True
+
                 self.pub_lane_pose.publish(msg_done_cmds)
-                #self.pub_cmds.publish(msg_done_cmds)
+                self.pub_done.publish(msg_done)
                 rospy.loginfo("[%s] Intersection done." % (self.node_name))
 
             else:
@@ -374,6 +398,9 @@ class IntersectionNavigation(object):
 
         else:
             return True
+
+    def InLaneCallback(self,msg):
+        pass
 
     def SwitchCallback(self, msg):
         self.active = msg.data #True or False
