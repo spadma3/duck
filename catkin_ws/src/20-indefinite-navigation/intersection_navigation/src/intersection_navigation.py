@@ -70,10 +70,11 @@ class IntersectionNavigation(object):
                                         self.SwitchCallback,
                                         queue_size=1)
 
-        self.sub_mode = rospy.Subscriber("~mode",
+        # we do not need to listen to the FSM mode anymore: FSM "switches" us on or off
+        '''self.sub_mode = rospy.Subscriber("~mode",
                                          FSMState,
                                          self.ModeCallback,
-                                         queue_size=1)
+                                         queue_size=1)'''
 
         self.sub_turn_type = rospy.Subscriber("~turn_type",
                                               Int16,
@@ -406,14 +407,19 @@ class IntersectionNavigation(object):
     def SwitchCallback(self, msg):
         self.active = msg.data #True or False
         rospy.loginfo("active: " + str(self.active))
-            
-    def ModeCallback(self, msg):
+        if self.state == self.state_dict['IDLE'] and self.active == True: 
+            self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+            #self.state = self.state_dict['TRAVERSING']
+            rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
+    
+    # No need for ModeCallback anymore with the new FSM: look at SwitchCallback        
+    '''def ModeCallback(self, msg):
         # update state if we are at an intersection
         print "FSMState changed to:", self.msg.state
         if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             #self.state = self.state_dict['TRAVERSING']
-            rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
+            rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))'''
             
     def TurnTypeCallback(self, msg):
         # TODO

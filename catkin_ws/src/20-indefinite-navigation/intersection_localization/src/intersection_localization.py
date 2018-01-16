@@ -20,6 +20,7 @@ class IntersectionLocalization(object):
 
         # set up subscribers
         # self.sub_mode = rospy.Subscriber("~mode", FSMState, self.ModeCallback, queue_size=1)
+        self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.SwitchCallback, queue_size=1)
         self.sub_img = rospy.Subscriber("/" + self.robot_name + "/camera_node/image/compressed", CompressedImage,
                                         self.ImageCallback, queue_size=1)
 
@@ -32,14 +33,10 @@ class IntersectionLocalization(object):
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
         # temp
-        self.at_intersection = 1
+        #self.at_intersection = False
         self.init = 0
 
-    '''def ModeCallback(self,msg):
-        # TODO
-        # possibly main loop, will need to think about architecture
-        pass'''
-
+    
     def ImageCallback(self, msg_img):
         if self.at_intersection:
             # process raw image
@@ -94,6 +91,10 @@ class IntersectionLocalization(object):
     def OnShutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
         cv2.destroyAllWindows()
+
+    def SwitchCallback(self, msg):
+        self.at_intersection = msg.data #True or False 
+        rospy.loginfo("active: " + str(self.active))
 
 
 if __name__ == '__main__':
