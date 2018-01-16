@@ -352,7 +352,7 @@ class lane_controller(object):
 
         car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
         car_control_msg.omega = omega * self.omega_to_rad_per_s
-        if math.fabs(car_control_msg.v) < 1e-6:
+        if math.fabs(car_control_msg.v) < pose_msg.v_ref:
             car_control_msg.omega = 0
 
 
