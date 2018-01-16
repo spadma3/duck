@@ -166,6 +166,7 @@ class IntersectionNavigation(object):
                 if 0.0 < (rospy.Time.now() - self.debug_start).to_sec():
 
                     dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
+                    print('s', self.s)
 
                     if (self.s > 0.975):
                         msg_lanePose.d = 0
