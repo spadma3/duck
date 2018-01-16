@@ -290,7 +290,6 @@ class lane_controller(object):
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
         car_control_msg.v = pose_msg.v_ref #*self.speed_gain #Left stick V-axis. Up is positive
-        self.v_bar = car_control_msg.v
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
@@ -325,7 +324,7 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.heading_integral = 0
 
-        omega_feedforward = self.v_bar * pose_msg.curvature_ref
+        omega_feedforward = car_control_msg.v * pose_msg.curvature_ref
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
@@ -335,8 +334,8 @@ class lane_controller(object):
         omega +=  ( omega_feedforward)
 
         # increase velocity to make sure all wheels spin properly
-        if (self.v_bar - 0.5*math.fabs(omega)*0.1) < 0.065:
-            self.v_bar = 0.065 + 0.5*math.fabs(omega)*0.1
+        if (car_control_msg.v - 0.5*math.fabs(omega)*0.1) < 0.065:
+            car_control_msg.v = 0.065 + 0.5*math.fabs(omega)*0.1
 
         '''self.omega_max_radius_limitation = self.v_bar / self.min_radius * self.omega_to_rad_per_s
         self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)'''
@@ -351,9 +350,9 @@ class lane_controller(object):
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v'''
 
-        car_control_msg.v = self.v_bar * self.velocity_to_m_per_s
+        car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
         car_control_msg.omega = omega * self.omega_to_rad_per_s
-        if car_control_msg.v == 0:
+        if math.fabs(car_control_msg.v) < 1e-6:
             car_control_msg.omega = 0
 
 
