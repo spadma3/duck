@@ -22,6 +22,7 @@ add_message_files(
   LanePose.msg
   IntersectionPose.msg
   IntersectionPoseImg.msg
+  IntersectionPoseImgDebug.msg
 #  LEDControl.msg
   LEDDetection.msg
   LEDDetectionArray.msg

@@ -2,7 +2,7 @@
 import rospy
 import cv2
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
-from duckietown_msgs.msg import IntersectionPoseImg, IntersectionPose
+from duckietown_msgs.msg import IntersectionPoseImg, IntersectionPose, IntersectionPoseImgDebug
 import numpy as np
 
 
@@ -30,6 +30,8 @@ class IntersectionLocalizerNode(object):
         # set up publishers
         self.pub_pose = rospy.Publisher("~pose_out", IntersectionPose, queue_size=1)
         rospy.loginfo("[%s] Initialized." % (self.node_name))
+        self.pub_debug = rospy.Publisher("~localizer_debug_out", IntersectionPoseImgDebug, queue_size=1)
+        rospy.loginfo("[%s] Initialized." % (self.node_name))
 
 
     def PoseImageCallback(self, msg):
@@ -38,13 +40,26 @@ class IntersectionLocalizerNode(object):
         valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
 
         # update pose estimate
-        if valid_meas and likelihood > 0.6:
+        if valid_meas:
             msg_ret = IntersectionPose()
             msg_ret.header.stamp = msg.header.stamp
             msg_ret.x = pose_meas[0]
             msg_ret.y = pose_meas[1]
             msg_ret.theta = pose_meas[2]
+            msg_ret.likelihood = likelihood
             self.pub_pose.publish(msg_ret)
+
+            msg_debug = IntersectionPoseImgDebug()
+            msg_debug.header.stamp = rospy.Time.now()
+            msg_debug.x = pose_meas[0]
+            msg_debug.y = pose_meas[1]
+            msg_debug.theta = pose_meas[2]
+            msg_debug.likelihood = likelihood
+            msg_debug.x_init = pose_pred[0]
+            msg_debug.y_init = pose_pred[1]
+            msg_debug.theta_init = pose_pred[2]
+            msg_debug.img = msg.img
+            self.pub_debug.publish(msg_debug)
 
 
     def SetupParameter(self, param_name, default_value):
