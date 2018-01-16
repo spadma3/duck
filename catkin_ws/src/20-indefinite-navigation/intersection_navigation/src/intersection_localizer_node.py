@@ -37,7 +37,7 @@ class IntersectionLocalizerNode(object):
     def PoseImageCallback(self, msg):
         pose_pred = np.array([msg.x, msg.y, msg.theta])
         img_processed, _ = self.intersectionLocalizer.ProcessRawImage(msg.img)
-        valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
+        valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred, True)
 
         # update pose estimate
         if valid_meas:
