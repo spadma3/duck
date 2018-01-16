@@ -102,20 +102,21 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 continue
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
-            # if self.curvature_res is not 0 and point_range > range_min:
-            #     segment_index = int(1 + (point_range - range_min) * self.range_fac)
-            #     segmentsRangeArray[segment_index].append(segment)
+            if self.curvature_res is not 0 and point_range > range_min:
+                segment_index = int(1 + (point_range - range_min) * self.range_fac)
+                segmentsRangeArray[segment_index].append(segment)
+                continue
                 # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
                 # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
                 # print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
-            if self.curvature_res is not 0:
-                for i in range(self.curvature_res):
-                    if point_range < self.range_arr[i + 1] and point_range > self.range_arr[i]:
-                        segmentsRangeArray[i + 1].append(segment)
+            #if self.curvature_res is not 0:
+            #    for i in range(self.curvature_res):
+            #        if point_range < self.range_arr[i + 1] and point_range > self.range_arr[i]:
+            #            segmentsRangeArray[i + 1].append(segment)
                         # print 'Adding segment to segmentsRangeArray[%i] (Range: %s < %s < %s)' % (i + 1, self.range_arr[i], point_range, self.range_arr[i + 1])
                         # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[i + 1][-1])
                         # print 'Length of segmentsRangeArray[%i] up to now: %s' % (i + 1, len(segmentsRangeArray[i + 1]))
-                        continue
+            #            continue
 
         # for i in range(len(segmentsRangeArray)):
         #     print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
