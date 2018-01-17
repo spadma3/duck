@@ -64,7 +64,7 @@
  	</include>
 
     <!-- Ground projection -->
-	<include unless="$(arg only)" file="$(find duckietown)/launch/line_detector.launch">
+	<include file="$(find duckietown)/launch/line_detector.launch">
 		 <arg name="veh" value="$(arg veh)"/>
 		 <arg name="local" value="$(arg local)"/>
 		 <arg name="config" value="$(arg config)"/>
