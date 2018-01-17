@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from duckietown_msgs.msg import FSMState
+from duckietown_msgs.msg import BoolStamped
 
 if __name__ == '__main__':
     rospy.init_node('dummy', anonymous=True)
