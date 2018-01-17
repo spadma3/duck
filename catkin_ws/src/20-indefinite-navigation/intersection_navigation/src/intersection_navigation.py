@@ -34,6 +34,7 @@ class IntersectionNavigation(object):
         self.rate = 10  # main logic runs at 10Hz
         self.timeout = 1.0
         self.counter = 0
+        self.turn_type = 1
         '''self.active = True #uncomment for debugging'''
         #self.mode = None
 
@@ -394,7 +395,7 @@ class IntersectionNavigation(object):
     def InitializePath(self):
         # waiting for instructions where to go
         # TODO
-        turn_type = 2
+        turn_type = self.turn_type
 
         # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
@@ -428,8 +429,9 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))'''
             
     def TurnTypeCallback(self, msg):
-        # TODO
-        pass
+        if self.active == True:
+        	self.turn_type = msg.data
+        
 
 
     def ImageCallback(self, msg):
