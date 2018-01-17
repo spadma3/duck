@@ -143,8 +143,8 @@ class parkingPathPlanner():
             self.plan = False
             idx = 0
             self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
-        #else:
             self.time_when_last_path_planned = rospy.Time.now().secs
+        #else:
             # self.x_act = pose.x
             # self.y_act = pose.y
             # self.yaw_act = pose.theta
