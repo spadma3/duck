@@ -103,7 +103,8 @@ class IntersectionNavigation(object):
                                         self.InLaneCallback,
                                         queue_size=1)
 
-
+        self.v_scale = 1.45
+        self.omega_scale = 4.5
 
 
         # set up publishers
@@ -382,8 +383,8 @@ class IntersectionNavigation(object):
     def CmdCallback(self, msg):
         if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
             cmd_msg = Twist2DStamped()
-            cmd_msg.v = msg.v / (self.v_scale)
-            cmd_msg.omega = msg.omega / (self.v_scale * self.w_scale * 2.0 * math.pi)
+            cmd_msg.v = msg.v / self.v_scale
+            cmd_msg.omega = msg.omega / self.omega_scale
             cmd_msg.header.stamp = msg.header.stamp
             self.poseEstimator.FeedCommandQueue(cmd_msg)
 
