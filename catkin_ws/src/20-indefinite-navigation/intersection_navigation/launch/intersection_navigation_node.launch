@@ -149,7 +149,7 @@
     </include>
 
     <!-- Random Turn April Tag -->
-    <remap from="~mode" to="fsm_node/fsm" />
+    <remap from="~mode" to="fsm_node/mode" />
     <remap from="~tag"  to="apriltags_postprocessing_node/apriltags_out"/>
     <include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
         <arg name="veh" value="$(arg veh)"/>
@@ -166,7 +166,7 @@
 	</node>
 
     <!-- Intersection navigation -->
-    <remap from="~fsm" to="fsm_node/fsm" />
+    <remap from="~fsm" to="fsm_node/mode" />
     <remap from="~intersection_navigation_pose" to="lane_controller_node/intersection_navigation_pose" />
     <remap from="~img" to="camera_node/image/compressed" />
     <remap from="~cmds" to="forward_kinematics_node/velocity" />
