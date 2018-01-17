@@ -33,17 +33,34 @@ class IntersectionNavigation(object):
         # main logic parameters
         self.rate = 10  # main logic runs at 10Hz
         self.timeout = 1.0
-        self.counter = 0
-        self.turn_type = 1
-        '''self.active = True #uncomment for debugging'''
-        #self.mode = None
+
+        # fsm
+        self.go = False
+
+        # turn type
+        self.turn_type = -1
+        self.turn_type_time = rospy.Time()
+        self.turn_type_timeout = 3.0
+
+        # in lane
+        self.in_lane = False
+        self.in_lane_time = rospy.Time()
+        self.in_lane_timeout = 0.5
+        self.in_lane_wait_time = 2.0
+
+
 
         self.v = 0.15 # Navigation velocity
         self.v_scale = 0.67 * 2.45  # Scaling factor for the velocity
         self.w_scale = 0.45  # Scaling factor for omega
 
         self.state_dict = dict()
-        for counter, key in enumerate(['IDLE', 'INITIALIZING_LOCALIZATION', 'INITIALIZING_PATH', 'TRAVERSING', 'DONE', 'ERROR']):
+        for counter, key in enumerate(['IDLE',
+                                       'INITIALIZING_LOCALIZATION',
+                                       'INITIALIZING_PATH',
+                                       'TRAVERSING',
+                                       'DONE',
+                                       'ERROR']):
             self.state_dict.update({key: counter})
         self.state = self.state_dict['IDLE']
 
@@ -62,22 +79,11 @@ class IntersectionNavigation(object):
                                         [0.400, 0.508, 0.5 * np.pi],
                                         [0.0508, 0.400, np.pi]]
 
-        # initializing variables
-        self.init_debug = False
-
         # set up subscribers
-        #FSM
-        self.sub_switch = rospy.Subscriber("~switch", 
-                                        BoolStamped, 
-                                        self.SwitchCallback,
+        self.sub_fsm = rospy.Subscriber("~fsm",
+                                        FSMState,
+                                        self.FSMCallback,
                                         queue_size=1)
-
-        # we do not need to listen to the FSM mode anymore: FSM "switches" us on or off.
-        '''self.sub_mode = rospy.Subscriber("~mode",
-                                         FSMState,
-                                         self.ModeCallback,
-                                         queue_size=1)'''
-
         self.sub_turn_type = rospy.Subscriber("~turn_type",
                                               Int16,
                                               self.TurnTypeCallback,
@@ -98,7 +104,6 @@ class IntersectionNavigation(object):
                                                AprilTagsWithInfos,
                                                self.AprilTagsCallback,
                                                queue_size=1)'''
-
         self.sub_in_lane = rospy.Subscriber("~in_lane",
                                         BoolStamped,
                                         self.InLaneCallback,
@@ -108,9 +113,7 @@ class IntersectionNavigation(object):
 
 
         # set up publishers
-        # self.pub_intersection_pose_pred = rospy.Publisher("~intersection_pose_pred", IntersectionPose queue_size=1)
         self.pub_intersection_pose_img = rospy.Publisher("~pose_img_out", IntersectionPoseImg, queue_size=1)
-        self.pub_intersection_pose = rospy.Publisher("~pose", IntersectionPose, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~intersection_navigation_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
@@ -159,63 +162,16 @@ class IntersectionNavigation(object):
                 if self.InitializePath():
                     self.state = self.state_dict['TRAVERSING']
                     self.s = 0.0
+                    self.debug_start = rospy.Time.now()
                     rospy.loginfo("[%s] Initialized path, traversing intersection." % (self.node_name))
                 else:
-                    self.state = self.state_dict['ERROR']
-                    rospy.loginfo("[%s] Could not initialize path." % (self.node_name))
+                    rospy.loginfo("[%s] Could not initialize path. Trying again." % (self.node_name))
 
             elif self.state == self.state_dict['TRAVERSING']:
-
-                if not self.init_debug:
-                    self.init_debug = True
-                    self.debug_start = rospy.Time.now()
-
-                msg_pose = IntersectionPose()
-                msg_pose.header.stamp = rospy.Time.now()
-                pose, _ = self.poseEstimator.PredictState(msg_pose.header.stamp)
-                msg_pose.x = pose[0]
-                msg_pose.y = pose[1]
-                msg_pose.theta = pose[2]
-                self.pub_intersection_pose.publish(msg_pose)
-
-                '''msg_lanePose = LanePose()
-                msg_lanePose.header.stamp = rospy.Time.now()
-
-                if 0.0 < (rospy.Time.now() - self.debug_start).to_sec():
-
-                    dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
-
-                    # Limit curvature for right turn
-                    if curvature < - 2.5:
-                        curvature = - 2.5
-
-                    if (self.s > 0.999):
-                        msg_lanePose.d = 0
-                        msg_lanePose.d_ref = 0
-                        msg_lanePose.phi = 0
-                        msg_lanePose.curvature_ref = 0
-                        msg_lanePose.v_ref = 0
-                        self.state = self.state_dict['DONE']
-                    else:
-                        msg_lanePose.d = dist
-                        msg_lanePose.d_ref = 0
-                        msg_lanePose.phi = theta
-                        msg_lanePose.curvature_ref = curvature
-                        msg_lanePose.v_ref = self.v
-
-                else:
-                    msg_lanePose.d = 0
-                    msg_lanePose.d_ref = 0
-                    msg_lanePose.phi = 0
-                    msg_lanePose.curvature_ref = 0
-                    msg_lanePose.v_ref = 0
-
-                self.pub_lane_pose.publish(msg_lanePose)'''
-
                 msg_cmds = Twist2DStamped()
                 msg_cmds.header.stamp = rospy.Time.now()
 
-                if 2.0 < (rospy.Time.now() - self.debug_start).to_sec():
+                if 1.0 < (rospy.Time.now() - self.debug_start).to_sec() and self.go:
 
                     pos, vel = self.pathPlanner.EvaluatePath(self.s)
                     dt = 0.01
@@ -231,8 +187,6 @@ class IntersectionNavigation(object):
                     msg_cmds.v = 0.15
                     msg_cmds.omega = self.alpha * omega
 
-                    #msg_cmds.v = 0.15
-                    #msg_cmds.omega = 0.15/0.2
                     if (msg_cmds.v - 0.5 * math.fabs(msg_cmds.omega) * 0.1) < 0.065:
                         msg_cmds.v = 0.065 + 0.5 * math.fabs(msg_cmds.omega) * 0.1
                         self.alpha = self.alpha*msg_cmds.v/0.15
@@ -245,18 +199,9 @@ class IntersectionNavigation(object):
                     if (self.s > 0.99):
                         msg_cmds.v = 0.0
                         msg_cmds.omega = 0.0
+
                         self.state = self.state_dict['DONE']
-
-                    '''if self.s > 0.99:
-                            if counter < 2:
-                                self.counter = self.counter + 1
-                            
-                            elif counter >= 2 and self.sub_in_lane == True:
-
-                                msg_cmds.v = 0.0
-                                msg_cmds.omega = 0.0
-                                self.state = self.state_dict['DONE']'''
-
+                        self.done_time = rospy.Time.now()
 
                 else:
                     msg_cmds.v = 0.0
@@ -266,32 +211,27 @@ class IntersectionNavigation(object):
                 self.pub_cmds.publish(msg_cmds)
 
             elif self.state == self.state_dict['DONE']:
-                # Now just stop
-                '''msg_done_cmds = Twist2DStamped()
-                msg_done_cmds.header.stamp = rospy.Time.now()
-                msg_done_cmds.v = 0.0
-                msg_done_cmds.omega = 0.0'''
+                if self.in_lane and (rospy.Time.now() - self.in_lane_time).to_sec() < self.in_lane_timeout:
+                    msg_done = BoolStamped()
+                    msg_done.header.stamp = rospy.Time.now()
+                    msg_done.data = True
+                    self.pub_done.publish(msg_done)
+                    self.state = self.state_dict['IDLE']
 
-                msg_done_cmds = LanePose()
-                msg_done_cmds.header.stamp = rospy.Time.now()
-                msg_done_cmds.d = 0
-                msg_done_cmds.d_ref = 0
-                msg_done_cmds.phi = 0
-                msg_done_cmds.curvature_ref = 0
-                msg_done_cmds.v_ref = 0
+                else:
+                    if (rospy.Time.now() - self.done_time).to_sec() < self.in_lane_wait_time:
+                        msg_cmds = Twist2DStamped()
+                        msg_cmds.header.stamp = rospy.Time.now()
+                        msg_cmds.v = 0.15 * 1.53
+                        msg_cmds.omega = 0.0 * 4.75
+                        self.pub_cmds.publish(msg_cmds)
+                    else:
+                        rospy.loginfo("[%s] Could not find lane. Stopping now." % (self.node_name))
+                        self.state = self.state_dict['ERROR']
 
-                msg_done = BoolStamped()
-                msg_done.header.stamp = rospy.Time.now()
-                msg_done.data = True
-
-                self.pub_lane_pose.publish(msg_done_cmds)
-                #self.pub_cmds.publish(msg_done_cmds
-                self.pub_done.publish(msg_done)
-                rospy.loginfo("[%s] Intersection done." % (self.node_name))
 
             else:
-                pass
-                # TODO
+                rospy.loginfo("[%s] Something went wrong." % (self.node_name))
 
             rate.sleep()
 
@@ -327,30 +267,18 @@ class IntersectionNavigation(object):
 
         if april_msg.infos[closest_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
                                                               self.tag_info.LEFT_T_INTERSECT]:
-            dx_init = np.linspace(-0.03, 0.03, 7)
-            dy_init = np.linspace(-0.05, 0.05, 11)
-            dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
+            dx_init = np.linspace(-0.025, 0.025, 6)
+            dy_init = np.linspace(-0.025, 0.025, 6)
+            dtheta_init = np.linspace(-5.0 / 180.0 * np.pi, 5.0 / 180.0 * np.pi, 2)
         else:
-            dx_init = np.linspace(-0.05, 0.05, 11)
-            dy_init = np.linspace(-0.03, 0.03, 7)
-            dtheta_init = np.linspace(-20.0 / 180.0 * np.pi, 20.0 / 180.0 * np.pi, 5)
+            dx_init = np.linspace(-0.025, 0.025, 6)
+            dy_init = np.linspace(-0.025, 0.025, 6)
+            dtheta_init = np.linspace(-5.0 / 180.0 * np.pi, 5.0 / 180.0 * np.pi, 2)
 
         if april_msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
             self.intersectionLocalizer.SetEdgeModel('FOUR_WAY_INTERSECTION')
         else:
             self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
-
-        '''x_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][0]
-        y_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][1]
-        theta_init = self.nominal_start_positions[self.tag_info.T_INTERSECTION][2]
-
-        dx_init = np.linspace(-0.05, 0.05, 11)
-        dy_init = np.linspace(-0.03, 0.03, 7)
-        dtheta_init = np.linspace(-10.0 / 180.0 * np.pi, 10.0 / 180.0 * np.pi, 3)
-
-        self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')'''
-
-        #rospy.set_param("/daisy/lane_controller_node/v_ref", 0.3)
 
         # waiting for camera image
         try:
@@ -382,19 +310,15 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
-        msg = IntersectionPose()
-        msg.header.stamp = rospy.Time.now()
-        msg.x = best_pose_meas[0]
-        msg.y = best_pose_meas[1]
-        msg.theta = best_pose_meas[2]
-        self.pub_intersection_pose.publish(msg)
-
         self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
         return True
 
     def InitializePath(self):
         # waiting for instructions where to go
-        # TODO
+        if self.turn_type < 0 or (rospy.Time.now() - self.turn_type_time).to_sec() > self.turn_type_timeout:
+            rospy.loginfo("[%s] No current turn type information." % (self.node_name))
+            return False
+
         turn_type = self.turn_type
 
         # 0: straight, 1: left, 2: right
@@ -409,29 +333,23 @@ class IntersectionNavigation(object):
             return True
 
     def InLaneCallback(self,msg):
-        pass
+        self.in_lane = msg.data
+        self.in_lane_time = rospy.Time.now()
 
-    def SwitchCallback(self, msg):
-        self.active = msg.data #True or False
-        rospy.loginfo("active: " + str(self.active))
-        if self.state == self.state_dict['IDLE'] and self.active == True: 
+    def FSMCallback(self, msg):
+        if self.state == self.state_dict['IDLE'] and msg.state == 'INTERSECTION_COORDINATION':
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
-            #self.state = self.state_dict['TRAVERSING']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
-    
-    # No need for ModeCallback anymore with the new FSM: look at SwitchCallback        
-    '''def ModeCallback(self, msg):
-        # update state if we are at an intersection
-        print "FSMState changed to:", self.msg.state
-        if self.state == self.state_dict['IDLE'] and msg.state == "INTERSECTION_CONTROL":
-            self.state = self.state_dict['INITIALIZING_LOCALIZATION']
-            #self.state = self.state_dict['TRAVERSING']
-            rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))'''
+
+        if self.state == self.state_dict['TRAVERSING'] and msg.state == 'INTERSECTION_CONTROL' and self.go == False:
+            rospy.loginfo("[%s] Received go. Start traversing intersection." % (self.node_name))
+            self.go = True
+
+
             
     def TurnTypeCallback(self, msg):
-        if self.active == True:
-        	self.turn_type = msg.data
-        
+        self.turn_type = msg.data
+        self.turn_type_time = rospy.Time.now()
 
 
     def ImageCallback(self, msg):
