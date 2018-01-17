@@ -79,6 +79,7 @@
     </include>-->
 
     <!-- Random Turn April Tag -->
+    <remap from "~mode" to="intersection_navigation_node/fsm" />
     <remap from="~tag"  to="apriltags_postprocessing_node/apriltags_out"/>
     <include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
         <arg name="veh" value="$(arg veh)"/>

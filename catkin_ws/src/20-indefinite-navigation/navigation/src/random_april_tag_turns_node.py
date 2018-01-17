@@ -10,7 +10,7 @@ class RandomAprilTagTurnsNode(object):
         self.node_name = rospy.get_name()
         self.turn_type = -1
 
-        rospy.loginfo("[%s] Initialzing." %(self.node_name))
+        rospy.loginfo("[%s] Initializing." %(self.node_name))
 
         # Setup publishers
         # self.pub_topic_a = rospy.Publisher("~topic_a",String, queue_size=1)
@@ -19,6 +19,7 @@ class RandomAprilTagTurnsNode(object):
         # Setup subscribers
         # self.sub_topic_b = rospy.Subscriber("~topic_b", String, self.cbTopic)
         self.sub_topic_mode = rospy.Subscriber("~mode", FSMState, self.cbMode, queue_size=1)
+        self.fsm_mode = None
         self.sub_topic_tag = rospy.Subscriber("~tag", AprilTagsWithInfos, self.cbTag, queue_size=1)
        
 
@@ -40,7 +41,7 @@ class RandomAprilTagTurnsNode(object):
             rospy.loginfo("Turn type now: %i" %(self.turn_type))
             
     def cbTag(self, tag_msgs):
-        if(self.fsm_mode == "INTERSECTION_CONTROL"):
+        if(self.fsm_mode == "INTERSECTION_CONTROL" or self.fsm_mode == "INTERSECTION_COORDINATION"):
             #loop through list of april tags
             for taginfo in tag_msgs.infos:
                 print taginfo
