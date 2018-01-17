@@ -363,6 +363,7 @@ class lane_controller(object):
             print(self.stop_line_reading)
             if self.stop_line_reading.stop_line_point.x < 0.13 and self.stop_line_reading.at_stop_line:
                 car_control_msg.v = 0
+                car_control_msg.omega = 0
 
         # rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
         # rospy.loginfo("heading_err: " + str(self.heading_err))
