@@ -32,7 +32,7 @@ events: # Maps from subscribing topic to signal ids
     trigger: True
   # Logical events from logic_gate_node
   at_stop_line_and_velocity_zero:
-    topic: "logic_gate_node/at_stop_line_and_velocity_zero"
+    topic: "stop_line_filter_node/at_stop_line"
     msg_type: "BoolStamped"
     trigger: True
   intersection_go:

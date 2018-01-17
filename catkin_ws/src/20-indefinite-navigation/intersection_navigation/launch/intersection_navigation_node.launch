@@ -158,6 +158,12 @@
         <arg name="param_file_name" value="$(arg param_file_name)"/>
     </include>
 
+    <!-- stop node -->
+	<node ns="$(arg veh)" name="stop_node" pkg="intersection_navigation" type="stop_node.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~veh" value="$(arg veh)"/>
+	</node>
+
     <!-- Intersection localizer -->
     <remap from="~pose_img_in" to="intersection_navigation_node/pose_img_out" />
     <remap from="~pose_out" to="intersection_navigation_node/pose_in" />
