@@ -142,13 +142,11 @@ class parkingPathPlanner():
             self.plan = False
             idx = 0
             self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
-        else:
+        #else:
             # self.x_act = pose.x
             # self.y_act = pose.y
             # self.yaw_act = pose.theta
-
-
-        return self.x_act, self.y_act, self.yaw_act
+            return self.x_act, self.y_act, self.yaw_act
 
     def project_to_path(self, curvature):
         """
