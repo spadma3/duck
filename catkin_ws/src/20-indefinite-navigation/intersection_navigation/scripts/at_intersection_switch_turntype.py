@@ -10,5 +10,5 @@ if __name__ == '__main__':
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         pub.publish(BoolStamped(data=True))
-		  pub2.publish((Int16(1))
+		pub2.publish((Int16(1))
         rate.sleep()
