@@ -5,9 +5,11 @@
 	<arg name="tagID" doc="Subscribe specific tag ID. ex: tag39"/>
 	<arg name="maxspeed" default="0.5" doc="Subscribe specific tag ID. ex: tag39"/>
 
-	<remap from="subspeed" to="/gui_node/carspeeds"/>
-	<rosparam param="tagID" subst_value="True">$(arg tagID)</rosparam>
-	<rosparam param="maxspeed" subst_value="True">$(arg maxspeed)</rosparam>
-	<node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true"/>
+	<group ns="$(arg veh)">
+		<remap from="subspeed" to="/gui_node/carspeeds"/>
+		<rosparam param="tagID" subst_value="True">$(arg tagID)</rosparam>
+		<rosparam param="maxspeed" subst_value="True">$(arg maxspeed)</rosparam>
+		<node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true"/>
+	</group>
 	
 </launch>
