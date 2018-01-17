@@ -46,14 +46,11 @@ class lane_controller(object):
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_limits = rospy.Subscriber("~actuator_limits", Twist2DStamped, self.updateActuatorLimits, queue_size=1)
 
-        self.sub_at_stop_line = rospy.Subscriber("stop_line_filter_node/at_stop_line",
-                                                    BoolStamped,
-                                                    self.cbAtStopLine,
-                                                    queue_size=1)
         self.sub_stop_line_reading = rospy.Subscriber("stop_line_filter_node/stop_line_reading",
                                                         StopLineReading,
                                                         self.cbStopLineReading,
-                                                        queue_size=1)
+                                                        queue_size=1,
+                                                        buff_size=2**24)
 
         self.at_stop_line = False
         self.stop_line_reading = StopLineReading()
@@ -72,10 +69,6 @@ class lane_controller(object):
         # timer
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
-
-
-    def cbAtStopLine(self,msg):
-        self.at_stop_line = msg.data
 
     def cbStopLineReading(self,msg):
         self.stop_line_reading = msg
@@ -367,7 +360,8 @@ class lane_controller(object):
             car_control_msg.omega = 0
 
         if self.stop_line_reading.stop_line_detected:
-            if self.stop_line_reading.stop_line_point.x < 0.13 and self.at_stop_line:
+            print(self.stop_line_reading)
+            if self.stop_line_reading.stop_line_point.x < 0.13 and self.stop_line_reading.at_stop_line:
                 car_control_msg.v = 0
 
         # rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
