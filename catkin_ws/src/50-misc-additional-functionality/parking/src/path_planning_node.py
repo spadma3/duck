@@ -98,18 +98,18 @@ class parkingPathPlanner():
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
-        if self.plan == True:    
+        # if self.plan == True:    
             # plan the path once during first callback
             self.x_act = pose.x
             self.y_act = pose.y
             self.yaw_act = pose.theta
             self.path_planning(rospy.get_param('~end_space'))
             print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
-            self.plan = False
-        else:
-            self.x_act = pose.x
-            self.y_act = pose.y
-            self.yaw_act = pose.theta
+        #     self.plan = False
+        # else:
+        #     self.x_act = pose.x
+        #     self.y_act = pose.y
+        #     self.yaw_act = pose.theta
 
 
         return self.x_act, self.y_act, self.yaw_act
