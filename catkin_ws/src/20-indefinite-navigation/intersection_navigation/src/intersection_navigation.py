@@ -124,29 +124,29 @@ class IntersectionNavigation(object):
 
     def ComputeFinalPose(self, intersection_type, turn_type):
         if intersection_type == self.tag_info.FOUR_WAY:
-            if turn_type == 0: # right
-                return self.nominal_final_positions[1]
+            if turn_type == 0: # left
+                return self.nominal_final_positions[3]
             elif turn_type == 1: # straight
                 return self.nominal_final_positions[2]
-            else: # left
-                return self.nominal_final_positions[3]
+            else: # right
+                return self.nominal_final_positions[1]
 
         elif intersection_type == self.tag_info.T_INTERSECTION:
-            if turn_type == 0: # right
-                return self.nominal_final_positions[1]
-            else: # left
+            if turn_type == 0: # left
                 return self.nominal_final_positions[3]
+            else: # left
+                return self.nominal_final_positions[1]
 
         elif intersection_type == self.tag_info.LEFT_T_INTERSECT:
-            if turn_type == 0: # right
-                return self.nominal_final_positions[0]
-            else: # straight
-                return self.nominal_final_positions[1]
-
-        else: # RIGHT_T_INTERSECT:
             if turn_type == 1: # straight
                 return self.nominal_final_positions[3]
             else: # left
+                return self.nominal_final_positions[0]
+
+        else: # RIGHT_T_INTERSECT:
+            if turn_type == 1: # straight
+                return self.nominal_final_positions[1]
+            else: # right
                 return self.nominal_final_positions[0]
 
 
