@@ -55,6 +55,7 @@ class parkingPathPlanner():
     def __init__(self):
         self.plan = True
         self.sample_freq = 50
+        self.stopping_freq = 1/3  # [Hz]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.005  # reference vel for parking
         # init counter
@@ -77,12 +78,45 @@ class parkingPathPlanner():
         #print "The computed yaw path is ", self.pyaw
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.sample_callback)
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
+        self.timer = rospy.Timer(rospy.Duration(1.0/self.stopping_freq), self.stopping_callback)
+
+    def stopping_callback(self):
+        state = LanePose()
+        state.v_ref = 0.0
+        self.sample_state_pub.publish(state)
+        if self.plan == False
+            self.time_when_last_stopped = rospy.Time.now().secs
+        self.plan = True
+
+
+    def get_random_pose(self, delta_t, idx):
+        n_points = len(self.px)
+        velocity_to_m_per_s = 0.67
+        idx += (velocity * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(idx)] - self.px[int(idx)-1])**2 + (self.px[int(idx)] - self.px[int(idx)-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
+        print("idx = {}".format(idx))
+        if int(idx) > n_points - 3:
+            idx = n_points - 3
+            end_of_path_reached = True
+        else:
+            end_of_path_reached = False
+        print("idx = {}".format(idx))
+        print("idx += {}".format((velocity * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(idx)] - self.px[int(idx)-1])**2 + (self.px[int(idx)] - self.px[int(idx)-1])**2) / 1000))))
+        self.x_act = self.px[int(idx)]        ### + np.random.normal(bias_xy,var_xy)
+        self.y_act = self.px[int(idx)]        ### + np.random.normal(bias_xy,var_xy)
+        self.yaw_act = self.px[int(idx)]        ### + np.random.normal(bias_heading,var_heading)
+        return idx, end_of_path_reached
+
 
     #  callback for control references
     def sample_callback(self,event):
         begin = rospy.get_rostime()
         state = LanePose()
         if self.plan == False:
+            self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
+            delta_t = self.current_time_sec - self.previous_time_sec
+            idx, end_of_path_reached = self.get_random_pose(delta_t, idx)
+            self.previous_time_sec = self.current_time_sec
+
             state.d, state.curvature_ref, state.phi = self.project_to_path(curvature)
             state.d_ref = self.d_ref
             state.v_ref = self.v_ref
@@ -98,18 +132,20 @@ class parkingPathPlanner():
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
-        # if self.plan == True:    
+        if self.plan == True and rospy.Time.now().secs - self.time_when_last_stopped > 5:    
             # plan the path once during first callback
             self.x_act = pose.x
             self.y_act = pose.y
             self.yaw_act = pose.theta
             self.path_planning(rospy.get_param('~end_space'))
             print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
-        #     self.plan = False
-        # else:
-        #     self.x_act = pose.x
-        #     self.y_act = pose.y
-        #     self.yaw_act = pose.theta
+            self.plan = False
+            idx = 0
+            self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
+        else:
+            # self.x_act = pose.x
+            # self.y_act = pose.y
+            # self.yaw_act = pose.theta
 
 
         return self.x_act, self.y_act, self.yaw_act
