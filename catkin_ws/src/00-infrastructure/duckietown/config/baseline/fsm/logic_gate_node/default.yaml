@@ -22,7 +22,7 @@ events:
     msg_type: "BoolStamped"
     trigger: False
   intersection_go_implicit:
-    topic: "implicit_coord/flag_go_wait"
+    topic: "intersection_coordination_node/intersection_go"
     msg_type: "BoolStamped"
     trigger: True
   intersection_go_explicit:
