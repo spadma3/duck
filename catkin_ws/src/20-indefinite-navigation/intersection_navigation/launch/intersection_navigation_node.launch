@@ -71,7 +71,7 @@
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
 
-    <!--<!-- Lane Filter  -->
+    <!-- Lane Filter
     <include file="$(find lane_control)/launch/lane_filter_node.launch">
         <arg name="veh" value="$(arg veh)"/>
         <arg name="config" value="$(arg config)"/>
