@@ -352,7 +352,7 @@ class IntersectionNavigation(object):
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
 
-        if self.state == self.state_dict['TRAVERSING'] and msg.state == 'INTERSECTION_CONTROL' and self.go == False:
+        if msg.state == 'INTERSECTION_CONTROL' and self.go == False:
             rospy.loginfo("[%s] Received go. Start traversing intersection." % (self.node_name))
             self.go = True
 
