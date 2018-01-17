@@ -1,10 +1,18 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-import matplotlib
-matplotlib.use("wx")
-from pylab import *
+import time
 import matplotlib.pyplot as plt
+import numpy as np
 
+plt.ion()
+x = np.arange(128)
 fig, ax = plt.subplots()
-mng = plt.get_current_fig_manager()
+ax.hold(False)
+
+for it in range(5):
+    ax.plot(x, x+it)
+    fig.canvas.flush_events()
+    time.sleep(0.1)
+
+plt.ioff()
