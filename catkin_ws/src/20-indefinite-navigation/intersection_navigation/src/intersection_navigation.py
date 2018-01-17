@@ -48,12 +48,6 @@ class IntersectionNavigation(object):
         self.in_lane_timeout = 0.5
         self.in_lane_wait_time = 2.0
 
-
-
-        self.v = 0.15 # Navigation velocity
-        self.v_scale = 0.67 * 2.45  # Scaling factor for the velocity
-        self.w_scale = 0.45  # Scaling factor for omega
-
         self.state_dict = dict()
         for counter, key in enumerate(['IDLE',
                                        'INITIALIZING_LOCALIZATION',
@@ -121,6 +115,10 @@ class IntersectionNavigation(object):
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
+    def SelfReset(self):
+        self.go = False
+        self.turn_type = -1
+        self.in_lane = False
 
     def ComputeFinalPose(self, intersection_type, turn_type):
         if intersection_type == self.tag_info.FOUR_WAY:
