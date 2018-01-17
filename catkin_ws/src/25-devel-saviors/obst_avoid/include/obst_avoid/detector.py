@@ -218,7 +218,7 @@ class Detector():
 
         # FINALE AUSWERTUNG:
         if (distance_min < self.minimum_tracking_distance):  # only then modify the entry!
-            major_mom_change = abs(1 - abs(self.track_array[2, distance_min_index] / new_position[2, :]))
+            #major_mom_change = abs(1 - abs(self.track_array[2, distance_min_index] / new_position[2, :]))
             # LEFT OUT DUE TO NO EFFICIENCY BUT ATTNETION: NOW ONE ELEMENT CAN SAY IT IS CLOSE TO MULTIPLE,...
             # new_position[4,:] = distance_min_index #show where we reference to
             # new_position[5,:] = distance_min
@@ -238,7 +238,7 @@ class Detector():
             #	else:
             new_position[3, :] = self.track_array[3, distance_min_index] + 1
 
-            if ((new_position[3, :] < 100 or major_mom_change > 1.5) and new_position[3,
+            if ((new_position[2, :] < 100) and new_position[3,
                                                                          :] < 4):  # not seen 4 times yet
                 # print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                 distance_min = 2 * self.minimum_tracking_distance
