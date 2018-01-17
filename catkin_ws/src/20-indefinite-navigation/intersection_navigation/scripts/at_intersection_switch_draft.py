@@ -8,5 +8,5 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
-        pub.publish(BoolStamped(state=True))
+        pub.publish(BoolStamped(data=True))
         rate.sleep()
