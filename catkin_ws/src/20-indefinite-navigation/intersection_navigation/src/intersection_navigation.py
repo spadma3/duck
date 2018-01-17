@@ -169,7 +169,7 @@ class IntersectionNavigation(object):
                     self.state = self.state_dict['TRAVERSING']
                     self.s = 0.0
                     self.debug_start = rospy.Time.now()
-                    rospy.loginfo("[%s] Initialized path, traversing intersection." % (self.node_name))
+                    rospy.loginfo("[%s] Initialized path, waiting for go signal." % (self.node_name))
                 else:
                     rospy.loginfo("[%s] Could not initialize path. Trying again." % (self.node_name))
 
@@ -232,6 +232,11 @@ class IntersectionNavigation(object):
                         msg_cmds.omega = 0.0 * 4.75
                         self.pub_cmds.publish(msg_cmds)
                     else:
+                        msg_cmds = Twist2DStamped()
+                        msg_cmds.header.stamp = rospy.Time.now()
+                        msg_cmds.v = 0.0 * 1.53
+                        msg_cmds.omega = 0.0 * 4.75
+                        self.pub_cmds.publish(msg_cmds)
                         rospy.loginfo("[%s] Could not find lane. Stopping now." % (self.node_name))
                         self.state = self.state_dict['ERROR']
 

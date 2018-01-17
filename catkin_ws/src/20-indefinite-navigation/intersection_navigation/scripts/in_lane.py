@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
-        msg = BoolStamped
+        msg = BoolStamped()
         msg.header.stamp = rospy.Time.now()
         msg.data = True
         pub.publish(msg)
