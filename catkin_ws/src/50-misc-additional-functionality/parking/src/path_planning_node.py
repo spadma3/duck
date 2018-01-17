@@ -83,7 +83,7 @@ class parkingPathPlanner():
         state = LanePose()
         state.v_ref = 0.0
         self.sample_state_pub.publish(state)
-        if self.plan == False
+        if self.plan == False:
             self.time_when_last_stopped = rospy.Time.now().secs
         self.plan = True
 
