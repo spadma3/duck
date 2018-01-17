@@ -77,7 +77,7 @@ class lane_controller(object):
     def cbAtStopLine(self,msg):
         self.at_stop_line = msg.data
 
-    def cbStopLineRead(self,msg):
+    def cbStopLineReading(self,msg):
         self.stop_line_reading = msg
 
 
