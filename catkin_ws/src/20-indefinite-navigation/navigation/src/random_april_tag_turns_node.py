@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy
+import math
 from duckietown_msgs.msg import FSMState, AprilTagsWithInfos, BoolStamped
 from std_msgs.msg import String, Int16 #Imports msg
 
@@ -37,8 +38,20 @@ class RandomAprilTagTurnsNode(object):
             
     def cbTag(self, tag_msgs):
         if(self.fsm_mode == "INTERSECTION_CONTROL" or self.fsm_mode == "INTERSECTION_COORDINATION"):
-            #loop through list of april tags
-            for taginfo in tag_msgs.infos:
+            # loop through list of april tags and select the one that is no further than 0.8m away and facing it directly
+            w_max = 0.0
+            idx = None
+            k = 0
+            for detection in tag_msgs.detections:
+                if detection.pose.pose.position.x < 0.8:
+                    if math.fabs(detection.pose.pose.orientation.w) > w_max:
+                        w_max = math.fabs(detection.pose.pose.orientation.w)
+                        idx = k
+
+                k += 1
+
+            if idx != None:
+                taginfo = tag_msgs.infos[idx]
                 if(taginfo.tag_type == taginfo.SIGN):
                     availableTurns = []
                     #go through possible intersection types
