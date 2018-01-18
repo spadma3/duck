@@ -57,8 +57,8 @@ class parkingPathPlanner():
         self.sample_freq = 1    # [Hz]
         self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
-        self.v_ref = 0.005  # reference vel for parking
-        self.v_default = 0.005  # reference vel for parking
+        self.v_ref = 0.38  # reference vel for parking
+        self.v_default = 0.38  # reference vel for parking
         self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
         self.time_when_last_path_planned = rospy.Time.now().secs
         self.time_when_last_stopped = rospy.Time.now().secs
