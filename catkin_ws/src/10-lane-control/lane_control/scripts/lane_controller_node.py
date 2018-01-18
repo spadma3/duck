@@ -345,11 +345,11 @@ class lane_controller(object):
             car_control_msg.v = self.actuator_limits.v
 
         if car_control_msg.v == 0:
-            car_control_msg.omega = 0
+            omega = 0
 
         # apply magic conversion factors
         car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
-        car_control_msg.omega = car_control_msg.omega * self.omega_to_rad_per_s
+        car_control_msg.omega = omega * self.omega_to_rad_per_s
 
         # rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
         # rospy.loginfo("heading_err: " + str(self.heading_err))
