@@ -134,7 +134,7 @@ class parkingPathPlanner():
         #print ("Pathplanning/Sample Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
     def parking_active_callback(self,event):
-        #rospy.loginfo("in parking_active_callback")
+        rospy.loginfo("in parking_active_callback")
         state = BoolStamped()
         state.data = True
         state.header.stamp = rospy.Time.now()
