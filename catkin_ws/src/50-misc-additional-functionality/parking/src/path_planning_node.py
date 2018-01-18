@@ -58,6 +58,8 @@ class parkingPathPlanner():
         self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.005  # reference vel for parking
+        self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
+        self.time_when_last_path_planned = rospy.Time.now().secs
         # init counter
         #self.count = 0
         # init subscriber
@@ -110,7 +112,7 @@ class parkingPathPlanner():
     def sample_callback(self,event):
         begin = rospy.get_rostime()
         state = LanePose()
-        if rospy.Time.now().secs - time_when_last_path_planned > self.duration_blind_feedforward:
+        if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
             self.stopping_callback()
         if self.plan == False:
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
