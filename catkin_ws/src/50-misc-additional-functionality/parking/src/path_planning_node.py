@@ -82,7 +82,7 @@ class parkingPathPlanner():
         #print "The computed y path is ", self.py
         #print "The computed yaw path is ", self.pyaw
         self.timer_sample_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.sample_callback)
-        #self.timer_parking_active_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
+        self.timer_parking_active_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
     def stopping_callback(self):
         rospy.loginfo("in stopping_callback")
