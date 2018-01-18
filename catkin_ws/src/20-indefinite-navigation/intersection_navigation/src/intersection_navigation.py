@@ -137,12 +137,14 @@ class IntersectionNavigation(object):
                 return self.nominal_final_positions[1]
 
         elif intersection_type == self.tag_info.LEFT_T_INTERSECT:
+            print("LEFT T")
             if turn_type == 1: # straight
                 return self.nominal_final_positions[3]
             else: # left
                 return self.nominal_final_positions[0]
 
         else: # RIGHT_T_INTERSECT:
+            print("RIGHT T")
             if turn_type == 1: # straight
                 return self.nominal_final_positions[1]
             else: # right
