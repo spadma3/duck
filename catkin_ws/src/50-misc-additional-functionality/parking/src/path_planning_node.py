@@ -55,7 +55,7 @@ class parkingPathPlanner():
     def __init__(self):
         self.plan = True
         self.sample_freq = 50
-        self.stopping_freq = 1/3  # [Hz]
+        self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.005  # reference vel for parking
         # init counter
@@ -78,13 +78,12 @@ class parkingPathPlanner():
         #print "The computed yaw path is ", self.pyaw
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.sample_callback)
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
-        self.timer = rospy.Timer(rospy.Duration(1.0/self.stopping_freq), self.stopping_callback)
 
     def stopping_callback(self):
         state = LanePose()
         state.v_ref = 0.0
         self.sample_state_pub.publish(state)
-        if self.plan == False:
+        if self.plan == False
             self.time_when_last_stopped = rospy.Time.now().secs
         self.plan = True
 
@@ -111,6 +110,8 @@ class parkingPathPlanner():
     def sample_callback(self,event):
         begin = rospy.get_rostime()
         state = LanePose()
+        if rospy.Time.now().secs - time_when_last_path_planned > self.duration_blind_feedforward:
+            self.stopping_callback()
         if self.plan == False:
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             delta_t = self.current_time_sec - self.previous_time_sec
@@ -142,11 +143,14 @@ class parkingPathPlanner():
             self.plan = False
             idx = 0
             self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
-        #else:
+            self.time_when_last_path_planned = rospy.Time.now().secs
+        else:
             # self.x_act = pose.x
             # self.y_act = pose.y
             # self.yaw_act = pose.theta
-            return self.x_act, self.y_act, self.yaw_act
+
+
+        return self.x_act, self.y_act, self.yaw_act
 
     def project_to_path(self, curvature):
         """
