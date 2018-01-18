@@ -60,6 +60,7 @@ class parkingPathPlanner():
         self.v_ref = 0.005  # reference vel for parking
         self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
         self.time_when_last_path_planned = rospy.Time.now().secs
+        self.time_when_last_stopped = rospy.Time.now().secs
         # init counter
         #self.count = 0
         # init subscriber
