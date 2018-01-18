@@ -75,6 +75,7 @@ class lane_controller(object):
         return value
 
     def setGains(self):
+        self.v_bar_gain_ref = 0.5
         v_bar_fallback = 0.15  # nominal speed, 0.15m/s
         k_theta_fallback = (-2.0) / self.omega_to_rad_per_s
         k_d_fallback = (- (k_theta_fallback ** 2) / (4.0 * v_bar_fallback)) / self.omega_to_rad_per_s
@@ -284,7 +285,13 @@ class lane_controller(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
-        car_control_msg.v = pose_msg.v_ref  # *self.speed_gain #Left stick V-axis. Up is positive
+        car_control_msg.v = pose_msg.v_ref
+
+        if car_control_msg.v > self.actuator_limits.v:
+            car_control_msg.v = self.actuator_limits.v
+
+        # compute gain scaling
+        gain_scale = car_control_msg.v / self.v_bar_gain_ref
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
@@ -323,7 +330,7 @@ class lane_controller(object):
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
-        omega = self.k_d * self.cross_track_err + self.k_theta * self.heading_err
+        omega = self.k_d*gain_scale * self.cross_track_err + self.k_theta*gain_scale * self.heading_err
         omega += (omega_feedforward)
 
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
@@ -334,15 +341,12 @@ class lane_controller(object):
             omega = math.copysign(car_control_msg.v / self.min_radius, omega)
 
         # apply integral correction (these should not affect radius, hence checked afterwards)
-        omega -= self.k_Id * self.cross_track_integral
-        omega -= self.k_Iphi * self.heading_integral
+        omega -= self.k_Id*gain_scale * self.cross_track_integral
+        omega -= self.k_Iphi*gain_scale * self.heading_integral
 
         # check if velocity is large enough such that car can actually execute desired omega
         if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
             car_control_msg.v = 0.065 + 0.5 * math.fabs(omega) * 0.1
-
-        if car_control_msg.v > self.actuator_limits.v:
-            car_control_msg.v = self.actuator_limits.v
 
         if car_control_msg.v == 0:
             omega = 0
