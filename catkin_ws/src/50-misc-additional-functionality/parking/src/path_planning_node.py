@@ -83,6 +83,7 @@ class parkingPathPlanner():
         self.timer = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
     def stopping_callback(self):
+        rospy.loginfo("in stopping_callback")
         state = LanePose()
         state.v_ref = 0.0
         self.sample_state_pub.publish(state)
@@ -112,12 +113,14 @@ class parkingPathPlanner():
     #  callback for control references
     def sample_callback(self,event):
         begin = rospy.get_rostime()
+        rospy.loginfo("in sample_callback")
         state = LanePose()
         if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
             self.stopping_callback()
         if self.end_of_path_reached:
             self.stopping_callback()
         if self.plan == False:
+            rospy.loginfo("in sample_callback in 'if self.plan == False'")
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             delta_t = self.current_time_sec - self.previous_time_sec
             idx = self.get_random_pose(delta_t, idx)
@@ -131,6 +134,7 @@ class parkingPathPlanner():
         #print ("Pathplanning/Sample Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
     def parking_active_callback(self,event):
+        rospy.loginfo("in parking_active_callback")
         state = BoolStamped()
         state.data = True
         state.header.stamp = rospy.Time.now()
@@ -138,6 +142,7 @@ class parkingPathPlanner():
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
+        rospy.loginfo("in localization_callback")
         if self.plan == True and rospy.Time.now().secs - self.time_when_last_stopped > 5:    
             # plan the path once during first callback
             self.x_act = pose.x
