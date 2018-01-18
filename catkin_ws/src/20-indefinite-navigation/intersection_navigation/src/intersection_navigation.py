@@ -253,29 +253,26 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Timeout waiting for april tag info." % (self.node_name))
             return False
 
-        # find closest (valid) april tag
-        closest_distance = 1e6
-        closest_idx = -1
+        # find (valid) april tag
+        best_w = 0
+        best_idx = -1
         for idx, detection in enumerate(april_msg.detections):
             if april_msg.infos[idx].tag_type == self.tag_info.SIGN:
                 if april_msg.infos[idx].traffic_sign_type in self.intersection_signs:
-                    position = detection.pose.pose.position
-                    distance = np.sqrt(position.x ** 2 + position.y ** 2 + position.z ** 2)
-
-                    if distance < closest_distance:
-                        closest_distance = distance
-                        closest_idx = idx
+                    if detection.pose.pose.position.x < 0.8 and math.fabs(detection.pose.pose.orientation.w) > best_w:
+                        best_w = math.fabs(detection.pose.pose.orientation.w)
+                        best_idx = idx
 
         # return if no valid april tag was found
-        if closest_idx < 0:
+        if best_idx < 0:
             return False
 
         # initial position estimate
-        x_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][0]
-        y_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][1]
-        theta_init = self.nominal_start_positions[april_msg.infos[closest_idx].traffic_sign_type][2]
+        x_init = self.nominal_start_positions[april_msg.infos[best_idx].traffic_sign_type][0]
+        y_init = self.nominal_start_positions[april_msg.infos[best_idx].traffic_sign_type][1]
+        theta_init = self.nominal_start_positions[april_msg.infos[best_idx].traffic_sign_type][2]
 
-        if april_msg.infos[closest_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
+        if april_msg.infos[best_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
                                                               self.tag_info.LEFT_T_INTERSECT]:
             dx_init = np.linspace(-0.025, 0.025, 6)
             dy_init = np.linspace(-0.025, 0.025, 6)
@@ -285,7 +282,7 @@ class IntersectionNavigation(object):
             dy_init = np.linspace(-0.025, 0.025, 6)
             dtheta_init = np.linspace(-5.0 / 180.0 * np.pi, 5.0 / 180.0 * np.pi, 2)
 
-        if april_msg.infos[closest_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
+        if april_msg.infos[best_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
             self.intersectionLocalizer.SetEdgeModel('FOUR_WAY_INTERSECTION')
         else:
             self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')

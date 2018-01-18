@@ -43,8 +43,7 @@ class RandomAprilTagTurnsNode(object):
             idx = None
             k = 0
             for detection in tag_msgs.detections:
-                if detection.pose.pose.position.x < 0.8:
-                    if math.fabs(detection.pose.pose.orientation.w) > w_max:
+                if detection.pose.pose.position.x < 0.8 and math.fabs(detection.pose.pose.orientation.w) > w_max:
                         w_max = math.fabs(detection.pose.pose.orientation.w)
                         idx = k
 
