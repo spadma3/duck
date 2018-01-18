@@ -80,7 +80,7 @@ class parkingPathPlanner():
         #print "The computed y path is ", self.py
         #print "The computed yaw path is ", self.pyaw
         self.timer_sample_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.sample_callback)
-        self.timer_parking_active_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
+        #self.timer_parking_active_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
     def stopping_callback(self):
         rospy.loginfo("in stopping_callback")
@@ -134,7 +134,7 @@ class parkingPathPlanner():
         #print ("Pathplanning/Sample Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
     def parking_active_callback(self,event):
-        rospy.loginfo("in parking_active_callback")
+        #rospy.loginfo("in parking_active_callback")
         state = BoolStamped()
         state.data = True
         state.header.stamp = rospy.Time.now()
@@ -143,7 +143,8 @@ class parkingPathPlanner():
     #  callback for apriltag localization
     def localization_callback(self, pose):
         rospy.loginfo("in localization_callback")
-        if self.plan == True and rospy.Time.now().secs - self.time_when_last_stopped > 5:    
+        if self.plan == True and rospy.Time.now().secs - self.time_when_last_stopped > 5:
+            rospy.loginfo("planning a path")
             # plan the path once during first callback
             self.x_act = pose.x
             self.y_act = pose.y
