@@ -103,7 +103,7 @@ class AprilPostPros(object):
                     msg_parking.data = True
                 else:
                     msg_parking.data = False
-                self.pub_postPros_parking.Publish(msg_parking)
+                self.pub_postPros_parking.publish(msg_parking)
 
                 # intersection apriltag event
                 msg_intersection = BoolStamped()
@@ -112,7 +112,7 @@ class AprilPostPros(object):
                     msg_intersection.data = True
                 else:
                     msg_intersection.data = False
-                self.pub_postPros_intersection.Publish(msg_intersection)
+                self.pub_postPros_intersection.publish(msg_intersection)
 
             elif new_info.tag_type == self.info.VEHICLE:
                 new_info.vehicle_name = id_info['vehicle_name']
