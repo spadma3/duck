@@ -75,8 +75,8 @@ class lane_controller(object):
         return value
 
     def setGains(self):
-        self.v_bar_gain_ref = 0.5
-        v_bar_fallback = 0.15  # nominal speed, 0.15m/s
+        self.v_bar_gain_ref = 0.6
+        v_bar_fallback = 0.25  # nominal speed, 0.25m/s
         k_theta_fallback = (-2.0) / self.omega_to_rad_per_s
         k_d_fallback = (- (k_theta_fallback ** 2) / (4.0 * v_bar_fallback)) / self.omega_to_rad_per_s
         theta_thres_fallback = math.pi / 6
@@ -287,6 +287,7 @@ class lane_controller(object):
         car_control_msg.header = pose_msg.header
         car_control_msg.v = pose_msg.v_ref
 
+        # constrain velocity to feasible range
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v
 
