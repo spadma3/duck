@@ -9,7 +9,7 @@ from sensor_msgs.msg import Joy
 
 from __builtin__ import True
 
-INITIAL_GAIN = 1.0
+INITIAL_GAIN = 0.7
 DELTA_GAIN = 0.05
 INITIAL_TRIM = 0.00
 DELTA_TRIM = 0.01
@@ -122,7 +122,7 @@ class JoyMapper(object):
             rospy.loginfo('anti_instagram message')
             self.pub_anti_instagram.publish(anti_instagram_msg)
         # region UdM demo mapping
-        elif joy_msg.buttons[3] == 1: # 
+        elif joy_msg.buttons[3] == 1: #
             self.gain += DELTA_GAIN
             self.set_gain_service(self.gain)
             self.save_calibration()
