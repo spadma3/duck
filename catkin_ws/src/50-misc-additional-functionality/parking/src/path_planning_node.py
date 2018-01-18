@@ -113,7 +113,7 @@ class parkingPathPlanner():
     #  callback for control references
     def sample_callback(self,event):
         begin = rospy.get_rostime()
-        rospy.loginfo("in sample_callback")
+        rospy.logerr("in sample_callback")
         state = LanePose()
         if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
             self.stopping_callback()
@@ -131,7 +131,7 @@ class parkingPathPlanner():
             state.v_ref = self.v_ref
             self.sample_state_pub.publish(state)
         end = rospy.get_rostime()
-        print ("Pathplanning/Sample Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
+        rospy.logerr("Pathplanning/Sample Callback [micros]: ", (end.nsecs-begin.nsecs)/1000)
 
     def parking_active_callback(self,event):
         #rospy.loginfo("in parking_active_callback")
