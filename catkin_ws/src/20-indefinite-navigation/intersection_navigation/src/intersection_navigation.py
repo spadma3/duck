@@ -137,14 +137,14 @@ class IntersectionNavigation(object):
                 return self.nominal_final_positions[1]
 
         elif intersection_type == self.tag_info.LEFT_T_INTERSECT:
-            print("LEFT T")
+            rospy.loginfo("[%s] LEFT T INTERSECT." % (self.node_name))
             if turn_type == 1: # straight
                 return self.nominal_final_positions[3]
             else: # left
                 return self.nominal_final_positions[0]
 
         else: # RIGHT_T_INTERSECT:
-            print("RIGHT T")
+            rospy.loginfo("[%s] RIGHT T INTERSECT." % (self.node_name))
             if turn_type == 1: # straight
                 return self.nominal_final_positions[1]
             else: # right
@@ -333,7 +333,6 @@ class IntersectionNavigation(object):
 
         turn_type = self.turn_type
 
-        # 0: straight, 1: left, 2: right
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
 
