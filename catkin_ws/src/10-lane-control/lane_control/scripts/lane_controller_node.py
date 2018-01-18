@@ -83,8 +83,8 @@ class lane_controller(object):
         d_thres_fallback = math.fabs(k_theta_fallback / k_d_fallback) * theta_thres_fallback
         d_offset_fallback = 0.0
 
-        k_Id_fallback = 2.5 / self.omega_to_rad_per_s
-        k_Iphi_fallback = 1.25 / self.omega_to_rad_per_s
+        k_Id_fallback = 0.5*2.5 / self.omega_to_rad_per_s
+        k_Iphi_fallback = 0.5*1.25 / self.omega_to_rad_per_s
         self.cross_track_err = 0
         self.heading_err = 0
         self.cross_track_integral = 0
