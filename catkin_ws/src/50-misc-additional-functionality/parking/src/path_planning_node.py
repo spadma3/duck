@@ -87,6 +87,7 @@ class parkingPathPlanner():
         rospy.loginfo("in stopping_callback")
         state = LanePose()
         state.v_ref = 0.0
+        self.v_ref = state.v_ref
         self.sample_state_pub.publish(state)
         if self.plan == False:
             self.time_when_last_stopped = rospy.Time.now().secs
