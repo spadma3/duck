@@ -58,6 +58,7 @@ class parkingPathPlanner():
         self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.005  # reference vel for parking
+        self.v_default = 0.005  # reference vel for parking
         self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
         self.time_when_last_path_planned = rospy.Time.now().secs
         self.time_when_last_stopped = rospy.Time.now().secs
@@ -129,7 +130,7 @@ class parkingPathPlanner():
 
             state.d, state.curvature_ref, state.phi = self.project_to_path(curvature)
             state.d_ref = self.d_ref
-            state.v_ref = self.v_ref
+            state.v_ref = self.v_default
             self.sample_state_pub.publish(state)
         end = rospy.get_rostime()
         rospy.logerr("Pathplanning/Sample Callback [micros]: %s" %((end.nsecs-begin.nsecs)/1000))
