@@ -93,22 +93,21 @@ class parkingPathPlanner():
         self.plan = True
 
 
-    def get_random_pose(self, delta_t, idx):
+    def get_random_pose(self, delta_t):
         n_points = len(self.px)
         velocity_to_m_per_s = 0.67
-        idx += (velocity * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(idx)] - self.px[int(idx)-1])**2 + (self.px[int(idx)] - self.px[int(idx)-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
-        print("idx = {}".format(idx))
-        if int(idx) > n_points - 3:
-            idx = n_points - 3
+        self.idx += (velocity * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.px[int(self.idx)] - self.px[int(self.idx)-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
+        print("idx = {}".format(self.idx))
+        if int(self.idx) > n_points - 3:
+            self.idx = n_points - 3
             self.end_of_path_reached = True
         else:
             self.end_of_path_reached = False
-        print("idx = {}".format(idx))
-        print("idx += {}".format((velocity * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(idx)] - self.px[int(idx)-1])**2 + (self.px[int(idx)] - self.px[int(idx)-1])**2) / 1000))))
-        self.x_act = self.px[int(idx)]        ### + np.random.normal(bias_xy,var_xy)
-        self.y_act = self.px[int(idx)]        ### + np.random.normal(bias_xy,var_xy)
-        self.yaw_act = self.px[int(idx)]        ### + np.random.normal(bias_heading,var_heading)
-        return idx
+        print("idx = {}".format(self.idx))
+        print("idx += {}".format((velocity * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.px[int(self.idx)] - self.px[int(self.idx)-1])**2) / 1000))))
+        self.x_act = self.px[int(self.idx)]        ### + np.random.normal(bias_xy,var_xy)
+        self.y_act = self.px[int(self.idx)]        ### + np.random.normal(bias_xy,var_xy)
+        self.yaw_act = self.px[int(self.idx)]        ### + np.random.normal(bias_heading,var_heading)
 
 
     #  callback for control references
@@ -124,7 +123,7 @@ class parkingPathPlanner():
             rospy.loginfo("in sample_callback in 'if self.plan == False'")
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             delta_t = self.current_time_sec - self.previous_time_sec
-            idx = self.get_random_pose(delta_t, idx)
+            self.get_random_pose(delta_t)
             self.previous_time_sec = self.current_time_sec
 
             state.d, state.curvature_ref, state.phi = self.project_to_path(curvature)
@@ -153,7 +152,7 @@ class parkingPathPlanner():
             self.path_planning(rospy.get_param('~end_space'))
             print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
             self.plan = False
-            idx = 0
+            self.idx = 0
             self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             self.time_when_last_path_planned = rospy.Time.now().secs
         #else:
@@ -174,11 +173,11 @@ class parkingPathPlanner():
         # distance calculation
         d_est = float("inf")
         x_proj, y_proj, idx_proj = None, None, None
-        for idx, (x, y, yaw) in enumerate(zip(self.px, self.py, self.pyaw)):
+        for index, (x, y, yaw) in enumerate(zip(self.px, self.py, self.pyaw)):
             d = sqrt((x-self.x_act)**2 + (y-self.y_act)**2)
             if d < abs(d_est):
                 d_est = d
-                x_proj, y_proj, yaw_proj, idx_proj = x, y, yaw, idx
+                x_proj, y_proj, yaw_proj, idx_proj = x, y, yaw, index
         # A:projected point and frame with origin A and “heading“ yaw_proj, I:inertial frame
         R_AI = np.array([[cos(yaw_proj),sin(yaw_proj)],[-sin(yaw_proj),cos(yaw_proj)]])
         I_t_IA = np.array([[x_proj],[y_proj]])
