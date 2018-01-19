@@ -116,7 +116,7 @@ class OpenLoopIntersectionNode(object):
         self.maneuvers[turn_type].insert(0,new_first_leg)
 
     def trigger(self,turn_type):
-        rospy.logwarn("[OpenLoopIntersectionNode] trigger()")
+        rospy.logwarn("[OpenLoopIntersectionNode] trigger(), turn_type: %s", turn_type)
         if turn_type == -1: #Wait. Publish stop command. Does not publish done.
             cmd = Twist2DStamped(v=0.0,omega=0.0)
             cmd.header.stamp = rospy.Time.now()
