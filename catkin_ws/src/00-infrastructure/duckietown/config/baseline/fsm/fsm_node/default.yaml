@@ -23,7 +23,7 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
   apriltag_intersection:
-    topic: "apriltag_postprocessing_node/apriltag_intersection" 
+    topic: "apriltags_postprocessing_node/apriltag_intersection" 
     msg_type: "BoolStamped"
     trigger: True
   # Logical events from logic_gate_node
@@ -158,6 +158,7 @@ states:
     active_nodes:
       - decoder_node
       - line_detector_node
+      - apriltag_node
       - lane_filter_node
       - lane_controller_node
       - stop_line_filter_node
@@ -191,34 +192,18 @@ states:
       - led_emitter_node
       - line_detector_node
       - lane_filter_node
-      - lane_controller_node
-      ###### TO USE OPEN LOOP INTERSECTION CONTROL:
-      # COMMENT OUT intersection_navigation_node and intersection_localization_node
+      ###### TO USE OPEN LOOP INTERSECTION CONTROL (untested):
+      # COMMENT OUT intersection_navigation_node, intersection_localization_node and lane_controller_node
       - intersection_navigation_node
       - intersection_localization_node
+      - lane_controller_node
     current_status: "in_progress"
-
-  # LANE_RECOVERY: # not implemented
-  #   transitions:
-  #     found_lane: "LANE_FOLLOWING"
-  #     lane_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
-  #   active_nodes:
-  #     - lane_filter_node
-  #     - line_detector_node
-  #   current_status: "planned"
-  # INTERSECTION_RECOVERY: # not implemented
-  #   transitions:
-  #     found_lane: "LANE_FOLLOWING"
-  #     intersection_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
-  #   active_nodes:
-  #     - lane_filter_node
-  #     - line_detector_node
-  #   current_status: "planned"
   PARKING:
     transitions:
       at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
     active_nodes:
       - decoder_node
+      - apriltag_node
       - line_detector_node
       - lane_filter_node
       - parking_node
@@ -241,7 +226,25 @@ states:
       deep_lane_following_off: "LANE_FOLLOWING"
     active_nodes:
       - decoder_node
+      - apriltag_node
       - line_detector_node
       - stop_line_filter_node
       - duckiebot_il_lane_following
       
+
+  # LANE_RECOVERY: # not implemented
+  #   transitions:
+  #     found_lane: "LANE_FOLLOWING"
+  #     lane_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
+  #   active_nodes:
+  #     - lane_filter_node
+  #     - line_detector_node
+  #   current_status: "planned"
+  # INTERSECTION_RECOVERY: # not implemented
+  #   transitions:
+  #     found_lane: "LANE_FOLLOWING"
+  #     intersection_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
+  #   active_nodes:
+  #     - lane_filter_node
+  #     - line_detector_node
+  #   current_status: "planned"

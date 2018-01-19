@@ -31,7 +31,7 @@ events:
     msg_type: "BoolStamped"
     trigger: True
   apriltag_parking:
-    topic: "apriltag_postprocessing_node/apriltag_parking"
+    topic: "apriltags_postprocessing_node/apriltag_parking"
     msg_type: "BoolStamped"
     trigger: True
   parking_active:
@@ -53,7 +53,9 @@ events:
     msg_type: "BoolStamped"
     trigger: False
 
-  ###### TO USE OPEN LOOP INTERSECTION CONTROL, COMMENT OUT THE FIRST intersection_done, AND UNCOMMENT SECOND intersection_done
+
+  ###### TO USE OPEN LOOP INTERSECTION CONTROL: (untested)
+  # COMMENT OUT THE FIRST intersection_done, AND UNCOMMENT SECOND intersection_done
   intersection_done:  ## closed loop new
     topic: "intersection_navigation_node/intersection_done"
     msg_type: "BoolStamped"
