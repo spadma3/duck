@@ -323,6 +323,7 @@ class IntersectionNavigation(object):
         # waiting for instructions where to go
         if self.turn_type < 0 or (rospy.Time.now() - self.turn_type_time).to_sec() > self.turn_type_timeout:
             rospy.loginfo("[%s] No current turn type information." % (self.node_name))
+            self.turn_type = 0
             return False
 
         turn_type = self.turn_type
