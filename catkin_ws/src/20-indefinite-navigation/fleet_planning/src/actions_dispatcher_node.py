@@ -94,11 +94,11 @@ class ActionsDispatcherNode:
         if self.target_node is None or self.target_node == node:
             rate_recursion = rospy.Rate(0.5)
             rate_recursion.sleep()
-            self.localize_at_red_line() # repeat until new duckiebot mission was published # TODO: improve this?
+            self.localize_at_red_line(msg) # repeat until new duckiebot mission was published # TODO: improve this?
 
         else:
             self.graph_search(node, self.target_node)
-            self.dispatch_action(msg)
+            self.dispatch_action()
             location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
             self.pub_location_node.publish(ByteMultiArray(data=location_message))
             self.pub_intersection_go.publish(BoolStamped(header=msg.header, data=True))
