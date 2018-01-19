@@ -1,5 +1,5 @@
 #lane_control/lane_controller_node
-v_bar: 0.25
+v_bar: 0.2
 k_d: -4.0
 k_theta: -1.7
 k_Id: 0.4
