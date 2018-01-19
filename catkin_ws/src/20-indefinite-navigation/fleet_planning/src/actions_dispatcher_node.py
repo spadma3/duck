@@ -94,7 +94,7 @@ class ActionsDispatcherNode:
         if self.target_node is None or self.target_node == node:
             rate_recursion = rospy.Rate(0.5)
             rate_recursion.sleep()
-            self.localize_at_red_line(None) # repeat until new duckiebot mission was published # TODO: improve this?
+            self.localize_at_red_line() # repeat until new duckiebot mission was published # TODO: improve this?
 
         else:
             self.graph_search(node, self.target_node)
