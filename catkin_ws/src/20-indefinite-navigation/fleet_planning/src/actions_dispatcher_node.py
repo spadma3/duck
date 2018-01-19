@@ -99,7 +99,7 @@ class ActionsDispatcherNode:
         else:
             self.graph_search(node, self.target_node)
             self.pub_intersection_go.publish(BoolStamped(header=msg.header, data=True))
-            rate = rospy.Rate(0.5)  # hack: make sure that intersection control is ready for the turn (fsm problem)
+            rate = rospy.Rate(1.0)  # hack: make sure that intersection control is ready for the turn (fsm problem)
             rate.sleep()
             self.dispatch_action()
             location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
