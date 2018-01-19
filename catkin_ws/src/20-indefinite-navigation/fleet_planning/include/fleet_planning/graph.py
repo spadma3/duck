@@ -97,6 +97,25 @@ class Graph(object):
             raise NodeNotInGraph(node)
         return self.node_label_fn(node)
 
+    def get_inverted_graph(self):
+        """
+        Returns a graph that has the same nodes. But all edges point in the
+        opposite direction.
+        :return:
+        """
+        graph = Graph()
+        for n in self._nodes:
+            graph.add_node(n)
+
+        for n in self._nodes:
+            edges = self.node_edges(n)
+            for e in edges:
+                # Invert direction
+                graph.add_edge(e.target, e.source, e.weight, e.action)
+
+        return graph
+
+
     def draw(self, map_dir, highlight_edges=None, show_weights=None, map_name = 'duckietown', highlight_nodes = None):
         if highlight_nodes:        
             start_node = highlight_nodes[0]
