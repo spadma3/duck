@@ -64,7 +64,7 @@ class OpenLoopIntersectionNode(object):
         return maneuver
 
     def cbTurnType(self,msg):
-        rospy.logwarn("[OpenLoopIntersectionNode] cbTurnType(), self.mode: %s", self.mode)
+        rospy.logwarn("[OpenLoopIntersectionNode] cbTurnType(), self.mode: %s, self.turn_type: %s", self.mode, self.turn_type)
         if self.mode == "INTERSECTION_CONTROL":
             self.turn_type = msg.data #Only listen if in INTERSECTION_CONTROL mode
             self.trigger(self.turn_type)
