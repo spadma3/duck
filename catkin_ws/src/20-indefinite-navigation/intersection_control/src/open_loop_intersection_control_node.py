@@ -39,6 +39,7 @@ class OpenLoopIntersectionNode(object):
         self.sub_mode = rospy.Subscriber("~mode", FSMState, self.cbFSMState, queue_size=1)
         self.sub_lane_pose = rospy.Subscriber("~lane_pose", LanePose, self.cbLanePose, queue_size=1)
         self.sub_stop_line = rospy.Subscriber("~stop_line_reading", StopLineReading, self.cbStopLine, queue_size=1)
+        rospy.loginfo("[OpenLoopIntersectionNode] initialized...")
 
     def cbSrvLeft(self,req):
         self.trigger(0)
@@ -63,6 +64,7 @@ class OpenLoopIntersectionNode(object):
         return maneuver
 
     def cbTurnType(self,msg):
+        rospy.loginfo("[OpenLoopIntersectionNode] cbTurnType()")
         if self.mode == "INTERSECTION_CONTROL":
             self.turn_type = msg.data #Only listen if in INTERSECTION_CONTROL mode
             self.trigger(self.turn_type)
@@ -78,6 +80,7 @@ class OpenLoopIntersectionNode(object):
         self.in_lane = msg.data
 
     def cbFSMState(self,msg):
+        rospy.loginfo("[OpenLoopIntersectionNode] cbFSMState()")
         if (not self.mode == "INTERSECTION_CONTROL") and msg.state == "INTERSECTION_CONTROL":
             # Switch into INTERSECTION_CONTROL mode
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
@@ -113,6 +116,7 @@ class OpenLoopIntersectionNode(object):
         self.maneuvers[turn_type].insert(0,new_first_leg)
 
     def trigger(self,turn_type):
+        rospy.loginfo("[OpenLoopIntersectionNode] trigger()")
         if turn_type == -1: #Wait. Publish stop command. Does not publish done.
             cmd = Twist2DStamped(v=0.0,omega=0.0)
             cmd.header.stamp = rospy.Time.now()
