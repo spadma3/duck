@@ -75,19 +75,19 @@ class lane_controller(object):
         return value
 
     def setGains(self):
-        self.v_bar_gain_ref = 0.5 / self.velocity_to_m_per_s
+        self.v_bar_gain_ref = 0.5
         v_bar_fallback = 0.25  # nominal speed, 0.25m/s
         k_theta_fallback = -2.0
-        k_d_fallback = (- (k_theta_fallback ** 2) / (4.0 * self.v_bar_gain_ref * self.velocity_to_m_per_s))
-        theta_thres_fallback = math.pi / 6
+        k_d_fallback = - (k_theta_fallback ** 2) / (4.0 * self.v_bar_gain_ref)
+        theta_thres_fallback = math.pi / 6.0
         d_thres_fallback = math.fabs(k_theta_fallback / k_d_fallback) * theta_thres_fallback
         d_offset_fallback = 0.0
 
-        k_theta_fallback = k_theta_fallback / self.omega_to_rad_per_s
-        k_d_fallback = k_d_fallback / self.omega_to_rad_per_s
+        k_theta_fallback = k_theta_fallback
+        k_d_fallback = k_d_fallback
 
-        k_Id_fallback = 2.5 / self.omega_to_rad_per_s
-        k_Iphi_fallback = 1.25 / self.omega_to_rad_per_s
+        k_Id_fallback = 2.5
+        k_Iphi_fallback = 1.25
         self.cross_track_err = 0
         self.heading_err = 0
         self.cross_track_integral = 0
@@ -294,9 +294,6 @@ class lane_controller(object):
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v
 
-        # compute gain scaling
-        gain_scale = car_control_msg.v / self.v_bar_gain_ref
-
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
             self.cross_track_err = self.cross_track_err / math.fabs(self.cross_track_err) * self.d_thres
@@ -334,7 +331,7 @@ class lane_controller(object):
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
-        omega = self.k_d*gain_scale**2 * self.cross_track_err + self.k_theta*gain_scale * self.heading_err
+        omega = self.k_d * self.cross_track_err + self.k_theta * self.heading_err
         omega += (omega_feedforward)
 
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
@@ -345,8 +342,8 @@ class lane_controller(object):
             omega = math.copysign(car_control_msg.v / self.min_radius, omega)
 
         # apply integral correction (these should not affect radius, hence checked afterwards)
-        omega -= self.k_Id*gain_scale * self.cross_track_integral
-        omega -= self.k_Iphi*gain_scale * self.heading_integral
+        omega -= self.k_Id * self.cross_track_integral
+        omega -= self.k_Iphi * self.heading_integral
 
         # check if velocity is large enough such that car can actually execute desired omega
         if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
