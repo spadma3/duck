@@ -67,7 +67,7 @@
 
     <!-- Start anti-instagram -->        
     <remap from="anti_instagram_node/uncorrected_image" to="camera_node/image/compressed"/>
-    <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
+    <include file="$(find anti_instagram)/launch/cont_anti_instagram_node.launch">
     <arg name="veh" value="$(arg veh)"/>
     </include>    
     <!-- End anti-instagram -->
