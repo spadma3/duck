@@ -107,3 +107,8 @@ python-module-stats:
 		networkx\
 		Pillow\
 		qtfaststart
+
+
+
+build-pyc-clean:
+	find $(catkin_ws)/src/ -name '*pyc' -delete
