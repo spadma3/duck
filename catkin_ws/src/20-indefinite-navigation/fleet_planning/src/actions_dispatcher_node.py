@@ -98,10 +98,10 @@ class ActionsDispatcherNode:
 
         else:
             self.graph_search(node, self.target_node)
+            self.pub_intersection_go.publish(BoolStamped(header=msg.header, data=True))
             self.dispatch_action()
             location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
             self.pub_location_node.publish(ByteMultiArray(data=location_message))
-            self.pub_intersection_go.publish(BoolStamped(header=msg.header, data=True))
 
     def new_duckiebot_mission(self, message):
         duckiebot_name, target_node, taxi_state = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
