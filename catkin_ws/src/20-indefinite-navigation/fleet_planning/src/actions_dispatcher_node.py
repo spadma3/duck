@@ -59,9 +59,9 @@ class ActionsDispatcherNode:
         if msg.state == "COORDINATION":
             rospy.logwarn("CORDINATION ACTION DISPATCHER")
             self.pub_car_cmd.publish(Twist2DStamped(v=0, omega=0))
-            self.localize_at_red_line()
+            self.localize_at_red_line(msg)
 
-    def localize_at_red_line(self):
+    def localize_at_red_line(self, msg):
         rospy.loginfo('Localizing.')
 
         start_time = rospy.get_time()
@@ -98,9 +98,10 @@ class ActionsDispatcherNode:
 
         else:
             self.graph_search(node, self.target_node)
-            self.dispatch_action()
+            self.dispatch_action(msg)
             location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
             self.pub_location_node.publish(ByteMultiArray(data=location_message))
+            self.pub_intersection_go.publish(BoolStamped(header=msg.header, data=True))
 
     def new_duckiebot_mission(self, message):
         duckiebot_name, target_node, taxi_state = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
