@@ -75,10 +75,10 @@ class lane_controller(object):
         return value
 
     def setGains(self):
-        self.v_bar_gain_ref = 0.5*self.velocity_to_m_per_s
-        v_bar_fallback = 0.25  # nominal speed, 0.25m/s
+        self.v_bar_gain_ref = 0.3*self.velocity_to_m_per_s
+        v_bar_fallback = 0.3  # nominal speed, 0.3m/s
         k_theta_fallback = (-2.0) / self.omega_to_rad_per_s
-        k_d_fallback = (- (k_theta_fallback ** 2) / (4.0 * self.v_bar_gain_ref / self.velocity_to_m_per_s)) / self.omega_to_rad_per_s
+        k_d_fallback = (- (k_theta_fallback ** 2) / (4.0 * self.v_bar_gain_ref)) / self.omega_to_rad_per_s
         theta_thres_fallback = math.pi / 6
         d_thres_fallback = math.fabs(k_theta_fallback / k_d_fallback) * theta_thres_fallback
         d_offset_fallback = 0.0
@@ -292,7 +292,7 @@ class lane_controller(object):
             car_control_msg.v = self.actuator_limits.v
 
         # compute gain scaling
-        gain_scale = car_control_msg.v / self.v_bar_gain_ref
+        gain_scale = car_control_msg.v / (self.v_bar_gain_ref/self.velocity_to_m_per_s)
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
