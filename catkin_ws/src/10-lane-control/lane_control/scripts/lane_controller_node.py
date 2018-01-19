@@ -77,8 +77,8 @@ class lane_controller(object):
     def setGains(self):
         self.v_bar_gain_ref = 0.3*self.velocity_to_m_per_s
         v_bar_fallback = 0.3  # nominal speed, 0.3m/s
-        k_theta_fallback = (-20)
-        k_d_fallback = - (k_theta_fallback ** 2) / ( 0.4 * self.v_bar_gain_ref)
+        k_theta_fallback = (-0.02)
+        k_d_fallback = - (k_theta_fallback ** 2) / ( 400.0 * self.v_bar_gain_ref)
         theta_thres_fallback = math.pi / 6
         d_thres_fallback = math.fabs(k_theta_fallback / k_d_fallback) * theta_thres_fallback
         d_offset_fallback = 0.0
