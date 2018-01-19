@@ -100,9 +100,6 @@ class ActionsDispatcherNode:
 
     def new_duckiebot_mission(self, message):
         duckiebot_name, target_node, taxi_event = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
-        if duckiebot_name != self.duckiebot_name or target_node == NO_TARGET_LOCATION:
-            return
-        self.target_node = target_node
 
         # Signal using the LEDs.
         if taxi_event == TaxiEvent.ACCEPTED_REQUEST:
@@ -111,6 +108,12 @@ class ActionsDispatcherNode:
             self._play_led_pattern("fleet_planning/customer_dropoff")
         elif taxi_event == TaxiEvent.PICKUP_CUSTOMER:
             self._play_led_pattern("fleet_planning/customer_pickup")
+
+        if duckiebot_name != self.duckiebot_name or target_node == NO_TARGET_LOCATION:
+            return
+
+        self.target_node = target_node
+
 
     def graph_search(self, source_node, target_node):
         print 'Requesting map for src: ', source_node, ' and target: ', target_node
