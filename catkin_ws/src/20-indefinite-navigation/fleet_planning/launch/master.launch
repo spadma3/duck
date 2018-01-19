@@ -57,7 +57,8 @@
 	<arg name="/localization/gui" default="false"/>
 
 	<arg name="fleet_communication" default="true"/>
-	<arg name="joystick_demo" default="true"/>
+	<arg name="joystick_demo" default="false"/>
+	<arg name="lane_following_demo" default="true"/>
 
 	<!-- end switch args -->
 	
@@ -133,7 +134,7 @@
 	</group>
 	<!-- End Camera -->
 
-	<!-- Start Wheels -->
+	<!-- No joystick demo -->
 	<group unless="$(arg joystick_demo)">
 		<group if="$(arg wheels)">
 
@@ -185,81 +186,88 @@
 		<!-- End Joystick -->
 	</group>
 
-
-
-
-	<!-- Start Lane Following -->
-	<group if="$(arg lane_following)">
-
-		<!-- Line Detector -->
-		<group if="$(arg /lane_following/line_detection)">
-			<remap from="line_detector_node/image" to="camera_node/image/compressed"/>
-			<remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
-			<include file="$(find line_detector)/launch/line_detector_node.launch">
-				<arg name="veh" value="$(arg veh)"/>
-				<arg name="config" value="$(arg config)"/>
-				<!-- NOTE: "line_detector_param_file_name" as special case -->
-				<arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
-				<arg name="verbose" value="$(arg verbose)" />
-			</include>	
-		</group>
-		
-		<!-- Ground projection -->
-		<group if="$(arg /lane_following/ground_projection)">
-			<include file="$(find ground_projection)/launch/ground_projection.launch">
+	<!-- Lane following demo -->
+	<group if="$(arg lane_following_demo)">
+		<include file="$(find duckietown_demos)/launch/lane_following.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
 				<arg name="param_file_name" value="$(arg param_file_name)"/>
 			</include>
+	</group>
+
+	<group unless="$(arg lane_following_demo)">
+		<!-- Start Lane Following -->
+		<group if="$(arg lane_following)">
+
+			<!-- Line Detector -->
+			<group if="$(arg /lane_following/line_detection)">
+				<remap from="line_detector_node/image" to="camera_node/image/compressed"/>
+				<remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
+				<include file="$(find line_detector)/launch/line_detector_node.launch">
+					<arg name="veh" value="$(arg veh)"/>
+					<arg name="config" value="$(arg config)"/>
+					<!-- NOTE: "line_detector_param_file_name" as special case -->
+					<arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
+					<arg name="verbose" value="$(arg verbose)" />
+				</include>
+			</group>
+
+			<!-- Ground projection -->
+			<group if="$(arg /lane_following/ground_projection)">
+				<include file="$(find ground_projection)/launch/ground_projection.launch">
+					<arg name="veh" value="$(arg veh)"/>
+					<arg name="config" value="$(arg config)"/>
+					<arg name="param_file_name" value="$(arg param_file_name)"/>
+				</include>
+				<group if="$(arg visualization)">
+				  <remap from="duckiebot_visualizer/segment_list" to="ground_projection/lineseglist_out"/>
+				  <include file="$(find duckiebot_visualizer)/launch/duckiebot_visualizer.launch">
+					<arg name="veh" value="$(arg veh)" />
+				  </include>
+				</group>
+			</group>
+
+			<!-- Lane Filter -->
+			<group if="$(arg /lane_following/lane_filter)">
+				<remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
+				<include file="$(find lane_filter)/launch/lane_filter_node.launch">
+					<arg name="veh" value="$(arg veh)"/>
+					<arg name="config" value="$(arg config)"/>
+					<arg name="param_file_name" value="$(arg param_file_name)"/>
+				</include>
+			</group>
+
+			<!-- Stop Line Filter -->
+			<group if="$(arg /lane_following/stop_line_filter)">
+				<remap from="stop_line_filter_node/lanewidth" to="lane_filter_node/lanewidth"/>
+				<remap from="stop_line_filter_node/lane_pose" to="lane_filter_node/lane_pose"/>
+				<remap from="stop_line_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
+				<include file="$(find stop_line_filter)/launch/stop_line_filter_node.launch">
+					<arg name="veh" value="$(arg veh)"/>
+					<arg name="config" value="$(arg config)"/>
+					<arg name="param_file_name" value="$(arg param_file_name)"/>
+				</include>
+			</group>
+
+			<!-- Lane controller -->
+			<group if="$(arg /lane_following/lane_controller)">
+				<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
+				<include file="$(find lane_control)/launch/lane_controller_node.launch">
+					<arg name="veh" value="$(arg veh)"/>
+					<arg name="config" value="$(arg config)"/>
+					<arg name="param_file_name" value="$(arg param_file_name)"/>
+				</include>
+			</group>
+
+			<!-- Visualization -->
 			<group if="$(arg visualization)">
-			  <remap from="duckiebot_visualizer/segment_list" to="ground_projection/lineseglist_out"/>
-			  <include file="$(find duckiebot_visualizer)/launch/duckiebot_visualizer.launch">
-			    <arg name="veh" value="$(arg veh)" />
-			  </include>
+				<include file="$(find lane_filter)/launch/lane_pose_visualizer_node.launch">
+					<arg name="veh" value="$(arg veh)"/>
+				</include>
 			</group>
 		</group>
-	
-		<!-- Lane Filter -->
-		<group if="$(arg /lane_following/lane_filter)">
-			<remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
-			<include file="$(find lane_filter)/launch/lane_filter_node.launch">
-				<arg name="veh" value="$(arg veh)"/>
-				<arg name="config" value="$(arg config)"/>
-				<arg name="param_file_name" value="$(arg param_file_name)"/>
-			</include>
-		</group>
-
-		<!-- Stop Line Filter -->
-		<group if="$(arg /lane_following/stop_line_filter)">      
-			<remap from="stop_line_filter_node/lanewidth" to="lane_filter_node/lanewidth"/>
-			<remap from="stop_line_filter_node/lane_pose" to="lane_filter_node/lane_pose"/>
-			<remap from="stop_line_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
-			<include file="$(find stop_line_filter)/launch/stop_line_filter_node.launch">
-				<arg name="veh" value="$(arg veh)"/>
-				<arg name="config" value="$(arg config)"/>
-				<arg name="param_file_name" value="$(arg param_file_name)"/>
-			</include>
-		</group>
-
-		<!-- Lane controller -->
-		<group if="$(arg /lane_following/lane_controller)">
-			<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
-			<include file="$(find lane_control)/launch/lane_controller_node.launch">
-				<arg name="veh" value="$(arg veh)"/>
-				<arg name="config" value="$(arg config)"/>
-				<arg name="param_file_name" value="$(arg param_file_name)"/>        
-			</include>
-		</group>
-
-		<!-- Visualization -->
-		<group if="$(arg visualization)">
-			<include file="$(find lane_filter)/launch/lane_pose_visualizer_node.launch">
-				<arg name="veh" value="$(arg veh)"/>		
-			</include>
-		</group>
+		<!-- End Lane Control -->
 	</group>
-	<!-- End Lane Control -->
-	
 	<!-- Start April Tags -->
 	<group if="$(arg apriltags)">
 		<!-- AprilTags Detections -->
