@@ -65,7 +65,7 @@ class lane_controller(object):
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
+        #self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " % (rospy.get_name()))
 
     def setupParameter(self, param_name, default_value):
@@ -75,10 +75,10 @@ class lane_controller(object):
         return value
 
     def setGains(self):
-        self.v_bar_gain_ref = 0.5*self.velocity_to_m_per_s
+        self.v_bar_gain_ref = 0.5 / self.velocity_to_m_per_s
         v_bar_fallback = 0.25  # nominal speed, 0.25m/s
         k_theta_fallback = (-2.0) / self.omega_to_rad_per_s
-        k_d_fallback = (- (k_theta_fallback ** 2) / (4.0 * self.v_bar_gain_ref / self.velocity_to_m_per_s)) / self.omega_to_rad_per_s
+        k_d_fallback = (- (k_theta_fallback ** 2) / (4.0 * self.v_bar_gain_ref * self.velocity_to_m_per_s)) / self.omega_to_rad_per_s
         theta_thres_fallback = math.pi / 6
         d_thres_fallback = math.fabs(k_theta_fallback / k_d_fallback) * theta_thres_fallback
         d_offset_fallback = 0.0
