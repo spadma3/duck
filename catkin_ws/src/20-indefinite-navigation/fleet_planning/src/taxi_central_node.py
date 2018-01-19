@@ -130,6 +130,11 @@ class TaxiCentralNode:
         """
         # For now quickly find the closest duckiebot
 
+        # We work on the inverted graph. Because we want the duckiebot that has the shortest
+        # path to the location. I.e. if the duckiebot already drove past the location it
+        # might have to go a long distance. We don't want that.
+        graph = self._graph.get_inverted_graph()
+
         while len(self._pending_customer_requests) > 0:
             pending_request = self._pending_customer_requests[0]
             available_duckiebots = self.available_duckiebots
@@ -138,7 +143,7 @@ class TaxiCentralNode:
                 return
 
             # Get the start node
-            start_node = self._graph.get_node(pending_request.start_location)
+            start_node = graph.get_node(pending_request.start_location)
 
             nodes_to_visit = [start_node]
             visited_nodes = []
@@ -162,7 +167,7 @@ class TaxiCentralNode:
                         break
 
                 # Add all the neighboring nodes to the list of nodes we still have to visit
-                edges = self._graph.node_edges(current_node)
+                edges = graph.node_edges(current_node)
                 for edge in edges:
                     if str(edge.target) not in visited_nodes:
                         nodes_to_visit.append(edge.target)
@@ -256,7 +261,6 @@ class TaxiCentralNode:
     def _publish_draw_request(self):
         dict = {'duckiebots': [db[1].to_dict() for db in self._registered_duckiebots.items()],
                 'pending_customer_requests': [cr.to_dict() for cr in self._pending_customer_requests if cr is not None]}
-        rospy.loginfo('Published draw request.')
         self._pub_draw_command.publish(json.dumps(dict))
 
     def save_metrics(self): # implementation has rather low priority

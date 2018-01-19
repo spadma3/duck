@@ -52,8 +52,7 @@ class ActionsDispatcherNode:
         return value
 
     def localize_at_red_line(self, message):
-        if rospy.get_time() - self.last_red_line < 5.0 and message is not None:  # time out filter in case that this is triggered more than once at intersection. very suboptimal
-            rospy.logwarn('Location not updated, red line too soon detected after last one.')
+        if rospy.get_time() - self.last_red_line < 5.0 and message is not None:  # time out filter in case that this is triggered more than once at intersection
             return
         self.last_red_line = rospy.get_time()
 
@@ -61,7 +60,7 @@ class ActionsDispatcherNode:
 
         start_time = rospy.get_time()
         node = None
-        rate = rospy.Rate(5)
+        rate = rospy.Rate(1.0)
         while not node and rospy.get_time() - start_time < 5.0:  # TODO: tune this
 
             try:
@@ -73,7 +72,8 @@ class ActionsDispatcherNode:
             except tf2_ros.LookupException:
                 rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(self.duckiebot_name))
 
-            rate.sleep()
+            if not node:
+                rate.sleep()
 
         if not node:
             rospy.logwarn('Duckiebot: {} location update failed. Location not updated.'.format(self.duckiebot_name))
@@ -86,11 +86,15 @@ class ActionsDispatcherNode:
         self.pub_location_node.publish(ByteMultiArray(data=location_message))
 
         if self.target_node is None or self.target_node == node:
+            rate_recursion = rospy.Rate(0.5)
+            rate_recursion.sleep()
             self.localize_at_red_line(None) # repeat until new duckiebot mission was published # TODO: improve this?
 
         else:
             self.graph_search(node, self.target_node)
             self.dispatch_action()
+            location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
+            self.pub_location_node.publish(ByteMultiArray(data=location_message))
 
     def new_duckiebot_mission(self, message):
         duckiebot_name, target_node, taxi_state = InstructionMessageSerializer.deserialize("".join(map(chr, message.data)))
@@ -111,8 +115,7 @@ class ActionsDispatcherNode:
             if actions:
                 # remove 'f' (follow line) from actions
                 self.actions = [x for x in actions if x != 'f']
-                print 'Actions to be executed:', self.actions
-                print 'Path to be followed: ', self.path
+                print '\n \n ************ \n {} at node {} \n \n Actions to be executed: {}'.format(self.duckiebot_name, source_node, self.actions)
             else:
                 print 'No actions to be executed'
 
@@ -122,15 +125,20 @@ class ActionsDispatcherNode:
     def dispatch_action(self):
         if len(self.actions) > 0:
             action = self.actions.pop(0)
-            print 'Dispatched action:', action
+            action_name = None
             if action == 's':
+                action_name = 'STRAIGHT'
                 self.pub_action.publish(Int16(1))
             elif action == 'r':
+                action_name = 'RIGHT'
                 self.pub_action.publish(Int16(2))
             elif action == 'l':
+                action_name = 'LEFT'
                 self.pub_action.publish(Int16(0))
             elif action == 'w':
+                action_name = 'WAIT'
                 self.pub_action.publish(Int16(-1))
+            print 'Action: go {}!\n\n ************\n'.format(action_name)
 
     def on_shutdown(self):
         rospy.loginfo("[ActionsDispatcherNode] Shutdown.")
