@@ -30,7 +30,7 @@ class ActionsDispatcherNode:
 
         # Subscribers:
         self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.new_duckiebot_mission)
-        self.sub_red_line = rospy.Subscriber("~/mode", FSMState, self.mode_update)
+        self.sub_red_line = rospy.Subscriber("~mode", FSMState, self.mode_update)
 
 
         # location listener
