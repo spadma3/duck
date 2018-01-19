@@ -4,40 +4,41 @@
 """
 pickle
 """
-# import matplotlib.pyplot as plt
-# import numpy as np
-# import pickle, time
-# if False:
-#     ax = plt.subplot(111)
-#     x = np.linspace(0, 10)
-#     y = np.exp(x)
-#     ax.plot(x, y)
-#     pickle.dump(ax, file('images/myplot.pickle', 'w'))
-# else:
-#     ax = pickle.load(file('images/myplot.pickle'))
-#     # plt.show()
-#     plt.pause(1)
+import matplotlib.pyplot as plt
+import numpy as np
+import pickle, time
+if False:
+    ax = plt.subplot(111)
+    x = np.linspace(0, 10)
+    y = np.sin(x)
+    ax.plot(x, y)
+    pickle.dump(ax, file('images/myplot.pickle', 'w'))
+else:
+    ax = pickle.load(file('images/myplot.pickle'))
+    # ax.plot(0,1,'k*')
+    # plt.show()
+    plt.pause(1)
 
 
 """
 canvas flush_events
 """
-import time, pickle
-import matplotlib.pyplot as plt
-import numpy as np
-
-plt.ion()
-x = np.arange(128)
-fig, ax = plt.subplots()
-ax.hold(False)
-
-for it in range(5):
-
-    ax.plot(x, x+it)
-    fig.canvas.flush_events()
-    time.sleep(0.1)
-
-plt.ioff()
+# import time, pickle
+# import matplotlib.pyplot as plt
+# import numpy as np
+#
+# plt.ion()
+# x = np.arange(128)
+# fig, ax = plt.subplots()
+# ax.hold(False)
+#
+# for it in range(5):
+#
+#     ax.plot(x, x+it)
+#     fig.canvas.flush_events()
+#     time.sleep(0.1)
+#
+# plt.ioff()
 
 
 # from __future__ import print_function

@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     for i in range(5):
         # ax = pickle.load(file('images/myplot.pickle'))
-        ax.plot(x+i/10.0,y)
+        plt.plot(x+(i+1)/10.0,y)
         fig.canvas.flush_events()
         time.sleep(0.2)
 

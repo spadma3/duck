@@ -15,14 +15,13 @@ import copy
 import numpy as np
 import dubins_path_planning
 
-
 class RRT():
     u"""
     Class for RRT Planning
     """
 
     def __init__(self, start, goal, obstacleList, randArea,
-                 goalSampleRate=10, maxIter=100):
+                 goalSampleRate=10, maxIter=50):
         u"""
         Setting Parameter
 
@@ -36,7 +35,7 @@ class RRT():
         self.end = Node(goal[0], goal[1], goal[2])
         self.minrand = randArea[0]
         self.maxrand = randArea[1]
-        self.goalSampleRate = goalSampleRate
+        self.goalSmpleRate = goalSmpleRate
         self.maxIter = maxIter
 
     def Planning(self, animation=True):
@@ -62,7 +61,6 @@ class RRT():
 
             if animation and i % 5 == 0:
                 self.DrawGraph(rnd=rnd)
-                matplotrecorder.save_frame()  # save each frame
 
         # generate coruse
         lastIndex = self.get_best_last_index()
@@ -271,8 +269,6 @@ class Node():
 if __name__ == '__main__':
     print("Start rrt start planning")
     import matplotlib.pyplot as plt
-    import matplotrecorder
-    matplotrecorder.donothing = True
 
     # ====Search Path with RRT====
     obstacleList = [
@@ -298,9 +294,4 @@ if __name__ == '__main__':
     plt.draw()
     plt.pause(0.001)
 
-    for i in range(10):
-        matplotrecorder.save_frame()  # save each frame
-
     plt.show()
-
-    matplotrecorder.save_movie("animation.gif", 0.1)
