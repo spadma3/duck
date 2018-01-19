@@ -80,7 +80,7 @@ class OpenLoopIntersectionNode(object):
         self.in_lane = msg.data
 
     def cbFSMState(self,msg):
-        rospy.logwarn("[OpenLoopIntersectionNode] cbFSMState(); current self.mode: ", self.mode)
+        rospy.logwarn("[OpenLoopIntersectionNode] cbFSMState(); current self.mode: %s", self.mode)
         if (not self.mode == "INTERSECTION_CONTROL") and msg.state == "INTERSECTION_CONTROL":
             # Switch into INTERSECTION_CONTROL mode
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
