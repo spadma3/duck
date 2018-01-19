@@ -11,7 +11,7 @@ import tf2_ros
 from fleet_planning.generate_duckietown_map import graph_creator
 from fleet_planning.location_to_graph_mapping import IntersectionMapper
 from fleet_planning.message_serialization import InstructionMessageSerializer, LocalizationMessageSerializer
-
+from duckietown_msgs.msg import BoolStamped, FSMState, Twist2DStamped
 
 class ActionsDispatcherNode:
     _world_frame = 'world'
@@ -30,7 +30,8 @@ class ActionsDispatcherNode:
 
         # Subscribers:
         self.sub_plan_request = rospy.Subscriber("~/taxi/commands", ByteMultiArray, self.new_duckiebot_mission)
-        self.sub_red_line = rospy.Subscriber("~/" + self.duckiebot_name + "/stop_line_filter_node/at_stop_line", BoolStamped, self.localize_at_red_line)
+        self.sub_red_line = rospy.Subscriber("~/mode", FSMState, self.mode_update)
+
 
         # location listener
         self.listener_transform = tf.TransformListener()
@@ -38,6 +39,8 @@ class ActionsDispatcherNode:
         # Publishers:
         self.pub_action = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
         self.pub_location_node = rospy.Publisher("/taxi/location", ByteMultiArray, queue_size=1)
+        self.pub_intersection_go = rospy.Publisher('simple_coordinator_node/intersection_go', BoolStamped, queue_size=1)
+        self.pub_car_cmd = rospy.Publisher('simple_coordinator_node/car_cmd', Twist2DStamped, queue_size=1)
 
         # mapping: location -> node number
         self.graph_creator = graph_creator()
@@ -51,11 +54,14 @@ class ActionsDispatcherNode:
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def localize_at_red_line(self, message):
-        if rospy.get_time() - self.last_red_line < 5.0 and message is not None:  # time out filter in case that this is triggered more than once at intersection
-            return
-        self.last_red_line = rospy.get_time()
+    def mode_update(self, msg):
+        rospy.logwarn("mode update action dispatcher {}".format(msg.state))
+        if msg.state == "COORDINATION":
+            rospy.logwarn("CORDINATION ACTION DISPATCHER")
+            self.pub_car_cmd.publish(Twist2DStamped(v=0, omega=0))
+            self.localize_at_red_line()
 
+    def localize_at_red_line(self):
         rospy.loginfo('Localizing.')
 
         start_time = rospy.get_time()
