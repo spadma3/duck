@@ -16,6 +16,7 @@
 	<arg name="messaging_config"/>
 	<arg name="messaging_iface"/>
 	<arg name="fsm"/>
+	<arg name="fsm_file_name" default="default" />
 
 	<!-- end basic args -->
  
