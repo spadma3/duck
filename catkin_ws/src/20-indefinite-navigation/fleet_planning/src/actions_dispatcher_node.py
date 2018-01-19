@@ -94,12 +94,12 @@ class ActionsDispatcherNode:
         if self.target_node is None or self.target_node == node:
             rate_recursion = rospy.Rate(0.5)
             rate_recursion.sleep()
-            self.localize_at_red_line(msg) # repeat until new duckiebot mission was published # TODO: improve this?
+            self.localize_at_red_line(msg)  # repeat until new duckiebot mission was published # TODO: improve this?
 
         else:
             self.graph_search(node, self.target_node)
             self.pub_intersection_go.publish(BoolStamped(header=msg.header, data=True))
-            rate = rospy.Rate(1.0)
+            rate = rospy.Rate(0.5)  # hack: make sure that intersection control is ready for the turn (fsm problem)
             rate.sleep()
             self.dispatch_action()
             location_message = LocalizationMessageSerializer.serialize(self.duckiebot_name, node, self.path)
