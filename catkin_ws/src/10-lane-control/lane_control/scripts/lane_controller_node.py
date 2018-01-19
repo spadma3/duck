@@ -78,7 +78,7 @@ class lane_controller(object):
         self.v_bar_gain_ref = 0.3*self.velocity_to_m_per_s
         v_bar_fallback = 0.3  # nominal speed, 0.3m/s
         k_theta_fallback = (-0.2)
-        k_d_fallback = - (k_theta_fallback ** 2) / ( 4.0 * self.v_bar_gain_ref)
+        k_d_fallback = - (k_theta_fallback ** 2) / ( 40.0 * self.v_bar_gain_ref)
         theta_thres_fallback = math.pi / 6
         d_thres_fallback = math.fabs(k_theta_fallback / k_d_fallback) * theta_thres_fallback
         d_offset_fallback = 0.0
@@ -86,8 +86,8 @@ class lane_controller(object):
         k_theta_fallback = k_theta_fallback/self.omega_to_rad_per_s
         k_d_fallback = k_d_fallback/self.omega_to_rad_per_s
 
-        k_Id_fallback = 0.5*2.5 / self.omega_to_rad_per_s
-        k_Iphi_fallback = 0.5*1.25 / self.omega_to_rad_per_s
+        k_Id_fallback = 0.0*2.5 / self.omega_to_rad_per_s
+        k_Iphi_fallback = 0.0*1.25 / self.omega_to_rad_per_s
         self.cross_track_err = 0
         self.heading_err = 0
         self.cross_track_integral = 0
