@@ -9,7 +9,7 @@ demos:
 
 ### Intersection navigation demo
 demo-intersection-navigation: check-environment
-	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch intersection_navigation intersection_navigation_node.launch veh:=$(vehicle_name)"
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch intersection_navigation intersection_navigation_node.launch"
 
 ### These are not using master.launch
 demo-joystick: check-environment
