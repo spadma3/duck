@@ -5,7 +5,12 @@ demos:
 	@echo
 	@echo TODO: to write
 	@echo
-	
+
+
+### Intersection navigation demo
+demo-intersection-navigation: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch intersection_navigation intersection_navigation_node.launch"
+
 ### These are not using master.launch
 demo-joystick: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh;  roslaunch duckietown joystick.launch veh:=$(vehicle_name)"
@@ -21,7 +26,6 @@ demo-joystick-camera-high-speed: check-environment
 
 demo-line_detector: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name)"
-
 
 demo-joystick-perception: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos master.launch fsm_file_name:=joystick"
