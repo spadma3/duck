@@ -39,7 +39,7 @@ class IntersectionNavigation(object):
         # turn type
         self.turn_type = -1
         self.turn_type_time = rospy.Time()
-        self.turn_type_timeout = 3.0
+        self.turn_type_timeout = 6.0
 
         # in lane
         self.in_lane = False
