@@ -277,6 +277,7 @@
 		<group if="$(arg /lane_following/lane_filter)">
 		  <remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
 		  <remap from="lane_filter_node/car_cmd" to="car_cmd_switch_node/cmd"/>
+			<remap from="lane_filter_node/fsm_mode" to="fsm_node/mode" />
 			<include file="$(find lane_filter)/launch/lane_filter_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -299,6 +300,7 @@
 		<!-- Lane controller -->
 		<group if="$(arg /lane_following/lane_controller)">
 			<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
+			<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
 			<include file="$(find lane_control)/launch/lane_controller_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
