@@ -14,8 +14,6 @@ class lane_controller(object):
         self.pub_counter = 0
 
         # Setup parameters
-        self.velocity_to_m_per_s = 1.53
-        self.omega_to_rad_per_s = 4.75
         self.setGains()
 
         # Publicaiton
@@ -75,19 +73,15 @@ class lane_controller(object):
         return value
 
     def setGains(self):
-        self.v_bar_gain_ref = 0.3*self.velocity_to_m_per_s
-        v_bar_fallback = 0.3  # nominal speed, 0.3m/s
-        k_theta_fallback = (-0.02)
-        k_d_fallback = - (k_theta_fallback ** 2) / ( 400.0 * self.v_bar_gain_ref)
+        v_bar_fallback = 0.5  # nominal speed, 0.5m/s
+        k_theta_fallback = -2.0
+        k_d_fallback = - (k_theta_fallback ** 2) / (4.0 * v_bar_fallback)
         theta_thres_fallback = math.pi / 6
         d_thres_fallback = math.fabs(k_theta_fallback / k_d_fallback) * theta_thres_fallback
         d_offset_fallback = 0.0
 
-        k_theta_fallback = k_theta_fallback/self.omega_to_rad_per_s
-        k_d_fallback = k_d_fallback/self.omega_to_rad_per_s
-
-        k_Id_fallback = 0.0*2.5 / self.omega_to_rad_per_s
-        k_Iphi_fallback = 0.0*1.25 / self.omega_to_rad_per_s
+        k_Id_fallback = 2.5
+        k_Iphi_fallback = 1.25
         self.cross_track_err = 0
         self.heading_err = 0
         self.cross_track_integral = 0
@@ -147,6 +141,8 @@ class lane_controller(object):
         use_radius_limit = rospy.get_param("~use_radius_limit")
 
         # FeedForward
+        self.velocity_to_m_per_s = 0.67  # TODO: change according to information from team System ID!
+        self.omega_to_rad_per_s = 0.45 * 2 * math.pi
         self.curvature_outer = 1 / (0.39)
         self.curvature_inner = 1 / 0.175
         use_feedforward_part = rospy.get_param("~use_feedforward_part")
@@ -158,10 +154,10 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.k_Id = k_Id
         params_old = (
-            self.v_bar, self.k_d, self.k_theta, self.d_thres, self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi,
-            self.use_feedforward_part, self.use_radius_limit)
+        self.v_bar, self.k_d, self.k_theta, self.d_thres, self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi,
+        self.use_feedforward_part, self.use_radius_limit)
         params_new = (
-            v_bar, k_d, k_theta, d_thres, theta_thres, d_offset, k_Id, k_Iphi, use_feedforward_part, use_radius_limit)
+        v_bar, k_d, k_theta, d_thres, theta_thres, d_offset, k_Id, k_Iphi, use_feedforward_part, use_radius_limit)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." % (self.node_name))
@@ -288,14 +284,7 @@ class lane_controller(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
-        car_control_msg.v = pose_msg.v_ref
-
-        # constrain velocity to feasible range
-        if car_control_msg.v > self.actuator_limits.v:
-            car_control_msg.v = self.actuator_limits.v
-
-        # compute gain scaling
-        gain_scale = car_control_msg.v / (self.v_bar_gain_ref/self.velocity_to_m_per_s)
+        car_control_msg.v = pose_msg.v_ref  # *self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
@@ -318,9 +307,11 @@ class lane_controller(object):
         if self.heading_integral < self.heading_integral_bottom_cutoff:
             self.heading_integral = self.heading_integral_bottom_cutoff
 
-        if abs(self.cross_track_err) <= 0.011:  # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
+        if abs(
+                self.cross_track_err) <= 0.011:  # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.cross_track_integral = 0
-        if abs(self.heading_err) <= 0.051:  # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
+        if abs(
+                self.heading_err) <= 0.051:  # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.heading_integral = 0
         if np.sign(self.cross_track_err) != np.sign(prev_cross_track_err):  # sign of error changed => error passed zero
             self.cross_track_integral = 0
@@ -330,34 +321,31 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.heading_integral = 0
 
-        omega_feedforward = car_control_msg.v * pose_msg.curvature_ref
+        omega_feedforward = car_control_msg.v * self.velocity_to_m_per_s * pose_msg.curvature_ref
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
-        omega = self.k_d*gain_scale * self.cross_track_err + self.k_theta*gain_scale * self.heading_err
-        omega += (omega_feedforward)
+        omega = self.k_d * self.cross_track_err + self.k_theta * self.heading_err
+        omega -= self.k_Id * self.cross_track_integral
+        omega -= self.k_Iphi * self.heading_integral
+        omega += (omega_feedforward) * self.omega_to_rad_per_s
 
-        # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
-        if math.fabs(omega) > car_control_msg.v / self.min_radius:
+        self.omega_max_radius_limitation = car_control_msg.v * self.velocity_to_m_per_s / self.min_radius * self.omega_to_rad_per_s
+        self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
+
+        if math.fabs(omega) > self.omega_max:
             if self.last_ms is not None:
                 self.cross_track_integral -= self.cross_track_err * dt
                 self.heading_integral -= self.heading_err * dt
-            omega = math.copysign(car_control_msg.v / self.min_radius, omega)
+            car_control_msg.omega = self.omega_max * np.sign(omega)
+        else:
+            car_control_msg.omega = omega
 
-        # apply integral correction (these should not affect radius, hence checked afterwards)
-        omega -= self.k_Id*gain_scale * self.cross_track_integral
-        omega -= self.k_Iphi*gain_scale * self.heading_integral
-
-        # check if velocity is large enough such that car can actually execute desired omega
-        if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
-            car_control_msg.v = 0.065 + 0.5 * math.fabs(omega) * 0.1
+        if car_control_msg.v > self.actuator_limits.v:
+            car_control_msg.v = self.actuator_limits.v
 
         if car_control_msg.v == 0:
-            omega = 0
-
-        # apply magic conversion factors
-        car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
-        car_control_msg.omega = omega * self.omega_to_rad_per_s
+            car_control_msg.omega = 0
 
         # rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
         # rospy.loginfo("heading_err: " + str(self.heading_err))
@@ -374,3 +362,4 @@ if __name__ == "__main__":
     rospy.init_node("lane_controller_node", anonymous=False)  # adapted to sonjas default file
     lane_control_node = lane_controller()
     rospy.spin()
+
