@@ -50,6 +50,7 @@
 	<arg name="fleet_planning" default="true"/>
 	<arg name="/fleet_planning/intersection_control" default="true"/>
 	<arg name="/fleet_planning/graph_planner" default="true"/>
+	<arg name="/fleet_planning/led_pattern" default="true"/>
 
 	<arg name="localization" default="true"/>
 	<arg name="/localization/local" default="true" />
@@ -57,6 +58,7 @@
 	<arg name="/localization/gui" default="false"/>
 
 	<arg name="fleet_communication" default="true"/>
+    <arg name="leds" default="true" />
 	<arg name="joystick_demo" default="true"/>
 
 	<!-- end switch args -->
@@ -345,5 +347,11 @@
 		</include>
 	</group>
 	<!-- End localization -->
+
+    <!-- Start LEDs -->
+    <group if="$(arg leds)">
+        <node name="led_pattern" pkg="rgb_led" type="pattern_node.py" />
+    </group>
+    <!-- End LEDs -->
 
 </launch>
