@@ -3,7 +3,13 @@
 git fetch --all
 git checkout andrea-better-camera-calib
 
+rosrun complete_image_pipeline validate_calibration
+
+rosrun complete_image_pipeline single_image_pipeline
+
 rosrun complete_image_pipeline calibrate_extrinsics
+
+
 ```
 
     dt-complete_image_pipeline-single_image_pipeline

@@ -60,6 +60,7 @@ parameters:
       cond: |
         # min  0.786154027612
         v:signal_stats/tori_ETHZ_2017-12-22-17-18-41_from600to650/baseline_quality/min >= 0.78
+
         # min  0.858067276325
         v:signal_stats/tori_ETHZ_2017-12-22-17-18-41_from600to650/moregeneric_quality/min >= 0.85
 
