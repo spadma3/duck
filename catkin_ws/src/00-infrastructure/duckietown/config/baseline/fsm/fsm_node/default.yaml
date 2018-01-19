@@ -35,6 +35,10 @@ events: # Maps from subscribing topic to signal ids
     topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
     msg_type: "BoolStamped"
     trigger: True
+  at_stop_line:
+    topic: "stop_line_filter_node/at_stop_line"
+    msg_type: "BoolStamped"
+    trigger: True
   intersection_go:
     topic: "logic_gate_node/intersection_go"
     msg_type: "BoolStamped"
@@ -133,7 +137,8 @@ states:
     current_status: "implemented"
   LANE_FOLLOWING:
     transitions:
-      at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
+#      at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
+       at_stop_line: "INTERSECTION_CONTROL"
     active_nodes:
       - decoder_node
       - line_detector_node
