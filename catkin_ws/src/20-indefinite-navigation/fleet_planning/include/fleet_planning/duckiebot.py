@@ -8,11 +8,21 @@ class TaxiState(IntEnum):
     IDLE = 2
     WITHOUT_MISSION = 3
 
+class TaxiEvent(IntEnum):
+    NONE_EVENT = 42
+    PICKUP_CUSTOMER = 0
+    DROPOFF_CUSTOMER = 1
+    ACCEPTED_REQUEST = 2
 
 class Instruction(Enum):
     LEFT = 'l'
     RIGHT = 'r'
     STRAIGHT = 's'
+
+
+# The value that is returned by the target_location property if the duckiebot
+# has no target location. This may not be negative.
+NO_TARGET_LOCATION = 1111
 
 
 class BaseCustomerRequest:
@@ -105,7 +115,7 @@ class BaseDuckiebot:
         """returns target location of Duckiebots current mission,
         depending on the status of the customer request it is handling."""
         if self._taxi_state == TaxiState.WITHOUT_MISSION:
-            return -1
+            return NO_TARGET_LOCATION
 
         if self._taxi_state == TaxiState.IDLE:
             return self._rebalancing_target
@@ -155,7 +165,7 @@ class Duckiebot(BaseDuckiebot):
         """
 
         if reported_location is None:
-            return None
+            return None, TaxiEvent.NONE_EVENT
 
         route = [p for p in path if p.isdigit()]
 
@@ -177,29 +187,29 @@ class Duckiebot(BaseDuckiebot):
                 rospy.loginfo('Duckiebot {} has reached its customer. Welcome in your Duckietaxi!!'.format(self.name))
                 self._taxi_state = TaxiState.WITH_CUSTOMER
                 self._customer_request.time_pickup = rospy.get_time()
-                return self._taxi_state
+                return self._taxi_state, TaxiEvent.PICKUP_CUSTOMER
 
             elif reported_location == self._customer_request.target_location:
                 rospy.loginfo('Duckiebot {} has dropped off its happy customer.'.format(self.name))
                 self._taxi_state = TaxiState.WITHOUT_MISSION
                 self._customer_request.time_drop_off = rospy.get_time()
                 rospy.loginfo('Duckiebot {} is without mission now.'.format(self.name))
-                return self._taxi_state
+                return self._taxi_state, TaxiEvent.DROPOFF_CUSTOMER
 
             else:
-                return None
+                return None, TaxiEvent.NONE_EVENT
 
         elif self._rebalancing_target is not None:
             if self._rebalancing_target == reported_location:
                 rospy.loginfo('Duckiebot {} has reached its rebalancing target. Without mission now.'.format(self.name))
                 self._rebalancing_target = None
                 self._taxi_state = TaxiState.WITHOUT_MISSION
-                return self._taxi_state
+                return self._taxi_state, TaxiEvent.NONE_EVENT
             else:
-                return None
+                return None, TaxiEvent.NONE_EVENT
         else:
             self._taxi_state = TaxiState.WITHOUT_MISSION
-            return self._taxi_state
+            return self._taxi_state, TaxiEvent.NONE_EVENT
 
     def has_timed_out(self, criterium):
         if rospy.get_time() - self._last_time_seen_alive > criterium:
