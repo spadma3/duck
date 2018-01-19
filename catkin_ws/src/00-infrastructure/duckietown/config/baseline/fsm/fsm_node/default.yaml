@@ -22,8 +22,13 @@ events: # Maps from subscribing topic to signal ids
     topic: "joy_mapper_node/start_avoidance"
     msg_type: "BoolStamped"
     trigger: True
+#  uncomment the following if the intersection_navigation node becomes 
+#  intersection_done:
+#    topic: "intersection_navigation_node/intersection_done"
+#    msg_type: "BoolStamped"
+#    trigger: True
   intersection_done:
-    topic: "intersection_navigation_node/intersection_done"
+    topic: "open_loop_intersection_control_node/intersection_done"
     msg_type: "BoolStamped"
     trigger: True
   apriltag_intersection:
