@@ -334,7 +334,7 @@ class lane_controller(object):
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
-        omega = self.k_d*gain_scale * self.cross_track_err + self.k_theta*gain_scale * self.heading_err
+        omega = self.k_d*gain_scale**2 * self.cross_track_err + self.k_theta*gain_scale * self.heading_err
         omega += (omega_feedforward)
 
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
