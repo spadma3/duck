@@ -64,7 +64,7 @@
 
 	<arg name="fleet_communication" default="true"/>
     <arg name="leds" default="true" />
-	<arg name="joystick_demo" default="true"/>
+	<arg name="joystick_demo" default="false"/>
 
 	<!-- end switch args -->
 	
