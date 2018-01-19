@@ -334,6 +334,8 @@
 
 			<!-- remapping outputs since there are two different possible turn types -->
 			<remap from="actions_dispatcher_node/turn_type" to="open_loop_intersection_control_node/turn_type" />
+			<remap from="actions_dispatcher_node/mode" to="fsm_node/mode"/>
+
 
 			<include file="$(find fleet_planning)/launch/graph_search_server_node.launch">
 				<arg name="map_name" value="$(arg map_name)"/>        
