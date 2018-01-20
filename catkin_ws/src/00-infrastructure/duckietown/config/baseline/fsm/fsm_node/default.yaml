@@ -167,7 +167,6 @@ states:
       - apriltag_node
       - decoder_node
       - led_emitter_node
-<<<<<<< HEAD
   AVOID_VEHICLE:
     transitions:
       #vehicle_cleared: "PARALLEL_AUTONOMY"
