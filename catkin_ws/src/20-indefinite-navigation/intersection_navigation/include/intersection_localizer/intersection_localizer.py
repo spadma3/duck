@@ -258,22 +258,8 @@ class IntersectionLocalizer(object):
             num_pts = np.min([self.max_num_ctrl_pts, ctrl_pts_img_offset.shape[1]])
             dist = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=float)
             idx_feasible = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=bool)
-            '''dist2 = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=float)
-            idx_feasible2 = np.zeros(shape=(ctrl_pts_img_offset.shape[1]), dtype=bool)'''
-            for i in range(0, num_pts):
-                #i = idx[l]
-                '''for k in range(0, self.line_search_length):
-                    if img[int(round(ctrl_pts_img_offset[1, i] + k * ctrl_pts_n_perp[1, i])), int(
-                            round(ctrl_pts_img_offset[0, i] + k * ctrl_pts_n_perp[0, i]))]:
-                        dist2[i] = k
-                        idx_feasible2[i] = True
-                        break
-
-                    elif img[int(round(ctrl_pts_img_offset[1, i] - k * ctrl_pts_n_perp[1, i])), int(
-                            round(ctrl_pts_img_offset[0, i] - k * ctrl_pts_n_perp[0, i]))]:
-                        dist2[i] = -k
-                        idx_feasible2[i] = True
-                        break'''
+            for l in range(0, num_pts):
+                i = idx[l]
 
                 if img[int(round(ctrl_pts_img_offset[1, i])), int(round(ctrl_pts_img_offset[0, i]))]:
                     dist[i] = 0
@@ -362,14 +348,6 @@ class IntersectionLocalizer(object):
 
         # compute likelihood of estimate
         likelihood = np.exp(-self.lambda_visible*(num_pts-num_feasible)/num_pts)*np.exp(-self.lambda_dist*np.mean(np.abs(dist)))
-
-        if 0:
-            for i in range(0, ctrl_pts_img_offset.shape[1]):
-                cv2.circle(img, tuple(np.round(ctrl_pts_img_offset[:, i]).astype(np.int)), 2, 180, -1)
-
-            cv2.imshow('canny', img)
-            cv2.waitKey(5000)
-            cv2.destroyAllWindows()
 
         pose_meas = np.array([x_pred, y_pred, theta_pred], dtype=float)
         return True, pose_meas, likelihood

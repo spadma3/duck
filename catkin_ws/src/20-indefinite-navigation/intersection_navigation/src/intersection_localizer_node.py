@@ -2,7 +2,7 @@
 import rospy
 import cv2
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
-from duckietown_msgs.msg import IntersectionPoseImg, IntersectionPose
+from duckietown_msgs.msg import IntersectionPoseImg, IntersectionPose, IntersectionPoseImgDebug
 import numpy as np
 
 
@@ -21,19 +21,26 @@ class IntersectionLocalizerNode(object):
         self.intersectionLocalizer = IntersectionLocalizer(self.veh)
         self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
+        # types
+        self.intersection_types = {0: 'THREE_WAY_INTERSECTION', 1: 'FOUR_WAY_INTERSECTION'}
+
         # initializing variables
         self.sub_pose_img = rospy.Subscriber("~pose_img_in",
                                         IntersectionPoseImg,
                                         self.PoseImageCallback,
-                                        queue_size=1)
+                                        queue_size=1, buff_size=2**24)
 
         # set up publishers
         self.pub_pose = rospy.Publisher("~pose_out", IntersectionPose, queue_size=1)
+        self.pub_debug = rospy.Publisher("~localizer_debug_out", IntersectionPoseImgDebug, queue_size=1)
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
 
     def PoseImageCallback(self, msg):
+        # set intersection type
+        self.intersectionLocalizer.SetEdgeModel(self.intersection_types[msg.type])
+
         pose_pred = np.array([msg.x, msg.y, msg.theta])
         img_processed, _ = self.intersectionLocalizer.ProcessRawImage(msg.img)
         valid_meas, pose_meas, likelihood = self.intersectionLocalizer.ComputePose(img_processed, pose_pred)
@@ -45,7 +52,27 @@ class IntersectionLocalizerNode(object):
             msg_ret.x = pose_meas[0]
             msg_ret.y = pose_meas[1]
             msg_ret.theta = pose_meas[2]
+            msg_ret.type = msg.type
             self.pub_pose.publish(msg_ret)
+
+            if 1:
+                msg_debug = IntersectionPoseImgDebug()
+                msg_debug.header.stamp = rospy.Time.now()
+                msg_debug.x = pose_meas[0]
+                msg_debug.y = pose_meas[1]
+                msg_debug.theta = pose_meas[2]
+                msg_debug.type = msg.type
+                msg_debug.likelihood = likelihood
+                msg_debug.x_init = pose_pred[0]
+                msg_debug.y_init = pose_pred[1]
+                msg_debug.theta_init = pose_pred[2]
+                msg_debug.img = msg.img
+                self.pub_debug.publish(msg_debug)
+
+            # sleep for one image (to make sure estimator gets updates before processing next image)
+            rospy.sleep(0.034)
+
+
 
 
     def SetupParameter(self, param_name, default_value):

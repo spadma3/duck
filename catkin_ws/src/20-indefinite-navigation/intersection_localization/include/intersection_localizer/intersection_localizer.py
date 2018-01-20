@@ -57,7 +57,7 @@ class IntersectionLocalizer(object):
 
         # localization algorithm parameters
         self.line_search_length = 20
-        self.max_num_iter = 1
+        self.max_num_iter = 2
         self.ctrl_pts_density = 80  # number of control points per edge length (in meters)
         self.min_num_ctrl_pts = 10
         self.max_num_ctrl_pts = 100
@@ -305,7 +305,7 @@ class IntersectionLocalizer(object):
             # compute "covariance" of pose
 
         # debugging
-        if 1:
+        if 0:
             for i in range(0, ctrl_pts_img_offset.shape[1]):
                 cv2.circle(img, tuple(np.round(ctrl_pts_img_offset[:, i]).astype(np.int)), 2, 180, -1)
 

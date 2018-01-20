@@ -61,6 +61,7 @@ class IntersectionNavigation(object):
         self.tag_info = TagInfo()
         self.intersection_signs = [self.tag_info.FOUR_WAY, self.tag_info.RIGHT_T_INTERSECT,
                                    self.tag_info.LEFT_T_INTERSECT, self.tag_info.T_INTERSECTION]
+        self.intersection_type = 0 # 0: three way intersection, 1: four way intersection
 
         # Velocities conversion parameters
         self.v_scale = 1.53
@@ -116,6 +117,7 @@ class IntersectionNavigation(object):
     def SelfReset(self):
         self.go = False
         self.turn_type = -1
+        self.intersection_type = 0
         self.in_lane = False
 
     def ComputeFinalPose(self, intersection_type, turn_type):
@@ -283,8 +285,10 @@ class IntersectionNavigation(object):
 
         if april_msg.infos[best_idx].traffic_sign_type == self.tag_info.FOUR_WAY:
             self.intersectionLocalizer.SetEdgeModel('FOUR_WAY_INTERSECTION')
+            self.intersection_type = 1
         else:
             self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
+            self.intersection_type = 0
 
         # waiting for camera image
         try:
@@ -350,6 +354,9 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Received go. Start traversing intersection." % (self.node_name))
             self.go = True
 
+        if msg.state == 'ARRIVE_AT_STOP_LINE':
+            self.SelfReset()
+
     def TurnTypeCallback(self, msg):
         self.turn_type = msg.data
         self.turn_type_time = rospy.Time.now()
@@ -363,6 +370,7 @@ class IntersectionNavigation(object):
             msg_out.x = pose_pred[0]
             msg_out.y = pose_pred[1]
             msg_out.theta = pose_pred[2]
+            msg_out.type = self.intersection_type
             msg_out.img = msg
             self.pub_intersection_pose_img.publish(msg_out)
 
