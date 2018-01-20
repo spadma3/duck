@@ -122,7 +122,7 @@ class Implicit(object):
 
     def cbFSM(self, msg):
         self.mode = msg.state
-        if self.mode == "COORDINATION":
+        if self.mode == "INTERSECTION_COORDINATION":
             self.active = True
             self.CSMA()
 
