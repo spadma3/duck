@@ -154,7 +154,7 @@ class IntersectionLocalizer(object):
                 else:
                     return True, ptB + l_max * n, ptB + l_min * n
 
-    def DrawModel(self, img, pose):
+    def DrawModel(self, img, pose, black = False):
         '''compute motion matrix'''
         R = np.array([[np.cos(pose[2]), np.sin(pose[2])], [-np.sin(pose[2]), np.cos(pose[2])]])
         t = np.dot(R, np.array([pose[0], pose[1]], dtype=float))
@@ -197,10 +197,17 @@ class IntersectionLocalizer(object):
             if in_front_of_camera:
                 visible, ptA_img, ptB_img = self.ComputeVisibleEdge(ptA_img, ptB_img)
                 if visible:
-                    cv2.line(img, tuple(np.round(ptA_img).astype(np.int)), tuple(np.round(ptB_img).astype(np.int)), 255,
-                             1)
-                    cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 255, -1)
-                    cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 255, -1)
+                    if black:
+                        cv2.line(img, tuple(np.round(ptA_img).astype(np.int)), tuple(np.round(ptB_img).astype(np.int)), 0,
+                                 1)
+                        cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 0, -1)
+                        cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 0, -1)
+                    else:
+                        cv2.line(img, tuple(np.round(ptA_img).astype(np.int)), tuple(np.round(ptB_img).astype(np.int)),
+                                 255,
+                                 1)
+                        cv2.circle(img, tuple(np.round(ptA_img).astype(np.int)), 3, 255, -1)
+                        cv2.circle(img, tuple(np.round(ptB_img).astype(np.int)), 3, 255, -1)
 
     def ComputePose(self, img, pose):
         x_pred = pose[0]

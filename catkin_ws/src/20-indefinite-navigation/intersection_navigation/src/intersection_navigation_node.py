@@ -334,6 +334,8 @@ class IntersectionNavigation(object):
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
 
+        rospy.loginfo("[%s] Planning path from %f, %f, %f to %f, %f, %f" % (self.node_name, pose_init[0], pose_init[1], pose_init[2], pose_final[0], pose_final[1], pose_final[2]))
+
         if not self.pathPlanner.PlanPath(pose_init, pose_final):
             rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
             return False

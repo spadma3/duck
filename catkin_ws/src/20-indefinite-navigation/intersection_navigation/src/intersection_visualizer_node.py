@@ -16,11 +16,11 @@ class IntersectionVisualizer(object):
         rospy.loginfo("[%s] Initializing." % (self.node_name))
 
         # read parameters
-        self.robot_name = self.SetupParameter("~robot_name", "daisy")
+        self.veh = self.SetupParameter("~veh", "daisy")
 
         # set up intersection localizer
         self.intersection_types = {0: 'THREE_WAY_INTERSECTION', 1: 'FOUR_WAY_INTERSECTION'}
-        self.intersectionLocalizer = IntersectionLocalizer(self.robot_name)
+        self.intersectionLocalizer = IntersectionLocalizer(self.veh)
         self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
         self.sub_img = rospy.Subscriber("~img",
