@@ -290,7 +290,7 @@ class IntersectionNavigation(object):
         else:
             self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
             self.intersection_type = 0
-            
+
         self.current_tag_info = april_msg.infos[best_idx].traffic_sign_type
 
         # waiting for camera image
@@ -335,7 +335,7 @@ class IntersectionNavigation(object):
         turn_type = self.turn_type
 
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
-        pose_final = self.ComputeFinalPose(, turn_type)
+        pose_final = self.ComputeFinalPose(self.current_tag_info, turn_type)
 
 
         if not self.pathPlanner.PlanPath(pose_init, pose_final):
