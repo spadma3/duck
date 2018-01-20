@@ -48,7 +48,7 @@ class IntersectionVisualizer(object):
         self.intersectionLocalizer.DrawModel(img_gray, pose_meas)
 
         cv2.imshow('Estimate' + str(self.k) , img_gray)
-        cv2.waitKey(20)
+        cv2.waitKey(50)
 
         print('-------------------')
         print('k', self.k)

@@ -62,6 +62,7 @@ class IntersectionNavigation(object):
         self.intersection_signs = [self.tag_info.FOUR_WAY, self.tag_info.RIGHT_T_INTERSECT,
                                    self.tag_info.LEFT_T_INTERSECT, self.tag_info.T_INTERSECTION]
         self.intersection_type = 0 # 0: three way intersection, 1: four way intersection
+        self.current_tag_info = None
 
         # Velocities conversion parameters
         self.v_scale = 1.53
@@ -289,6 +290,8 @@ class IntersectionNavigation(object):
         else:
             self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
             self.intersection_type = 0
+            
+        self.current_tag_info = april_msg.infos[best_idx].traffic_sign_type
 
         # waiting for camera image
         try:
@@ -332,9 +335,8 @@ class IntersectionNavigation(object):
         turn_type = self.turn_type
 
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
-        pose_final = self.ComputeFinalPose(self.tag_info.T_INTERSECTION, turn_type)
+        pose_final = self.ComputeFinalPose(, turn_type)
 
-        rospy.loginfo("[%s] Planning path from %f, %f, %f to %f, %f, %f" % (self.node_name, pose_init[0], pose_init[1], pose_init[2], pose_final[0], pose_final[1], pose_final[2]))
 
         if not self.pathPlanner.PlanPath(pose_init, pose_final):
             rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
