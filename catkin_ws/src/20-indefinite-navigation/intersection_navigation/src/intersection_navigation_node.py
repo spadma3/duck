@@ -283,8 +283,8 @@ class IntersectionNavigation(object):
                             rospy.loginfo("[%s] Could not find lane. Stopping now." % (self.node_name))
                             self.state = self.state_dict['ERROR']
 
-                    '''closed-loop'''
                     else:
+                        '''closed-loop'''
                         if (rospy.Time.now() - self.done_time).to_sec() < self.in_lane_wait_time:
                             msg_lane_pose = LanePose()
                             msg_lane_pose.header.stamp = rospy.Time.now()
