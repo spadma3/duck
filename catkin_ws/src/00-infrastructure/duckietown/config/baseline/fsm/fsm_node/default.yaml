@@ -22,8 +22,13 @@ events: # Maps from subscribing topic to signal ids
     topic: "joy_mapper_node/start_avoidance"
     msg_type: "BoolStamped"
     trigger: True
+#  uncomment the following if the intersection_navigation node becomes 
+#  intersection_done:
+#    topic: "intersection_navigation_node/intersection_done"
+#    msg_type: "BoolStamped"
+#    trigger: True
   intersection_done:
-    topic: "intersection_navigation_node/intersection_done"
+    topic: "open_loop_intersection_control_node/intersection_done"
     msg_type: "BoolStamped"
     trigger: True
   apriltag_intersection:
@@ -33,6 +38,10 @@ events: # Maps from subscribing topic to signal ids
   # Logical events from logic_gate_node
   at_stop_line_and_velocity_zero:
     topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
+    msg_type: "BoolStamped"
+    trigger: True
+  at_stop_line:
+    topic: "stop_line_filter_node/at_stop_line"
     msg_type: "BoolStamped"
     trigger: True
   intersection_go:
@@ -133,7 +142,8 @@ states:
     current_status: "implemented"
   LANE_FOLLOWING:
     transitions:
-      at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
+#      at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
+       at_stop_line: "INTERSECTION_COORDINATION"
     active_nodes:
       - decoder_node
       - line_detector_node
