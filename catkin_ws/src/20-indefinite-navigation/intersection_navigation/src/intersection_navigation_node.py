@@ -123,6 +123,7 @@ class IntersectionNavigation(object):
         self.turn_type = -1
         self.intersection_type = 0
         self.in_lane = False
+        self.state = self.state_dict['IDLE']
 
     def ComputeFinalPose(self, intersection_type, turn_type):
         if intersection_type == self.tag_info.FOUR_WAY:
