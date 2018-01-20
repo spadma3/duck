@@ -34,11 +34,17 @@ events:
     topic: "apriltags_postprocessing_node/apriltags_parking"
     msg_type: "BoolStamped"
     trigger: True
-  parking_active:
+  parking_on:
     default: False
-    topic: "parking_active"
+    topic: "parking_on"
     msg_type: "BoolStamped"
     trigger: True
+  parking_off:
+    default: True
+    topic: "parking_on"
+    msg_type: "BoolStamped"
+    trigger: False
+
   joystick_override_off: 
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
@@ -67,21 +73,21 @@ events:
   #   trigger: True
 
 # TODO: 
-# - parking_active flag?
+# - parking_on flag?
 
 gates:
-  # at_stop_line_and_velocity_zero:
-  #   gate_type: "AND"
-  #   inputs:
-  #     - at_stop_line
-  #     - velocity_zero
-  #   output_topic: "~at_stop_line_and_velocity_zero"
-  apriltag_parking_and_parking_active:
-    gate_type: AND
+  at_stop_line_and_parking_off:
+    gate_type: "AND"
     inputs:
-      - apriltag_parking
-      - parking_active
-    output_topic: "~apriltag_parking_and_parking_active"
+      - at_stop_line
+      - parking_off
+    output_topic: "~at_stop_line_and_parking_off"
+  at_stop_line_and_parking_on:
+    gate_type: "AND"
+    inputs:
+      - at_stop_line
+      - parking_on
+    output_topic: "~at_stop_line_and_parking_on"
   joystick_override_on_and_parallel_autonomy_off:
     gate_type: AND
     inputs:

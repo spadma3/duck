@@ -75,6 +75,15 @@ events: # Maps from subscribing topic to signal ids
     topic: "logic_gate_node/intersection_done_and_deep_lane_on"
     msg_type: "BoolStamped"
     trigger: True
+  at_stop_line_and_parking_off:
+    topic: "logic_gate_node/at_stop_line_and_parking_off"
+    msg_type: "BoolStamped"
+    trigger: True
+  at_stop_line_and_parking_on:
+    topic: "logic_gate_node/at_stop_line_and_parking_on"
+    msg_type: "BoolStamped"
+    trigger: True
+
   # obstacle_detection:
   #   topic: "obstacle_safety_node/object_too_close"
   #   msg_type: "BoolStamped"
@@ -157,7 +166,8 @@ states:
     current_status: "implemented"
   LANE_FOLLOWING:
     transitions:
-      at_stop_line: "ARRIVE_AT_STOP_LINE"
+      at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
+      at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
       deep_lane_following_on: "DEEP_LANE_FOLLOWING"
     active_nodes:
       - decoder_node
@@ -204,7 +214,8 @@ states:
     current_status: "in_progress"
   PARKING:
     transitions:
-      at_stop_line: "ARRIVE_AT_STOP_LINE"
+      at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
+      at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
     active_nodes:
       - decoder_node
       - apriltag_node
