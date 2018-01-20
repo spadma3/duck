@@ -18,6 +18,7 @@ add_message_files(
   FILES
   CarControl.msg
   CoordinationSignal.msg
+  CoordinationSignalETHZ17.msg
   DuckieSensor.msg
   LanePose.msg
 #  LEDControl.msg
@@ -28,7 +29,9 @@ add_message_files(
   WheelsCmdStamped.msg
   Pose2DStamped.msg
   SignalsDetection.msg
+  SignalsDetectionETHZ17.msg
   Twist2DStamped.msg
+  Twist2DStampedETHZ17.msg
   AprilTagDetection.msg
   AprilTagDetectionArray.msg
   AprilTagsWithInfos.msg
@@ -42,6 +45,7 @@ add_message_files(
   SceneSegments.msg
   SourceTargetNodes.msg
   CoordinationClearance.msg
+  CoordinationClearanceETHZ17.msg
 #  IntersectionDetection.msg
 #  CoordinationSignal.msg
 #  TrafficLightDetection.msg
@@ -50,6 +54,7 @@ add_message_files(
 #  VehicleDetection.msg
   FSMState.msg
   BoolStamped.msg
+  BoolStampedETHZ17.msg
   StopLineReading.msg
   LEDInterpreter.msg
   AntiInstagramHealth.msg
