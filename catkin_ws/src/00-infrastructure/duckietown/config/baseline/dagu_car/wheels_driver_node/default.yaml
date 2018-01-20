@@ -1,4 +1,4 @@
 #default parameters for dagu_car/wheels_driver_node
-use_rad_lim: False
+use_rad_lim: True
 min_rad: 0.06
 wheel_distance: 0.103
