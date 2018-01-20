@@ -45,7 +45,7 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
   intersection_go:
-    topic: "logic_gate_node/intersection_go"
+    topic: "implicit_coordination_node/intersection_go"
     msg_type: "BoolStamped"
     trigger: True
   apriltag_parking_and_parking_active:
