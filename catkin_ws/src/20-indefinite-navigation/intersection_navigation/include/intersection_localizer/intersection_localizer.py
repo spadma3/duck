@@ -62,6 +62,7 @@ class IntersectionLocalizer(object):
         self.ctrl_pts_density = 60  # number of control points per edge length (in meters)
         self.min_num_ctrl_pts = 10
         self.max_num_ctrl_pts = 80
+        self.max_pos_corr = 0.02
 
         # likelihood parameters
         self.lambda_visible = 1.0 # exponential probability distribution, sensitivity parameters
@@ -345,6 +346,8 @@ class IntersectionLocalizer(object):
 
             '''update prediction'''
             t = np.dot(R.T, res[0:2])
+            t[0] = self.constrain(t[0], -self.max_pos_corr, self.max_pos_corr)
+            t[1] = self.constrain(t[1], -self.max_pos_corr, self.max_pos_corr)
             x_pred = x_pred - t[0]
             y_pred = y_pred - t[1]
             theta_pred = theta_pred + res[2]
@@ -376,3 +379,8 @@ class IntersectionLocalizer(object):
         rospy.set_param(param_name, value)
         rospy.loginfo("%s = %s " % (param_name, value))
         return value
+
+    def constrain(self, val, min_val, max_val):
+        if val < min_val: return min_val
+        if val > max_val: return max_val
+        return val

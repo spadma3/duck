@@ -53,6 +53,7 @@ class IntersectionLocalizerNode(object):
             msg_ret.y = pose_meas[1]
             msg_ret.theta = pose_meas[2]
             msg_ret.type = msg.type
+            msg_ret.likelihood = likelihood
             self.pub_pose.publish(msg_ret)
 
             if 1:
