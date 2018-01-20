@@ -31,10 +31,11 @@ events:
     msg_type: "BoolStamped"
     trigger: True
   apriltag_parking:
-    topic: "apriltags_postprocessing_node/apriltag_parking"
+    topic: "apriltags_postprocessing_node/apriltags_parking"
     msg_type: "BoolStamped"
     trigger: True
   parking_active:
+    default: False
     topic: "parking_active"
     msg_type: "BoolStamped"
     trigger: True
