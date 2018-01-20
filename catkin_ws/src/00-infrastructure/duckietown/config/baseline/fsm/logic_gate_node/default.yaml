@@ -3,11 +3,11 @@ events:
     topic: "stop_line_filter_node/at_stop_line"
     msg_type: "BoolStamped"
     trigger: True
-  velocity_zero: 
-    topic: "lane_controller_node/car_cmd"
-    msg_type: "Twist2DStamped"
-    field: "v"
-    trigger: 0.0
+  # velocity_zero: 
+  #   topic: "lane_controller_node/car_cmd"
+  #   msg_type: "Twist2DStamped"
+  #   field: "v"
+  #   trigger: 0.0
   joystick_override_on: 
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
@@ -69,12 +69,12 @@ events:
 # - parking_active flag?
 
 gates:
-  at_stop_line_and_velocity_zero:
-    gate_type: "AND"
-    inputs:
-      - at_stop_line
-      - velocity_zero
-    output_topic: "~at_stop_line_and_velocity_zero"
+  # at_stop_line_and_velocity_zero:
+  #   gate_type: "AND"
+  #   inputs:
+  #     - at_stop_line
+  #     - velocity_zero
+  #   output_topic: "~at_stop_line_and_velocity_zero"
   apriltag_parking_and_parking_active:
     gate_type: AND
     inputs:
