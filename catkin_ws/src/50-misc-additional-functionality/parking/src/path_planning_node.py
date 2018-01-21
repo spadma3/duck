@@ -130,9 +130,9 @@ class parkingPathPlanner():
         #rospy.logerr("in control_callback")
         state = LanePose()
         if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
-            self.stopping_callback()
+            #self.stopping_callback()
         if self.end_of_path_reached:
-            self.stopping_callback()
+            #self.stopping_callback()
         if self.plan == False:
             rospy.loginfo("in control_callback in 'if self.plan == False'")
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
