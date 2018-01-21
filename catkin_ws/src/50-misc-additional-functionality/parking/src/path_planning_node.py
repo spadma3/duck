@@ -55,7 +55,7 @@ class parkingPathPlanner():
     def __init__(self):
         self.plotting = True
         self.plan = True
-        self.sample_freq = 50    # [Hz]
+        self.sample_freq = 10    # [Hz]
         self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.05  #0.38  # reference vel for parking
@@ -126,7 +126,7 @@ class parkingPathPlanner():
             rospy.loginfo("in control_callback in 'if self.plan == False'")
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             delta_t = self.current_time_sec - self.previous_time_sec
-            print ("delta_t = ", delta_t)
+            print "delta_t = ", delta_t
             self.get_intermediate_pose(delta_t)
             self.previous_time_sec = self.current_time_sec
 
