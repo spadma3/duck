@@ -75,7 +75,7 @@ class IntersectionNavigation(object):
         if self.open_loop:
             self.v = 0.15
         else:
-            self.v = 0.30
+            self.v = 0.20
 
         # nominal stop positions: centered in lane, 0.16m in front of center of red stop line, 0 relative orientation error
         self.nominal_start_positions = {self.tag_info.FOUR_WAY: [0.400, -0.135, 0.5 * np.pi],
