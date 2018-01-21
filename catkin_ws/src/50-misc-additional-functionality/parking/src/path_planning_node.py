@@ -126,6 +126,7 @@ class parkingPathPlanner():
             rospy.loginfo("in control_callback in 'if self.plan == False'")
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             delta_t = self.current_time_sec - self.previous_time_sec
+            print ("delta_t = ", delta_t)
             self.get_intermediate_pose(delta_t)
             self.previous_time_sec = self.current_time_sec
 
