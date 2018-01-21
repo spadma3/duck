@@ -66,10 +66,10 @@
     <!-- End Camera -->
 
     <!-- Start anti-instagram -->
-      <remap from="anti_instagram_node/uncorrected_image" to="camera_node/image/compressed" />
+      <!-- <remap from="anti_instagram_node/uncorrected_image" to="camera_node/image/compressed" />
       <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
-      </include>
+      </include> -->
 	<!-- End anti-instagram -->
 
     <!-- AprilTags Detections -->
