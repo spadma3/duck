@@ -58,8 +58,8 @@ class parkingPathPlanner():
         self.sample_freq = 50    # [Hz]
         self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
-        self.v_ref = 0.05  #0.38  # reference vel for parking
-        self.v_default = 0.05  #0.38  # reference vel for parking
+        self.v_ref = 0.1  #0.38  # reference vel for parking
+        self.v_default = 0.1  #0.38  # reference vel for parking
         self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
         self.time_when_last_path_planned = rospy.Time.now().secs
         self.time_when_last_stopped = rospy.Time.now().secs
@@ -98,7 +98,7 @@ class parkingPathPlanner():
 
     def get_intermediate_pose(self, delta_t):
         n_points = len(self.px)
-        self.v_ref = 0.05
+        self.v_ref = 0.1
         velocity_to_m_per_s = 0.67
         print("dist = {}".format(self.v_ref * velocity_to_m_per_s * delta_t))
         self.dist_last_index += self.v_ref * velocity_to_m_per_s * delta_t
