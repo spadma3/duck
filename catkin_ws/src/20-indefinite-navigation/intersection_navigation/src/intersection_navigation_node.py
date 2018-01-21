@@ -73,7 +73,7 @@ class IntersectionNavigation(object):
 
         # Set constant velocity
         if self.open_loop:
-            self.v = 0.30
+            self.v = 0.15
         else:
             self.v = 0.30
 
