@@ -36,7 +36,7 @@ april_tag_basement_length = 50      # mm,
 april_tag_screen_length = 80        # mm
 space_length = 270                  # mm from border, without april tag
 lanes_length = 310                  # mm at entrance, exit
-ploting = True
+#plotting = True
 close_itself = True
 save_figures = True
 pause_per_path = 0.5 # sec
@@ -53,8 +53,9 @@ length_red_line = (lot_width/2.0 - 2.0*wide_tape_width - 1.0*narrow_tape_width) 
 class parkingPathPlanner():
 
     def __init__(self):
+        self.plotting = True
         self.plan = True
-        self.sample_freq = 1    # [Hz]
+        self.sample_freq = 50    # [Hz]
         self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.05  #0.38  # reference vel for parking
@@ -220,11 +221,12 @@ class parkingPathPlanner():
         self.px, self.py, self.pyaw = self.dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
         found_path = self.collision_check(self.px, self.py, obstacles)
 
-        if ploting:
+        if self.plotting:
             #self.do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
             #            obstacles, found_path)
             self.do_plotting(start_x, start_y, start_yaw, end_x, end_y, end_yaw, end_number, self.px, self.py, objects,
                         obstacles, found_path)
+            self.plotting = False
 
     def collision_check(self,px, py, obstacles):
         found_path = True
