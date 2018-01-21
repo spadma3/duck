@@ -29,7 +29,7 @@ class IntersectionNavigation(object):
         self.poseEstimator = PoseEstimator()
 
         # open-loop / closed-loop
-        self.open_loop = False
+        self.open_loop = True
 
         # main logic parameters
         self.rate = 10  # main logic runs at 10Hz
