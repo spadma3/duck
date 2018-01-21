@@ -71,7 +71,7 @@ class IntersectionNavigation(object):
         self.omega_scale = 4.75
 
         # Set constant velocity
-        self.v = 0.15
+        self.v = 0.20
 
         # nominal stop positions: centered in lane, 0.16m in front of center of red stop line, 0 relative orientation error
         self.nominal_start_positions = {self.tag_info.FOUR_WAY: [0.400, -0.135, 0.5 * np.pi],
