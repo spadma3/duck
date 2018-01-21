@@ -398,6 +398,7 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] No current turn type information." % (self.node_name))
             return False
 
+        self.turn_type = 0
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
 
