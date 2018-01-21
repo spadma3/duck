@@ -29,6 +29,7 @@ class IntersectionNavigation(object):
         self.poseEstimator = PoseEstimator()
 
         # open-loop / closed-loop
+        # If true comment remap in our launch file to intersection_navigation_pose in lane controller.
         self.open_loop = True
 
         # main logic parameters
@@ -72,7 +73,7 @@ class IntersectionNavigation(object):
 
         # Set constant velocity
         if self.open_loop:
-            self.v = 0.15
+            self.v = 0.30
         else:
             self.v = 0.30
 
@@ -117,6 +118,7 @@ class IntersectionNavigation(object):
         self.pub_intersection_pose_img = rospy.Publisher("~pose_img_out", IntersectionPoseImg, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~intersection_navigation_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
+        # Needed if open loop
         self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
