@@ -99,9 +99,9 @@ class parkingPathPlanner():
     def get_intermediate_pose(self, delta_t):
         n_points = len(self.px)
         velocity_to_m_per_s = 0.67
-        self.idx += (self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(roundself.idx)] - self.py[int(round(self.idx))-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
+        self.idx += (self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
         print("idx = {}".format(self.idx))
-        print("denom = {}".format(sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(roundself.idx)] - self.py[int(round(self.idx))-1])**2) / 1000))
+        print("denom = {}".format(sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000))
         if int(self.idx) > n_points - 3:
             self.idx = n_points - 3
             self.end_of_path_reached = True
