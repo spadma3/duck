@@ -2,6 +2,7 @@
 from __future__ import print_function
 from random import random
 import rospy
+import numpy as np
 from duckietown_msgs.msg import CoordinationClearance, FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
 from duckietown_msgs.msg import SignalsDetection, CoordinationSignal
 from std_msgs.msg import String
@@ -83,14 +84,21 @@ class VehicleCoordinator():
     def set_traffic_light(self,msg):
         # Save old traffic light
         traffic_light_old = self.traffic_light_intersection
+	
+	for item in msg.detections:
+		if item.id >= 74 and item.id <= 94 and  np.abs(item.pose.pose.position.y) < 0.5:
+			self.traffic_light_intersection = True
+			break
+		else:
+			self.traffic_light_intersection = False	
 
         # New traffic light
-        for item in msg.infos:
-            if item.traffic_sign_type == 17:
-                self.traffic_light_intersection = True
-                break
-            else:
-                self.traffic_light_intersection = False
+        #for item in msg.infos:
+        #    if item.traffic_sign_type == 17:
+        #        self.traffic_light_intersection = True
+        #        break
+        #    else:
+        #        self.traffic_light_intersection = False
 
         # If different from the one before, restart from lane following
         if traffic_light_old != self.traffic_light_intersection:
