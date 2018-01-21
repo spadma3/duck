@@ -157,7 +157,7 @@ class parkingPathPlanner():
             self.path_planning(rospy.get_param('~end_space'))
             print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
             self.plan = False
-            self.idx = 0
+            self.idx = 1
             self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             self.time_when_last_path_planned = rospy.Time.now().secs
         #else:
