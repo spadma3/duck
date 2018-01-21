@@ -29,7 +29,7 @@ class IntersectionNavigation(object):
         self.poseEstimator = PoseEstimator()
 
         # open-loop / closed-loop
-        # If true comment remap in our launch file to intersection_navigation_pose in lane controller.
+        # If true Remap in 00-infrastructure.
         self.open_loop = True
 
         # main logic parameters
@@ -73,7 +73,7 @@ class IntersectionNavigation(object):
 
         # Set constant velocity
         if self.open_loop:
-            self.v = 0.20
+            self.v = 0.18
         else:
             self.v = 0.30
 
