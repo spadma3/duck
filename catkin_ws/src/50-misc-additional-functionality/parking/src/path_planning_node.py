@@ -130,11 +130,11 @@ class parkingPathPlanner():
         #rospy.logerr("in control_callback")
         state = LanePose()
         if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
-            #self.stopping_callback()
+            self.stopping_callback()
         if self.end_of_path_reached:
-            #self.stopping_callback()
+            self.stopping_callback()
         if self.plan == False:
-            rospy.loginfo("in control_callback in 'if self.plan == False'")
+            #rospy.loginfo("in control_callback in 'if self.plan == False'")
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             delta_t = self.current_time_sec - self.previous_time_sec
             print "delta_t = ", delta_t
@@ -158,7 +158,7 @@ class parkingPathPlanner():
     #  callback for apriltag localization
     def localization_callback(self, pose):
         rospy.loginfo("in localization_callback")
-        if self.plan == True and rospy.Time.now().secs - self.time_when_last_stopped > 5:
+        if self.plan == True and (rospy.Time.now().secs - self.time_when_last_stopped) > 5:
             rospy.loginfo("planning a path")
             # plan the path once during first callback
             self.x_act = pose.x
