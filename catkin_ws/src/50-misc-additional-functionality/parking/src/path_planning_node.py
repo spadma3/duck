@@ -98,6 +98,7 @@ class parkingPathPlanner():
 
     def get_intermediate_pose(self, delta_t):
         n_points = len(self.px)
+        self.v_ref = 0.05
         velocity_to_m_per_s = 0.67
         print("dist = {}".format(self.v_ref * velocity_to_m_per_s * delta_t))
         self.dist_last_index += self.v_ref * velocity_to_m_per_s * delta_t
