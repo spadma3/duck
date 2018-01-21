@@ -55,7 +55,7 @@ class parkingPathPlanner():
     def __init__(self):
         self.plotting = True
         self.plan = True
-        self.sample_freq = 5    # [Hz]
+        self.sample_freq = 3    # [Hz]
         self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.05  #0.38  # reference vel for parking
