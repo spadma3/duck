@@ -81,7 +81,7 @@ class parkingPathPlanner():
         #print "The computed x path is ", self.px
         #print "The computed y path is ", self.py
         #print "The computed yaw path is ", self.pyaw
-        self.timer_sample_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.sample_callback)
+        self.timer_control_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.control_callback)
         self.timer_parking_active_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
     def stopping_callback(self):
@@ -95,10 +95,10 @@ class parkingPathPlanner():
         self.plan = True
 
 
-    def get_random_pose(self, delta_t):
+    def get_intermediate_pose(self, delta_t):
         n_points = len(self.px)
         velocity_to_m_per_s = 0.67
-        self.idx += (self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.px[int(self.idx)] - self.px[int(self.idx)-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
+        self.idx += (self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.py[int(self.idx)] - self.py[int(self.idx)-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
         print("idx = {}".format(self.idx))
         if int(self.idx) > n_points - 3:
             self.idx = n_points - 3
@@ -106,26 +106,26 @@ class parkingPathPlanner():
         else:
             self.end_of_path_reached = False
         print("idx = {}".format(self.idx))
-        print("idx += {}".format((self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.px[int(self.idx)] - self.px[int(self.idx)-1])**2) / 1000))))
-        self.x_act = self.px[int(self.idx)]        ### + np.random.normal(bias_xy,var_xy)
-        self.y_act = self.px[int(self.idx)]        ### + np.random.normal(bias_xy,var_xy)
-        self.yaw_act = self.px[int(self.idx)]        ### + np.random.normal(bias_heading,var_heading)
+        print("idx += {}".format((self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.py[int(self.idx)] - self.py[int(self.idx)-1])**2) / 1000))))
+        self.x_act = self.px[int(round(self.idx))]       ### + np.random.normal(bias_xy,var_xy)
+        self.y_act = self.py[int(round(self.idx))]        ### + np.random.normal(bias_xy,var_xy)
+        self.yaw_act = self.pyaw[int(round(self.idx))]        ### + np.random.normal(bias_heading,var_heading)
 
 
     #  callback for control references
-    def sample_callback(self,event):
+    def control_callback(self,event):
         begin = rospy.get_rostime()
-        rospy.logerr("in sample_callback")
+        rospy.logerr("in control_callback")
         state = LanePose()
         if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
             self.stopping_callback()
         if self.end_of_path_reached:
             self.stopping_callback()
         if self.plan == False:
-            rospy.loginfo("in sample_callback in 'if self.plan == False'")
+            rospy.loginfo("in control_callback in 'if self.plan == False'")
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             delta_t = self.current_time_sec - self.previous_time_sec
-            self.get_random_pose(delta_t)
+            self.get_intermediate_pose(delta_t)
             self.previous_time_sec = self.current_time_sec
 
             state.d, state.curvature_ref, state.phi = self.project_to_path(curvature)
