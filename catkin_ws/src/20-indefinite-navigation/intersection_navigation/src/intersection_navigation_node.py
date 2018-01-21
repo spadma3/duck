@@ -29,8 +29,8 @@ class IntersectionNavigation(object):
         self.poseEstimator = PoseEstimator()
 
         # open-loop / closed-loop
-        # If true Remap in 00-infrastructure.
-        self.open_loop = True
+        # If true remap in 00-infrastructure/duckietown/config/baseline/dagu_car/car_cmd_switch_node/default.yaml
+        self.open_loop = False
 
         # main logic parameters
         self.rate = 10  # main logic runs at 10Hz
@@ -403,7 +403,7 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] No current turn type information." % (self.node_name))
             return False
 
-        self.turn_type = 2
+        #self.turn_type = 2
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
         pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
 
