@@ -246,13 +246,10 @@ class IntersectionNavigation(object):
                             self.done_time = rospy.Time.now()
 
                         else:
-                            #msg_lane_pose.v_ref = self.v
-                            msg_lane_pose.v_ref = 0
-                            #msg_lane_pose.d = dist
-                            msg_lane_pose.d = 0
+                            msg_lane_pose.v_ref = self.v
+                            msg_lane_pose.d = dist
                             msg_lane_pose.d_ref = 0.0
-                            #msg_lane_pose.phi = theta
-                            msg_lane_pose.phi = 0
+                            msg_lane_pose.phi = theta
                             msg_lane_pose.curvature_ref = curvature
 
                     else:
