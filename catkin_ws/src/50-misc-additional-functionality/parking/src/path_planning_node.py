@@ -101,7 +101,7 @@ class parkingPathPlanner():
         velocity_to_m_per_s = 0.67
         self.dist_last_index += self.v_ref * velocity_to_m_per_s * delta_t
         print("dist_last_ = {}".format(self.dist_last_index))
-        print("percentage to next index = {}".format(self.dist_last_index / (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000)))
+        #print("percentage to next index = {}".format(self.dist_last_index / (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000)))
         self.idx += (self.dist_last_index / (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
         self.idx = int(self.idx)
         print("idx = {}".format(self.idx))
