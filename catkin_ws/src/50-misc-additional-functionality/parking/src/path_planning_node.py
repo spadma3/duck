@@ -99,16 +99,17 @@ class parkingPathPlanner():
     def get_intermediate_pose(self, delta_t):
         n_points = len(self.px)
         velocity_to_m_per_s = 0.67
+        print("dist = {}".format(self.v_ref * velocity_to_m_per_s * delta_t))
         self.dist_last_index += self.v_ref * velocity_to_m_per_s * delta_t
         print("dist_last_ = {}".format(self.dist_last_index))
         #print("percentage to next index = {}".format(self.dist_last_index / (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000)))
-        self.idx += (self.dist_last_index / (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
+        self.idx += (self.dist_last_index / (sqrt((self.px[int(round(self.idx))+1] - self.px[int(round(self.idx))])**2 + (self.py[int(round(self.idx))+1] - self.py[int(round(self.idx))])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
         self.idx = int(self.idx)
         print("idx = {}".format(self.idx))
         #print("denom = {}".format(sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000))
         if not self.idx_last == self.idx:
             self.idx_last = self.idx
-            self.dist_last_index -= (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000)
+            self.dist_last_index -= (sqrt((self.px[int(round(self.idx))+1] - self.px[int(round(self.idx))])**2 + (self.py[int(round(self.idx))+1] - self.py[int(round(self.idx))])**2) / 1000)
 
         if int(self.idx) > n_points - 3:
             self.idx = n_points - 3
@@ -165,8 +166,8 @@ class parkingPathPlanner():
             self.path_planning(rospy.get_param('~end_space'))
             print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
             self.plan = False
-            self.idx = 1
-            self.idx_last = 1
+            self.idx = 0
+            self.idx_last = 0
             self.dist_last_index = 0
             self.previous_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             self.time_when_last_path_planned = rospy.Time.now().secs
