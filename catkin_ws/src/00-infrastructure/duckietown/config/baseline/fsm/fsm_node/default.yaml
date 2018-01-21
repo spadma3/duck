@@ -143,7 +143,7 @@ states:
   LANE_FOLLOWING:
     transitions:
 #      at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
-       at_stop_line: "INTERSECTION_CONTROL"
+       at_stop_line: "INTERSECTION_COORDINATION"
     active_nodes:
       - decoder_node
       - line_detector_node
