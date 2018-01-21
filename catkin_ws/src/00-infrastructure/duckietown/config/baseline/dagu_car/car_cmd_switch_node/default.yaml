@@ -1,7 +1,7 @@
 mode_topic: "fsm_node/mode"
 source_topics: #Mapping from cmd source name to topics
   lane: "lane_controller_node/car_cmd"
-  intersection: "lane_controller_node/car_cmd" #"intersection_navigation_node/cmds_out"
+  intersection: "intersection_navigation_node/cmds_out" #"lane_controller_node/car_cmd"
   coordination: "simple_coordinator_node/car_cmd"
   joystick: "joy_mapper_node/car_cmd"
   vehicle:  "vehicle_avoidance_control_node/car_cmd"
