@@ -55,7 +55,7 @@ class parkingPathPlanner():
     def __init__(self):
         self.plotting = True
         self.plan = True
-        self.sample_freq = 10    # [Hz]
+        self.sample_freq = 50    # [Hz]
         self.duration_blind_feedforward = 3    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.05  #0.38  # reference vel for parking
@@ -110,7 +110,7 @@ class parkingPathPlanner():
         #print("denom = {}".format(sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000))
         if not self.idx_last == self.idx:
             self.idx_last = self.idx
-            self.dist_last_index -= (sqrt((self.px[int(round(self.idx))+1] - self.px[int(round(self.idx))])**2 + (self.py[int(round(self.idx))+1] - self.py[int(round(self.idx))])**2) / 1000)
+            self.dist_last_index = 0
 
         if int(self.idx) > n_points - 3:
             self.idx = n_points - 3
