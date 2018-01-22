@@ -30,8 +30,10 @@ class lane_controller(object):
         self.sub_obstacle_detected = rospy.Subscriber("~obstacle_detected", BoolStamped, self.setFlag, "obstacle_detected", queue_size=1)
         
         #TO DO find node/topic in their branch
-        # self.sub_intersection_navigation_pose = rospy.Subscriber("~intersection_navigation_pose", LanePose, self.PoseHandling, "intersection_navigation",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
-        
+        self.sub_intersection_navigation_pose = rospy.Subscriber("~intersection_navigation_pose", LanePose, self.PoseHandling, "intersection_navigation",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
+        #Intersection navigation testing
+        self.fsm_state = "INTERSECTION_CONTROL"
+
         #TO DO find node/topic in their branch
         # self.sub_parking_pose = rospy.Subscriber("~parking_pose", LanePose, self.PoseHandling, "parking",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
 
@@ -138,8 +140,8 @@ class lane_controller(object):
         use_radius_limit = rospy.get_param("~use_radius_limit")
 
         #FeedForward
-        self.velocity_to_m_per_s = 0.67 # TODO: change according to information from team System ID!
-        self.omega_to_rad_per_s = 0.45 * 2 * math.pi
+        self.velocity_to_m_per_s = 1.53 # TODO: change according to information from team System ID!
+        self.omega_to_rad_per_s = 4.75
         self.curvature_outer = 1 / (0.39)
         self.curvature_inner = 1 / 0.175
         use_feedforward_part = rospy.get_param("~use_feedforward_part")
@@ -288,6 +290,7 @@ class lane_controller(object):
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
         car_control_msg.v = pose_msg.v_ref #*self.speed_gain #Left stick V-axis. Up is positive
+        self.v_bar = car_control_msg.v
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
@@ -322,7 +325,7 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.heading_integral = 0
 
-        omega_feedforward = car_control_msg.v * self.velocity_to_m_per_s * pose_msg.curvature_ref
+        omega_feedforward = self.v_bar * pose_msg.curvature_ref
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
@@ -331,14 +334,17 @@ class lane_controller(object):
         omega -= self.k_Iphi * self.heading_integral
         omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
-        self.omega_max_radius_limitation = car_control_msg.v * self.velocity_to_m_per_s / self.min_radius * self.omega_to_rad_per_s
+        # increase velocity to make sure all wheels spin properly
+        if (self.v_bar - 0.5*math.fabs(omega)*0.1) < 0.061:
+            self.v_bar = 0.061 + 0.5*math.fabs(omega)*0.1
+
+        self.omega_max_radius_limitation = self.v_bar / self.min_radius * self.omega_to_rad_per_s
         self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
 
-        if math.fabs(omega) > self.omega_max:
-            if self.last_ms is not None: 
-                self.cross_track_integral -= self.cross_track_err * dt
-                self.heading_integral -= self.heading_err * dt
-            car_control_msg.omega = self.omega_max * np.sign(omega)
+        if omega > self.omega_max:
+            self.cross_track_integral -= self.cross_track_err * dt
+            self.heading_integral -= self.heading_err * dt
+            car_control_msg.omega = self.omega_max
         else:
             car_control_msg.omega = omega
 
