@@ -79,7 +79,7 @@ class RQTFleetPlanning(Plugin):
         scaled_tile_position = [0, 0]        
         scaled_tile_position[0] = tile_position[0] * self.scale_factor_width
         scaled_tile_position[1] = tile_position[1] * self.scale_factor_height
-        rospy.logwarn("Scaled click location: {},{}".format(tile_position[0], tile_position[1]))
+        rospy.logwarn("Scaled click location: {},{}".format(scaled_tile_position[0], scaled_tile_position[1]))
         graph_node_number = self.map_to_graph_transformer.get_closest_node(scaled_tile_position)
         self.drawRequestState(scaled_tile_position, graph_node_number)
 
@@ -143,8 +143,8 @@ class RQTFleetPlanning(Plugin):
         q_img_tmp = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
         self.image = QPixmap(q_img_tmp)
         self.image = self.image.scaledToHeight(850)
-        self.scale_factor_width = self.image.width() / width
-        self.scale_factor_height = self.image.height() / height
+        self.scale_factor_width = float(self.image.width()) / float(width)
+        self.scale_factor_height = float(self.image.height()) / float(height)
         rospy.logwarn("Scale factor: h:{} w:{}".format(self.scale_factor_height, self.scale_factor_width))
 
         #show it on the GUI
