@@ -2,22 +2,35 @@
 # -*- coding: utf-8 -*-
 
 """
-pickle
+Plot size
 """
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import pickle, time
-if False:
-    ax = plt.subplot(111)
-    x = np.linspace(0, 10)
-    y = np.sin(x)
-    ax.plot(x, y)
-    pickle.dump(ax, file('images/myplot.pickle', 'w'))
-else:
-    ax = pickle.load(file('images/myplot.pickle'))
-    # ax.plot(0,1,'k*')
-    # plt.show()
-    plt.pause(1)
+import math
+x = np.linspace(0,2*math.pi)
+y = np.sin(x)
+fig, ax = plt.subplots(figsize=(10, 9.63))
+ax.plot(x,y)
+plt.show()
+
+"""
+pickle
+"""
+# import matplotlib.pyplot as plt
+# import numpy as np
+# import pickle, time
+# if False:
+#     ax = plt.subplot(111)
+#     x = np.linspace(0, 10)
+#     y = np.sin(x)
+#     ax.plot(x, y)
+#     pickle.dump(ax, file('images/myplot.pickle', 'w'))
+# else:
+#     ax = pickle.load(file('images/myplot.pickle'))
+#     # ax.plot(0,1,'k*')
+#     # plt.show()
+#     plt.pause(1)
 
 
 """

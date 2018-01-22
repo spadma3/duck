@@ -384,7 +384,7 @@ def do_talking(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw,
 def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects, obstacles, found_path):
     if close_itself:
         plt.clf()
-    fig = plt.figure(1)
+    fig = plt.figure(1, figsize=(10.11, 9.63))
     ax = fig.add_subplot(111)
     if found_path:
         plt.plot(px, py,'g-',lw=3)
