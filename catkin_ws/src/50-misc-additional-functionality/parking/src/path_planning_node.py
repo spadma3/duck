@@ -112,7 +112,7 @@ class parkingPathPlanner():
                 idx_dist_before = idx_dist
                 idx_dist += self.dist_sampels[self.idx+i]
             dist_perc = self.dist_last_index / idx_dist
-            if dist_perc < 0:
+            if dist_perc < 1:
                 idx_found == True
                 self.dist_last_index -= idx_dist_before
                 idx_update = idx_steps-1
@@ -443,7 +443,7 @@ class parkingPathPlanner():
 
         for d in range (0, n_points-2):
             d_dir = sqrt((px[d+1] - px[d])**2 + (py[d+1] - py[d])**2)/1000
-            if c_ref[d] == 0:
+            if c_ref[d] == 0.0:
                 dist_sampels[d] = d_dir
             else:
                 dist_sampels[d] = curvature/1000 * np.arccos(1-d_dir**2/(2*curvature**2))
