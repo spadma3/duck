@@ -23,7 +23,7 @@ straight_in_parking_space = True    # robot drives last forward bit straigt (rob
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
 allow_backwards_on_circle = False   # use this later together with reeds sheep
-curvature = 120                     # mm minimal turning radius
+curvature = 170                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
 
@@ -99,19 +99,27 @@ class parkingPathPlanner():
     def get_intermediate_pose(self, delta_t):
         n_points = len(self.px)
         self.v_ref = 0.1
-        velocity_to_m_per_s = 0.67
+        velocity_to_m_per_s = 10/8.5
         print("dist = {}".format(self.v_ref * velocity_to_m_per_s * delta_t))
         self.dist_last_index += self.v_ref * velocity_to_m_per_s * delta_t
         print("dist_last_ = {}".format(self.dist_last_index))
-        #print("percentage to next index = {}".format(self.dist_last_index / (sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000)))
-        self.idx += (self.dist_last_index / (sqrt((self.px[int(round(self.idx))+1] - self.px[int(round(self.idx))])**2 + (self.py[int(round(self.idx))+1] - self.py[int(round(self.idx))])**2) / 1000))      ### idx = np.random.random_integers(1, n_points-3)
-        self.idx = int(self.idx)
+        idx_found = False
+        idx_steps = 1
+        while idx_found == False:
+            idx_dist = 0
+            idx_dist_before = 0
+            for i in range(0,idx_steps):
+                idx_dist_before = idx_dist
+                idx_dist += self.dist_sampels[self.idx+i]
+            dist_perc = self.dist_last_index / idx_dist
+            if dist_perc < 0:
+                idx_found == True
+                self.dist_last_index -= idx_dist_before
+                idx_update = idx_steps-1
+            else:
+                idx_steps += 1
+        self.idx += idx_update
         print("idx = {}".format(self.idx))
-        #print("denom = {}".format(sqrt((self.px[int(round(self.idx))] - self.px[int(round(self.idx))-1])**2 + (self.py[int(round(self.idx))] - self.py[int(round(self.idx))-1])**2) / 1000))
-        if not self.idx_last == self.idx:
-            self.idx_last = self.idx
-            self.dist_last_index = 0
-
         if int(self.idx) > n_points - 3:
             self.idx = n_points - 3
             self.end_of_path_reached = True
@@ -203,13 +211,7 @@ class parkingPathPlanner():
         if p_act_A[1] < 0:
             d_est = -d_est
 
-        # curvature or straight (only valid for dubins path)
-        if ((self.px[idx_proj-1]+self.px[idx_proj+1])/2.0 == self.px[idx_proj]) and ((self.py[idx_proj-1]+self.py[idx_proj+1])/2.0 == self.py[idx_proj]):
-            c_ref = 0.0
-        else:
-            c_ref = 1.0/curvature
-            if np.sign(self.pyaw[idx_proj-1]-self.pyaw[idx_proj]) > 0:
-                c_ref = -c_ref
+        c_ref = 12/17*self.c_ref[idx_proj]
 
         # differential var_heading
         theta_est = self.yaw_act - self.pyaw[idx_proj]
@@ -219,7 +221,7 @@ class parkingPathPlanner():
 
         #print("d_est = {}\ntheta_est_deg = {}\nc_ref = {}".format(d_est/1000.0, degrees(theta_est), c_ref/1000.0))
 
-        return d_est/1000.0, c_ref*1000.0, theta_est
+        return d_est/1000.0, c_ref, theta_est
 
 
     def path_planning(self, end_number):
@@ -232,7 +234,7 @@ class parkingPathPlanner():
         obstacles = self.define_obstacles(objects)
 
         # path planning and collision check with dubins path
-        self.px, self.py, self.pyaw = self.dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
+        self.px, self.py, self.pyaw, self.c_ref, self.dist_sampels = self.dubins_path_planning(start_x, start_y, start_yaw, end_x, end_y, end_yaw)
         found_path = self.collision_check(self.px, self.py, obstacles)
 
         if self.plotting:
@@ -423,7 +425,29 @@ class parkingPathPlanner():
             py = py + py_straight
             pyaw = pyaw + pyaw_straight
 
-        return px, py, pyaw
+        n_points = len(self.px)
+        c_ref = [None] * n_points
+        c_ref[0] = 0
+
+        for n in range(1, n_points):
+            a = (self.px[n]-self.px[n - 1])/(self.px[n+1]-self.px[n - 1])
+            b = a*(self.py[n+1]-self.py[n - 1])-(self.py[n]-self.py[n - 1])
+            if np.abs(b) < 0.00001:
+                c_ref[n] = 0.0
+            else:
+                c_ref[n] = 1000 / curvature
+                if np.sign(self.pyaw[n - 1] - self.pyaw[n]) > 0:
+                    c_ref[n] = -c_ref[n]
+
+        dist_sampels = [None] * (n_points-1)
+
+        for d in range (0, n_points-1):
+            d_dir = sqrt((self.px[d+1] - self.px[d])**2 + (self.py[d+1] - self.py[d])**2)/1000
+            if c_ref[d] == 0:
+                dist_sampels[d] = d_dir
+            else:
+                dist_sampels[d] = curvature/1000 * np.arccos(1-d_dir**2/(2*curvature**2))
+        return px, py, pyaw, c_ref, dist_sampels
 
     # plot
     #def do_plotting(start_x, start_y, start_yaw, start_number, end_x, end_y, end_yaw, end_number, px, py, objects,
