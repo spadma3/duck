@@ -114,7 +114,7 @@ class parkingPathPlanner():
                 idx_dist += self.dist_sampels[self.idx+i]
             dist_perc = self.dist_last_index / idx_dist
             if dist_perc < 1:
-                idx_found == True
+                idx_found = True
                 self.dist_last_index -= idx_dist_before
                 idx_update = idx_steps-1
             else:
