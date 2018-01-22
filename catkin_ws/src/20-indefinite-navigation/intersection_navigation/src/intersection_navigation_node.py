@@ -133,10 +133,13 @@ class IntersectionNavigation(object):
     def ComputeFinalPose(self, intersection_type, turn_type):
         if intersection_type == self.tag_info.FOUR_WAY:
             if turn_type == 0: # left
+            	rospy.loginfo("[%s] Taking a LEFT turn.")
                 return self.nominal_final_positions[3]
             elif turn_type == 1: # straight
+            	rospy.loginfo("[%s] Going STRAIGHT.")
                 return self.nominal_final_positions[2]
             else: # right
+            	rospy.loginfo("[%s] Taking a RIGHT turn.")
                 return self.nominal_final_positions[1]
 
         elif intersection_type == self.tag_info.T_INTERSECTION:
@@ -434,6 +437,7 @@ class IntersectionNavigation(object):
     def TurnTypeCallback(self, msg):
         self.turn_type = msg.data
         self.turn_type_time = rospy.Time.now()
+
 
     def ImageCallback(self, msg):
         if self.state == self.state_dict['TRAVERSING']:
