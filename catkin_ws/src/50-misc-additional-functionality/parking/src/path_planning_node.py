@@ -114,6 +114,7 @@ class parkingPathPlanner():
                 print("distance index = {}".format((self.idx + i)))
                 print(n_points)
                 idx_dist = idx_dist + self.dist_sampels[(self.idx + i)]
+                print("idx_dist {}".format(idx_dist))
             dist_perc = self.dist_last_index / idx_dist
             if dist_perc < 1:
                 idx_found = True
