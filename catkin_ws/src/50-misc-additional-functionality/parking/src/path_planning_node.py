@@ -123,6 +123,8 @@ class parkingPathPlanner():
                 idx_steps += 1
                 if self.idx + idx_steps >= (n_points - 3):
                     self.end_of_path_reached = True
+                    idx_found = True
+
 
         print "out of while intermediate loop"
         self.idx += idx_update
