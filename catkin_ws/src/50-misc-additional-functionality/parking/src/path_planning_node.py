@@ -429,7 +429,7 @@ class parkingPathPlanner():
         c_ref = [None] * n_points
         c_ref[0] = 0
 
-        for n in range(1, n_points):
+        for n in range(1, n_points-1):
             a = (px[n]-px[n - 1])/(px[n+1]-px[n - 1])
             b = a*(py[n+1]-py[n - 1])-(py[n]-py[n - 1])
             if np.abs(b) < 0.00001:
@@ -441,7 +441,7 @@ class parkingPathPlanner():
 
         dist_sampels = [None] * (n_points-1)
 
-        for d in range (0, n_points-1):
+        for d in range (0, n_points-2):
             d_dir = sqrt((px[d+1] - px[d])**2 + (py[d+1] - py[d])**2)/1000
             if c_ref[d] == 0:
                 dist_sampels[d] = d_dir
