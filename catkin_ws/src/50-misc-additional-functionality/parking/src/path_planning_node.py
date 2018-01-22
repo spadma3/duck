@@ -118,7 +118,6 @@ class parkingPathPlanner():
             if dist_perc < 1:
                 idx_found = True
                 self.dist_last_index -= idx_dist_before
-                idx_update = idx_steps-1
             else:
                 idx_steps += 1
                 if self.idx + idx_steps >= (n_points - 3):
@@ -127,7 +126,7 @@ class parkingPathPlanner():
 
 
         print "out of while intermediate loop"
-        self.idx += idx_update
+        self.idx += idx_steps-1
         print("idx = {}".format(self.idx))
         self.end_of_path_reached = False
         print("idx = {}".format(self.idx))
