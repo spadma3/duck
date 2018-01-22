@@ -67,7 +67,7 @@ class parkingPathPlanner():
         # init counter
         #self.count = 0
         # init subscriber
-        rospy.Subscriber("~pose_duckiebot", Pose2DStamped, self.localization_callback)
+        #rospy.Subscriber("~pose_duckiebot", Pose2DStamped, self.localization_callback)
         # init pose
         #pose =  Pose2DStamped()
         #self.x_act = 0 #165.0
@@ -76,13 +76,13 @@ class parkingPathPlanner():
         #print "The pose is initialized to: ",(self.x_act,self.y_act,self.yaw_act)
         # init publisher
         self.sample_state_pub = rospy.Publisher("~parking_pose", LanePose, queue_size=1)
-        self.parking_active_pub = rospy.Publisher("~parking_active", BoolStamped, queue_size=1)
+        #self.parking_active_pub = rospy.Publisher("~parking_active", BoolStamped, queue_size=1)
 
         #self.path_planning(rospy.get_param('~end_space'))
         #print "The computed x path is ", self.px
         #print "The computed y path is ", self.py
         #print "The computed yaw path is ", self.pyaw
-        self.timer_control_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.control_callback)
+        #self.timer_control_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.control_callback)
         self.timer_parking_active_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
     def stopping_callback(self):
@@ -150,9 +150,12 @@ class parkingPathPlanner():
 
     def parking_active_callback(self,event):
         #rospy.loginfo("in parking_active_callback")
-        state = BoolStamped()
-        state.data = True
-        state.header.stamp = rospy.Time.now()
+        state = LanePose()
+        state.d = 0
+        state.d_ref = 0
+        state.v_ref = 0.1
+        state.curvature_ref = 0
+        state.phi = 0
         self.parking_active_pub.publish(state)
 
     #  callback for apriltag localization
