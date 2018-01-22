@@ -154,7 +154,7 @@ class parkingPathPlanner():
         state.d = 0
         state.d_ref = 0
         state.v_ref = 0.1
-        state.curvature_ref = 0
+        state.curvature_ref = curvature
         state.phi = 0
         self.sample_state_pub.publish(state)
 
