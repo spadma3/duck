@@ -112,6 +112,7 @@ class parkingPathPlanner():
             for i in range(0,idx_steps):
                 idx_dist_before = idx_dist
                 print("distance index = {}".format((self.idx + i)))
+                print(n_points)
                 idx_dist = idx_dist + self.dist_sampels[(self.idx + i)]
             dist_perc = self.dist_last_index / idx_dist
             if dist_perc < 1:
