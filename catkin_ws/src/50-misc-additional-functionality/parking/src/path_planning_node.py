@@ -111,7 +111,7 @@ class parkingPathPlanner():
             idx_dist_before = 0
             for i in range(0,idx_steps):
                 idx_dist_before = idx_dist
-                idx_dist = idx_dist + self.dist_sampels[self.idx+i]
+                idx_dist = idx_dist + self.dist_sampels[self.idx + i]
             dist_perc = self.dist_last_index / idx_dist
             if dist_perc < 1:
                 idx_found = True
