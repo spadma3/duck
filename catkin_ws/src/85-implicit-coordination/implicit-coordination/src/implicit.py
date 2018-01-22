@@ -131,7 +131,7 @@ class Implicit(object):
             rospy.loginfo("[%s] activated" % (self.node_name))
             flag = BoolStamped()
             backoff_time = 0.0  # in seconds
-            time.sleep(1.0)
+            time.sleep(3.0)
             if self.DetectPotCollision():
                 rospy.loginfo("[%s] potential collision" % (self.node_name))
                 if self.iteration > 0:

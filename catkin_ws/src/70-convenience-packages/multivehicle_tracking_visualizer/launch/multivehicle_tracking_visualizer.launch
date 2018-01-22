@@ -18,30 +18,30 @@
         </node>
     </group>
 
-    <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
-        <arg name="veh" value="$(arg veh)"/>
-    </include>
-    <remap from="line_detector_node/image" to="camera_node/image/compressed"/>
-    <remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
-    <include file="$(find line_detector)/launch/line_detector_node.launch">
-            <arg name="veh" value="$(arg veh)"/>
-            <arg name="config" value="$(arg config)"/>
-            <!-- NOTE: "line_detector_param_file_name" as special case -->
-            <arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
-            <arg name="verbose" value="$(arg verbose)" />
-            <arg name="local" value="$(arg local)"/>
-    </include>
-    <include file="$(find ground_projection)/launch/ground_projection.launch">
-        <arg name="veh" value="$(arg veh)"/>
-        <arg name="config" value="$(arg config)"/>
-        <arg name="param_file_name" value="$(arg param_file_name)"/>
-        <arg name="local" value="$(arg local)"/>
-    </include>
+    <!--<include file="$(find anti_instagram)/launch/anti_instagram_node.launch">-->
+        <!--<arg name="veh" value="$(arg veh)"/>-->
+    <!--</include>-->
+    <!--<remap from="line_detector_node/image" to="camera_node/image/compressed"/>-->
+    <!--<remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>-->
+    <!--<include file="$(find line_detector)/launch/line_detector_node.launch">-->
+            <!--<arg name="veh" value="$(arg veh)"/>-->
+            <!--<arg name="config" value="$(arg config)"/>-->
+            <!--&lt;!&ndash; NOTE: "line_detector_param_file_name" as special case &ndash;&gt;-->
+            <!--<arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>-->
+            <!--<arg name="verbose" value="$(arg verbose)" />-->
+            <!--<arg name="local" value="$(arg local)"/>-->
+    <!--</include>-->
+    <!--<include file="$(find ground_projection)/launch/ground_projection.launch">-->
+        <!--<arg name="veh" value="$(arg veh)"/>-->
+        <!--<arg name="config" value="$(arg config)"/>-->
+        <!--<arg name="param_file_name" value="$(arg param_file_name)"/>-->
+        <!--<arg name="local" value="$(arg local)"/>-->
+    <!--</include>-->
 
-  <remap from="duckiebot_visualizer/segment_list" to="ground_projection/lineseglist_out"/>
-  <include file="$(find duckiebot_visualizer)/launch/duckiebot_visualizer.launch">
-      <arg name="veh" value="$(arg veh)" />
-  </include>
+  <!--<remap from="duckiebot_visualizer/segment_list" to="ground_projection/lineseglist_out"/>-->
+  <!--<include file="$(find duckiebot_visualizer)/launch/duckiebot_visualizer.launch">-->
+      <!--<arg name="veh" value="$(arg veh)" />-->
+  <!--</include>-->
 </launch>
 
 <!--launch-prefix="xterm -e python -m pdb"-->

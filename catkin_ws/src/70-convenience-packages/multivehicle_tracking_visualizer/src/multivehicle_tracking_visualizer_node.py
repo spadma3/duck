@@ -42,7 +42,11 @@ class MultiVehicleTrackerVisualizerNode:
             marker.type = Marker.SPHERE
             marker.scale.x = math.sqrt(tracklet.sigma_x)
             marker.scale.y = math.sqrt(tracklet.sigma_y)
-            marker.scale.z = 0.0
+            marker.scale.z = 0.05
+            marker.pose.orientation.x = 0.0
+            marker.pose.orientation.y = 0.0
+            marker.pose.orientation.z = 0.0
+            marker.pose.orientation.w = 1.0
         else:
             marker.id = identifier
             marker.type = Marker.MESH_RESOURCE
@@ -62,12 +66,18 @@ class MultiVehicleTrackerVisualizerNode:
             marker.pose.position.y = tracklet.y
             marker.pose.position.z = 0.0
             heading = math.pi / 2 - tracklet.heading  # transform to local object's coordinates frame
+            marker.pose.orientation.x = 0.0
+            marker.pose.orientation.y = 0.0
             marker.pose.orientation.z = math.sin(heading / 2)  # rotation on z
             marker.pose.orientation.w = math.cos(heading / 2)  # quaternion w
         else:
             marker.pose.position.x = 0.0
             marker.pose.position.y = 0.0
             marker.pose.position.z = 0.0
+            marker.pose.orientation.x = 0.0
+            marker.pose.orientation.y = 0.0
+            marker.pose.orientation.z = 0.0
+            marker.pose.orientation.w = 1.0  # quaternion w
 
         return marker
 
@@ -79,6 +89,10 @@ class MultiVehicleTrackerVisualizerNode:
         marker.ns = self.veh_name + '/tracking'
         marker.id = marker_id
         marker.action = Marker.DELETE
+        marker.pose.orientation.x = 0.0
+        marker.pose.orientation.y = 0.0
+        marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
 
         return marker
 
