@@ -121,15 +121,13 @@ class parkingPathPlanner():
                 idx_update = idx_steps-1
             else:
                 idx_steps += 1
+                if self.idx + idx_steps >= (n_points - 1):
+                    self.end_of_path_reached = True
+
         print "out of while intermediate loop"
         self.idx += idx_update
         print("idx = {}".format(self.idx))
-        if int(self.idx) > n_points - 3:
-            self.idx = n_points - 3
-            self.end_of_path_reached = True
-        else:
-
-            self.end_of_path_reached = False
+        self.end_of_path_reached = False
         print("idx = {}".format(self.idx))
         print("idx += {}".format((self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.py[int(self.idx)] - self.py[int(self.idx)-1])**2) / 1000))))
         self.x_act = self.px[int(round(self.idx))]       ### + np.random.normal(bias_xy,var_xy)
