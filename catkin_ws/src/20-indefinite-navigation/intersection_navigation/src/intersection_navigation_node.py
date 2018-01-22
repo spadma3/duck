@@ -438,7 +438,6 @@ class IntersectionNavigation(object):
         self.turn_type = msg.data
         self.turn_type_time = rospy.Time.now()
 
-
     def ImageCallback(self, msg):
         if self.state == self.state_dict['TRAVERSING']:
             # predict pose
