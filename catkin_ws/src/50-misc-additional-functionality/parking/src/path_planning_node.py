@@ -425,24 +425,24 @@ class parkingPathPlanner():
             py = py + py_straight
             pyaw = pyaw + pyaw_straight
 
-        n_points = len(self.px)
+        n_points = len(px)
         c_ref = [None] * n_points
         c_ref[0] = 0
 
         for n in range(1, n_points):
-            a = (self.px[n]-self.px[n - 1])/(self.px[n+1]-self.px[n - 1])
-            b = a*(self.py[n+1]-self.py[n - 1])-(self.py[n]-self.py[n - 1])
+            a = (px[n]-px[n - 1])/(px[n+1]-px[n - 1])
+            b = a*(py[n+1]-py[n - 1])-(py[n]-py[n - 1])
             if np.abs(b) < 0.00001:
                 c_ref[n] = 0.0
             else:
                 c_ref[n] = 1000 / curvature
-                if np.sign(self.pyaw[n - 1] - self.pyaw[n]) > 0:
+                if np.sign(pyaw[n - 1] - pyaw[n]) > 0:
                     c_ref[n] = -c_ref[n]
 
         dist_sampels = [None] * (n_points-1)
 
         for d in range (0, n_points-1):
-            d_dir = sqrt((self.px[d+1] - self.px[d])**2 + (self.py[d+1] - self.py[d])**2)/1000
+            d_dir = sqrt((px[d+1] - px[d])**2 + (py[d+1] - py[d])**2)/1000
             if c_ref[d] == 0:
                 dist_sampels[d] = d_dir
             else:
