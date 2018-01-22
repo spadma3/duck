@@ -77,8 +77,8 @@ class RQTFleetPlanning(Plugin):
         tile_position = self.image_to_map_transformer.image_to_map((event.pos().x(), event.pos().y()))
         rospy.logwarn("UNScaled click location: {},{}".format(tile_position[0], tile_position[1]))
         scaled_tile_position = [0, 0]        
-        scaled_tile_position[0] = tile_position[0] * self.scale_factor_width
-        scaled_tile_position[1] = tile_position[1] * self.scale_factor_height
+        scaled_tile_position[0] = float(tile_position[0]) * self.scale_factor_width
+        scaled_tile_position[1] = float(tile_position[1]) * self.scale_factor_height
         rospy.logwarn("Scaled click location: {},{}".format(scaled_tile_position[0], scaled_tile_position[1]))
         graph_node_number = self.map_to_graph_transformer.get_closest_node(scaled_tile_position)
         self.drawRequestState(scaled_tile_position, graph_node_number)
