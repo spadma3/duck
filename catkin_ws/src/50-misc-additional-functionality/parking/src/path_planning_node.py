@@ -56,7 +56,7 @@ class parkingPathPlanner():
         self.plotting = True
         self.plan = True
         self.sample_freq = 50    # [Hz]
-        self.duration_blind_feedforward = 3    # [s]
+        self.duration_blind_feedforward = 1    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.1  #0.38  # reference vel for parking
         self.v_default = 0.1  #0.38  # reference vel for parking
@@ -173,7 +173,7 @@ class parkingPathPlanner():
         rospy.loginfo("in localization_callback")
         print("plan = {}".format(self.plan))
         print("localization time constraint = {}".format(rospy.Time.now().secs - self.time_when_last_stopped))
-        if self.plan == True and (rospy.Time.now().secs - self.time_when_last_stopped) > 5:
+        if self.plan == True and (rospy.Time.now().secs - self.time_when_last_stopped) > 4:
             rospy.loginfo("planning a path")
             # plan the path once during first callback
             self.x_act = pose.x
