@@ -439,7 +439,8 @@ class parkingPathPlanner():
         for n in range(1, n_points-1):
             a = (px[n]-px[n - 1])/(px[n+1]-px[n - 1])
             b = a*(py[n+1]-py[n - 1])-(py[n]-py[n - 1])
-            if np.abs(b) < 0.00001:
+            print "b = ", b
+            if np.abs(b) < 0.000000001:
                 c_ref[n] = 0.0
             else:
                 c_ref[n] = 1000 / curvature
