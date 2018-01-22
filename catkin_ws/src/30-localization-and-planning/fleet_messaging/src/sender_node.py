@@ -18,19 +18,15 @@ class Sender(object):
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initializing." %(self.node_name))
 
-        rospy.loginfo("[%s] 1" %(self.node_name))
-
-        # List the parameters (&FEF - DEBUG)
-        params = rospy.get_param_names()
-        rospy.loginfo("[%s] Parameters:" %(self.node_name))
-        for param in params:
-            rospy.loginfo("[%s] %s" %(self.node_name, param))
+        # List the parameters (DEBUG)
+        # params = rospy.get_param_names()
+        # rospy.loginfo("[%s] Parameters:" %(self.node_name))
+        # for param in params:
+        #     rospy.loginfo("[%s] %s" %(self.node_name, param))
 
         # Load the parameters
         config_path = self.__setup_parameter("~config")
-        rospy.loginfo("[%s] 2" %(self.node_name))
         self.iface = self.__setup_parameter("~iface")
-        rospy.loginfo("[%s] 3" %(self.node_name))
 
         # Load the configuration
         try:
@@ -42,33 +38,39 @@ class Sender(object):
             output = "[%s] File \"%s\" does not exist! Please use an existing file!"
             rospy.logfatal(output %(self.node_name, config_path))
             raise
-        
+
         rospy.loginfo("[%s] 4" %(self.node_name))
 
         # Loop through the configuration
         try:
             self.config = {}
+            sub = "sub"
             for entry in config_yaml:
-                # Create the socket
-                port = entry["port"]
-                socket = DuckieMQSender(self.iface, port)
+                if sub in entry:
+                    # Create the socket
+                    port = entry["port"]
+                    socket = DuckieMQSender(self.iface, port)
 
-                # Create the subscriber
-                sub_topic = entry["sub"]
-                cb_fun = create_cb(self.node_name, socket)
-                sub = rospy.Subscriber(sub_topic, ByteMultiArray, cb_fun)
+                    # Create the subscriber
+                    sub_topic = entry[sub]
+                    cb_fun = create_cb(self.node_name, socket)
+                    sub = rospy.Subscriber(sub_topic, ByteMultiArray, cb_fun)
 
-                # Populate the configuration
-                self.config[entry["name"]] = (
-                    port,
-                    sub_topic,
-                    sub,
-                    socket
-                )
+                    # Populate the configuration
+                    self.config[entry["name"]] = (
+                        port,
+                        sub_topic,
+                        sub,
+                        socket
+                    )
         except TypeError:
             output = "[%s] Syntax error in \"%s\"!"
             rospy.logfatal(output %(self.node_name, config_path))
             raise
+
+        # Check, if the configuration is empty
+        if not self.config:
+            raise KeyError("Configuration is empty!")
 
     def __setup_parameter(self, param_name, default_value="None"):
         """
@@ -79,12 +81,11 @@ class Sender(object):
         Outputs:
         - value: Parameter value
         """
-        rospy.loginfo("[%s] config 1" %(self.node_name))
         value = rospy.get_param(param_name, default_value)
-        rospy.loginfo("[%s] name: %s (%s), value: %s" %(self.node_name, param_name, rospy.resolve_name(param_name), value))
-        #rospy.set_param(param_name, value)
+        rospy.set_param(param_name, value)
 
-        rospy.loginfo("[%s] %s = %s " %(self.node_name, param_name, value))
+        output = "[%s] Setting parameter %s = %s."
+        rospy.loginfo(output %(self.node_name, param_name, value))
 
         return value
 

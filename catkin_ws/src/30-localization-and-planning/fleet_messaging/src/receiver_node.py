@@ -41,36 +41,42 @@ class Receiver(object):
         # Loop through the configuration
         try:
             self.config = {}
+            pub = "pub"
             for entry in config_yaml:
-                # Create the socket
-                port = entry["port"]
-                socket = DuckieMQReceiver(self.iface, port, self.timeout)
+                if pub in entry:
+                    # Create the socket
+                    port = entry["port"]
+                    socket = DuckieMQReceiver(self.iface, port, self.timeout)
 
-                # Create the publisher
-                pub_topic = entry["pub"]
-                pub = rospy.Publisher(pub_topic, ByteMultiArray, queue_size=1)
+                    # Create the publisher
+                    pub_topic = entry[pub]
+                    pub = rospy.Publisher(pub_topic, ByteMultiArray, queue_size=1)
 
-                # Start threading
-                name = entry["name"]
-                evnt = threading.Event()
-                thread = threading.Thread(group=None, target=publish_msg,
-                                          name=name, args=(socket, pub, evnt,
-                                                           self.timeout))
-                thread.start()
+                    # Start threading
+                    name = entry["name"]
+                    evnt = threading.Event()
+                    thread = threading.Thread(group=None, target=publish_msg,
+                                              name=name, args=(socket, pub, evnt,
+                                                               self.timeout))
+                    thread.start()
 
-                # Populate the configuration
-                self.config[name] = (
-                    port,
-                    pub_topic,
-                    pub,
-                    socket,
-                    evnt,
-                    thread
-                )
+                    # Populate the configuration
+                    self.config[name] = (
+                        port,
+                        pub_topic,
+                        pub,
+                        socket,
+                        evnt,
+                        thread
+                    )
         except TypeError:
             output = "[%s] Syntax error in \"%s\"!"
             rospy.logfatal(output %(self.node_name, config_path))
             raise
+
+        # Check, if the configuration is empty
+        if not self.config:
+            raise KeyError("Configuration is empty!")
 
     def __setup_parameter(self, param_name, default_value=None):
         """
