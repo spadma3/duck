@@ -767,28 +767,28 @@
   traffic_sign_type: parking
 
 - tag_id: 128
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: parking
 
 - tag_id: 129
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: parking
 
 - tag_id: 130
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: parking
 
 - tag_id: 131
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: parking
 
 - tag_id: 132
   tag_type:

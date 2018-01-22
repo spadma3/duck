@@ -25,3 +25,7 @@ out-detector-tests/
 catkin_ws/src/00-infrastructure/easy_logs/cloud.yaml
 catkin_ws/src/XX-exercises/
 .ipynb_checkpoints
+out-*
+what_the_duck*html
+fleet.html
+roster.html

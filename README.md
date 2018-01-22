@@ -1,23 +1,23 @@
 # Main software repository for Duckietown
 
-This is the main software repository for the Duckietown project. It contains all software, as well as hardware projects.
+This is the main software repository for [the Duckietown project][main]. It contains all software, as well as hardware projects.
 
-- For an introduction to the project, see the site [duckietown.org](http://duckietown.org).
+- For an introduction to the project, see the site [duckietown.org][main].
 - For extensive technical documentation, please refer to [the Duckiebooks][duckiebook].
 
-
+[main]: http://duckietown.org/
 [duckiebook]: http://book.duckietown.org/
 
-#### Master is now a protected branch
+<img src="http://duckietown.org/media/duckie2.png" width="120" height="120"/>
 
-[See docs here](https://github.com/blog/2051-protected-branches-and-required-status-checks)
-
-#### Continuous integration badges
+#### Continuous integration
 
 If you do not know what "continuous integration" is, please see
  <a href="http://purl.org/dth/continuous-integration">this chapter</a> in the Duckiebook.
 
 See [the continuous integration console](https://circleci.com/gh/duckietown/Software/).
+
+Master is now a protected branch. [See docs here](https://github.com/blog/2051-protected-branches-and-required-status-checks).
 
 
 <table>
@@ -41,6 +41,15 @@ See [the continuous integration console](https://circleci.com/gh/duckietown/Soft
         </a>
         </td>
         <td> Andrea's reorganization/cleanup branch. </td>
+    </tr>
+    <tr>
+        <td> <code>liam-devel</code> </td>
+        <td>
+        <a href="https://circleci.com/gh/duckietown/Software/tree/liam-devel">
+        <img src='https://circleci.com/gh/duckietown/Software/tree/liam-devel.svg?style=shield'/>
+        </a>
+        </td>
+        <td> Liam's branch. </td>
     </tr>
 </tbody>
 </table>
