@@ -126,6 +126,7 @@ class parkingPathPlanner():
             self.idx = n_points - 3
             self.end_of_path_reached = True
         else:
+
             self.end_of_path_reached = False
         print("idx = {}".format(self.idx))
         print("idx += {}".format((self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.py[int(self.idx)] - self.py[int(self.idx)-1])**2) / 1000))))
@@ -137,7 +138,7 @@ class parkingPathPlanner():
     #  callback for control references
     def control_callback(self,event):
         begin = rospy.get_rostime()
-        #rospy.logerr("in control_callback")
+        rospy.logerr("in control_callback")
         state = LanePose()
         if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
             self.stopping_callback()
@@ -169,6 +170,7 @@ class parkingPathPlanner():
     def localization_callback(self, pose):
         rospy.loginfo("in localization_callback")
         print("plan = {}".format(self.plan))
+        print("localization time constraint = {}".format(rospy.Time.now().secs - self.time_when_last_stopped))
         if self.plan == True and (rospy.Time.now().secs - self.time_when_last_stopped) > 5:
             rospy.loginfo("planning a path")
             # plan the path once during first callback
