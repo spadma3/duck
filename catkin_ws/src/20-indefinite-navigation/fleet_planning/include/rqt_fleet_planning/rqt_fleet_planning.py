@@ -86,6 +86,7 @@ class RQTFleetPlanning(Plugin):
     def drawRequestState(self, tile_position, graph_node_number):
         tile_x = "{:.2f}".format(tile_position[0])
         tile_y = "{:.2f}".format(tile_position[1])
+        rospy.logwarn("tile_x: {} tile_y: {}".format(tile_x, tile_y))
         if (self.isRequestStartSet() and self.isRequestDestinationSet()):
             pass
         elif (self.isRequestStartSet()):
