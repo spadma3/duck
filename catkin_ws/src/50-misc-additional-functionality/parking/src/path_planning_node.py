@@ -156,7 +156,7 @@ class parkingPathPlanner():
         state.v_ref = 0.1
         state.curvature_ref = 0
         state.phi = 0
-        self.parking_active_pub.publish(state)
+        self.sample_state_pub.publish(state)
 
     #  callback for apriltag localization
     def localization_callback(self, pose):
