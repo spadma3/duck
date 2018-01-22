@@ -453,6 +453,7 @@ class parkingPathPlanner():
                 dist_sampels[d] = d_dir
             else:
                 dist_sampels[d] = curvature/1000 * np.arccos(1-d_dir**2/(2*curvature**2))
+        print dist_sampels
         return px, py, pyaw, c_ref, dist_sampels
 
     # plot
