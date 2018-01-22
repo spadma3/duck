@@ -1,5 +1,5 @@
 detection_threshold: .03
-iteration_threshold: 10
+iteration_threshold: 10000
 SlotTime: .2
 right_priority_thresholdy: 0.4
 right_priority_thresholdx: 0.6
