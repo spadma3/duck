@@ -23,7 +23,7 @@ straight_in_parking_space = True    # robot drives last forward bit straigt (rob
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
 allow_backwards_on_circle = False   # use this later together with reeds sheep
-curvature = 120                     # mm minimal turning radius
+curvature = 200                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
 
