@@ -106,6 +106,7 @@ class parkingPathPlanner():
         idx_found = False
         idx_steps = 1
         while idx_found == False:
+            print "in while intermediate loop"
             idx_dist = 0
             idx_dist_before = 0
             for i in range(0,idx_steps):
@@ -118,6 +119,7 @@ class parkingPathPlanner():
                 idx_update = idx_steps-1
             else:
                 idx_steps += 1
+        print "out of while intermediate loop"
         self.idx += idx_update
         print("idx = {}".format(self.idx))
         if int(self.idx) > n_points - 3:
@@ -166,6 +168,7 @@ class parkingPathPlanner():
     #  callback for apriltag localization
     def localization_callback(self, pose):
         rospy.loginfo("in localization_callback")
+        print("plan = {}".format(self.plan))
         if self.plan == True and (rospy.Time.now().secs - self.time_when_last_stopped) > 5:
             rospy.loginfo("planning a path")
             # plan the path once during first callback
