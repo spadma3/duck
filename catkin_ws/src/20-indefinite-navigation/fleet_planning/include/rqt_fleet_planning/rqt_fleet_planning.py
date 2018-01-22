@@ -135,6 +135,7 @@ class RQTFleetPlanning(Plugin):
         bytesPerLine = 3 * width
         q_img_tmp = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
         self.image = QPixmap(q_img_tmp)
+        self.image = self.image.scaledToHeight(850)
         #show it on the GUI
         self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
         self._widget.label_image.setPixmap(self.image)
