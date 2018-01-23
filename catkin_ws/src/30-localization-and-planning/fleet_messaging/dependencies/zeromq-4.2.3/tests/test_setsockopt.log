@@ -1,0 +1,1 @@
+PASS tests/test_setsockopt (exit status: 0)

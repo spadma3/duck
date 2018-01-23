@@ -1,0 +1,1 @@
+PASS tests/test_bind_after_connect_tcp (exit status: 0)

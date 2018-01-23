@@ -1,0 +1,3 @@
+sndhwm==100, send_count==101
+sndhwm==70, send_count==21
+PASS tests/test_sockopt_hwm (exit status: 0)
