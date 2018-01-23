@@ -691,7 +691,7 @@ class calib():
         # We chose to overwrite the gain parameter, but instead the motor constant could be changed
         gain = param_radius * param_k / c
         trim = - tr * param_radius * param_k * param_radius * param_k / (cl * c)
-        baseline = 2 * c / cl
+        baseline = 2 * c / cl * 0.9  # The 0.9 is a biasing factor because the sine steer is finite
         
         # Write to yaml
         #datasave = {  # This is similar to the inverse_kinematics_node, but it did not work...
