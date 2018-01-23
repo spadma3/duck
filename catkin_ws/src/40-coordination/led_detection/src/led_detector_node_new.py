@@ -336,8 +336,9 @@ class LEDDetectorNode(object):
 
         # Decide whether LED or not (front)
         for i in range(len(BlobsTL)):
-            #  print (1.0* BlobsFront[i]['N'])/(1.0*NIm)
-            if (1.0 * BlobsTL[i]['N'])/(1.0 * NIm) < 0.8 and (1.0 * BlobsTL[i]['N'])/(1.0 * NIm) > 0.2:
+            printout = (1.0* BlobsTL[i]['N'])/(1.0*NIm)
+            rospy.loginfo("IS %s  less than 0.8 and greater than 0.2?" % (printout) )
+            if (1.0 * BlobsTL[i]['N'])/(1.0 * NIm) < 0.9 and (1.0 * BlobsTL[i]['N'])/(1.0 * NIm) > 0.2:
                 self.traffic_light = SignalsDetection.GO
                 break
             else:
@@ -356,9 +357,9 @@ class LEDDetectorNode(object):
 
     def publish(self,imRight,imFront,imTL):
         #  Publish image with circles
-        imRightCircle_msg = self.bridge.cv2_to_imgmsg(imRight,encoding="passthrough")
-        imFrontCircle_msg = self.bridge.cv2_to_imgmsg(imFront,encoding="passthrough")
-        imTLCircle_msg    = self.bridge.cv2_to_imgmsg(imTL,encoding="passthrough")
+        imRightCircle_msg = self.bridge.cv2_to_imgmsg(imRight)
+        imFrontCircle_msg = self.bridge.cv2_to_imgmsg(imFront)
+        imTLCircle_msg    = self.bridge.cv2_to_imgmsg(imTL)
 
         # Publish image
         self.pub_image_right.publish(imRightCircle_msg)
