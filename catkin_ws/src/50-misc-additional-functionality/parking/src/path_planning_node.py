@@ -23,7 +23,7 @@ straight_in_parking_space = True    # robot drives last forward bit straigt (rob
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
 allow_backwards_on_circle = False   # use this later together with reeds sheep
-curvature = 120                     # mm minimal turning radius
+curvature = 200                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
 
@@ -56,7 +56,7 @@ class parkingPathPlanner():
         self.plotting = True
         self.plan = True
         self.sample_freq = 50    # [Hz]
-        self.duration_blind_feedforward = 3    # [s]
+        self.duration_blind_feedforward = 1    # [s]
         self.d_ref = 0  # for parking, d_ref = 0
         self.v_ref = 0.1  #0.38  # reference vel for parking
         self.v_default = 0.1  #0.38  # reference vel for parking
@@ -162,7 +162,7 @@ class parkingPathPlanner():
         rospy.loginfo("in localization_callback")
         print("plan = {}".format(self.plan))
         print("localization time constraint = {}".format(rospy.Time.now().secs - self.time_when_last_stopped))
-        if self.plan == True and (rospy.Time.now().secs - self.time_when_last_stopped) > 5:
+        if self.plan == True and (rospy.Time.now().secs - self.time_when_last_stopped) > 4:
             rospy.loginfo("planning a path")
             # plan the path once during first callback
             self.x_act = pose.x
@@ -428,7 +428,8 @@ class parkingPathPlanner():
         for n in range(1, n_points-1):
             a = (px[n]-px[n - 1])/(px[n+1]-px[n - 1])
             b = a*(py[n+1]-py[n - 1])-(py[n]-py[n - 1])
-            if np.abs(b) < 0.00001:
+            print "b = ", b
+            if np.abs(b) < 0.000000001:
                 c_ref[n] = 0.0
             else:
                 c_ref[n] = 1000 / curvature
