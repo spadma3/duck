@@ -151,6 +151,7 @@ class GraphSlam
     ros::Subscriber carcmdSub;
     ros::Subscriber odomSub;
     ros::Timer optimizerTimer;
+    ros::Timer testTimer;
     NonlinearFactorGraph graph;
     Values initialEstimate;
     Values result;
@@ -162,8 +163,6 @@ class GraphSlam
     float curx;
     float cury;
     float curtheta;
-    float imutheta;
-    float oldimutheta;
     double lastTimeSecs;
 
     double speedGainParam;
@@ -172,7 +171,7 @@ public:
     GraphSlam()
 	: nh_(), measurementNoise(noiseModel::Diagonal::Sigmas((Vector(2) << 0.1, 0.1))),
 	  odomNoise(noiseModel::Diagonal::Sigmas((Vector(3) << 0.05, 0.01, 0.1))),
-	  curposeindex(0), curx(0.0f), cury(0.0f), curtheta(0.0f), imutheta(0.0f), oldimutheta(0.0f)
+	  curposeindex(0), curx(0.0f), cury(0.0f), curtheta(0.0f)
 	{
 	    nh_.getParam("duckiebot_visualizer/veh_name", veh_name);
 	    nh_.getParam("joy_mapper_node/speed_gain", speedGainParam);
@@ -194,6 +193,7 @@ public:
 	    odomSub = nh_.subscribe("mono_odometer/odometry", 1000, &GraphSlam::odomCallback, this);
 
 	    optimizerTimer = nh_.createTimer(ros::Duration(1), &GraphSlam::optimizeCallback, this);
+	    //testTimer = nh_.createTimer(ros::Duration(5), &GraphSlam::testCallback, this);
 	}
 
     void aprilcallback(const duckietown_msgs::AprilTagsWithInfos::ConstPtr& msg)
@@ -242,6 +242,16 @@ public:
 	    initialEstimate.insert(curposeindex, Pose2(curx, cury, curtheta));
 
 	    marker_pub.publish(make_pose_marker(curposeindex, ADD_ACTION, curx, cury, curtheta));
+	}
+
+    void testCallback(const ros::TimerEvent&)
+	{
+	    curposeindex = 0;
+	    curx = 0;
+	    cury = 0;
+	    curtheta = 0;
+
+	    graph.resize(0);
 	}
 
 
