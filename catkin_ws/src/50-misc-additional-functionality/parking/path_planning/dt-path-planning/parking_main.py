@@ -10,9 +10,9 @@ import rrt_star_car as rrt_star
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import os, pickle, sys
 from math import sin, cos, sqrt, atan2, degrees, radians, pi
 from numpy import sign
-import os, pickle, sys
 
 """
 Global parameters
@@ -25,11 +25,11 @@ pause_per_path = 1 # sec
 ploting = True
 
 # path planning parameters
-radius_robot = 60                   # mm distance point between wheels and most apart point on robot
 straight_in_parking_space = True    # robot drives last forward bit straigt (robustness increase)
 straight_at_entrance = True         # robot drives last forward bit straigt (robustness increase)
 primitive_backwards = True          # drive backwards and plan afterwards
 allow_backwards_on_circle = False   # use this later together with reeds sheep
+radius_robot = 60                   # mm distance point between wheels and most apart point on robot
 curvature = 60 #120                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
