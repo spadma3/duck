@@ -55,6 +55,7 @@ class Detector():
         self.factor = 1.0  # to be set in ground2bird_view_pixel_init
         self.obst_thres = 20  # to be set in init_inv_homography, this is default was 35
         self.minimum_tracking_distance = 60
+        self.min_consec_tracking = 2 #number if times you must have seen critical object before adding as obstacle
         self.new_track_array = np.array([])
 
         self.M = self.init_inv_homography()
@@ -239,7 +240,7 @@ class Detector():
             new_position[3, :] = self.track_array[3, distance_min_index] + 1
 
             if ((new_position[2, :] < 100) and new_position[3,
-                                                                         :] < 4):  # not seen 4 times yet
+                                                                         :] < self.min_consec_tracking):  # not seen 2 times yet
                 # print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                 distance_min = 2 * self.minimum_tracking_distance
 
