@@ -100,21 +100,15 @@ class parkingPathPlanner():
         n_points = len(self.px)
         self.v_ref = 0.1
         velocity_to_m_per_s = 10/8.5
-        print("dist = {}".format(self.v_ref * velocity_to_m_per_s * delta_t))
         self.dist_last_index += self.v_ref * velocity_to_m_per_s * delta_t
-        print("dist_last_ = {}".format(self.dist_last_index))
         idx_found = False
         idx_steps = 1
         while idx_found == False:
-            print "in while intermediate loop"
             idx_dist = 0
             idx_dist_before = 0
             for i in range(0,idx_steps):
                 idx_dist_before = idx_dist
-                print("distance index = {}".format((self.idx + i)))
-                print(n_points)
                 idx_dist = idx_dist + self.dist_sampels[(self.idx + i)]
-                print("idx_dist {}".format(idx_dist))
             dist_perc = self.dist_last_index / idx_dist
             if dist_perc < 1:
                 idx_found = True
@@ -125,13 +119,8 @@ class parkingPathPlanner():
                     self.end_of_path_reached = True
                     idx_found = True
 
-
-        print "out of while intermediate loop"
         self.idx += idx_steps-1
-        print("idx = {}".format(self.idx))
         self.end_of_path_reached = False
-        print("idx = {}".format(self.idx))
-        print("idx += {}".format((self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.py[int(self.idx)] - self.py[int(self.idx)-1])**2) / 1000))))
         self.x_act = self.px[int(round(self.idx))]       ### + np.random.normal(bias_xy,var_xy)
         self.y_act = self.py[int(round(self.idx))]        ### + np.random.normal(bias_xy,var_xy)
         self.yaw_act = self.pyaw[int(round(self.idx))]        ### + np.random.normal(bias_heading,var_heading)
@@ -445,6 +434,8 @@ class parkingPathPlanner():
                 c_ref[n] = 1000 / curvature
                 if np.sign(pyaw[n - 1] - pyaw[n]) > 0:
                     c_ref[n] = -c_ref[n]
+
+        print "c_ref values {}".format(c_ref)
 
         dist_sampels = [None] * (n_points-1)
 
