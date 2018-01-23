@@ -40,7 +40,7 @@ class ActionsDispatcherNode:
         self.listener_transform = tf.TransformListener()
 
         # Publishers:
-        self.pub_action = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
+        self.pub_action = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=False)
         self.pub_location_node = rospy.Publisher("/taxi/location", ByteMultiArray, queue_size=1)
         self.pub_intersection_go = rospy.Publisher('simple_coordinator_node/intersection_go', BoolStamped, queue_size=1)
         self.pub_car_cmd = rospy.Publisher('simple_coordinator_node/car_cmd', Twist2DStamped, queue_size=1)
@@ -58,9 +58,7 @@ class ActionsDispatcherNode:
         return value
 
     def mode_update(self, msg):
-        rospy.logwarn("mode update action dispatcher {}".format(msg.state))
         if msg.state == "COORDINATION":
-            rospy.logwarn("CORDINATION ACTION DISPATCHER")
             self.pub_car_cmd.publish(Twist2DStamped(v=0, omega=0))
             self.localize_at_red_line(msg)
 
@@ -97,7 +95,7 @@ class ActionsDispatcherNode:
         if self.target_node is None or self.target_node == node:
             rate_recursion = rospy.Rate(0.5)
             rate_recursion.sleep()
-            self.localize_at_red_line(msg)  # repeat until new duckiebot mission was published # TODO: improve this?
+            self.localize_at_red_line(msg)  # repeat until new duckiebot mission was published
 
         else:
             self.graph_search(node, self.target_node)
@@ -123,7 +121,6 @@ class ActionsDispatcherNode:
             return
 
         self.target_node = target_node
-
 
     def graph_search(self, source_node, target_node):
         print 'Requesting map for src: ', source_node, ' and target: ', target_node
