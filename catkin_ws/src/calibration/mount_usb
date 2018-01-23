@@ -1,0 +1,1 @@
+sudo mount -t vfat /dev/sda1 /media/logs -o umask=000

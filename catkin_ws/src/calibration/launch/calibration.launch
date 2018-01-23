@@ -1,0 +1,11 @@
+<launch>
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+    <arg name="path" default="/media/logs/" doc="path of the recorded bag." />
+ 
+   <node  pkg="calibration" type="kinematic_calibration.py" name="kinematic_calibration" output="screen" clear_params="true" required="true">
+                 <param name="veh" value="$(arg veh)"/>
+		 <param name="path" value="$(arg path)"/>
+    </node>
+
+</launch>
+
