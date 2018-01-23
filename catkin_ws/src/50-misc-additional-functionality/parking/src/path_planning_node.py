@@ -85,58 +85,6 @@ class parkingPathPlanner():
         self.timer_control_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.control_callback)
         self.timer_parking_active_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
-    def stopping_callback(self):
-        rospy.loginfo("in stopping_callback")
-        state = LanePose()
-        state.v_ref = 0.0
-        self.v_ref = state.v_ref
-        self.sample_state_pub.publish(state)
-        if self.plan == False:
-            self.time_when_last_stopped = rospy.Time.now().secs
-        self.plan = True
-
-
-    def get_intermediate_pose(self, delta_t):
-        n_points = len(self.px)
-        self.v_ref = 0.1
-        velocity_to_m_per_s = 10/8.5
-        print("dist = {}".format(self.v_ref * velocity_to_m_per_s * delta_t))
-        self.dist_last_index += self.v_ref * velocity_to_m_per_s * delta_t
-        print("dist_last_ = {}".format(self.dist_last_index))
-        idx_found = False
-        idx_steps = 1
-        while idx_found == False:
-            print "in while intermediate loop"
-            idx_dist = 0
-            idx_dist_before = 0
-            for i in range(0,idx_steps):
-                idx_dist_before = idx_dist
-                print("distance index = {}".format((self.idx + i)))
-                print(n_points)
-                idx_dist = idx_dist + self.dist_sampels[(self.idx + i)]
-                print("idx_dist {}".format(idx_dist))
-            dist_perc = self.dist_last_index / idx_dist
-            if dist_perc < 1:
-                idx_found = True
-                self.dist_last_index -= idx_dist_before
-            else:
-                idx_steps += 1
-                if self.idx + idx_steps >= (n_points - 3):
-                    self.end_of_path_reached = True
-                    idx_found = True
-
-
-        print "out of while intermediate loop"
-        self.idx += idx_steps-1
-        print("idx = {}".format(self.idx))
-        self.end_of_path_reached = False
-        print("idx = {}".format(self.idx))
-        print("idx += {}".format((self.v_ref * velocity_to_m_per_s * delta_t / (sqrt((self.px[int(self.idx)] - self.px[int(self.idx)-1])**2 + (self.py[int(self.idx)] - self.py[int(self.idx)-1])**2) / 1000))))
-        self.x_act = self.px[int(round(self.idx))]       ### + np.random.normal(bias_xy,var_xy)
-        self.y_act = self.py[int(round(self.idx))]        ### + np.random.normal(bias_xy,var_xy)
-        self.yaw_act = self.pyaw[int(round(self.idx))]        ### + np.random.normal(bias_heading,var_heading)
-
-
     #  callback for control references
     def control_callback(self,event):
         begin = rospy.get_rostime()
@@ -147,7 +95,6 @@ class parkingPathPlanner():
         if self.end_of_path_reached:
             self.stopping_callback()
         if self.plan == False:
-            #rospy.loginfo("in control_callback in 'if self.plan == False'")
             self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
             delta_t = self.current_time_sec - self.previous_time_sec
             print "delta_t = ", delta_t
@@ -160,6 +107,48 @@ class parkingPathPlanner():
             self.sample_state_pub.publish(state)
         end = rospy.get_rostime()
         #rospy.logerr("Pathplanning/Sample Callback [micros]: %s" %((end.nsecs-begin.nsecs)/1000))
+
+    def stopping_callback(self):
+        rospy.loginfo("in stopping_callback")
+        state = LanePose()
+        state.v_ref = 0.0
+        self.v_ref = state.v_ref
+        self.sample_state_pub.publish(state)
+        if self.plan == False:
+            self.time_when_last_stopped = rospy.Time.now().secs
+        self.plan = True
+
+
+    def get_intermediate_pose(self, delta_t):
+        rospy.loginfo("in get_intermediate_pose")
+        n_points = len(self.px)
+        self.v_ref = 0.1
+        velocity_to_m_per_s = 10/8.5
+        self.dist_last_index += self.v_ref * velocity_to_m_per_s * delta_t
+        idx_found = False
+        idx_steps = 1
+        while idx_found == False:
+            idx_dist = 0
+            idx_dist_before = 0
+            for i in range(0,idx_steps):
+                idx_dist_before = idx_dist
+                idx_dist = idx_dist + self.dist_sampels[(self.idx + i)]
+            dist_perc = self.dist_last_index / idx_dist
+            if dist_perc < 1:
+                idx_found = True
+                self.dist_last_index -= idx_dist_before
+            else:
+                idx_steps += 1
+                if self.idx + idx_steps >= (n_points - 3):
+                    self.end_of_path_reached = True
+                    idx_found = True
+
+        self.idx += idx_steps-1
+        self.end_of_path_reached = False
+        self.x_act = self.px[int(round(self.idx))]       ### + np.random.normal(bias_xy,var_xy)
+        self.y_act = self.py[int(round(self.idx))]        ### + np.random.normal(bias_xy,var_xy)
+        self.yaw_act = self.pyaw[int(round(self.idx))]        ### + np.random.normal(bias_heading,var_heading)
+
 
     def parking_active_callback(self,event):
         #rospy.loginfo("in parking_active_callback")
@@ -446,6 +435,8 @@ class parkingPathPlanner():
                 c_ref[n] = 1000 / curvature
                 if np.sign(pyaw[n - 1] - pyaw[n]) > 0:
                     c_ref[n] = -c_ref[n]
+
+        print "c_ref values {}".format(c_ref)
 
         dist_sampels = [None] * (n_points-1)
 
