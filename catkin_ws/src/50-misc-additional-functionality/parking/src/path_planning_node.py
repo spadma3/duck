@@ -85,6 +85,29 @@ class parkingPathPlanner():
         self.timer_control_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.control_callback)
         self.timer_parking_active_callback = rospy.Timer(rospy.Duration(1.0/self.sample_freq), self.parking_active_callback)
 
+    #  callback for control references
+    def control_callback(self,event):
+        begin = rospy.get_rostime()
+        rospy.logerr("in control_callback")
+        state = LanePose()
+        if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
+            self.stopping_callback()
+        if self.end_of_path_reached:
+            self.stopping_callback()
+        if self.plan == False:
+            self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
+            delta_t = self.current_time_sec - self.previous_time_sec
+            print "delta_t = ", delta_t
+            self.get_intermediate_pose(delta_t)
+            self.previous_time_sec = self.current_time_sec
+
+            state.d, state.curvature_ref, state.phi = self.project_to_path(curvature)
+            state.d_ref = self.d_ref
+            state.v_ref = self.v_default
+            self.sample_state_pub.publish(state)
+        end = rospy.get_rostime()
+        #rospy.logerr("Pathplanning/Sample Callback [micros]: %s" %((end.nsecs-begin.nsecs)/1000))
+
     def stopping_callback(self):
         rospy.loginfo("in stopping_callback")
         state = LanePose()
@@ -97,6 +120,7 @@ class parkingPathPlanner():
 
 
     def get_intermediate_pose(self, delta_t):
+        rospy.loginfo("in get_intermediate_pose")
         n_points = len(self.px)
         self.v_ref = 0.1
         velocity_to_m_per_s = 10/8.5
@@ -125,30 +149,6 @@ class parkingPathPlanner():
         self.y_act = self.py[int(round(self.idx))]        ### + np.random.normal(bias_xy,var_xy)
         self.yaw_act = self.pyaw[int(round(self.idx))]        ### + np.random.normal(bias_heading,var_heading)
 
-
-    #  callback for control references
-    def control_callback(self,event):
-        begin = rospy.get_rostime()
-        rospy.logerr("in control_callback")
-        state = LanePose()
-        if rospy.Time.now().secs - self.time_when_last_path_planned > self.duration_blind_feedforward:
-            self.stopping_callback()
-        if self.end_of_path_reached:
-            self.stopping_callback()
-        if self.plan == False:
-            #rospy.loginfo("in control_callback in 'if self.plan == False'")
-            self.current_time_sec = rospy.Time.now().secs + rospy.Time.now().nsecs * 1e-9
-            delta_t = self.current_time_sec - self.previous_time_sec
-            print "delta_t = ", delta_t
-            self.get_intermediate_pose(delta_t)
-            self.previous_time_sec = self.current_time_sec
-
-            state.d, state.curvature_ref, state.phi = self.project_to_path(curvature)
-            state.d_ref = self.d_ref
-            state.v_ref = self.v_default
-            self.sample_state_pub.publish(state)
-        end = rospy.get_rostime()
-        #rospy.logerr("Pathplanning/Sample Callback [micros]: %s" %((end.nsecs-begin.nsecs)/1000))
 
     def parking_active_callback(self,event):
         #rospy.loginfo("in parking_active_callback")
