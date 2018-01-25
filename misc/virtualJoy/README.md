@@ -40,4 +40,9 @@ The following keys are supported:
 | i          | Toggle Anti-instagram                |
 
 # FAQ
+
+-No module named pygame
+
+        pip install pygame
+        
 If you have any questions, feel free to contact Julien Kindle: jkindle@ethz.ch
