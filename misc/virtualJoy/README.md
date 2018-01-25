@@ -2,7 +2,7 @@
 
 This is a virtual joystick controlled from your laptop using your arrow keys. Especially useful in the following situations:
 
-- Large events where a lot of people use a non-bounded controllers
+- Large events where a lot of people use non-bounded controllers
 - If you forgot to bring your controller to a meeting
 
 
