@@ -22,7 +22,8 @@ Start from your duckietown folder
     source set_ros_master.sh <vehicle_name>
     source set_vehicle_name.sh <vehicle_name>
     
-    python misc/virtualJoy/virtualJoy.py
+    cd misc/virtualJoy
+    python virtualJoy.py
     
 A window will open - to steer your bot, your window focus must be inside that window. 
 
