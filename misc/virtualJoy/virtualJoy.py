@@ -9,6 +9,8 @@ speed_tang = 1.0
 speed_norm = 1.0
 
 def loop():
+    veh_standing = True
+    
     while True:
 
         # check if top left [x] was hit
@@ -71,7 +73,14 @@ def loop():
         pygame.display.flip()
         
         # publish message
-        pub_joystick.publish(msg)
+        if not veh_standing:
+            pub_joystick.publish(msg)
+        
+        if not (sum(map(abs, msg.axes)) == 0 and sum(map(abs, msg.buttons)) == 0):
+            veh_standing = False
+        else:
+            veh_standing = True
+            
         time.sleep(0.03)
 
         # obtain next key list
