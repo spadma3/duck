@@ -27,6 +27,8 @@ Start from your duckietown folder
 A window will open - to steer your bot, your window focus must be inside that window. 
 
 
+# Commands
+
 The following keys are supported:
 
 | KEYS       | FUNCTION                             |
