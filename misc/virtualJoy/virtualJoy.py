@@ -82,9 +82,11 @@ def loop():
 def prepare_dpad():
     global dpad, dpad_f, dpad_r, dpad_b, dpad_l
     file_dir = os.path.dirname(__file__)
-    dpad = pygame.image.load(file_dir + "/images/d-pad.png")
+    file_dir = (file_dir + "/") if  (file_dir) else ""
+    
+    dpad = pygame.image.load(file_dir + "images/d-pad.png")
     dpad = pygame.transform.scale(dpad, (screen_size, screen_size))
-    dpad_pressed = pygame.image.load(file_dir + "/images/d-pad-pressed.png")
+    dpad_pressed = pygame.image.load(file_dir + "images/d-pad-pressed.png")
     dpad_pressed = pygame.transform.scale(dpad_pressed, (screen_size, screen_size))
     dpad_f = dpad_pressed
     dpad_r = pygame.transform.rotate(dpad_pressed, 270)
@@ -107,7 +109,7 @@ def print_hint():
     
 if __name__ == '__main__':
     
-
+    
     # obtain vehicle name
     veh_name = os.environ['VEHICLE_NAME']
     
