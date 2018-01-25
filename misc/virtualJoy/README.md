@@ -10,6 +10,10 @@ This is a virtual joystick controlled from your laptop using your arrow keys. Es
 
 # Usage
 
+Start any demo on your Duckiebot, for example
+
+    make demo-joystick
+        
 All the following is done **on your laptop** - this script is using pygame so you need a screen (SSH will not work)
 
 Start from your duckietown folder
@@ -20,7 +24,10 @@ Start from your duckietown folder
     
     python misc/virtualJoy/virtualJoy.py
     
-A window will open - to steer your bot, your window focus must be inside that window. The following keys are supported:
+A window will open - to steer your bot, your window focus must be inside that window. 
+
+
+The following keys are supported:
 
 | KEYS       | FUNCTION                             |
 |------------|--------------------------------------|
