@@ -81,10 +81,10 @@ def loop():
 # prepare size and rotations of dpad and dpad_pressed
 def prepare_dpad():
     global dpad, dpad_f, dpad_r, dpad_b, dpad_l
-    
-    dpad = pygame.image.load("images/d-pad.png")
+    file_dir = os.path.dirname(__file__)
+    dpad = pygame.image.load(file_dir + "/images/d-pad.png")
     dpad = pygame.transform.scale(dpad, (screen_size, screen_size))
-    dpad_pressed = pygame.image.load("images/d-pad-pressed.png")
+    dpad_pressed = pygame.image.load(file_dir + "/images/d-pad-pressed.png")
     dpad_pressed = pygame.transform.scale(dpad_pressed, (screen_size, screen_size))
     dpad_f = dpad_pressed
     dpad_r = pygame.transform.rotate(dpad_pressed, 270)
