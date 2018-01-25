@@ -41,7 +41,7 @@ The following keys are supported:
 
 # FAQ
 
--No module named pygame
+- No module named pygame
 
         pip install pygame
         
