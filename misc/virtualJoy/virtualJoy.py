@@ -13,10 +13,7 @@ def loop():
     
     while True:
 
-        # check if top left [x] was hit
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
+        
                 
         # add dpad to screen
         screen.blit(dpad, (0,0))
@@ -33,6 +30,8 @@ def loop():
         # obtain pressed keys
         keys = pygame.key.get_pressed()
 
+        ### checking keys and executing actions ###
+        
         # drive left
         if keys[pygame.K_LEFT]:
             screen.blit(dpad_l, (0,0))
@@ -53,9 +52,7 @@ def loop():
             screen.blit(dpad_b, (0,0))
             msg.axes[1] -= speed_tang
 
-        # quit program
-        if keys[pygame.K_q]:
-            pygame.quit()
+        
 
         # activate line-following aka autopilot
         if keys[pygame.K_a]:
@@ -69,16 +66,35 @@ def loop():
         if keys[pygame.K_i]:
             msg.buttons[3] = 1
 
+        ## key/action for quitting the program
+            
+        # check if top left [x] was hit
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+
+        # quit program
+        if keys[pygame.K_q]:
+            pygame.quit()
+
+        ### END CHECKING KEYS ###
+            
         # refresh screen
         pygame.display.flip()
-        
+
+        # check for any input commands
+        stands = (sum(map(abs, msg.axes)) == 0 and sum(map(abs, msg.buttons)) == 0)
+        if not stands:
+            veh_standing = False
+            
         # publish message
         if not veh_standing:
             pub_joystick.publish(msg)
-        
-        if not (sum(map(abs, msg.axes)) == 0 and sum(map(abs, msg.buttons)) == 0):
-            veh_standing = False
-        else:
+
+        # adjust veh_standing such that when vehicle stands still, at least
+        # one last publishment was sent to the bot. That's why this adjustment
+        # is made after the publishment of the message
+        if stands:
             veh_standing = True
             
         time.sleep(0.03)
@@ -102,6 +118,7 @@ def prepare_dpad():
     dpad_b = pygame.transform.rotate(dpad_pressed, 180)
     dpad_l = pygame.transform.rotate(dpad_pressed, 90)
 
+# Hint which is print at startup in console
 def print_hint():
     print("\n\n\n")
     print("Virtual Joystick for your Duckiebot")
@@ -115,9 +132,9 @@ def print_hint():
     print("\n")
     print("Questions? Contact Julien Kindle: jkindle@ethz.ch")
     
+
     
 if __name__ == '__main__':
-    
     
     # obtain vehicle name
     veh_name = os.environ['VEHICLE_NAME']
@@ -133,6 +150,8 @@ if __name__ == '__main__':
     # prepare ROS publisher
     pub_joystick = rospy.Publisher("/" + str(veh_name) + "/joy", Joy, queue_size=1)
 
+    # print the hint
     print_hint()
 
+    # start the main loop
     loop()
