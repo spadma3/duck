@@ -1,18 +1,11 @@
 Write the README.md file (template will be available before Jan. 4th) in the duckietown/software/catkin_ws/src/<package>/ repository that describes the software and parameters involved. 
   
-  
-## Duckietown setup notes {#demo-template-duckietown-setup}
+## Duckiebot setup notes 
 
-For this Demo, no Duckietown is needed.
+To use the fleet messaging platform, additional wireless adapters are needed that allow mesh networking (e.g. TP-Link TL-WN822N or TL-WN821N).
 
-
-## Duckiebot setup notes {#demo-template-duckiebot-setup}
-
-For this demo, additional wireless adapters are needed that allow mesh networking (e.g. TP-Link TL-WN822N or TL-WN821N).
-
-## Pre-flight checklist {#demo-template-pre-flight}
-
-This pre-flight checklist describes the steps that ensure that the installation and demo will run correctly:
+## Pre-flight checklist 
+This pre-flight checklist describes the steps that ensure that the installation will run correctly:
 
 Check: The additional Wifi adapter is installed and works.
 
@@ -23,7 +16,7 @@ Check: The additional Wifi adapter is installed and works.
 
 Check: Duckiebots have sufficient battery charge.
 
-## Demo setup {#demo-template-run}
+## Setup
 Some packages are needed to enable the communication beween the Duckiebots, namely Protobuf, ZeroMQ and B.A.T.M.A.N.
 
 To install them, ssh into the Duckiebots and source the environment
