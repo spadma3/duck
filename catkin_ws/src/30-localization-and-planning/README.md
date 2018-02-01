@@ -48,3 +48,5 @@ Change all four instances of wlan0 to wlan1.
 
 After a reboot you are ready to make your Duckiebots talk to each other.
 
+## DuckieMQ:
+DuckeiMQ is based on zeroMQ and provides the actual messaging part. The serialized messages (protobuf) are broadcasted on a specified part into the network. For this we need to know the name of the interface, the desired port and wether we want to recieve or send on initialization initialization of a messaging object. Multiple of those can run on one bot and on also on one port. Recievers can be equipped with filters to only recieve messages starting with a specified string.
