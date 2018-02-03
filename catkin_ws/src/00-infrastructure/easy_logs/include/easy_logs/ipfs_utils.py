@@ -40,12 +40,9 @@ def get_ipfs_hash(filename):
                               raise_on_error=True)
 
     out = res.stdout.strip().split(' ')
-
-    if len(out) != 3 or out[0] != 'added':
-        msg = 'Invalid output for ipds:\n%s' % dtu.indent('  > ', out)
+    print out
+    if (len(out) < 3 or out[0] != 'added' or not out[1].startswith('Qm')):
+        msg = 'Invalid output for ipds:\n%s' % dtu.indent(res.stdout, ' > ')
         raise Exception(msg)
     hashed = out[1]
-    if not hashed.startswith('Qm'):
-        msg = 'Invalid output for ipds:\n%s' % dtu.indent('  > ', out)
-        raise Exception(msg)
     return hashed
