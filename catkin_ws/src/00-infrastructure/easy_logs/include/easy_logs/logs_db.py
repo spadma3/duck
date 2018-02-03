@@ -3,9 +3,8 @@ import copy
 import os
 
 import duckietown_utils as dtu
-from easy_logs.ipfs_utils import get_ipfs_hash, detect_ipfs, \
-    get_ipfs_hash_cached
 
+from .ipfs_utils import detect_ipfs, get_ipfs_hash_cached
 from .logs_structure import PhysicalLog
 from .time_slice import filters_slice
 
