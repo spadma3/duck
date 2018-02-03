@@ -3,9 +3,12 @@ import copy
 import os
 
 import duckietown_utils as dtu
+from duckietown_utils.yaml_pretty import yaml_dump_pretty
+from easy_logs.logs_structure import yaml_from_physical_log, \
+    physical_log_from_yaml
 
-from .ipfs_utils import detect_ipfs, get_ipfs_hash_cached
 from .logs_structure import PhysicalLog
+from .resource_desc import create_dtr_version_1, DTR
 from .time_slice import filters_slice
 
 
@@ -38,9 +41,38 @@ def get_easy_logs_db_cached_if_possible():
             for k, v in logs.items():
                 logs[k] = v._replace(filename=None)
 
-            dtu.yaml_write_to_file(logs, fn)
+#            dtu.yaml_write_to_file(logs, fn)
+
+#            import yaml as alt
+#            s = alt.dump(logs)
+#            s = yaml_dump_pretty(logs)
+            s = yaml_representation_of_phy_logs(logs)
+            dtu.write_data_to_file(s, fn)
+
+            # try reading
+            print('reading back logs')
+            logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
+            print('read back %s' % len(logs2))
 
     return EasyLogsDB._singleton
+
+
+def logs_from_yaml(data):
+    dtu.check_isinstance(data, dict)
+
+    res = OrderedDict()
+    for k, d in data.items():
+        res[k] = physical_log_from_yaml(d)
+    return res
+
+
+def yaml_representation_of_phy_logs(logs):
+    dtu.check_isinstance(logs, dict)
+    res = OrderedDict()
+    for k, l in logs.items():
+        res[k] = yaml_from_physical_log(l)
+    s = yaml_dump_pretty(res)
+    return s
 
 
 def get_easy_logs_db_fresh():
@@ -246,8 +278,12 @@ def load_all_logs():
         if l.log_name in logs:
             old = logs[l.log_name]
 
-            old_sha1 = dtu.parse_hash_url(old.resources['bag']).sha1
-            new_sha1 = dtu.parse_hash_url(l.resources['bag']).sha1
+            old_sha1 = DTR.from_yaml(old.resources['bag']).hash['sha1']
+            new_sha1 = DTR.from_yaml(l.resources['bag']).hash['sha1']
+#
+#            old_sha1 = dtu.parse_hash_url(choose_hash_url_from_list()).sha1
+#            new_sha1 = dtu.parse_hash_url(choose_hash_url_from_list(l.resources['bag'])).sha1
+
             if old_sha1 == new_sha1:
                 # just a duplicate
                 msg = 'File is a duplicate: %s ' % filename
@@ -271,6 +307,13 @@ def load_all_logs():
         logs[l.log_name] = l
 
     return logs
+
+#
+#def choose_hash_url_from_list(l):
+#    for k in l:
+#        if k.startswith('hash'):
+#            return k
+#    raise ValueError(l)
 
 
 @dtu.contract(returns=PhysicalLog, filename=str)
@@ -342,7 +385,7 @@ def physical_log_from_filename(filename, base2basename2filename):
     possible_bases.add(base)
     possible_bases.add(l.log_name)
 
-    has_ipfs = detect_ipfs()
+#    has_ipfs = detect_ipfs()
     for _base in possible_bases:
         for s in base2basename2filename[_base]:
             basedot = _base + '.'
@@ -350,15 +393,22 @@ def physical_log_from_filename(filename, base2basename2filename):
                 rest = s[len(basedot):]
                 record_name = rest.lower()
                 if not ignore_record(record_name):
-                    fn = base2basename2filename[_base][s]
-                    if has_ipfs:
-                        Qm = get_ipfs_hash_cached(fn)
-                        url = 'http://gateway.ipfs.io/ipfs/%s' % Qm
-                    else:
-                        url = dtu.create_hash_url(fn)
-                    dtu.logger.debug('%s %s' % (fn, url))
-                    resources[record_name] = url
-                    #
+#                    fn = base2basename2filename[_base][s]
+#                    urls = []
+#                    urls.append(dtu.create_hash_url(fn))
+#
+#                    if has_ipfs:
+#                        Qm = get_ipfs_hash_cached(fn)
+#                        #url = 'http://gateway.ipfs.io/ipfs/%s' % Qm
+#                        ipfs_url = '/ipfs/' + Qm
+#                        urls.append(ipfs_url)
+#
+#                    urls.append(fn)
+#
+##                    dtu.logger.debug('%s %s' % (fn, url))
+
+                    dtr = create_dtr_version_1(filename)
+                    resources[record_name] = dtr
 
     # at least the bag file should be present
     assert 'bag' in resources

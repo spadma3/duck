@@ -3,6 +3,7 @@ from collections import defaultdict
 from ruamel import yaml
 
 import duckietown_utils as dtu
+from easy_logs.resource_desc import DTR
 
 from ..logs_db import get_easy_logs_db
 
@@ -31,7 +32,7 @@ def format_logs(logs):
         counts = defaultdict(lambda:set())
         for l in logs.values():
             for rname, url in l.resources.items():
-                counts[rname].add(url)
+                counts[rname].add("\n".join(url))
         s += '\n\nCount of resources: '
         rsort = sorted(counts, key=lambda _:-len(counts[_]))
         for rname in rsort:
@@ -61,8 +62,8 @@ def get_logs_description_table(logs, color=True):
         row.append(len(log.resources))
 #        row.append(log.map_name)
         row.append(log.description)
-        parsed = dtu.parse_hash_url(log.resources['bag'])
-        row.append('%s  %.1fmb\n%s' % (parsed.name, parsed.size / (1000.0 * 1000), parsed.sha1))
+        dtr = DTR.from_yaml(log.resources['bag'])
+        row.append('%s  %.1fmb\n%s' % (dtr.name, dtr.size / (1000.0 * 1000), dtr.hash['sha1']))
         row.append(log.date)
         if log.length is not None:
             l = '%5.1f s' % log.length
