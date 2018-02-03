@@ -3,6 +3,8 @@ import copy
 import os
 
 import duckietown_utils as dtu
+from easy_logs.ipfs_utils import get_ipfs_hash, detect_ipfs, \
+    get_ipfs_hash_cached
 
 from .logs_structure import PhysicalLog
 from .time_slice import filters_slice
@@ -341,6 +343,7 @@ def physical_log_from_filename(filename, base2basename2filename):
     possible_bases.add(base)
     possible_bases.add(l.log_name)
 
+    has_ipfs = detect_ipfs()
     for _base in possible_bases:
         for s in base2basename2filename[_base]:
             basedot = _base + '.'
@@ -349,7 +352,14 @@ def physical_log_from_filename(filename, base2basename2filename):
                 record_name = rest.lower()
                 if not ignore_record(record_name):
                     fn = base2basename2filename[_base][s]
-                    resources[record_name] = dtu.create_hash_url(fn)
+                    if has_ipfs:
+                        Qm = get_ipfs_hash_cached(fn)
+                        url = 'http://gateway.ipfs.io/ipfs/%s' % Qm
+                    else:
+                        url = dtu.create_hash_url(fn)
+                    dtu.logger.debug('%s %s' % (fn, url))
+                    resources[record_name] = url
+                    #
 
     # at least the bag file should be present
     assert 'bag' in resources
