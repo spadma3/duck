@@ -409,14 +409,13 @@ def physical_log_from_filename(filename, base2basename2filename):
     possible_bases.add(l.log_name)
 
     for _base in possible_bases:
-        for s in base2basename2filename[_base]:
+        for s, filename_resource in base2basename2filename[_base].items():
             basedot = _base + '.'
             if s.startswith(basedot):
                 rest = s[len(basedot):]
                 record_name = rest.lower()
                 if not ignore_record(record_name):
-
-                    dtr = create_dtr_version_1(filename)
+                    dtr = create_dtr_version_1(filename_resource)
                     resources[record_name] = dtr
 
     # at least the bag file should be present
