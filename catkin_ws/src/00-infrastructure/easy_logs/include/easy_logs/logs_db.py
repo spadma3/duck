@@ -246,11 +246,16 @@ AllResources = namedtuple('AllResources',
 
 @dtu.memoize_simple
 def get_all_resources():
-    patterns = ['*.bag', '*.mp4',
-                '*.jpg',
-#                '*.png',
-                '*.mov', '*.mts'
-                ]
+    patterns = [
+        '*.bag',
+        # We only care about <log>.XXX.mp4
+        '*.*.mp4',
+        '*.*.jpg',
+        '*.*.webm',
+        '*.*.png',
+        '*.*.mov',
+        '*.*.mts',
+    ]
     basename2filename = dtu.look_everywhere_for_files(patterns=patterns, silent=True)
     base2basename2filename = defaultdict(lambda: {})
     for basename, fn in basename2filename.items():

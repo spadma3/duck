@@ -111,6 +111,9 @@ mimes = {
     '.bag': 'application/x-bag',
     '.mp4': 'video/mp4',
     '.mov': 'video/mov',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.webm': 'video/webm',
 }
 
 
