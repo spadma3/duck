@@ -13,7 +13,7 @@ from .time_slice import filters_slice
 
 
 def get_easy_logs_db():
-    return get_easy_logs_db_cached_if_possible()
+    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB)
 
 
 def delete_easy_logs_cache():
@@ -27,9 +27,16 @@ def delete_easy_logs_cache():
         os.unlink(fn)
 
 
-def get_easy_logs_db_cached_if_possible():
+def get_easy_logs_db_cached_if_possible(write_candidate_cloud=False):
+    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB, write_candidate_cloud)
+
+
+def get_easy_logs_db_cloud_cached_if_possible(write_candidate_cloud=False):
+    return get_easy_logs_db_cached_if_possiblew(get_easy_logs_db_cloud, write_candidate_cloud)
+
+
+def get_easy_logs_db_cached_if_possiblew(f, write_candidate_cloud):
     if EasyLogsDB._singleton is None:
-        f = EasyLogsDB
         EasyLogsDB._singleton = dtu.get_cached('EasyLogsDB', f)
 
         cache_dir = dtu.get_duckietown_cache_dir()
@@ -41,18 +48,15 @@ def get_easy_logs_db_cached_if_possible():
             for k, v in logs.items():
                 logs[k] = v._replace(filename=None)
 
-#            dtu.yaml_write_to_file(logs, fn)
-
-#            import yaml as alt
-#            s = alt.dump(logs)
-#            s = yaml_dump_pretty(logs)
-            s = yaml_representation_of_phy_logs(logs)
-            dtu.write_data_to_file(s, fn)
+            if write_candidate_cloud:
+                s = yaml_representation_of_phy_logs(logs)
+                dtu.write_data_to_file(s, fn)
 
             # try reading
-            print('reading back logs')
-            logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
-            print('read back %s' % len(logs2))
+
+                print('reading back logs')
+                logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
+                print('read back %s' % len(logs2))
 
     return EasyLogsDB._singleton
 
@@ -83,11 +87,14 @@ def get_easy_logs_db_fresh():
 
 
 def get_easy_logs_db_cloud():
-    cloud_file = dtu.require_resource('cloud.yaml')
+    cloud_file = dtu.require_resource('cloud2.yaml')
 
     with dtu.timeit_wall("loading DB"):
         dtu.logger.info('Loading cloud DB %s' % dtu.friendly_path(cloud_file))
-        logs = dtu.yaml_load_file(cloud_file, plain_yaml=True)
+        data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
+#        data = yaml.load(open(cloud_file).read())
+        dtu.logger.debug('Conversion')
+        logs = logs_from_yaml(data)
 
     logs = OrderedDict(logs)
     dtu.logger.info('Loaded cloud DB with %d entries.' % len(logs))
@@ -141,23 +148,36 @@ class EasyLogsDB(object):
             aliases.update(self.logs)
             # adding aliases unless we are asking for everything
             if query != '*':
+#                print('adding more (query = %s)' % query)
                 for _, log in self.logs.items():
-                    original_name = dtu.parse_hash_url(log.resources['bag']).name.replace('.bag', '')
+                    dtr = DTR.from_yaml(log.resources['bag'])
+
+                    original_name = dtr.name
+
                     aliases[original_name] = log
 
             result = dtu.fuzzy_match(query, aliases, filters=filters,
-                                 raise_if_no_matches=raise_if_no_matches)
+                                     raise_if_no_matches=raise_if_no_matches)
             # remove doubles after
             # XXX: this still has bugs
-            present = set()
+            present = defaultdict(set)
+            for k, v in result.items():
+                present[id(v)].add(k)
+
+            def choose(options):
+                if len(options) == 1:
+                    return list(options)[0]
+                else:
+                    options = sorted(options, key=len)
+                    return options[0]
+
             c = OrderedDict()
             for k, v in result.items():
-                if id(v) in present:
-                    continue
-                else:
+                chosen = choose(present[id(v)])
+                if k == chosen:
                     c[k] = v
-                    present.add(id(v))
-            return result
+
+            return c
 
 
 def _read_stats(pl, use_filename):
@@ -280,9 +300,6 @@ def load_all_logs():
 
             old_sha1 = DTR.from_yaml(old.resources['bag']).hash['sha1']
             new_sha1 = DTR.from_yaml(l.resources['bag']).hash['sha1']
-#
-#            old_sha1 = dtu.parse_hash_url(choose_hash_url_from_list()).sha1
-#            new_sha1 = dtu.parse_hash_url(choose_hash_url_from_list(l.resources['bag'])).sha1
 
             if old_sha1 == new_sha1:
                 # just a duplicate
@@ -385,7 +402,6 @@ def physical_log_from_filename(filename, base2basename2filename):
     possible_bases.add(base)
     possible_bases.add(l.log_name)
 
-#    has_ipfs = detect_ipfs()
     for _base in possible_bases:
         for s in base2basename2filename[_base]:
             basedot = _base + '.'
@@ -393,19 +409,6 @@ def physical_log_from_filename(filename, base2basename2filename):
                 rest = s[len(basedot):]
                 record_name = rest.lower()
                 if not ignore_record(record_name):
-#                    fn = base2basename2filename[_base][s]
-#                    urls = []
-#                    urls.append(dtu.create_hash_url(fn))
-#
-#                    if has_ipfs:
-#                        Qm = get_ipfs_hash_cached(fn)
-#                        #url = 'http://gateway.ipfs.io/ipfs/%s' % Qm
-#                        ipfs_url = '/ipfs/' + Qm
-#                        urls.append(ipfs_url)
-#
-#                    urls.append(fn)
-#
-##                    dtu.logger.debug('%s %s' % (fn, url))
 
                     dtr = create_dtr_version_1(filename)
                     resources[record_name] = dtr

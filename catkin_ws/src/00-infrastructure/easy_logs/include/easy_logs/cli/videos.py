@@ -4,7 +4,6 @@ import os
 import duckietown_utils as dtu
 from duckietown_utils.bag_visualization import count_messages_in_slice
 from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
-from easy_logs.logs_db import get_easy_logs_db_fresh
 from quickapp import QuickApp
 import rosbag
 

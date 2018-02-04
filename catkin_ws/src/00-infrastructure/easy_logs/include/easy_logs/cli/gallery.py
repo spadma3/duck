@@ -5,7 +5,6 @@ import random
 from bs4.element import Tag
 
 import duckietown_utils as dtu
-from duckietown_utils.download import get_dropbox_urls
 from easy_logs.app_with_logs import D8AppWithLogs
 
 from .easy_logs_summary_imp import format_logs
@@ -13,6 +12,10 @@ from .easy_logs_summary_imp import format_logs
 __all__ = [
     'Gallery',
 ]
+
+
+def show_url(x):
+    return x.startswith('http')
 
 
 class Gallery(D8AppWithLogs):
@@ -28,7 +31,6 @@ class Gallery(D8AppWithLogs):
         params.accept_extra()
 
     def go(self):
-
         extra = self.options.get_extra()
 
         if not extra:
@@ -96,7 +98,8 @@ class Gallery(D8AppWithLogs):
 
         make_sections(body, logs, out)
 
-        dtu.write_data_to_file(str(html), fn_html)
+        s = unicode(html).encode()
+        dtu.write_data_to_file(s, fn_html)
 
 
 def summary_table(logs, out):
@@ -140,13 +143,9 @@ def make_sections(body, logs, destination):
         body.append(section)
 
 
-def get_download_url(log_name):
-    urls = get_dropbox_urls()
-    url = urls.get(log_name + '.bag', None)
-    return url
-
-
 def make_section(_i, id_log, log, destination):
+
+#    id_log = id_log.decode('utf-8', 'ignore')
 
     d = Tag(name='div')
     classes = ['log-details']
@@ -189,19 +188,16 @@ def make_section(_i, id_log, log, destination):
         p.append(msg)
         d.append(p)
 
-    url = get_download_url(log.log_name)
-    if url is not None:
-        a = Tag(name='a')
-        a.attrs['href'] = url
-        a.append('Download log')
-        p = Tag(name='p')
-        p.append(a)
-        d.append(p)
-    else:
+    p = Tag(name='p')
+
+    n = append_urls(log, p)
+
+    if n == 0:
         msg = ('No URL found for this log.')
         p = Tag(name='p')
         p.append(msg)
-        d.append(p)
+
+    d.append(p)
 
     rel = get_thumbnail_for_video(id_log, destination)
     if rel:
@@ -222,6 +218,8 @@ def make_section(_i, id_log, log, destination):
 
     d.attrs['class'] = " ".join(classes)
 
+    print id_log
+    print str(d)
     return d
 
 
@@ -280,15 +278,15 @@ def get_row(i, id_log, log, destination):
         a.append('thumbnails')
         f.append(a)
 
-    url = get_download_url(log.log_name)
-    if url is not None:
-#        f.append(Tag(name='br2'))
-        f.append(' ')
+    n = append_urls(log, f)
 
-        a = Tag(name='a')
-        a.attrs['href'] = url
-        a.append('bag')
-        f.append(a)
+#    urls = [x for x in log.resources['bag']['urls'] if show_url(x)]
+#    for url in urls:
+#        f.append(' ')
+#        a = Tag(name='a')
+#        a.attrs['href'] = url
+#        a.append('bag')
+#        f.append(a)
 
     trh.append(td('misc'))
     tr.append(f)
@@ -380,3 +378,17 @@ def get_large_video(id_log, destination):
 
 GalleryEntry = namedtuple('GalleryEntry', 'log_name thumbnail video url')
 
+
+def append_urls(log, where):
+    n = 0
+    for rname in log.resources:
+        urls = [x for x in log.resources[rname]['urls'] if show_url(x)]
+
+        for _i, url in enumerate(urls):
+            where.append(' ')
+            a = Tag(name='a')
+            a.attrs['href'] = url
+            a.append('%s%s' % (rname, _i))
+            where.append(a)
+            n += 1
+    return n

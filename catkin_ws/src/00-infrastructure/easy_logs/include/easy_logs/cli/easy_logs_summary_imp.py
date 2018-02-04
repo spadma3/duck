@@ -31,8 +31,9 @@ def format_logs(logs):
 
         counts = defaultdict(lambda:set())
         for l in logs.values():
-            for rname, url in l.resources.items():
-                counts[rname].add("\n".join(url))
+            for rname, dtr_yaml in l.resources.items():
+                counts[rname].add(dtr_yaml['name'])
+
         s += '\n\nCount of resources: '
         rsort = sorted(counts, key=lambda _:-len(counts[_]))
         for rname in rsort:
