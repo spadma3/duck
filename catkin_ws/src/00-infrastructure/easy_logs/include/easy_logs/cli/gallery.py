@@ -6,6 +6,7 @@ from bs4.element import Tag
 
 import duckietown_utils as dtu
 from easy_logs.app_with_logs import D8AppWithLogs
+from easy_logs.resource_desc import DTR
 
 from .easy_logs_summary_imp import format_logs
 
@@ -26,12 +27,17 @@ class Gallery(D8AppWithLogs):
 
     cmd = 'rosrun easy_logs gallery'
 
+    deploy_ipfs = False
+
     def define_options(self, params):
         params.add_string('destination', help='Destination directory')
+        params.add_flag('ipfs', help='Deploy on IPFS')
         params.accept_extra()
 
     def go(self):
         extra = self.options.get_extra()
+
+        Gallery.deploy_ipfs = self.options.ipfs
 
         if not extra:
             query = '*'
@@ -108,7 +114,8 @@ def summary_table(logs, out):
     seq = list(logs)
     random.shuffle(seq)
     for id_log in seq:
-        rel = get_small_video(out, id_log)
+        log = logs[id_log]
+        rel = get_small_video2(log)
         if rel:
             video = video_for_source(rel)
             a = Tag(name='a')
@@ -155,7 +162,7 @@ def make_section(_i, id_log, log, destination):
     d.append(h)
     d.attrs['id'] = id_log
 
-    rel = get_small_video(destination, id_log)
+    rel = get_small_video2(log)
     if rel:
         video = video_for_source(rel)
         d.append((video))
@@ -172,9 +179,8 @@ def make_section(_i, id_log, log, destination):
     c.append("\n".join(s))
     d.append(c)
 
-    rel = 'videos/%s.mp4' % id_log
-    fn = os.path.join(destination, rel)
-    if os.path.exists(fn):
+    rel = get_large_video2(log)
+    if rel:
         a = Tag(name='a')
         a.attrs['href'] = rel
         a.append('Watch video')
@@ -190,7 +196,7 @@ def make_section(_i, id_log, log, destination):
 
     p = Tag(name='p')
 
-    n = append_urls(log, p)
+    n = append_urls(id_log, log, p)
 
     if n == 0:
         msg = ('No URL found for this log.')
@@ -199,7 +205,7 @@ def make_section(_i, id_log, log, destination):
 
     d.append(p)
 
-    rel = get_thumbnail_for_video(id_log, destination)
+    rel = get_thumbnails(log)
     if rel:
         img = Tag(name='img')
         img.attrs['class'] = 'thumbnail'
@@ -218,18 +224,18 @@ def make_section(_i, id_log, log, destination):
 
     d.attrs['class'] = " ".join(classes)
 
-    print id_log
-    print str(d)
+#    print id_log
+#    print str(d)
     return d
-
-
-def get_thumbnail_for_video(id_log, destination):
-    rel = 'thumbnails/%s.jpg' % id_log
-    fn = os.path.join(destination, rel)
-    if os.path.exists(fn):
-        return rel
-    else:
-        return None
+#
+#
+#def get_thumbnail_for_video(id_log, destination):
+#    rel = 'thumbnails/%s.jpg' % id_log
+#    fn = os.path.join(destination, rel)
+#    if os.path.exists(fn):
+#        return rel
+#    else:
+#        return None
 
 
 def get_row(i, id_log, log, destination):
@@ -247,7 +253,7 @@ def get_row(i, id_log, log, destination):
     tr.append(td(str(i)))
 
     trh.append(td(''))
-    rel = get_small_video(destination, id_log)
+    rel = get_small_video2(log)
     if rel:
         video = video_for_source(rel)
         tr.append(td(video))
@@ -260,7 +266,7 @@ def get_row(i, id_log, log, destination):
 
     f = Tag(name='td')
 
-    rel = get_large_video(id_log, destination)
+    rel = get_large_video2(log)
     if rel:
         a = Tag(name='a')
         a.attrs['href'] = rel
@@ -268,7 +274,7 @@ def get_row(i, id_log, log, destination):
 
         f.append(a)
 
-    rel = get_thumbnail_for_video(id_log, destination)
+    rel = get_thumbnails2(log)
     if rel:
 #        f.append(Tag(name='br'))
         f.append(' ')
@@ -278,7 +284,7 @@ def get_row(i, id_log, log, destination):
         a.append('thumbnails')
         f.append(a)
 
-    n = append_urls(log, f)
+#    n = append_urls(log, f)
 
 #    urls = [x for x in log.resources['bag']['urls'] if show_url(x)]
 #    for url in urls:
@@ -355,40 +361,67 @@ def video_for_source(rel):
     return video
 
 
-def get_small_video(destination, id_log):
-#    rel = 'small/%s.mp4' % id_log
-    rel = 'small-gifs/%s.gif' % id_log
-#    rel = 'small-webm/%s.webm' % id_log
+def choose_url(urls):
+    for url in urls:
+        if url.startswith('http'):
+            return url
+    return None
 
-    fn = os.path.join(destination, rel)
-    if os.path.exists(fn):
-        return rel
+
+def get_resource_url(log, rname):
+
+    if rname in log.resources:
+        if Gallery.deploy_ipfs:
+            ipfs = log.resources[rname]['hash']['ipfs']
+            return '/ipfs/%s' % ipfs
+        else:
+            url = choose_url(log.resources[rname]['urls'])
+            return url
     else:
         return None
 
 
-def get_large_video(id_log, destination):
-    rel = 'videos/%s.mp4' % id_log
-    fn = os.path.join(destination, rel)
-    if os.path.exists(fn):
-        return rel
-    else:
-        return None
+def get_small_video2(log):
+    return get_resource_url(log, 'video_small.gif')
+
+
+def get_thumbnails(log):
+    return get_resource_url(log, 'thumbnails.jpg')
+
+
+def get_large_video2(log):
+    return get_resource_url(log, 'video.mp4')
+
+
+def get_thumbnails2(log):
+    return get_resource_url(log, 'thumbnails.jpg')
 
 
 GalleryEntry = namedtuple('GalleryEntry', 'log_name thumbnail video url')
 
 
-def append_urls(log, where):
+def append_urls(id_log, log, where):
     n = 0
     for rname in log.resources:
-        urls = [x for x in log.resources[rname]['urls'] if show_url(x)]
 
-        for _i, url in enumerate(urls):
+        dtr = DTR.from_yaml(log.resources[rname])
+        size_mb = '%.1f MB' % (dtr.size / (1000 * 1000.0))
+        s = '%s (%s) ' % (rname, size_mb)
+        where.append(s)
+
+        if Gallery.deploy_ipfs:
+            ipfs = log.resources[rname]['hash']['ipfs']
+            urls = ['/ipfs/%s' % ipfs]
+        else:
+            urls = [x for x in dtr.urls if show_url(x)]
+
+        for i, url in enumerate(urls):
             where.append(' ')
             a = Tag(name='a')
+            a.attrs['download'] = "%s.%s" % (id_log, rname)
             a.attrs['href'] = url
-            a.append('%s%s' % (rname, _i))
+            a.append('link %s' % i)
             where.append(a)
             n += 1
+        where.append(Tag(name='br'))
     return n
