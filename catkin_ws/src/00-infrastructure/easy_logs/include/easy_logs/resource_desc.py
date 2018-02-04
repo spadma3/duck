@@ -23,7 +23,7 @@ import os
 
 import duckietown_utils as dtu
 from duckietown_utils.test_hash import sha1_for_file_cached
-from easy_logs.ipfs_utils import detect_ipfs, get_ipfs_hash_cached
+from .ipfs_utils import detect_ipfs, get_ipfs_hash_cached
 
 has_ipfs = detect_ipfs()
 
@@ -113,6 +113,7 @@ mimes = {
     '.mov': 'video/mov',
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
+    '.gif': 'image/gif',
     '.webm': 'video/webm',
 }
 

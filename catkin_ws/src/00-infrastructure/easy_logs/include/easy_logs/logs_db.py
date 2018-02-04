@@ -255,6 +255,7 @@ def get_all_resources():
         '*.*.png',
         '*.*.mov',
         '*.*.mts',
+        '*.*.gif',
     ]
     basename2filename = dtu.look_everywhere_for_files(patterns=patterns, silent=True)
     base2basename2filename = defaultdict(lambda: {})
