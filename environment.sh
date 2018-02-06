@@ -20,6 +20,8 @@ echo "Set DUCKIETOWN_ROOT to: $DUCKIETOWN_ROOT"
 export PYTHONPATH=$DUCKIETOWN_ROOT/catkin_ws/src:$PYTHONPATH
 echo "Set PYTHONPATH to: $PYTHONPATH"
 
+export DUCKIEFLEET_ROOT=~/duckiefleet
+
 # Cannot make machines before building
 # echo "Building machines file..."
 # make -C $DUCKIETOWN_ROOT machines
@@ -27,7 +29,7 @@ echo "Set PYTHONPATH to: $PYTHONPATH"
 echo "Activating development environment..."
 source $DUCKIETOWN_ROOT/catkin_ws/devel/setup.$shell
 
-if [ 2015 -ge $(date +%Y) ];          
+if [ 2015 -ge $(date +%Y) ];
 then
     >&2 echo "Error! Time travel detected. System time is: $(date)"
 fi

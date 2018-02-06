@@ -21,13 +21,11 @@ IMG_SHAPE = (CAMERA_WIDTH, CAMERA_HEIGHT, 3)
 
 TIME_STEP_LENGTH = 100
 
-
 import signal
 import sys
 def signal_handler(signal, frame):
     print ("exiting")
     sys.exit(0)
-
 signal.signal(signal.SIGINT, signal_handler)
 
 def sendArray(socket, array):
@@ -40,29 +38,28 @@ def sendArray(socket, array):
     socket.send_json(md, flags=zmq.SNDMORE)
     return socket.send(array, flags=0, copy=True, track=False)
 
-
-print('Starting up')
+serverAddr = "tcp://*:%s" % SERVER_PORT
+print('Starting server at %s' % serverAddr)
 context = zmq.Context()
 socket = context.socket(zmq.PAIR)
-socket.bind("tcp://*:%s" % SERVER_PORT)
+socket.bind(serverAddr)
 
 bridge = CvBridge()
 
 last_good_img = None
-
 
 class ImageStuff():
     def __init__(self):
         self.last_good_img = None
 
     def image_callback(self, msg):
-        # print("Received an image!")
+        #print("received an image")
         # setattr(msg, 'encoding', '')
 
         try:
             # Convert your ROS Image message to OpenCV2
             cv2_img = bridge.imgmsg_to_cv2(msg, "bgr8")
-            cv2.imwrite("/home/lpaull/test.jpg",cv2_img)
+            #cv2.imwrite("/home/lpaull/test.jpg",cv2_img)
         except CvBridgeError, e:
             print(e)
         else:
@@ -70,15 +67,12 @@ class ImageStuff():
             # cv2.imwrite('camera_image.jpeg', cv2_img)
             self.last_good_img = cv2_img
 
-
 imagestuff = ImageStuff()
 
 rospy.init_node('ros_zmq_bridge', anonymous=True)
-vel_pub = rospy.Publisher('/shamrock/wheels_driver_node/wheels_cmd', WheelsCmdStamped, queue_size=5)
+vel_pub = rospy.Publisher('/akira/wheels_driver_node/wheels_cmd', WheelsCmdStamped, queue_size=5)
 image_topic = "/resize_node/image_resize"
 img_sub = rospy.Subscriber(image_topic, Image, imagestuff.image_callback)
-
-
 
 # waiting for ROS to connect... TODO solve this with ROS callback
 time.sleep(2)
@@ -108,7 +102,7 @@ def handle_message(msg):
         vel_cmd.vel_right = right
         vel_pub.publish(vel_cmd)
     elif msg['command'] == 'reset':
-        pass
+        print('got reset command')
     else:
         assert False, "unknown command"
 
@@ -121,8 +115,9 @@ def handle_message(msg):
     # to contiguous, otherwise ZMQ will complain
     img = np.ascontiguousarray(img, dtype=np.uint8)
 
+    print('sending image')
     sendArray(socket, img)
-
+    print('sent image')
 
 for message in poll_socket(socket):
     handle_message(message)
