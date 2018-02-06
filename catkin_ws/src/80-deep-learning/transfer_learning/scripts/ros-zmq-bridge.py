@@ -13,11 +13,8 @@ import numpy as np
 SERVER_PORT = 7777
 
 # Camera image size
-CAMERA_WIDTH = 64
-CAMERA_HEIGHT = 64
-
-# Camera image shape
-IMG_SHAPE = (CAMERA_WIDTH, CAMERA_HEIGHT, 3)
+CAMERA_WIDTH = 128
+CAMERA_HEIGHT = 128
 
 TIME_STEP_LENGTH = 100
 
@@ -59,7 +56,7 @@ class ImageStuff():
         try:
             # Convert your ROS Image message to OpenCV2
             cv2_img = bridge.imgmsg_to_cv2(msg, "bgr8")
-            #cv2.imwrite("/home/lpaull/test.jpg",cv2_img)
+            #cv2.imwrite("/home/maxime-mila/Desktop/robot-img.png", cv2_img)
         except CvBridgeError, e:
             print(e)
         else:
