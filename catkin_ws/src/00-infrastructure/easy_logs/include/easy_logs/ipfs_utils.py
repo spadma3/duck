@@ -9,7 +9,7 @@ def detect_ipfs():
     cmd = ['ipfs', '--version']
     cwd = '.'
     try:
-        res = system_cmd_result(cwd, cmd,
+        _res = system_cmd_result(cwd, cmd,
                                 display_stdout=False,
                                   display_stderr=False,
                                   raise_on_error=True)
@@ -40,7 +40,7 @@ def get_ipfs_hash(filename):
                               raise_on_error=True)
 
     out = res.stdout.strip().split(' ')
-    print out
+#    print out
     if (len(out) < 3 or out[0] != 'added' or not out[1].startswith('Qm')):
         msg = 'Invalid output for ipds:\n%s' % dtu.indent(res.stdout, ' > ')
         raise Exception(msg)

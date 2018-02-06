@@ -135,7 +135,7 @@ def html_table_from_table(logs, destination):
     res.append(thead)
     res.append(tbody)
     for i, (id_log, log) in enumerate(logs.items()):
-        trh, tr = get_row(i, id_log, log, destination)
+        trh, tr = get_row(i, log)
         tbody.append(tr)
         tbody.append('\n')
     thead.append(trh)
@@ -224,21 +224,10 @@ def make_section(_i, id_log, log, destination):
 
     d.attrs['class'] = " ".join(classes)
 
-#    print id_log
-#    print str(d)
     return d
-#
-#
-#def get_thumbnail_for_video(id_log, destination):
-#    rel = 'thumbnails/%s.jpg' % id_log
-#    fn = os.path.join(destination, rel)
-#    if os.path.exists(fn):
-#        return rel
-#    else:
-#        return None
 
 
-def get_row(i, id_log, log, destination):
+def get_row(i, log):
     trh = Tag(name='tr')
     tr = Tag(name='tr')
 

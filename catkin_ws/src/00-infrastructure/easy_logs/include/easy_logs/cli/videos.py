@@ -91,7 +91,8 @@ def jobs_videos(context, log, name, outd, only_camera):
     only_camera_fn = outd + '.video.mp4'
     for topic in topics:
         stop_at = min_messages + 2
-        actual_count, count, _stopped_early = count_messages_in_slice(log.filename, topic, log.t0, log.t1, stop_at=stop_at)
+        actual_count, count, _stopped_early = \
+            count_messages_in_slice(log.filename, topic, log.t0, log.t1, stop_at=stop_at)
 
         assert count >= min_messages
         if actual_count < min_messages:
