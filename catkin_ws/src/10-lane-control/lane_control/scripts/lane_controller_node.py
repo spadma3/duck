@@ -2,16 +2,11 @@
 import rospy
 import math
 from duckietown_msgs.msg import Twist2DStamped, LanePose
+import os, imp, time
 
 class lane_controller(object):
     def __init__(self):
         self.node_name = rospy.get_name()
-        self.lane_reading = None
-
-        self.pub_counter = 0
-
-        # Setup parameters
-        self.setGains()
 
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
@@ -22,53 +17,68 @@ class lane_controller(object):
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
-        # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
+        # Load files for HW-Exercises
+        exercise_txt = os.environ['CSII_EXERCISE']
+        exercise = self.get_num(exercise_txt)
+        subexercise = self.get_txt(exercise_txt)
+
+        duckietown_root = os.environ['DUCKIETOWN_ROOT']
+        ex_path = "/CSII/Exercises/HWExercise" + str(exercise) + "/controller-" + str(exercise_txt) + ".py"
+        template_src = imp.load_source('module.name', duckietown_root + ex_path)
+        self.controller_class = template_src.Controller()
+
+        # Set up variable which measures how long it took since last command
+        self.last_ms = None
+
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
+        rospy.loginfo("\n\n\nREADY FOR EXERCISE " + exercise_txt + "\n\n\n")
 
-    def setupParameter(self,param_name,default_value):
-        value = rospy.get_param(param_name,default_value)
-        rospy.set_param(param_name,value) #Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
-        return value
+    def get_num(self, x):
+        return int(''.join(ele for ele in x if ele.isdigit()))
 
-    def setGains(self):
-        v_bar = 0.5 # nominal speed, 0.5m/s
-        k_theta = -2.0
-        k_d = - (k_theta ** 2) / ( 4.0 * v_bar)
-        theta_thres = math.pi / 6
-        d_thres = math.fabs(k_theta / k_d) * theta_thres
-        d_offset = 0.0
+    def get_txt(self, x):
+        return ''.join([i for i in x if not i.isdigit()])
 
-        self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
-        # FIXME: AC aug'17: are these inverted?
-        self.k_d = self.setupParameter("~k_d",k_theta) # P gain for theta
-        self.k_theta = self.setupParameter("~k_theta",k_d) # P gain for d
-        self.d_thres = self.setupParameter("~d_thres",theta_thres) # Cap for error in d
-        self.theta_thres = self.setupParameter("~theta_thres",d_thres) # Maximum desire theta
-        self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
+    def cbPose(self, lane_pose_msg):
 
-    def getGains_event(self, event):
-        v_bar = rospy.get_param("~v_bar")
-        k_d = rospy.get_param("~k_d")
-        k_theta = rospy.get_param("~k_theta")
-        d_thres = rospy.get_param("~d_thres")
-        theta_thres = rospy.get_param("~theta_thres")
-        d_offset = rospy.get_param("~d_offset")
+        lane_reading = lane_pose_msg
 
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset)
+        # Calculating the delay image processing took
+        timestamp_now = rospy.Time.now()
+        image_delay_stamp = timestamp_now - lane_reading.header.stamp
 
-        if params_old != params_new:
-            rospy.loginfo("[%s] Gains changed." %(self.node_name))
-            rospy.loginfo("old gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_old))
-            rospy.loginfo("new gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_new))
-            self.v_bar = v_bar
-            self.k_d = k_d
-            self.k_theta = k_theta
-            self.d_thres = d_thres
-            self.theta_thres = theta_thres
-            self.d_offset = d_offset
+        # delay from taking the image until now in seconds
+        t_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
+
+        # Calculate time since last command
+        currentMillis = int(round(time.time() * 1000))
+        if self.last_ms is not None:
+            dt_last = (currentMillis - self.last_ms) / 1000.0
+        else:
+            dt_last = 0 # None before, let's make 0 such that it is way simpler for students
+
+        # Obtaining parameters to give to controller_class
+        d_est = lane_pose_msg.d
+        phi_est = lane_pose_msg.phi
+        d_ref = 0
+        phi_ref = 0
+        v_ref = 0.38
+
+        # Obtain new v and omega
+        v_out, omega_out = self.controller_class.getControlOutput(d_est, phi_est, d_ref, phi_ref, v_ref, t_delay, dt_last)
+
+        # Print out infos
+        rospy.loginfo("Omega: " + str(omega_out) + "    V: " + str(v_out) + "    Err: " + str(d_est - d_ref))
+
+        # Create message and publish
+        car_control_msg = Twist2DStamped()
+        car_control_msg.header = lane_pose_msg.header
+        car_control_msg.v = v_out
+        car_control_msg.omega = omega_out
+        self.publishCmd(car_control_msg)
+
+        # Update last timestamp
+        self.last_ms = currentMillis
 
 
     def custom_shutdown(self):
@@ -87,53 +97,8 @@ class lane_controller(object):
 
 
     def publishCmd(self, car_cmd_msg):
-
-        #wheels_cmd_msg = WheelsCmdStamped()
-        #wheels_cmd_msg.header.stamp = stamp
-        #speed_gain = 1.0
-        #steer_gain = 0.5
-        #vel_left = (speed_gain*speed - steer_gain*steering)
-        #vel_right = (speed_gain*speed + steer_gain*steering)
-        #wheels_cmd_msg.vel_left = np.clip(vel_left,-1.0,1.0)
-        #wheels_cmd_msg.vel_right = np.clip(vel_right,-1.0,1.0)
-
         self.pub_car_cmd.publish(car_cmd_msg)
-        #self.pub_wheels_cmd.publish(wheels_cmd_msg)
 
-    def cbPose(self, lane_pose_msg):
-
-        self.lane_reading = lane_pose_msg
-
-        # Calculating the delay image processing took
-        timestamp_now = rospy.Time.now()
-        image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
-
-        # delay from taking the image until now in seconds
-        image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
-
-        cross_track_err = lane_pose_msg.d - self.d_offset
-        heading_err = lane_pose_msg.phi
-
-        car_control_msg = Twist2DStamped()
-        car_control_msg.header = lane_pose_msg.header
-        car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
-
-        if math.fabs(cross_track_err) > self.d_thres:
-            cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
-        car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err #*self.steer_gain #Right stick H-axis. Right is negative
-
-        # controller mapping issue
-        # car_control_msg.steering = -car_control_msg.steering
-        # print "controls: speed %f, steering %f" % (car_control_msg.speed, car_control_msg.steering)
-        # self.pub_.publish(car_control_msg)
-        self.publishCmd(car_control_msg)
-
-        # debuging
-        # self.pub_counter += 1
-        # if self.pub_counter % 50 == 0:
-        #     self.pub_counter = 1
-        #     print "lane_controller publish"
-        #     print car_control_msg
 
 if __name__ == "__main__":
     rospy.init_node("lane_controller",anonymous=False)
