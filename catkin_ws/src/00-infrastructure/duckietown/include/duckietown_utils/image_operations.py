@@ -36,10 +36,10 @@ def zoom_image(im, zoom = 4):
 
 # inputs:
 #   im: the input image
-#   border_sizes: the amount to crop in the order, [left, top, right, bottom] 
+#   border_sizes: the amount to crop in the order, [left, top, right, bottom]
 def crop_image(im, border_sizes):
     """ Crop the amount given by the border sizes"""
     import cv2
     H,W,_ = im.shape
-    cropped = im[border_sizes[0]:W-border_sizes[2],border_sizes[1]:H-border_sizes[3]]
+    cropped = im[border_sizes[0]:H-border_sizes[2],border_sizes[1]:W-border_sizes[3]]
     return cropped
