@@ -33,6 +33,7 @@ class lane_controller(object):
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
         rospy.loginfo("\n\n\nREADY FOR EXERCISE " + exercise_txt + "\n\n\n")
 
+    # Methods to extract a number from a string and remove a number from a string
     def get_num(self, x):
         return int(''.join(ele for ele in x if ele.isdigit()))
 
