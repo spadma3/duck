@@ -2,7 +2,7 @@
 '''
 Author: Shih-Yuan Liu
 '''
-#import rospkg
+import rospkg
 import yaml
 from graphviz import Digraph
 import sys
@@ -16,8 +16,7 @@ argv = sys.argv
 if len(argv) > 1:
 	param_file = sys.argv[1]
 
-#file_path = rospkg.RosPack().get_path("duckietown") + "/config/" + config + "/fsm/fsm_node/" + param_file + ".yaml"
-file_path = "/Users/lpaull/duckietown/Software/catkin_ws/src/" + "duckietown" + "/config/" + config + "/fsm/fsm_node/" + param_file + ".yaml"
+file_path = rospkg.RosPack().get_path("duckietown") + "/config/" + config + "/fsm/fsm_node/" + param_file + ".yaml"
 print "Load file: %s"%(file_path)
 # Load yaml as dictionary
 with file(file_path,"r") as f:
@@ -49,7 +48,7 @@ if global_trans_dict is not None:
 	for event_name, next_state in global_trans_dict.items():
 		dot.edge("ALL_STATES",next_state,label=event_name,style="dashed",concentrate='false')
 
-dot_file_name = param_file+".dot"
+dot_file_name = "fsm_"+param_file+".dot"
 with file(dot_file_name,"w") as f:
 	f.write(dot.source)
 

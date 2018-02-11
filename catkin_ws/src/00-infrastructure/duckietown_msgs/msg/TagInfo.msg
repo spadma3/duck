@@ -29,6 +29,7 @@ uint8 DO_NOT_ENTER=15
 uint8 PEDESTRIAN=16
 uint8 T_LIGHT_AHEAD=17
 uint8 DUCK_CROSSING=18
+uint8 PARKING=19
 
 string vehicle_name
 

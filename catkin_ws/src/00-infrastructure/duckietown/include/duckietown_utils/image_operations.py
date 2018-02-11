@@ -22,6 +22,11 @@ def bgr_from_rgb(rgb):
     bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
     return bgr
 
+def rgb_from_bgr(rgb):
+    import cv2
+    bgr = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+    return bgr
+
 def zoom_image(im, zoom = 4):
     s = (im.shape[1] * zoom, im.shape[0] * zoom)
     import cv2

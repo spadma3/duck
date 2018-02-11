@@ -45,10 +45,10 @@ def format_logs(logs):
             else:
                 row.append(friendly_path(log.filename))
             if log.valid:
-                s = 'Yes.'
+                sr = 'Yes.'
             else:
-                s = log.error_if_invalid
-            row.append(s)
+                sr = log.error_if_invalid
+            row.append(sr)
             if log.bag_info is not None:
                 info = yaml.dump(log.bag_info['topics'])
             else:
