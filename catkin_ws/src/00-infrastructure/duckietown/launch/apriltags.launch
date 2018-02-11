@@ -13,21 +13,21 @@
  		<arg name="config" value="$(arg config)"/>
  		<arg name="param_file_name" value="$(arg param_file_name)"/>
  		<arg name="raw" value="true"/>
- 		<arg name="cam_info" value="true"/> 
+ 		<arg name="cam_info" value="true"/>
  		<arg name="live" value="$(arg live)"/>
 		<arg name="rect" value="true" />
  	</include>
- 
+
  	<!-- AprilTags Detections -->
-    <remap from="image_rect" to="camera_node/image/rect" />
-    <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
+    <remap from="image_rect" to="image_proc/image_rect" />
+    <remap from="camera_node/image/camera_info" to="image_proc/camera_info" />
     <include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
         <arg name="veh" value="$(arg veh)"/>
         <arg name="local" value="$(arg local)"/>
         <arg name="config" value="$(arg config)"/>
         <arg name="param_file_name" value="$(arg param_file_name)"/>
     </include>
- 
+
  	<!-- Postprocessing node -->
  	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
  	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
