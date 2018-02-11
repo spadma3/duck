@@ -29,6 +29,9 @@ class IntersectionNavigation(object):
         self.poseEstimator = PoseEstimator()
 
         # open-loop / closed-loop
+        # Open-loop: Path is tracked by its parametrization s.
+        # CLosed-loop: Path is tracked by the controller designed by devel-controllers group. However the controller
+        # has been adapted by us. Check lane-controller node.
         # If true remap in 00-infrastructure/duckietown/config/baseline/dagu_car/car_cmd_switch_node/default.yaml
         self.open_loop = False
 
@@ -77,7 +80,8 @@ class IntersectionNavigation(object):
         else:
             self.v = 0.20
 
-        # nominal stop positions: centered in lane, 0.16m in front of center of red stop line, 0 relative orientation error
+        # nominal stop positions: centered in lane, 0.16m in front of center of red stop line,
+        # 0 relative orientation error
         self.nominal_start_positions = {self.tag_info.FOUR_WAY: [0.400, -0.135, 0.5 * np.pi],
                                        self.tag_info.LEFT_T_INTERSECT: [0.694, 0.400, np.pi],
                                        self.tag_info.RIGHT_T_INTERSECT: [-0.135, 0.121, 0.0 * np.pi],
@@ -164,7 +168,7 @@ class IntersectionNavigation(object):
             # run state machine
             
             if self.state == self.state_dict['IDLE']:
-                # waiting for FSMState to tell us that Duckiebot is at an intersection (see ModeCallback)
+                # waiting for FSMState to tell us that Duckiebot is at an intersection (see FSMCallback)
                 pass
 
             elif self.state == self.state_dict['INITIALIZING_LOCALIZATION']:
@@ -347,6 +351,7 @@ class IntersectionNavigation(object):
 
         if april_msg.infos[best_idx].traffic_sign_type in [self.tag_info.RIGHT_T_INTERSECT,
                                                               self.tag_info.LEFT_T_INTERSECT]:
+            # Define range of initial positions: x,y: +- 2.5cm, theta: +- 5deg
             dx_init = np.linspace(-0.025, 0.025, 6)
             dy_init = np.linspace(-0.025, 0.025, 6)
             dtheta_init = np.linspace(-5.0 / 180.0 * np.pi, 5.0 / 180.0 * np.pi, 2)
@@ -376,8 +381,9 @@ class IntersectionNavigation(object):
         img_processed, img_gray = self.intersectionLocalizer.ProcessRawImage(img_msg)
 
         best_likelihood = -1.0
-        best_pose_meas = np.zeros(3,float)
-        pose = np.zeros(3,float)
+        best_pose_meas = np.zeros(3, float)
+        pose = np.zeros(3, float)
+
         for dx in dx_init:
             for dy in dy_init:
                 for dtheta in dtheta_init:

@@ -2,7 +2,7 @@
 import rospy
 import cv2
 from sensor_msgs.msg import CompressedImage
-from duckietown_msgs.msg import IntersectionPose
+from duckietown_msgs.msg import IntersectionPose, BoolStamped
 import numpy as np
 import duckietown_utils as dt
 
