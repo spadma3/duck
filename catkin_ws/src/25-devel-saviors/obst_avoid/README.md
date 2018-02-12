@@ -29,7 +29,7 @@ Wait for a couple of seconds until everything has been properly launched
 if, after about 10 seconds in the terminal of Step2 comes a message:
 
 ```python
-"!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!"
+"""!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!"""
 ```
 
 IF THIS YELLOW MESSAGE DID NOT APPEAR: repeat number 3
