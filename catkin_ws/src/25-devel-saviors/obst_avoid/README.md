@@ -4,15 +4,15 @@
 
 This is a package which was generated throughout the fall semester 2017 at ETH Zurich and implements an obstacle detection and avoidance behaviour, whereas the obstacles are namely yellow duckies and orange cones. The structure of the readme is as follows: 
 
-For simply getting the code to run you simply have to follow the instructions given in the first two sections (Prerequisites and Standart code usage).
+For simply getting the code to run you have to follow the instructions given in the first two sections (Prerequisites and Standart code usage). Which is followed by a video which shows the Expected Outcome.
 
-If the instructions in the first two sections do not work properly you can read up in the third section (Troubleshooting) how to reslove potential and well known conflicts
+If the instructions in the first two sections do not work properly, you can find answers on how to reslove potential and well known conflicts in the third section (Troubleshooting)
 
-If you want to understand the whole package more thoroughly and eventually use it as a basis for imprpvements feel free to read the last section of this Readme (Thorough code and package description) which gives more detail on all the functionality provided by the package 
+If you want to understand the whole package more thoroughly and eventually use it as a basis for imprpvements, feel free to read the last section of this Readme (Thorough code and package description) which gives more detail on all the functionality provided by the package 
 
 ---
 
-## Prerequisites
+## PREREQUISITES
 
 In order to being able to use the package it is necessary to install AN ADDITIONAL LIBRARY:
 
@@ -20,7 +20,7 @@ In order to being able to use the package it is necessary to install AN ADDITION
 
 ---
 
-## Standart code usage
+## STANDART CODE USAGE
 
 ### Step1: 
 On the duckiebot: Naviate to `DUCKIETOWN_ROOT`
@@ -58,8 +58,8 @@ laptop $ rviz
 The topics of interest are:
 
 `/robot_name/obst_detect_visual/visualize_obstacles` (Markers which show obstacles, visualize via rviz!)
-`/robot_name/obst_detect_visual/image/compressed` (Image with obstacle detection overlay, visualize via rqt)
-`/robot_name/obst_detect_visual/bb_linelist` (bounding box of obstacle detection visualize via rqt)
+`/robot_name/obst_detect_visual/image/compressed` (Image with obstacle detection overlay, visualize via rqt!)
+`/robot_name/obst_detect_visual/bb_linelist` (bounding box of obstacle detection visualize via rqt!)
 `/robot_name/duckiebot_visualizer/segment_list_markers` (line segments)
 
 ### Step5: 
@@ -67,13 +67,13 @@ To let your duckiebot drive, press R1 to start the lane following. The Duckiebot
 
 ---
 
-## Expected outcome
+## EXPECTED OUTCOME
 
 [![Expected Results - click here!](https://vimeo.com/251523150/0.jpg)](https://vimeo.com/251523150)
 
 ---
 
-## Troubleshooting
+## TROUBLESHOOTING
 
 ### Nothing goes at all
 
@@ -85,7 +85,7 @@ duckiebot $ catkin_make -C catkin_ws/
 
 ### Yellow message is not printed
 
-The first step to find out why the Yellow message is not printed after having pressed executed Step3 for several times is to check whether any node of anti_instagram is running at all. Do this by executing the following commands in a new terminal on your laptop:
+The first step to find out why the Yellow message is not printed after having executed Step3 for several times is to check whether any node of anti_instagram is running at all. Do this by executing the following commands in a new terminal on your laptop:
 
 ```
 laptop $ source set_ros_master.sh robot_name
@@ -114,7 +114,7 @@ This means that in general the software is working correctly but that for instan
 
 THE FOLLOWING PARAMS ARE ALL TO BE CHANGED IN **DETECTOR.PY** if not stated other:
 
-* the number of pixels from when an object is considered for evaluation is adaptive towards the homography but if you want to change them by a factor, you can do that by adapting **self.obst_thres**
+* the number of pixels from when an object is considered for evaluation is adaptive towards the homography but if you want to change them by a factor, you can do that by adapting **self.obst_thres**. E.g. if You increase this value, only larger elements will be considered as obstacles, so this parameter has to be adapted with respect to the obstacles you want to detect. However, in the current implementation all sizes of duckies should be detected.
 * if you feel that you have smaller elements that should be detected you can also play around with the value **self.major_intertia_thres** which has impact in the object_filter function. Especially if you want to detect very little duckies you might want to change the criteria to 10 . But we do not recommend to make it lower than 10 because usually lines have an inertia_tensor_eigenval of right below 10,...
 * if some obstacles are not detected reliably during dynamic driving but very reliably in a static scene, the reason can be that they cannot be tracked amongst enough consecutive frames. To add all objects which are considered as obstacles as fast as possible you might set **self.min_consec_tracking** to 1
 * if you want to make the tracker a little more restrictive, the two parameters to play with are on the one hand the **y_distance** and on the other hand the **self.minimum_tracking_distance**
@@ -123,7 +123,7 @@ THE FOLLOWING PARAMS ARE ALL TO BE CHANGED IN **DETECTOR.PY** if not stated othe
 
 ---
 
-## Thorough code and package description
+## THOROUGH CODE AND PACKAGE DESCRIPTION
 
 In case, You want to further understand our code and in general the whole package and multiple launching options, then You can read all the additional information below!!! *However, for "regular" users who just want to start our package this is not necessary!*
 
@@ -147,22 +147,22 @@ This pose array contains an array of all of the detected obstacles, where:
 - *orientation.z* represents the "most" right pixel of the obstacle in bird view
 - *orientation.w* represents the "most" bottom pixel of the obstacle in bird view
 
-#### launch file options for the obstacle_detection_node
+### launch file options for the obstacle_detection_node
 Our main recommended launching option is described above (Step1-Step5), however as one might ask why we have so many other launch files included they are explained in the following:
 
-**VAR1:**
+#### VAR1:
 
 `roslaunch obst_avoid obst_avoid.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=true) ai_interval:= (default=10)`
 
-*This launchfile will launch our obstacle detection node together with the continouus anti-instagram node. However, in the final project file we did not use this option, as the continouus anti-instagram node was at that time too heavy computationally, even if we set the ai_interval parameter to very high values e.g. 100 which means that a transformation is only calculated every 100 seconds* 
+*This launchfile will launch our obstacle detection node together with the continouus anti-instagram node. However, in the final project file we did not use this option, as the continouus anti-instagram node was at that time too computationally intensive, even if we set the ai_interval parameter to very high values e.g. 100 which means that a transformation is only calculated every 100 seconds* 
 
 example without visualizing anything: roslaunch obst_avoid obst_avoid.launch veh:=arki
 
 example with visualizing the obstacles in the imageframe: roslaunch obst_avoid obst_avoid.launch veh:=arki show_image:=true
 
-NOTE: although this node is not meant for visualization but rather for fast execution you can still visualize the obstacles with those two parameters if you want to and since the obstacle detection algorithm is performing on a cropped version of the image, here if you turn on show_image, this cropped version is displayed. So the visualisation properties in this node are for making development easy but throughout normal operation we recommend to use our SECOND NODE:
+> NOTE: although this node is not meant for visualization but rather for fast execution you can still visualize the obstacles with those two parameters if you want to and since the obstacle detection algorithm is performing on a cropped version of the image, here if you turn on show_image, this cropped version is displayed. So the visualisation properties in this node are for making development easy but throughout normal operation we recommend to use the instructions given in Step1 to Step5
 
-**VAR2:**
+#### VAR2:
 
 `roslaunch obst_avoid obst_avoid_only.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=false)`
 
@@ -183,22 +183,27 @@ The main outputs are the following:
 
 Sometimes the output, especially the visual output that you see from rqt might be really laggy. There are two explanations to this phenomen. Firstly, the slow wifi transmitter from the duckiebot generates a considerable lag. If we connected our duckiebot and Laptop directly via an Ethernet cable the visual rqt output was by far more reliable. And the other thing is that the obstacle_detection_node_visual also has to align the raw images with the corresponding posearray at the right timestamp which is also a potential point where something might go wrong.
 
-#### launch file options for obstacle_detection_node_visual
+### launch file options for obstacle_detection_node_visual
 For the obstacle_detection_node_visual there is only one launch option:
-
-`roslaunch obst_avoid obst_avoid_visual.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=true) show_image:= (default=true)`
-
+```
+roslaunch obst_avoid obst_avoid_visual.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=true) show_image:= (default=true)`
+```
 With the parameters **show_marker** and **show_image** you can define which of the topics mentioned above will be published.
-e.g. if you use: `roslaunch obst_avoid obst_avoid_visual.launch veh:=YOUR_ROBOT_NAME_GOES_HERE show_marker:=true show_image:=false` then only `/robot_name/obst_detect_visual/visualize_obstacles` will be published. This launch file is again the most efficient one since the synchronizing part in the obstacle_detection_node_visual is not needed.
+e.g. if you use:
+``` 
+roslaunch obst_avoid obst_avoid_visual.launch veh:=YOUR_ROBOT_NAME_GOES_HERE show_marker:=true show_image:=false
+```
+then only `/robot_name/obst_detect_visual/visualize_obstacles` will be published. This launch file is again the most efficient one since the synchronizing part in the obstacle_detection_node_visual is not needed.
 
 ### scripts:
 
-We have created a bunch of useful scripts in order to debug, tryout new things and variations to our detection algorithm offline. 2 of them help to create the images which can then be used to adapt and evaluate our code efficiently. Let us first start with how to create the images.
+We have created a bunch of useful scripts in order to debug, tryout new things and variations to our detection algorithm offline. Two of them help to create the images which can then be used to adapt and evaluate our code efficiently. Let us first start with how to create the images.
 
 Assuming that you have got collected a bag including the raw camera images. 
 Then you can use the **launch file create_bag.launch** which will in return create a new bag which will only contain the corrected image from the anti instagram module. This file is to be used as follows:
-
-`roslaunch obst_avoid create_bag.launch veh:=dori path_save:=/home/niggi/Desktop/1.bag path_play:=/home/niggi/Desktop/bags/Record6/dori_slow_and_full_2017-12-11-14-09-28.bag`
+```
+roslaunch obst_avoid create_bag.launch veh:=dori path_save:=/home/niggi/Desktop/1.bag path_play:=/home/niggi/Desktop/bags/Record6/dori_slow_and_full_2017-12-11-14-09-28.bag
+```
 
 where *path_play* specifies the path to the bag file which should be played
 *path_save* specifies the path to the bag where it should be saved
@@ -206,8 +211,9 @@ and *veh* specifies the name of the vehicle with which the log was taken
 
 After having created this bag containing the corrected images, we have to **extract them by using the script dt-bag-image-extract**. 
 This can be used by first going into the file .../duckietown/catkin_ws/src/25-devel-saviors/obst_avoid/scripts and typing e.g.
-
-`./dt-bag-image-extract /home/niggi/Desktop/1.bag /dori/image_transformer_node/corrected_image /home/niggi/Desktop/1_pics`
+```
+./dt-bag-image-extract /home/niggi/Desktop/1.bag /dori/image_transformer_node/corrected_image /home/niggi/Desktop/1_pics
+```
 
 where the first argument is the path to the previously created bagfile, the second is the topic of interest which we want to transform into an image and the third one is the path to a directory which will be created in order to store the pictures in it!!!
 
