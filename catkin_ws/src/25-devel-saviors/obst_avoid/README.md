@@ -170,6 +170,7 @@ roslaunch obst_avoid obst_avoid_only.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (defa
 
 With this launch file we will subscribe to the raw image so anti_instagram is not needed at all! In terms of computational effort this is the best implementation but as the color's hsv values change a lot under different lighting conditions the obstacle detection will only perform poorly and so we do not recommend to use this implementation.
 
+***
 
 ### obstacle_detection_node_visual
 In this node we visualize the output of our obstacle_detection_node. This node is meant to be run on your personal laptop for verifying what is going on during the drive!!!
