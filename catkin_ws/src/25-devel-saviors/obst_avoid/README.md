@@ -2,13 +2,13 @@
 
 This is a package which was generated throughout the fall semester 2017 at ETH Zurich and implements an obstacle detection and avoidance behaviour, whereas the obstacles are namely yellow duckies and orange cones. The structure of the readme is as follows: 
 
-For simply getting the code to run you simply have to follow the instructions given in the first two sections (Prerequisites(#Prerequiites) and Standart code usage).
+For simply getting the code to run you simply have to follow the instructions given in the first two sections ([Prerequisites](#Prerequiites) and Standart code usage).
 
 If the instructions in the first two sections do not work properly you can read up in the third section (Troubleshooting) how to reslove potential and well known conflicts
 
 If you want to understand the whole package more thoroughly and eventually use it as a basis for imprpvements feel free to read the last section of this Readme (Thorough code and package description) which gives more detail on all the functionality provided by the package 
 
-## [Prerequisites]
+## Prerequisites
 
 In order to being able to use the package it is necessary to install AN ADDITIONAL LIBRARY:
 
