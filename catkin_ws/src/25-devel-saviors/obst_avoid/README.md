@@ -44,9 +44,10 @@ laptop $ rviz
 ```
 
 The topics of interest are:
-`/robot_name/obst_detect_visual/visualize_obstacles` (Markers which show obstacles, visualize via rviz!), 
-`/robot_name/obst_detect_visual/image/compressed` (Image with obstacle detection overlay, visualize via rqt), 
-`/robot_name/obst_detect_visual/bb_linelist` (bounding box of obstacle detection visualize via rqt), 
+
+`/robot_name/obst_detect_visual/visualize_obstacles` (Markers which show obstacles, visualize via rviz!)
+`/robot_name/obst_detect_visual/image/compressed` (Image with obstacle detection overlay, visualize via rqt)
+`/robot_name/obst_detect_visual/bb_linelist` (bounding box of obstacle detection visualize via rqt)
 `/robot_name/duckiebot_visualizer/segment_list_markers` (line segments)
 
 ### Step5: 
