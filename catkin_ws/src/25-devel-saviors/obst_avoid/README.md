@@ -14,7 +14,7 @@ In order to being able to use the package it is necessary to install AN ADDITION
 
 `duckiebot $ source environment.sh`
 
-`duckiebot $ catkin_make -C catkin_ws/` **(this step is building your workspace and therefore only has to be done when you are using the code for the very first time!)** 
+`duckiebot $ catkin_make -C catkin_ws/` *(this step is building your workspace and therefore only has to be done when you are using the code for the very first time!)* 
 
 `duckiebot $ make demo-lane-following`
 
@@ -26,13 +26,13 @@ Wait for a couple of seconds until everything has been properly launched
 
 ### Step3: press x ON YOUR JOYSTICK to generate an anti-instagram transformation 
 
-if, after about 10 seconds in the terminal of Step2 comes a message:
+if, after about 10 seconds in the terminal of Step2 comes a **YELLOW** message:
 
-```python
-"""!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!"""
-```
+`!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!`
 
-IF THIS YELLOW MESSAGE DID NOT APPEAR: repeat number 3
+You are good to go
+
+**Otherwise: You must repeat step3 until this message is generated!**
 
 
 
