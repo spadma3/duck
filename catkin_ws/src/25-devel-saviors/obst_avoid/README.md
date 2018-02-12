@@ -14,8 +14,7 @@ In order to being able to use the package it is necessary to install AN ADDITION
 On the duckiebot: Naviate to `DUCKIETOWN_ROOT`
 
 ```
-duckiebot $ source environment.sh
-duckiebot $ catkin_make -C catkin_ws/ *(this step is building your workspace and therefore only has to be done when you are using the code for the very first time!)* 
+duckiebot $ source environment.sh 
 duckiebot $ make demo-lane-following
 ```
 
@@ -24,7 +23,7 @@ Wait for a couple of seconds until everything has been properly launched
 ### Step2: 
 Open a second terminal on the duckiebot and run:
 
-`roslaunch obst_avoid obst_avoid_lane_follow_light.launch veh:=YOUR_ROBOT_NAME_GOES_HERE`
+`roslaunch obst_avoid obst_avoid_lane_follow_light.launch veh:=robot_name`
 
 ### Step3: 
 press x ON YOUR JOYSTICK to generate an anti-instagram transformation 
@@ -35,7 +34,45 @@ Within about the next 10 seconds in the terminal of Step2 this **YELLOW** messag
 
 **If this was not the case, step 3 MUST BE REPEATED UNTIL THIS MESSAGE IS GENERATED!** :bangbang:
 
+### Step4: 
+Step4 is **not mandatory** but might help You to figure out potential errors and to visualize what is going on. Furthermore it is highly recommended to run the visualisation on the laptop, to keep the computing power on the rasbperry pi on a minimum. To visualize the outputs follow these commands:
 
+```
+laptop $ source set_ros_master.sh robot_name
+laptop $ roslaunch obst_avoid obst_avoid_visual.launch veh:=robot_name
+laptop $ rviz
+```
+
+The topics of interest are:
+`/robot_name/obst_detect_visual/visualize_obstacles` (Markers which show obstacles, visualize via rviz!), 
+`/robot_name/obst_detect_visual/image/compressed` (Image with obstacle detection overlay, visualize via rqt), 
+`/robot_name/obst_detect_visual/bb_linelist` (bounding box of obstacle detection visualize via rqt), 
+`/robot_name/duckiebot_visualizer/segment_list_markers` (line segments)
+
+### Step5: 
+To let your duckiebot drive, press R1 to start the lane following. The Duckiebot stops if obstacles are detected and in reach of the duckiebot. Removal of the obstacle should lead to the continuation of lane following.
+
+## Expected outcome
+
+## Troubleshooting
+
+### Nothing goes at all
+
+Propably You did not build Your workspace yet, so on your duckiebot run:
+```
+duckiebot $ source environment.sh 
+duckiebot $ catkin_make -C catkin_ws/
+```
+
+### Yellow message is not printed
+
+iwie checken ob anti instagram node nicht geht
+
+### The detection is not working reliably / Code tuning
+
+hier reinschreiben wie und wo parameter verändert werden könnnen
+
+## Thorough code and package description
 
 IF YOU WANT TO FURTHER UNDERSTAND OUR CODE AND LAUNCHING OPTIONS THEN YOU CAN READ THE STUFF BELOW!!! 
 ESPECIALLY AT THE VERY BOTTOM THER IS INFORMATION PROVIDED CONCERNING THE EASY DEBUGGING AND POTENTIAL ADAPTIONS OF PARAMETERS IN CASE OF UNDESIRED BEHAVIOUR!!!
