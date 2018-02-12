@@ -198,12 +198,15 @@ roslaunch obst_avoid obst_avoid_visual.launch veh:=YOUR_ROBOT_NAME_GOES_HERE sho
 ```
 then only `/robot_name/obst_detect_visual/visualize_obstacles` will be published. This launch file is again the most efficient one since the synchronizing part in the obstacle_detection_node_visual is not needed.
 
-### scripts:
+***
+
+### scripts
 
 We have created a bunch of useful scripts in order to debug, tryout new things and variations to our detection algorithm offline. Two of them help to create the images which can then be used to adapt and evaluate our code efficiently. Let us first start with how to create the images.
 
 Assuming that you have got collected a bag including the raw camera images. 
 Then you can use the **launch file create_bag.launch** which will in return create a new bag which will only contain the corrected image from the anti instagram module. This file is to be used as follows:
+
 ```
 roslaunch obst_avoid create_bag.launch veh:=dori path_save:=/home/niggi/Desktop/1.bag path_play:=/home/niggi/Desktop/bags/Record6/dori_slow_and_full_2017-12-11-14-09-28.bag
 ```
