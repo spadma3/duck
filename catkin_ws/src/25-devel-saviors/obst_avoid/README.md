@@ -2,7 +2,7 @@
 
 This is a package which was generated throughout the fall semester 2017 at ETH Zurich and implements an obstacle detection and avoidance behaviour, whereas the obstacles are namely yellow duckies and orange cones. The structure of the readme is as follows: 
 
-For simply getting the code to run you simply have to follow the instructions given in the first two sections ([Prerequisites](obst_avoid#step2) and Standart code usage).
+For simply getting the code to run you simply have to follow the instructions given in the first two sections (Prerequisites and Standart code usage).
 
 If the instructions in the first two sections do not work properly you can read up in the third section (Troubleshooting) how to reslove potential and well known conflicts
 
@@ -100,7 +100,16 @@ If there is nothing published checkout the anti_instagram readme on how to resol
 
 ### Steps1-5 work but the detection is not working reliably
 
-hier reinschreiben wie und wo parameter verändert werden könnnen
+This means that in general the software is working correctly but that for instance further parameter tuning might be necessary. In the following some parameters will be provided which You are able to tune fastly. To understand the full meaning of all of them and even more possible changes, You might want to read the follwing section (Thorough code and package description)
+
+THE FOLLOWING PARAMS ARE ALL TO BE CHANGED IN **DETECTOR.PY** if not stated other:
+
+* the number of pixels from when an object is considered for evaluation is adaptive towards the homography but if you want to change them by a factor, you can do that by adapting **self.obst_thres**
+* if you feel that you have smaller elements that should be detected you can also play around with the value **self.major_intertia_thres** which has impact in the object_filter function. Especially if you want to detect very little duckies you might want to change the criteria to 10 . But we do not recommend to make it lower than 10 because usually lines have an inertia_tensor_eigenval of right below 10,...
+* if some obstacles are not detected reliably during dynamic driving but very reliably in a static scene, the reason can be that they cannot be tracked amongst enough consecutive frames. To add all objects which are considered as obstacles as fast as possible you might set **self.min_consec_tracking** to 1
+* if you want to make the tracker a little more restrictive, the two parameters to play with are on the one hand the **y_distance** and on the other hand the **self.minimum_tracking_distance**
+* if only obstacles in your vicinity (meaning very very close to you) are detected you might on the one hand check your extrinsic calibration or if you want to have a fast debug, just change the reference world point in meters via the parameter **self.ref_world_point_x**. Whether your changes had an effect can be checked via executing Step4 of the starting procedure on your laptop and checking the output of the topic `/robot_name/obst_detect_visual/image/compressed` in rqt.
+* if you might want to run or actually can run your algorithm at more than our 2-3Hz then you have to adapt the rate in the obstacle_detection_node.py **(not the detector.py)** (Important additional node: Since we are also trying to run a kind of obstacle tracking to make everything more robust you might want to adapt the parameters linked to this tracking, which is mainly **self.min_consec_tracking** 
 
 ## Thorough code and package description
 
