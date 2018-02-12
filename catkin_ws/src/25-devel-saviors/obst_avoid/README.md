@@ -13,11 +13,11 @@ In order to being able to use the package it is necessary to install AN ADDITION
 ### Step1: 
 On the duckiebot: Naviate to `DUCKIETOWN_ROOT`
 
-`duckiebot $ source environment.sh`
-
-`duckiebot $ catkin_make -C catkin_ws/` *(this step is building your workspace and therefore only has to be done when you are using the code for the very first time!)* 
-
-`duckiebot $ make demo-lane-following`
+```
+duckiebot $ source environment.sh
+duckiebot $ catkin_make -C catkin_ws/ *(this step is building your workspace and therefore only has to be done when you are using the code for the very first time!)* 
+duckiebot $ make demo-lane-following
+```
 
 Wait for a couple of seconds until everything has been properly launched
 
