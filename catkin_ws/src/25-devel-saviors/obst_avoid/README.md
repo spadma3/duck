@@ -20,7 +20,7 @@ In order to being able to use the package it is necessary to install AN ADDITION
 
 ---
 
-## STANDART CODE USAGE
+## CODE USAGE
 
 ### Step1: 
 On the duckiebot: Naviate to `DUCKIETOWN_ROOT`
