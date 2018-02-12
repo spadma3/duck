@@ -83,8 +83,6 @@ duckiebot $ source environment.sh
 duckiebot $ catkin_make -C catkin_ws/
 ```
 
-___
-
 ### Yellow message is not printed
 
 The first step to find out why the Yellow message is not printed after having pressed executed Step3 for several times is to check whether any node of anti_instagram is running at all. Do this by executing the following commands in a new terminal on your laptop:
@@ -109,8 +107,6 @@ If this does not help, check out if there is anything published on this topic at
 `laptop $ rostopic echo /robot_name/anti_instagram_node/transform`
 
 If there is nothing published checkout the anti_instagram readme on how to resolve this problem.
-
-___
 
 ### Steps1-5 work but the detection is not working reliably
 
