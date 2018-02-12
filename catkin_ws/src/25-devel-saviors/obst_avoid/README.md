@@ -225,8 +225,11 @@ The first one, **the jupyter notebook file, color_thresholds** lets you load som
 **The second file, dt-detector_eval.py** lets you evaluate the overall perfomance of your current implementation of the obstacle_detection_node by loading all of the pictures in one folder, applying the detector on them, drawing all of the bounding boxes and storing the finally created pictures!! sample usage:
 
 start a roscore in a first terminal:
+
 `roscore`
+
 in a second terminal, type:
+
 `./dt-detector_eval.py`
 
 A third script is provided which can be used to decode an .csv file of thehive.ai.
