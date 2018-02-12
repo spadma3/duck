@@ -1,4 +1,4 @@
-# Package `pkg_name` {#pkg_name}
+# Package `obst_avoid` {#obst_avoid}
 This is the first part of our devel saviors package
 FIRST OF ALL: WE NEED AN ADDITIONAL LIBRARY: install via: "pip install scikit-image"
 
