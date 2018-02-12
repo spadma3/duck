@@ -4,8 +4,9 @@ This is a package which was generated throughout the fall semester 2017 at ETH Z
 
 ## Prerequisites
 
-In order to being able to use the package it is necessary to install AN ADDITIONAL LIBRARY: 
-	duckiebot $ pip install scikit-image
+In order to being able to use the package it is necessary to install AN ADDITIONAL LIBRARY:
+
+`duckiebot $ pip install scikit-image`
 
 THE NORMAL USAGE OF THE CODE IS AS FOLLOWS: (EVERYTHING TO BE RUN ON THE DUCKIEBOT!!!)
 
