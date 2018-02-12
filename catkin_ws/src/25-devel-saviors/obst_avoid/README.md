@@ -147,7 +147,7 @@ This pose array contains an array of all of the detected obstacles, where:
 - *orientation.z* represents the "most" right pixel of the obstacle in bird view
 - *orientation.w* represents the "most" bottom pixel of the obstacle in bird view
 
-#### launch file options
+#### launch file options for the obstacle_detection_node
 Our main recommended launching option is described above (Step1-Step5), however as one might ask why we have so many other launch files included they are explained in the following:
 
 **VAR1:**
@@ -183,7 +183,7 @@ The main outputs are the following:
 
 Sometimes the output, especially the visual output that you see from rqt might be really laggy. There are two explanations to this phenomen. Firstly, the slow wifi transmitter from the duckiebot generates a considerable lag. If we connected our duckiebot and Laptop directly via an Ethernet cable the visual rqt output was by far more reliable. And the other thing is that the obstacle_detection_node_visual also has to align the raw images with the corresponding posearray at the right timestamp which is also a potential point where something might go wrong.
 
-#### launch file options
+#### launch file options for obstacle_detection_node_visual
 For the obstacle_detection_node_visual there is only one launch option:
 
 `roslaunch obst_avoid obst_avoid_visual.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=true) show_image:= (default=true)`
@@ -191,24 +191,31 @@ For the obstacle_detection_node_visual there is only one launch option:
 With the parameters **show_marker** and **show_image** you can define which of the topics mentioned above will be published.
 e.g. if you use: `roslaunch obst_avoid obst_avoid_visual.launch veh:=YOUR_ROBOT_NAME_GOES_HERE show_marker:=true show_image:=false` then only `/robot_name/obst_detect_visual/visualize_obstacles` will be published. This launch file is again the most efficient one since the synchronizing part in the obstacle_detection_node_visual is not needed.
 
-### SCRIPTS:
+### scripts:
 
-We have created a bunch of useful scripts in order to debug offline. 2 of them help to create the images which can then be used to adapt and evaluate our code efficiently. Let us first start with how to create the images.
+We have created a bunch of useful scripts in order to debug, tryout new things and variations to our detection algorithm offline. 2 of them help to create the images which can then be used to adapt and evaluate our code efficiently. Let us first start with how to create the images.
 
-Assuming that you have got collected a bag including the raw camera images. Then you can use the **launch file create_bag.launch** which will in return create a new bag which will only contain the corrected image from the anti instagram module. This file is to be used as follows:
-`roslaunch obst_avoid create_bag.launch veh:=dori path_save:=/home/niggi/Desktop/1.bag path_play:=/home/niggi/Desktop/bags/Record6/dori_slow_and_full_2017-12-11-14-09-28.bag` 
+Assuming that you have got collected a bag including the raw camera images. 
+Then you can use the **launch file create_bag.launch** which will in return create a new bag which will only contain the corrected image from the anti instagram module. This file is to be used as follows:
+
+`roslaunch obst_avoid create_bag.launch veh:=dori path_save:=/home/niggi/Desktop/1.bag path_play:=/home/niggi/Desktop/bags/Record6/dori_slow_and_full_2017-12-11-14-09-28.bag`
+
 where *path_play* specifies the path to the bag file which should be played
 *path_save* specifies the path to the bag where it should be saved
 and *veh* specifies the name of the vehicle with which the log was taken
 
-after having created this bag containing the corrected images, we have to **extract them by using the script dt-bag-image-extract**. This can be used by first going into the file .../duckietown/catkin_ws/src/25-devel-saviors/obst_avoid/scripts and typing e.g.
+After having created this bag containing the corrected images, we have to **extract them by using the script dt-bag-image-extract**. 
+This can be used by first going into the file .../duckietown/catkin_ws/src/25-devel-saviors/obst_avoid/scripts and typing e.g.
 
 `./dt-bag-image-extract /home/niggi/Desktop/1.bag /dori/image_transformer_node/corrected_image /home/niggi/Desktop/1_pics`
 
 where the first argument is the path to the previously created bagfile, the second is the topic of interest which we want to transform into an image and the third one is the path to a directory which will be created in order to store the pictures in it!!!
 
-Now, that we have all the pictures we can finally tune our code using two additional files. The first one, **the jupyter notebook file, color_thresholds** lets you load some image and shows what would have been detected as yellow, white and orange.
+Now, that we have all the pictures we can finally tune our code using two additional files. 
+The first one, **the jupyter notebook file, color_thresholds** lets you load some image and shows what would have been detected as yellow, white and orange.
+
 **The second file dt-detector_eval.py** lets you evaluate the overall perfomance of your current implementation if the obstacle_detection_node by loading all of the pictures in one folder, applying the detector on them, drawing all of the bounding boxes and storing the finally created pictures!! sample usage:
+
 start a roscore in a first terminal:
 `roscore`
 in a second terminal, type:
