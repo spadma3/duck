@@ -1,6 +1,11 @@
 # Package `obst_avoid` {#obst_avoid}
-This is the first part of our devel saviors package
-FIRST OF ALL: WE NEED AN ADDITIONAL LIBRARY: install via: "pip install scikit-image"
+
+This is a package which was generated throughout the fall semester 2017 at ETH Zurich and implements an obstacle detection and avoidance behaviour, whereas the obstacles are namely yellow duckies and orange cones.
+
+## Prerequisites
+
+In order to being able to use the package it is necessary to install AN ADDITIONAL LIBRARY: 
+	duckiebot $ pip install scikit-image
 
 THE NORMAL USAGE OF THE CODE IS AS FOLLOWS: (EVERYTHING TO BE RUN ON THE DUCKIEBOT!!!)
 
