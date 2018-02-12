@@ -8,13 +8,29 @@ In order to being able to use the package it is necessary to install AN ADDITION
 
 `duckiebot $ pip install scikit-image`
 
-THE NORMAL USAGE OF THE CODE IS AS FOLLOWS: (EVERYTHING TO BE RUN ON THE DUCKIEBOT!!!)
+## Standart code usage
 
-1. "make demo-lane-following"
+### Step1: On the duckiebot: Naviate to `DUCKIETOWN_ROOT`
 
-2. "roslaunch obst_avoid obst_avoid_lane_follow_light.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori")"
+`duckiebot $ source environment.sh`
 
-3. press x ON YOUR JOYSTICK then wait for about 10 seconds and ONLY START THE LANE FOLLOWING MODE IF IN THE TERMINAL WHERE YOU STARTED 2. comes a message IN YELLOW: "!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!"
+`duckiebot $ catkin_make -C catkin_ws/` **(this step is building your workspace and therefore only has to be done when you are using the code for the very first time!)** 
+
+`duckiebot $ make demo-lane-following`
+
+Wait for a couple of seconds until everything has been properly launched
+
+### Step2: In a second terminal on the duckiebot run:
+
+`roslaunch obst_avoid obst_avoid_lane_follow_light.launch veh:=YOUR_ROBOT_NAME_GOES_HERE`
+
+### Step3: press x ON YOUR JOYSTICK to generate an anti-instagram transformation 
+
+if, after about 10 seconds in the terminal of Step2 comes a message:
+
+```python
+"!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!"
+```
 
 IF THIS YELLOW MESSAGE DID NOT APPEAR: repeat number 3
 
