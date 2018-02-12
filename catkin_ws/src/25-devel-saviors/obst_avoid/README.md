@@ -10,7 +10,8 @@ In order to being able to use the package it is necessary to install AN ADDITION
 
 ## Standart code usage
 
-### Step1: On the duckiebot: Naviate to `DUCKIETOWN_ROOT`
+### Step1: 
+On the duckiebot: Naviate to `DUCKIETOWN_ROOT`
 
 `duckiebot $ source environment.sh`
 
@@ -20,19 +21,19 @@ In order to being able to use the package it is necessary to install AN ADDITION
 
 Wait for a couple of seconds until everything has been properly launched
 
-### Step2: In a second terminal on the duckiebot run:
+### Step2: 
+Open a second terminal on the duckiebot and run:
 
 `roslaunch obst_avoid obst_avoid_lane_follow_light.launch veh:=YOUR_ROBOT_NAME_GOES_HERE`
 
-### Step3: press x ON YOUR JOYSTICK to generate an anti-instagram transformation 
+### Step3: 
+press x ON YOUR JOYSTICK to generate an anti-instagram transformation 
 
-if, after about 10 seconds in the terminal of Step2 comes a **YELLOW** message:
+Within about the next 10 seconds in the terminal of Step2 this **YELLOW** message should appear:
 
 `!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!`
 
-You are good to go
-
-**Otherwise: You must repeat step3 until this message is generated!**
+**If this was not the case, step 3 MUST BE REPEATED UNTIL THIS MESSAGE IS GENERATED!** :bangbang:
 
 
 
