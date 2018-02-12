@@ -1,8 +1,14 @@
 # Package `obst_avoid` {#obst_avoid}
 
-This is a package which was generated throughout the fall semester 2017 at ETH Zurich and implements an obstacle detection and avoidance behaviour, whereas the obstacles are namely yellow duckies and orange cones.
+This is a package which was generated throughout the fall semester 2017 at ETH Zurich and implements an obstacle detection and avoidance behaviour, whereas the obstacles are namely yellow duckies and orange cones. The structure of the readme is as follows: 
 
-## Prerequisites
+For simply getting the code to run you simply have to follow the instructions given in the first two sections (Prerequisites(#Prerequiites) and Standart code usage).
+
+If the instructions in the first two sections do not work properly you can read up in the third section (Troubleshooting) how to reslove potential and well known conflicts
+
+If you want to understand the whole package more thoroughly and eventually use it as a basis for imprpvements feel free to read the last section of this Readme (Thorough code and package description) which gives more detail on all the functionality provided by the package 
+
+## [Prerequisites]
 
 In order to being able to use the package it is necessary to install AN ADDITIONAL LIBRARY:
 
@@ -55,7 +61,7 @@ To let your duckiebot drive, press R1 to start the lane following. The Duckiebot
 
 ## Expected outcome
 
-[![Expected Result](https://vimeo.com/251523150/0.jpg)](https://vimeo.com/251523150)
+[![Expected Results - click here!](https://vimeo.com/251523150/0.jpg)](https://vimeo.com/251523150)
 
 ## Troubleshooting
 
@@ -69,9 +75,30 @@ duckiebot $ catkin_make -C catkin_ws/
 
 ### Yellow message is not printed
 
-iwie checken ob anti instagram node nicht geht
+The first step to find out why the Yellow message is not printed after having pressed executed Step3 for several times is to check whether any node of anti_instagram is running at all. Do this by executing the following commands in a new terminal on your laptop:
 
-### The detection is not working reliably / Code tuning
+```
+laptop $ source set_ros_master.sh robot_name
+laptop $ rostopic list
+```
+
+**VAR1: The topic `/robot_name/anti_instagram_node/transform` is not listed there:**
+
+The solution to this problem is to ensure that a anti-instagram node is launched which will publish a linear color transform under a topic `/robot_name/anti_instagram_node_name/transform`
+
+If this topic is named different to `/robot_name/anti_instagram_node/transform` then you have to adapt it in the package [`anti_instagram`](#anti_instagram) in the image_transformer_node.py in line 51.
+
+**VAR2: The topic `/robot_name/anti_instagram_node/transform` is listed but the yellow message does not appear**
+
+You should move the duckiebot to another position on the map or to another place in general and try again.
+
+If this does not help, check out if there is anything published on this topic at all via:
+
+`laptop $ rostopic echo /robot_name/anti_instagram_node/transform`
+
+If there is nothing published checkout the anti_instagram readme on how to resolve this problem.
+
+### Steps1-5 work but the detection is not working reliably
 
 hier reinschreiben wie und wo parameter verändert werden könnnen
 
