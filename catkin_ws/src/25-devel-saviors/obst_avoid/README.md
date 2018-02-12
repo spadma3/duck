@@ -44,7 +44,7 @@ Within about the next 10 seconds in the terminal of Step2 this **YELLOW** messag
 
 `!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!`
 
-**If this was not the case, step 3 MUST BE REPEATED UNTIL THIS MESSAGE IS GENERATED!** :bangbang:
+:bangbang: **If this was not the case, step 3 MUST BE REPEATED UNTIL THIS MESSAGE IS GENERATED!** :bangbang:
 
 ### Step4: 
 Step4 is **not mandatory** but might help You to figure out potential errors and to visualize what is going on. Furthermore it is highly recommended to run the visualisation on the laptop, to keep the computing power on the rasbperry pi on a minimum. To visualize the outputs follow these commands:
