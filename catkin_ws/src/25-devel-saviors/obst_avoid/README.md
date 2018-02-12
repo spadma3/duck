@@ -1,5 +1,7 @@
 # Package `obst_avoid` {#obst_avoid}
 
+---
+
 This is a package which was generated throughout the fall semester 2017 at ETH Zurich and implements an obstacle detection and avoidance behaviour, whereas the obstacles are namely yellow duckies and orange cones. The structure of the readme is as follows: 
 
 For simply getting the code to run you simply have to follow the instructions given in the first two sections (Prerequisites and Standart code usage).
@@ -8,11 +10,15 @@ If the instructions in the first two sections do not work properly you can read 
 
 If you want to understand the whole package more thoroughly and eventually use it as a basis for imprpvements feel free to read the last section of this Readme (Thorough code and package description) which gives more detail on all the functionality provided by the package 
 
+---
+
 ## Prerequisites
 
 In order to being able to use the package it is necessary to install AN ADDITIONAL LIBRARY:
 
 `duckiebot $ pip install scikit-image`
+
+---
 
 ## Standart code usage
 
@@ -59,9 +65,13 @@ The topics of interest are:
 ### Step5: 
 To let your duckiebot drive, press R1 to start the lane following. The Duckiebot stops if obstacles are detected and in reach of the duckiebot. Removal of the obstacle should lead to the continuation of lane following.
 
+---
+
 ## Expected outcome
 
 [![Expected Results - click here!](https://vimeo.com/251523150/0.jpg)](https://vimeo.com/251523150)
+
+---
 
 ## Troubleshooting
 
@@ -110,6 +120,8 @@ THE FOLLOWING PARAMS ARE ALL TO BE CHANGED IN **DETECTOR.PY** if not stated othe
 * if you want to make the tracker a little more restrictive, the two parameters to play with are on the one hand the **y_distance** and on the other hand the **self.minimum_tracking_distance**
 * if only obstacles in your vicinity (meaning very very close to you) are detected you might on the one hand check your extrinsic calibration or if you want to have a fast debug, just change the reference world point in meters via the parameter **self.ref_world_point_x**. Whether your changes had an effect can be checked via executing Step4 of the starting procedure on your laptop and checking the output of the topic `/robot_name/obst_detect_visual/image/compressed` in rqt.
 * if you might want to run or actually can run your algorithm at more than our 2-3Hz then you have to adapt the rate in the obstacle_detection_node.py **(not the detector.py)** (Important additional node: Since we are also trying to run a kind of obstacle tracking to make everything more robust you might want to adapt the parameters linked to this tracking, which is mainly **self.min_consec_tracking** 
+
+---
 
 ## Thorough code and package description
 
