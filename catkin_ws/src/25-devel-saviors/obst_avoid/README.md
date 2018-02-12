@@ -55,6 +55,8 @@ To let your duckiebot drive, press R1 to start the lane following. The Duckiebot
 
 ## Expected outcome
 
+[![Expected Result]()](https://vimeo.com/251523150)
+
 ## Troubleshooting
 
 ### Nothing goes at all
