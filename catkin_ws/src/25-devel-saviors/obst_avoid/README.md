@@ -151,8 +151,9 @@ This pose array contains an array of all of the detected obstacles, where:
 Our main recommended launching option is described above (Step1-Step5), however as one might ask why we have so many other launch files included they are explained in the following:
 
 #### VAR1:
-
-`roslaunch obst_avoid obst_avoid.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=true) ai_interval:= (default=10)`
+```
+roslaunch obst_avoid obst_avoid.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=true) ai_interval:= (default=10)
+```
 
 *This launchfile will launch our obstacle detection node together with the continouus anti-instagram node. However, in the final project file we did not use this option, as the continouus anti-instagram node was at that time too computationally intensive, even if we set the ai_interval parameter to very high values e.g. 100 which means that a transformation is only calculated every 100 seconds* 
 
@@ -163,8 +164,9 @@ example with visualizing the obstacles in the imageframe: roslaunch obst_avoid o
 > NOTE: although this node is not meant for visualization but rather for fast execution you can still visualize the obstacles with those two parameters if you want to and since the obstacle detection algorithm is performing on a cropped version of the image, here if you turn on show_image, this cropped version is displayed. So the visualisation properties in this node are for making development easy but throughout normal operation we recommend to use the instructions given in Step1 to Step5
 
 #### VAR2:
-
-`roslaunch obst_avoid obst_avoid_only.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=false)`
+```
+roslaunch obst_avoid obst_avoid_only.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=false)
+```
 
 With this launch file we will subscribe to the raw image so anti_instagram is not needed at all! In terms of computational effort this is the best implementation but as the color's hsv values change a lot under different lighting conditions the obstacle detection will only perform poorly and so we do not recommend to use this implementation.
 
@@ -220,14 +222,11 @@ where the first argument is the path to the previously created bagfile, the seco
 Now, that we have all the pictures we can finally tune our code using two additional files. 
 The first one, **the jupyter notebook file, color_thresholds** lets you load some image and shows what would have been detected as yellow, white and orange.
 
-**The second file dt-detector_eval.py** lets you evaluate the overall perfomance of your current implementation if the obstacle_detection_node by loading all of the pictures in one folder, applying the detector on them, drawing all of the bounding boxes and storing the finally created pictures!! sample usage:
+**The second file, dt-detector_eval.py** lets you evaluate the overall perfomance of your current implementation of the obstacle_detection_node by loading all of the pictures in one folder, applying the detector on them, drawing all of the bounding boxes and storing the finally created pictures!! sample usage:
 
 start a roscore in a first terminal:
-
 `roscore`
-
 in a second terminal, type:
-
 `./dt-detector_eval.py`
 
 A third script is provided which can be used to decode an .csv file of thehive.ai.
