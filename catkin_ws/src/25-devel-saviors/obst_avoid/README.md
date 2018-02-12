@@ -69,9 +69,7 @@ To let your duckiebot drive, press R1 to start the lane following. The Duckiebot
 
 ## EXPECTED OUTCOME
 
-[![Expected Results - click here!](https://vimeo.com/251523150/0.jpg)](https://vimeo.com/251523150)
-
-[![Vimeo](vimeo_screenshot.png){:height="50%" width="50%"}](https://player.vimeo.com/video/251523150 "The Saviors Teaser - Click to Watch!")
+[![Vimeo](vimeo_screenshot.png)](https://player.vimeo.com/video/251523150 "The Saviors Teaser - Click to Watch!")
 
 ---
 
