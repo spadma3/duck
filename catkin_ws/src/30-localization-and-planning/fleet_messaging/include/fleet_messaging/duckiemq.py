@@ -16,7 +16,7 @@ class DuckieMQBase(object):
     """
     def __init__(self, interface="wlan0", port="5554"):
         """
-        Initializes the ZeroMQ contect.
+        Initializes the ZeroMQ context.
         Use ifconfig to determine the name of the correct interface.
         On standard Duckiebots the interface is called "wlan0".
         Communication works over epgm protocol (multicasting)
