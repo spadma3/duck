@@ -18,21 +18,18 @@ from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseArray
 from visualization_msgs.msg import MarkerArray
 import time
-#this script is here to evaulate the perofrmance of our code on whole large datasets
+import argparse
+#this script is here to evaulate the performance of our code on whole large datasets
 robot_name='arki' #TO BE SET!!!
 #----------------SPECIFY FILES TO READ IN ---------------------
-#ASSUMES: pictures stored in folder structure ..../3/5_pics/"here_are_all_pics"
-start_file=1 #represent 1_pics e.g. start_file=end_file=1 only evaluates first folder!!!
-end_file=1
-name_new_folder="edited"
-general_path = '/home/niggi/savior_bags/19.12.bags/1/'
-#general_path = '/home/niggi/savior_bags/21.12./Record6/'
-dir_path = general_path+str(start_file)+"_pics"+"/"+name_new_folder
-im_path = general_path+str(start_file)+"_pics"
-#print dir_path
+#Automated Location assignment via input params:
+parser = argparse.ArgumentParser()
+parser.add_argument("input_bagpath", help="specify link to input bagfile", type=str)
+parser.add_argument("output_directory", help="specify output directory", type=str)
+args=parser.parse_args()
 
-
-
+dir_path = args.output_directory
+im_path = args.input_bagpath
 
 rospy.init_node('obstacle_detection_node',disable_signals=True)
 detector = Detector(robot_name=robot_name)
@@ -58,20 +55,8 @@ while(True):
     filename = im_path+ '/' + str(nummer) + '.jpg'
     im1 = cv2.imread(filename) #reads BGR
     if (im1 is None):
-        #zum naechsten Ordner gehen!!!
-        if (start_file>end_file):
-            break
-        else:
-            start_file+=1
-            if (start_file>end_file):
-                break
-            nummer=1
-            dir_path = general_path+str(start_file)+"_pics"+"/"+name_new_folder
-            im_path = general_path+str(start_file)+"_pics"
-            #CREATE NEW DIRECTORY
-            if os.path.exists(dir_path):
-                shutil.rmtree(dir_path)
-            os.makedirs(dir_path)
+        #stop it!
+        break
     
     
     else: #START MODIFYING THE IMAGE!!!
