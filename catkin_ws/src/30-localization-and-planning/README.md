@@ -53,5 +53,5 @@ Every node (bot, laptop etc.) wanting to communicate needs a properly formatted 
 
 Then source the environment and launch the communication node with:
 
-  $ source environment.sh
-  $ roslaunch fleet_messaging fleet_messaging.launch
+    $ source environment.sh
+    $ roslaunch fleet_messaging fleet_messaging.launch
