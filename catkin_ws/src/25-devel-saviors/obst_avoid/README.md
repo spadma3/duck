@@ -242,7 +242,7 @@ start a roscore in a first terminal:
 
 `roscore`
 
-in a second terminal, naviagte into the path `.../obst_avoid/scripts/ and type:
+in a second terminal, naviagte into the path `.../obst_avoid/scripts/ and type e.g.:
 
 ```
 ./dt-detector_eval.py ~/Desktop/19.12.6_pics/ ~/Desktop/19.12.6_pics/editted/
