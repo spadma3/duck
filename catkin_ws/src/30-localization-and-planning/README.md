@@ -1,5 +1,3 @@
-Write the README.md file (template will be available before Jan. 4th) in the duckietown/software/catkin_ws/src/<package>/ repository that describes the software and parameters involved. 
-  
 ## Duckiebot setup notes 
 
 To use the fleet messaging platform, additional wireless adapters are needed that allow mesh networking (e.g. TP-Link TL-WN822N or TL-WN821N).
@@ -48,5 +46,12 @@ Change all four instances of wlan0 to wlan1.
 
 After a reboot you are ready to make your Duckiebots talk to each other.
 
-## DuckieMQ:
-DuckeiMQ is based on zeroMQ and provides the actual messaging part. The serialized messages (protobuf) are broadcasted on a specified part into the network. For this we need to know the name of the interface, the desired port and wether we want to recieve or send on initialization initialization of a messaging object. Multiple of those can run on one bot and on also on one port. Recievers can be equipped with filters to only recieve messages starting with a specified string.
+## Usage
+
+Every node (bot, laptop etc.) wanting to communicate needs a properly formatted config file:
+
+
+Then source the environment and launch the communication node with:
+
+  $ source environment.sh
+  $ roslaunch fleet_messaging fleet_messaging.launch
