@@ -6,7 +6,7 @@ This is a package which was generated throughout the fall semester 2017 at ETH Z
 
 For simply getting the code to run you have to follow the instructions given in the first two sections (Prerequisites and Standart code usage). Which is followed by a video which shows the Expected Outcome.
 
-If the instructions in the first two sections do not work properly, you can find answers on how to reslove potential and well known conflicts in the third section (Troubleshooting)
+If the instructions in the first two sections do not work properly, you can find answers on how to resolve potential and well known conflicts in the third section (Troubleshooting)
 
 If you want to understand the whole package more thoroughly and eventually use it as a basis for imprpvements, feel free to read the last section of this Readme (Thorough code and package description) which gives more detail on all the functionality provided by the package 
 
