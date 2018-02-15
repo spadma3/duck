@@ -130,7 +130,8 @@ class calib():
         logger.info("Loaded checkerboard parameters")
         return target_info
 
-    def draw(self,     img, corners, imgpts):
+# This function draws lines joining the given image points to the first chess board corner
+    def draw(self,img, corners, imgpts):
         corner = tuple(corners[0].ravel())
         img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255, 0, 0), 5)
         img = cv2.line(img, corner, tuple(imgpts[1].ravel()), (0, 255, 0), 5)
@@ -162,16 +163,16 @@ class calib():
             'timestamp':[],
           }
 
-
+        # Define the chess board rows and columns
         chw=self.board_['width']
         chh=self.board_['height']
         patternSize = (chw, chh)
         chSeize=self.board_['square_size']
-        # termination criteria
+       
+        # Set the termination criteria for the corner sub-pixel algorithm
         # if resolution is low keep iteration to minimum otherwise it messes up the code
         # the process of corner refinement stops either after critera.max.count iteration or when the corner moves by less than criteria.epsilon on some iteration
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,20,0.01)  # befor was 30 instead of 20
-        # find_chessboard_flags = cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE | cv2.CALIB_CB_FAST_CHECK | cv2.CALIB_CB_FILTER_QUADS
         find_chessboard_flags = cv2.CALIB_CB_ADAPTIVE_THRESH
 
         # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
@@ -182,6 +183,8 @@ class calib():
 
         # Create the axis points
         axisPoints = np.float32([[3*chSeize, 0, 0], [0, 3*chSeize, 0], [0, 0, -3*chSeize]]).reshape(-1, 3)
+        
+        #define the inputbag and topicname
         inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
         topicname = "/" + self.robot_name + "/camera_node/image/compressed"
         indexcounter=1
@@ -189,18 +192,16 @@ class calib():
         #initialize recording state
         Recording=False
 
-
+        #get Index where there is no velocity command its respective timestamp
         stopIndex = [i for i, j in enumerate(self.wheels_cmd_['vel_r']) if j == 0]
-        startIndex = [i for i, j in enumerate(self.wheels_cmd_['vel_r']) if j != 0]
         stopTime=[self.wheels_cmd_['timestamp'][i] for i in stopIndex]
+        #get Index where there is a velocity command its respective timestamp
+        startIndex = [i for i, j in enumerate(self.wheels_cmd_['vel_r']) if j != 0]
         startTime=[self.wheels_cmd_['timestamp'][i] for i in startIndex]
         counter=0
         
-        #for i in range(0,np.size(self.wheels_cmd_['timestamp'])):
-        #    self.wheels_cmd_['timestamp'][i] = self.wheels_cmd_['timestamp'][i].to_sec()
-
-       
-
+     
+        # Loop over the image files contained in rosbag
         for topic, msg, t in rosbag.Bag(inputbag).read_messages(topics=topicname):
             indexcounter+=1
             dt = rospy.Duration(secs=1.0/30.) # start recording approx one frame before first wheel cmd
@@ -236,33 +237,6 @@ class calib():
                     #Blue X-axis = pointing right or left
                     #Green Y-axis = pointing down or up
 
-
-                    # OLD CALCULATION OF VEH POSITION
-                    '''
-                    # camera pose from object points
-                    R_chess_cam = cv2.Rodrigues(rvecs)[0]
-                    cam_pos = -np.matrix(R_chess_cam).T * np.matrix(tvecs) #camera pose from perspective of chessboard
-
-                    #translate coordinate cam_pose to vehicle poseS
-                    # angle_cam_veh = 0
-                    angle_cam_veh=12/180.0*math.pi #guess of camera angle in degreee to veh around x-axis
-                    R_cam_verticalcam=self.ZYXEuler2rot([float(angle_cam_veh),0.0,0.0])
-                    # assert (self.isRotationMatrix(R_cam_verticalcam))
-
-                    #change direction of coordinates system
-                    R_verticalcam_veh= np.matrix('0 1 0; 0 0 1; 1 0 0')
-                    # R_verticalcam_veh=np.eye(3)
-                    #turn get eulerangles of R_chess_veh=R_chess_cam*R_cam_veh
-                    # R_chess_veh = np.matmul(R_chess_cam,R_cam_verticalcam)
-                    R_chess_veh = R_chess_cam.dot(R_cam_verticalcam).dot(R_verticalcam_veh)
-                    # print R_chess_veh
-                    veh_pos = np.matrix(R_chess_veh).T * np.matrix(tvecs) #camera pose from perspective of chessboard
-                    # get euler angles [x,y,z] in radians
-                    veh_eulerangles=self.rot2ZYXEuler(R_chess_veh)
-                    '''
-
-
-
                     t_chess_cam=tvecs
 
                     # camera pose from object points
@@ -273,13 +247,11 @@ class calib():
                     T_chess_cam = np.zeros((4, 4))
                     T_chess_cam[3, 3] = 1
                     T_chess_cam[:3, :3] = R_chess_cam
-                    # T_chess_cam[:3, :3] = R_cam_chess
                     T_chess_cam[:3, 3] = t_cam_chess.transpose()
-                    # T_chess_cam[:3, 3] = t_chess_cam.transpose()
+
 
                     # change direction of coordinates system
                     R_world_chess=np.matrix('0 0 1;-1 0 0;0 -1 0')
-                    # R_world_chess=np.matrix('1 0 0;0 0 1;0 -1 0')
 
                     # R_world_chess=np.eye(3)
                     T_world_chess = np.zeros((4, 4))
@@ -300,10 +272,6 @@ class calib():
                     veh_pos = T_world_veh[:3, 3]
                     # get euler angles of vehicles with respect to world coordinate frame [x,y,z] in radians
                     veh_eulerangles=self.rot2ZYXEuler(T_world_veh[:3, :3])
-
-
-
-
 
 
                     # print "-------Euler Angles-------"
@@ -343,24 +311,12 @@ class calib():
 
         cv2.destroyAllWindows() #close window
 
-        #reshape for pose for better handling
-        # x = np.reshape(x, len(x))
-        # y = np.reshape(y, len(x))
-        # z = np.reshape(z, len(x))
-        # roll= np.reshape(roll, len(x))
-        # pitch = np.reshape(pitch, len(x))
-        # yaw = np.reshape(yaw, len(x))
-
-
-        #MA filter with window size N
-
-
+        #MA filter with window size N;
         filter=False
         if filter:
             N = 3
             pose_straight=self.poseFilter(pose_straight,N)
             pose_curve=self.poseFilter(pose_curve,N)
-
 
         data ={'straight':pose_straight,'curve':pose_curve}
 
