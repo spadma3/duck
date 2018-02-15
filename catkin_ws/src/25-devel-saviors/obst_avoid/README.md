@@ -23,7 +23,7 @@ In order to being able to use the package it is necessary to install AN ADDITION
 ## CODE USAGE
 
 ### Step1: 
-On the duckiebot: Naviate to `DUCKIETOWN_ROOT`
+On the duckiebot: Navigate to `DUCKIETOWN_ROOT`
 
 ```
 duckiebot $ source environment.sh 
@@ -47,7 +47,7 @@ Within about the next 10 seconds in the terminal of Step2 this **YELLOW** messag
 **If this was not the case, step 3 MUST BE REPEATED UNTIL THIS MESSAGE IS GENERATED!** :bangbang:
 
 ### Step4: 
-Step4 is **not mandatory** but might help You to figure out potential errors and to visualize what is going on. Furthermore it is highly recommended to run the visualisation on the laptop, to keep the computing power on the rasbperry pi on a minimum. To visualize the outputs follow these commands:
+Step4 is **not mandatory** but might help You to figure out potential errors and to visualize what is going on. Furthermore it is highly recommended to run the visualisation on the laptop, to keep the computing power on the raspberry pi on a minimum. To visualize the outputs follow these commands:
 
 ```
 laptop $ source set_ros_master.sh robot_name
@@ -63,7 +63,7 @@ The topics of interest are:
 `/robot_name/duckiebot_visualizer/segment_list_markers` (line segments)
 
 ### Step5: 
-To let your duckiebot drive, press R1 to start the lane following. The Duckiebot stops if obstacles are detected and in reach of the duckiebot. Removal of the obstacle should lead to the continuation of lane following.
+To let your duckiebot drive, press R1 to start the lane following. The Duckiebot stops if obstacles are detected and in reach of the duckiebot. Removal of the obstacle should lead to the continuation of the lane following.
 
 ---
 
@@ -75,7 +75,7 @@ To let your duckiebot drive, press R1 to start the lane following. The Duckiebot
 
 ## TROUBLESHOOTING
 
-### Nothing goes at all
+### Nothing works at all
 
 Propably You did not build Your workspace yet, so on your duckiebot run:
 ```
@@ -94,7 +94,7 @@ laptop $ rostopic list
 
 **VAR1: The topic `/robot_name/anti_instagram_node/transform` is not listed there:**
 
-The solution to this problem is to ensure that a anti-instagram node is launched which will publish a linear color transform under a topic `/robot_name/anti_instagram_node_name/transform`
+The solution to this problem is to ensure that the anti-instagram node is launched which will publish a linear color transform under a topic `/robot_name/anti_instagram_node_name/transform`
 
 If this topic is named different to `/robot_name/anti_instagram_node/transform` then you have to adapt it in the package [`anti_instagram`](#anti_instagram) in the image_transformer_node.py in line 51.
 
@@ -155,7 +155,7 @@ This pose array contains an array of all of the detected obstacles, where:
 roslaunch obst_avoid obst_avoid.launch veh:=YOUR_ROBOT_NAME_GOES_HERE (default="dori") show_marker:= (default=false) show_image:= (default=false) use_ai:= (default=true) ai_interval:= (default=10)
 ```
 
-*This launchfile will launch our obstacle detection node together with the continouus anti-instagram node. However, in the final project file we did not use this option, as the continouus anti-instagram node was at that time too computationally intensive, even if we set the ai_interval parameter to very high values e.g. 100 which means that a transformation is only calculated every 100 seconds* 
+*This launchfile will launch our obstacle detection node together with the continuous anti-instagram node. However, in the final project file we did not use this option, as the continouus anti-instagram node was at that time too computationally expensive, even if we set the ai_interval parameter to very high values e.g. 100 which means that a transformation is only calculated every 100 seconds* 
 
 example without visualizing anything: 
 
@@ -210,7 +210,7 @@ then only `/robot_name/obst_detect_visual/visualize_obstacles` will be published
 
 ### scripts
 
-We have created a bunch of useful scripts in order to debug, tryout new things and variations to our detection algorithm offline on your PC. They are all not made to be run on the bot! They can be all found in `../obst_avoid/scripts/`. Two of them help to create the images which can then be used to adapt and evaluate our code efficiently. Let us show how You can make use of them step by step.
+We have created a bunch of useful scripts in order to debug, tryout new things and variations to our detection algorithm offline on your PC. They are all not made to be run on the bot! They can be all found in `../obst_avoid/scripts/`. Two of them help to create the images which can then be used to adapt and evaluate our code efficiently. Let us show how you can make use of them step by step.
 
 Assuming that you have got collected a bag including the raw camera images. 
 Then you can use the **launch file create_bag.launch** which will in return create a new bag which will only contain the corrected image from the anti instagram module. This is done by playing the bag and launching the continouus anti-instagram node in parallel. Use this file as follows:
