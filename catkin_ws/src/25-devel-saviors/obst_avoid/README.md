@@ -8,7 +8,7 @@ For simply getting the code to run you have to follow the instructions given in 
 
 If the instructions in the first two sections do not work properly, you can find answers on how to resolve potential and well known conflicts in the third section (Troubleshooting)
 
-If you want to understand the whole package more thoroughly and eventually use it as a basis for imprpvements, feel free to read the last section of this Readme (Thorough code and package description) which gives more detail on all the functionality provided by the package 
+If you want to understand the whole package more thoroughly and eventually use it as a basis for improvements, feel free to read the last section of this Readme (Thorough code and package description) which gives more detail on all the functionality provided by the package. 
 
 ---
 
