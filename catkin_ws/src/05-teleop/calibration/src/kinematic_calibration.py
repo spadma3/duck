@@ -220,6 +220,8 @@ class calib():
                 if ret == True:
                     counter=0 # reset counter
                     print "checkerboard in frame %d found" %indexcounter
+                    
+                    # Refine the corner position
                     corners2 = cv2.cornerSubPix(gray, corners, (5,5), (-1, -1), criteria)
                     
                     # only reverse order if first point is at bottom right corner
@@ -231,7 +233,7 @@ class calib():
                     img = cv2.drawChessboardCorners(img, (chw, chh), corners2, ret)
 
                     # Find the rotation and translation vectors.
-                    _, rvecs, tvecs, inliers = cv2.solvePnPRansac(objp, corners2, self.cam.K, self.cam.D)
+                    _, rvecs, tvecs, inliers = cv2.solvePnPRansac(objp, corners2, self.cam.K, np.array([]))
 
                     #Red Z-axis = pointing away from image
                     #Blue X-axis = pointing right or left
@@ -260,7 +262,7 @@ class calib():
                     T_world_chess[:3, 3] = [0, 0, 0]
 
                     #translate coordinate cam_pose to vehicle pose
-                    angle =0/180.0*math.pi #guess of camera angle in degree to veh
+                    angle =0/180.0*math.pi #guess of camera angle in degree to veh; set to zero since results were not satisfying
                     R_cam_veh=self.ZYXEuler2rot([0,float(angle),0.0])
                     assert(self.isRotationMatrix(R_cam_veh))
                     T_cam_veh = np.zeros((4, 4))
