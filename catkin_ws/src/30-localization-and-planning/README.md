@@ -51,10 +51,10 @@ After a reboot you are ready to make your Duckiebots talk to each other.
 Every node (bot, laptop etc.) wanting to communicate needs a properly formatted config file:
 
     - name: "dist-est" 
-    description: "distributed estimation images" 
-    port: "12345" 
-    pub: "pubtopic" 
-    sub: "subtopic" 
+      description: "distributed estimation images" 
+      port: "12345" 
+      pub: "pubtopic" 
+      sub: "subtopic" 
 
 
 Then source the environment and launch the communication node with:
