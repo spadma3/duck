@@ -56,11 +56,11 @@ Every node (bot, laptop etc.) wanting to communicate needs a properly formatted 
       pub: "pubtopic" 
       sub: "subtopic" 
       
-`name`:arbritary name to distinguish the package using this platform
-`description`: TODO
-`port`: TODO
-`pub`: the outbox_topic that fleet communcation should publish to
-`sub`: the inbox_topic that fleet communication will subscribe to 
+`name`:arbritary name to distinguish the package using this platform<br/><br/>
+`description`: TODO<br/><br/>
+`port`: TODO<br/><br/>
+`pub`: the outbox_topic that fleet communcation should publish to<br/><br/>
+`sub`: the inbox_topic that fleet communication will subscribe to <br/><br/>
 
 Then source the environment and launch the communication node with:
 
