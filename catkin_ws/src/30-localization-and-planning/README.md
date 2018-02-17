@@ -48,14 +48,19 @@ After a reboot you are ready to make your Duckiebots talk to each other.
 
 ## Usage
 
-Every node (bot, laptop etc.) wanting to communicate needs a properly formatted config file:
+Every node (bot, laptop etc.) wanting to communicate needs a properly formatted config file as follows:
 
     - name: "dist-est" 
       description: "distributed estimation images" 
       port: "12345" 
       pub: "pubtopic" 
       sub: "subtopic" 
-
+      
+`name`:arbritary name to distinguish the package using this platform
+`description`: TODO
+`port`: TODO
+`pub`: the outbox_topic that fleet communcation should publish to
+`sub`: the inbox_topic that fleet communication will subscribe to 
 
 Then source the environment and launch the communication node with:
 
