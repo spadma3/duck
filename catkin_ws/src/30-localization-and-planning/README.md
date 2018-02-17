@@ -30,7 +30,7 @@ Then find the name of the wifi interface you want to use with iwconfig. (eg. wlx
 
 Next specify a static IP adress and subnet and write it on a piece of paper, be carefull to not use the same IP on two bots. However, the subnet should stay the same on all bots. (eg. 192.168.15.38/24)
 
-Change to dependecie directory
+Change to dependecy directory
 
     $ cd ~/duckietown/catkin_ws/src/30-localization-and-planning/fleet_messaging/dependencies
     
@@ -49,6 +49,12 @@ After a reboot you are ready to make your Duckiebots talk to each other.
 ## Usage
 
 Every node (bot, laptop etc.) wanting to communicate needs a properly formatted config file:
+
+`- name: "dist-est" 
+   description: "distributed estimation images" 
+   port: "12345" 
+   pub: "pubtopic" 
+   sub: "subtopic" `
 
 
 Then source the environment and launch the communication node with:
