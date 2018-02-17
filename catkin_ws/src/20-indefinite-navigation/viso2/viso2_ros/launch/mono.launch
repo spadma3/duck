@@ -1,0 +1,16 @@
+<launch>
+
+  <arg name="veh" />
+
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0  1.5708 0.15 1.5708   base_link $(arg veh)/camera_optical_frame 100" />
+
+  <!-- Viso2 -->
+  <node pkg="viso2_ros" type="mono_odometer" name="mono_odometer">
+    <remap from="image" to="/$(arg veh)/image_proc/image_rect"/>
+    <param name="camera_height" value="0.1" />
+    <param name="camera_pitch" value="-0.15" />
+    <param name="sensor_frame_id" value="$(arg veh)/camera_optical_frame"/>
+    <param name="ransac_iters" value="50"/>
+  </node>
+
+</launch>
