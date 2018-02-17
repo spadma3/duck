@@ -37,12 +37,17 @@ Change to dependecy directory
 and install everything with one handy script!
   
     $ ./install_fleet_messaging <wifi-iface> <ipaddr>
+
+run the following to see if you have correctly installed batman and the wifi adapter drivers
+
+    $ batctl if
+    [interface] active // what you should get
     
 Now you need to alter your network config, for this open the interfaces file:
 
     $ sudo vim /etc/network/interfaces
     
-Change all four instances of wlan0 to wlan1.
+Change all four instances of wlan0 to wlan1. (This is so you can still connect to the internet after)
 
 After a reboot you are ready to make your Duckiebots talk to each other.
 
