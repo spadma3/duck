@@ -34,7 +34,7 @@ where :
 - vFin is the final voltage of the ramp command (0.5 by default)
 - Nstep is the number of step used to go from 0 to vFin for the ramp (180 steps by default)
 
-- k1, k2 and omega are the parameters of the sinusoid command $k1 + k2*cos(omega*t)$ (by default, k1=0.2, k2=0.06, omega=0.007)
+- k1, k2 and omega are the parameters of the sinusoid command $k1 + k2 \cdot \cos(omega \cdot t)$ (by default, k1=0.2, k2=0.06, omega=0.007)
 - duration is the duration of the sinusoid command (by default 2000)
 
 
