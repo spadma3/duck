@@ -5,28 +5,29 @@
 
 This package is an automatic wheels calibration procedure. 
 
-- The launchfile commands.launch sends specific voltage command to the weehls while recording images with the camera in a Rosbag. 
+- The launchfile commands.launch sends specific voltage command to the wheels while recording images with the camera in a rosbag. 
 
-- The launchfile calibration.launch calculates the differents parameters of the theoretical model that fit best the trajectory of the Duckiebot.
+- The launchfile calibration.launch calculates the different parameters of the theoretical model that fit best the trajectory of the Duckiebot.
 
 - The launchfile test.launch tests if the callibration has succeded or not.
 
+
 ## Commands
 
-To calibrate the wheeels, place your Duckiebot with its USB mounted in front of the same chessboard as for the camera calibration at a distance of slightly more than 1 meters (~ 2 duckie tiles) and run the following command : 
+To calibrate the wheels, place your Duckiebot with its USB mounted in front of the same chessboard as for the camera calibration at a distance of slightly more than 1 meter (~ 2 duckie tiles) and run the following command : 
 
 	duckiebot $ roslaunch calibration commands.launch veh:=robot name 
 
 The program will publish at a frequency of 30 Hz in the topic robot_name/wheels_driver_node/wheels_cmd the following commands : 
 
 - A ramp (the same increasing voltage command to the right and left wheels) 
-- No command for 10 seconds (so you can replace your Duckiebot at 1 meters of the Chessboard)
-- A sinusoid (a cosinus voltage command in opposite phase between the left and the right wheel)
+- No command for 10 seconds (so you can replace your Duckiebot at 1 meter of the chessboard)
+- A sinusoid (a cosinus voltage command in opposite phase between the left and the right wheels)
 
-When the programm will exit, you will have a Rosbag named robot_name_calibration.bag in your USB drive containing the commands published and the images. 
+When the program will exit, you will have a rosbag named robot_name_calibration.bag in your USB drive containing the commands published and the images. 
 
 
-If the chessboard goes out of the field of view of the Duckiebot too quickly, you can tune the voltage commands by typing the values of the parameters :
+If the chessboard goes out of the camera's field of view too quickly, you can tune the voltage commands by typing the values of the parameters in the command the following way :
 
 	duckiebot $ roslaunch calibration commands.launch veh:=robot name vFin:=![value] Nstep:=![value] k1:=![value] k2:=![value] omega:=![value] duration:=![value]
 
