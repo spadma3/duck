@@ -180,6 +180,24 @@ With this launch file we will subscribe to the raw image so anti_instagram is no
 
 ***
 
+### obstacle_avoidance_node
+In the obstacle avoidance node we react to the obstacle detecte from the obstacle detection node. 
+The main inputs to this node are `/robot_name/obst_detect/posearray` and `/robot_name/lane_filter_node/lane_pose/`.
+
+The main outputs of this node are the following:
+
+`/robot_name/obstacle_avoidance_active_flag` (Flag indicating that the obstacle avoidance is active)
+`/robot_name/obst_avoid/obstacle_avoidance_pose` (Pose array which contains the d_ref and v_ref used by the lane controller node)
+
+To check the functionality of this node one should look at the obstacle avoidance flag and the two other outputs of the node. If the flag is not going true if there is an obstacle in front of the obstacle something is wrong with with the detection or the size of the bounding box. The flag going true, and the obstacle_avoidance_pose values changing without the robot reacting indicate issues with the lane controller node. 
+
+### launch file options for obstacle_avoidance_node
+The node gets launched when the `obst_avoid.launch` or the `obst_avoid_lane_follow_light.launch` files are executed. 
+```
+roslaunch obst_avoid obst_avoid.launch veh:=YOUR_ROBOT_NAME_GOES_HERE bb_len:= (default=500) bb_wid:= (default=250)
+```
+With the parameters **bb_len** and **bb_wid** you can define the length and width of the obstacle avoidance bounding box. This can help during debugging and tuning of the detection.
+
 ### obstacle_detection_node_visual
 In this node we visualize the output of our obstacle_detection_node. This node is meant to be run on your personal laptop for verifying what is going on during the drive!!!
 
