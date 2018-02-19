@@ -47,7 +47,6 @@ class FSMNode(object):
             rospy.signal_shutdown("[%s] Invalid event definition." %self.node_name)
             return          
 
-
         self.sub_list = list()
         self.event_trigger_dict = dict()
         for event_name, event_dict in param_events_dict.items():
