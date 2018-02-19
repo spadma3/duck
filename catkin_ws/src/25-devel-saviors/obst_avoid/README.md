@@ -198,6 +198,8 @@ roslaunch obst_avoid obst_avoid.launch veh:=YOUR_ROBOT_NAME_GOES_HERE bb_len:= (
 ```
 With the parameters **bb_len** and **bb_wid** you can define the length and width of the obstacle avoidance bounding box. This can help during debugging and tuning of the detection.
 
+***
+
 ### obstacle_detection_node_visual
 In this node we visualize the output of our obstacle_detection_node. This node is meant to be run on your personal laptop for verifying what is going on during the drive!!!
 
