@@ -99,6 +99,31 @@ The logic gate node publishes on many topics according to the configuration:
 
 where `gate_dict.items()` is a dictionary of all gates, and `output_topic_name` is `~/gate_name`. The `fsm_node` then subscribes to `logic_gate_node/*`, where each `gate_name` corresponds to a state transition event. 
 
+### Configuration
+The `fsm_node` is configured by the `.yaml` file at ... The node will extract the information in the `yaml` file as a Python dictionary containing all the configuration data.
+
+The file contains the following sections:
+
+#### Events
+These are the events that are inputs to the logic gates. 
+
+    events:
+      deep_lane_following_on:
+        default: False
+        topic: "joy_mapper_node/deep_learn_toggle"
+        msg_type: "BoolStamped"
+        trigger: True
+
+#### Gates
+This is the definition of the logic OR and/or AND gates based on event inputs. Each gate has a `gate_type` (`AND` or `OR`), input event names, and an output topic name.
+
+    gates:
+      joystick_override_on_and_parallel_autonomy_off:
+        gate_type: AND
+        inputs:
+          - joystick_override_on
+          - parallel_autonomy_off
+        output_topic: "~joystick_override_on_and_parallel_autonomy_off"
 
 ### Usage {nonumber="1"}
 The current state is published to the `fsm_node/mode` topic. For each state, there is a list of nodes which should be active, which are switched by means of `node_name/switch` topics.
