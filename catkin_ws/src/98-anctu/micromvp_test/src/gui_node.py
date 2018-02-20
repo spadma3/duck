@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 
+
+'''
+The flow of the code.
+First an object of Class App will be generate. Then you can find out the fountion SetupArgV, SetupCars, SetupGUI will be called.
+After that the scrath things are done. 
+When ever the location of the cars are received, the function ros_GetLocation will be called, after that the code will calculate the thrust for the motors and send it to the robots.
+'''
+
+
 import rospy
 import rospkg
 from micromvp_test.msg import micromvp_carspeed
