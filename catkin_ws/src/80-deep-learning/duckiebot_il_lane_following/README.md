@@ -6,7 +6,7 @@ The following command can start the function of Duckiebot's lane following based
 
     $ roslaunch duckiebot_il_lane_following il_lane_following_simp.launch 
 
-results in an output in console as following, also the Duckiebot starts lane following.
+which results in an output in console as following, and the Duckiebot starts lane following.
 
 ![Plug 0](console.png)
 
