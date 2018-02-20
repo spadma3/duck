@@ -1,8 +1,9 @@
 # Package `benchmark' {#benchmark}
 
-This package contains the benchmark code used for the controllers project. It basically takes one or more rosbags on a specific folder and evaluates the run of corresponding duckiebot for d_ref and phi_ref and plots them into a diagram. 
+This package contains the benchmark code used for the controllers project. It basically takes one or more rosbags in a specific folder and evaluates the run of the corresponding Duckiebot for **$d_{ref}$** and **$\phi_{ref}$** and plots them into a diagram.
 
-Additionally if the rosbag does not contain any pose information, it takes the pictures and calculates the transformation and line segments itsself. It does also paint the values onto the pictures, so it can be add together to a video.
+Additionally if the rosbag does not contain any pose information, it takes the pictures and calculates the transformation and line segments itself. It does also plot the values onto the pictures, so those pictures can be combined to a video.
+
 
 ## Output
 
