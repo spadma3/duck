@@ -2,7 +2,7 @@
 
 The **Finite State Machine (FSM)** coordinates the modes of the car. The `fsm` package consists of two nodes, namely `fsm_node` and `logic_gate_node`. The `fsm_node` is the main node which determines the current state of the Duckiebot, and the `logic_gate_node` serves as a helper node to the `fsm_node`.
 
-![FSM diagram](fsm_package_overview.png)
+![FSM diagram](fsm_overview.png)
 
 Below is a summary of the basic concept of the FSM.
 
@@ -13,9 +13,44 @@ Below is a summary of the basic concept of the FSM.
 * In each state, certain nodes are **active/inactive**
 * Each node affected by the state machine can be **switched** active/inactive by means of a 
 
-Below is the current **FSM diagram**, generated from the `.yaml` config file.
+Below is the current **FSM diagram**, generated from the `.yaml` config file. 
 
 ![FSM diagram](fsm_default.png)  
+
+*Side-note:*
+To re-generate the FSM diagram from the `.yaml` file, there exists a Python script at `00_infrastructure/ros_diagram/parse_fsm.py`. The script will generate a `.dot` file, which can then be converted to `.png` using the following commands.
+    
+    python parse_fsm.py
+    dot -Tpng fsm_default.dot >> fsm_defaut.png
+
+### Usage {nonumber="1"}
+The current state is published to the `fsm_node/mode` topic. For each state, there is a list of nodes which should be active, which are switched by means of `node_name/switch` topics.
+
+The FSM node publishes on many topics `node_name_x/switch`, where `node_name_x` is the name of any node affected by the FSM. The relevant nodes then subscribe to `~/switch`, and toggle their behaviour based on the value of the switch. Nodes can also subscribe to the `fsm_node/mode` topic if they need to change their behaviour based on the specific state. An example of how a node named `ExampleNode` can handle this is shown below:
+
+    class ExampleNode(object):
+        def __init__(self):
+        ...
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.cbMode, queue_size=1)
+        self.active = True
+        self.mode = None
+
+        def cbSwitch(self,switch_msg):
+            self.active = switch_msg.data # True or False
+
+        def cbMode(self,switch_msg):
+            self.mode = switch_msg.state # String of current FSM state
+
+        def someOtherFunc(self, msg):
+            if not self.active:
+                return
+            # else normal functionality
+            ...
+            if self.mode == "LANE_FOLLOWING":
+                ...
+            if self.mode == "INTERSECTION_CONTROL":
+                ...
 
 ## Node `fsm_node` {#fsm-fsm_node}
 ### Description {nonumber="1"}
@@ -124,87 +159,3 @@ This is the definition of the logic OR and/or AND gates based on event inputs. E
           - joystick_override_on
           - parallel_autonomy_off
         output_topic: "~joystick_override_on_and_parallel_autonomy_off"
-
-### Usage {nonumber="1"}
-The current state is published to the `fsm_node/mode` topic. For each state, there is a list of nodes which should be active, which are switched by means of `node_name/switch` topics.
-
-The FSM node publishes on many topics `node_name_x/switch`, where `node_name_x` is the name of any node affected by the FSM. The relevant nodes then subscribe to `~/switch`, and toggle their behaviour based on the value of the switch. Nodes can also subscribe to the `fsm_node/mode` topic if they need to change their behaviour based on the specific state. An example of how a node named `ExampleNode` can handle this is shown below:
-
-    class ExampleNode(object):
-        def __init__(self):
-        ...
-        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
-        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.cbMode, queue_size=1)
-        self.active = True
-        self.mode = None
-
-        def cbSwitch(self,switch_msg):
-            self.active = switch_msg.data # True or False
-
-        def cbMode(self,switch_msg):
-            self.mode = switch_msg.state # String of current FSM state
-
-        def someOtherFunc(self, msg):
-            if not self.active:
-                return
-            # else normal functionality
-            ...
-            if self.mode == "LANE_FOLLOWING":
-                ...
-            if self.mode == "INTERSECTION_CONTROL":
-                ...
-### Configuration
-
-### Parameters {nonumber="1"}
-
-**Parameter `states`**: `dict`; default value: `{}`
-
-States are the modes that the system can be in. Each state has corresponding events (which trigger transitions to specific states), as well as a list of active nodes in the current state.
-
-**Parameter `nodes`**: `dict`; default value: `{}`
-
-These are the nodes which are affected by the FSM, and also define the `~/switch` topics to switch them between active and inactive.
-
-**Parameter `global_transitions`**: `dict`; default value: `{}`
-
-These are the state transition events (and corresponding topic) that can be triggered from all states.
-
-**Parameter `initial_state`**: `str`; default value: `'LANE_FOLLOWING'`
-
-This is the initial state that the FSM will be in upon launch of the node.
-
-**Parameter `events`**: `dict`; default value: `{}`
-
-These are the events and the corresponding topics (and message values) which trigger them, which allow for transitions between states.
-
-### Subscriptions {nonumber="1"}
-
-No subscriptions defined.
-
-### Publishers {nonumber="1"}
-
-**Publisher `mode`**: topic `~mode` (`FSMState`)
-
-This topic gives the current state of the FSM, and can have values from a set of strings indicating the possible state names.
-
-
-
-
-### Parameters {nonumber="1"}
-
-**Parameter `events`**: `dict`; default value: `{}`
-
-These are all the events and corresponding topics (and trigger values) which are inputs to a logic gate event.
-
-**Parameter `gates`**: `dict`; default value: `{}`
-
-These are the logic gate events. Each gate has a gate_type (AND or OR), input events, and an output topic.
-
-### Subscriptions {nonumber="1"}
-
-No subscriptions defined.
-
-### Publishers {nonumber="1"}
-
-No publishers defined.
-
