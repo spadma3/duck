@@ -19,11 +19,12 @@ class lane_controller(object):
 
         # Load files for HW-Exercises
         exercise_txt = os.environ['CSII_EXERCISE']
-        exercise = self.get_num(exercise_txt)
-        subexercise = self.get_txt(exercise_txt)
+        exercise = exercise_txt.split("-")
+
+
 
         duckietown_root = os.environ['DUCKIETOWN_ROOT']
-        ex_path = "/CSII/Exercises/HWExercise" + str(exercise) + "/controller-" + str(exercise_txt) + ".py"
+        ex_path = "/CSII/Exercises/HWExercise" + str(exercise[0]) + "/controller-" + str(exercise[1]) + ".py"
         template_src = imp.load_source('module.name', duckietown_root + ex_path)
         self.controller_class = template_src.Controller()
 
