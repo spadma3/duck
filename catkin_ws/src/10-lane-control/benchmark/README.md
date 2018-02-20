@@ -10,7 +10,7 @@ Additionally if the rosbag does not contain any pose information, it takes the p
 
 Output diagram should look like this.
 
-![output_results](https://github.com/duckietown/Software/blob/devel-controllers-benchmark-stable/catkin_ws/src/10-lane-control/playground/Screenshot%20from%202018-02-20%2005-51-18.png)
+![output_results](https://github.com/duckietown/Software/blob/devel-controllers-benchmark-stable/catkin_ws/src/10-lane-control/benchmark/Screenshot%20from%202018-02-20%2005-51-18.png)
 
 Output data should look like this.
 
@@ -22,7 +22,7 @@ Processed frames look like this.
 
 Basically you need to navigate to the folder that contains the benchmark code. In this case:
 
-    $ /catkin_ws/src/10-lane-control/playground/
+    $ /catkin_ws/src/10-lane-control/benchmark/
 
 Then execute following code:
 
