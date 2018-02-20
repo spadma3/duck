@@ -39,7 +39,6 @@ class FSMNode(object):
         for node_name, topic_name in nodes.items():
             self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
 
-        # print self.pub_dict
         # Process events definition
         param_events_dict = rospy.get_param("~events",{})
         # Validate events definition
@@ -53,14 +52,11 @@ class FSMNode(object):
             topic_name = event_dict["topic"]
             msg_type = event_dict["msg_type"]
             self.event_trigger_dict[event_name] = event_dict["trigger"]
-        # TODO so far I can't figure out how to put msg_type instead of BoolStamped.
-        # importlib might help. But it might get too complicated since different type 
             self.sub_list.append(rospy.Subscriber("%s"%(topic_name), BoolStamped, self.cbEvent, callback_args=event_name))
 
         rospy.loginfo("[%s] Initialized." %self.node_name)
         # Publish initial state
         self.publish()
-
 
     def _validateGlobalTransitions(self,global_transitions, valid_states):
         pass_flag = True
@@ -152,16 +148,10 @@ class FSMNode(object):
             msg.header.stamp = self.state_msg.header.stamp
             msg.data = bool(node_name in active_nodes)
             node_state = "ON" if msg.data else "OFF"
-            # rospy.loginfo("[%s] Node %s is %s in %s" %(self.node_name, node_name, node_state, self.state_msg.state))
             if self.active_nodes is not None:
                 if (node_name in active_nodes) == (node_name in self.active_nodes):
                     continue
-            # else:
-            #     rospy.logwarn("[%s] self.active_nodes is None!" %(self.node_name))
-                # continue
             node_pub.publish(msg)
-            # rospy.loginfo("[%s] node %s msg %s" %(self.node_name, node_name, msg))
-            # rospy.loginfo("[%s] Node %s set to %s." %(self.node_name, node_name, node_state))
         self.active_nodes = copy.deepcopy(active_nodes)
 
     def cbEvent(self,msg,event_name):

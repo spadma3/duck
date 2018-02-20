@@ -7,8 +7,6 @@ import rospkg
 import yaml
 from graphviz import Digraph
 
-colours = {"implemented": "black", "in_progress": "black", "planned": "black", "parallel_autonomy": "blue"}
-
 # TODO read from command line
 
 config = "baseline"
@@ -43,12 +41,8 @@ for state_name, state_dict in all_state_dict.items():
 	else:
 		string = state_name
 
-	if "current_status" in state_dict.keys():
-		dot.node(state_name,state_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
-		dot_detailed.node(state_name,string, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
-	else:
-		dot.node(state_name,state_name)
-		dot_detailed.node(state_name,string)
+	dot.node(state_name,state_name)
+	dot_detailed.node(state_name,string)
 
 	print "State: %s" %(state_name)
 
@@ -57,13 +51,8 @@ for state_name,state_dict in all_state_dict.items():
 	transition_dict = state_dict.get("transitions")
 	if transition_dict is not None:
 		for event_name, next_state in transition_dict.items():
-			if "current_status" in state_dict.keys():
-				dot.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
-				dot_detailed.edge(state_name,next_state,label=event_name, fontcolor=colours[state_dict["current_status"]], color=colours[state_dict["current_status"]])
-
-			else:
-				dot.edge(state_name,next_state,label=event_name, fontcolor="black", color="black")
-				dot_detailed.edge(state_name,next_state,label=event_name, fontcolor="black", color="black")
+			dot.edge(state_name,next_state,label=event_name, fontcolor="black", color="black")
+			dot_detailed.edge(state_name,next_state,label=event_name, fontcolor="black", color="black")
 			print "Transition: %s -- %s --> %s " %(state_name, event_name, next_state)
 
 # Global transitions
