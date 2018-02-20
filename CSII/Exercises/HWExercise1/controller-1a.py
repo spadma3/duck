@@ -23,7 +23,7 @@ class Controller():
     #           dt_last Time it took from last processing to current [s]
 
     # Output:   v_out       velocity of Duckiebot [gain, element of [0,1]]
-    #           omega_out   angular velocity of Duckiebot []
+    #           omega_out   angular velocity of Duckiebot [rad/s]
 
     def getControlOutput(self, d_est, phi_est, d_ref, phi_ref, v_ref, t_delay, dt_last):
 
