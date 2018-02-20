@@ -17,7 +17,8 @@
 	<remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
  	<!--remap from="image_rect" to="camera_node/image"/-->
 	<!-- change to raw image -->
-	<include file="$(find micromvp_test)/launch/apriltag_detector_node.launch">
+	<!--include file="$(find micromvp_test)/launch/apriltag_detector_node.launch"-->
+	<include file="$(find apriltags_ros)/launch/micromvp_apriltag_detector_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="local" value="$(arg local)"/>
 		<arg name="config" value="$(arg config)"/>
@@ -38,9 +39,9 @@
 	<!--target from camera frame to robot frame -->
 	<group ns="$(arg veh)">
 	<remap from="/tag_detections" to="tag_detections" />
-		<node name="target2bot_apriltags" pkg="duckiemvp_tfpose" type="target2bot_apriltags.py" output="screen">
+		<!--node name="target2bot_apriltags" pkg="duckiemvp_tfpose" type="target2bot_apriltags.py" output="screen">
 		</node>
-		<node name="depth_cir" pkg="duckiemvp_tfpose" type="depth_cir.py" output="screen"/>
+		<node name="depth_cir" pkg="duckiemvp_tfpose" type="depth_cir.py" output="screen"/-->
 	</group>
 
 </launch>

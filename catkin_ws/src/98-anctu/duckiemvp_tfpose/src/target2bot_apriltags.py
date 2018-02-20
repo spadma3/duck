@@ -68,6 +68,9 @@ def apriltag_callback(data):
 
             tar_pose = tff.pose2poselist(obj_pose)
             tar_pose = tff.transformPose(lr, tar_pose, 'camera_link', 'robot_arm')
+            tar_pose[0] = tar_pose[0]+0.05
+            tar_pose[2] = tar_pose[2]-0.025
+            tar_pose
             tar_pose_pub = tff.poselist2pose(tar_pose)
             tp_pub.publish(tar_pose_pub)
 

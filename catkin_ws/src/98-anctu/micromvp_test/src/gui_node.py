@@ -140,7 +140,7 @@ class App(gui.Desktop):
         #set up publisher
         self.carpub=rospy.Publisher("~carspeeds", micromvp_carspeedArray, queue_size=1)
         #set up subscriber for car location (Apriltags)
-        self.carloc = rospy.Subscriber("erickiemocap/tag_detections_poses", micromvp_poseArray, self.ros_GetLocation, queue_size=1)
+        self.carloc = rospy.Subscriber("/homohrt/tag_detections_poses", micromvp_poseArray, self.ros_GetLocation, queue_size=1)
         #setup path for load image etc.
         self.package_path = rospkg.RosPack().get_path('micromvp_test')
         #self.connect(gui.QUIT, self.FlushQuit, None)
@@ -217,7 +217,8 @@ class App(gui.Desktop):
             #print utils.wheelBase
         '''
         tag_size = 20
-        utils.wheelBase = tag_size / utils.tagRatio
+        #utils.wheelBase = tag_size / utils.tagRatio
+        utils.wheelBase = 70
         self.bound = utils.Boundary()
         #self.firstgetlocation = False
 
@@ -769,7 +770,14 @@ class App(gui.Desktop):
             for i in range(len(utils.carInfo)):
                 car_msg[i].lspeed = 0
                 car_msg[i].rspeed = 0
+        
         self.carpub.publish(car_msg)
+        rospy.sleep(0.1)
+        for i in range(len(utils.carInfo)):
+            car_msg[i].lspeed = 0
+            car_msg[i].rspeed = 0
+        self.carpub.publish(car_msg)
+
     #'''
 
     def shutdown():

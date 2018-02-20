@@ -223,8 +223,9 @@ class depth_cir(object):
                         center_point.x = center[0]
                         center_point.y = center[1]
                         center_point.z = center[2]
-                        if center[2] != 0:
-                            print "(x, y, z) = ", center
+                        print "(x, y, z) = ", center
+                        if center[2] != 100:
+                            print "publish"
                             self.pub_obj_point.publish(center_point)
 
 
