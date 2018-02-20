@@ -3,7 +3,6 @@ import rospy
 from anti_instagram.AntiInstagram_rebuild import *
 from anti_instagram.kmeans_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
-# @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform, AntiInstagramTransform_CB, BoolStamped)
 from duckietown_utils.jpg import image_cv_from_jpg
 from line_detector.timekeeper import TimeKeeper
@@ -15,7 +14,12 @@ from anti_instagram.geom import processGeom2
 
 """
 This node subscribed to the uncorrected images from the camera. Within a certain time interval (defined from
-    commandline) this node calculates and publishes the trafo based on the old anti instagram method.
+    commandline) this node calculates and publishes the image transform. It can be calculated either by using only
+    a basic color balance method, or with a computationally more expensive linear transformation. Further its possible 
+    to use both methods.
+    
+    This node publishes the parameters for the linear transform as well as for the color balance based transform. 
+    Other than that, the node publishes the mask that was used. 
 """
 
 
@@ -24,9 +28,8 @@ class ContAntiInstagramNode():
         self.node_name = rospy.get_name()
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
 
-        # TODO verify if required?
-        # self.active = True
-        # self.locked = False
+        self.active = True
+        self.locked = False
 
         # Initialize publishers and subscribers
         self.pub_trafo = rospy.Publisher(
@@ -39,12 +42,10 @@ class ContAntiInstagramNode():
             "~mask", Image, queue_size=1)
         self.pub_geomImage = rospy.Publisher(
             "~geomImage", Image, queue_size=1)
-
         self.sub_image = rospy.Subscriber(
             '/{}/camera_node/image/compressed'.format(robot_name), CompressedImage, self.cbNewImage, queue_size=1)
 
 
-        # TODO verify name of parameter
         # Verbose option
         self.verbose = rospy.get_param('line_detector_node/verbose', True)
 
@@ -71,17 +72,19 @@ class ContAntiInstagramNode():
         self.transform = AntiInstagramTransform()
         # FIXME: read default from configuration and publish it
 
+        # initialize color balance transform message
         self.transform_CB = AntiInstagramTransform_CB()
 
+        # initialize AI class
         self.ai = AntiInstagram()
-        # milansc: resize is done on input image below
         self.ai.setupKM(self.n_centers, self.blur, 1, self.blur_kernel)
+
+        # initialize msg bridge
         self.bridge = CvBridge()
 
         self.image_msg = None
 
         # timer for continuous image process
-        # TODO find shortest possible interval on duckiebot
         self.timer_init = rospy.Timer(rospy.Duration(self.interval), self.processImage)
         self.timer_cont = None
         self.timer_counter = 0
@@ -104,8 +107,9 @@ class ContAntiInstagramNode():
         # memorize image
         self.image_msg = image_msg
 
-
     def processImage(self, event):
+        # processes image with either color balance, linear trafo or both
+
         # if we have seen an image:
         if self.image_msg is not None:
             tk = TimeKeeper(self.image_msg)
@@ -123,6 +127,7 @@ class ContAntiInstagramNode():
             tk.completed('resized')
 
             H, W, D = resized_img.shape
+
             # apply geometry
             if self.fancyGeom:
                 # apply fancy geom
@@ -138,11 +143,9 @@ class ContAntiInstagramNode():
                 # remove upper part of the image
                 self.geomImage = resized_img[int(H * 0.3):(H - 1), :, :]
 
-
-
+            # apply color balance if required
             if self.trafo_mode == "cb" or self.trafo_mode == "both":
                 # find color balance thresholds
-                # rospy.loginfo('ai: Computing color balance thresholds...')
                 self.ai.calculateColorBalanceThreshold(self.geomImage, self.cb_percentage)
                 tk.completed('calculateColorBalanceThresholds')
 
@@ -155,18 +158,19 @@ class ContAntiInstagramNode():
                 rospy.loginfo('ai: Color balance thresholds published.')
 
 
-
+            # apply linear trafo if required
             if self.trafo_mode == "lin" or self.trafo_mode == "both":
+                # take in account the previous color balance
                 if self.trafo_mode == "both":
                     # apply color balance
                     colorBalanced_image = self.ai.applyColorBalance(self.geomImage, self.ai.ThLow, self.ai.ThHi)
                 else:
+                    # pass image without color balance trafo
                     colorBalanced_image = self.geomImage
-
 
                 # not yet initialized
                 if not self.initialized:
-                    # if self.ai.calculateTransform(colorBalanced_image):
+                    # apply bounded trafo
                     if self.ai.calculateBoundedTransform(colorBalanced_image):
                         # init successful. set interval on desired by input
                         self.initialized = True
@@ -200,7 +204,6 @@ class ContAntiInstagramNode():
 
                             # publish color trafo
                             self.pub_trafo.publish(self.transform)
-                            # rospy.loginfo('ai: Color transform published.')
                         else:
                             rospy.loginfo('ai: average error too large. transform NOT updated.')
 
@@ -213,10 +216,6 @@ class ContAntiInstagramNode():
                         if self.timer_counter == self.interval:
                             self.timer_counter = 0
 
-
-
-            # TODO health mesurement
-
             if self.fancyGeom:
                 self.mask = self.bridge.cv2_to_imgmsg(
                     self.mask255, "mono8")
@@ -226,7 +225,6 @@ class ContAntiInstagramNode():
             geomImgMsg = self.bridge.cv2_to_imgmsg(
                 self.geomImage, "bgr8")
             self.pub_geomImage.publish(geomImgMsg)
-            # rospy.loginfo('published geometry Image!')
 
 
 

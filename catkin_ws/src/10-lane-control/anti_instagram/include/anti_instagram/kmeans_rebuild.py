@@ -92,7 +92,6 @@ class kMeansClass:
             self.labelcount[i] = np.sum(self.labels == i)
 
     def determineColor(self, trained_centers, withRed = True):
-        # milansc: define idxBlack and so on...
         idxRed = -1
         idxBlack = -1
         idxYellow = -1
@@ -133,12 +132,6 @@ class kMeansClass:
         errorYellowSortedIdx = np.argsort(errorYellow)
         errorWhiteSortedIdx = np.argsort(errorWhite)
 
-        #print('error black: ' + str(errorBlack))
-        #print('error yellow: ' + str(errorYellow))
-        #print('error white: ' + str(errorWhite))
-        #if withRed:
-            #print('error red: ' + str(errorRed))
-
         errorSorted = np.vstack([errorBlack, errorWhite, errorYellow])
         if (withRed):
             errorRedSortedIdx = np.argsort(errorRed)
@@ -157,9 +150,7 @@ class kMeansClass:
         centersFound = False
         index = 0
 
-        # milansc: why do we read these two number, when we should already know them?
         n_true_centers, n_trained_centers = errorSorted.shape
-        # print('n_true_centers, n_trained_centers: ' + str(n_true_centers) + ', ' + str(n_trained_centers))
         errorList = np.reshape(errorSorted, (n_trained_centers*n_true_centers))
 
         # print "the number of trained centers is: " + str(n_trained_centers)
@@ -171,14 +162,6 @@ class kMeansClass:
             #print(errorList)
             ind = np.argmin(errorList)
             category, ind_center = ind//n_trained_centers, ind % n_trained_centers
-            #print ('category, ind_center: ' + str(category) + ', ' + str(ind_center))
-            #if withRed:
-                #print('blackIdxFound: ' + str(blackIdxFound) + ' whiteIdxFound: ' + str(
-                    #whiteIdxFound) + ' yellowIdxFound: ' + str(yellowIdxFound) + ' redIdxFound: ' + str(redIdxFound))
-            #else:
-                #print(' blackIdxFound: ' + str(blackIdxFound) + ' whiteIdxFound: ' + str(whiteIdxFound) + ' yellowIdxFound: ' + str(yellowIdxFound))
-
-
 
             if category==0 and not blackIdxFound:
                 ListOfIndices.append(ind_center)
@@ -201,47 +184,17 @@ class kMeansClass:
                     redIdxFound = True
                     idxRed = ind_center
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
-                #print('centersFound: ' + str(centersFound))
             else:
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
-                #print('centersFound: ' + str(centersFound))
-            # errorSorted[category, :] = np.max(errorSorted) + 100 # float('inf')
-            #errorSorted[:, ind_center] = np.max(errorSorted) # float('inf')
-            # errorList = np.reshape(errorSorted, (n_trained_centers*n_true_centers))
 
-            # milansc: set entry in errorList to max
+            # set entry in errorList to max
             errorList[category*n_trained_centers : (category+1)*n_trained_centers + 1] = 1000
-            #if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
-            #    ListOfIndices.append(errorBlackSortedIdx[index])
-            #    blackIdxFound = True
-            #    idxBlack = errorBlackSortedIdx[index]
-            #if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
-            #    ListOfIndices.append(errorWhiteSortedIdx[index])
-            #    whiteIdxFound = True
-            #    idxWhite = errorWhiteSortedIdx[index]
-            #if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
-            #    ListOfIndices.append(errorYellowSortedIdx[index])
-            #    yellowIdxFound = True
-            #    idxYellow = errorYellowSortedIdx[index]
-            #if withRed:
-            #    if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
-            #        ListOfIndices.append(errorRedSortedIdx[index])
-            #        redIdxFound = True
-            #        idxRed = errorRedSortedIdx[index]
-            #    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
-
-            #else:
-            #    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
-            #index = index + 1
 
         # return the minimal error indices for the trained centers.
         if (withRed):
             return idxBlack, idxRed, idxYellow, idxWhite,
         else:
             return idxBlack, idxYellow, idxWhite
-
-
-
 
 
     def detectOutlier(self, trainedCenters, trueCenters):  # YWRB
@@ -258,9 +211,6 @@ class kMeansClass:
             # calculate transform with the other centers
             T = calcTransform(n_centers - 1, trainedCentersTemp, trueCenterstemp)
             T.calcTransform()
-            # print "the transform is: shift - " + str(T.shift) + ", scale - " + str(T.scale)
-            # print "left out " + str(leaveOut) + ", new centers: " + str(tempArray)
-            # transformedCenters = np.zeros((tempArray.shape))
 
             errorArray = np.zeros(n_centers)
             # estimate the error of the transformed trained centers wrt. the true centers
@@ -270,6 +220,7 @@ class kMeansClass:
                 errorArray[j] = self.estimateError(tempTrafoCenter, tempTrueCenter)
             errorArrayTotal[i] = np.sum(errorArray)
             # print "error of trafo: " + str(errorArrayTotal[i])
+
         errorArraySortedIdx = np.argsort(errorArrayTotal)
         averageError = np.average(errorArrayTotal[1:n_centers])
         # print(averageError)
