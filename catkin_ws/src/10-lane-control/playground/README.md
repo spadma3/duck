@@ -6,15 +6,15 @@ Additionally if the rosbag does not contain any pose information, it takes the p
 
 ## Output
 
-![output_diagram](https://lh3.googleusercontent.com/02gzVT_8RnbNrhs302AR2N0lQIhWVMHaY-MMiHAkqv7qy5mgrzDeUNcHGDNXm5j5se6ZAp9csHkcWW-VcSqg=w1070-h1324-rw)
+![output_diagram](ducktaped_ETHZ_2018-01-12-14-24-51.png)
 
 Output diagram should look like this.
 
-![output_results](https://lh5.googleusercontent.com/I3HEBDsPfF_HoVKWRhV5kJFVx0SwlNGAHDjgDXpHLEMVgXRdeM2aKJbemNLG8KStx1Kr_gWU8JMnrkBBE3dI=w1070-h1324)
+![output_results](https://github.com/duckietown/Software/blob/devel-controllers-benchmark-stable/catkin_ws/src/10-lane-control/playground/Screenshot%20from%202018-02-20%2005-51-18.png)
 
 Output data should look like this.
 
-![output_frame](https://lh4.googleusercontent.com/-J7ZsCBaPgR4NbaKcIQW6e0YKwJ9vuzGJ29Iv6em8C-_NRWIZtm0f5No4PW3DKY5ZvD6dfqWzyA6uyvupjwe=w1070-h1324-rw)
+![output_frame](segment_foto.png)
 
 Processed frames look like this.
 
