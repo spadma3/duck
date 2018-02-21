@@ -62,8 +62,8 @@ Every node (bot, laptop etc.) wanting to communicate needs a properly formatted 
       sub: "subtopic" 
       
 `name`:arbritary name to distinguish the package using this platform<br/><br/>
-`description`: TODO<br/><br/>
-`port`: TODO<br/><br/>
+`description`: describe what the channel is used for, not used by package, but should help others<br/><br/>
+`port`: port number used for the channel, make sure the port is not being used by another package<br/><br/>
 `pub`: the outbox_topic that fleet communcation should publish to<br/><br/>
 `sub`: the inbox_topic that fleet communication will subscribe to <br/><br/>
 
