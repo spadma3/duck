@@ -2,20 +2,20 @@
 
 import rospy
 from std_msgs.msg import String, Bool
-from duckietown_msgs.msg import WheelsCmdStamped, VehiclePose, FSMState, Twist2DStamped, BoolStamped
+from duckietown_msgs.msg import WheelsCmdStamped, VehiclePose, FSMState, Twist2DStamped, BoolStamped, LanePose
 
 class VehicleAvoidanceControlNodeTest:
 
     def __init__(self):
         self.node_name = "Vehicle Avoidance Control Node Test"
 
-        self.wheels_cmd_sub = rospy.Subscriber("vehicle_avoidance_control_node/car_cmd", Twist2DStamped, self.cbCmd, queue_size = 1)
+        self.wheels_cmd_sub = rospy.Subscriber("~car_cmd_in", LanePose, self.cbCmd, queue_size = 1)
         self.vehicle_detected_sub = rospy.Subscriber("~vehicle_detected",BoolStamped, self.cbDetected, queue_size=1)
         self.in_lane_pub = rospy.Publisher("~in_lane",Bool, queue_size=1)
         self.fsm_mode_sub = rospy.Subscriber("~mode",FSMState,self.cbMode,queue_size=1)
         self.wheel_cmd_switch_sub = rospy.Subscriber("~switch_commands",WheelsCmdStamped,self.cbWheelSwitch, queue_size=1)
         self.pose_pub = rospy.Publisher("~vehicle_pose",VehiclePose, queue_size = 1)
-        self.car_cmd_pub = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size = 1)
+        self.car_cmd_pub = rospy.Publisher("~car_cmd_out", Twist2DStamped, queue_size = 1)
 
         self.rho = 0.1
 
@@ -44,7 +44,6 @@ class VehicleAvoidanceControlNodeTest:
         car_cmd_msg = Twist2DStamped()
         car_cmd_msg.header.stamp = rospy.Time.now()
         car_cmd_msg.v = 0.5
-        car_cmd_msg.omega = 0.0
         self.car_cmd_pub.publish(car_cmd_msg)
 
     def cbWheelSwitch(self,switch_msg):
@@ -52,8 +51,8 @@ class VehicleAvoidanceControlNodeTest:
             (switch_msg.vel_left, switch_msg.vel_right))
 
     def cbCmd(self, cmd_msg):
-        rospy.loginfo('Command received : (v = %.2f, omega = %.2f)' %
-                    (cmd_msg.v, cmd_msg.omega))
+        rospy.loginfo('Command received : (v = %.2f)' %
+                    (cmd_msg.v_ref))
 
     def cbDetected(self,detected_msg):
         rospy.loginfo('Vehicle detected? : %r' %
