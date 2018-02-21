@@ -73,5 +73,8 @@ Then source the environment and launch the communication node with:
     $ source environment.sh
     $ roslaunch fleet_messaging fleet_messaging.launch
 
+### Message Type
 Now as the config file suggests, all you have to do now is simply publish and subscribe to the topics you have specified and the messages should be delivered without you having to do anything else.
+
+However, the platform only understands ROS messages in the form of ByteMultiArray and **NOTHING ELSE**. Please put your data into this form before you publish to the your outbox_topic.
 
