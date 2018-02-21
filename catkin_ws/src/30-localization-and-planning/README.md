@@ -76,5 +76,6 @@ Then source the environment and launch the communication node with:
 ### Message Type
 Now as the config file suggests, all you have to do now is simply publish and subscribe to the topics you have specified and the messages should be delivered without you having to do anything else.
 
-However, the platform only understands ROS messages in the form of ByteMultiArray and **NOTHING ELSE**. Please put your data into this form before you publish to the your outbox_topic.
+However, the platform only understands ROS messages in the form of ![ByteMultiArray](http://docs.ros.org/jade/api/std_msgs/html/msg/ByteMultiArray.html)
+  and **NOTHING ELSE**. Please put your data into this form before you publish to the your outbox_topic.
 
