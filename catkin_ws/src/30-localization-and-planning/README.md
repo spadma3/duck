@@ -40,7 +40,7 @@ and install everything with one handy script!
 
 run the following to see if you have correctly installed batman and the wifi adapter drivers
 
-    $ batctl if
+    $ sudo batctl if
     [interface] active // what you should get
     
 Now you need to alter your network config, for this open the interfaces file:
@@ -52,8 +52,9 @@ Change all four instances of wlan0 to wlan1. (This is so you can still connect t
 After a reboot you are ready to make your Duckiebots talk to each other.
 
 ## Usage
+To use the platform you must write a configuration file.
 
-Every node (bot, laptop etc.) wanting to communicate needs a properly formatted config file as follows:
+Every node (bot, laptop etc.) that wants to communicate needs a properly formatted config file as follows:
 
     - name: "dist-est" 
       description: "distributed estimation images" 
@@ -64,10 +65,13 @@ Every node (bot, laptop etc.) wanting to communicate needs a properly formatted 
 `name`:arbritary name to distinguish the package using this platform<br/><br/>
 `description`: describe what the channel is used for, not used by package, but should help others<br/><br/>
 `port`: port number used for the channel, make sure the port is not being used by another package<br/><br/>
-`pub`: the outbox_topic that fleet communcation should publish to<br/><br/>
-`sub`: the inbox_topic that fleet communication will subscribe to <br/><br/>
+`pub`: the outbox_topic that your package should publish to<br/><br/>
+`sub`: the inbox_topic that your package will subscribe to <br/><br/>
 
 Then source the environment and launch the communication node with:
 
     $ source environment.sh
     $ roslaunch fleet_messaging fleet_messaging.launch
+
+Now as the config file suggests, all you have to do now is simply publish and subscribe to the topics you have specified and the messages should be delivered without you having to do anything else.
+
