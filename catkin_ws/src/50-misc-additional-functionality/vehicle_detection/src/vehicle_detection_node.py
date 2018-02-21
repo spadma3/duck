@@ -58,17 +58,17 @@ class VehicleDetectionNode(object):
 		stream = file(filename, 'r')
 		data = yaml.load(stream)
 		stream.close()
-        self.circlepattern_dims = tuple(data['circlepattern_dims']['data'])
-        self.blobdetector_min_area = data['blobdetector_min_area']
-        self.blobdetector_min_dist_between_blobs = data['blobdetector_min_dist_between_blobs']
-        self.publish_circles = data['publish_circles']
-        rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name, 
+                self.circlepattern_dims = tuple(data['circlepattern_dims']['data'])
+		self.blobdetector_min_area = data['blobdetector_min_area']
+		self.blobdetector_min_dist_between_blobs = data['blobdetector_min_dist_between_blobs']
+		self.publish_circles = data['publish_circles']
+                rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name, 
                                	self.circlepattern_dims,))
-        rospy.loginfo('[%s] blobdetector_min_area: %.2f' % (self.node_name, 
+		rospy.loginfo('[%s] blobdetector_min_area: %.2f' % (self.node_name, 
 				self.blobdetector_min_area))
-        rospy.loginfo('[%s] blobdetector_min_dist_between_blobs: %.2f' % (self.node_name, 
+		rospy.loginfo('[%s] blobdetector_min_dist_between_blobs: %.2f' % (self.node_name, 
 				self.blobdetector_min_dist_between_blobs))
-        rospy.loginfo('[%s] publish_circles: %r' % (self.node_name, 
+		rospy.loginfo('[%s] publish_circles: %r' % (self.node_name, 
 				self.publish_circles))
 
 	def cbSwitch(self, switch_msg):
