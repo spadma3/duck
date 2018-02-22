@@ -11,7 +11,7 @@ Below is a summary of the basic concept of the FSM.
 * Each state transition can be triggered by certain **events**
 * Each event is triggered by a certain topic **message value**
 * In each state, certain nodes are **active/inactive**
-* Each node affected by the state machine can be **switched** active/inactive by means of a 
+* Each node affected by the state machine can be **switched** active/inactive
 
 Below is the current **FSM diagram**, generated from the `.yaml` config file. 
 
@@ -58,15 +58,15 @@ The FSM node publishes on many topics `node_name_x/switch`, where `node_name_x` 
 This node handles the state transitions based on the defined state transition events. Below is a summary of the basic fuctionality of the `fsm_node`.
 
 * The node subscribes to certain topics defined in the configuration file
-* Each event relates to a certain value being published on the topics
+* Each event relates to a certain value being published on a topic
 * When an event is triggered, the node calculates whether a state transition must take place
 * When a state transition has taken place, the new state is published on `fsm_node/mode`
 * The `/switch` topics are published with the new values for the current state
 
 ### Configuration
-The `fsm_node` is configured by the `.yaml` file at ... The node will extract the information in the `yaml` file as a Python dictionary containing all the configuration data.
+The `fsm_node` is configured by the `.yaml` file at `00-infrastructure/duckietown/config/baseline/fsm/fsm_node/default.yaml` The node will extract the information in the `yaml` file as a Python dictionary containing all the configuration data.
 
-The file contains the following sections:
+The `.yaml` file contains the following sections:
 
 #### Initial state
 This is the state that the FSM will go into when the node is launched.
@@ -84,7 +84,7 @@ These are the definition of events which trigger state transitions. Each event h
 
 
 #### Nodes
-This is the declaration of any nodes which are affected by the FSM and must be switched.
+This is the declaration of any nodes which are affected by the FSM and must be switched, as well as the topic to publish the `/switch` on.
 
     nodes:
       decoder_node: "decoder_node/switch"
@@ -99,7 +99,7 @@ This is the definition of state transitions which can be triggered from any stat
 This is the definition of all possible states. Each state has corresponding transitions, a list of active nodes in the state, and which mode the LEDs must be in.
 
     states:
-    NORMAL_JOYSTICK_CONTROL:
+      NORMAL_JOYSTICK_CONTROL:
         transitions:
         joystick_override_off_and_deep_lane_off: "LANE_FOLLOWING"
         joystick_override_off_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
@@ -124,20 +124,13 @@ This node handles AND and OR logic gates of events for state transitions. Below 
 * For each gate, the input events (and their corresponding topics) are defined
 * The `logic_gate_node` subscribes to all of these input event topics
 * When an input topic is published, the `logic_gate_node` checks whether the AND or OR gate is satisfied
-* If the gate is satisfied, the node publishes `True` on the `~/gate_name` topic, else it publishes `False`  
-
-The logic gate node publishes on many topics according to the configuration:
-
-    for gate_name, gate_dict in self.gates_dict.items():
-        output_topic_name = gate_dict["output_topic"]
-        self.pub_dict[gate_name] = rospy.Publisher(output_topic_name, BoolStamped, queue_size=1)
-
-where `gate_dict.items()` is a dictionary of all gates, and `output_topic_name` is `~/gate_name`. The `fsm_node` then subscribes to `logic_gate_node/*`, where each `gate_name` corresponds to a state transition event. 
+* If the gate is satisfied, the node publishes `True` on the `~/gate_name` topic, else it publishes `False`.
+* The `fsm_node` can then subscribe to the published topics to use as state transition events.
 
 ### Configuration
-The `fsm_node` is configured by the `.yaml` file at ... The node will extract the information in the `yaml` file as a Python dictionary containing all the configuration data.
+The `fsm_node` is configured by the `.yaml` file at `00-infrastructure/duckietown/config/baseline/fsm/logic_gate_node/default.yaml` The node will extract the information in the `yaml` file as a Python dictionary containing all the configuration data.
 
-The file contains the following sections:
+The `.yaml` file contains the following sections:
 
 #### Events
 These are the events that are inputs to the logic gates. 
