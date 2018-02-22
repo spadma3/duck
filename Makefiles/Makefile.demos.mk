@@ -56,3 +56,8 @@ traffic-light: check-environment
 # Demos for Jacopo Tani's Control Systems II course
 csii-ex%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; export CSII_EXERCISE='$*';roslaunch duckietown_demos lane_following.launch"
+
+word-split = $(word $2,$(subst -, ,$1))
+
+csii-edit-ex%: check-environment
+	bash -c "ratom $(DUCKIETOWN_ROOT)/CSII/Exercises/HWExercise$(call word-split,$*,1)/controller-$(call word-split,$*,2).py"

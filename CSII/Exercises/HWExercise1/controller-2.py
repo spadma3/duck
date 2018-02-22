@@ -4,14 +4,12 @@ class Controller():
 
     def __init__(self):
 
-        # Variables needed for controller (None for P-controller)
-          # self.d_err = 0
-          # self.d_integral = 0
-
         # Gains for controller
-        self.k_d = -10.3
-        self.k_theta = -5.15
+        self.k = 1
+        self.k_I = 0
 
+        # Variable for integral
+        self.integral = 0
 
     # Inputs:   d_est   Estimation of distance from lane center (positve when
     #                   offset to the left of driving direction) [m]
@@ -27,15 +25,14 @@ class Controller():
 
     def getControlOutput(self, d_est, phi_est, d_ref, phi_ref, v_ref, t_delay, dt_last):
 
-        # Calculating the errors of d and phi
-        d_err = d_est - d_ref
-        phi_err = phi_est - phi_ref
+        # Calculate the output y
+        y = 6 * (d_est - d_ref) + 1 * (phi_est-phi_ref)
 
-        # Native P-Controller for error of d
-        omega =  self.k_d * d_err
+        # Integrate y
+        self.integral = self.integral + y * dt_last
 
-        # Native P-Controller for error of phi
-        omega = omega + self.k_theta * phi_err
+        # PI-Controller
+        omega = -self.k * y - self.k_I * self.integral
 
         # Declaring return values
         omega_out = omega
