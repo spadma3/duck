@@ -2,13 +2,11 @@
 import rospy
 from anti_instagram.AntiInstagram_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
-# @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform, AntiInstagramTransform_CB, BoolStamped)
 from duckietown_utils.jpg import image_cv_from_jpg
 from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
 import numpy as np
-
 import time
 import threading
 
@@ -82,17 +80,15 @@ class ImageTransformerNode():
         thread.start()
 
     def cbNewImage(self, image_msg):
+        # this callback proceeds the latest image, i.e. it applies the current transformation to the image and publishes it
 
         if not self.thread_lock.acquire(False):
                 return
 
-        #start = time.time() #with this you can measure the time,..
-        # print('image received!')
         # memorize image
         self.image_msg = image_msg
 
         tk = TimeKeeper(image_msg)
-        #cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         try:
             cv_image = image_cv_from_jpg(image_msg.data)
         except ValueError as e:
@@ -103,11 +99,11 @@ class ImageTransformerNode():
 
 
         if self.trafo_mode == "cb" or self.trafo_mode == "both":
-
             # apply color balance using latest thresholds
             colorBalanced_image_cv2 = self.ai.applyColorBalance(img=cv_image, ThLow=self.ai.ThLow, ThHi=self.ai.ThHi)
             tk.completed('applyColorBalance')
         else:
+            # pass input image
             colorBalanced_image_cv2 = cv_image
 
         if self.trafo_mode == "lin" or self.trafo_mode == "both":
@@ -115,6 +111,7 @@ class ImageTransformerNode():
             corrected_image_cv2 = self.ai.applyTransform(colorBalanced_image_cv2)
             tk.completed('applyTransform')
         else:
+            # pass input image
             corrected_image_cv2 = colorBalanced_image_cv2
 
         # store image to ros message
@@ -124,14 +121,10 @@ class ImageTransformerNode():
 
         self.corrected_image.header.stamp = image_msg.header.stamp  # for synchronization
 
+        # publish image
         self.pub_image.publish(self.corrected_image)
-
-
         tk.completed('published')
 
-        #end = time.time()   #with this you can measure the time,..
-        #print "GOING THROUGH TOOK: s"  #with this you can measure the time,..
-        #print(end - start)  #with this you can measure the time,..
 
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
@@ -141,10 +134,7 @@ class ImageTransformerNode():
 
 
     def cbNewTrafo(self, trafo_msg):
-        #print('image transformer: received new trafo!')
-        # testwise write to file
-        # self.file.write('received new trafo\n')
-
+        # this callback stores the received linear transformation parameters
         if self.verbose:
             rospy.loginfo('image transformer: received new trafo!')
 
@@ -152,12 +142,12 @@ class ImageTransformerNode():
         self.transform = trafo_msg
 
         # store transform to the Anti-Instagram instance
-        self.ai.shift = trafo_msg.s[0:3]         #copied from line_detector2 ldn.py
+        self.ai.shift = trafo_msg.s[0:3]
         self.ai.scale = trafo_msg.s[3:6]
 
 
     def cbNewTrafo_CB(self, th_msg):
-        # print('image transformer: received new Color Balance trafo!')
+        # this callback stores the received color balance transformation parameters
         if self.verbose:
             rospy.loginfo('image transformer: received new Color Balance trafo!')
 

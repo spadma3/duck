@@ -93,7 +93,7 @@ class ContAntiInstagramNode():
         # bool to switch from initialisation to continuous mode
         self.initialized = False
 
-        # milansc container for mask and maskedImage
+        # container for mask and maskedImage
         self.mask255 = []
         self.geomImage = []
 
@@ -135,6 +135,8 @@ class ContAntiInstagramNode():
                 self.mask255 = mask
                 self.mask255[self.mask255 == 1] = 255
                 self.geomImage = np.expand_dims(mask, axis=-1) * resized_img
+
+                tk.completed('fancyGeom')
                 # self.geomImage = np.transpose(np.stack((mask, mask, mask), axis=2)) * resized_img
                 # idx = (mask==1)
                 # self.geomImage = np.zeros((H, W), np.uint8)
@@ -142,6 +144,7 @@ class ContAntiInstagramNode():
             else:
                 # remove upper part of the image
                 self.geomImage = resized_img[int(H * 0.3):(H - 1), :, :]
+                tk.completed('notFancyGeom')
 
             # apply color balance if required
             if self.trafo_mode == "cb" or self.trafo_mode == "both":
@@ -157,6 +160,8 @@ class ContAntiInstagramNode():
                 self.pub_trafo_CB.publish(self.transform_CB)
                 rospy.loginfo('ai: Color balance thresholds published.')
 
+                tk.completed('colorBalance analysis')
+
 
             # apply linear trafo if required
             if self.trafo_mode == "lin" or self.trafo_mode == "both":
@@ -167,6 +172,8 @@ class ContAntiInstagramNode():
                 else:
                     # pass image without color balance trafo
                     colorBalanced_image = self.geomImage
+
+                tk.completed('passed image to linear trafo')
 
                 # not yet initialized
                 if not self.initialized:
@@ -225,6 +232,9 @@ class ContAntiInstagramNode():
             geomImgMsg = self.bridge.cv2_to_imgmsg(
                 self.geomImage, "bgr8")
             self.pub_geomImage.publish(geomImgMsg)
+
+            if self.verbose:
+                rospy.loginfo('ai:\n' + tk.getall())
 
 
 
