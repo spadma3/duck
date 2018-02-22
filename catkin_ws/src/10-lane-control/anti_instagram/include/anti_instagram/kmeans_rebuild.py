@@ -68,7 +68,7 @@ class kMeansClass:
             self.blurred_image = self.resized_image
 
     # apply kMeans alg
-    def applyKM(self, img, fancyGeom=False):
+    def applyKM(self, img, max_it, fancyGeom=False):
         self.input_image = img
         # resize image
         self.resized_image = cv2.resize(self.input_image, (0, 0), fx=self.fac_resize, fy=self.fac_resize)
@@ -77,7 +77,7 @@ class kMeansClass:
         self._blurImg()
 
         # prepare KMeans
-        kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=20)
+        kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=max_it)
 
         # prepare data points
         self.image_array = self._getimgdatapts(self.blurred_image, fancyGeom=fancyGeom)

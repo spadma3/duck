@@ -49,11 +49,11 @@ class AntiInstagram():
         # calculate a trfo using the color balance method
         self.ThLow, self.ThHi = self.CB.thresholdAnalysis(img, CBpercent)
 
-    def calculateTransform(self, img, fancyGeom=False):
+    def calculateTransform(self, img, max_it, fancyGeom=False):
         # calculate a trafo using a linear approach
 
         # apply KMeans
-        self.KM.applyKM(img, fancyGeom)
+        self.KM.applyKM(img, max_it, fancyGeom)
 
         # get the indices of the matched centers
         idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(self.KM.trained_centers, True)
@@ -85,11 +85,11 @@ class AntiInstagram():
         else:
             return False
 
-    def calculateBoundedTransform(self, img):
+    def calculateBoundedTransform(self, img, max_it):
         # calculate a trafo using a linear approach, but with bounded parameters
 
         # apply KMeans
-        self.KM.applyKM(img)
+        self.KM.applyKM(img, max_it)
 
         # get the indices of the matched centers
         idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(self.KM.trained_centers, True)
@@ -104,7 +104,7 @@ class AntiInstagram():
         outlierIndex, outlierCenter, averageError = self.KM.detectOutlier(trained_centers, true_centers)
 
 
-        if averageError <= 250:
+        if averageError <= 1000:
 
             centers_name = ['black', 'red', 'yellow', 'white']
             true_centers_woOutlier = np.delete(true_centers, outlierIndex, 0)

@@ -53,7 +53,7 @@ class ContAntiInstagramNode():
         # Read parameters
         self.interval = self.setupParameter("~ai_interval", 10)
         self.fancyGeom = self.setupParameter("~fancyGeom", False)
-        self.n_centers = self.setupParameter("~n_centers", 10)
+        self.n_centers = self.setupParameter("~n_centers", 6)
         self.blur = self.setupParameter("~blur", 'median')
         self.resize = self.setupParameter("~resize", 0.2)
         self.blur_kernel = self.setupParameter("~blur_kernel", 5)
@@ -87,12 +87,13 @@ class ContAntiInstagramNode():
 
         # timer for continuous image process
         self.timer_init = rospy.Timer(rospy.Duration(self.interval), self.processImage)
-        self.timer_cont = None
-        self.timer_counter = 0
         rospy.loginfo('ai: Looking for initial trafo.')
 
         # bool to switch from initialisation to continuous mode
         self.initialized = False
+
+        self.max_it_1 = 10
+        self.max_it_2 = 2
 
         # container for mask and maskedImage
         self.mask255 = []
@@ -183,14 +184,9 @@ class ContAntiInstagramNode():
                 if not self.initialized:
                     # apply bounded trafo
 		            start_lin = time.time()
-                    mbool = self.ai.calculateBoundedTransform(colorBalanced_image)
+                    mbool = self.ai.calculateBoundedTransform(colorBalanced_image, self.max_it_1)
                     end_lin = time.time()
                     if mbool:
-                        # init successful. set interval on desired by input
-                        self.initialized = True
-                        self.timer_init.shutdown()
-                        self.timer_cont = rospy.Timer(rospy.Duration(self.interval), self.processImage)
-
                         # store color transform to ros message
                         self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
                         self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
@@ -204,33 +200,22 @@ class ContAntiInstagramNode():
 
                 # initialisation already done: continuous mode
                 else:
-                    if self.timer_counter == 0:
-                        # perform linear transform only every n seconds
+                    # find color transform
+                    start_lin2 = time.time()
+                    mbool2 = self.ai.calculateBoundedTransform(colorBalanced_image, self.max_it_2)
+                    end_lin2 = time.time()
+                    if mbool2:
+                        tk.completed('calculateTransform')
 
-                        # find color transform
-			            start_lin2 = time.time()
-                        mbool2 = self.ai.calculateBoundedTransform(colorBalanced_image)
-                        end_lin2 = time.time()
-                        if mbool2:
-                            tk.completed('calculateTransform')
+                        # store color transform to ros message
+                        self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
+                        self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
 
-                            # store color transform to ros message
-                            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
-                            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
-
-                            # publish color trafo
-                            self.pub_trafo.publish(self.transform)
-                        else:
-                            rospy.loginfo('ai: average error too large. transform NOT updated.')
-
-                        # increase counter
-                        self.timer_counter = self.timer_counter + 1
+                        # publish color trafo
+                        self.pub_trafo.publish(self.transform)
                     else:
-                        # do not perform linear trafo here
-                        # increase counter
-                        self.timer_counter = self.timer_counter + 1
-                        if self.timer_counter == self.interval:
-                            self.timer_counter = 0
+                        rospy.loginfo('ai: average error too large. transform NOT updated.')
+
 
             if self.fancyGeom:
                 self.mask = self.bridge.cv2_to_imgmsg(
