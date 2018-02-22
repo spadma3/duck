@@ -32,8 +32,6 @@ class RQTFleetPlanning(Plugin):
         self._ignore_combo_box_event = None
         self.basic_map_image = []
         self._all_living_duckiebots = []
-        self.scale_factor_height = None
-        self.scale_factor_width = None
 
         # Create QWidget
         self._widget = QWidget()
@@ -75,18 +73,12 @@ class RQTFleetPlanning(Plugin):
 
     def getPos(self , event):
         tile_position = self.image_to_map_transformer.image_to_map((event.pos().x(), event.pos().y()))
-        rospy.logwarn("UNScaled click location: {},{}".format(tile_position[0], tile_position[1]))
-        scaled_tile_position = [0, 0]        
-        scaled_tile_position[0] = float(tile_position[0]) * self.scale_factor_width
-        scaled_tile_position[1] = float(tile_position[1]) * self.scale_factor_height
-        rospy.logwarn("Scaled click location: {},{}".format(scaled_tile_position[0], scaled_tile_position[1]))
-        graph_node_number = self.map_to_graph_transformer.get_closest_node(scaled_tile_position)
-        self.drawRequestState(scaled_tile_position, graph_node_number)
+        graph_node_number = self.map_to_graph_transformer.get_closest_node(tile_position)
+        self.drawRequestState(tile_position, graph_node_number)
 
     def drawRequestState(self, tile_position, graph_node_number):
         tile_x = "{:.2f}".format(tile_position[0])
         tile_y = "{:.2f}".format(tile_position[1])
-        rospy.logwarn("tile_x: {} tile_y: {}".format(tile_x, tile_y))
         if (self.isRequestStartSet() and self.isRequestDestinationSet()):
             pass
         elif (self.isRequestStartSet()):
@@ -143,11 +135,6 @@ class RQTFleetPlanning(Plugin):
         bytesPerLine = 3 * width
         q_img_tmp = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_RGB888)
         self.image = QPixmap(q_img_tmp)
-        self.image = self.image.scaledToHeight(850)
-        self.scale_factor_width = float(self.image.width()) / float(width)
-        self.scale_factor_height = float(self.image.height()) / float(height)
-        rospy.logwarn("Scale factor: h:{} w:{}".format(self.scale_factor_height, self.scale_factor_width))
-
         #show it on the GUI
         self._widget.label_image.setGeometry(QtCore.QRect(10, 10, self.image.width(), self.image.height())) #(x, y, width, height)
         self._widget.label_image.setPixmap(self.image)
