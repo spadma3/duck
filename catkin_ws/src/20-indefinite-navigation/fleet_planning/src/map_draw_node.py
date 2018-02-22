@@ -17,8 +17,6 @@ class MapDrawNode:
     """
     Used to generate the map from a csv file, draw the graph on top
     of that and draw the icons for each duckiebot.
-    TODO(ben): add a counter of number of icons at each node and make sure
-          to draw overlapping icons next to each other.
     """
 
     def __init__(self, ):
@@ -89,8 +87,7 @@ class MapDrawNode:
         # center location depending on name length
         text_size = cv2.getTextSize(name, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1)
 
-        text_location = (2, int(img.shape[1] + text_size[0][1]))  #  TODO: verify this is the correct position
-        # text_location = (int(img.shape[0] / 2 - text_size[0][0] / 2), int(img.shape[1] + text_size[0][1]))  #  TODO: verify this is the correct position
+        text_location = (2, int(img.shape[1] + text_size[0][1]))
 
         # pad image to make space for text
         padding = [0, 0, text_size[0][1] + 5, 0]
@@ -106,7 +103,7 @@ class MapDrawNode:
         """
         Draw start, customer and target icons next to each
         corresponding graph node along with the respective name
-        of the duckiebot.
+        of the Duckiebot.
         :param map_image: the base map image onto which to draw the icons
         :param icon_type: string, either customer, start or target
         :param location: where to draw the icon, as a graph node number
@@ -120,12 +117,11 @@ class MapDrawNode:
         # draw the start, customer and target icons next to the corresponding
         # label of the graph node.
         transf = PixelAndMapTransformer(self.tile_length, self.map_img.shape[
-            0] / self.tile_length)  # TODO: better way to get the map dimensions?
+            0] / self.tile_length)
         if icon_type == "customer":
             icon = self.customer_icon
         elif icon_type == "start":
             icon = self.start_icon
-            # TODO: add the name of the duckiebot to the icon. Maybe overlay icons if e.g. duckiebot is at targets
             icon = self.pad_and_write_duckiebot_name(icon, bot_name)
         elif icon_type == "target":
             icon = self.target_icon
@@ -155,7 +151,6 @@ class MapDrawNode:
 
     def prepImage(self):
         """takes the graph image and map image and overlays them"""
-        # TODO: add the icon image and merge it as well
         inverted_graph_img = 255 - self.graph_image
         # bring to same size
         inverted_graph_img = cv2.resize(inverted_graph_img, (self.map_img.shape[1], self.map_img.shape[0]))
@@ -181,8 +176,6 @@ class MapDrawNode:
         Input:
             - _duckiebots: all _duckiebots that should be drawn
         """
-        # TODO: figure out best way to visualize duckiebot with customer
-        #todo get updated graph (with path)
         edges_to_draw = None
         if (self._duckie_path_to_draw):
             node_numbers_as_str = self.duckiebots[self._duckie_path_to_draw].path
