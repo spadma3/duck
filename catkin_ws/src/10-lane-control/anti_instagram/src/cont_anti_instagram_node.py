@@ -11,6 +11,7 @@ import numpy as np
 import rospy
 import os
 from anti_instagram.geom import processGeom2
+import time
 
 """
 This node subscribed to the uncorrected images from the camera. Within a certain time interval (defined from

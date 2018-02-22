@@ -21,7 +21,6 @@ class ImageTransformerNode():
     def __init__(self):
         self.node_name = rospy.get_name()
 
-        # TODO verify if required?
         self.active = True
         self.locked = False
         self.thread_lock = threading.Lock()
@@ -33,13 +32,10 @@ class ImageTransformerNode():
             "~corrected_image/compressed", CompressedImage, queue_size=1)
 
         self.sub_image = rospy.Subscriber(
-            # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            # "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
             '/{}/camera_node/image/compressed'.format(robot_name), CompressedImage, self.callbackImage, queue_size=1)
 
         self.sub_trafo = rospy.Subscriber(
             '/{}/cont_anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
-            # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
 
         self.sub_colorBalance = rospy.Subscriber(
             '/{}/cont_anti_instagram_node/colorBalanceTrafo'.format(robot_name), AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
@@ -52,17 +48,19 @@ class ImageTransformerNode():
             rospy.set_param("~trafo_mode", "both")  # Write to parameter server for transparancy
             rospy.loginfo("[%s] %s = %s " % (self.node_name, "~trafo_mode", "both"))
 
-        # TODO verify name of parameter
         # Verbose option
         self.verbose = rospy.get_param('line_detector_node/verbose', False)
 
-        # Initialize transform message
+        # Initialize transform messages
         self.transform = AntiInstagramTransform()
-        # FIXME: read default from configuration and publish it
         self.transform_CB = AntiInstagramTransform_CB()
 
+        # container for image
         self.corrected_image = Image()
+
+        # initialize AI class
         self.ai = AntiInstagram()
+        # initialize image bridge
         self.bridge = CvBridge()
 
 
