@@ -6,6 +6,7 @@ from anti_instagram.AntiInstagram import *
 from duckietown_utils.jpg import image_cv_from_jpg
 from cv_bridge import CvBridge  # @UnresolvedImport
 from line_detector.timekeeper import TimeKeeper
+import time
 
 class AntiInstagramNode():
     def __init__(self):
@@ -100,8 +101,9 @@ class AntiInstagramNode():
             return
         
         tk.completed('converted')
-        
+        start_lin = time.time()
         self.ai.calculateTransform(cv_image)
+        end_lin = time.time()
         
         tk.completed('calculateTransform')
 
@@ -121,6 +123,9 @@ class AntiInstagramNode():
             self.pub_transform.publish(self.transform)
             rospy.loginfo('ai: Color transform published.')
 
+        print('calculateTrafo took:')
+        tm = end_lin - start_lin
+        print(tm)
 
 if __name__ == '__main__':
     # Initialize the node with rospy
