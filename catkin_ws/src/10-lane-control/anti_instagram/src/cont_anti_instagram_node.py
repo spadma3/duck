@@ -151,9 +151,9 @@ class ContAntiInstagramNode():
             if self.trafo_mode == "cb" or self.trafo_mode == "both":
                 # find color balance thresholds
 
-		start_cb = time.time()
+		        start_cb = time.time()
                 self.ai.calculateColorBalanceThreshold(self.geomImage, self.cb_percentage)
-		end_cb = time.time()
+		        end_cb = time.time()
                 tk.completed('calculateColorBalanceThresholds')
 
                 # store color balance thresholds to ros message
@@ -182,10 +182,10 @@ class ContAntiInstagramNode():
                 # not yet initialized
                 if not self.initialized:
                     # apply bounded trafo
-		    start_lin = time.time()
-		    mbool = self.ai.calculateBoundedTransform(colorBalanced_image)
+		            start_lin = time.time()
+                    mbool = self.ai.calculateBoundedTransform(colorBalanced_image)
                     end_lin = time.time()
-		    if mbool:
+                    if mbool:
                         # init successful. set interval on desired by input
                         self.initialized = True
                         self.timer_init.shutdown()
@@ -208,7 +208,7 @@ class ContAntiInstagramNode():
                         # perform linear transform only every n seconds
 
                         # find color transform
-			start_lin2 = time.time()
+			            start_lin2 = time.time()
                         mbool2 = self.ai.calculateBoundedTransform(colorBalanced_image)
                         end_lin2 = time.time()
                         if mbool2:
@@ -244,16 +244,16 @@ class ContAntiInstagramNode():
 
             if self.verbose:
                 rospy.loginfo('ai:\n' + tk.getall())
-	    if self.trafo_mode == "cb" or self.trafo_mode == "both":
-	        cb_time = end_cb - start_cb
-		print('CB took: ' + str(cb_time))
-	    if self.trafo_mode == "lin" or self.trafo_mode == "both":
-		if not self.initialized:
-	            lin1_time = end_lin - start_lin
-		    print('Lin took: ' + str(lin1_time))
-		else:
-	            lin2_time = end_lin2 - start_lin2
-	            print('Lin took: ' + str(lin2_time))
+            if self.trafo_mode == "cb" or self.trafo_mode == "both":
+                cb_time = end_cb - start_cb
+                print('CB took: ' + str(cb_time))
+            if self.trafo_mode == "lin" or self.trafo_mode == "both":
+                if not self.initialized:
+                    lin1_time = end_lin - start_lin
+                    print('Lin took: ' + str(lin1_time))
+                else:
+                    lin2_time = end_lin2 - start_lin2
+                    print('Lin took: ' + str(lin2_time))
 
 
 if __name__ == '__main__':
