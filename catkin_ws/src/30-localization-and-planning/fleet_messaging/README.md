@@ -5,12 +5,12 @@ cd dependencies
 ./install_fleet_messaging
 ## Duckiebot setup notes 
 
-To use the fleet messaging platform, additional wireless adapters are needed that allow mesh networking (e.g. TP-Link TL-WN822N or TL-WN821N).
+To use the fleet messaging platform, additional wireless adapters are needed that allow mesh networking (e.g. TP-Link TL-WN822N or TL-WN821N or edimax).
 
 ## Pre-flight checklist 
 This pre-flight checklist describes the steps that ensure that the installation will run correctly:
 
-Check: The additional Wifi adapter is installed and works.
+Check: The additional Wifi adapter is installed and works (this driver is for the TP-Link TL-WN822N and TL-WN821N).
 
     $ sudo apt-get install build-essential linux-headers-generic dkms git
     $ git clone https://github.com/Mange/rtl8192eu-linux-driver.git
@@ -32,7 +32,7 @@ Then find the name of the wifi interface you want to use with iwconfig. (eg. wlx
 
     $ iwconfig
 
-Next specify a static IP adress and subnet and write it on a piece of paper, be carefull to not use the same IP on two bots. However, the subnet should stay the same on all bots. (eg. 192.168.15.38/24)
+Next specify a static IP adress and subnet (<extended_ipaddr>) and write it on a piece of paper, be carefull to not use the same IP on two bots. However, the subnet should stay the same on all bots. (eg. 192.168.15.38/24)
 
 Change to dependecy directory
 
@@ -40,7 +40,7 @@ Change to dependecy directory
     
 and install everything with one handy script!
   
-    $ ./install_fleet_messaging <wifi-iface> <ipaddr>
+    $ ./install_fleet_messaging <wifi-iface> <extended_ipaddr>
     
 Now you need to alter your network config, for this open the interfaces file:
 
@@ -70,14 +70,18 @@ Every node (bot, laptop etc.) that wants to communicate needs a properly formatt
       
 `name`:arbritary name to distinguish the package using this platform<br/><br/>
 `description`: describe what the channel is used for, not used by package, but should help others<br/><br/>
-`port`: port number used for the channel, make sure the port is not being used by another package<br/><br/>
-`pub`: the outbox_topic that your package should publish to<br/><br/>
-`sub`: the inbox_topic that your package will subscribe to <br/><br/>
+`port`: port number used for the channel, make sure the port is not being used by another package, also make sure that the sender and receiver of the defined message (i.e. config entry) have the same port<br/><br/>
+`pub`: the outbox_topic that your package should publish to, i.e. the ROS topic where received messages from other Duckiebots are published.<br/><br/>
+`sub`: the inbox_topic that your package will subscribe to, i.e. the ROS topic where the messages are sent to be sent to other Duckiebots.<br/><br/>
 
 Then source the environment and launch the communication node with:
 
     $ source environment.sh
     $ roslaunch fleet_messaging fleet_messaging.launch
+
+Info: If you do not work with the mesh network (bat0 interface), please set the iface parameter to the interface you want to send messages to other duckiebots, e.g.:
+
+    $ roslaunch fleet_messaging fleet_messaging.launch iface:=wlan0
 
 ### Message Type
 Now as the config file suggests, all you have to do now is simply publish and subscribe to the topics you have specified and the messages should be delivered without you having to do anything else.
