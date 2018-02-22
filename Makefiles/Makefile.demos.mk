@@ -53,6 +53,7 @@ demo-line_detector-quiet-%: check-environment
 traffic-light: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch traffic_light traffic_light_node.launch veh:=$(vehicle_name)"
 
+
 # Demos for Jacopo Tani's Control Systems II course
 csii-ex%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; export CSII_EXERCISE='$*';roslaunch duckietown_demos lane_following.launch"
@@ -61,3 +62,6 @@ word-split = $(word $2,$(subst -, ,$1))
 
 csii-edit-ex%: check-environment
 	bash -c "ratom $(DUCKIETOWN_ROOT)/CSII/Exercises/HWExercise$(call word-split,$*,1)/controller-$(call word-split,$*,2).py"
+
+virtual-joystick-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; python $(DUCKIETOWN_ROOT)/misc/virtualJoy/virtualJoy.py"
