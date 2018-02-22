@@ -37,7 +37,7 @@ Type (on your Laptop)
     
     make virtual-joy-<vehicle_name>
     
-Where <vehicle_name> is you vehicles name (mine is for example lex). You can steer your Bot by using the arrow keys and
+Where <vehicle_name> is your vehicles name (mine is for example lex). You can steer your Duckiebot by using the arrow keys and
 'a' to turn on lane following, 's' to stop lane following. For more information, go to
 [this page](https://github.com/duckietown/Software/tree/jukindle-devel-virtualjoy/misc/virtualJoy "Virtual Joystick for Duckiebots")
 
@@ -46,6 +46,8 @@ Duckiebook (linked above) you can type
 
     make csii-edit-ex1-1
 
+Don't forget to have a look at the 
+[exercise sheet for HWExercise 1!](https://github.com/idsc-frazzoli/CS2_2018Exercises/blob/jukindle-devel/ProgrammingExercise1/CS2_2018_ProgrammingExercise_1/CS2_2018_ProgrammingExercise_1.pdf "Exercise sheet HWExercise 1")
 
 # Creation of own Hardware exercises
 
