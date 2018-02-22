@@ -42,7 +42,7 @@ Where <vehicle_name> is your vehicles name (mine is for example lex). You can st
 [this page](https://github.com/duckietown/Software/tree/jukindle-devel-virtualjoy/misc/virtualJoy "Virtual Joystick for Duckiebots")
 
 If you would like to edit the parameters, simply edit those controller files. If you're using Atom as described in the
-Duckiebook (linked above) you can type
+Duckiebook (linked above) and Atom is open on your Laptop, you can type (on your Duckiebot)
 
     make csii-edit-ex1-1
 
