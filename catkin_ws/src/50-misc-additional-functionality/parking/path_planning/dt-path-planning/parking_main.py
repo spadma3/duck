@@ -1,7 +1,7 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 """
-Path planning for duckietown parking_space
+Path planning for duckietown parking
 Samuel Nyffenegger
 """
 
@@ -30,11 +30,11 @@ straight_at_entrance = True         # robot drives last forward bit straigt (rob
 primitive_backwards = True          # drive backwards and plan afterwards
 allow_backwards_on_circle = False   # use this later together with reeds sheep
 radius_robot = 60                   # mm distance point between wheels and most apart point on robot
-curvature = 60 #120                     # mm minimal turning radius
+curvature = 60 #200                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 100                        # iterations for RRT*
-rrt_star_animation = True           # animate RRT* search
+maxIter = 50                        # iterations for RRT*
+rrt_star_animation = False           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 
 # parking lot parameters

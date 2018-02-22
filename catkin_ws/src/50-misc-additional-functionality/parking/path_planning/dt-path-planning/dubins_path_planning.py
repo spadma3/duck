@@ -391,7 +391,10 @@ if __name__ == '__main__':
     end_y = 1.0  # [m]
     end_yaw = math.radians(90.0)  # [rad]
 
-    curvature = 0.15
+    start_x, start_y, start_yaw  = 0.0, 1.0, 0.0
+    end_x, end_y, end_yaw = 1.0, 0.0, math.radians(-90.0)
+
+    curvature = 0.4
 
     allow_backwards_on_circle = False
 
