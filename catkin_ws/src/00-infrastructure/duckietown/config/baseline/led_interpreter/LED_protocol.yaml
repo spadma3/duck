@@ -17,7 +17,7 @@ LED_protocol:
 
   signals:
     CAR_SIGNAL_A:
-      frequency: *f1
+      frequency: *f2
       color: "white"
 
     CAR_SIGNAL_GREEN:
