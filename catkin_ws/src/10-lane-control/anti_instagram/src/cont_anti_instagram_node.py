@@ -71,7 +71,6 @@ class ContAntiInstagramNode():
 
         # Initialize transform message
         self.transform = AntiInstagramTransform()
-        # FIXME: read default from configuration and publish it
 
         # initialize color balance transform message
         self.transform_CB = AntiInstagramTransform_CB()
