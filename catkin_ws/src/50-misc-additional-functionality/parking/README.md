@@ -17,6 +17,10 @@ where `[!start_index]` and `[!end_index]` are integers to define the entrance (`
 `./parking_main.py 0 2`
 
 This should produce the following output:
-![path from 0 to 2](https://github.com/duckietown/Software/blob/devel-parking-jan15/catkin_ws/src/50-misc-additional-functionality/parking/path_0_2_driveable.pdf)
+![path from 0 to 2](https://raw.githubusercontent.com/duckietown/Software/devel-parking-jan15/catkin_ws/src/50-misc-additional-functionality/parking/path_0_2.png)
 
+RRT* is used for a path to space 4, the output should look similar to 
 
+`./parking_main.py 0 2`
+
+![path from 0 to 4](https://raw.githubusercontent.com/duckietown/Software/devel-parking-jan15/catkin_ws/src/50-misc-additional-functionality/parking/path_0_4.png)
