@@ -21,6 +21,6 @@ This should produce the following output:
 
 RRT* is used for a path to space 4, the output should look similar to 
 
-`./parking_main.py 0 2`
+`./parking_main.py 0 4`
 
 ![path from 0 to 4](https://raw.githubusercontent.com/duckietown/Software/devel-parking-jan15/catkin_ws/src/50-misc-additional-functionality/parking/path_0_4.png)
