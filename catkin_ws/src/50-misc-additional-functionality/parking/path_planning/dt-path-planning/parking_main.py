@@ -33,7 +33,7 @@ radius_robot = 60                   # mm distance point between wheels and most
 curvature = 60 #200                     # mm minimal turning radius
 n_nodes_primitive = 50              # -
 distance_backwards = 400            # mm
-maxIter = 50                        # iterations for RRT*
+maxIter = 100                        # iterations for RRT*
 rrt_star_animation = False           # animate RRT* search
 radius_graph_refinement = 400       # mm radius arround new point for rewire
 
