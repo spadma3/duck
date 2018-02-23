@@ -23,7 +23,6 @@ LED_protocol:
     CAR_SIGNAL_GREEN:
       frequency: *f3
       color: "green"
-	
 
     CAR_SIGNAL_A_OLD:
       frequency: *f1
