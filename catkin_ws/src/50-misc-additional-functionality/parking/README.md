@@ -16,3 +16,5 @@ where `[!start_index]` and `[!end_index]` are integers to define the entrance (`
 
 `./parking_main.py 0 2`
 
+This should produce the following output:
+
