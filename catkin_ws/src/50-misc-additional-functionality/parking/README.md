@@ -17,4 +17,6 @@ where `[!start_index]` and `[!end_index]` are integers to define the entrance (`
 `./parking_main.py 0 2`
 
 This should produce the following output:
+![path from 0 to 2](https://github.com/duckietown/Software/blob/devel-parking-jan15/catkin_ws/src/50-misc-additional-functionality/parking/path_0_2_driveable.pdf)
+
 
