@@ -77,7 +77,12 @@ class kMeansClass:
         self._blurImg()
 
         # prepare KMeans
-        kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=max_it)
+        if self.trained_centers == []:
+            # initialize kmeans with the random k-mans++ method
+            kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=max_it)
+        else:
+            # initialize kmeans with the previously found centers
+            kmc = KMeans(n_clusters=self.num_centers, init=self.prevCenters, max_iter=max_it)
 
         # prepare data points
         self.image_array = self._getimgdatapts(self.blurred_image, fancyGeom=fancyGeom)
