@@ -33,7 +33,7 @@ I already wrote some lines for HWExercise 1. If you would like to execute HWExer
 This will execute the line following on your Duckiebot with the controller class controller-1.py you find 
 in CSII/Exercises/HWExercise1.
 
-In order to steer your Duckiebot and start the lane following, you can either use the controller or my virtual controller. For the virtual controller, install pygame
+In order to steer your Duckiebot and start the lane following, you can either use the controller or my virtual controller. For the virtual controller, install pygame (on your Laptop)
 
     pip install pygame
     
