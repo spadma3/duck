@@ -79,6 +79,55 @@ class Csv2Xacro(object):
         tempChild.setAttribute('value','%s %s'%(str(self.tag_offset), str(-self.tag_curb)))
         root.appendChild(tempChild)
 
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_8')
+        tempChild.setAttribute('value','%s %s'%(str(self.tag_offset), str(self.tag_offset)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_9')
+        tempChild.setAttribute('value','%s %s'%(str(-self.tag_offset), str(self.tag_offset)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_10')
+        tempChild.setAttribute('value','%s %s'%(str(-self.tag_offset), str(-self.tag_offset)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_11')
+        tempChild.setAttribute('value','%s %s'%(str(self.tag_offset), str(-self.tag_offset)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_12')
+        tempChild.setAttribute('value','%s %s'%(str(float(self.tile_width)/2.0), str(self.tag_curb)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_13')
+        tempChild.setAttribute('value','%s %s'%(str(self.tag_curb), str(self.tag_curb)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_14')
+        tempChild.setAttribute('value','%s %s'%(str(-self.tag_curb), str(self.tag_curb)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_15')
+        tempChild.setAttribute('value','%s %s'%(str(-self.tag_curb), str(-self.tag_curb)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_16')
+        tempChild.setAttribute('value','%s %s'%(str(self.tag_curb), str(-self.tag_curb)))
+        root.appendChild(tempChild)
+
+        tempChild = doc.createElement('xacro:property')
+        tempChild.setAttribute('name','pos_17')
+        tempChild.setAttribute('value','%s %s'%(str(self.tag_curb), str(float(self.tile_width)/2.0)))
+        root.appendChild(tempChild)
 
         # Create comment
         comment = doc.createComment('Include the tile and tag macros')
