@@ -5,7 +5,7 @@ demos:
 	@echo
 	@echo TODO: to write
 	@echo
-	
+
 ### These are not using master.launch
 demo-joystick: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh;  roslaunch duckietown joystick.launch veh:=$(vehicle_name)"
@@ -28,6 +28,15 @@ demo-joystick-perception: check-environment
 
 demo-lane_following-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos lane_following.launch line_detector_param_file_name:=$*"
+
+demo-charging: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos charging_demo.launch"
+
+demo-charging-2: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos lane_following.launch lane_filter_param_file_name:=charging lane_controller_param_file_name:=charging"
+
+
+
 
 demo-led-fancy1: check-environment
 	bash -c "source environment.sh; rosrun rgb_led fancy1"
@@ -52,3 +61,16 @@ demo-line_detector-quiet-%: check-environment
 # traffic lights
 traffic-light: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch traffic_light traffic_light_node.launch veh:=$(vehicle_name)"
+
+
+# Demos for Jacopo Tani's Control Systems II course
+csii-ex%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; export CSII_EXERCISE='$*';roslaunch duckietown_demos lane_following.launch"
+
+word-split = $(word $2,$(subst -, ,$1))
+
+csii-edit-ex%: check-environment
+	bash -c "ratom $(DUCKIETOWN_ROOT)/CSII/Exercises/HWExercise$(call word-split,$*,1)/controller-$(call word-split,$*,2).py"
+
+virtual-joystick-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; python $(DUCKIETOWN_ROOT)/misc/virtualJoy/virtualJoy.py"
