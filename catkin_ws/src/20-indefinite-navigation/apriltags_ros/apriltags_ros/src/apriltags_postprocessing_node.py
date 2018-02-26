@@ -51,8 +51,8 @@ class AprilPostPros(object):
             "do-not-enter": self.info.DO_NOT_ENTER,
             "pedestrian": self.info.PEDESTRIAN,
             "t-light-ahead": self.info.T_LIGHT_AHEAD,
-            "duck-crossing": self.info.DUCK_CROSSING}
-            #"parking": self.info.PARKING}  # CauseError: AttributeError: 'TagInfo' object has no attribute 'PARKING'
+            "duck-crossing": self.info.DUCK_CROSSING,
+            "parking": self.info.PARKING}  # CauseError: AttributeError: 'TagInfo' object has no attribute 'PARKING'
         
 
 # ---- end tag info stuff 
@@ -64,7 +64,6 @@ class AprilPostPros(object):
         self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
 
         rospy.loginfo("[%s] has started", self.node_name)
-        rospy.loginfo("successfully print out")
 
 
     def setupParam(self,param_name,default_value):
