@@ -195,7 +195,7 @@
 
 20160122-censi-ferrari-RCDP6-jenshen.bag: "https://www.dropbox.com/s/pmkule5tix9npa3/20160122-censi-ferrari-RCDP6-jenshen.bag?dl=1"
 
-20160122-censi-ferrari-RCDP6-lapentab.bag: "https://www.dropbox.com/s/3d9urxd3e0yissi/20160122-censi-ferrari-RCDP6-lapentab.bag?dl=1"
+20160122-censi-ferrari-RCDP6-lapentab.bag: "https://www.dropbox.com/s/g1vzfz3cqpn9l5a/20160122-censi-ferrari-RCDP6-lapentab.bag?dl=1"
 
 20160122-censi-ferrari-RCDP6-mfe.bag: "https://www.dropbox.com/s/4hb7ux0fixxhewl/20160122-censi-ferrari-RCDP6-mfe.bag?dl=1"
 
@@ -205,7 +205,7 @@
 
 20160122-censi-ferrari-RCDP6-samcerq.bag: "https://www.dropbox.com/s/szfy7qbte8946xc/20160122-censi-ferrari-RCDP6-samcerq.bag?dl=1"
 
-20160223-amadoa-amadobot-RCDP2.bag: "https://www.dropbox.com/s/2mec4aag4nv3i0e/20160223-amadoa-amadobot-RCDP2.bag?dl=1"
+20160223-amadoa-amadobot-RCDP2.bag: "https://www.dropbox.com/s/lt1j05kv6ug7r62/20160223-amadoa-amadobot-RCDP2.bag?dl=1"
 
 20160223-amadoa-amadobot-RCDP5-log_out.bag: "https://www.dropbox.com/s/0da8epzxshku3ic/20160223-amadoa-amadobot-RCDP5-log_out.bag?dl=1"
 
@@ -855,8 +855,11 @@ vehicle_25cm.bag: "https://www.dropbox.com/s/bcj71tv941pr6cc/vehicle_25cm.bag?dl
 
 vehicle_50cm.bag: "https://www.dropbox.com/s/ml7oyfr1u2vfabw/vehicle_50cm.bag?dl=1"
 
-ii-datasets.zip: "https://www.dropbox.com/s/xhb2zg9tunshxga/ii-datasets.zip?dl=1"
+ii-datasets.zip: "https://www.dropbox.com/s/pkkwkvv4pj0jool/ii-datasets.zip?dl=1"
 
-frame0002.jpg: "https://www.dropbox.com/s/bzezpw8ivlfu4b0/frame0002.jpg?dl=1"
+frame0002.jpg: "https://www.dropbox.com/s/87u3p3pvbpqzvkc/frame0002.jpg?dl=1"
 
-cloud.yaml: "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
+cloud.yaml: https://github.com/duckietown/logs/raw/master/index/v0/cloud.yaml
+# cloud.yaml: "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
+
+# cloud.yaml: "https://www.dropbox.com/s/z1y0mvn5fakx3qp/201708-duckietown-cloud.yaml?dl=1"
