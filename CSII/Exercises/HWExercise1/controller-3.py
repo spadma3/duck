@@ -1,6 +1,6 @@
 import math
 import numpy as np
-import rospy
+
 
 class Controller():
 
@@ -8,10 +8,13 @@ class Controller():
 
         # Gains for controller
         self.k = 6
-        self.k_I = 1
+        self.k_I = 6
 
-        # Anti-windup maximal integral value
-        self.integral_max = 99999
+        # Assumed saturation of motors (this is what we think to know)
+        self.u_sat = 5.5
+
+        # Feedback gain for anti-windup
+        self.k_t = 12
 
         # Variable for integral
         self.integral = 0
@@ -33,17 +36,21 @@ class Controller():
         # Calculate the output y
         y = 6 * (d_est - d_ref) + 1 * (phi_est-phi_ref)
 
-        # Integrate y
-        self.integral = self.integral + y * dt_last
-
-        # Anti-windup
-        if abs(self.integral) > self.integral_max:
-            self.integral = np.sign(self.integral)*self.integral_max
-
         # PI-Controller
-        omega = -self.k * y - self.k_I * self.integral
+        omega = -self.k * y + self.integral
+
+        # Integrate the error while considering the anti-windup
+        self.integral = self.integral + dt_last* ( self.k_I * (-y) + self.k_t*( self.sat(omega) - omega ) )
 
         # Declaring return values
         omega_out = omega
         v_out = v_ref
         return (v_out, omega_out)
+
+    # Defining the saturation function of the motors (this is what we assume)
+    def sat(self, u):
+        if u > self.u_sat:
+            return self.u_sat
+        if u < -self.u_sat:
+            return -self.u_sat
+        return u
