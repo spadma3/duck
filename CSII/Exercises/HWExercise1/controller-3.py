@@ -10,7 +10,7 @@ class Controller():
         self.k = 6
         self.k_I = 6
 
-        # Assumed saturation of motors (this is what we think to know)
+        # Assumed saturation of motors [rad/s] (this is what we think to know)
         self.u_sat = 5.5
 
         # Feedback gain for anti-windup
