@@ -10,8 +10,8 @@ to set up the working stations such that they do not need to set up anything.
 
 Please make sure that both on your Duckiebot and your Laptop, you're using this branch
 
-    git checkout jukindle-TA-exercise-template
-    git pull origin jukindle-TA-exercise-template
+    git checkout CSII-hardware-exercises
+    git pull origin CSII-hardware-exercises
     
 Then you'll need to compile all non-python content on both the Duckiebot and your Laptop
 
