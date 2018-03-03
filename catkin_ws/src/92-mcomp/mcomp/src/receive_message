@@ -1,3 +1,5 @@
+#! /usr/bin/python2
+
 import lcm
 from lcm_types.mcomp_msgs import vgps_location_msg
 
