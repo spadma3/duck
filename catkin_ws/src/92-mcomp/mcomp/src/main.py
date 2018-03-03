@@ -7,13 +7,18 @@ from duckietown_msgs.msg import BoolStamped
 
 
 def handler(channel, data):
-	stop_pub.publish(True)	
+	global stop_pub
+	print 'I got something'
+	msg = BoolStamped()
+	msg.header.stamp = rospy.Time.now()
+	msg.data = True
+	stop_pub.publish( msg )	
 
 
 #set up ROS publishing node
 rospy.init_node('stop_publisher')
 
-global stop_pub = rospy.Publisher("wheels_driver_node/emergency_stop", BoolStamped, queue_size = 1)
+stop_pub = rospy.Publisher("wheels_driver_node/emergency_stop", BoolStamped, queue_size = 1)
 
 
 
