@@ -1,0 +1,36 @@
+#! /usr/bin/python2
+
+import rospy
+import tf
+import lcm
+from lcm_types.mcomp_msgs import vgps_location_msg
+
+
+tf_broad = None
+
+def visual_gps_handler(channel, data):
+	global tf_broad
+    msg_data = vgps_location_msg.decode(data)
+    br.sendTransform((msg_data.location[0], msg_data.location[1], 0),
+                     tf.transformations.quaternion_from_euler(0, 0, msg_data.theta),
+                     rospy.Time.now(),
+                     msg_data.vehicle+'/duckiebot',
+                     "world")
+    print 'Got something'
+
+if __name__ == "__main__":
+    # initialize ROS node
+    rospy.init_node('gps_tf_broadcaster_node')
+
+    # set up LCM listening
+    lc = lcm.LCM()
+    subscription = lc.subscribe("VISUAL_GPS", visual_gps_handler)
+
+    # create TF broadcaster
+    tf_broad = tf.TransformBroadcaster()
+
+    try:
+    	while True:
+    		lc.handle()
+    except KeyboardInterrupt:
+    	pass
