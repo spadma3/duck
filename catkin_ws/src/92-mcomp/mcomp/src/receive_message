@@ -1,0 +1,18 @@
+import lcm
+from lcm_types.mcomp_msgs import vgps_location_msg
+
+lc = lcm.LCM()
+
+def my_handler(channel, data):
+        msg = vgps_location_msg.decode(data)
+	#print msg.vehicle_id
+	if( msg.vehicle_id == '200' ):
+        	print "%s :: I received a message, it says: '%s'" % ( msg.vehicle, str(msg.location) )
+
+subscription = lc.subscribe("VISUAL_GPS", my_handler)
+
+try:
+        while True:
+                lc.handle()
+except KeyboardInterrupt:
+        pass
