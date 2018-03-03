@@ -18,7 +18,7 @@ def handler(channel, data):
 #set up ROS publishing node
 rospy.init_node('stop_publisher')
 
-stop_pub = rospy.Publisher("wheels_driver_node/emergency_stop", BoolStamped, queue_size = 1)
+stop_pub = rospy.Publisher("/noahsduck/joy_mapper_node/joystick_override", BoolStamped, queue_size = 1)
 
 
 
