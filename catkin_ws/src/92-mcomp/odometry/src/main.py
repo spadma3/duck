@@ -7,25 +7,25 @@ import rospy
 import tf
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
-
-rospy.init_node('odometry_publisher')
-
-odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
-odom_broadcaster = tf.TransformBroadcaster()
+from duckietown_msgs.msg import Twist2DStamped
 
 x = 0.0
 y = 0.0
 th = 0.0
 
-vx = 0.1
-vy = -0.1
-vth = 0.1
+vx = 0.0
+vy = 0.0
+vth = 0.0
 
-current_time = rospy.Time.now()
-last_time = rospy.Time.now()
+current_time = 0
+last_time = 0
 
-r = rospy.Rate(1.0)
-while not rospy.is_shutdown():
+
+def velocity_cmd_callback(msg):
+    global x, y, th, vx, vy, vth, current_time, last_time
+    vx = msg.v
+    vth = msg.omega
+
     current_time = rospy.Time.now()
 
     # compute odometry in a typical way given the velocities of the robot
@@ -66,4 +66,21 @@ while not rospy.is_shutdown():
     odom_pub.publish(odom)
 
     last_time = current_time
-    r.sleep()
+
+
+
+if __name__ == '__main__':
+    rospy.init_node('odometry_publisher')
+
+    odom_pub = rospy.Publisher("odom", Odometry, queue_size=1)
+    odom_broadcaster = tf.TransformBroadcaster()
+
+    current_time = rospy.Time.now()
+    last_time = rospy.Time.now()
+
+    print 'Subscribing...'
+    rospy.Subscriber("/afduck/joy_mapper_node/car_cmd", Twist2DStamped, velocity_cmd_callback)
+    print 'Done!'
+
+    # spin() simply keeps python from exiting until this node is stopped
+    rospy.spin()
