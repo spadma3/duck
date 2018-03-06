@@ -5,3 +5,4 @@ DO NOT MODIFY BY HAND!!!!
 
 from .event_msg import event_msg
 from .vgps_location_msg import vgps_location_msg
+from .config import config

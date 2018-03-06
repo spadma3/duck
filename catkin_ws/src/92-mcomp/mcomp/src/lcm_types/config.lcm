@@ -1,0 +1,8 @@
+package mcomp_msgs;
+struct config
+{
+    float  max_radius;
+    float  stop_radius;
+    float  latency;
+}
+
