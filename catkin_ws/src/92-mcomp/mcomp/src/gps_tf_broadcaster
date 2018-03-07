@@ -15,9 +15,8 @@ def visual_gps_handler(channel, data):
 		tf.transformations.quaternion_from_euler(0, 0, msg_data.theta),
 		rospy.Time.now(),
 		msg_data.vehicle+'/duckiebot',
-        "world"
+		"world"
 	)
-	print 'Got something'
 
 if __name__ == "__main__":
     # initialize ROS node
