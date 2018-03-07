@@ -16,7 +16,6 @@ def visual_gps_handler(channel, data):
                      rospy.Time.now(),
                      msg_data.vehicle+'/duckiebot',
                      "world")
-    print 'Got something'
 
 if __name__ == "__main__":
     # initialize ROS node
