@@ -1,0 +1,6 @@
+package mcomp_msgs;
+struct configuration_msg
+{
+    int64_t  timestamp;
+    string   configuration;   // JSON string
+}
