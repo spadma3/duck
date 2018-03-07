@@ -1,0 +1,8 @@
+package mcomp_msgs;
+struct experiment_log_msg
+{
+    double  timestamp;
+    int64_t  msg_type;
+    string   vehicle;
+    string   content;       // JSON string
+}
