@@ -5,6 +5,8 @@ import duckietown_utils as dtu
 from duckietown_utils.caching import get_cached
 from duckietown_utils.system_cmd_imp import system_cmd_result
 
+base = ['ipfs', '--api', '/ip4/127.0.0.1/tcp/5001']
+
 
 class MakeIPFS(object):
 
@@ -32,7 +34,7 @@ class MakeIPFS(object):
         dag = self.get_dag()
         dag_json = json.dumps(dag)
 
-        cmd = ['ipfs', 'object', 'put']
+        cmd = base + ['object', 'put']
         cwd = '.'
         res = system_cmd_result(cwd, cmd, raise_on_error=True,
                                 write_stdin=dag_json)
@@ -43,7 +45,7 @@ class MakeIPFS(object):
 
 
 def get_hash_for_bytes(s):
-    cmd = ['ipfs', 'add']
+    cmd = base + [ 'add']
     cwd = '.'
     res = system_cmd_result(cwd, cmd, raise_on_error=True,
                             write_stdin=s)
@@ -53,7 +55,7 @@ def get_hash_for_bytes(s):
 
 
 def detect_ipfs():
-    cmd = ['ipfs', '--version']
+    cmd = base + ['--version']
     cwd = '.'
     try:
         _res = system_cmd_result(cwd, cmd,
@@ -79,7 +81,7 @@ def get_ipfs_hash(filename):
     # ipfs add --only-hash LICENSE
     #added QmcgpsyWgH8Y8ajJz1Cu72KnS5uo2Aa2LpzU7kinSupNKC LICENSE
     dtu.logger.debug('Computing IPFS hash for %s' % filename)
-    cmd = ['ipfs', 'add', '--only-hash', filename]
+    cmd = base + ['add', '--only-hash', filename]
     cwd = '.'
     res = system_cmd_result(cwd, cmd,
                             display_stdout=False,
