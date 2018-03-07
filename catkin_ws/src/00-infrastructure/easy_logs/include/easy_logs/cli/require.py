@@ -1,7 +1,7 @@
 import duckietown_utils as dtu
 from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
 from easy_logs.logs_db import get_easy_logs_db_cloud
-from quickapp.quick_app import QuickApp
+from quickapp import QuickApp
 
 from ..logs_db import get_easy_logs_db_fresh
 

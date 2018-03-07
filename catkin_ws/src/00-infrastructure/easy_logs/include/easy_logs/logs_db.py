@@ -4,10 +4,10 @@ import os
 
 import duckietown_utils as dtu
 from duckietown_utils.yaml_pretty import yaml_dump_pretty
-from easy_logs.logs_structure import yaml_from_physical_log, \
-    physical_log_from_yaml
 
 from .logs_structure import PhysicalLog
+from .logs_structure import yaml_from_physical_log, \
+    physical_log_from_yaml
 from .resource_desc import create_dtr_version_1, DTR
 from .time_slice import filters_slice
 

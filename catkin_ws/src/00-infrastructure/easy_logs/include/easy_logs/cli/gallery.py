@@ -64,58 +64,65 @@ class Gallery(D8AppWithLogs):
         s = format_logs(logs)
         self.info(s)
 
+        res = get_report(logs)
+
         out = self.options.destination
         fn_html = os.path.join(out, 'index.html')
 
-        length = 0
-        vehicles = set()
-        for log_name, log in logs.items():
-            length += log.length
-            vehicles.add(log.vehicle)
+        dtu.write_data_to_file(res, fn_html)
 
-        html = Tag(name='html')
-        body = Tag(name='body')
 
-        head = Tag(name='head')
-        link = Tag(name='link')
-        link.attrs['type'] = 'text/css'
-        link.attrs['rel'] = 'stylesheet'
-        link.attrs['href'] = 'style.css'
-        title = Tag(name='title')
-        title.append('Duckietown Logs Database')
-        head.append(link)
-        html.append(head)
-        html.append(body)
+def get_report(logs, url_to_resource, initial_screens=True):
+    length = 0
+    vehicles = set()
+    for _, log in logs.items():
+        length += log.length
+        vehicles.add(log.vehicle)
 
-        h = Tag(name='h1')
-        h.append('Duckietown Logs Database')
-        body.append(h)
+    html = Tag(name='html')
+    body = Tag(name='body')
 
-        c = 'Showing %d logs from %d different Duckiebots, for a total length of %.1f hours.' % (len(logs), len(vehicles), length / 3600.0)
-#        c += '\nExcluded %d logs marked invalid totaling %.1f hours.' % (ninvalid, length_invalid / 3600.0)
-        p = Tag(name='p')
-        p.append(c)
-        body.append(p)
+    head = Tag(name='head')
+    link = Tag(name='link')
+    link.attrs['type'] = 'text/css'
+    link.attrs['rel'] = 'stylesheet'
+    link.attrs['href'] = 'style.css'
+    title = Tag(name='title')
+    title.append('Duckietown Logs Database')
+    head.append(link)
+    html.append(head)
+    html.append(body)
 
-        t = summary_table(logs, out)
+    h = Tag(name='h1')
+    h.append('Duckietown Logs Database')
+    body.append(h)
+
+    c = 'Showing %d logs from %d different Duckiebots, for a total length of %.1f hours.' % (len(logs), len(vehicles), length / 3600.0)
+
+    p = Tag(name='p')
+    p.append(c)
+    body.append(p)
+
+    if initial_screens:
+        t = summary_table(logs, url_to_resource)
         body.append(t)
 
-        body.append(html_table_from_table(logs, out))
+    body.append(html_table_from_table(logs, url_to_resource))
 
-        make_sections(body, logs, out)
+    make_sections(body, logs, url_to_resource)
 
-        s = unicode(html).encode()
-        dtu.write_data_to_file(s, fn_html)
+    s = unicode(html).encode()
+    return s
 
 
-def summary_table(logs, out):
+def summary_table(logs, url_to_resource):
     d = Tag(name='div')
     d.attrs['id'] = 'panvision'
     seq = list(logs)
     random.shuffle(seq)
     for id_log in seq:
         log = logs[id_log]
-        rel = get_small_video2(log)
+        rel = get_small_video2(log, url_to_resource)
         if rel:
             video = video_for_source(rel)
             a = Tag(name='a')
@@ -127,30 +134,29 @@ def summary_table(logs, out):
     return d
 
 
-def html_table_from_table(logs, destination):
-
+def html_table_from_table(logs, url_to_resource):
     res = Tag(name='table')
     tbody = Tag(name='tbody')
     thead = Tag(name='thead')
     res.append(thead)
     res.append(tbody)
-    for i, (id_log, log) in enumerate(logs.items()):
-        trh, tr = get_row(i, log)
+    for i, (_, log) in enumerate(logs.items()):
+        trh, tr = get_row(i, log, url_to_resource)
         tbody.append(tr)
         tbody.append('\n')
     thead.append(trh)
     return res
 
 
-def make_sections(body, logs, destination):
+def make_sections(body, logs, url_to_resource):
 
     for i, (id_log, log) in enumerate(logs.items()):
-        section = make_section(i, id_log, log, destination)
+        section = make_section(i, id_log, log, url_to_resource)
 
         body.append(section)
 
 
-def make_section(_i, id_log, log, destination):
+def make_section(_i, id_log, log, url_to_resource):
 
 #    id_log = id_log.decode('utf-8', 'ignore')
 
@@ -162,7 +168,7 @@ def make_section(_i, id_log, log, destination):
     d.append(h)
     d.attrs['id'] = id_log
 
-    rel = get_small_video2(log)
+    rel = get_small_video2(log, url_to_resource)
     if rel:
         video = video_for_source(rel)
         d.append((video))
@@ -179,7 +185,7 @@ def make_section(_i, id_log, log, destination):
     c.append("\n".join(s))
     d.append(c)
 
-    rel = get_large_video2(log)
+    rel = get_large_video2(log, url_to_resource)
     if rel:
         a = Tag(name='a')
         a.attrs['href'] = rel
@@ -196,7 +202,7 @@ def make_section(_i, id_log, log, destination):
 
     p = Tag(name='p')
 
-    n = append_urls(id_log, log, p)
+    n = append_urls(id_log, log, p, url_to_resource)
 
     if n == 0:
         msg = ('No URL found for this log.')
@@ -205,7 +211,7 @@ def make_section(_i, id_log, log, destination):
 
     d.append(p)
 
-    rel = get_thumbnails(log)
+    rel = get_thumbnails(log, url_to_resource)
     if rel:
         img = Tag(name='img')
         img.attrs['class'] = 'thumbnail'
@@ -227,7 +233,7 @@ def make_section(_i, id_log, log, destination):
     return d
 
 
-def get_row(i, log):
+def get_row(i, log, url_to_resource):
     trh = Tag(name='tr')
     tr = Tag(name='tr')
 
@@ -242,7 +248,7 @@ def get_row(i, log):
     tr.append(td(str(i)))
 
     trh.append(td(''))
-    rel = get_small_video2(log)
+    rel = get_small_video2(log, url_to_resource)
     if rel:
         video = video_for_source(rel)
         tr.append(td(video))
@@ -255,7 +261,7 @@ def get_row(i, log):
 
     f = Tag(name='td')
 
-    rel = get_large_video2(log)
+    rel = get_large_video2(log, url_to_resource)
     if rel:
         a = Tag(name='a')
         a.attrs['href'] = rel
@@ -263,7 +269,7 @@ def get_row(i, log):
 
         f.append(a)
 
-    rel = get_thumbnails2(log)
+    rel = get_thumbnails2(log, url_to_resource)
     if rel:
 #        f.append(Tag(name='br'))
         f.append(' ')
@@ -370,26 +376,26 @@ def get_resource_url(log, rname):
         return None
 
 
-def get_small_video2(log):
-    return get_resource_url(log, 'video_small.gif')
+def get_small_video2(log, url_to_resource):
+    return url_to_resource(log, 'video_small.gif')
 
 
-def get_thumbnails(log):
-    return get_resource_url(log, 'thumbnails.jpg')
+def get_thumbnails(log, url_to_resource):
+    return url_to_resource(log, 'thumbnails.jpg')
 
 
-def get_large_video2(log):
-    return get_resource_url(log, 'video.mp4')
+def get_large_video2(log, url_to_resource):
+    return url_to_resource(log, 'video.mp4')
 
 
-def get_thumbnails2(log):
-    return get_resource_url(log, 'thumbnails.jpg')
+def get_thumbnails2(log, url_to_resource):
+    return url_to_resource(log, 'thumbnails.jpg')
 
 
 GalleryEntry = namedtuple('GalleryEntry', 'log_name thumbnail video url')
 
 
-def append_urls(id_log, log, where):
+def append_urls(id_log, log, where, url_to_resource):
     n = 0
     for rname in log.resources:
 
@@ -398,11 +404,12 @@ def append_urls(id_log, log, where):
         s = '%s (%s) ' % (rname, size_mb)
         where.append(s)
 
-        if Gallery.deploy_ipfs:
-            ipfs = log.resources[rname]['hash']['ipfs']
-            urls = ['/ipfs/%s' % ipfs]
-        else:
-            urls = [x for x in dtr.urls if show_url(x)]
+        urls = [url_to_resource(log, rname)]
+#        if Gallery.deploy_ipfs:
+#            ipfs = log.resources[rname]['hash']['ipfs']
+#            urls = ['/ipfs/%s' % ipfs]
+#        else:
+#            urls = [x for x in dtr.urls if show_url(x)]
 
         for i, url in enumerate(urls):
             where.append(' ')
@@ -414,3 +421,50 @@ def append_urls(id_log, log, where):
             n += 1
         where.append(Tag(name='br'))
     return n
+
+
+def get_gallery_style():
+    return """
+@import url('https://fonts.googleapis.com/css?family=VT323');
+
+* {
+    font-family: 'VT323', monospace;
+}
+body {
+    background-color: rgb(255, 204, 0);
+}
+
+tr.invalid {
+    background-color: #fdd;
+}
+
+img.gif {
+    width: 50px;
+}
+div.log-details.invalid {
+    background-color: #fdd;
+}
+
+td { padding-left: 1em;
+
+    vertical-align:top;
+}
+
+tr.nth-child(3) { color: white; }
+img.thumbnail {
+    width: 100%;
+    max-width: 80em;
+}
+
+#panvision {
+    margin-bottom: 50px;
+    white-space-collapse: discard;
+    font-size: 0;
+}
+
+a.smallicon {
+    border: 0;
+}
+
+
+"""
