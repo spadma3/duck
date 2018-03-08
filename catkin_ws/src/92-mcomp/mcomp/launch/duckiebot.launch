@@ -1,4 +1,5 @@
 <launch>
+
     <arg name="veh" />
 
     <node pkg="mcomp" type="mcomp_duckiebot_node" name="mcomp_duckiebot_node" output="screen">

@@ -1,0 +1,5 @@
+<launch>
+
+    <node pkg="mcomp" type="gps_tf_broadcaster_node" name="gps_tf_broadcaster" output="screen" />
+
+</launch>

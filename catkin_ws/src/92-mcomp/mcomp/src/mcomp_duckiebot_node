@@ -23,7 +23,7 @@ def log( msg_type, timestamp=None, content={} ):
 		timestamp = rospy.Time.now()
 	msg = experiment_log_msg()
 	msg.timestamp = timestamp
-	msg.msg_type = msg_type
+	msg.type = msg_type
 	msg.vehicle = veh
 	msg.content = json.dumps( content )
 	lcm_handler.publish( experiment_log_channel, experiment_log_msg.encode(msg) )
@@ -81,7 +81,7 @@ def is_configured():
 
 
 if __name__ == '__main__':
-	#set up ROS publishing node
+	# set up ROS publishing node
 	rospy.init_node('mcomp_duckiebot_node')
 
 	# get parameters

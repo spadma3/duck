@@ -1,0 +1,137 @@
+#!/usr/bin/env python
+
+import sys
+import lcm
+import json
+import pickle
+import numpy as np
+from time import sleep, time
+from threading import Thread
+from lcm_types.mcomp_msgs import configuration_msg, experiment_log_msg, auto_pilot_msg
+from log_types import MSG_TYPE
+
+lcm_handler = None
+mcomp_configuration = None
+experiment_config_channel = "MCOMP_SETUP"
+experiment_car_control_channel = "MCOMP_AUTO_PILOT"
+experiment_log_channel = "MCOMP_LOG"
+experiment_started = False
+experiment_completed = False
+experiment_log = []
+num_vehicles = 9999
+vehicles_configured = []
+
+def now():
+	return time() * 1000
+
+def stdout(entity, message, endl=True):
+	if endl:
+		print '[%s] :: %s' % ( entity, message )
+	else:
+		print '[%s] :: %s' % ( entity, message ),; sys.stdout.flush()
+
+def mcomp_log_msg_handler(channel, data):
+	global experiment_started, vehicles_configured
+	msg = experiment_log_msg.decode(data)
+	# ignore message if the experiment has not started yet
+	if not experiment_started and msg.type != MSG_TYPE.CONFIGURATION_SENT:
+		return
+	# start experiment
+	if msg.type == MSG_TYPE.CONFIGURATION_SENT:
+		experiment_log.append(
+			( now(), msg )
+		)
+		experiment_started = True
+		return
+	# count number of configured vehicles
+	if msg.type == MSG_TYPE.CONFIGURATION_RECEIVED:
+		vehicles_configured.append( msg.vehicle )
+	# log
+	experiment_log.append(
+		( now(), msg )
+	)
+
+def experiment_director_fcn(arg):
+	global lcm_handler, experiment_log_channel, mcomp_configuration, experiment_car_control_channel
+	global num_vehicles, vehicles_configured, experiment_started, experiment_completed
+	if experiment_completed: return
+
+	# send configuration message
+	stdout('Configuration Sender', 'Sending configuration to vehicles...', False)
+	config_msg = configuration_msg()
+	config_msg.timestamp = now()
+	config_msg.configuration = mcomp_configuration
+	lcm_handler.publish( experiment_config_channel, configuration_msg.encode(config_msg) )
+	stdout('Configuration Sender', 'Done!')
+	if experiment_completed: return
+
+	# send confirmation message to start logging
+	msg = experiment_log_msg()
+	msg.timestamp = now()
+	msg.type = MSG_TYPE.CONFIGURATION_SENT
+	msg.content = mcomp_configuration
+	lcm_handler.publish( experiment_log_channel, experiment_log_msg.encode(msg) )
+	if experiment_completed: return
+
+	# wait for vehicles to receive configuration message
+	stdout('Configuration Checker', 'Waiting for the vehicles to be configured')
+	while num_vehicles != len(vehicles_configured):
+		sleep(0.5)
+	stdout('Configuration Checker', 'Vehicles configured for flight!')
+	if experiment_completed: return
+
+	# activate Auto-Pilot
+	stdout('Auto-Pilot', 'Activating...', False)
+	msg = auto_pilot_msg()
+	msg.timestamp = now()
+	msg.enabled = True
+	lcm_handler.publish( experiment_car_control_channel, auto_pilot_msg.encode(msg) )
+	stdout('Auto-Pilot', 'Activated!')
+	if experiment_completed: return
+
+	
+
+
+if __name__ == '__main__':
+	# set up ROS publishing node
+	rospy.init_node('mcomp_control_center_node')
+
+	# get parameters
+	communication_radius = rospy.get_param('~communication_radius')
+	reaction_radius = rospy.get_param('~reaction_radius')
+	allow_propagation = rospy.get_param('~allow_propagation')
+	interference_model = rospy.get_param('~interference_model')
+	reaction_type = rospy.get_param('~reaction_type')
+	num_vehicles = rospy.get_param('~num_vehicles')
+
+	# create experiment configuration
+	mcomp_configuration = {
+		'communication_radius' : communication_radius,
+		'reaction_radius' : reaction_radius,
+		'allow_propagation' : allow_propagation,
+		'interference_model' : interference_model,
+		'reaction_type' : reaction_type
+	}
+	mcomp_configuration = json.dumps( mcomp_configuration )
+
+	# initialize LCM
+	lcm_handler = lcm.LCM()
+
+	# start listening to other vehicles messages
+	mcomp_log_sub = lcm_handler.subscribe(experiment_log_channel, mcomp_log_msg_handler)
+
+	# wait for the listener to be ready
+	sleep(2)
+
+
+
+	# start experiment
+	experiment_director = Thread( target=experiment_director_fcn, args=(,) )
+	experiment_director.start()
+
+
+	try:
+		while True:
+			lcm_handler.handle()
+	except KeyboardInterrupt:
+		pass
