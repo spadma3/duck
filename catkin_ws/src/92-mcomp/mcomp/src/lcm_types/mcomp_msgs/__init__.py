@@ -6,3 +6,6 @@ DO NOT MODIFY BY HAND!!!!
 from .event_msg import event_msg
 from .vgps_location_msg import vgps_location_msg
 from .config import config
+from .auto_pilot_msg import auto_pilot_msg
+from .configuration_msg import configuration_msg
+from .experiment_log_msg import experiment_log_msg
