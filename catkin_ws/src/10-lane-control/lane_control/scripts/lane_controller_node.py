@@ -93,7 +93,7 @@ class lane_controller(object):
         phi_est = lane_pose_msg.phi
         d_ref = 0
         phi_ref = 0
-        v_ref = 0.38
+        v_ref = 0.12
 
 
 
@@ -120,7 +120,7 @@ class lane_controller(object):
         ########## END SUBEXERCISE CUSTOMIZATION BEFORE CONTROLLER ##########
 
         # Obtain new v and omega
-        v_out, omega_out = self.controller_class.getControlOutput(d_est, phi_est, d_ref, phi_ref, v_ref/2, t_delay, dt_last)
+        v_out, omega_out = self.controller_class.getControlOutput(d_est, phi_est, d_ref, phi_ref, v_ref, t_delay, dt_last)
 
 
         ########## SUBEXERCISE CUSTOMIZATION AFTER CONTROLLER ##########
@@ -144,7 +144,7 @@ class lane_controller(object):
         # Create message and publish
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
-        car_control_msg.v = v_out*2
+        car_control_msg.v = v_out
         car_control_msg.omega = omega_out
         self.publishCmd(car_control_msg)
 
