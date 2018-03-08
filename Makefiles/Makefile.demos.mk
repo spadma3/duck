@@ -61,7 +61,7 @@ csii-ex%: check-environment
 word-split = $(word $2,$(subst -, ,$1))
 
 csii-edit-ex%: check-environment
-	bash -c "ratom $(DUCKIETOWN_ROOT)/CSII/Exercises/HWExercise$(call word-split,$*,1)/controller-$(call word-split,$*,2).py"
+	bash -c "sudo ratom $(DUCKIETOWN_ROOT)/CSII/Exercises/HWExercise$(call word-split,$*,1)/controller-$(call word-split,$*,2).py"
 
 virtual-joystick-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; python $(DUCKIETOWN_ROOT)/misc/virtualJoy/virtualJoy.py"
