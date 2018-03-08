@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+
+import rospy
+import lcm
+import json
+import numpy as np
+from lcm_types.mcomp_msgs import event_msg, configuration_msg, vgps_location_msg, experiment_log_msg
+from duckietown_msgs.msg import BoolStamped
+from log_types import MSG_TYPE
+
+veh = None
+lcm_handler = None
+e_stop_pub = None
+mcomp_configuration = None
+last_position = None
+last_orientation = None
+last_position_time = -1
+experiment_log_channel = "MCOMP_LOG"
+
+def log( msg_type, timestamp=None, content={} ):
+	global lcm_handler, veh
+	if timestamp is None:
+		timestamp = rospy.Time.now()
+	msg = experiment_log_msg()
+	msg.timestamp = timestamp
+	msg.type = msg_type
+	msg.vehicle = veh
+	msg.content = json.dumps( content )
+	lcm_handler.publish( experiment_log_channel, experiment_log_msg.encode(msg) )
+
+def stop_vehicle():
+	global e_stop_pub
+	# create message
+	msg = BoolStamped()
+	msg.header.stamp = rospy.Time.now()
+	msg.data = True # acquire control by bypassing auto-pilot
+	e_stop_pub.publish(msg)
+	# log
+	log( MSG_TYPE.VEHICLE_STOPPED, msg.header.stamp )
+
+def release_vehicle():
+	global e_stop_pub
+	# create message
+	msg = BoolStamped()
+	msg.header.stamp = rospy.Time.now()
+	msg.data = False # release control to auto-pilot
+	e_stop_pub.publish(msg)
+	# log
+	log( MSG_TYPE.VEHICLE_RELEASED, msg.header.stamp )
+
+def mcomp_event_msg_handler(channel, data):
+	# log
+	log( MSG_TYPE.EVENT_RECEIVED, rospy.Time.now() )
+	# stop vehicle
+	stop_vehicle()
+
+def mcomp_configuration_msg_handler(channel, data):
+	global mcomp_configuration
+	msg = configuration_msg.decode(data)
+	mcomp_configuration = json.loads( msg.configuration )
+	# log
+	log( MSG_TYPE.CONFIGURED, rospy.Time.now() )
+
+
+def visual_gps_msg_handler(channel, data):
+	global veh, last_position, last_orientation, last_position_time
+	msg = vgps_location_msg.decode(data)
+	if msg.vehicle == veh: # and msg.timestamp > last_position_time:
+		last_position = np.asarray( msg.location )
+		last_orientation = msg.theta
+		last_position_time = msg.timestamp
+		# log
+		log(
+			MSG_TYPE.GPS,
+			rospy.Time.now().to_sec(),
+			{ 'posiiton' : last_position.tolist(), 'orientation' : last_orientation }
+		)
+
+def is_configured():
+	return mcomp_configuration is not None
+
+
+if __name__ == '__main__':
+	# set up ROS publishing node
+	rospy.init_node('mcomp_duckiebot_node')
+
+	# get parameters
+	veh = rospy.get_param('~veh')
+
+	# create control override publisher
+	e_stop_pub = rospy.Publisher(
+		"/%s/joy_mapper_node/joystick_override" % veh,
+		BoolStamped,
+		queue_size=1
+	)
+
+	# initialize LCM
+	lcm_handler = lcm.LCM()
+
+	# start listening to other vehicles messages
+	mcomp_config_sub = lcm_handler.subscribe("MCOMP_SETUP", mcomp_configuration_msg_handler)
+	mcomp_event_sub = lcm_handler.subscribe("MCOMP_EVENT", mcomp_event_msg_handler)
+	visual_gps_sub = lcm_handler.subscribe("VISUAL_GPS", visual_gps_msg_handler)
+
+	try:
+		while True:
+			lcm_handler.handle()
+	except KeyboardInterrupt:
+		pass

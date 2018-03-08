@@ -1,0 +1,6 @@
+package mcomp_msgs;
+struct auto_pilot_msg
+{
+    double  timestamp;
+    bool  enabled;
+}
