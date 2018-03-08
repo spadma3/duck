@@ -93,7 +93,7 @@ class lane_controller(object):
         phi_est = lane_pose_msg.phi
         d_ref = 0
         phi_ref = 0
-        v_ref = 0.12
+        v_ref = 0.2
 
 
 
