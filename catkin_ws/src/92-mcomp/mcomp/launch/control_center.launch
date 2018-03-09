@@ -1,0 +1,28 @@
+<launch>
+
+  <!-- Arguments -->
+  <arg name="cr" doc="communication_radius" />
+  <arg name="rr" doc="reaction_radius" />
+  <arg name="prop" doc="allow_propagation" />
+  <arg name="n" doc="num_vehicles" />
+  <arg name="poi" doc="event_location" value="[2.68, 2.10]" />
+  <arg name="f" doc="interference_model" value="linear" />
+  <arg name="r" doc="reaction_type" value="stop" />
+  <arg name="d" doc="perception_distance" value="0.8" />
+
+  <!-- GPS TF Broadcaster -->
+  <node pkg="mcomp" type="gps_tf_broadcaster_node" name="gps_tf_broadcaster" output="screen" />
+
+  <!-- MCOMP Experiment Control Center -->
+  <node pkg="mcomp" type="mcomp_control_center_node" name="mcomp_control_center_node" output="screen">
+    <param name="event_location" value="$(arg poi)" />
+    <param name="communication_radius" value="$(arg cr)" />
+    <param name="reaction_radius" value="$(arg rr)" />
+    <param name="allow_propagation" value="$(arg prop)" />
+    <param name="interference_model" value="$(arg f)" />
+    <param name="reaction_type" value="$(arg r)" />
+    <param name="num_vehicles" value="$(arg n)" />
+    <param name="perception_distance" value="$(arg d)" />
+  </node>
+
+</launch>

@@ -4,12 +4,18 @@ import sys
 import lcm
 import json
 import pickle
+import rospy
 import numpy as np
-from time import sleep, time
+import utils
+import datetime
+from utils import stdout
+from time import sleep
 from threading import Thread
+from mcomp.srv import MCompStopExperiment
 from lcm_types.mcomp_msgs import configuration_msg, experiment_log_msg, auto_pilot_msg
 from log_types import MSG_TYPE
 
+verbose = True
 lcm_handler = None
 mcomp_configuration = None
 experiment_config_channel = "MCOMP_SETUP"
@@ -17,79 +23,117 @@ experiment_car_control_channel = "MCOMP_AUTO_PILOT"
 experiment_log_channel = "MCOMP_LOG"
 experiment_started = False
 experiment_completed = False
+experiment_interrupted = False
 experiment_log = []
 num_vehicles = 9999
-vehicles_configured = []
+vehicles_configured = set()
+experiment_start_time = -1
+log_dir = '/home/duckietown/mcomp_logs'
 
-def now():
-	return time() * 1000
+def terminate_experiment_svc(req):
+	global experiment_completed, experiment_log, experiment_start_time, log_dir
+	# received termination request
+	stdout('Experiment Status', 'Received signal to terminate experiment. Waiting for the process to finish...')
+	experiment_completed = True
+	sleep(4)
+	stdout('Experiment Status', 'Completed!')
+	# save log to file
+	now_str = datetime.datetime.now().strftime("%m_%Y_%d_h%H_m%M")
+	cur_log_dir = "%s/%s" % ( log_dir, now_str )
+	descriptor_file = "%s/%s" % ( cur_log_dir, "meta.json" )
+	data_file = "%s/%s" % ( cur_log_dir, "data.dat" )
+	# create log dir
+	os.makedirs(cur_log_dir)
+	# write to file
+	with open(descriptor_file, 'w') as out_file:
+		json.dump( json.loads(mcomp_configuration), out_file )
+	with open(data_file, 'w') as out_file:
+		pickle.dump( experiment_log, out_file )
+	# close
+	experiment_dur = float(utils.now() - experiment_start_time) / 1000.0
+	experiment_n_msgs = len( experiment_log )
+	stdout(
+		'Experiment Status', 'Name: %s  |  Length: %s' % (
+			now_str,
+			'%s secs (%d messages)' % ( experiment_dur, experiment_n_msgs )
+		)
+	)
+	exit(0)
 
-def stdout(entity, message, endl=True):
-	if endl:
-		print '[%s] :: %s' % ( entity, message )
-	else:
-		print '[%s] :: %s' % ( entity, message ),; sys.stdout.flush()
 
 def mcomp_log_msg_handler(channel, data):
+	global verbose
 	global experiment_started, vehicles_configured
 	msg = experiment_log_msg.decode(data)
+
+	if verbose:
+		stdout('LCM (verbose)', 'Message received, Type: `%s`!' % MSG_TYPE(msg.type) )
+		stdout('STATUS (verbose)', 'Experiment started: %r' % experiment_started )
+
 	# ignore message if the experiment has not started yet
 	if not experiment_started and msg.type != MSG_TYPE.CONFIGURATION_SENT:
+		return
+	# ignore message if the experiment is completed
+	if experiment_completed:
 		return
 	# start experiment
 	if msg.type == MSG_TYPE.CONFIGURATION_SENT:
 		experiment_log.append(
-			( now(), msg )
+			( utils.now(), msg )
 		)
 		experiment_started = True
+		experiment_start_time = utils.now()
 		return
 	# count number of configured vehicles
 	if msg.type == MSG_TYPE.CONFIGURATION_RECEIVED:
-		vehicles_configured.append( msg.vehicle )
+		vehicles_configured.add( msg.vehicle )
 	# log
 	experiment_log.append(
-		( now(), msg )
+		( utils.now(), msg )
 	)
 
 def experiment_director_fcn(arg):
 	global lcm_handler, experiment_log_channel, mcomp_configuration, experiment_car_control_channel
-	global num_vehicles, vehicles_configured, experiment_started, experiment_completed
+	global num_vehicles, vehicles_configured, experiment_started, experiment_completed, experiment_interrupted
 	if experiment_completed: return
 
 	# send configuration message
-	stdout('Configuration Sender', 'Sending configuration to vehicles...', False)
+	stdout('Configuration Sender', 'Sending configuration to vehicles...')
 	config_msg = configuration_msg()
-	config_msg.timestamp = now()
+	config_msg.timestamp = utils.now()
 	config_msg.configuration = mcomp_configuration
-	lcm_handler.publish( experiment_config_channel, configuration_msg.encode(config_msg) )
-	stdout('Configuration Sender', 'Done!')
+	utils.publish( lcm_handler, experiment_config_channel, configuration_msg.encode(config_msg) )
+	stdout('Configuration Sender', 'Configuration sent!')
 	if experiment_completed: return
 
 	# send confirmation message to start logging
 	msg = experiment_log_msg()
-	msg.timestamp = now()
+	msg.timestamp = utils.now()
 	msg.type = MSG_TYPE.CONFIGURATION_SENT
 	msg.content = mcomp_configuration
-	lcm_handler.publish( experiment_log_channel, experiment_log_msg.encode(msg) )
+	utils.publish( lcm_handler, experiment_log_channel, experiment_log_msg.encode(msg) )
 	if experiment_completed: return
 
 	# wait for vehicles to receive configuration message
 	stdout('Configuration Checker', 'Waiting for the vehicles to be configured')
 	while num_vehicles != len(vehicles_configured):
+		if experiment_interrupted: return
 		sleep(0.5)
 	stdout('Configuration Checker', 'Vehicles configured for flight!')
 	if experiment_completed: return
 
 	# activate Auto-Pilot
-	stdout('Auto-Pilot', 'Activating...', False)
+	stdout('Auto-Pilot', 'Activating...')
 	msg = auto_pilot_msg()
-	msg.timestamp = now()
+	msg.timestamp = utils.now()
 	msg.enabled = True
-	lcm_handler.publish( experiment_car_control_channel, auto_pilot_msg.encode(msg) )
+	utils.publish( lcm_handler, experiment_car_control_channel, auto_pilot_msg.encode(msg) )
 	stdout('Auto-Pilot', 'Activated!')
 	if experiment_completed: return
 
-	
+def ros_spinner_fcn(args):
+	service = rospy.Service('~stop_experiment', MCompStopExperiment, terminate_experiment_svc)
+	rospy.spin()
 
 
 if __name__ == '__main__':
@@ -97,20 +141,24 @@ if __name__ == '__main__':
 	rospy.init_node('mcomp_control_center_node')
 
 	# get parameters
+	event_location = eval(rospy.get_param('~event_location'))
 	communication_radius = rospy.get_param('~communication_radius')
 	reaction_radius = rospy.get_param('~reaction_radius')
 	allow_propagation = rospy.get_param('~allow_propagation')
 	interference_model = rospy.get_param('~interference_model')
 	reaction_type = rospy.get_param('~reaction_type')
 	num_vehicles = rospy.get_param('~num_vehicles')
+	perception_distance = rospy.get_param('~perception_distance')
 
 	# create experiment configuration
 	mcomp_configuration = {
+		'event_location' : event_location,
 		'communication_radius' : communication_radius,
 		'reaction_radius' : reaction_radius,
 		'allow_propagation' : allow_propagation,
 		'interference_model' : interference_model,
-		'reaction_type' : reaction_type
+		'reaction_type' : reaction_type,
+		'perception_distance' : perception_distance
 	}
 	mcomp_configuration = json.dumps( mcomp_configuration )
 
@@ -120,18 +168,24 @@ if __name__ == '__main__':
 	# start listening to other vehicles messages
 	mcomp_log_sub = lcm_handler.subscribe(experiment_log_channel, mcomp_log_msg_handler)
 
+	# start ROS spinner
+	ros_spinner = Thread( target=ros_spinner_fcn, args=(None,) )
+	ros_spinner.start()
+
 	# wait for the listener to be ready
 	sleep(2)
 
-
-
 	# start experiment
-	experiment_director = Thread( target=experiment_director_fcn, args=(,) )
+	experiment_director = Thread( target=experiment_director_fcn, args=(None,) )
 	experiment_director.start()
 
-
+	# keep spinning
 	try:
 		while True:
 			lcm_handler.handle()
 	except KeyboardInterrupt:
 		pass
+	finally:
+		experiment_interrupted = True
+		ros_spinner.join()
+		experiment_director.join()
