@@ -9,14 +9,12 @@ except ImportError:
     from io import BytesIO
 import struct
 
-import mcomp_msgs.bool
-
 class auto_pilot_msg(object):
     __slots__ = ["timestamp", "enabled"]
 
     def __init__(self):
         self.timestamp = 0.0
-        self.enabled = mcomp_msgs.bool()
+        self.enabled = False
 
     def encode(self):
         buf = BytesIO()
@@ -25,9 +23,7 @@ class auto_pilot_msg(object):
         return buf.getvalue()
 
     def _encode_one(self, buf):
-        buf.write(struct.pack(">d", self.timestamp))
-        assert self.enabled._get_packed_fingerprint() == mcomp_msgs.bool._get_packed_fingerprint()
-        self.enabled._encode_one(buf)
+        buf.write(struct.pack(">db", self.timestamp, self.enabled))
 
     def decode(data):
         if hasattr(data, 'read'):
@@ -42,15 +38,14 @@ class auto_pilot_msg(object):
     def _decode_one(buf):
         self = auto_pilot_msg()
         self.timestamp = struct.unpack(">d", buf.read(8))[0]
-        self.enabled = mcomp_msgs.bool._decode_one(buf)
+        self.enabled = bool(struct.unpack('b', buf.read(1))[0])
         return self
     _decode_one = staticmethod(_decode_one)
 
     _hash = None
     def _get_hash_recursive(parents):
         if auto_pilot_msg in parents: return 0
-        newparents = parents + [auto_pilot_msg]
-        tmphash = (0xe768e9a28b66c78d+ mcomp_msgs.bool._get_hash_recursive(newparents)) & 0xffffffffffffffff
+        tmphash = (0x306343274e6cfdd8) & 0xffffffffffffffff
         tmphash  = (((tmphash<<1)&0xffffffffffffffff)  + (tmphash>>63)) & 0xffffffffffffffff
         return tmphash
     _get_hash_recursive = staticmethod(_get_hash_recursive)
