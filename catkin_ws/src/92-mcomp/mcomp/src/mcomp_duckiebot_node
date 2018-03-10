@@ -97,7 +97,7 @@ def event_detected():
 	# create event message
 	msg = event_msg()
 	msg.timestamp = utils.now()
-	msg.position = [ mcomp_configuration['event_location'][0], mcomp_configuration['event_location'][1] ]
+	msg.location = [ mcomp_configuration['event_location'][0], mcomp_configuration['event_location'][1] ]
 	msg.description = "I saw an accident!"
 	# send message to other vehicles
 	utils.publish( lcm_handler, mcomp_event_channel, event_msg.encode(msg), 2 )
