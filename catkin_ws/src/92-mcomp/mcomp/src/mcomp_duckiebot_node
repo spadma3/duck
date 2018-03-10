@@ -24,6 +24,7 @@ experiment_log_channel = "MCOMP_LOG"
 mcomp_event_channel = "MCOMP_EVENT"
 is_stopped = True
 is_shutdown = False
+release_command_received = False
 event_published = False
 known_events = []
 
@@ -97,13 +98,15 @@ def mcomp_configuration_msg_handler(channel, data):
 	event_published = False
 	known_events = []
 	# log
-	log( MSG_TYPE.CONFIGURATION_RECEIVED, utils.now(), '', 10 )
+	log( MSG_TYPE.CONFIGURATION_RECEIVED, utils.now() )
 
 def mcomp_auto_pilot_msg_handler(channel, data):
+	global release_command_received
 	# decode configuration message
 	msg = auto_pilot_msg.decode(data)
 	if msg.enabled:
 		release_vehicle()
+		release_command_received = True
 	else:
 		stop_vehicle()
 	# log
@@ -147,6 +150,7 @@ def visual_gps_msg_handler(channel, data):
 def car_controller_fcn(args):
 	global verbose
 	global mcomp_configuration, perception_distance, is_stopped, is_shutdown, event_published, known_events
+	global release_command_received
 	while not is_shutdown and not rospy.is_shutdown():
 		# wait for the experiment to start
 		if not is_configured():
@@ -154,6 +158,12 @@ def car_controller_fcn(args):
 				stop_vehicle()
 			sleep(0.05)
 			continue
+
+		if is_configured and not release_command_received:
+			log( MSG_TYPE.CONFIGURATION_RECEIVED, utils.now() )
+			sleep(0.05)
+			continue
+
 		# get location of the event
 		event_location = mcomp_configuration['event_location']
 		perception_distance = mcomp_configuration['perception_distance']
