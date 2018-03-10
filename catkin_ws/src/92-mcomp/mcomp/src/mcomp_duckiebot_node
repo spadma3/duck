@@ -24,6 +24,7 @@ experiment_log_channel = "MCOMP_LOG"
 mcomp_event_channel = "MCOMP_EVENT"
 is_stopped = True
 event_published = False
+event_is_known = False
 
 def log( msg_type, timestamp=None, content={}, n_copies='default' ):
 	global verbose
@@ -65,13 +66,15 @@ def release_vehicle():
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
 def mcomp_event_msg_handler(channel, data):
+	global event_is_known
 	# log
 	log( MSG_TYPE.EVENT_RECEIVED, utils.now() )
+	event_is_known = True
 	# stop vehicle
 	stop_vehicle()
 
 def mcomp_configuration_msg_handler(channel, data):
-	global mcomp_configuration, is_stopped, event_published
+	global mcomp_configuration, is_stopped, event_published, event_is_known
 	# decode configuration message
 	msg = configuration_msg.decode(data)
 	if len(msg.configuration) == 0:
@@ -84,6 +87,7 @@ def mcomp_configuration_msg_handler(channel, data):
 	# reset state
 	is_stopped = True
 	event_published = False
+	event_is_known = False
 	# log
 	log( MSG_TYPE.CONFIGURATION_RECEIVED, utils.now() )
 
@@ -98,7 +102,7 @@ def mcomp_auto_pilot_msg_handler(channel, data):
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
 def event_detected():
-	global event_published
+	global event_published, event_is_known
 	# create event message
 	msg = event_msg()
 	msg.timestamp = utils.now()
@@ -109,6 +113,7 @@ def event_detected():
 	# log
 	log( MSG_TYPE.EVENT_GENERATED, msg.timestamp )
 	event_published = True
+	event_is_known = True
 
 def visual_gps_msg_handler(channel, data):
 	global veh, last_position, last_orientation, last_position_time
@@ -127,7 +132,7 @@ def visual_gps_msg_handler(channel, data):
 
 def car_controller_fcn(args):
 	global verbose
-	global mcomp_configuration, perception_distance, is_stopped, event_published
+	global mcomp_configuration, perception_distance, is_stopped, event_published, event_is_known
 	while not rospy.is_shutdown():
 		# wait for the experiment to start
 		if not is_configured():
@@ -152,6 +157,12 @@ def car_controller_fcn(args):
 		if distance_from_event < perception_distance and not event_published:
 			stop_vehicle()
 			event_detected()
+
+		# if the event was already discovered, check if within the reaction radius
+		if event_is_known:
+			reaction_radius = mcomp_configuration['reaction_radius']
+			if distance_from_event < reaction_radius:
+				stop_vehicle()
 
 		# keep spinning
 		sleep(0.1)
