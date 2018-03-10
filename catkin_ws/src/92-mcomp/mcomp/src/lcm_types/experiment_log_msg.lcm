@@ -5,6 +5,7 @@ struct experiment_log_msg
     int64_t  type;
     string   vehicle;
     double   location[2];
-    double   orientation;
+    double   vehicle_location[2];
+    double   vehicle_orientation;
     string   content;       // JSON string
 }
