@@ -62,7 +62,7 @@ def stop_vehicle( due_to_dangerous_event=False ):
 	log( MSG_TYPE.VEHICLE_STOPPED, utils.now() )
 
 def release_vehicle():
-	global e_stop_pub
+	global e_stop_pub, is_stopped
 	# create message
 	msg = BoolStamped()
 	msg.header.stamp = rospy.Time.now()
@@ -123,7 +123,7 @@ def mcomp_configuration_msg_handler(channel, data):
 			[ mcomp_configuration['event_location'][0], mcomp_configuration['event_location'][1] ]
 		)
 	# reset state
-	is_stopped = True
+	is_stopped = False
 	event_published = False
 	known_events = []
 	# log
@@ -213,7 +213,8 @@ def car_controller_fcn(args):
 			event_detected()
 
 		# if there are knwon events, check if within the reaction radius
-		print "Known events: %r" % known_events
+		if verbose:
+			print "Known events: %r" % known_events
 		for event_location in known_events:
 			distance_from_event = np.sqrt(
 				np.sum(
@@ -224,15 +225,17 @@ def car_controller_fcn(args):
 
 
 
-			if distance_from_event < reaction_radius:
+			if distance_from_event < reaction_radius and not is_stopped:
 
-				print "Me -> (%r) = %.2f < %.2f :: STOPPING" % ( event_location, distance_from_event,  reaction_radius )
+				if verbose:
+					print "Me -> (%r) = %.2f < %.2f :: STOPPING" % ( event_location, distance_from_event,  reaction_radius )
 
 				stop_vehicle( due_to_dangerous_event=True )
 
 			else:
 
-				print "Me -> (%r) = %.2f > %.2f :: KEEP GOING" % ( event_location, distance_from_event,  reaction_radius )
+				if verbose:
+					print "Me -> (%r) = %.2f > %.2f :: KEEP GOING" % ( event_location, distance_from_event,  reaction_radius )
 
 
 		# keep spinning
