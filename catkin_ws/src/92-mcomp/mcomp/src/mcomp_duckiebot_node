@@ -221,8 +221,19 @@ def car_controller_fcn(args):
 				)
 			)
 			reaction_radius = mcomp_configuration['reaction_radius']
+
+
+
 			if distance_from_event < reaction_radius and not is_stopped:
+
+				print "Me -> (%r) = %.2f < %.2f :: STOPPING" % ( event_location, distance_from_event,  reaction_radius )
+
 				stop_vehicle( due_to_dangerous_event=True )
+
+			else:
+
+				print "Me -> (%r) = %.2f > %.2f :: KEEP GOING" % ( event_location, distance_from_event,  reaction_radius )
+
 
 		# keep spinning
 		sleep(0.1)
