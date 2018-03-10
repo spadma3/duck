@@ -22,6 +22,7 @@ last_orientation = None
 last_position_time = -1
 experiment_log_channel = "MCOMP_LOG"
 mcomp_event_channel = "MCOMP_EVENT"
+is_stopped = True
 
 def log( msg_type, timestamp=None, content={}, n_copies='default' ):
 	global verbose
@@ -39,12 +40,14 @@ def log( msg_type, timestamp=None, content={}, n_copies='default' ):
 		print 'Publishing message `%s` on `%s`' % ( msg_type,  experiment_log_channel )
 
 def stop_vehicle():
-	global e_stop_pub
+	global e_stop_pub, is_stopped
 	# create message
 	msg = BoolStamped()
 	msg.header.stamp = rospy.Time.now()
 	msg.data = True # acquire control by bypassing auto-pilot
 	e_stop_pub.publish(msg)
+	#
+	is_stopped = True
 	# log
 	log( MSG_TYPE.VEHICLE_STOPPED, utils.now() )
 
@@ -55,6 +58,8 @@ def release_vehicle():
 	msg.header.stamp = rospy.Time.now()
 	msg.data = False # release control to auto-pilot
 	e_stop_pub.publish(msg)
+	#
+	is_stopped = False
 	# log
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
@@ -107,20 +112,21 @@ def visual_gps_msg_handler(channel, data):
 		last_orientation = msg.theta
 		last_position_time = msg.timestamp
 		# log
-		if is_configured():
-			log(
-				MSG_TYPE.GPS,
-				utils.now(),
-				{ 'posiiton' : last_position.tolist(), 'orientation' : last_orientation }
-			)
+		# if is_configured():
+		# 	log(
+		# 		MSG_TYPE.GPS,
+		# 		utils.now(),
+		# 		{ 'posiiton' : last_position.tolist(), 'orientation' : last_orientation }
+		# 	)
 
 def car_controller_fcn(args):
 	global verbose
-	global mcomp_configuration, perception_distance
+	global mcomp_configuration, perception_distance, is_stopped
 	while not rospy.is_shutdown():
 		# wait for the experiment to start
 		if not is_configured():
-			stop_vehicle()
+			if not is_stopped:
+				stop_vehicle()
 			sleep(0.05)
 			continue
 		# get location of the event
