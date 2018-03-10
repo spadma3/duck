@@ -21,6 +21,7 @@ last_position = None
 last_orientation = None
 last_position_time = -1
 experiment_log_channel = "MCOMP_LOG"
+mcomp_event_channel = "MCOMP_EVENT"
 
 def log( msg_type, timestamp=None, content={}, n_copies='default' ):
 	global verbose
@@ -32,7 +33,7 @@ def log( msg_type, timestamp=None, content={}, n_copies='default' ):
 	msg.type = msg_type
 	msg.vehicle = veh
 	msg.content = json.dumps( content )
-
+	# publish log message
 	utils.publish( lcm_handler, experiment_log_channel, experiment_log_msg.encode(msg), n_copies )
 	if verbose:
 		print 'Publishing message `%s` on `%s`' % ( msg_type,  experiment_log_channel )
@@ -88,8 +89,15 @@ def mcomp_auto_pilot_msg_handler(channel, data):
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
 def event_detected():
-	# TODO: send message to other vehicles
-	pass
+	# create event message
+	msg = event_msg()
+	msg.timestamp = utils.now()
+	msg.position = [ mcomp_configuration['event_location'][0], mcomp_configuration['event_location'][1] ]
+	msg.description = "I saw an accident!"
+	# send message to other vehicles
+	utils.publish( lcm_handler, mcomp_event_channel, event_msg.encode(msg), 1 )
+	# log
+	log( MSG_TYPE.EVENT_GENERATED, msg.timestamp )
 
 def visual_gps_msg_handler(channel, data):
 	global veh, last_position, last_orientation, last_position_time
@@ -157,7 +165,7 @@ if __name__ == '__main__':
 
 	# start listening to other vehicles messages
 	mcomp_config_sub = lcm_handler.subscribe("MCOMP_SETUP", mcomp_configuration_msg_handler)
-	mcomp_event_sub = lcm_handler.subscribe("MCOMP_EVENT", mcomp_event_msg_handler)
+	mcomp_event_sub = lcm_handler.subscribe(mcomp_event_channel, mcomp_event_msg_handler)
 	mcomp_autopilot_sub = lcm_handler.subscribe("MCOMP_AUTO_PILOT", mcomp_auto_pilot_msg_handler)
 	visual_gps_sub = lcm_handler.subscribe("VISUAL_GPS", visual_gps_msg_handler)
 
