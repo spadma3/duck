@@ -137,16 +137,18 @@ def mcomp_auto_pilot_msg_handler(channel, data):
 
 def event_detected( event_at_car_location=False ):
 	global veh, event_published, known_events, last_position
+	vehicle_location = [ last_position[0], last_position[1] ]
 	if event_at_car_location:
 		event_loc = [ -999, -999 ]
 		if last_position is not None:
-			event_loc = [ last_position[0], last_position[1] ]
+			event_loc = vehicle_location
 	else:
 		event_loc = [ mcomp_configuration['event_location'][0], mcomp_configuration['event_location'][1] ]
 	# create event message
 	msg = event_msg()
 	msg.timestamp = utils.now()
 	msg.location = event_loc
+	msg.vehicle_location = vehicle_location
 	msg.vehicle = veh
 	msg.description = "I saw an accident!"
 	# send message to other vehicles
