@@ -77,10 +77,22 @@ def mcomp_event_msg_handler(channel, data):
 	global known_events
 	# decode message
 	msg = event_msg.decode(data)
-	event_loc = np.asarray( msg.location )
-	known_events.append( event_loc )
-	# log
-	log( MSG_TYPE.EVENT_RECEIVED, utils.now() )
+	sender_loc = np.asarray( msg.location )
+	# drop message if this bot is outside the communication_radius of the sender
+	communication_radius = mcomp_configuration['communication_radius']
+	# compute distance between the bot and the sender
+	distance_from_sender = np.sqrt(
+		np.sum(
+			np.power(last_position-sender_loc, 2)
+		)
+	)
+	if distance_from_sender < communication_radius:
+		known_events.append( event_loc )
+		# log
+		log( MSG_TYPE.EVENT_RECEIVED, utils.now() )
+	else:
+		# too far away, message dropped
+		pass
 
 def mcomp_configuration_msg_handler(channel, data):
 	global mcomp_configuration, is_stopped, event_published, known_events
