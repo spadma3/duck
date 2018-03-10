@@ -20,6 +20,7 @@ verbose = False
 lcm_handler = None
 mcomp_viz_pub = None
 mcomp_configuration = None
+mcomp_configuration_json = None
 experiment_config_channel = "MCOMP_SETUP"
 experiment_car_control_channel = "MCOMP_AUTO_PILOT"
 experiment_log_channel = "MCOMP_LOG"
@@ -33,14 +34,21 @@ experiment_start_time = -1
 log_dir = '/home/duckietown/mcomp_logs'
 
 colors = {
-	'red' : [255,0,0],
-	'green' : [0,255,0],
-	'blue' : [0,0,255]
+	'red' : [1,0,0, 1],
+	'green' : [0,1,0, 1],
+	'blue' : [0,0,1,  1],
+	'yellow' : [1,1,0, 1]
 }
 
+mcomp_viz_buffer = {}
+events_cnt = 0
 
-def viz_shape(parent_frame, shape_id, loc, scale, color, ns="mcomp", viz_id=0):
+
+def viz_shape(parent_frame, shape_id, loc, scale, color, ns="mcomp", viz_id=0, alpha=None):
 	global colors
+	alpha_val = colors[color][3]
+	if alpha is not None:
+		alpha_val = alpha
 	# create marker msg
 	m = Marker()
 	m.header.frame_id = parent_frame
@@ -49,41 +57,111 @@ def viz_shape(parent_frame, shape_id, loc, scale, color, ns="mcomp", viz_id=0):
 	m.id = viz_id
 	m.type = shape_id
 	m.action = 0
-	marker.pose.position.x = loc[0]
-	marker.pose.position.y = loc[1]
-	marker.pose.position.z = loc[2]
-	marker.pose.orientation.x = 0
-	marker.pose.orientation.y = 0
-	marker.pose.orientation.z = 0
-	marker.pose.orientation.w = 1
+	m.pose.position.x = loc[0]
+	m.pose.position.y = loc[1]
+	m.pose.position.z = loc[2]
+	m.pose.orientation.x = 0
+	m.pose.orientation.y = 0
+	m.pose.orientation.z = 0
+	m.pose.orientation.w = 1
 	m.scale.x = scale[0]
 	m.scale.y = scale[1]
 	m.scale.z = scale[2]
-	m.color.a = 1.0
+	m.color.a = alpha_val
 	m.color.r = colors[color][0]
 	m.color.g = colors[color][1]
 	m.color.b = colors[color][2]
 	# publish marker
-	mcomp_viz_pub.publish( m )
+	mcomp_viz_buffer[ "%s_%d" % (ns, viz_id) ] = m
 
-def viz_cube(parent_frame, loc, scale, color, ns="mcomp", viz_id=0):
-	viz_shape(parent_frame, 1, loc, scale, color, ns, viz_id)
+def viz_cube(parent_frame, loc, scale, color, ns="mcomp", viz_id=0, alpha=None):
+	return viz_shape(parent_frame, 1, loc, scale, color, ns, viz_id, alpha)
+
+def viz_cylinder(parent_frame, loc, scale, color, ns="mcomp", viz_id=0, alpha=None):
+	return viz_shape(parent_frame, 3, loc, scale, color, ns, viz_id, alpha)
 
 def viz_bot_configured(botname):
 	h = 0.15
-	s = 0.1
-	viz_cube(
+	s = 0.04
+	return viz_cube(
 		"/%s/duckiebot" % botname,
 		[0, 0, h],
 		[s, s, s],
-		'green',
+		'yellow',
 		botname,
 		0
 	)
 
+def viz_bot_moving(botname):
+	h = 0.15
+	s = 0.04
+	return viz_cube(
+		"/%s/duckiebot" % botname,
+		[0, 0, h+s],
+		[s, s, s],
+		'green',
+		botname,
+		1
+	)
+
+def viz_bot_stopped(botname):
+	h = 0.15
+	s = 0.04
+	return viz_cube(
+		"/%s/duckiebot" % botname,
+		[0, 0, h+s],
+		[s, s, s],
+		'red',
+		botname,
+		1
+	)
+
+def viz_event(event_location, sender_location):
+	global events_cnt, mcomp_configuration
+	viz_cylinder(
+		"/world",
+		[event_location[0], event_location[1], 0.01],
+		[0.2, 0.2, 0.1],
+		'red',
+		'event',
+		events_cnt
+	)
+	viz_cylinder(
+		"/world",
+		[sender_location[0], sender_location[1], 0.01],
+		[0.2, 0.2, 0.1],
+		'yellow',
+		'event',
+		events_cnt
+	)
+	viz_cylinder(
+		"/world",
+		[sender_location[0], sender_location[1], 0.01],
+		[
+			float(mcomp_configuration['communication_radius'])*2.0,
+			float(mcomp_configuration['communication_radius'])*2.0,
+			0.04
+		],
+		'blue',
+		'event_cr',
+		events_cnt,
+		0.3
+	)
+	events_cnt = events_cnt + 1
+
+def viz_bot_warned(botname):
+	viz_cylinder(
+		"/%s/duckiebot" % botname,
+		[0, 0, 0.01],
+		[0.2, 0.2, 0.1],
+		'yellow',
+		'%s_bot_warn' % botname,
+		0,
+		0.4
+	)
 
 def terminate_experiment_svc(req):
-	global experiment_completed, experiment_log, experiment_start_time, log_dir
+	global experiment_completed, experiment_log, experiment_start_time, log_dir,  mcomp_configuration
 	# received termination request
 	stdout('Experiment Status', 'Received signal to terminate experiment. Waiting for the process to finish...')
 	experiment_completed = True
@@ -98,7 +176,7 @@ def terminate_experiment_svc(req):
 	os.makedirs(cur_log_dir)
 	# write to file
 	with open(descriptor_file, 'w') as out_file:
-		json.dump( json.loads(mcomp_configuration), out_file )
+		json.dump( mcomp_configuration, out_file )
 	with open(data_file, 'w') as out_file:
 		pickle.dump( experiment_log, out_file )
 	# close
@@ -145,13 +223,25 @@ def mcomp_log_msg_handler(channel, data):
 		print '`%s` confirmed configuration' % msg.vehicle
 		# show that the bot is configured
 		viz_bot_configured( msg.vehicle )
+
+	if msg.type == MSG_TYPE.VEHICLE_RELEASED:
+		viz_bot_moving( msg.vehicle )
+	if msg.type == MSG_TYPE.VEHICLE_STOPPED:
+		viz_bot_stopped( msg.vehicle )
+
+	if msg.type == MSG_TYPE.EVENT_GENERATED:
+		viz_event( msg.location, msg.vehicle_location )
+	if msg.type == MSG_TYPE.EVENT_RECEIVED:
+		viz_bot_warned( msg.vehicle )
+
+
 	# log
 	experiment_log.append(
 		( utils.now(), msg )
 	)
 
 def experiment_director_fcn(arg):
-	global lcm_handler, experiment_log_channel, mcomp_configuration, experiment_car_control_channel
+	global lcm_handler, experiment_log_channel, mcomp_configuration_json, experiment_car_control_channel
 	global num_vehicles, vehicles_configured, experiment_started, experiment_completed, experiment_interrupted
 	if experiment_completed: return
 
@@ -159,7 +249,7 @@ def experiment_director_fcn(arg):
 	stdout('Configuration Sender', 'Sending configuration to vehicles...')
 	config_msg = configuration_msg()
 	config_msg.timestamp = utils.now()
-	config_msg.configuration = mcomp_configuration
+	config_msg.configuration = mcomp_configuration_json
 	utils.publish( lcm_handler, experiment_config_channel, configuration_msg.encode(config_msg) )
 	stdout('Configuration Sender', 'Configuration sent!')
 	if experiment_completed: return
@@ -168,7 +258,7 @@ def experiment_director_fcn(arg):
 	msg = experiment_log_msg()
 	msg.timestamp = utils.now()
 	msg.type = MSG_TYPE.CONFIGURATION_SENT
-	msg.content = mcomp_configuration
+	msg.content = mcomp_configuration_json
 	utils.publish( lcm_handler, experiment_log_channel, experiment_log_msg.encode(msg) )
 	if experiment_completed: return
 
@@ -192,6 +282,15 @@ def experiment_director_fcn(arg):
 def ros_spinner_fcn(args):
 	service = rospy.Service('~stop_experiment', MCompStopExperiment, terminate_experiment_svc)
 	rospy.spin()
+
+def viz_thread_fcn(args):
+	global experiment_completed, experiment_interrupted, mcomp_viz_buffer, mcomp_viz_pub
+	while not experiment_completed and not experiment_interrupted:
+		for _, m in mcomp_viz_buffer.items():
+			m.header.seq = m.header.seq+1
+			m.header.stamp = rospy.Time.now()
+			mcomp_viz_pub.publish( m )
+			sleep(0.05)
 
 
 if __name__ == '__main__':
@@ -218,7 +317,7 @@ if __name__ == '__main__':
 		'reaction_type' : reaction_type,
 		'perception_distance' : perception_distance
 	}
-	mcomp_configuration = json.dumps( mcomp_configuration )
+	mcomp_configuration_json = json.dumps( mcomp_configuration )
 
 	# initialize LCM
 	lcm_handler = lcm.LCM()
@@ -229,12 +328,14 @@ if __name__ == '__main__':
 	# start listening to other vehicles messages
 	mcomp_log_sub = lcm_handler.subscribe(experiment_log_channel, mcomp_log_msg_handler)
 
-	# start ROS spinner
+	# start ROS spinners
 	ros_spinner = Thread( target=ros_spinner_fcn, args=(None,) )
 	ros_spinner.start()
+	ros_viz_th = Thread( target=viz_thread_fcn, args=(None,) )
+	ros_viz_th.start()
 
 	# wait for the listener to be ready
-	sleep(2)
+	sleep(1)
 
 	# start experiment
 	experiment_director = Thread( target=experiment_director_fcn, args=(None,) )
@@ -250,3 +351,4 @@ if __name__ == '__main__':
 		experiment_interrupted = True
 		ros_spinner.join()
 		experiment_director.join()
+		ros_viz_th.join()
