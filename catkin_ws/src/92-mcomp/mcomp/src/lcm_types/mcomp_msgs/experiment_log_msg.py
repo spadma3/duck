@@ -10,12 +10,14 @@ except ImportError:
 import struct
 
 class experiment_log_msg(object):
-    __slots__ = ["timestamp", "type", "vehicle", "content"]
+    __slots__ = ["timestamp", "type", "vehicle", "location", "orientation", "content"]
 
     def __init__(self):
         self.timestamp = 0.0
         self.type = 0
         self.vehicle = ""
+        self.location = [ 0.0 for dim0 in range(2) ]
+        self.orientation = 0.0
         self.content = ""
 
     def encode(self):
@@ -30,6 +32,8 @@ class experiment_log_msg(object):
         buf.write(struct.pack('>I', len(__vehicle_encoded)+1))
         buf.write(__vehicle_encoded)
         buf.write(b"\0")
+        buf.write(struct.pack('>2d', *self.location[:2]))
+        buf.write(struct.pack(">d", self.orientation))
         __content_encoded = self.content.encode('utf-8')
         buf.write(struct.pack('>I', len(__content_encoded)+1))
         buf.write(__content_encoded)
@@ -50,6 +54,8 @@ class experiment_log_msg(object):
         self.timestamp, self.type = struct.unpack(">dq", buf.read(16))
         __vehicle_len = struct.unpack('>I', buf.read(4))[0]
         self.vehicle = buf.read(__vehicle_len)[:-1].decode('utf-8', 'replace')
+        self.location = struct.unpack('>2d', buf.read(16))
+        self.orientation = struct.unpack(">d", buf.read(8))[0]
         __content_len = struct.unpack('>I', buf.read(4))[0]
         self.content = buf.read(__content_len)[:-1].decode('utf-8', 'replace')
         return self
@@ -58,7 +64,7 @@ class experiment_log_msg(object):
     _hash = None
     def _get_hash_recursive(parents):
         if experiment_log_msg in parents: return 0
-        tmphash = (0x4bec69de97089cd0) & 0xffffffffffffffff
+        tmphash = (0x5f2ff6db8737b8c4) & 0xffffffffffffffff
         tmphash  = (((tmphash<<1)&0xffffffffffffffff)  + (tmphash>>63)) & 0xffffffffffffffff
         return tmphash
     _get_hash_recursive = staticmethod(_get_hash_recursive)

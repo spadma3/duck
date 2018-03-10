@@ -4,5 +4,7 @@ struct experiment_log_msg
     double  timestamp;
     int64_t  type;
     string   vehicle;
+    double   location[2];
+    double   orientation;
     string   content;       // JSON string
 }

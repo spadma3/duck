@@ -23,17 +23,20 @@ last_position_time = -1
 experiment_log_channel = "MCOMP_LOG"
 mcomp_event_channel = "MCOMP_EVENT"
 is_stopped = True
+is_shutdown = False
 event_published = False
-event_is_known = False
+known_events = []
 
 def log( msg_type, timestamp=None, content={}, n_copies='default' ):
 	global verbose
-	global lcm_handler, veh
+	global lcm_handler, veh, last_position, last_orientation
 	if timestamp is None:
 		timestamp = utils.now()
 	msg = experiment_log_msg()
 	msg.timestamp = timestamp
 	msg.type = msg_type
+	msg.location = last_position.tolist() if last_position is not None else [-999,-999]
+	msg.orientation = last_orientation
 	msg.vehicle = veh
 	msg.content = json.dumps( content )
 	# publish log message
@@ -41,14 +44,18 @@ def log( msg_type, timestamp=None, content={}, n_copies='default' ):
 	if verbose:
 		print 'Publishing message `%s` on `%s`' % ( msg_type,  experiment_log_channel )
 
-def stop_vehicle():
-	global e_stop_pub, is_stopped
+def stop_vehicle( due_to_dangerous_event=False ):
+	global e_stop_pub, is_stopped, mcomp_configuration
 	# create message
 	msg = BoolStamped()
 	msg.header.stamp = rospy.Time.now()
 	msg.data = True # acquire control by bypassing auto-pilot
 	e_stop_pub.publish(msg)
-	#
+	# propagate this action as a new event
+	if mcomp_configuration['allow_propagation'] and due_to_dangerous_event:
+		event_detected( event_at_car_location=True )
+
+	# set the vehicle as stopped
 	is_stopped = True
 	# log
 	log( MSG_TYPE.VEHICLE_STOPPED, utils.now() )
@@ -66,13 +73,16 @@ def release_vehicle():
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
 def mcomp_event_msg_handler(channel, data):
-	global event_is_known
+	global known_events
+	# decode message
+	msg = event_msg.decode(data)
+	event_loc = np.asarray( msg.location )
+	known_events.append( event_loc )
 	# log
 	log( MSG_TYPE.EVENT_RECEIVED, utils.now() )
-	event_is_known = True
 
 def mcomp_configuration_msg_handler(channel, data):
-	global mcomp_configuration, is_stopped, event_published, event_is_known
+	global mcomp_configuration, is_stopped, event_published, known_events
 	# decode configuration message
 	msg = configuration_msg.decode(data)
 	if len(msg.configuration) == 0:
@@ -85,9 +95,9 @@ def mcomp_configuration_msg_handler(channel, data):
 	# reset state
 	is_stopped = True
 	event_published = False
-	event_is_known = False
+	known_events = []
 	# log
-	log( MSG_TYPE.CONFIGURATION_RECEIVED, utils.now() )
+	log( MSG_TYPE.CONFIGURATION_RECEIVED, utils.now(), '', 10 )
 
 def mcomp_auto_pilot_msg_handler(channel, data):
 	# decode configuration message
@@ -99,19 +109,25 @@ def mcomp_auto_pilot_msg_handler(channel, data):
 	# log
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
-def event_detected():
-	global event_published, event_is_known
+def event_detected( event_at_car_location=False ):
+	global event_published, known_events, last_position
+	if event_at_car_location:
+		event_loc = [ -999, -999 ]
+		if last_position is not None:
+			event_loc = [ last_position[0], last_position[1] ]
+	else:
+		event_loc = [ mcomp_configuration['event_location'][0], mcomp_configuration['event_location'][1] ]
 	# create event message
 	msg = event_msg()
 	msg.timestamp = utils.now()
-	msg.location = [ mcomp_configuration['event_location'][0], mcomp_configuration['event_location'][1] ]
+	msg.location = event_loc
 	msg.description = "I saw an accident!"
 	# send message to other vehicles
 	utils.publish( lcm_handler, mcomp_event_channel, event_msg.encode(msg), 2 )
 	# log
 	log( MSG_TYPE.EVENT_GENERATED, msg.timestamp )
 	event_published = True
-	event_is_known = True
+	known_events.append( np.asarray(event_loc) )
 
 def visual_gps_msg_handler(channel, data):
 	global veh, last_position, last_orientation, last_position_time
@@ -130,8 +146,8 @@ def visual_gps_msg_handler(channel, data):
 
 def car_controller_fcn(args):
 	global verbose
-	global mcomp_configuration, perception_distance, is_stopped, event_published, event_is_known
-	while not rospy.is_shutdown():
+	global mcomp_configuration, perception_distance, is_stopped, is_shutdown, event_published, known_events
+	while not is_shutdown and not rospy.is_shutdown():
 		# wait for the experiment to start
 		if not is_configured():
 			if not is_stopped:
@@ -153,14 +169,19 @@ def car_controller_fcn(args):
 
 		# signal event to other vehicles if close enough
 		if distance_from_event < perception_distance and not event_published:
-			stop_vehicle()
+			stop_vehicle( due_to_dangerous_event=True )
 			event_detected()
 
-		# if the event was already discovered, check if within the reaction radius
-		if event_is_known:
+		# if there are knwon events, check if within the reaction radius
+		for event_location in known_events:
+			distance_from_event = np.sqrt(
+				np.sum(
+					np.power(last_position-event_location, 2)
+				)
+			)
 			reaction_radius = mcomp_configuration['reaction_radius']
-			if distance_from_event < reaction_radius:
-				stop_vehicle()
+			if distance_from_event < reaction_radius and not is_stopped:
+				stop_vehicle( due_to_dangerous_event=True )
 
 		# keep spinning
 		sleep(0.1)
@@ -201,4 +222,5 @@ if __name__ == '__main__':
 	except KeyboardInterrupt:
 		pass
 	finally:
+		is_shutdown = True
 		car_controller.join()
