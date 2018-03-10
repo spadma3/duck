@@ -10,11 +10,11 @@ except ImportError:
 import struct
 
 class event_msg(object):
-    __slots__ = ["timestamp", "position", "description"]
+    __slots__ = ["timestamp", "location", "description"]
 
     def __init__(self):
         self.timestamp = 0
-        self.position = [ 0.0 for dim0 in range(3) ]
+        self.location = [ 0.0 for dim0 in range(2) ]
         self.description = ""
 
     def encode(self):
@@ -25,7 +25,7 @@ class event_msg(object):
 
     def _encode_one(self, buf):
         buf.write(struct.pack(">q", self.timestamp))
-        buf.write(struct.pack('>3d', *self.position[:3]))
+        buf.write(struct.pack('>2d', *self.location[:2]))
         __description_encoded = self.description.encode('utf-8')
         buf.write(struct.pack('>I', len(__description_encoded)+1))
         buf.write(__description_encoded)
@@ -44,7 +44,7 @@ class event_msg(object):
     def _decode_one(buf):
         self = event_msg()
         self.timestamp = struct.unpack(">q", buf.read(8))[0]
-        self.position = struct.unpack('>3d', buf.read(24))
+        self.location = struct.unpack('>2d', buf.read(16))
         __description_len = struct.unpack('>I', buf.read(4))[0]
         self.description = buf.read(__description_len)[:-1].decode('utf-8', 'replace')
         return self
@@ -53,7 +53,7 @@ class event_msg(object):
     _hash = None
     def _get_hash_recursive(parents):
         if event_msg in parents: return 0
-        tmphash = (0xc7e9bfc12f308bfe) & 0xffffffffffffffff
+        tmphash = (0xc829c03bdcf38bfe) & 0xffffffffffffffff
         tmphash  = (((tmphash<<1)&0xffffffffffffffff)  + (tmphash>>63)) & 0xffffffffffffffff
         return tmphash
     _get_hash_recursive = staticmethod(_get_hash_recursive)
