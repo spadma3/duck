@@ -70,8 +70,6 @@ def mcomp_event_msg_handler(channel, data):
 	# log
 	log( MSG_TYPE.EVENT_RECEIVED, utils.now() )
 	event_is_known = True
-	# stop vehicle
-	stop_vehicle()
 
 def mcomp_configuration_msg_handler(channel, data):
 	global mcomp_configuration, is_stopped, event_published, event_is_known
