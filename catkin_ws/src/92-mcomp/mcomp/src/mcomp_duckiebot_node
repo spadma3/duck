@@ -81,7 +81,7 @@ def mcomp_event_msg_handler(channel, data):
 	# ignore event messages from self
 	if msg.vehicle == veh: return
 	# get sender location
-	sender_loc = np.asarray( msg.location )
+	sender_loc = np.asarray( msg.vehicle_location )
 	# drop message if this bot is outside the communication_radius of the sender
 	communication_radius = mcomp_configuration['communication_radius']
 	# compute distance between the bot and the sender
