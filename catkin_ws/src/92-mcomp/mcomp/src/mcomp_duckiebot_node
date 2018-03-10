@@ -13,7 +13,7 @@ from duckietown_msgs.msg import BoolStamped
 from log_types import MSG_TYPE
 
 veh = None
-verbose = True
+verbose = False
 lcm_handler = None
 e_stop_pub = None
 mcomp_configuration = None
@@ -91,6 +91,7 @@ def mcomp_event_msg_handler(channel, data):
 		)
 	)
 	if distance_from_sender < communication_radius:
+		print "I'm @ %r, got a message from %r, close enough, accepted!" % ( last_position.tolist(), sender_loc.tolist() )
 		known_events.append( sender_loc )
 		# propagate (if active)
 		if mcomp_configuration['allow_propagation'] and not event_published:
@@ -105,6 +106,7 @@ def mcomp_event_msg_handler(channel, data):
 		log( MSG_TYPE.EVENT_RECEIVED, utils.now(), msg.location )
 	else:
 		# too far away, message dropped
+		print "I'm @ %r, got a message from %r, too far away, dropped!" % ( last_position.tolist(), sender_loc.tolist() )
 		pass
 
 def mcomp_configuration_msg_handler(channel, data):
@@ -207,6 +209,7 @@ def car_controller_fcn(args):
 			event_detected()
 
 		# if there are knwon events, check if within the reaction radius
+		print "Known events: %r" % known_events
 		for event_location in known_events:
 			distance_from_event = np.sqrt(
 				np.sum(
