@@ -1,0 +1,15 @@
+<launch>
+
+    <arg name="map_name" default="map_ttic" doc="The name of the xacro file with the duckietown map "/>
+    <arg name="gui" default="true" />
+    <arg name="rviz_config" default="mcomp_project"/>
+
+    <node if="$(arg gui)" name="rviz" pkg="rviz" type="rviz" args="-d $(find duckietown_description)/rviz/$(arg rviz_config).rviz" />
+
+    <!-- The duckietown map state publisher-->
+    <param name="map_description" command="$(find xacro)/xacro '$(find duckietown_description)/urdf/$(arg map_name).urdf.xacro'" />
+    <node name="map_state_publisher" pkg="robot_state_publisher" type="state_publisher" >
+        <remap from="robot_description" to="map_description" />
+    </node>
+
+</launch>
