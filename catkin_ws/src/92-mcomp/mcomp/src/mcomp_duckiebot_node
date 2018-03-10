@@ -28,7 +28,7 @@ release_command_received = False
 event_published = False
 known_events = []
 
-def log( msg_type, timestamp=None, content={}, n_copies='default' ):
+def log( msg_type, timestamp=None, location=None, content={}, n_copies='default' ):
 	global verbose
 	global lcm_handler, veh, last_position, last_orientation
 	if timestamp is None:
@@ -36,8 +36,9 @@ def log( msg_type, timestamp=None, content={}, n_copies='default' ):
 	msg = experiment_log_msg()
 	msg.timestamp = timestamp
 	msg.type = msg_type
-	msg.location = last_position.tolist() if last_position is not None else [-999,-999]
-	msg.orientation = last_orientation
+	msg.vehicle_location = last_position.tolist() if last_position is not None else [-999,-999]
+	msg.location = msg.vehicle_location if location is None else location
+	msg.vehicle_orientation = last_orientation
 	msg.vehicle = veh
 	msg.content = json.dumps( content )
 	# publish log message
@@ -100,7 +101,7 @@ def mcomp_event_msg_handler(channel, data):
 			prop_msg = experiment_log_msg()
 			prop_msg.timestamp = utils.now()
 			prop_msg.type = MSG_TYPE.EVENT_GENERATED
-			prop_msg.location = msg.location
+			prop_msg.location = last_position
 			prop_msg.orientation = 0
 			prop_msg.vehicle = veh
 			prop_msg.content = ''
@@ -108,7 +109,7 @@ def mcomp_event_msg_handler(channel, data):
 			utils.publish( lcm_handler, experiment_log_channel, experiment_log_msg.encode(prop_msg) )
 			event_published = True
 		# log
-		log( MSG_TYPE.EVENT_RECEIVED, utils.now() )
+		log( MSG_TYPE.EVENT_RECEIVED, utils.now(), msg.location )
 	else:
 		# too far away, message dropped
 		pass
@@ -140,8 +141,6 @@ def mcomp_auto_pilot_msg_handler(channel, data):
 		release_command_received = True
 	else:
 		stop_vehicle()
-	# log
-	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
 def event_detected( event_at_car_location=False ):
 	global veh, event_published, known_events, last_position
@@ -160,7 +159,7 @@ def event_detected( event_at_car_location=False ):
 	# send message to other vehicles
 	utils.publish( lcm_handler, mcomp_event_channel, event_msg.encode(msg), 2 )
 	# log
-	log( MSG_TYPE.EVENT_GENERATED, msg.timestamp )
+	log( MSG_TYPE.EVENT_GENERATED, msg.timestamp, event_loc )
 	event_published = True
 	known_events.append( np.asarray(event_loc) )
 
