@@ -10,12 +10,13 @@ tf_broad = None
 
 def visual_gps_handler(channel, data):
 	global tf_broad
-    msg_data = vgps_location_msg.decode(data)
-    br.sendTransform((msg_data.location[0], msg_data.location[1], 0),
-                     tf.transformations.quaternion_from_euler(0, 0, msg_data.theta),
-                     rospy.Time.now(),
-                     msg_data.vehicle+'/duckiebot',
-                     "world")
+	msg_data = vgps_location_msg.decode(data)
+	tf_broad.sendTransform((msg_data.location[0], msg_data.location[1], 0),
+		tf.transformations.quaternion_from_euler(0, 0, msg_data.theta),
+		rospy.Time.now(),
+		msg_data.vehicle+'/duckiebot',
+		"world"
+	)
 
 if __name__ == "__main__":
     # initialize ROS node

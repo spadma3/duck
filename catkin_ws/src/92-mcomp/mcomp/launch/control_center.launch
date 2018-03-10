@@ -11,7 +11,7 @@
   <arg name="d" doc="perception_distance" default="0.8" />
 
   <!-- GPS TF Broadcaster -->
-  <node pkg="mcomp" type="gps_tf_broadcaster_node" name="gps_tf_broadcaster" output="screen" />
+  <node pkg="mcomp" type="gps_tf_broadcaster" name="gps_tf_broadcaster_node" output="screen" />
 
   <!-- MCOMP Experiment Control Center -->
   <node pkg="mcomp" type="mcomp_control_center_node" name="mcomp_control_center_node" output="screen">
