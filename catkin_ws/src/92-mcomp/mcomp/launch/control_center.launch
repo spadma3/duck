@@ -8,7 +8,7 @@
   <arg name="poi" doc="event_location" value="[2.68, 2.10]" />
   <arg name="f" doc="interference_model" value="linear" />
   <arg name="r" doc="reaction_type" value="stop" />
-  <arg name="d" doc="perception_distance" value="1.0" />
+  <arg name="d" doc="perception_distance" value="0.8" />
 
   <!-- GPS TF Broadcaster -->
   <node pkg="mcomp" type="gps_tf_broadcaster_node" name="gps_tf_broadcaster" output="screen" />
