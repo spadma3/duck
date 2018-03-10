@@ -73,7 +73,7 @@ def release_vehicle():
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
 def mcomp_event_msg_handler(channel, data):
-	global veh, known_events, mcomp_configuration
+	global veh, known_events, mcomp_configuration, last_position
 	# decode message
 	msg = event_msg.decode(data)
 	# ignore event messages from self
@@ -93,7 +93,9 @@ def mcomp_event_msg_handler(channel, data):
 		# propagate (if active)
 		if mcomp_configuration['allow_propagation'] and not event_published:
 			# send message to other vehicles
-			utils.publish( lcm_handler, mcomp_event_channel, data )
+			msg.vehicle = veh
+			msg.vehicle_location = last_position
+			utils.publish( lcm_handler, mcomp_event_channel, event_msg.encode(msg) )
 			# log
 			prop_msg = experiment_log_msg()
 			prop_msg.timestamp = utils.now()
