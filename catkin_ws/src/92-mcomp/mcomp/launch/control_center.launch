@@ -9,6 +9,8 @@
   <arg name="f" doc="interference_model" default="linear" />
   <arg name="r" doc="reaction_type" default="stop" />
   <arg name="d" doc="perception_distance" default="0.8" />
+  <arg name="rep" doc="allow_republish" default="false" />
+
 
   <!-- GPS TF Broadcaster -->
   <!-- <node pkg="mcomp" type="gps_tf_broadcaster" name="gps_tf_broadcaster_node" output="screen" /> -->
@@ -23,6 +25,7 @@
     <param name="reaction_type" value="$(arg r)" />
     <param name="num_vehicles" value="$(arg n)" />
     <param name="perception_distance" value="$(arg d)" />
+    <param name="allow_republish" value="$(arg rep)" />
   </node>
 
 </launch>

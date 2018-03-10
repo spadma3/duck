@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import lcm
 import json
@@ -12,7 +13,7 @@ from utils import stdout
 from time import sleep
 from threading import Thread
 from mcomp.srv import MCompStopExperiment
-from lcm_types.mcomp_msgs import configuration_msg, experiment_log_msg, auto_pilot_msg
+from lcm_types.mcomp_msgs import configuration_msg, experiment_log_msg, auto_pilot_msg, vgps_location_msg
 from visualization_msgs.msg import Marker
 from log_types import MSG_TYPE
 
@@ -121,17 +122,17 @@ def viz_event(event_location, sender_location):
 	viz_cylinder(
 		"/world",
 		[event_location[0], event_location[1], 0.01],
-		[0.2, 0.2, 0.1],
+		[0.2, 0.2, 0.3],
 		'red',
-		'event',
+		'event_loc',
 		events_cnt
 	)
 	viz_cylinder(
 		"/world",
 		[sender_location[0], sender_location[1], 0.01],
-		[0.2, 0.2, 0.1],
+		[0.25, 0.25, 0.1],
 		'yellow',
-		'event',
+		'event_detection_pt',
 		events_cnt
 	)
 	viz_cylinder(
@@ -143,9 +144,9 @@ def viz_event(event_location, sender_location):
 			0.04
 		],
 		'blue',
-		'event_cr',
+		'event_detection_pt_communication_radius',
 		events_cnt,
-		0.3
+		0.2
 	)
 	events_cnt = events_cnt + 1
 
@@ -157,7 +158,7 @@ def viz_bot_warned(botname):
 		'yellow',
 		'%s_bot_warn' % botname,
 		0,
-		0.4
+		0.3
 	)
 
 def terminate_experiment_svc(req):
@@ -168,16 +169,19 @@ def terminate_experiment_svc(req):
 	sleep(4)
 	stdout('Experiment Status', 'Completed!')
 	# save log to file
-	now_str = datetime.datetime.now().strftime("%m_%Y_%d_h%H_m%M")
+	now_str = datetime.datetime.now().strftime("%m_%Y_%d_h%H_m%M_s%S")
 	cur_log_dir = "%s/%s" % ( log_dir, now_str )
 	descriptor_file = "%s/%s" % ( cur_log_dir, "meta.json" )
 	data_file = "%s/%s" % ( cur_log_dir, "data.dat" )
 	# create log dir
+	print 'Creating `%s`...' % cur_log_dir
 	os.makedirs(cur_log_dir)
 	# write to file
 	with open(descriptor_file, 'w') as out_file:
+		print 'Saving `%s`...' % descriptor_file
 		json.dump( mcomp_configuration, out_file )
 	with open(data_file, 'w') as out_file:
+		print 'Saving `%s`...' % data_file
 		pickle.dump( experiment_log, out_file )
 	# close
 	experiment_dur = float(utils.now() - experiment_start_time) / 1000.0
@@ -212,7 +216,7 @@ def mcomp_log_msg_handler(channel, data):
 	# start experiment
 	if msg.type == MSG_TYPE.CONFIGURATION_SENT:
 		experiment_log.append(
-			( utils.now(), msg )
+			( utils.now(), data )
 		)
 		experiment_started = True
 		experiment_start_time = utils.now()
@@ -237,8 +241,26 @@ def mcomp_log_msg_handler(channel, data):
 
 	# log
 	experiment_log.append(
-		( utils.now(), msg )
+		( utils.now(), data )
 	)
+
+def gps_msg_handler(channel, data):
+	global experiment_log
+	msg = vgps_location_msg.decode(data)
+	# create log msg
+	log_msg = experiment_log_msg()
+	log_msg.timestamp = utils.now()
+	log_msg.type = MSG_TYPE.GPS
+	log_msg.vehicle_location = msg.location
+	log_msg.location = msg.location
+	log_msg.vehicle_orientation = msg.theta
+	log_msg.vehicle = msg.vehicle
+	log_msg.content = ''
+	# log
+	experiment_log.append(
+		( utils.now(), experiment_log_msg.encode(log_msg) )
+	)
+
 
 def experiment_director_fcn(arg):
 	global lcm_handler, experiment_log_channel, mcomp_configuration_json, experiment_car_control_channel
@@ -264,7 +286,7 @@ def experiment_director_fcn(arg):
 
 	# wait for vehicles to receive configuration message
 	stdout('Configuration Checker', 'Waiting for the vehicles to be configured')
-	while num_vehicles != len(vehicles_configured):
+	while num_vehicles > len(vehicles_configured):
 		if experiment_interrupted: return
 		sleep(0.5)
 	stdout('Configuration Checker', 'Vehicles configured for flight!')
@@ -306,6 +328,7 @@ if __name__ == '__main__':
 	reaction_type = rospy.get_param('~reaction_type')
 	num_vehicles = rospy.get_param('~num_vehicles')
 	perception_distance = rospy.get_param('~perception_distance')
+	allow_republish = rospy.get_param('~allow_republish')
 
 	# create experiment configuration
 	mcomp_configuration = {
@@ -315,7 +338,8 @@ if __name__ == '__main__':
 		'allow_propagation' : allow_propagation,
 		'interference_model' : interference_model,
 		'reaction_type' : reaction_type,
-		'perception_distance' : perception_distance
+		'perception_distance' : perception_distance,
+		'allow_republish' : allow_republish
 	}
 	mcomp_configuration_json = json.dumps( mcomp_configuration )
 
@@ -327,6 +351,7 @@ if __name__ == '__main__':
 
 	# start listening to other vehicles messages
 	mcomp_log_sub = lcm_handler.subscribe(experiment_log_channel, mcomp_log_msg_handler)
+	mcomp_gps_sub = lcm_handler.subscribe('VISUAL_GPS', gps_msg_handler)
 
 	# start ROS spinners
 	ros_spinner = Thread( target=ros_spinner_fcn, args=(None,) )
