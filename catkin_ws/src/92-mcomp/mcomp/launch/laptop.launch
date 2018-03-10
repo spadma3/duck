@@ -5,10 +5,11 @@
   <arg name="reaction_radius" />
   <arg name="allow_propagation" />
   <arg name="num_vehicles" />
-  <arg name="event_location" value="[2.68, 2.10]" />
-  <arg name="interference_model" value="linear" />
-  <arg name="reaction_type" value="stop" />
-  <arg name="perception_distance" value="0.8" />
+  <arg name="event_location" default="[2.68, 2.10]" />
+  <arg name="interference_model" default="linear" />
+  <arg name="reaction_type" default="stop" />
+  <arg name="perception_distance" default="0.8" />
+  <arg name="allow_republish" default="4" />
 
   <!-- GPS TF Broadcaster -->
   <node pkg="mcomp" type="gps_tf_broadcaster_node" name="gps_tf_broadcaster" output="screen" />
@@ -23,6 +24,7 @@
     <param name="reaction_type" value="$(arg reaction_type)" />
     <param name="num_vehicles" value="$(arg num_vehicles)" />
     <param name="perception_distance" value="$(arg perception_distance)" />
+    <param name="allow_republish" value="$(arg allow_republish)" />
   </node>
 
 </launch>
