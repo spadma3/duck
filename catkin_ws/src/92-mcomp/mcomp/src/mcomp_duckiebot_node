@@ -53,9 +53,8 @@ def stop_vehicle( due_to_dangerous_event=False ):
 	msg.data = True # acquire control by bypassing auto-pilot
 	e_stop_pub.publish(msg)
 	# propagate this action as a new event
-	if mcomp_configuration['allow_propagation'] and due_to_dangerous_event:
+	if due_to_dangerous_event:
 		event_detected( event_at_car_location=True )
-
 	# set the vehicle as stopped
 	is_stopped = True
 	# log
@@ -74,9 +73,12 @@ def release_vehicle():
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
 def mcomp_event_msg_handler(channel, data):
-	global known_events
+	global veh, known_events, mcomp_configuration
 	# decode message
 	msg = event_msg.decode(data)
+	# ignore event messages from self
+	if msg.vehicle == veh: return
+	# get sender location
 	sender_loc = np.asarray( msg.location )
 	# drop message if this bot is outside the communication_radius of the sender
 	communication_radius = mcomp_configuration['communication_radius']
@@ -88,6 +90,21 @@ def mcomp_event_msg_handler(channel, data):
 	)
 	if distance_from_sender < communication_radius:
 		known_events.append( sender_loc )
+		# propagate (if active)
+		if mcomp_configuration['allow_propagation'] and not event_published:
+			# send message to other vehicles
+			utils.publish( lcm_handler, mcomp_event_channel, data )
+			# log
+			prop_msg = experiment_log_msg()
+			prop_msg.timestamp = utils.now()
+			prop_msg.type = MSG_TYPE.EVENT_GENERATED
+			prop_msg.location = msg.location
+			prop_msg.orientation = 0
+			prop_msg.vehicle = veh
+			prop_msg.content = ''
+			# publish log message
+			utils.publish( lcm_handler, experiment_log_channel, experiment_log_msg.encode(prop_msg) )
+			event_published = True
 		# log
 		log( MSG_TYPE.EVENT_RECEIVED, utils.now() )
 	else:
@@ -125,7 +142,7 @@ def mcomp_auto_pilot_msg_handler(channel, data):
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
 def event_detected( event_at_car_location=False ):
-	global event_published, known_events, last_position
+	global veh, event_published, known_events, last_position
 	if event_at_car_location:
 		event_loc = [ -999, -999 ]
 		if last_position is not None:
@@ -136,6 +153,7 @@ def event_detected( event_at_car_location=False ):
 	msg = event_msg()
 	msg.timestamp = utils.now()
 	msg.location = event_loc
+	msg.vehicle = veh
 	msg.description = "I saw an accident!"
 	# send message to other vehicles
 	utils.publish( lcm_handler, mcomp_event_channel, event_msg.encode(msg), 2 )

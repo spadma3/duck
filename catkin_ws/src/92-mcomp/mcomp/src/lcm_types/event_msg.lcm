@@ -3,5 +3,7 @@ struct event_msg
 {
     int64_t  timestamp;
     double   location[2];
+    string   vehicle;
+    double   vehicle_location[2];
     string   description;
 }
