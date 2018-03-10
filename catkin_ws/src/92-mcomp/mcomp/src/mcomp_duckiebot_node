@@ -224,7 +224,7 @@ def car_controller_fcn(args):
 
 
 
-			if distance_from_event < reaction_radius and not is_stopped:
+			if distance_from_event < reaction_radius:
 
 				print "Me -> (%r) = %.2f < %.2f :: STOPPING" % ( event_location, distance_from_event,  reaction_radius )
 
