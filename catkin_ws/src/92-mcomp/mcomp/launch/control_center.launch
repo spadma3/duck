@@ -2,7 +2,7 @@
 
   <!-- Arguments -->
   <arg name="cr" doc="communication_radius" />
-  <arg name="rr" doc="reaction_radius" />
+  <arg name="rr" doc="reaction_radius" default="9999"/>
   <arg name="prop" doc="allow_propagation" />
   <arg name="n" doc="num_vehicles" />
   <arg name="poi" doc="event_location" default="[2.68, 2.10]" />
