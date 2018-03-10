@@ -100,7 +100,7 @@ def event_detected():
 	msg.position = [ mcomp_configuration['event_location'][0], mcomp_configuration['event_location'][1] ]
 	msg.description = "I saw an accident!"
 	# send message to other vehicles
-	utils.publish( lcm_handler, mcomp_event_channel, event_msg.encode(msg), 1 )
+	utils.publish( lcm_handler, mcomp_event_channel, event_msg.encode(msg), 2 )
 	# log
 	log( MSG_TYPE.EVENT_GENERATED, msg.timestamp )
 
@@ -145,6 +145,7 @@ def car_controller_fcn(args):
 		# signal event to other vehicles if close enough
 		if distance_from_event < perception_distance:
 			stop_vehicle()
+			event_detected()
 
 		# keep spinning
 		sleep(0.1)
