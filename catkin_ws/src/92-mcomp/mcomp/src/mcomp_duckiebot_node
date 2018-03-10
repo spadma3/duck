@@ -80,8 +80,9 @@ def mcomp_event_msg_handler(channel, data):
 	msg = event_msg.decode(data)
 	# ignore event messages from self
 	if msg.vehicle == veh: return
-	# get sender location
+	# get sender and event location
 	sender_loc = np.asarray( msg.vehicle_location )
+	event_loc = np.asarray( msg.location )
 	# drop message if this bot is outside the communication_radius of the sender
 	communication_radius = mcomp_configuration['communication_radius']
 	# compute distance between the bot and the sender
@@ -91,8 +92,9 @@ def mcomp_event_msg_handler(channel, data):
 		)
 	)
 	if distance_from_sender < communication_radius:
-		print "I'm @ %r, got a message from %r, close enough, accepted!" % ( last_position.tolist(), sender_loc.tolist() )
-		known_events.append( sender_loc )
+		print "I'm @ %r, got a message from %r, it is talking about something @ %r, close enough, ACCEPTED!" % ( last_position.tolist(), sender_loc.tolist(), event_loc.tolist() )
+		# get event location
+		known_events.append( event_loc )
 		# propagate (if active)
 		if mcomp_configuration['allow_propagation'] and not event_published:
 			# send message to other vehicles
@@ -106,7 +108,7 @@ def mcomp_event_msg_handler(channel, data):
 		log( MSG_TYPE.EVENT_RECEIVED, utils.now(), msg.location )
 	else:
 		# too far away, message dropped
-		print "I'm @ %r, got a message from %r, too far away, dropped!" % ( last_position.tolist(), sender_loc.tolist() )
+		print "I'm @ %r, got a message from %r, it is talking about something @ %r, too far away, DROPPED!" % ( last_position.tolist(), sender_loc.tolist(), event_loc.tolist() )
 		pass
 
 def mcomp_configuration_msg_handler(channel, data):
