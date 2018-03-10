@@ -15,7 +15,7 @@ from mcomp.srv import MCompStopExperiment
 from lcm_types.mcomp_msgs import configuration_msg, experiment_log_msg, auto_pilot_msg
 from log_types import MSG_TYPE
 
-verbose = True
+verbose = False
 lcm_handler = None
 mcomp_configuration = None
 experiment_config_channel = "MCOMP_SETUP"
@@ -66,6 +66,9 @@ def mcomp_log_msg_handler(channel, data):
 	global experiment_started, vehicles_configured
 	msg = experiment_log_msg.decode(data)
 
+	if msg.type != 20:
+		print MSG_TYPE(msg.type)
+
 	if verbose:
 		stdout('LCM (verbose)', 'Message received, Type: `%s`!' % MSG_TYPE(msg.type) )
 		stdout('STATUS (verbose)', 'Experiment started: %r' % experiment_started )
@@ -87,6 +90,7 @@ def mcomp_log_msg_handler(channel, data):
 	# count number of configured vehicles
 	if msg.type == MSG_TYPE.CONFIGURATION_RECEIVED:
 		vehicles_configured.add( msg.vehicle )
+		print '`%s` confirmed configuration' % msg.vehicle
 	# log
 	experiment_log.append(
 		( utils.now(), msg )
