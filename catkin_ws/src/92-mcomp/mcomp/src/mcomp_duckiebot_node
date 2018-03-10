@@ -87,7 +87,7 @@ def mcomp_event_msg_handler(channel, data):
 		)
 	)
 	if distance_from_sender < communication_radius:
-		known_events.append( event_loc )
+		known_events.append( sender_loc )
 		# log
 		log( MSG_TYPE.EVENT_RECEIVED, utils.now() )
 	else:
