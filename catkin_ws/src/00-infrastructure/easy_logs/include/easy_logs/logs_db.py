@@ -148,12 +148,15 @@ class EasyLogsDB(object):
             aliases.update(self.logs)
             # adding aliases unless we are asking for everything
             if query != '*':
-#                print('adding more (query = %s)' % query)
+                #print('adding more (query = %s)' % query)
                 for _, log in self.logs.items():
                     dtr = DTR.from_yaml(log.resources['bag'])
 
                     original_name = dtr.name
 
+                    # print ('alias: %s %s' % (original_name, dtr.name))
+                    aliases[original_name] = log
+                    original_name = original_name.replace('.bag', '')
                     aliases[original_name] = log
 
             result = dtu.fuzzy_match(query, aliases, filters=filters,
