@@ -104,7 +104,7 @@ def mcomp_event_msg_handler(channel, data):
 	)
 	if distance_from_sender < communication_radius:
 		if verbose:
-			print "I'm @ %r, got a message from %r, it is talking about something @ %r, close enough, ACCEPTED!" % ( last_position.tolist(), sender_loc.tolist(), event_loc.tolist() )
+			print "I'm @ %r, got a message from %r, it is talking about something @ %r, close enough, ACCEPTED!" % ( last_position.tolist(), sender_loc.tolist(), event_loc )
 		# store event location
 		store_new_event( event_loc )
 		# propagate (if active)
@@ -122,7 +122,7 @@ def mcomp_event_msg_handler(channel, data):
 	else:
 		# too far away, message dropped
 		if verbose:
-			print "I'm @ %r, got a message from %r, it is talking about something @ %r, too far away, DROPPED!" % ( last_position.tolist(), sender_loc.tolist(), event_loc.tolist() )
+			print "I'm @ %r, got a message from %r, it is talking about something @ %r, too far away, DROPPED!" % ( last_position.tolist(), sender_loc.tolist(), event_loc )
 		pass
 
 def mcomp_configuration_msg_handler(channel, data):
