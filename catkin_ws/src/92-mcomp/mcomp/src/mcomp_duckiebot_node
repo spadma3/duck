@@ -38,7 +38,7 @@ def log( msg_type, timestamp=None, location=None, content={}, n_copies='default'
 	msg.type = msg_type
 	msg.vehicle_location = last_position.tolist() if last_position is not None else [-999,-999]
 	msg.location = msg.vehicle_location if location is None else location
-	msg.vehicle_orientation = last_orientation
+	msg.vehicle_orientation = last_orientation if last_orientation is not None else -999
 	msg.vehicle = veh
 	msg.content = json.dumps( content )
 	# publish log message
@@ -77,6 +77,10 @@ def mcomp_event_msg_handler(channel, data):
 	global verbose
 	global veh, known_events, mcomp_configuration, last_position, event_published
 	global lcm_handler, mcomp_event_channel
+	# skip if this bot did not receive the configuration
+	if not is_configured():
+		print 'I received a message but I don\'t have a configuration for this experiment. Skipping it!'
+		return
 	# decode message
 	msg = event_msg.decode(data)
 	# ignore event messages from self
