@@ -185,6 +185,7 @@ def car_controller_fcn(args):
 	global verbose
 	global mcomp_configuration, perception_distance, is_stopped, is_shutdown, event_published, known_events
 	global release_command_received
+	step = 0
 	while not is_shutdown and not rospy.is_shutdown():
 		# wait for the experiment to start
 		if not is_configured():
@@ -231,10 +232,13 @@ def car_controller_fcn(args):
 			allow_republish = bool( mcomp_configuration['allow_republish'] )
 			if distance_from_event < reaction_radius and ( allow_republish or not is_stopped ):
 
-				if verbose:
-					print "Me -> (%r) = %.2f < %.2f :: STOPPING" % ( event_location, distance_from_event,  reaction_radius )
+				if not allow_republish or step % 10 == 0:
 
-				stop_vehicle( due_to_dangerous_event=True )
+
+					if verbose:
+						print "Me -> (%r) = %.2f < %.2f :: STOPPING" % ( event_location, distance_from_event,  reaction_radius )
+
+					stop_vehicle( due_to_dangerous_event=True )
 
 
 			else:
@@ -245,6 +249,8 @@ def car_controller_fcn(args):
 
 		# keep spinning
 		sleep(0.1)
+
+		step += 1
 
 def is_configured():
 	return mcomp_configuration is not None
