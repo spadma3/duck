@@ -273,6 +273,7 @@ if __name__ == '__main__':
 
 	# get parameters
 	veh = rospy.get_param('~veh')
+	verbose = rospy.get_param('~verbose')
 
 	# create control override publisher
 	e_stop_pub = rospy.Publisher(
