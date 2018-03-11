@@ -2,12 +2,11 @@ import os
 import re
 import subprocess
 
-from duckietown_utils.yaml_pretty import yaml_load_plain
 import rosbag
 
 from .caching import get_cached
 from .logging_logger import logger
-from .yaml_pretty import yaml_load
+from .yaml_pretty import yaml_load_plain
 
 __all__ = [
     'rosbag_info',
