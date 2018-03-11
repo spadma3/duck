@@ -13,7 +13,7 @@ from .time_slice import filters_slice
 
 
 def get_easy_logs_db():
-    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB)
+    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB, write_candidate_cloud=False)
 
 
 def delete_easy_logs_cache():
