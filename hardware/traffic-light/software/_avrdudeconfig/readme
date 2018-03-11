@@ -1,0 +1,3 @@
+replace the avrdude.conf file in /etc/ folder with the provided one with the command
+
+sudo cp avrdude.conf /etc/avrdude.conf
