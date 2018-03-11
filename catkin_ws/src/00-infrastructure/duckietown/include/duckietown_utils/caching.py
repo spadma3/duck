@@ -2,7 +2,6 @@ import os
 
 from .friendly_path_imp import friendly_path
 from .logging_logger import logger
-from .path_utils import expand_all
 from .paths import get_duckietown_cache_dir
 from .safe_pickling import safe_pickle_load, safe_pickle_dump
 

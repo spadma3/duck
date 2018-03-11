@@ -2,6 +2,10 @@ import os
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
+from duckietown_utils.download import download_if_not_exist
+from easy_logs.logs_db import \
+    get_easy_logs_db_cloud_cached_if_possible
+from easy_logs.resource_desc import DTR
 
 from .logs_db import get_all_resources, delete_easy_logs_cache, get_easy_logs_db_cached_if_possible, \
     get_easy_logs_db_cloud, get_easy_logs_db_fresh
@@ -25,31 +29,46 @@ class D8AppWithLogs(D8App):
 
     def _define_my_options(self, params):
         g = "Options regarding the logs database"
-        params.add_flag('cache', help="Use local log cache if it exists. Write cache if it does not.", group=g)
+        params.add_flag('cache', help="(deprecated)", group=g)
+        params.add_flag('fresh', help="Do not use cache.", group=g)
+
         params.add_flag('cache_reset', help="Delete the local log cache if it exists.", group=g)
 
         params.add_flag('cloud', help="Use cloud DB", group=g)
+
+        params.add_flag('write_candidate_cloud', help="Prepare cloud DB", group=g)
         self._db = None
 
     def get_easy_logs_db(self):
         if self._db is not None:
             return self._db
 
-        use_cache = self.options.cache
+        if self.options.cache:
+            msg = 'Deprecated option --cache'
+            dtu.logger.warning(msg)
+
+        use_cache = not self.options.fresh
         use_cloud = self.options.cloud
-        if use_cache and use_cloud:
-            msg = 'Cannot use --cache and --cloud together.'
-            raise dtu.DTUserError(msg)
+
+        write_candidate_cloud = self.options.write_candidate_cloud
+
+#        if use_cache and use_cloud:
+#            msg = 'Cannot use --cache and --cloud together.'
+#            raise dtu.DTUserError(msg)
 
         if self.options.cache_reset:
             delete_easy_logs_cache()
 
-        if use_cache:
-            db = get_easy_logs_db_cached_if_possible()
-        elif use_cloud:
-            db = get_easy_logs_db_cloud()
+        if use_cloud:
+            if use_cache:
+                db = get_easy_logs_db_cloud_cached_if_possible(write_candidate_cloud)
+            else:
+                db = get_easy_logs_db_cloud()
         else:
-            db = get_easy_logs_db_fresh()
+            if use_cache:
+                db = get_easy_logs_db_cached_if_possible(write_candidate_cloud)
+            else:
+                db = get_easy_logs_db_fresh()
 
         self._db = db
         return db
@@ -72,9 +91,6 @@ def download_if_necessary(log):
 
     """
     dtu.check_isinstance(log, PhysicalLog)
-    # XXX: this is a bit convoluted
-#    local_db = get_easy_logs_db_fresh()
-#    logs = local_db.query(log.log_name, raise_if_no_matches=False)
 
     filename = get_log_if_not_exists(log)
     log2 = log._replace(filename=filename)
@@ -86,37 +102,47 @@ def get_log_if_not_exists(log):
     """" Returns the path to the log. """
     downloads = dtu.get_duckietown_local_log_downloads()
 
-    bag_url = log.resources['bag']
-    print('bag url: %s' % bag_url)
+    dtr_yaml = log.resources['bag']
+    dtr = DTR.from_yaml(dtr_yaml)
+#    print dtr_yaml
+#    print('bag url: %s' % bag_url)
 
-    parsed = dtu.parse_hash_url(bag_url)
-    print('parsed: %s' % str(parsed))
+#    parsed = dtu.parse_hash_url(bag_url)
+#    print('parsed: %s' % str(parsed))
 
     all_resources = get_all_resources()
-    if parsed.name in all_resources.basename2filename:
+    if dtr.name in all_resources.basename2filename:
         # local!
-        filename = all_resources.basename2filename[parsed.name]
-        dtu.logger.info('We already have %s locally at %s' % (parsed.name, filename))
+        filename = all_resources.basename2filename[dtr.name]
+        dtu.logger.info('We already have %s locally at %s' % (dtr.name, filename))
         return filename
 
-#    if log_name.endswith('.bag'):
-#        msg = 'get_log_if_not_exists() wants a log name, not a bag file'
-#        dtu.logger.warn(msg)
-#        log_name = log_name.replace('.bag', '')
-#
-#    if log_name in logs and (logs[log_name].filename is not None):
-#        where = logs[log_name].filename
-#        dtu.logger.info('We already have %s locally at %s' % (log_name, where))
-#        return where
-#    else:
+    dtu.logger.info('We do not have %s locally.' % dtr.name)
 
-    dtu.logger.info('We do not have %s locally.' % parsed.name)
-
-    filename = os.path.join(downloads, parsed.name)
+    filename = os.path.join(downloads, dtr.name)
     if os.path.exists(filename):
         dtu.logger.info('It was already downloaded as %s' % filename)
         return filename
 
-    dtu.require_resource_from_hash_url(bag_url, destination=filename)
+    use = []
+    for url in dtr.urls:
+        if url.startswith('http'):
+            use.append(url)
+
+    for url in use:
+        print('Trying %s' % url)
+        dtu.d8n_make_sure_dir_exists(filename)
+        download_if_not_exist(url, filename)
+
+    #        parsed = parse_hash_url(hash_url)
+    #        basename = parsed.name if parsed.name is not None else parsed.sha1
+    #        dirname = get_duckietown_cache_dir()
+    #        destination = os.path.join(dirname, basename)
+    #
+    #    d8n_make_sure_dir_exists(destination)
+    #    download_if_not_exist(url, destination)
+    #    return destination
+
+#    dtu.require_resource_from_hash_url(bag_url, destination=filename)
     return filename
 

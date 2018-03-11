@@ -114,7 +114,18 @@ def system_cmd_result(cwd, cmd,
 #         set_term_function(p)
 
         if write_stdin != '':
-            p.stdin.write(write_stdin)
+            try:
+                p.stdin.write(write_stdin)
+            except IOError as e:
+#                if e.errno == 32:  # broken pipe
+                    msg = 'Could not write input to process.'
+                    msg = 'Invalid executable (OSError)'
+                    msg += '\n      cwd   %r' % cwd
+                    msg += '\n      cmd   %s' % " ".join(cmd)
+                    msg += '\n    errno   %r' % e.errno
+                    msg += '\n strerror   %r' % e.strerror
+                    raise CouldNotCallProgram(msg)
+#                raise
             p.stdin.flush()
 
         p.stdin.close()

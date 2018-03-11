@@ -1,9 +1,7 @@
 from contextlib import contextmanager
-import sys
 import time
 
 from .constants import DuckietownConstants
-from .logging_logger import logger
 
 __all__ = [
     'rospy_timeit_clock',

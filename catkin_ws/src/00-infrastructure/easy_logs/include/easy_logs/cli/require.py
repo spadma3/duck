@@ -1,7 +1,11 @@
+from decent_params.utils.script_utils import UserError
 import duckietown_utils as dtu
+from duckietown_utils.exception_utils import raise_wrapped
+from duckietown_utils.exceptions import DTNoMatches
 from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
-from easy_logs.logs_db import get_easy_logs_db_cloud
-from quickapp.quick_app import QuickApp
+from easy_logs.logs_db import get_easy_logs_db_cloud, \
+    get_easy_logs_db_cloud_cached_if_possible
+from quickapp import QuickApp
 
 from ..logs_db import get_easy_logs_db_fresh
 
@@ -38,8 +42,16 @@ Usage:
         else:
             query = extra
 
-        db_cloud = get_easy_logs_db_cloud()
-        logs = db_cloud.query(query)
+        if self.options.fresh:
+            db_cloud = get_easy_logs_db_cloud()
+        else:
+            db_cloud = get_easy_logs_db_cloud_cached_if_possible()
+
+        try:
+            logs = db_cloud.query(query)
+        except DTNoMatches as e:
+            msg = 'Could not find the logs matching the query.'
+            raise_wrapped(UserError, e, msg, compact=True)
 
         db_local = get_easy_logs_db_fresh()
 

@@ -1,14 +1,10 @@
-import hashlib
 import os
 import sys
-import urllib
-import urlparse
 
 from ruamel import yaml
 import ruamel.yaml
 
 import duckietown_utils as dtu
-from easy_logs import get_easy_logs_db
 
 
 def dropbox_links_main(query):

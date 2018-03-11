@@ -3,13 +3,17 @@ import copy
 import os
 
 import duckietown_utils as dtu
+from duckietown_utils.yaml_pretty import yaml_dump_pretty
 
 from .logs_structure import PhysicalLog
+from .logs_structure import yaml_from_physical_log, \
+    physical_log_from_yaml
+from .resource_desc import create_dtr_version_1, DTR
 from .time_slice import filters_slice
 
 
 def get_easy_logs_db():
-    return get_easy_logs_db_cached_if_possible()
+    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB, write_candidate_cloud=False)
 
 
 def delete_easy_logs_cache():
@@ -23,9 +27,16 @@ def delete_easy_logs_cache():
         os.unlink(fn)
 
 
-def get_easy_logs_db_cached_if_possible():
+def get_easy_logs_db_cached_if_possible(write_candidate_cloud=False):
+    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB, write_candidate_cloud)
+
+
+def get_easy_logs_db_cloud_cached_if_possible(write_candidate_cloud=False):
+    return get_easy_logs_db_cached_if_possiblew(get_easy_logs_db_cloud, write_candidate_cloud)
+
+
+def get_easy_logs_db_cached_if_possiblew(f, write_candidate_cloud):
     if EasyLogsDB._singleton is None:
-        f = EasyLogsDB
         EasyLogsDB._singleton = dtu.get_cached('EasyLogsDB', f)
 
         cache_dir = dtu.get_duckietown_cache_dir()
@@ -37,9 +48,35 @@ def get_easy_logs_db_cached_if_possible():
             for k, v in logs.items():
                 logs[k] = v._replace(filename=None)
 
-            dtu.yaml_write_to_file(logs, fn)
+            if write_candidate_cloud:
+                s = yaml_representation_of_phy_logs(logs)
+                dtu.write_data_to_file(s, fn)
+
+            # try reading
+
+                print('reading back logs')
+                logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
+                print('read back %s' % len(logs2))
 
     return EasyLogsDB._singleton
+
+
+def logs_from_yaml(data):
+    dtu.check_isinstance(data, dict)
+
+    res = OrderedDict()
+    for k, d in data.items():
+        res[k] = physical_log_from_yaml(d)
+    return res
+
+
+def yaml_representation_of_phy_logs(logs):
+    dtu.check_isinstance(logs, dict)
+    res = OrderedDict()
+    for k, l in logs.items():
+        res[k] = yaml_from_physical_log(l)
+    s = yaml_dump_pretty(res)
+    return s
 
 
 def get_easy_logs_db_fresh():
@@ -50,11 +87,13 @@ def get_easy_logs_db_fresh():
 
 
 def get_easy_logs_db_cloud():
-    cloud_file = dtu.require_resource('cloud.yaml')
+    cloud_file = dtu.require_resource('cloud2.yaml')
 
     with dtu.timeit_wall("loading DB"):
         dtu.logger.info('Loading cloud DB %s' % dtu.friendly_path(cloud_file))
-        logs = dtu.yaml_load_file(cloud_file, plain_yaml=True)
+        data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
+        dtu.logger.debug('Conversion')
+        logs = logs_from_yaml(data)
 
     logs = OrderedDict(logs)
     dtu.logger.info('Loaded cloud DB with %d entries.' % len(logs))
@@ -108,23 +147,39 @@ class EasyLogsDB(object):
             aliases.update(self.logs)
             # adding aliases unless we are asking for everything
             if query != '*':
+                #print('adding more (query = %s)' % query)
                 for _, log in self.logs.items():
-                    original_name = dtu.parse_hash_url(log.resources['bag']).name.replace('.bag', '')
+                    dtr = DTR.from_yaml(log.resources['bag'])
+
+                    original_name = dtr.name
+
+                    # print ('alias: %s %s' % (original_name, dtr.name))
+                    aliases[original_name] = log
+                    original_name = original_name.replace('.bag', '')
                     aliases[original_name] = log
 
             result = dtu.fuzzy_match(query, aliases, filters=filters,
-                                 raise_if_no_matches=raise_if_no_matches)
+                                     raise_if_no_matches=raise_if_no_matches)
             # remove doubles after
             # XXX: this still has bugs
-            present = set()
+            present = defaultdict(set)
+            for k, v in result.items():
+                present[id(v)].add(k)
+
+            def choose(options):
+                if len(options) == 1:
+                    return list(options)[0]
+                else:
+                    options = sorted(options, key=len)
+                    return options[0]
+
             c = OrderedDict()
             for k, v in result.items():
-                if id(v) in present:
-                    continue
-                else:
+                chosen = choose(present[id(v)])
+                if k == chosen:
                     c[k] = v
-                    present.add(id(v))
-            return result
+
+            return c
 
 
 def _read_stats(pl, use_filename):
@@ -193,11 +248,17 @@ AllResources = namedtuple('AllResources',
 
 @dtu.memoize_simple
 def get_all_resources():
-    patterns = ['*.bag', '*.mp4',
-                '*.jpg',
-#                '*.png',
-                '*.mov', '*.mts'
-                ]
+    patterns = [
+        '*.bag',
+        # We only care about <log>.XXX.mp4
+        '*.*.mp4',
+        '*.*.jpg',
+        '*.*.webm',
+        '*.*.png',
+        '*.*.mov',
+        '*.*.mts',
+        '*.*.gif',
+    ]
     basename2filename = dtu.look_everywhere_for_files(patterns=patterns, silent=True)
     base2basename2filename = defaultdict(lambda: {})
     for basename, fn in basename2filename.items():
@@ -245,8 +306,9 @@ def load_all_logs():
         if l.log_name in logs:
             old = logs[l.log_name]
 
-            old_sha1 = dtu.parse_hash_url(old.resources['bag']).sha1
-            new_sha1 = dtu.parse_hash_url(l.resources['bag']).sha1
+            old_sha1 = DTR.from_yaml(old.resources['bag']).hash['sha1']
+            new_sha1 = DTR.from_yaml(l.resources['bag']).hash['sha1']
+
             if old_sha1 == new_sha1:
                 # just a duplicate
                 msg = 'File is a duplicate: %s ' % filename
@@ -270,6 +332,13 @@ def load_all_logs():
         logs[l.log_name] = l
 
     return logs
+
+#
+#def choose_hash_url_from_list(l):
+#    for k in l:
+#        if k.startswith('hash'):
+#            return k
+#    raise ValueError(l)
 
 
 @dtu.contract(returns=PhysicalLog, filename=str)
@@ -342,14 +411,14 @@ def physical_log_from_filename(filename, base2basename2filename):
     possible_bases.add(l.log_name)
 
     for _base in possible_bases:
-        for s in base2basename2filename[_base]:
+        for s, filename_resource in base2basename2filename[_base].items():
             basedot = _base + '.'
             if s.startswith(basedot):
                 rest = s[len(basedot):]
                 record_name = rest.lower()
                 if not ignore_record(record_name):
-                    fn = base2basename2filename[_base][s]
-                    resources[record_name] = dtu.create_hash_url(fn)
+                    dtr = create_dtr_version_1(filename_resource)
+                    resources[record_name] = dtr
 
     # at least the bag file should be present
     assert 'bag' in resources

@@ -55,8 +55,10 @@ class FromFilename(Spec):
         return False
 
     def match_dict(self, _):
-        from easy_logs.logs_db import physical_log_from_filename
-        l = physical_log_from_filename(self.filename)
+        from easy_logs.logs_db import physical_log_from_filename, get_all_resources
+        all_resources = get_all_resources()
+
+        l = physical_log_from_filename(self.filename, all_resources.basename2filename)
         od = OrderedDict()
         od[l.log_name] = l
         return od

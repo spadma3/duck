@@ -1,5 +1,7 @@
 import os
 
+from duckietown_utils.disk_hierarchy import get_dt_tmp_dir
+
 from .constants import DuckietownConstants
 from .contracts_ import contract
 from .exceptions import DTConfigException
@@ -95,7 +97,9 @@ def get_duckietown_cache_dir():
 @contract(returns='str')
 def get_duckietown_local_log_downloads():
     """ Returns the directory to use for local downloads of logs"""
-    d = DuckietownConstants.default_download_dir
+    td = get_dt_tmp_dir()
+    d = os.path.join(td, 'downloads')
+#    d = DuckietownConstants.default_download_dir
     if not os.path.exists(d):
         os.makedirs(d)
     return d
