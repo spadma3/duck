@@ -117,7 +117,19 @@ def viz_bot_stopped(botname):
 		1
 	)
 
-def viz_event(event_location, sender_location):
+def viz_bot_broadcasted(botname):
+	h = 0.15
+	s = 0.04
+	return viz_cube(
+		"/%s/duckiebot" % botname,
+		[0, 0, h+2*s],
+		[s, s, s],
+		'blue',
+		botname,
+		2
+	)
+
+def viz_event(event_location, sender_location, sender_vehicle):
 	global events_cnt, mcomp_configuration
 	viz_cylinder(
 		"/world",
@@ -148,6 +160,7 @@ def viz_event(event_location, sender_location):
 		events_cnt,
 		0.2
 	)
+	viz_bot_broadcasted( sender_vehicle )
 	events_cnt = events_cnt + 1
 
 def viz_bot_warned(botname):
@@ -234,7 +247,7 @@ def mcomp_log_msg_handler(channel, data):
 		viz_bot_stopped( msg.vehicle )
 
 	if msg.type == MSG_TYPE.EVENT_GENERATED:
-		viz_event( msg.location, msg.vehicle_location )
+		viz_event( msg.location, msg.vehicle_location, msg.vehicle )
 	if msg.type == MSG_TYPE.EVENT_RECEIVED:
 		viz_bot_warned( msg.vehicle )
 
