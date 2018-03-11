@@ -73,9 +73,15 @@ def release_vehicle():
 	# log
 	log( MSG_TYPE.VEHICLE_RELEASED, utils.now() )
 
+def store_new_event(event_location):
+	global known_events
+	new_event = ( round(event_location[0],2), round(event_location[1],2) )
+	if new_event not in known_events:
+		known_events.append( new_event )
+
 def mcomp_event_msg_handler(channel, data):
 	global verbose
-	global veh, known_events, mcomp_configuration, last_position, event_published
+	global veh, mcomp_configuration, last_position, event_published
 	global lcm_handler, mcomp_event_channel
 	# skip if this bot did not receive the configuration
 	if not is_configured():
@@ -87,7 +93,7 @@ def mcomp_event_msg_handler(channel, data):
 	if msg.vehicle == veh: return
 	# get sender and event location
 	sender_loc = np.asarray( msg.vehicle_location )
-	event_loc = np.asarray( msg.location )
+	event_loc = msg.location
 	# drop message if this bot is outside the communication_radius of the sender
 	communication_radius = mcomp_configuration['communication_radius']
 	# compute distance between the bot and the sender
@@ -99,8 +105,8 @@ def mcomp_event_msg_handler(channel, data):
 	if distance_from_sender < communication_radius:
 		if verbose:
 			print "I'm @ %r, got a message from %r, it is talking about something @ %r, close enough, ACCEPTED!" % ( last_position.tolist(), sender_loc.tolist(), event_loc.tolist() )
-		# get event location
-		known_events.append( event_loc )
+		# store event location
+		store_new_event( event_loc )
 		# propagate (if active)
 		# allow_republish = bool( mcomp_configuration['allow_republish'] )
 		if mcomp_configuration['allow_propagation'] and not event_published: #  ( allow_republish or not event_published ):
@@ -148,7 +154,7 @@ def mcomp_auto_pilot_msg_handler(channel, data):
 		stop_vehicle()
 
 def event_detected( event_at_car_location=False ):
-	global veh, event_published, known_events, last_position
+	global veh, event_published, last_position
 	vehicle_location = [ last_position[0], last_position[1] ]
 	if event_at_car_location:
 		event_loc = [ -999, -999 ]
@@ -168,7 +174,8 @@ def event_detected( event_at_car_location=False ):
 	# log
 	log( MSG_TYPE.EVENT_GENERATED, msg.timestamp, event_loc )
 	event_published = True
-	known_events.append( np.asarray(event_loc) )
+	if not event_at_car_location:
+		store_new_event( event_loc )
 
 def visual_gps_msg_handler(channel, data):
 	global veh, last_position, last_orientation, last_position_time
@@ -224,7 +231,8 @@ def car_controller_fcn(args):
 		# if there are knwon events, check if within the reaction radius
 		if verbose:
 			print "Known events: %r" % known_events
-		for event_location in known_events:
+		for event_location_as_tuple in known_events:
+			event_location = np.asarray( list(event_location_as_tuple) )
 			distance_from_event = np.sqrt(
 				np.sum(
 					np.power(last_position-event_location, 2)

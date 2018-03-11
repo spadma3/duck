@@ -134,9 +134,9 @@ def viz_event(event_location, sender_location, sender_vehicle):
 	viz_cylinder(
 		"/world",
 		[event_location[0], event_location[1], 0.01],
-		[0.2, 0.2, 0.3],
+		[0.1, 0.1, 0.3],
 		'red',
-		'event_loc',
+		'%s/event_loc' % sender_vehicle,
 		events_cnt
 	)
 	viz_cylinder(
@@ -144,7 +144,7 @@ def viz_event(event_location, sender_location, sender_vehicle):
 		[sender_location[0], sender_location[1], 0.01],
 		[0.25, 0.25, 0.1],
 		'yellow',
-		'event_detection_pt',
+		'%s/event_detection_pt' % sender_vehicle,
 		events_cnt
 	)
 	viz_cylinder(
@@ -156,12 +156,12 @@ def viz_event(event_location, sender_location, sender_vehicle):
 			0.04
 		],
 		'blue',
-		'event_detection_pt_communication_radius',
+		'%s/event_detection_pt_communication_radius' % sender_vehicle,
 		events_cnt,
 		0.2
 	)
 	viz_bot_broadcasted( sender_vehicle )
-	events_cnt = events_cnt + 1
+	# events_cnt = events_cnt + 1
 
 def viz_bot_warned(botname):
 	viz_cylinder(
@@ -213,8 +213,8 @@ def mcomp_log_msg_handler(channel, data):
 	global experiment_started, vehicles_configured
 	msg = experiment_log_msg.decode(data)
 
-	if msg.type != 20:
-		print MSG_TYPE(msg.type)
+	# if msg.type != 20:
+	# 	print MSG_TYPE(msg.type)
 
 	if verbose:
 		stdout('LCM (verbose)', 'Message received, Type: `%s`!' % MSG_TYPE(msg.type) )
