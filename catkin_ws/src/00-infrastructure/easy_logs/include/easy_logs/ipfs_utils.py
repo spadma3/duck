@@ -2,8 +2,8 @@ import json
 import os
 
 import duckietown_utils as dtu
-from duckietown_utils.caching import get_cached
-from duckietown_utils.system_cmd_imp import system_cmd_result
+#from duckietown_utils.caching import get_cached
+#from duckietown_utils.system_cmd_imp import system_cmd_result
 
 base = ['ipfs', '--api', '/ip4/127.0.0.1/tcp/5001']
 
@@ -36,7 +36,7 @@ class MakeIPFS(object):
 
         cmd = base + ['object', 'put']
         cwd = '.'
-        res = system_cmd_result(cwd, cmd, raise_on_error=True,
+        res = dtu.system_cmd_result(cwd, cmd, raise_on_error=True,
                                 write_stdin=dag_json)
         hashed = res.stdout.split()[1]
         assert 'Qm' in hashed, hashed
@@ -47,7 +47,7 @@ class MakeIPFS(object):
 def get_hash_for_bytes(s):
     cmd = base + [ 'add']
     cwd = '.'
-    res = system_cmd_result(cwd, cmd, raise_on_error=True,
+    res = dtu.system_cmd_result(cwd, cmd, raise_on_error=True,
                             write_stdin=s)
     hashed = res.stdout.split()[1]
     assert 'Qm' in hashed, hashed
@@ -58,7 +58,7 @@ def detect_ipfs():
     cmd = base + ['--version']
     cwd = '.'
     try:
-        _res = system_cmd_result(cwd, cmd,
+        _res = dtu.system_cmd_result(cwd, cmd,
                                 display_stdout=False,
                                   display_stderr=False,
                                   raise_on_error=True)
@@ -74,7 +74,7 @@ def get_ipfs_hash_cached(filename):
 
     basename = os.path.basename(filename)
     cache_name = 'get_ipfs_hash/' + basename
-    return get_cached(cache_name, f, quiet=True)
+    return dtu.get_cached(cache_name, f, quiet=True)
 
 
 def get_ipfs_hash(filename):
@@ -83,7 +83,7 @@ def get_ipfs_hash(filename):
     dtu.logger.debug('Computing IPFS hash for %s' % filename)
     cmd = base + ['add', '--only-hash', filename]
     cwd = '.'
-    res = system_cmd_result(cwd, cmd,
+    res = dtu.system_cmd_result(cwd, cmd,
                             display_stdout=False,
                               display_stderr=False,
                               raise_on_error=True)
