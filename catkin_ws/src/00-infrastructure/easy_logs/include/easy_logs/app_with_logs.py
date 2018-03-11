@@ -29,7 +29,9 @@ class D8AppWithLogs(D8App):
 
     def _define_my_options(self, params):
         g = "Options regarding the logs database"
-        params.add_flag('cache', help="Use local log cache if it exists. Write cache if it does not.", group=g)
+        params.add_flag('cache', help="(deprecated)", group=g)
+        params.add_flag('fresh', help="Do not use cache.", group=g)
+
         params.add_flag('cache_reset', help="Delete the local log cache if it exists.", group=g)
 
         params.add_flag('cloud', help="Use cloud DB", group=g)
@@ -41,7 +43,11 @@ class D8AppWithLogs(D8App):
         if self._db is not None:
             return self._db
 
-        use_cache = self.options.cache
+        if self.options.cache:
+            msg = 'Deprecated option --cache'
+            dtu.logger.warning(msg)
+
+        use_cache = not self.options.fresh
         use_cloud = self.options.cloud
 
         write_candidate_cloud = self.options.write_candidate_cloud

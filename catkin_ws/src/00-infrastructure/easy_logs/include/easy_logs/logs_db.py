@@ -92,7 +92,6 @@ def get_easy_logs_db_cloud():
     with dtu.timeit_wall("loading DB"):
         dtu.logger.info('Loading cloud DB %s' % dtu.friendly_path(cloud_file))
         data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
-#        data = yaml.load(open(cloud_file).read())
         dtu.logger.debug('Conversion')
         logs = logs_from_yaml(data)
 
