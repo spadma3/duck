@@ -86,6 +86,7 @@ class lane_controller(object):
 
         # Return if not in autopilot
         if not self.operating:
+            self.last_ms = currentMillis
             return
 
         # Obtaining parameters to give to controller_class
