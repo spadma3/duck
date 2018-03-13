@@ -20,7 +20,7 @@ class Controller():
     #           t_delay Delay it took from taking image up to now [s]
     #           dt_last Time it took from last processing to current [s]
 
-    # Output:   v_out       velocity of Duckiebot [gain, element of [0,1]]
+    # Output:   v_out       velocity of Duckiebot [m/s]
     #           omega_out   angular velocity of Duckiebot [rad/s]
 
     def getControlOutput(self, d_est, phi_est, d_ref, phi_ref, v_ref, t_delay, dt_last):
