@@ -5,8 +5,8 @@ class Controller():
     def __init__(self):
 
         # Gains for controller
-        self.k_P = 4
-        self.k_I = 1
+        self.k_P = 1
+        self.k_I = 0
 
         # Variable for integral
         self.C_I = 0

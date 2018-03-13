@@ -128,7 +128,7 @@ class lane_controller(object):
 
         # SATURATION IN EXERCISE 1-3
         if int(self.exercise[0]) == 1 and int(self.exercise[1]) == 3:
-            omega_max = 5.5
+            omega_max = self.controller_class.u_sat
             if omega_out > omega_max:
                 omega_out = omega_max
             if omega_out < -omega_max:
