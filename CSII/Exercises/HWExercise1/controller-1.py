@@ -5,7 +5,7 @@ class Controller():
     def __init__(self):
 
         # Gains for controller
-        self.k = 2
+        self.k_P = 2
 
 
     # Inputs:   d_est   Estimation of distance from lane center (positve when
@@ -26,7 +26,7 @@ class Controller():
         y = 6 * (d_est - d_ref) + 1 * (phi_est-phi_ref)
 
         # Native P-Controller
-        omega = -self.k * y
+        omega = -self.k_P * y
 
         # Declaring return values
         omega_out = omega
