@@ -26,7 +26,8 @@ class Controller():
         y = 6 * (d_est - d_ref) + 1 * (phi_est-phi_ref)
 
         # Native P-Controller
-        omega = -self.k_P * y
+        C_P = -self.k_P * y
+        omega = C_P
 
         # Declaring return values
         omega_out = omega
