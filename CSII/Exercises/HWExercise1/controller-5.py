@@ -5,11 +5,11 @@ class Controller():
     def __init__(self):
 
         # Gains for controller
-        self.k = 9.5
-        self.k_I = 3
+        self.k_P = 3.5
+        self.k_I = 1.2
 
         # Variable for integral
-        self.integral = 0
+        self.C_I = 0
 
         # Specify the time delay. k_d = 1 means that there is a time delay
         # t_delay = t_delay(0) + k_d * T where T = 70ms
@@ -32,11 +32,12 @@ class Controller():
         # Calculate the output y
         y = 6 * (d_est - d_ref) + 1 * (phi_est-phi_ref)
 
-        # Integrate y
-        self.integral = self.integral + y * dt_last
-
         # PI-Controller
-        omega = -self.k * y - self.k_I * self.integral
+        C_P = -self.k_P * y
+        omega = C_P + self.C_I
+
+        # Calculate the new value of the integral
+        self.C_I = self.C_I - dt_last * self.k_I * y
 
         # Declaring return values
         omega_out = omega
