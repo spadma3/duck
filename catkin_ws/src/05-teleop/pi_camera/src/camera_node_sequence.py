@@ -22,6 +22,7 @@ class CameraNode(object):
         self.framerate_low = self.setupParam("~framerate_low",15.0)
         self.res_w = self.setupParam("~res_w",640)
         self.res_h = self.setupParam("~res_h",480)
+	self.expo_time = self.setupParam("~expo_time", 1000)
 
         self.image_msg = CompressedImage()
 
@@ -31,6 +32,9 @@ class CameraNode(object):
         self.framerate = self.framerate_high # default to high
         self.camera.framerate = self.framerate
         self.camera.resolution = (self.res_w,self.res_h)
+        #self.camera.exposure_mode = 'verylong'
+        self.camera.shutter_speed = 2000
+	#print("Camera exposure speed = ",self.camera.exposure_speed)
 
 
         # For intrinsic calibration
