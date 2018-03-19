@@ -26,14 +26,16 @@ class Controller():
     def getControlOutput(self, d_est, phi_est, d_ref, phi_ref, v_ref, t_delay, dt_last):
 
         # Calculate the output y
-        y = 6 * (d_est - d_ref) + 1 * (phi_est-phi_ref)
+        ref =   (6 * d_ref + 1 * phi_ref)
+        y =     (6 * d_est + 1 * phi_est)
+        err = ref - y
 
         # PI-Controller
-        C_P = -self.k_P * y
+        C_P = self.k_P * err
         omega = C_P + self.C_I
 
         # Calculate the new value of the integral
-        self.C_I = self.C_I - dt_last * self.k_I * y
+        self.C_I = self.C_I + dt_last * self.k_I * err
 
 
         # Declaring return values
