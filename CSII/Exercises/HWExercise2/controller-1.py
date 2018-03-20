@@ -1,12 +1,15 @@
 import math
+import numpy
+import control
 
 class Controller():
 
     def __init__(self):
 
-        # Gains for controller
-        self.k = 3.5
+        #Define cost matrices here:
+        #defnfine matrices with: self.A = numpy.array([[a11, a12], [a21, a22]])
 
+        #TODO
 
     # Inputs:   d_est   Estimation of distance from lane center (positve when
     #                   offset to the left of driving direction) [m]
@@ -21,14 +24,15 @@ class Controller():
     #           omega_out   angular velocity of Duckiebot [rad/s]
 
     def getControlOutput(self, d_est, phi_est, d_ref, phi_ref, v_ref, t_delay, dt_last):
+        #Exception handler for dt_last==0
+        if (dt_last==0) : dt_last=0.0001
+        #Your code goes here: 
 
-        # Calculate the output y
-        y = 2 * (d_est - d_ref) + 1 * (phi_est-phi_ref)
+        #TODO
 
-        # Native P-Controller
-        omega = -self.k * y
+        v_out = v_ref       #This will only be relevant for HWExercise3
 
-        # Declaring return values
-        omega_out = omega
-        v_out = v_ref
+        #Calculate control input omega_out
+        omega_out = #TODO
+
         return (v_out, omega_out)
