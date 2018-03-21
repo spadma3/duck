@@ -1,11 +1,13 @@
-import urllib2
 import socket
-from duckietown_utils import logger
-from duckietown_utils.memoization import memoize_simple
 import ssl
-from contracts.utils import indent
+import urllib2
+
+from .instantiate_utils import indent
+from .logging_logger import logger
+from .memoization import memoize_simple
 
 use_url = 'http://35.156.29.30/~duckietown/ping'
+
 
 @memoize_simple
 def is_internet_connected(url=use_url, timeout=3):
@@ -30,5 +32,5 @@ def is_internet_connected(url=use_url, timeout=3):
         logger.warning(msg)
         return False
     except IOError as e:
-        logger.warning(e) 
+        logger.warning(e)
         return False

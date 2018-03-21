@@ -1,6 +1,11 @@
 import os
 from what_the_duck.check import Check, CheckFailed, CheckError
 
+__all__ = [
+    'EnvironmentVariableExists',
+    'EnvironmentVariableIsEqualTo',
+]
+
 class EnvironmentVariableExists(Check):
     """ Checks that the environment variable is set. """
     def __init__(self, name):

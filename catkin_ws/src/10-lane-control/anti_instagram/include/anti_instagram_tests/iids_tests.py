@@ -1,21 +1,23 @@
-from comptests.registrar import run_module_tests, comptest
-from anti_instagram_tests.annotations_test import anti_instagram_annotations_test
-from easy_logs.cli.require import require_resource
 import os
-from duckietown_utils import system_cmd_result
+
+from .annotations_test import anti_instagram_annotations_test
+
+import duckietown_utils as dtu
 
 
-@comptest
-def iids_tests():
-    out_base = 'anti_instagram_annotations_test'
+@dtu.unit_test
+def anti_instagram_annotations_test():
+    out_base = dtu.get_output_dir_for_test()
     
-    zipname = require_resource('ii-datasets.zip')
+#     out_base = 'anti_instagram_annotations_test'
+    
+    zipname = dtu.require_resource('ii-datasets.zip')
     dirname = os.path.dirname(zipname)
     base = os.path.join(dirname, 'ii-datasets')
 
     cmd = ['unzip', '-o', zipname]
     cwd = dirname
-    system_cmd_result(cwd,cmd,
+    dtu.system_cmd_result(cwd,cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True)
@@ -30,4 +32,4 @@ def iids_tests():
     
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

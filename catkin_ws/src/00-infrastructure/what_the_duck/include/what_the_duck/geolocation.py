@@ -1,8 +1,6 @@
 import json
 from urllib2 import urlopen, URLError
-from duckietown_utils import logger
-from duckietown_utils import yaml_dump
-from duckietown_utils.networking import is_internet_connected
+import duckietown_utils as dtu
 
 
 def get_geolocation_data():
@@ -40,7 +38,7 @@ def get_geolocation_data():
             data[f] = None
         return data
     
-    if not is_internet_connected():
+    if not dtu.is_internet_connected():
         return get_invalid_response()
     
     
@@ -57,12 +55,12 @@ def get_geolocation_data():
                 data.pop(x)
         return data  
     except URLError as e:
-        logger.warning(str(e))
+        dtu.logger.warning(str(e))
         return get_invalid_response(str(e))
         
 
 if __name__ == '__main__': # pragma: no cover
     data = get_geolocation_data()
     print data
-    print yaml_dump(data)
+    print dtu.yaml_dump(data)
     

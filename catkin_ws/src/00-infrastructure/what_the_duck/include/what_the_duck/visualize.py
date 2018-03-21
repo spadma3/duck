@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from contracts.utils import indent
+import duckietown_utils as dtu
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from termcolor import colored
-import cgi
 
 
 class MakeSpans(object):
@@ -94,7 +93,7 @@ def my_to_html_stripping_fragment(soup):
     S1 = '</fragment>'
     if not s.startswith(S0):
         msg = 'Invalid generated fragment; expecting %r.' % S0
-        msg += '\n\n' + indent(s, ' | ')
+        msg += '\n\n' + dtu.indent(s, ' | ')
         raise Exception(msg) 
     
     s = s[len(S0):]

@@ -1,7 +1,6 @@
-# @UnusedImport
 from duckietown_utils.cli import D8App, d8app_run
-from easy_algo.algo_db import get_easy_algo_db
-from easy_algo.formatting import format_db, format_instances
+from ..algo_db import get_easy_algo_db
+from ..formatting import format_db, format_instances
 
 
 __all__ = ['Summary']
@@ -10,6 +9,8 @@ __all__ = ['Summary']
 class Summary(D8App):
     """ Provides information about the families and their instances. """
 
+    cmd = 'rosrun easy_algo summary'
+    
     def define_program_options(self, params):
         params.accept_extra()
         g = "Input/output"

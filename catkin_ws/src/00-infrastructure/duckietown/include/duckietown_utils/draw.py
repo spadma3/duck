@@ -1,7 +1,8 @@
+#@PydevCodeAnalysisIgnore
 import cv2
-import numpy as np
 
 from duckietown_utils import load_homography, load_map
+import numpy as np
 
 
 class Draw():
@@ -53,3 +54,4 @@ class Draw():
 		color_type, [r,g,b] = defined_colors[color]
 		cv2.line(image, (pt_x[0], pt_y[0]),(pt_x[1], pt_y[1]),(b * 255, g* 255, r * 255), 5)
 	return image
+

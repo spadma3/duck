@@ -16,7 +16,6 @@ config_db.cache
 caches/
 catkin_ws/src/CMakeLists.txt
 .compmake_history.txt
-t
 out-comptests/
 out-make_videos.py
 out-programmatic.py
@@ -28,4 +27,7 @@ catkin_ws/src/XX-exercises/
 out-*
 what_the_duck*html
 fleet.html
+last_download.yaml
+roster.html
+catkin_ws/src/10-lane-control/line_detector2/include/line_detector2_tests/frame0002.jpg
 roster.html

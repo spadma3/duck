@@ -1,14 +1,16 @@
+# XXX: what is this?
 #!/usr/bin/python
 
-import numpy as np
 from scipy import signal
 
-class RandomMapGenerator():
+import numpy as np
 
-    def __init__(self,size=(5,6)):
+
+class RandomMapGenerator(object):
+
+    def __init__(self, size=(5, 6)):
         self.initialize_thresh = 0.5
         self.size = size
-
 
     def initialize(self):
         self.map = np.random.random(self.size)
@@ -19,48 +21,49 @@ class RandomMapGenerator():
 
     def apply_rules(self):
         # pad the map with -1's around the outside (i.e. a row of non-road around the outside)
-        map_padded = np.lib.pad(self.map,((1,1),(1,1)),'constant',constant_values=((-1,-1),(-1,-1)))
+        map_padded = np.lib.pad(self.map, ((1, 1), (1, 1)),
+                                'constant', constant_values=((-1, -1), (-1, -1)))
         # TODO read from yaml and put the masks into a loop
-        mask = np.array([[1,1],[1,1]])
-        if not self.check_mask(mask,map_padded):
+        mask = np.array([[1, 1], [1, 1]])
+        if not self.check_mask(mask, map_padded):
             return False
-        mask = np.array([[0,-1,0],[-1,1,-1]])
-        if not self.check_mask(mask,map_padded):
+        mask = np.array([[0, -1, 0], [-1, 1, -1]])
+        if not self.check_mask(mask, map_padded):
             return False
-        mask = np.array([[-1,0],[1,-1],[-1,0]])
-        if not self.check_mask(mask,map_padded):
-            return False 
-        mask = np.array([[-1,1,-1],[0,-1,0]])
-        if not self.check_mask(mask,map_padded):
+        mask = np.array([[-1, 0], [1, -1], [-1, 0]])
+        if not self.check_mask(mask, map_padded):
             return False
-        mask = np.array([[0,-1],[-1,1],[0,-1]])
-        if not self.check_mask(mask,map_padded):
+        mask = np.array([[-1, 1, -1], [0, -1, 0]])
+        if not self.check_mask(mask, map_padded):
+            return False
+        mask = np.array([[0, -1], [-1, 1], [0, -1]])
+        if not self.check_mask(mask, map_padded):
             return False
         return True
-        
-    def check_mask(self,mask,map_padded):
+
+    def check_mask(self, mask, map_padded):
         # the maximum correlation value will equal the number of non-zero vals
         check_val = np.count_nonzero(mask)
-        masked = signal.correlate(map_padded,mask)
+        masked = signal.correlate(map_padded, mask)
         if (np.amax(masked) == check_val):
             return False
         return True
-    
 
     def generate(self):
         while True:
             self.initialize()
             if self.apply_rules():
                 break
-            
+
         return self.map;
 
-def main():
-    size=(4,4)
-    rmg = RandomMapGenerator(size)
-    map = rmg.generate()
-    print map
 
-    
+def main():
+    size = (4, 4)
+    rmg = RandomMapGenerator(size)
+    the_map = rmg.generate()
+    print(the_map)
+
+
 if __name__ == "__main__":
     main()

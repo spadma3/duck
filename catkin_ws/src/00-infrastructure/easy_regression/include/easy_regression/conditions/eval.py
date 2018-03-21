@@ -1,13 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
 
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.system_cmd_imp import contract
-
-from .interface import RTCheck
-from .result_db import ResultDB, AmbiguousQuery
-from easy_regression.conditions.interface import CheckResult
+import duckietown_utils as dtu
+from .interface import RTCheck, CheckResult
+from .result_db import ResultDB, AmbiguousQuery 
 
 
 class EvaluationError(Exception):
@@ -17,11 +13,11 @@ class DataNotFound(Exception):
     pass
 
 
-class Evaluable():
+class Evaluable(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    @contract(rdb=ResultDB)
+    @dtu.contract(rdb=ResultDB)
     def eval(self, rdb):
         """ Raise EvaluationError or DataNotFound """
 
@@ -44,6 +40,7 @@ class Wrapper(RTCheck):
         
     def __str__(self):
         return self.evaluable.__str__()
+    
     # @contract(returns=CheckResult, result_db=ResultDB)
     def check(self, rdb):
         """ 
@@ -90,7 +87,7 @@ class Wrapper(RTCheck):
 
 class BinaryEval(Evaluable):
     
-    @contract(a=Evaluable, b=Evaluable)
+    @dtu.contract(a=Evaluable, b=Evaluable)
     def __init__(self, a, op, b):
         self.a = a
         self.op = op
@@ -105,7 +102,7 @@ class BinaryEval(Evaluable):
             except EvaluationError as e:
                 msg = 'Cannot evaluate binary operation: error during %s' % m
                 msg += '\n' + str(self)
-                raise_wrapped(EvaluationError, e, msg, compact=True)
+                dtu.raise_wrapped(EvaluationError, e, msg, compact=True)
                 
         with r('first operator evaluation'):
             a = self.a.eval(test_results)
@@ -118,9 +115,9 @@ class BinaryEval(Evaluable):
     
     def __str__(self):
         s = "Binary operation"
-        s += '\n' + indent(self.a, '', '   a: ')
-        s += '\n' + indent(self.op, '', '  op: ')
-        s += '\n' + indent(self.b, '', '   b: ')
+        s += '\n' + dtu.indent(self.a, '', '   a: ')
+        s += '\n' + dtu.indent(self.op, '', '  op: ')
+        s += '\n' + dtu.indent(self.b, '', '   b: ')
         return s
     
     

@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+# @create-shortcut-for-this
 import sys
 
 from duckietown_utils import col_logging  # @UnusedImport
-from duckietown_utils.exceptions import wrap_script_entry_point
+
+import duckietown_utils as dtu
+
 from easy_logs.cli import dropbox_links_main
 
 
@@ -14,7 +17,7 @@ def dropbox_links():
         query = args[0]
 
     dropbox_links_main(query)
-    
+
 
 if __name__ == '__main__':
-    wrap_script_entry_point(dropbox_links)
+    dtu.wrap_script_entry_point(dropbox_links)

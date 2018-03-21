@@ -1,6 +1,4 @@
-# from . import logger
 from collections import defaultdict
-# from contracts import contract
 import fnmatch
 import os
 
@@ -11,26 +9,37 @@ __all__ = [
 
 # @contract(returns='list(str)', directory='str',
 #           pattern='str', followlinks='bool')
-def locate_files(directory, pattern, followlinks=True, alsodirs=False):
+def locate_files(directory, pattern, normalize=True, followlinks=True, alsodirs=False,
+                 case_sensitive=True):
     # print('locate_files %r %r' % (directory, pattern))
     filenames = []
+
+    def is_a_match(x):
+        if not case_sensitive:
+            x = x.lower()
+        return fnmatch.fnmatch(x, pattern)
 
     for root, dirs, files in os.walk(directory, followlinks=followlinks):
         if alsodirs:
             for f in dirs:
-                if fnmatch.fnmatch(f, pattern):
+                if is_a_match(f):
                     filename = os.path.join(root, f)
                     filenames.append(filename)
 
         for f in files:
-            if fnmatch.fnmatch(f, pattern):
+            if is_a_match(f):
                 filename = os.path.join(root, f)
                 filenames.append(filename)
 
     real2norm = defaultdict(lambda: [])
     for norm in filenames:
-        real = os.path.realpath(norm)
-        real2norm[real].append(norm)
+        if normalize:
+            real = os.path.realpath(norm)
+        else:
+            real = norm
+
+        if os.path.exists(real):
+            real2norm[real].append(norm)
         # print('%s -> %s' % (real, norm))
 
     for k, v in real2norm.items():

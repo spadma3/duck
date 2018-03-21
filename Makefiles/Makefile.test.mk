@@ -18,10 +18,11 @@ test:
 	@echo
 
 test-circle: \
-	test-comptests \
-	test-download-logs
+	test-comptests-circle \
+	test-download-logs \
+	test-misc-utils
 
-	
+
 	#test-line-detector-programmatic
 
 #
@@ -31,7 +32,9 @@ test-circle: \
 
 test-all: \
 	test-comptests \
-	test-catkin_tests
+	test-download-logs \
+	test-catkin_tests \
+	test-misc-utils
 
 ### Comptests
 
@@ -42,9 +45,15 @@ comptests_packages=\
 	duckietown_utils_tests\
 	line_detector2_tests\
 	what_the_duck_tests\
+	duckieteam_tests\
+	complete_image_pipeline_tests\
+	duckietown_segmaps_tests\
+	lane_filter_generic_tests\
 	easy_regression_tests\
-	anti_instagram_tests\
-	duckieteam_tests
+	grid_helper_tests
+
+# These take a long time
+# anti_instagram_tests\
 
 comptests_out=out/comptests
 
@@ -58,6 +67,10 @@ test-comptests-again:
 test-comptests:  test-download-logs
 	comptests -o $(comptests_out) --nonose --contracts -c "rparmake" $(comptests_packages)
 
+test-comptests-circle:  test-download-logs
+	# comptests -o $(comptests_out) --nonose --contracts -c "rparmake n=3" $(comptests_packages)
+	comptests --circle -o $(comptests_out) --nonose -c "rparmake n=4" $(comptests_packages)
+
 test-comptests-slow:  test-download-logs
 	comptests -o $(comptests_out) --nonose --contracts -c "rmake" $(comptests_packages)
 
@@ -68,21 +81,19 @@ test-comptests-collect-junit:
 test-catkin_tests: check-environment
 	bash -c "source environment.sh; catkin_make -C $(catkin_ws) run_tests; catkin_test_results $(catkin_ws)/build/test_results/"
 
-onelog=20160223-amadoa-amadobot-RCDP2
+# onelog=20160223-amadoa-amadobot-RCDP2
+onelog=2016-04-29-dp3auto-neptunus-1
 
 test-download-logs:
 	@echo Loading log
-	rosrun easy_logs download $(onelog)
-	@echo Should be equal to 70e9e2a49d1181d2da160ff5e615969f
-	md5sum `rosrun easy_logs find 20160223-amadoa-amadobot-RCDP2`
-	echo TODO: check
+	rosrun easy_logs download $(onelog) tori_ETHZ_2017-12-22-17-18-41
+
+test-misc-utils:
+	rosrun complete_image_pipeline validate_calibration robbie
+	rosrun complete_image_pipeline display_segmaps 'DT17*tile*'
 
 test-cloud-logs: cloud-download
-	rosrun easy_logs summary --cloud 20160122-censi-ferrari-RCDP6-lapentab
-
-# test-line-detector-programmatic: test-download-logs
-# 	rosrun easy_logs download $(onelog)
-# 	rosrun line_detector2 programmatic --logs $(onelog) --algos all --reset -c parmake
+	rosrun easy_logs summary --cloud  $(onelog)
 
 test-documentation:
 	echo "<html><head></head><body></body></html>" > catkin_ws/00_main_template.html
@@ -95,3 +106,9 @@ test-documentation:
 	# compmake out/test-documentation -c "ls failed"
 	# compmake out/test-documentation -c "why failed"
 	rm -f catkin_ws/00_main_template.html
+
+
+test-publish:
+	python -m SimpleHTTPServer 8000 ..
+
+	

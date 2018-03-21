@@ -2,30 +2,36 @@ version: 2
 jobs:
     build:
      docker:
-        - image: andreacensi/duckietown-xenial-kinetic:18
+        - image: andreacensi/duckietown-xenial-kinetic:19
           environment:
               DUCKIEFLEET_ROOT: /root/duckiefleet
               DUCKIETOWN_ROOT: /root/project
               DUCKIETOWN_DATA: /root/duckietown-data
-     parallelism: 1
+              COLUMNS: 160
+     parallelism: 4
+     resource_class: large
      steps:
         - checkout
+        # - restore_cache:
+        #    key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
 
         - run:
             name: deps
             command: |
-                # apt install -y python-frozendict python-ruamel.yaml
-                pip install --upgrade compmake==3.5.6 PyContracts QuickApp conftools comptests procgraph pymongo
+                # python -m venv venv
+                #
+                # . venv/bin/activate
 
-                ./misc/python_environment.py comptests
-                which comptests
+                pip install --upgrade -r requirements.txt
 
-                ./misc/python_environment.py compmake
+                make python-module-stats
+
+        # - save_cache:
+        #     key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+        #     paths:
+        #     - "venv"
 
 
-                # pip install ros_node_utils
-                # pip install procgraph
-                apt install -y python-sklearn
 
         - run:
             name: build
@@ -44,20 +50,20 @@ jobs:
                 source environment.sh
                 # make build-machines
 
+                make python-module-stats
+
         - run:
             name: make continuous-integration-tests
             command: |
                 source /opt/ros/kinetic/setup.bash
                 source $PWD/catkin_ws/devel/setup.bash
 
-
                 export HOSTNAME=$HOSTNAME
-
 
                 # git clone git@github.com:duckietown/duckiefleet-fall2017.git $DUCKIEFLEET_ROOT
                 mkdir -p $DUCKIEFLEET_ROOT
 
-                make test-download-logs
+                # make test-download-logs
                 make test-circle
 
 # - run:
@@ -100,6 +106,11 @@ jobs:
         - store_artifacts:
               path: reports
               destination: reports
+
+        - run:
+            when: always
+            command: |
+                ./misc/generate-other-reports.sh
 
         - store_artifacts:
               path: out
