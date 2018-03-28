@@ -247,6 +247,7 @@
 		<group if="$(arg /lane_following/line_detection)">
 			<remap from="line_detector_node/image" to="camera_node/image/compressed"/>
 			<remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
+			<remap from="fsm_node/mode" to="lane_controller_node/fsm_mode"/>
 			<include file="$(find line_detector)/launch/line_detector_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
