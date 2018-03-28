@@ -791,598 +791,598 @@
   traffic_sign_type: parking
 
 - tag_id: 132
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 133
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 134
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 135
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 136
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 137
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 138
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 139
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 140
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 141
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 142
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 143
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 144
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 145
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 146
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 147
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 148
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 149
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 150
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 151
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 152
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 153
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 154
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 155
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 156
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 157
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 158
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 159
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 160
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 161
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 162
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 163
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 164
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 165
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 166
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 167
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 168
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 169
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 170
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 171
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 172
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 173
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 174
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 175
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 176
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 177
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 178
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 179
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 180
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 181
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 182
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 183
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 184
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 185
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 186
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 187
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 188
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 189
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 190
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 191
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 192
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 193
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 194
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 195
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 196
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: stop
 
 - tag_id: 197
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 198
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 199
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 200
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 201
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 202
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 203
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 204
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 205
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 206
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 207
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 208
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 209
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 210
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 211
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 212
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 213
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 214
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 215
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 216
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 217
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 218
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 219
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 220
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 221
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 222
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 223
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 224
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 225
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 226
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 227
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 228
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 229
   tag_type: Light
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 230
   tag_type:
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: t-light-ahead
 
 - tag_id: 231
   tag_type:
@@ -3308,4 +3308,4 @@
   tag_type: StreetName
   street_name: FURUI ST.
   vehicle_name:
-  traffic_sign_type:
+traffic_sign_type:
