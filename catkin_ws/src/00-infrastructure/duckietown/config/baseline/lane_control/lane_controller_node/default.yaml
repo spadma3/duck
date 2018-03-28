@@ -1,8 +1,8 @@
 #lane_control/lane_controller_node
 v_bar: 0.22
-k_P: 4
-k_I: 1
-u_sat: 5
-k_t: 1
+k_P: 8
+k_I: 2.5
+u_sat: 2
+k_t: 2.5
 c1: 6
 c2: 1
