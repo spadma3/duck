@@ -155,7 +155,7 @@ class lane_controller(object):
         car_control_msg.omega = omega_out
 
         # Publish message
-        self.pub_car_cmd.publish(car_cmd_msg)
+        self.pub_car_cmd.publish(car_control_msg)
 
         # Update timestamp from control actions
         self.last_ms = currentMillis
