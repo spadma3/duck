@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose, BoolStamped
+from duckietown_msgs.msg import Twist2DStamped, LanePose, BoolStamped, FSMState
 from controller import Controller # import the PI controller
 import time
 
@@ -20,7 +20,7 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
-        self.sub_fsm_mode = rospy.Subscriber("~mode", BoolStamped, self.cbMode, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -34,7 +34,7 @@ class lane_controller(object):
         self.controller = Controller(4, 1, 4, 1, 6, 1)
 
         self.last_ms = None
-        self.operating = True #TODO
+        self.operating = False
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
