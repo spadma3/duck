@@ -21,6 +21,7 @@ class lane_controller(object):
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
+
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -28,13 +29,23 @@ class lane_controller(object):
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
+        # Setup gains
+        self.setGains()
+
         # initialize Controller: k_P, k_I, u_sat, k_t, C(1), C(2)
         # where C = [C(1) C(2)] is the C matrix of the LTI system
         # which is something like [6 1] for the states x = [d phi]
-        self.controller = Controller(4, 1, 4, 1, 6, 1)
+        self.controller = Controller(self.k_P, self.k_I, self.u_sat, self.k_t, self.c1, self.c2)
 
+        # Variable for calculating time between two control actions
         self.last_ms = None
+
+        # Variable for FSM (turn off integral of not lane_following)
         self.operating = False
+
+        # Variables or object avoidance
+        self.d_ref = 0
+        self.phi_ref = 0
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
@@ -88,6 +99,7 @@ class lane_controller(object):
 
         # Stop listening
         self.sub_lane_reading.unregister()
+        self.sub_fsm_mode.unregister()
 
         # Send stop command
         car_control_msg = Twist2DStamped()
@@ -97,22 +109,21 @@ class lane_controller(object):
         rospy.sleep(0.5) #To make sure that it gets published.
         rospy.loginfo("[%s] Shutdown" %self.node_name)
 
+
     # FSM
     def cbMode(self,fsm_state_msg):
         self.operating = fsm_state_msg.state == "LANE_FOLLOWING"
 
-    def publishCmd(self, car_cmd_msg):
-        self.pub_car_cmd.publish(car_cmd_msg)
+
 
     def cbPose(self, lane_pose_msg):
 
+        # Receive message from lane pose estimation
         self.lane_reading = lane_pose_msg
-        self.v_bar = 0.22 #TODO hardcoded
 
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
-
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
@@ -123,31 +134,30 @@ class lane_controller(object):
         else:
             dt_last = 0
 
-        # Return if not in autopilot
+        # Return if not in lane_following (avoid integration)
         if not self.operating:
             self.last_ms = currentMillis
             return
 
-        v_ref = self.v_bar
-        d_ref = 0
-        phi_ref = 0
+        # Receive estimations
         d_est = lane_pose_msg.d
         phi_est = lane_pose_msg.phi
 
-
+        # Obtain control actions from Controller
         v_out, omega_out = self.controller.getControlOutput(d_est, phi_est,
-                            d_ref, phi_ref, v_ref, image_delay, dt_last) #TODO dt_last
+                                self.d_ref, self.phi_ref, self.v_bar,
+                                image_delay, dt_last)
 
-
+        # Create message
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
         car_control_msg.v = v_out
-
         car_control_msg.omega = omega_out
 
+        # Publish message
+        self.pub_car_cmd.publish(car_cmd_msg)
 
-        self.publishCmd(car_control_msg)
-
+        # Update timestamp from control actions
         self.last_ms = currentMillis
 
 
