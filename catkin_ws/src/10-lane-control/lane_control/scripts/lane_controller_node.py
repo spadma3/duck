@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose
+from duckietown_msgs.msg import Twist2DStamped, LanePose, BoolStamped
 from controller import Controller # import the PI controller
-
+import time
 
 class lane_controller(object):
     def __init__(self):
@@ -20,7 +20,7 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
-
+        self.sub_fsm_mode = rospy.Subscriber("~mode", BoolStamped, self.cbMode, queue_size=1)
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -32,6 +32,9 @@ class lane_controller(object):
         # where C = [C(1) C(2)] is the C matrix of the LTI system
         # which is something like [6 1] for the states x = [d phi]
         self.controller = Controller(4, 1, 4, 1, 6, 1)
+
+        self.last_ms = None
+        self.operating = True #TODO
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
@@ -47,11 +50,6 @@ class lane_controller(object):
         k_t = 1
         c1 = 6
         c2 = 1
-        #k_theta = -2.0
-        #k_d = - (k_theta ** 2) / ( 4.0 * v_bar)
-        #theta_thres = math.pi / 6
-        #d_thres = math.fabs(k_theta / k_d) * theta_thres
-        #d_offset = 0.0
 
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
         self.k_P = self.setupParameter("~k_P",k_P)
@@ -60,11 +58,6 @@ class lane_controller(object):
         self.k_t = self.setupParameter("~k_t",k_t)
         self.c1 = self.setupParameter("~c1",c1)
         self.c2 = self.setupParameter("~c2",c2)
-        #self.k_d = self.setupParameter("~k_d",k_theta) # P gain for theta
-        #self.k_theta = self.setupParameter("~k_theta",k_d) # P gain for d
-        #self.d_thres = self.setupParameter("~d_thres",theta_thres) # Cap for error in d
-        #self.theta_thres = self.setupParameter("~theta_thres",d_thres) # Maximum desire theta
-        #self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar") # Linear velocity
@@ -75,10 +68,8 @@ class lane_controller(object):
         c1 = rospy.get_param("~c1")
         c2 = rospy.get_param("~c2")
 
-
         params_old = (self.v_bar, self.k_P, self.k_I, self.u_sat, self.k_t, self.c1, self.c2)
         params_new = (v_bar, k_P, k_I, u_sat, k_t, c1, c2)
-
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -106,6 +97,9 @@ class lane_controller(object):
         rospy.sleep(0.5) #To make sure that it gets published.
         rospy.loginfo("[%s] Shutdown" %self.node_name)
 
+    # FSM
+    def cbMode(self,fsm_state_msg):
+        self.operating = fsm_state_msg.state == "LANE_FOLLOWING"
 
     def publishCmd(self, car_cmd_msg):
         self.pub_car_cmd.publish(car_cmd_msg)
@@ -122,8 +116,17 @@ class lane_controller(object):
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
-        #cross_track_err = lane_pose_msg.d - self.d_offset
-        #heading_err = lane_pose_msg.phi
+        # Calculate time since last command
+        currentMillis = int(round(time.time() * 1000))
+        if self.last_ms is not None:
+            dt_last = (currentMillis - self.last_ms) / 1000.0
+        else:
+            dt_last = 0
+
+        # Return if not in autopilot
+        if not self.operating:
+            self.last_ms = currentMillis
+            return
 
         v_ref = self.v_bar
         d_ref = 0
@@ -133,7 +136,7 @@ class lane_controller(object):
 
 
         v_out, omega_out = self.controller.getControlOutput(d_est, phi_est,
-                            d_ref, phi_ref, v_ref, image_delay, 0) #TODO dt_last
+                            d_ref, phi_ref, v_ref, image_delay, dt_last) #TODO dt_last
 
 
         car_control_msg = Twist2DStamped()
@@ -144,6 +147,8 @@ class lane_controller(object):
 
 
         self.publishCmd(car_control_msg)
+
+        self.last_ms = currentMillis
 
 
 if __name__ == "__main__":
