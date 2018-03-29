@@ -1,36 +1,35 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose, BoolStamped, FSMState
+from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState
 from controller import Controller # import the PI controller
 import time
+import numpy as np
 
 class lane_controller(object):
     def __init__(self):
         self.node_name = rospy.get_name()
-        self.lane_reading = None
 
-        self.pub_counter = 0
-
-        # Setup parameters
+        # Setup gains
         self.setGains()
 
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbLaneFollowing, queue_size=1)
         self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
+        self.sub_intersection_reference= rospy.Subscriber("~lane_pose_intersection_navigation", LanePose, self.cbIntersectionNav, "intersection_navigation",queue_size=1)
+
 
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
-        rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
+        rospy.loginfo("[%s] Initialized " % (rospy.get_name()))
 
-        # Setup gains
-        self.setGains()
+
 
         # initialize Controller: k_P, k_I, u_sat, k_t, C(1), C(2)
         # where C = [C(1) C(2)] is the C matrix of the LTI system
@@ -42,6 +41,7 @@ class lane_controller(object):
 
         # Variable for FSM (turn off integral of not lane_following)
         self.operating = False
+        self.fsm_mode = None
 
         # Variables or object avoidance
         self.d_ref = 0
@@ -93,39 +93,36 @@ class lane_controller(object):
             self.c1 = c1
             self.c2 = c2
 
-
-    def custom_shutdown(self):
-        rospy.loginfo("[%s] Shutting down..." %self.node_name)
-
-        # Stop listening
-        self.sub_lane_reading.unregister()
-        self.sub_fsm_mode.unregister()
-
-        # Send stop command
-        car_control_msg = Twist2DStamped()
-        car_control_msg.v = 0.0
-        car_control_msg.omega = 0.0
-        self.publishCmd(car_control_msg)
-        rospy.sleep(0.5) #To make sure that it gets published.
-        rospy.loginfo("[%s] Shutdown" %self.node_name)
+    # Gets always called in Lane following
+    def cbLaneFollowing(self, pose_msg):
+        if self.fsm_mode == "LANE_FOLLOWING":
+            self.controlActions(pose_msg)
 
 
-    # FSM
+    # Gets called if intersection navigation dicts a path to us
+    def cbIntersectionNav(self, input_pose_msg, pose_source):
+        if self.fsm_state == "INTERSECTION_CONTROL":
+            if pose_source == "intersection_navigation":
+                self.v_bar = input_pose_msg.v_ref
+                self.controlActions(input_pose_msg)
+
+
+
+    # FSM status handling
     def cbMode(self,fsm_state_msg):
+        self.fsm_mode = fsm_state_msg.state
         self.operating = fsm_state_msg.state == "LANE_FOLLOWING"
 
 
 
-    def cbPose(self, lane_pose_msg):
-
-        # Receive message from lane pose estimation
-        self.lane_reading = lane_pose_msg
-
+    # Receives a pose from either lane_following or intersection_navigation
+    def controlActions(self, pose_msg):
+        self.lane_reading = pose_msg
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
         # delay from taking the image until now in seconds
-        image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
+        image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs / 1e9
 
         # Calculate time since last command
         currentMillis = int(round(time.time() * 1000))
@@ -160,8 +157,24 @@ class lane_controller(object):
         # Update timestamp from control actions
         self.last_ms = currentMillis
 
+    # Shutdown for ROS
+    def custom_shutdown(self):
+        rospy.loginfo("[%s] Shutting down..." % self.node_name)
+
+        # Stop listening
+        self.sub_lane_reading.unregister()
+        self.sub_fsm_mode.unregister()
+        self.sub_intersection_reference.unregister()
+
+        # Send stop command
+        car_control_msg = Twist2DStamped()
+        car_control_msg.v = 0.0
+        car_control_msg.omega = 0.0
+        self.publishCmd(car_control_msg)
+        rospy.sleep(0.5)  # To make sure that it gets published.
+        rospy.loginfo("[%s] Shutdown" % self.node_name)
 
 if __name__ == "__main__":
-    rospy.init_node("lane_controller",anonymous=False)
+    rospy.init_node("lane_controller_node", anonymous=False)  # adapted to sonjas default file
     lane_control_node = lane_controller()
     rospy.spin()

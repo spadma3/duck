@@ -77,7 +77,10 @@
 	<arg name="coordination" default="false"/>
 
 	<arg name="navigation" default="false"/>
-	<arg name="/navigation/intersection_control" default="true"/>
+	<arg name="/navigation/intersection_control" default="false"/>
+	<arg name="/navigation/intersection_navigation" default="true"/>
+	<arg name="/navigation/intersection_localisation" default="true"/>
+
 	<arg name="/navigation/apriltags_random" default="true"/>
 	<arg name="/navigation/random_sr_turns" default="false"/>
 	<arg name="/navigation/graph_planner" default="false"/>
@@ -162,6 +165,8 @@
 
 	    <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
 		<remap from="inverse_kinematics_node/car_cmd" to="car_cmd_switch_node/cmd"/>
+		<remap from="inverse_kinematics_node/actuator_limits_received" to="lane_controller_node/actuator_limits_received" />
+		<remap from="wheels_driver_node/radius_limit" to="lane_controller_node/radius_limit" />
 		<include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 		</include>
@@ -246,7 +251,7 @@
 		<group if="$(arg /lane_following/line_detection)">
 			<remap from="line_detector_node/image" to="camera_node/image/compressed"/>
 			<remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
-
+			<remap from="line_detector_node/fsm_mode" to="fsm_node/mode" />
 			<include file="$(find line_detector)/launch/line_detector_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -275,6 +280,7 @@
 		<group if="$(arg /lane_following/lane_filter)">
 		  <remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
 		  <remap from="lane_filter_node/car_cmd" to="car_cmd_switch_node/cmd"/>
+		  <remap from="lane_filter_node/fsm_mode" to="fsm_node/mode" />
 			<include file="$(find lane_filter)/launch/lane_filter_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -298,6 +304,16 @@
 		<group if="$(arg /lane_following/lane_controller)">
 			<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
 			<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode"/>
+			<remap from="lane_controller_node/lane_pose_intersection_navigation" to="intersection_navigation_node/lane_pose_intersection_navigation"/>
+			<remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/>
+			<!-- <remap from="lane_controller_node/lane_pose_obstacle_avoidance" to="lane_filter_node/lane_pose_obstacle_avoidance"/> TODO: add correct node_name
+			<remap from="lane_controller_node/lane_pose_parking" to="lane_filter_node/lane_pose_parking"/>
+			<remap from="lane_controller_node/implicit_coordination_velocity" to="lane_filter_node/implicit_coordination_velocity"/> -->
+			<remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
+			<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
+			<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
+			<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
+			<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_active_flag" />
 			<include file="$(find lane_control)/launch/lane_controller_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -521,6 +537,28 @@
 			<remap from="open_loop_intersection_control_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading"/>
 			<remap from="open_loop_intersection_control_node/in_lane" to="lane_filter_node/in_lane"/>
 			<include file="$(find intersection_control)/launch/open_loop_intersection_controller_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>
+		</group>
+
+		<group if="$(arg /navigation/intersection_navigation)">
+			<!-- closed loop intersection_navigation -->
+			<remap from="intersection_navigation_node/mode" to="fsm_node/mode"/>
+			<remap from="intersection_navigation_node/in_lane" to="lane_filter_node/in_lane"/>
+
+			<include file="$(find intersection_navigation)/launch/intersection_navigation_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>
+		</group>
+
+		<group if="$(arg /navigation/intersection_localization)">
+			<!--intersection_localization node=simulated sensor for navigation -->
+
+			<include file="$(find intersection_localization)/launch/intersection_localization_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
 				<arg name="param_file_name" value="$(arg param_file_name)"/>

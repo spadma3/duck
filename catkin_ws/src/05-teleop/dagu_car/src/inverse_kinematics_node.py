@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from duckietown_msgs.msg import WheelsCmdStamped, Twist2DStamped
+from duckietown_msgs.msg import WheelsCmdStamped, Twist2DStamped, BoolStamped
 from duckietown_msgs.srv import SetValueRequest, SetValueResponse, SetValue
 from std_srvs.srv import EmptyRequest, EmptyResponse, Empty
 from numpy import *
@@ -31,6 +31,9 @@ class InverseKinematicsNode(object):
         self.limit_max = 1.0
         self.limit_min = 0.0
 
+        self.v_max = 999.0     # TODO: Calculate v_max !
+        self.omega_max = 999.0     # TODO: Calculate v_max !
+
         # Prepare services
         self.srv_set_gain = rospy.Service("~set_gain", SetValue, self.cbSrvSetGain)
         self.srv_set_trim = rospy.Service("~set_trim", SetValue, self.cbSrvSetTrim)
@@ -42,7 +45,16 @@ class InverseKinematicsNode(object):
 
         # Setup the publisher and subscriber
         self.sub_car_cmd = rospy.Subscriber("~car_cmd", Twist2DStamped, self.car_cmd_callback)
+        self.sub_actuator_limits_received = rospy.Subscriber("~actuator_limits_received", BoolStamped, self.updateActuatorLimitsReceived, queue_size=1)
         self.pub_wheels_cmd = rospy.Publisher("~wheels_cmd", WheelsCmdStamped, queue_size=1)
+        self.pub_actuator_limits = rospy.Publisher("~actuator_limits", Twist2DStamped, queue_size=1)
+        
+        self.msg_actuator_limits = Twist2DStamped()
+        self.msg_actuator_limits.v = self.v_max     # TODO: Calculate v_max !
+        self.msg_actuator_limits.omega = self.omega_max     # TODO: Calculate omega_max !
+        self.actuator_limits_received = False
+        self.pub_actuator_limits.publish(self.msg_actuator_limits)
+
         rospy.loginfo("[%s] Initialized.", self.node_name)
         self.printValues()
 
@@ -77,6 +89,8 @@ class InverseKinematicsNode(object):
     def getFilePath(self, name):
         return (get_duckiefleet_root()+'/calibrations/kinematics/' + name + ".yaml")
 
+    def updateActuatorLimitsReceived(self, msg_actuator_limits_received):
+        self.actuator_limits_received = msg_actuator_limits_received.data
             
     def saveCalibration(self):
         # Write to yaml
@@ -105,31 +119,49 @@ class InverseKinematicsNode(object):
     def cbSrvSetGain(self, req):
         self.gain = req.value
         self.printValues()
+        self.msg_actuator_limits.v = self.v_max     # TODO: Calculate v_max !
+        self.msg_actuator_limits.omega = self.omega_max     # TODO: Calculate omega_max !
+        self.pub_actuator_limits.publish(self.msg_actuator_limits)
         return SetValueResponse()
 
     def cbSrvSetTrim(self, req):
         self.trim = req.value
         self.printValues()
+        self.msg_actuator_limits.v = self.v_max     # TODO: Calculate v_max !
+        self.msg_actuator_limits.omega = self.omega_max     # TODO: Calculate omega_max !
+        self.pub_actuator_limits.publish(self.msg_actuator_limits)
         return SetValueResponse()
 
     def cbSrvSetBaseline(self, req):
         self.baseline = req.value
         self.printValues()
+        self.msg_actuator_limits.v = self.v_max     # TODO: Calculate v_max !
+        self.msg_actuator_limits.omega = self.omega_max     # TODO: Calculate omega_max !
+        self.pub_actuator_limits.publish(self.msg_actuator_limits)
         return SetValueResponse()
 
     def cbSrvSetRadius(self, req):
         self.radius = req.value
         self.printValues()
+        self.msg_actuator_limits.v = self.v_max     # TODO: Calculate v_max !
+        self.msg_actuator_limits.omega = self.omega_max     # TODO: Calculate omega_max !
+        self.pub_actuator_limits.publish(self.msg_actuator_limits)
         return SetValueResponse()
 
     def cbSrvSetK(self, req):
         self.k = req.value
         self.printValues()
+        self.msg_actuator_limits.v = self.v_max     # TODO: Calculate v_max !
+        self.msg_actuator_limits.omega = self.omega_max     # TODO: Calculate omega_max !
+        self.pub_actuator_limits.publish(self.msg_actuator_limits)
         return SetValueResponse()
 
     def cbSrvSetLimit(self, req):
         self.limit = self.setLimit(req.value)
         self.printValues()
+        self.msg_actuator_limits.v = self.v_max     # TODO: Calculate v_max !
+        self.msg_actuator_limits.omega = self.omega_max     # TODO: Calculate omega_max !
+        self.pub_actuator_limits.publish(self.msg_actuator_limits)
         return SetValueResponse()
 
     def setLimit(self, value):
@@ -147,6 +179,9 @@ class InverseKinematicsNode(object):
         rospy.loginfo("[%s] gain: %s trim: %s baseline: %s radius: %s k: %s limit: %s" % (self.node_name, self.gain, self.trim, self.baseline, self.radius, self.k, self.limit))
 
     def car_cmd_callback(self, msg_car_cmd):
+        if not self.actuator_limits_received:
+            self.pub_actuator_limits.publish(self.msg_actuator_limits)
+
         # assuming same motor constants k for both motors
         k_r = self.k
         k_l = self.k
