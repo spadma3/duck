@@ -1,4 +1,4 @@
-# Initail state of the FSM
+# Initial state of the FSM
 initial_state: "JOYSTICK_CONTROL"
 
 events: #Maps from subscribing topic to signal ids
