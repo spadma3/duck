@@ -110,8 +110,9 @@ class lane_controller(object):
 
     # FSM status handling
     def cbMode(self,fsm_state_msg):
-        self.fsm_mode = fsm_state_msg.state
-        self.operating = fsm_state_msg.state == "LANE_FOLLOWING"
+        fsm_state = fsm_state_msg.state
+        self.fsm_mode = fsm_state
+        self.operating = fsm_state == "LANE_FOLLOWING" or fsm_state == "INTERSECTION_CONTROL"
 
 
 
