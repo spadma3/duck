@@ -1,12 +1,14 @@
 # Initial state of the FSM
+
 initial_state: "NORMAL_JOYSTICK_CONTROL"
 
+
 events: # Maps from subscribing topic to signal ids
-  # joystick_override_on: 
+  # joystick_override_on:
   #   topic: "joy_mapper_node/joystick_override"
   #   msg_type: "BoolStamped"
   #   trigger: True
-  # joystick_override_off: 
+  # joystick_override_off:
   #   topic: "joy_mapper_node/joystick_override"
   #   msg_type: "BoolStamped"
   #   trigger: False
@@ -23,7 +25,7 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
   apriltag_intersection:
-    topic: "apriltags_postprocessing_node/apriltags_intersection" 
+    topic: "apriltags_postprocessing_node/apriltags_intersection"
     msg_type: "BoolStamped"
     trigger: True
   at_stop_line:
@@ -32,7 +34,7 @@ events: # Maps from subscribing topic to signal ids
     trigger: True
   # Logical events from logic_gate_node
   # at_stop_line_and_velocity_zero:
-  #   topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
+  #   topic: "logic_gate_node/at_stop_line_and_velocity_zero"
   #   msg_type: "BoolStamped"
   #   trigger: True
   intersection_go:
@@ -40,15 +42,15 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
   apriltag_parking_and_parking_active:
-    topic: "logic_gate_node/apriltag_parking_and_parking_active" 
+    topic: "logic_gate_node/apriltag_parking_and_parking_active"
     msg_type: "BoolStamped"
     trigger: True
   joystick_override_on_and_parallel_autonomy_off:
-    topic: "logic_gate_node/joystick_override_on_and_parallel_autonomy_off" 
+    topic: "logic_gate_node/joystick_override_on_and_parallel_autonomy_off"
     msg_type: "BoolStamped"
     trigger: True
   joystick_override_on_and_parallel_autonomy_on:
-    topic: "logic_gate_node/joystick_override_on_and_parallel_autonomy_on" 
+    topic: "logic_gate_node/joystick_override_on_and_parallel_autonomy_on"
     msg_type: "BoolStamped"
     trigger: True
   joystick_override_off_and_deep_lane_off:
@@ -59,11 +61,11 @@ events: # Maps from subscribing topic to signal ids
     topic: "logic_gate_node/joystick_override_off_and_deep_lane_on"
     msg_type: "BoolStamped"
     trigger: True
-  deep_lane_following_on: 
+  deep_lane_following_on:
     topic: "joy_mapper_node/deep_learn_toggle"
     msg_type: "BoolStamped"
     trigger: True
-  deep_lane_following_off: 
+  deep_lane_following_off:
     topic: "joy_mapper_node/deep_learn_toggle"
     msg_type: "BoolStamped"
     trigger: False
@@ -101,7 +103,7 @@ events: # Maps from subscribing topic to signal ids
   #   msg_type: "BoolStamped"
   #   trigger: False
 
-# Define nodes 
+# Define nodes
 nodes:
   decoder_node: "decoder_node/switch"
   apriltag_node: "apriltag_detector_node/switch"
@@ -212,25 +214,36 @@ states:
       - intersection_localization_node
       - lane_controller_node
     current_status: "in_progress"
-  PARKING:
-    transitions:
-      at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
-      at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
-    active_nodes:
-      - decoder_node
-      - apriltag_node
-      - line_detector_node
-      - lane_filter_node
-      - parking_node
-      - lane_controller_node
-      - parking_perception_localization
-      - parking_path_planning
-      - parking_control
-    current_status: "in_progress"
+#   PARKING:
+#     transitions:
+# <<<<<<< HEAD
+#       at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
+#       at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
+#     active_nodes:
+# =======
+#       #vehicle_cleared: "PARALLEL_AUTONOMY"
+#       vehicle_cleared: "LANE_FOLLOWING_AVOID"
+#     active_nodes:
+#       - vehicle_detector_node
+#       - static_object_detector_node
+#       - lane_filter_node
+#       - line_detector_node
+#       - stop_line_filter_node
+# >>>>>>> devel-implicit-coord-jan15-intersection-coord
+#       - decoder_node
+#       - apriltag_node
+#       - line_detector_node
+#       - lane_filter_node
+#       - parking_node
+#       - lane_controller_node
+#       - parking_perception_localization
+#       - parking_path_planning
+#       - parking_control
+#     current_status: "in_progress"
   ARRIVE_AT_STOP_LINE:
     transitions:
       apriltag_intersection: "INTERSECTION_COORDINATION"
-      apriltag_parking_and_parking_active: "PARKING"
+      # apriltag_parking_and_parking_active: "PARKING"
     active_nodes:
       - apriltag_node
       - decoder_node
@@ -246,7 +259,7 @@ states:
       - line_detector_node
       - stop_line_filter_node
       - duckiebot_il_lane_following
-      
+
 
   # LANE_RECOVERY: # not implemented
   #   transitions:
