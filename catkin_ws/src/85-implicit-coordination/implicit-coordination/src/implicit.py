@@ -18,7 +18,7 @@ class Implicit(object):
         self.active = False
         self.iteration = 0
         self.detected_bots = {}
-	
+
         self.config = self.setupParameter("~config", "baseline")
         self.cali_file_name = self.setupParameter("~cali_file_name", "default")
         rospack = rospkg.RosPack()
@@ -30,22 +30,22 @@ class Implicit(object):
             rospy.logwarn("[%s] Can't find calibration file: %s.\n"
                           % (self.node_name, self.cali_file))
         self.loadConfig(self.cali_file)
-	
+
 	#set seed
 	seed()
-	
+
         # Setup publishers
         self.pub_coord_cmd = rospy.Publisher('simple_coordinator_node/car_cmd',
                                              Twist2DStamped, queue_size=1)
         self.pub_implicit_coordination = rospy.Publisher(
-            "~flag_intersection_wait_go_implicit", BoolStamped, queue_size=1)
-        
+            "implicit_coord/flag_go_wait", BoolStamped, queue_size=1) # TODO fix me
+
         # Setup subscriber
         # self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection",
         #                                            BoolStamped, self.cbCSMA)
         self.sub_detector = rospy.Subscriber("~vehicle_detection_node",
                                              TrackletList, self.cbGetBots)
-        self.sub_mode = rospy.Subscriber("~fsm", FSMState, self.cbFSM)
+        self.sub_mode = rospy.Subscriber("fsm_node/mode", FSMState, self.cbFSM)  # TODO fix me
 
         self.timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.publish_car_cmd)
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
@@ -122,7 +122,8 @@ class Implicit(object):
 
     def cbFSM(self, msg):
         self.mode = msg.state
-        if self.mode == "COORDINATION":
+        if self.mode == "INTERSECTION_COORDINATION":
+            rospy.loginfo("Potatoe")
             self.active = True
             self.CSMA()
 
