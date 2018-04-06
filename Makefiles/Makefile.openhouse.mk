@@ -73,3 +73,6 @@ openhouse-dp5: check-environment
 
 openhouse-dp4: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos traffic_light_coordination.launch"
+
+virjoy-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; python misc/virtualJoy/virtualJoy.py"
