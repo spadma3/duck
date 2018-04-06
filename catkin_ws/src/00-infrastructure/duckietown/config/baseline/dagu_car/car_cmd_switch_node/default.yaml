@@ -11,6 +11,7 @@ source_topics: #Mapping from cmd source name to topics
   deep_learning: "duckiebot_il_lane_following/car_cmd"
   parking: "lane_controller_node/car_cmd"
   stop: "simple_stop_controller_node/car_cmd"
+
 mappings: #Mapping from FSMStates.state to cmd source names. Allows different FSM mode to use the same source.
   LANE_FOLLOWING: "vehicle" #TODO blackmagic
   LANE_FOLLOWING_AVOID: "lane"
@@ -27,3 +28,6 @@ mappings: #Mapping from FSMStates.state to cmd source names. Allows different FS
   DEEP_LANE_FOLLOWING: "deep_learning"
   PARKING: "parking"
   ARRIVE_AT_STOP_LINE: "stop"
+
+  IN_CHARGING_AREA: "vehicle"
+  CHARGING_FIRST_IN_LINE: "stop"

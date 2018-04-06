@@ -61,6 +61,11 @@ events:
     msg_type: "BoolStamped"
     trigger: False
 
+  charging_exit:
+    default: False
+    topic: "charging_control_node/at_exit"
+    msg_type: "BoolStamped"
+    trigger: True
 
   ###### TO USE OPEN LOOP INTERSECTION CONTROL: (untested)
   # COMMENT OUT THE FIRST intersection_done, AND UNCOMMENT SECOND intersection_done
@@ -131,3 +136,10 @@ gates:
       - intersection_done
       - deep_lane_following_on
     output_topic: "~intersection_done_and_deep_lane_on"
+
+  at_stop_line_and_charging_exit:
+    gate_type: "AND"
+    inputs:
+      - at_stop_line
+      - charging_exit
+    output_topic: "~at_stop_line_and_charging_exit"

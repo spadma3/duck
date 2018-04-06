@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState
+from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Point
 import time
@@ -16,14 +16,18 @@ class ChargingControlNode(object):
         ## setup Parameters
         self.setupParams()
 
+        self.chargingTag = False
+        self.ready2go = False
 
         self.state = "JOYSTICK_CONTROL"
 
         ## Subscribers
-        self.sub_segs = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
+        self.sub_state = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
+        self.sub_tags = rospy.Subscriber("~april_tags", AprilTagsWithInfos, self.cbAprilTag)
+        self.go_first = rospy.Subscriber("~go_first", BoolStamped, self.cbGoFirst)
 
         ## Publisher
-        self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1)
+        self.at_exit = rospy.Publisher("~at_exit", BoolStamped, queue_size=1)
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -32,7 +36,28 @@ class ChargingControlNode(object):
 
     def cbFSMState(self, state_msg):
         self.state = state_msg.state
-        rospy.loginfo("CHARGING CONTROL SAYS NEW STATE LULULULULU")
+
+
+    def goFirst(self, msg):
+        if msg.data:
+            self.ready2go = True
+
+
+
+    def cbAprilTag(self, tag_msg):
+        tags = tag_msg.detections
+        at_exit = False
+        for tag in tags:
+            rospy.loginfo("We see tag no " + str(tag.id))
+
+            if tag.id == 149:
+                at_exit = True
+
+        if at_exit:
+            at_exit_msg = BoolStamped()
+            at_exit_msg.header = tag_msg.header
+            at_exit_msg.data = True
+            self.at_exit.publish(at_exit_msg)
 
     def setupParams(self):
         self.ex = self.setupParam("~ex", 0.22) # distance from the stop line that we should stop
