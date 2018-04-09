@@ -43,7 +43,9 @@ class ChargingControlNode(object):
             self.ready2go = True
 
 
-
+    def cbGoFirst(self, msg):
+        return
+    
     def cbAprilTag(self, tag_msg):
         tags = tag_msg.detections
         at_exit = False
