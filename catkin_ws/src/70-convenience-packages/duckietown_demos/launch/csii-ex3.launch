@@ -28,7 +28,7 @@
 
 	<!-- start switch args -->
 	<arg name="camera" default="true"/>
-	<arg name="/camera/raw" default="true"/>
+	<arg name="/camera/raw" default="false"/>
 	<arg name="/camera/cam_info" default="true"/>
 	<arg name="/camera/raw/rect" default="false"/>
 	<arg name="/camera/local" default="false" />
@@ -40,7 +40,7 @@
 	<arg name="odometry" default="false"/>
 	<arg name="/odometry/forward_kinematics" default="false"/>
 
-	<arg name="lane_following" default="true"/>
+	<arg name="lane_following" default="false"/>
 	<arg name="/lane_following/line_detection" default="true"/>
 	<arg name="/lane_following/ground_projection" default="true"/>
 	<arg name="/lane_following/lane_filter" default="true"/>
