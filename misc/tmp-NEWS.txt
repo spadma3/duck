@@ -1,0 +1,103 @@
+
+```
+git fetch --all
+git checkout andrea-better-camera-calib
+
+rosrun complete_image_pipeline validate_calibration
+
+rosrun complete_image_pipeline single_image_pipeline
+
+rosrun complete_image_pipeline calibrate_extrinsics
+
+
+```
+
+    dt-complete_image_pipeline-single_image_pipeline
+    dt-complete_image_pipeline-validate_calibration
+
+./misc/tmp-NEWS.txt
+
+How to validate calibration:
+
+    rosrun complete_image_pipeline validate_calibration  gummi
+
+How to visualize all maps:
+
+    rosrun complete_image_pipeline display_segmaps '*tile*'
+
+Run localization on a log:
+
+    rosrun complete_image_pipeline single_image_pipeline_log --log "tori_ETHZ_2017-12-13-15-48-58.bag/{20:}"  --lane_filter moregeneric_straight -c "clean;make"
+
+Create thumbnails:
+
+    rosrun easy_logs thumbnails --max_images=[num] [logs]
+
+
+    DUCKIETOWN_DATA=. rosrun easy_logs thumbnails 'yaf*'
+
+How to add log to Dropbox?
+
+@UnresolvedImport @UnusedImport
+
+# How to read YAML
+
+
+# How to log
+
+
+
+# How to add unit tests
+
+  add unit tests to package_name
+
+# How to run external commands
+
+
+# How to read logs
+
+
+# How to read images
+
+
+
+# How to use contracts
+
+
+
+
+
+# How to use exceptions
+
+
+## How to re-raise exceptions
+
+
+    try:
+        image_cv = dtu.bgr_from_jpg(compressed_img_msg.data)
+    except ValueError as e:
+        msg = 'Could not decode image: %s' % e
+        dtu.raise_wrapped(ValueError, e, msg)
+
+
+# Poses and geometry
+
+Dealing with poses/geometry
+
+           pose = dtu.geo.SE2_from_translation_angle([x,y], theta)
+
+------
+
+Some difficult images:
+
+    "tori_ETHZ_2017-12-13-15-48-58.bag/{20:}"
+
+
+* Confusing compmake interface for some commands.
+
+    1) Maybe add default to be "do it again", option to use the cached computation
+
+
+TODO:
+
+    test for cli_single_image

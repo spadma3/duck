@@ -1,14 +1,14 @@
 from collections import defaultdict
 from contextlib import contextmanager
-import rospy
 import time
+import duckietown_utils as dtu
 
-from duckietown_utils.text_utils import seconds_as_ms
 
+__all__ = [
+    'ProcessingTimingStats',
+]
 
-__all__ = ['ProcessingTimingStats']
-
-class ProcessingTimingStats():
+class ProcessingTimingStats(object):
     """
         This is the model:
         
@@ -62,37 +62,55 @@ class ProcessingTimingStats():
         self.stats = defaultdict(lambda: SingleStat())
         self.phase_names = []
         
-    def received_message(self, msg):
+    def received_message(self, msg=None):
+        """ 
+            Declares that we are processing the ROS message msg.
+            We take the timestamp from its header.
+            
+            If msg is None, then we use the current time for the timestamp. 
+        """
         self.stats['received'].sample()
-        self.last_msg_received= msg.header.stamp.to_sec()
+        if msg is not None:
+            self.last_msg_received = msg.header.stamp.to_sec()
+        else:
+            self.last_msg_received = time.time()
     
-    def decided_to_process(self, msg):
-        self.last_msg_being_processed = msg.header.stamp.to_sec()
+    def decided_to_process(self, msg=None):
+        if msg is None:
+            self.last_msg_being_processed = self.last_msg_received
+        else:
+            self.last_msg_being_processed = msg.header.stamp.to_sec()
         self.stats['processed'].sample()
         
     def decided_to_skip(self):
         self.stats['skipped'].sample()
     
     @contextmanager
-    def phase(self, phase_name): 
-        if not phase_name in self.phase_names:
-            self.phase_names.append(phase_name)
-            
-        t1 = rospy.get_time()   # @UndefinedVariable
-        c1 = time.clock() 
-                    
-        try:
-            yield
-        finally:
-            c2 = time.clock()
-            t2 = rospy.get_time()   # @UndefinedVariable
-            delta_clock = c2 - c1
-            delta_wall = t2 - t1
-            latency_from_acquisition = t2 - self.last_msg_being_processed
-
-        self.stats[(phase_name, 'clock')].sample(delta_clock)
-        self.stats[(phase_name, 'wall')].sample(delta_wall)
-        self.stats[(phase_name, 'latency')].sample(latency_from_acquisition)
+    def phase(self, phase_name):
+        with dtu.timeit_clock(phase_name): 
+            if not phase_name in self.phase_names:
+                self.phase_names.append(phase_name)
+            if self.last_msg_being_processed is None:
+                msg = 'Did not call decided_to_process() before?'
+                raise ValueError(msg)
+                
+    #         t1 = rospy.get_time()   # @UndefinedVariable
+            t1 = time.time()
+            c1 = time.clock() 
+                        
+            try:
+                yield
+            finally:
+                c2 = time.clock()
+    #             t2 = rospy.get_time()   # @UndefinedVariable
+                t2 = time.time()
+                delta_clock = c2 - c1
+                delta_wall = t2 - t1
+                latency_from_acquisition = t2 - self.last_msg_being_processed
+    
+            self.stats[(phase_name, 'clock')].sample(delta_clock)
+            self.stats[(phase_name, 'wall')].sample(delta_wall)
+            self.stats[(phase_name, 'latency')].sample(latency_from_acquisition)
     
     def get_stats(self):
         s = ""
@@ -111,16 +129,17 @@ class ProcessingTimingStats():
                 skipped_percentage, 
             )
         
+        l = max(len(_) for _ in self.phase_names)
         for phase_name in self.phase_names:
             stats_clock = self.stats[(phase_name, 'clock')]
             stats_wall = self.stats[(phase_name, 'wall')]
             stats_latency = self.stats[(phase_name, 'latency')]
 
-            total_latency = seconds_as_ms(stats_latency.last_value())
-            delta_wall = seconds_as_ms(stats_wall.last_value())
-            delta_clock = seconds_as_ms(stats_clock.last_value())
-            msg = ('%20s | total latency %10s | delta wall %10s | delta clock %10s' %
-                   (phase_name, total_latency, delta_wall, delta_clock))
+            total_latency = dtu.seconds_as_ms(stats_latency.last_value())
+            delta_wall = dtu.seconds_as_ms(stats_wall.last_value())
+            delta_clock = dtu.seconds_as_ms(stats_clock.last_value())
+            msg = ('%s | total latency %10s | delta wall %10s | delta clock %10s' %
+                   (phase_name.ljust(l), total_latency, delta_wall, delta_clock))
             s += '\n' + msg
         return s
 #                 acquired | total latency 49737091899.9ms | delta wall     None clock     None
@@ -134,14 +153,15 @@ class ProcessingTimingStats():
 #               pub_image | total latency 49737091909.8ms | delta wall    0.1ms clock    0.1ms
 #    pub_edge/pub_segment | total latency 49737091910.8ms | delta wall    1.1ms clock    1.1ms
    
-class SingleStat():
+class SingleStat(object):
     
     def __init__(self):
         self.times = []
         self.values = []
     
     def sample(self, v=None):
-        t = rospy.get_time()  # @UndefinedVariable
+#         t = rospy.get_time()  # @UndefinedVariable
+        t = time.time()
         self.times.append(t)
         self.values.append(v)
 
@@ -166,7 +186,7 @@ class SingleStat():
             return '%.1f fps' % f
              
     def duration(self):
-        delta = rospy.get_time()  # @UndefinedVariable
+        delta = time.time()
         return delta - self.times[0]
     
 def get_percentage(i, n):
@@ -176,3 +196,16 @@ def get_percentage(i, n):
         v = 100 * (1.0 * i / n)
         return '%.1f %%' % v
         
+        
+
+
+class FakeContext(object):
+    def __init__(self):
+        pass  
+
+    @contextmanager
+    def phase(self, name):  # @UnusedVariable
+            yield
+
+    def get_stats(self):
+        pass 

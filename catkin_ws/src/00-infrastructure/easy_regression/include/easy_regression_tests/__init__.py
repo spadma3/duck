@@ -1,14 +1,9 @@
 
+from . import binary
+from . import conditions
+from . import configuration
+from . import evaluation
+from . import references
+from . import run_all
+from . import structured
 
-def jobs_comptests(context):  
-    
-    from . import configuration
-    from . import conditions  
-    from . import binary  
-    from . import references
-    from . import evaluation
-    from . import run_all
-    
-    from comptests.registrar import jobs_registrar_simple
-    jobs_registrar_simple(context)
-    

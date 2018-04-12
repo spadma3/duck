@@ -1,6 +1,6 @@
-""" 
+"""
     All of this is copied from [PyContracts](todo).
-    
+
 """
 
 import sys
@@ -19,7 +19,7 @@ def _get_str(x, informal):
 
 def format_list_long(l, informal=False):
     """
-        - My 
+        - My
           first
         - Second
     """
@@ -32,6 +32,7 @@ def format_list_long(l, informal=False):
         res += indent(s, ' ', first=prefix)
     return res
 
+
 def format_obs(d, informal=False):
     """ Shows objects values and typed for the given dictionary """
     if not d:
@@ -42,7 +43,7 @@ def format_obs(d, informal=False):
         maxlen = max(len(name), maxlen)
 
     def pad(pre):
-        return ' ' * (maxlen-len(pre)) + pre
+        return ' ' * (maxlen - len(pre)) + pre
 
     res = ''
 
@@ -64,20 +65,21 @@ def raise_wrapped(etype, e, msg, compact=False, exc=None, **kwargs):
     """ Raises an exception of type etype by wrapping
         another exception "e" with its backtrace and adding
         the objects in kwargs as formatted by format_obs.
-        
+
         if compact = False, write the whole traceback, otherwise just str(e).
-    
+
         exc = output of sys.exc_info()
     """
-    
+
     e = raise_wrapped_make(etype, e, msg, compact=compact, **kwargs)
-    
+
     if exc is not None:
         _, _, trace = exc
         raise etype, e.args, trace
     else:
         raise e
-    
+
+
 def raise_wrapped_make(etype, e, msg, compact=False, **kwargs):
     """ Constructs the exception to be thrown by raise_wrapped() """
     assert isinstance(e, BaseException), type(e)
@@ -86,7 +88,6 @@ def raise_wrapped_make(etype, e, msg, compact=False, **kwargs):
     if kwargs:
         s += '\n' + format_obs(kwargs)
 
-    import sys
     if sys.version_info[0] >= 3:
         es = str(e)
     else:
@@ -100,9 +101,10 @@ def raise_wrapped_make(etype, e, msg, compact=False, **kwargs):
 
     return etype(s)
 
+
 def raise_desc(etype, msg, args_first=False, **kwargs):
     """
-    
+
         Example:
             raise_desc(ValueError, "I don't know", a=a, b=b)
     """
@@ -121,7 +123,6 @@ def raise_desc(etype, msg, args_first=False, **kwargs):
     raise etype(s)
 
 
-
 # A couple of functions for pretty errors
 def aslist(x):
     if isinstance(x, dict):
@@ -136,41 +137,43 @@ def raise_x_not_found(what, x, iterable, exception=ValueError):
     msg = x_not_found(what, x, iterable)
     raise exception(msg)
 
+
 def x_not_found(what, x, iterable):
     ''' Shortcut for creating pretty error messages. '''
     # TODO: add guess in case of typos
     options = aslist(iterable)
-    
+
     return ('Could not find %s %r. I know the elements: %s.' %
             (what, x, options))
 
 
 def check_is_in(what, x, iterable, exception=ValueError):
     if not x in iterable:
-        raise_x_not_found(what, x, iterable, exception) 
+        raise_x_not_found(what, x, iterable, exception)
 
 
 def check_isinstance(ob, expected, **kwargs):
     if not isinstance(ob, expected):
         kwargs['object'] = ob
         raise_type_mismatch(ob, expected, **kwargs)
-        
+
+
 def raise_type_mismatch(ob, expected, **kwargs):
     """ Raises an exception concerning ob having the wrong type. """
     e = 'Object not of expected type:'
-    e +='\n  expected: %s' % str(expected)
-    e +='\n  obtained: %s' % str(type(ob))
+    e += '\n  expected: %s' % str(expected)
+    e += '\n  obtained: %s' % str(type(ob))
     e += '\n' + indent(format_obs(kwargs), ' ')
     raise ValueError(e)
 
 
 def describe_type(x):
     """ Returns a friendly description of the type of x. """
-    
+
     inPy2 = sys.version_info[0] == 2
     if inPy2:
         from types import ClassType
-        
+
     if inPy2 and isinstance(x, ClassType):
         class_name = '(old-style class) %s' % x
     else:
@@ -202,6 +205,7 @@ def describe_value(x, clip=80):
         final = desc + clipped_repr(x, clip - len(desc))
         return remove_newlines(final)
 
+
 def clipped_repr(x, clip):
     s = "{0!r}".format(x)
     if len(s) > clip:
@@ -209,7 +213,6 @@ def clipped_repr(x, clip):
         cut = clip - len(clip_tag)
         s = "%s%s" % (s[:cut], clip_tag)
     return s
-
 
 # TODO: add checks for these functions
 

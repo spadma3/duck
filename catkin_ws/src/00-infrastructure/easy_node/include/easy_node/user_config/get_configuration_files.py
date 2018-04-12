@@ -4,13 +4,8 @@ import os
 from frozendict import frozendict
 import yaml
 from yaml.error import YAMLError
+import duckietown_utils as dtu
 
-from duckietown_utils import logger
-from duckietown_utils.constants import get_catkin_ws_src, get_duckiefleet_root
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.exceptions import DTConfigException
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.locate_files_impl import locate_files
 
 
 SUFFIX = '.config.yaml'
@@ -46,16 +41,16 @@ def get_all_configuration_files():
 def search_all_configuration_files():
     sources = []
     # We look in $DUCKIETOWN_ROOT/catkin_ws/src
-    sources.append(get_catkin_ws_src())
+    sources.append(dtu.get_catkin_ws_src())
     # then we look in $DUCKIETOWN_FLEET
-    sources.append(get_duckiefleet_root())
+    sources.append(dtu.get_duckiefleet_root())
     
     configs = []
     pattern = '*' + SUFFIX
-    logger.info('Looking for %s files.' % pattern) 
+    dtu.logger.info('Looking for %s files.' % pattern) 
     for s in sources:
-        fs = locate_files(s, pattern)
-        logger.info('%4d files in %s' % (len(fs), s))
+        fs = dtu.locate_files(s, pattern)
+        dtu.logger.info('%4d files in %s' % (len(fs), s))
         configs.extend(fs)
     
 #     logger.debug('I found:\n' + "\n".join(configs))
@@ -76,19 +71,19 @@ def interpret_config_file(filename):
         #   package-node.config_name
         if not '.' in base:
             msg = 'Invalid filename %r.' % filename
-            raise DTConfigException(msg)
+            raise dtu.DTConfigException(msg)
         
         tokens = base.split('.')
         if len(tokens) > 3:
             msg = 'Too many periods/tokens (tokens=%s)' % tokens
-            raise DTConfigException(msg)
+            raise dtu.DTConfigException(msg)
         
         if len(tokens) <= 2:
             #  package-node.config_name
             package_node = tokens[0]
             if not '-' in package_node:
                 msg = 'Expected a "-" in "%s".' % package_node
-                raise DTConfigException(msg)
+                raise dtu.DTConfigException(msg)
             i = package_node.index('-')
             package_name = package_node[:i]
             node_name  = package_node[i+1:]
@@ -106,7 +101,7 @@ def interpret_config_file(filename):
             date_effective  = parse(date_effective)
         except:
             msg = 'Cannot interpret "%s" as a date.' % date_effective
-            raise DTConfigException(msg)
+            raise dtu.DTConfigException(msg)
 
         # now read file
         
@@ -115,41 +110,41 @@ def interpret_config_file(filename):
             try:
                 data = yaml.load(contents)
             except YAMLError as e:
-                raise_wrapped(DTConfigException, e, 'Invalid YAML', compact=True)
+                dtu.raise_wrapped(dtu.DTConfigException, e, 'Invalid YAML', compact=True)
                 
             if not isinstance(data, dict):
                 msg = 'Expected a dictionary inside.'
-                raise DTConfigException(msg)
+                raise dtu.DTConfigException(msg)
             
             for field in ['description', 'values']:
                 if not field in data:
                     msg = 'Missing field "%s".' % field
-                    raise DTConfigException(msg)
+                    raise dtu.DTConfigException(msg)
                 
             description = data.pop('description')
             if not isinstance(description, str):
                 msg = 'I expected that "description" is a string, obtained %r.' % description 
-                raise DTConfigException(msg)
+                raise dtu.DTConfigException(msg)
             
             extends = data.pop('extends', [])
             if not isinstance(extends, list):
                 msg = 'I expected that "extends" is a list, obtained %r.' % extends
-                raise DTConfigException(msg)
+                raise dtu.DTConfigException(msg)
             
             values = data.pop('values')
             if not isinstance(values, dict):
                 msg = 'I expected that "values" is a dictionary, obtained %s.' % type(values) 
-                raise DTConfigException(msg)
+                raise dtu.DTConfigException(msg)
             
             # Freeze the data
             extends = tuple(extends)
             values = frozendict(values)
             
-        except DTConfigException as e:
+        except dtu.DTConfigException as e:
             msg = 'Could not interpret the contents of the file\n'
-            msg += '   %s\n' % friendly_path(filename)
-            msg += 'Contents:\n' + indent(contents, ' > ')
-            raise_wrapped(DTConfigException, e, msg, compact=True) 
+            msg += '   %s\n' % dtu.friendly_path(filename)
+            msg += 'Contents:\n' + dtu.indent(contents, ' > ')
+            dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True) 
         
         return ConfigInfo(filename=filename, package_name=package_name, node_name=node_name, 
                           config_name=config_name,
@@ -159,6 +154,6 @@ def interpret_config_file(filename):
                           valid=None,
                           error_if_invalid=None)
     
-    except DTConfigException as e:
-        msg = 'Invalid file %s' % friendly_path(filename)
-        raise_wrapped(DTConfigException, e, msg, compact=True)
+    except dtu.DTConfigException as e:
+        msg = 'Invalid file %s' % dtu.friendly_path(filename)
+        dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)

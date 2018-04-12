@@ -1,6 +1,4 @@
-from comptests.registrar import run_module_tests, comptest
-
-from duckietown_utils.instantiate_utils import indent
+import duckietown_utils as dtu
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.conditions.references import parse_date_spec
 from easy_regression.conditions.result_db import ResultDB, ResultDBEntry
@@ -14,7 +12,7 @@ def get_test_db():
         'changed': 98,
         'same': 10,
         }
-    }} 
+    }}
     current = ResultDBEntry(regression_test_name='',
                             date='',
                            host='',
@@ -25,12 +23,12 @@ def get_test_db():
                            commit='')
     results_old = {'analyzer': {
     'log1': {
-        'value2': 2, 
+        'value2': 2,
         'value3': 3,
         'same': 10,
         'changed': 100,
         }
-    }} 
+    }}
     old = ResultDBEntry(regression_test_name='',
                         date=parse_date_spec('2017-01-01'),
                        host='',
@@ -42,12 +40,14 @@ def get_test_db():
     rdb = ResultDB(current=current, entries=[old])
     return rdb
 
+
 def raise_error(rdb, t, res, s):
-    msg = s 
-    msg += '\n' + indent(str(res), 'obtained: ')
-    msg += '\n' + indent(str(t), '', 'test: ')
-    msg += '\n' + indent(str(rdb),'','rdb: ')
+    msg = s
+    msg += '\n' + dtu.indent(str(res), 'obtained: ')
+    msg += '\n' + dtu.indent(str(t), '', 'test: ')
+    msg += '\n' + dtu.indent(str(rdb), '', 'rdb: ')
     raise Exception(msg)
+
 
 def run_checks(condition_result):
     rdb = get_test_db()
@@ -56,8 +56,9 @@ def run_checks(condition_result):
         res = t.check(rdb)
         if not res.status == expected:
             raise_error(rdb, t, res, 'Expected %s' % expected)
-            
-@comptest
+
+
+@dtu.unit_test
 def test_true():
     conditions_true = [
         ('v:analyzer/log1/value2 == 2', RTCheck.OK),
@@ -67,17 +68,19 @@ def test_true():
     ]
     run_checks(conditions_true)
 
-@comptest
+
+@dtu.unit_test
 def test_false():
     conditions = [
         ('v:analyzer/log1/value2 == 1', RTCheck.FAIL),
         ('v:analyzer/log1/value2 > 2', RTCheck.FAIL),
-        ('v:analyzer/log1/value2 < 2',RTCheck.FAIL),
-        ('v:analyzer/log1/value2 <= 1',RTCheck.FAIL),
-    ]   
+        ('v:analyzer/log1/value2 < 2', RTCheck.FAIL),
+        ('v:analyzer/log1/value2 <= 1', RTCheck.FAIL),
+    ]
     run_checks(conditions)
 
-@comptest
+
+@dtu.unit_test
 def test_eval_error():
     conditions = [
         ('v:analyzer/log1/not_exist <= 1', RTCheck.ABNORMAL),
@@ -86,7 +89,8 @@ def test_eval_error():
     ]
     run_checks(conditions)
 
-@comptest
+
+@dtu.unit_test
 def test_data_not_found():
     conditions = [
         ('v:analyzer/log1/value2@2016-01-12 <= 1', RTCheck.NODATA),
@@ -94,7 +98,8 @@ def test_data_not_found():
     ]
     run_checks(conditions)
 
-@comptest
+
+@dtu.unit_test
 def test_good_ref():
     conditions = [
         ('v:analyzer/log1/same@2017-01-01 == 10', RTCheck.OK),
@@ -107,9 +112,9 @@ def test_good_ref():
         ('v:analyzer/log1/changed@2017-01-01 == v:analyzer/log1/same', RTCheck.FAIL),
     ]
     run_checks(conditions)
-    
-    
-@comptest
+
+
+@dtu.unit_test
 def test_good_ref_ratios():
     conditions = [
         ('v:analyzer/log1/changed@2017-01-01 == 100', RTCheck.OK),
@@ -121,4 +126,4 @@ def test_good_ref_ratios():
 
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

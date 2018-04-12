@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-from duckietown_utils import get_machines_files_path
 from duckietown_utils.cli import D8App
-from duckietown_utils.file_utils import write_data_to_file
-from easy_algo import get_easy_algo_db
 
+from easy_algo import get_easy_algo_db
+import duckietown_utils as dtu
 
 class CreateMachines(D8App):
     """ Creates the machines file. """
@@ -15,12 +14,13 @@ class CreateMachines(D8App):
     def go(self):
         robots = get_scuderia_contents()
         machines_contents = create_machines(robots)
-        fn = get_machines_files_path()
+        fn = dtu.get_machines_files_path()
+
         if getattr(self.options, 'print'):
             print(machines_contents)
         else:
 
-            write_data_to_file(machines_contents, fn)
+            dtu.write_data_to_file(machines_contents, fn)
 
 def get_scuderia_contents():
     db = get_easy_algo_db()

@@ -1,9 +1,3 @@
-'''
-    origin: "conf_tools" project
-
-    Author: Andrea Censi
-'''
-
 from .memoization import memoize_simple
 
 __all__ = ['expand_string', 'get_wildcard_matches']
@@ -34,6 +28,7 @@ def expand_string(x, options):
     else:
         assert False
 
+
 @memoize_simple
 def wildcard_to_regexp(arg):
     """ Returns a regular expression from a shell wildcard expression. """
@@ -44,13 +39,14 @@ def wildcard_to_regexp(arg):
 def has_wildcard(s):
     return s.find('*') > -1
 
+
 # @contract(wildcard='str', universe='list(str)')
 def expand_wildcard(wildcard, universe):
-    ''' 
+    '''
         Expands a wildcard expression against the given list.
         Raises ValueError if none found.
-        
-        :param wildcard: string with '*' 
+
+        :param wildcard: string with '*'
         :param universe: a list of strings
     '''
     if not has_wildcard(wildcard):
@@ -66,12 +62,13 @@ def expand_wildcard(wildcard, universe):
 
     return matches
 
+
 def get_wildcard_matches(wildcard, universe):
-    ''' 
+    '''
         Expands a wildcard expression against the given list.
         Yields a sequence of strings.
-        
-        :param wildcard: string with '*' 
+
+        :param wildcard: string with '*'
         :param universe: a list of strings
     '''
     regexp = wildcard_to_regexp(wildcard)

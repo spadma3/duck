@@ -1,25 +1,29 @@
 import os
 
-from duckietown_utils import logger
-
 from .friendly_path_imp import friendly_path
-from .path_utils import expand_all
+from .logging_logger import logger
+from .paths import get_duckietown_cache_dir
 from .safe_pickling import safe_pickle_load, safe_pickle_dump
-
 
 __all__ = [
     'get_cached',
 ]
 
-def get_cached(cache_name, f, quiet='not-given'):
+
+def get_cached(cache_name, f, quiet='not-given', just_delete=False):
     """
         Caches the result of f() in a file called
             ${DUCKIETOWN_ROOT}/caches/![name].cache.pickle
     """
 
+    cache_dir = get_duckietown_cache_dir()
+    cache = os.path.join(cache_dir, '%s.cache.pickle' % cache_name)
 
-    cache = '${DUCKIETOWN_ROOT}/caches/%s.cache.pickle' % cache_name
-    cache = expand_all(cache)
+    if just_delete:
+        if os.path.exists(cache):
+            logger.info('Removing %s' % cache)
+            os.unlink(cache)
+            return
 
     if quiet == 'not-given':
         should_be_quiet = False
@@ -37,7 +41,6 @@ def get_cached(cache_name, f, quiet='not-given'):
             msg = 'Removing cache that I cannot read: %s' % friendly_path(cache)
             logger.error(msg)
             os.unlink(cache)
-
 
     ob = f()
     if not should_be_quiet:

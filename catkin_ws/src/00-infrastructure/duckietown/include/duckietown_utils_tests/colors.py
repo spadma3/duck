@@ -1,27 +1,23 @@
-
-from comptests.registrar import comptest, run_module_tests
-
 from termcolor import colored
 
-from duckietown_utils.text_utils import (get_length_on_screen, format_table_plus, 
-                                         remove_escapes, make_row_red)
+import duckietown_utils as dtu
 
 
-@comptest
+@dtu.unit_test
 def test_color_sizes():
     s1 = 'one'
-    
+
     s2 = colored(s1, 'magenta')
-     
+
 #     print(s1.__repr__())
 #     print(s2.__repr__())
-    
-    l1 = get_length_on_screen(s1)
-    l2 = get_length_on_screen(s2)
+
+    l1 = dtu.get_length_on_screen(s1)
+    l2 = dtu.get_length_on_screen(s2)
 #     print l1, l2
     assert l1 == l2
-    
-    
+
+
 def get_test_table():
     table = []
     for i in range(3):
@@ -31,22 +27,23 @@ def get_test_table():
         table.append(row)
     return table
 
-@comptest
+
+@dtu.unit_test
 def test_table():
-    
+
     table = get_test_table()
-    r1 = format_table_plus(table)
-    
-    table[1] = make_row_red(table[1])
-    r2 = format_table_plus(table)
-    
+    r1 = dtu.format_table_plus(table)
+
+    table[1] = dtu.make_row_red(table[1])
+    r2 = dtu.format_table_plus(table)
+
     #print r1
     #print r2
-    r2e = remove_escapes(r2)
+    r2e = dtu.remove_escapes(r2)
     #print r2e
     assert r1 == r2e
-    
+
 
 if __name__ == '__main__':
-    run_module_tests()
-    
+    dtu.run_tests_for_this_module()
+

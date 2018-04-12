@@ -26,7 +26,6 @@ sudo apt install -y \
     libatlas-base-dev \
     python-dev \
     ipython \
-    python-sklearn \
     python-smbus
 
 sudo apt remove -y \
@@ -35,17 +34,7 @@ sudo apt remove -y \
 
 # These don't have an APT package
 
-pip install --upgrade --user \
-	PyContracts==1.7.15 \
-    DecentLogs==1.1.2\
-	QuickApp==1.3.8 \
-	conftools==1.9.1 \
-	comptests==1.4.10 \
-	procgraph==1.10.6 \
-	pymongo==3.5.1 \
-	ruamel.yaml==0.15.34
-
-
+pip install --user --upgrade -r requirements.txt
 
 
 # None of this should be needed. Next time you think you need it, let me know and we figure it out. -AC
