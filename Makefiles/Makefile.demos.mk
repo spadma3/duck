@@ -65,3 +65,6 @@ csii-edit-ex%: check-environment
 
 virtual-joystick-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; python $(DUCKIETOWN_ROOT)/misc/virtualJoy/virtualJoy.py"
+
+change-trim-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; rosservice call /$*/inverse_kinematics_node/set_trim -- $(trim); echo 'Changed trim for $* to $(trim)'"
