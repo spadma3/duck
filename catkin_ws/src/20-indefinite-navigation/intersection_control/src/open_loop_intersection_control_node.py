@@ -6,6 +6,15 @@ from std_msgs.msg import String, Int16 #Imports msg
 import copy
 
 class OpenLoopIntersectionNode(object):
+    
+
+    def updateParams(self,event):
+        self.maneuvers[0] = self.getManeuver("turn_left")
+        self.maneuvers[1] = self.getManeuver("turn_forward")
+        self.maneuvers[2] = self.getManeuver("turn_right")
+
+
+
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
@@ -15,6 +24,16 @@ class OpenLoopIntersectionNode(object):
         self.lane_pose = LanePose()
         self.stop_line_reading = StopLineReading()
 
+        
+        
+        ## params
+        self.stop_distance = self.setupParam("~stop_distance", 0.22) # distance from the stop line that we should stop
+        self.min_segs      = self.setupParam("~min_segs", 2) # minimum number of red segments that we should detect to estimate a stop
+        self.off_time      = self.setupParam("~off_time", 2)
+        self.max_y         = self.setupParam("~max_y ", 0.2) # If y value of detected red line is smaller than max_y we will not set at_stop_line true.
+
+        
+        
         self.trajectory_reparam = rospy.get_param("~trajectory_reparam",1)
         self.pub_cmd = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done",BoolStamped,queue_size=1)
@@ -39,6 +58,9 @@ class OpenLoopIntersectionNode(object):
         self.sub_mode = rospy.Subscriber("~mode", FSMState, self.cbFSMState, queue_size=1)
         self.sub_lane_pose = rospy.Subscriber("~lane_pose", LanePose, self.cbLanePose, queue_size=1)
         self.sub_stop_line = rospy.Subscriber("~stop_line_reading", StopLineReading, self.cbStopLine, queue_size=1)
+        
+        self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+
 
     def cbSrvLeft(self,req):
         self.trigger(0)
