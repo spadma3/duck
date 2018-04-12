@@ -73,7 +73,7 @@ except:
     raise Exception(msg)
 
 # this is from the exercises
-# from .augmented_reality_utils import *
+from .augmented_reality_utils import *
 # from .draw import *
 # from .cli import *
 
@@ -90,4 +90,3 @@ if False:
                 __all__.append(c)
 
 # Use the PyGeometry library as dtu.geo
-
