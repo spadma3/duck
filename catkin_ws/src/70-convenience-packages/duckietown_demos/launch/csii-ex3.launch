@@ -28,7 +28,7 @@
 
 	<!-- start switch args -->
 	<arg name="camera" default="true"/>
-	<arg name="/camera/raw" default="true"/>
+	<arg name="/camera/raw" default="false"/>
 	<arg name="/camera/cam_info" default="true"/>
 	<arg name="/camera/raw/rect" default="false"/>
 	<arg name="/camera/local" default="false" />
@@ -40,7 +40,7 @@
 	<arg name="odometry" default="false"/>
 	<arg name="/odometry/forward_kinematics" default="false"/>
 
-	<arg name="lane_following" default="true"/>
+	<arg name="lane_following" default="false"/>
 	<arg name="/lane_following/line_detection" default="true"/>
 	<arg name="/lane_following/ground_projection" default="true"/>
 	<arg name="/lane_following/lane_filter" default="true"/>
@@ -298,7 +298,6 @@
 		<!-- Lane controller -->
 		<group if="$(arg /lane_following/lane_controller)">
 			<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
-			<remap from="lane_controller_node/veh_pos" to="vehicle_filter_node/pose"/>
 			<include file="$(find lane_control)/launch/lane_controller_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>

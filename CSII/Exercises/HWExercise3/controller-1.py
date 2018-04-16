@@ -20,13 +20,12 @@ class Controller():
     # Output:   v_out       velocity of Duckiebot [m/s]
     #           omega_out   angular velocity of Duckiebot [rad/s]
 
-    def getControlOutput(self, d_est, phi_est, d_ref, phi_ref, v_ref, t_delay, dt_last):
+    def getControlOutput(self, rho, theta, psi, t_delay, dt_last):
 
-        # Calculate the output y
-        y = 2 * (d_est - d_ref) + 1 * (phi_est-phi_ref)
-
-        # Native P-Controller
-        omega = -self.k * y
+        omega = 0
+        v_ref = 0
+        if rho > 0.25:
+            v_ref = 0.2
 
         # Declaring return values
         omega_out = omega
