@@ -1,12 +1,17 @@
 import math
+import numpy as np
 
 class Controller():
 
     def __init__(self):
 
-        # Gains for controller
-        self.k = 3.5
+        # Gains for controller, obtained by using lqr in MATLAB
+        self.K = [[0, 7.07, 1.81], [-2, 0, 0]]
 
+
+        # Variables
+        self.r0 = 0.3
+        self.v0 = 0.22
 
     # Inputs:   d_est   Estimation of distance from lane center (positve when
     #                   offset to the left of driving direction) [m]
@@ -22,10 +27,21 @@ class Controller():
 
     def getControlOutput(self, rho, theta, psi, t_delay, dt_last):
 
-        omega = 0
-        v_ref = 0
-        if rho > 0.25:
-            v_ref = 0.2
+        # Calculate new coordinates
+        d = -rho * sin(theta + psi)
+        alpha = -psi
+        r = rho * cos(theta + psi)
+
+        # Calculate current state
+        delta_x = [r - self.r0, d, alpha]
+
+        # Calculate new input
+        u_equi = [0, self.v0]
+        delta_u = np.dot(K,delta_x)
+        u = np.add(delta_u, u_equi)
+
+        v_ref = u[1]
+        omega = u[0]
 
         # Declaring return values
         omega_out = omega
