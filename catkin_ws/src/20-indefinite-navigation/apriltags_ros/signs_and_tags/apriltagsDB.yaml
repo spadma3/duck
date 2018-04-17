@@ -1388,61 +1388,61 @@
   tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type: charging-T
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 232
   tag_type: TrafficSign
-  street_name:
+  street_name: 
   vehicle_name:
-  traffic_sign_type: charging-T
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 233
   tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type: charging-T
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 234
   tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type: charging-T
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 235
   tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type: charging-four-way
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 236
   tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type: charging-four-way
+  traffic_sign_type: T-intersection
 
 - tag_id: 237
   tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type: charging-four-way
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 238
   tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type: charging-four-way
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 239
   tag_type:
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 240
   tag_type:
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 241
   tag_type:
