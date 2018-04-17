@@ -7,7 +7,7 @@ class Controller():
     def __init__(self):
 
         # Gains for controller, obtained by using lqr in MATLAB
-        self.K = [[0, 5, -1.81], [0.2, 0, 0]]
+        self.K = [[0, 5, -1.81], [0.5, 0, 0]]
 
 
         # Variables
