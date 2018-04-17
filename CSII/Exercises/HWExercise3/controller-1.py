@@ -7,12 +7,12 @@ class Controller():
     def __init__(self):
 
         # Gains for controller, obtained by using lqr in MATLAB
-        self.K = [[0, 5, -1.81], [2, 0, 0]]
+        self.K = [[0, 5, -1.81], [0.2, 0, 0]]
 
 
         # Variables
-        self.r0 = 0.23
-        self.v0 = 0
+        self.r0 = 0.4
+        self.v0 = 0.15
         self.vmax = 0.3
     # Inputs:   d_est   Estimation of distance from lane center (positve when
     #                   offset to the left of driving direction) [m]
