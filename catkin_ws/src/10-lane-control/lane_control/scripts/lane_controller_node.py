@@ -53,6 +53,9 @@ class lane_controller(object):
         # Setup variable for different sampling rate
         self.z_samp = 0
 
+        # Timer for abrupt stopVeh
+        self.stopTimer = None
+
         # Setup array for time delay
         if int(self.exercise[0]) == 1 and int(self.exercise[1]) == 5:
             k_d = self.controller_class.k_d
@@ -69,7 +72,16 @@ class lane_controller(object):
             self.sub_veh_pos = rospy.Subscriber("~veh_pos", VehiclePose, self.cbVehPose, queue_size=1)
 
 
+
+    def stopVeh(self, nth):
+        car_control_msg = Twist2DStamped()
+        car_control_msg.v = 0.0
+        car_control_msg.omega = 0.0
+        self.publishCmd(car_control_msg)
+
     def cbVehPose(self, pose_msg):
+        if self.stopTimer is not None:
+            self.stopTimer.shutdown()
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - pose_msg.header.stamp
@@ -112,6 +124,7 @@ class lane_controller(object):
         # Update last timestamp
         self.last_ms = currentMillis
 
+        self.stopTimer = rospy.Timer(rospy.Duration(1), self.stopVeh, oneshot=True)
 
     def cbPose(self, lane_pose_msg):
         if int(self.exercise[0]) == 3:
