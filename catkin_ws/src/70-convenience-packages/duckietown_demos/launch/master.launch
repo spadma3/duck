@@ -54,6 +54,7 @@
 <arg name="/obstacle_avoidance/detection" default="true"/>
 <arg name="/obstacle_avoidance/safety" default="true"/>
 
+
 <arg name="vehicle_avoidance" default="true"/>
 <arg name="/vehicle_avoidance/detection" default="true" />
 <arg name="/vehicle_avoidance/multivehicle_detection" default="false" />
