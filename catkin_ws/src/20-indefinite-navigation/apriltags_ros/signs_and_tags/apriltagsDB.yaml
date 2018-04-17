@@ -1385,52 +1385,52 @@
   traffic_sign_type: t-light-ahead
 
 - tag_id: 231
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: charging-T
 
 - tag_id: 232
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: charging-T
 
 - tag_id: 233
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: charging-T
 
 - tag_id: 234
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: charging-T
 
 - tag_id: 235
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: charging-four-way
 
 - tag_id: 236
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: charging-four-way
 
 - tag_id: 237
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: charging-four-way
 
 - tag_id: 238
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: charging-four-way
 
 - tag_id: 239
   tag_type:
