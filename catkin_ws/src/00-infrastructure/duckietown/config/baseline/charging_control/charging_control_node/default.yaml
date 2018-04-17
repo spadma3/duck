@@ -1,0 +1,31 @@
+charging_stations:
+  station1:
+    path_in:
+      231: 2
+    path_out:
+      240: 1
+      237: 1
+      233: 1
+  station2:
+    path_in:
+      231: 1
+      235: 2
+    path_out:
+      239: 0
+      237: 1
+      233: 1
+   station3:
+    path_in:
+      231: 1
+      235: 1
+      238: 2
+    path_out:
+      236: 0
+      233: 1
+   station4:
+    path_in:
+      231: 1
+      235: 1
+      238: 1
+    path_out:
+      232: 0
