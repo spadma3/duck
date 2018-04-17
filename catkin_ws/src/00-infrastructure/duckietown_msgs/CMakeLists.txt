@@ -20,6 +20,7 @@ add_message_files(
   CoordinationSignal.msg
   DuckieSensor.msg
   LanePose.msg
+  TurnIDandType.msg
 #  LEDControl.msg
   LEDDetection.msg
   LEDDetectionArray.msg

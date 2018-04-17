@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos
-from std_msgs.msg import Float32
+from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos, TurnIDandType
+from std_msgs.msg import Float32, Int16
 from geometry_msgs.msg import Point
 import time
 import math
@@ -18,6 +18,8 @@ class ChargingControlNode(object):
 
         self.chargingTag = False
         self.ready2go = False
+        self.inMaintenanceArea = False
+        self.turnType = -1
 
         self.state = "JOYSTICK_CONTROL"
 
@@ -25,6 +27,8 @@ class ChargingControlNode(object):
         self.sub_state = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
         self.sub_tags = rospy.Subscriber("~april_tags", AprilTagsWithInfos, self.cbAprilTag)
         self.go_first = rospy.Subscriber("~go_first", BoolStamped, self.cbGoFirst)
+
+        self.turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
 
         ## Publisher
         self.at_exit = rospy.Publisher("~at_exit", BoolStamped, queue_size=1)
@@ -34,8 +38,17 @@ class ChargingControlNode(object):
 
 
 
+    def cbTurnType(self, msg):
+        self.tag_id = msg.tag_id
+        self.turn_type = msg.turn_type
+
+
     def cbFSMState(self, state_msg):
         self.state = state_msg.state
+
+        if self.state == "INTERSECTION_CONTROL" and self.tag_id == 144 and self.turn_type == 1:
+            self.inMaintenanceArea = True
+            rospy.loginfo("IIIIIIIN MAAAAAAAAINTENANCE AAAAAAAAAREA")
 
 
     def goFirst(self, msg):
@@ -45,7 +58,7 @@ class ChargingControlNode(object):
 
     def cbGoFirst(self, msg):
         return
-    
+
     def cbAprilTag(self, tag_msg):
         tags = tag_msg.detections
         at_exit = False
