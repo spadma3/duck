@@ -1392,7 +1392,7 @@
 
 - tag_id: 232
   tag_type: TrafficSign
-  street_name: 
+  street_name:
   vehicle_name:
   traffic_sign_type: 4-way-intersect
 
@@ -1439,28 +1439,28 @@
   traffic_sign_type: T-intersection
 
 - tag_id: 240
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
   traffic_sign_type: left-T-intersect
 
 - tag_id: 241
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 242
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 243
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 244
   tag_type:
