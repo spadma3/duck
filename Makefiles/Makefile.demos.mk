@@ -58,6 +58,9 @@ traffic-light: check-environment
 csii-ex%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; export CSII_EXERCISE='$*';roslaunch duckietown_demos lane_following.launch"
 
+csii-test1-%: check-environment
+	bash -c "source TEST/valid.sh;echo "------------------";cp TEST/controllers/$*.py CSII/Exercises/HWExercise1/controller-6.py;valid; echo "----------------";source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; export CSII_EXERCISE='1-6';roslaunch duckietown_demos lane_following.launch"
+
 word-split = $(word $2,$(subst -, ,$1))
 
 csii-edit-ex%: check-environment
