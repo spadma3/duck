@@ -23,6 +23,7 @@ add_message_files(
   TurnIDandType.msg
 #  LEDControl.msg
   LEDDetection.msg
+  MaintenanceState.msg
   LEDDetectionArray.msg
   LEDDetectionDebugInfo.msg
   WheelsCmd.msg

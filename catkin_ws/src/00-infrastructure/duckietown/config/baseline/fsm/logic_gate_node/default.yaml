@@ -63,7 +63,7 @@ events:
 
   charging_exit:
     default: False
-    topic: "charging_control_node/at_exit"
+    topic: "charging_control_node/ready_at_exit"
     msg_type: "BoolStamped"
     trigger: True
 
