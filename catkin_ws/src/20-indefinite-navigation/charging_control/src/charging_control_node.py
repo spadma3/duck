@@ -2,7 +2,7 @@
 import rospy
 import numpy as np
 from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos, TurnIDandType, MaintenanceState
-from std_msgs.msg import Float32, Int16
+from std_msgs.msg import Float32, Int16, Bool
 from geometry_msgs.msg import Point
 import time
 import math
@@ -36,16 +36,23 @@ class ChargingControlNode(object):
         ## Publisher
         self.ready_at_exit = rospy.Publisher("~ready_at_exit", BoolStamped, queue_size=1)
         self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1)
+        self.pub_in_charger = rospy.Publisher("~in_charger", BoolStamped, queue_size=1)
+        self.pub_go_charging = rospy.Publisher("~go_charging", Bool, queue_size=1)
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
-
+        # Assume the Duckiebot is full, let him drive to charger after drive_time minutes
+        self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
 
     def cbMaintenanceState(self, msg):
+
+        # Start timer which calls Duckiebot back to charger after charge_time mins
+        if self.maintenance_state == "CHARGING" and msg.state == "NONE":
+            self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
+
         self.maintenance_state = msg.state
         self.active = True if self.maintenance_state == "CHARGING" else False
-        rospy.loginfo("ARE WEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ACTIVE???????   " + str(self.active))
 
     # Adjust turn type if sign has a known ID for our path to charger
     def cbTurnType(self, msg):
@@ -62,6 +69,13 @@ class ChargingControlNode(object):
 
     def setReady2Go(self, event):
         self.ready2go = True
+        rospy.loginfo("[Charing Control Node]: Requesting the Duckiebot to leave the charger")
+
+    def goToCharger(self, event):
+        go_to_charger = Bool()
+        go_to_charger.data = True
+        self.pub_go_charging.publish(go_to_charger)
+        rospy.loginfo("[Charing Control Node]: Requesting the Duckiebot to go charging")
 
     # Executes when intersection is done
     def cbIntersecDone(self, msg):
@@ -75,7 +89,10 @@ class ChargingControlNode(object):
         # Entering charger
         if turn == (station['path_in'])[-1]:
             rospy.loginfo("Entering charging station")
-            #TODO: CHANGE FSM STATE here
+            in_charger = BoolStamped()
+            in_charger.header = msg.header
+            in_charger.data = True
+            self.pub_in_charger.publish(in_charger)
 
             # Leaving charger
             if turn == (station['path_out'])[-1]:
@@ -136,6 +153,7 @@ class ChargingControlNode(object):
         self.stations = self.setupParam("~charging_stations", 0)
         self.FIL_tags = self.setupParam("~charger_FIL_tags", 0)
         self.charge_time = self.setupParam("~charge_time", 1)
+        self.drive_time = self.setupParam("~drive_time", 2)
         self.charger = self.setupParam("~charger", 3)
 
 
@@ -145,6 +163,7 @@ class ChargingControlNode(object):
         self.stations = rospy.get_param("~charging_stations")
         self.FIL_tags = rospy.get_param("~charger_FIL_tags")
         self.charge_time = rospy.get_param("~charge_time")
+        self.drive_time = rospy.get_param("~drive_time")
         self.charger = rospy.get_param("~charger")
 
 
