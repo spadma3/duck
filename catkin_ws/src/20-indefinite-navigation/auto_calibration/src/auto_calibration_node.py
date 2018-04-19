@@ -30,8 +30,8 @@ class AutoCalibrationNode(object):
 
     def publishControl(self,msg):
         car_cmd_msg = msg
-        car_cmd_msg.v = 0.5
-        car_cmd_msg.omega = 0
+        car_cmd_msg.v = msg.v*0.1
+        car_cmd_msg.omega = msg.omega*0.1
         self.pub_car_cmd.publish(car_cmd_msg)
 
     def on_shutdown(self):
