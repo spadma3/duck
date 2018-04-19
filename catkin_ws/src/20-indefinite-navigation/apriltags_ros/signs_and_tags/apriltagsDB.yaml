@@ -1433,7 +1433,7 @@
   traffic_sign_type: right-T-intersect
 
 - tag_id: 239
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
   traffic_sign_type: T-intersection

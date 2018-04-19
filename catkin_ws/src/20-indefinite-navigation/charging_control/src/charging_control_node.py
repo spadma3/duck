@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos, TurnIDandType
-from std_msgs.msg import Float32, Int16
+from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos, TurnIDandType, MaintenanceState
+from std_msgs.msg import Float32, Int16, Bool
 from geometry_msgs.msg import Point
 import time
 import math
@@ -12,15 +12,13 @@ class ChargingControlNode(object):
         self.node_name = "Charging Control Node"
 
 
+        self.active = False
 
         ## setup Parameters
         self.setupParams()
-
+        self.maintenance_state = "NONE"
         # Class variables
         self.ready2go = False # Whether the bot is fully charged or not
-        self.inMaintenanceArea = False # True if in maint area
-        self.shouldCharge = True # True if Bot has low battery
-        self.charger = 1 # Assigned from god
 
         self.turn_type = -1 # Turn type for intersections
         self.tag_id = -1 # Tag ID from intersections
@@ -29,61 +27,76 @@ class ChargingControlNode(object):
 
         ## Subscribers
         self.sub_state = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
+        self.sub_state = rospy.Subscriber("~maintenance_state", MaintenanceState, self.cbMaintenanceState)
         self.sub_tags = rospy.Subscriber("~april_tags", AprilTagsWithInfos, self.cbAprilTag)
-        self.go_first = rospy.Subscriber("~go_first", BoolStamped, self.cbGoFirst)
+        #self.go_first = rospy.Subscriber("~go_first", BoolStamped, self.cbGoFirst)
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.inters_done = rospy.Subscriber("~intersection_done", BoolStamped, self.cbIntersecDone)
 
         ## Publisher
-        self.at_exit = rospy.Publisher("~at_exit", BoolStamped, queue_size=1)
+        self.ready_at_exit = rospy.Publisher("~ready_at_exit", BoolStamped, queue_size=1)
         self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1)
+        self.pub_in_charger = rospy.Publisher("~in_charger", BoolStamped, queue_size=1)
+        self.pub_go_charging = rospy.Publisher("~go_charging", Bool, queue_size=1)
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
+        # Assume the Duckiebot is full, let him drive to charger after drive_time minutes
+        self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
 
+    def cbMaintenanceState(self, msg):
 
+        # Start timer which calls Duckiebot back to charger after charge_time mins
+        if self.maintenance_state == "CHARGING" and msg.state == "NONE":
+            self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
+
+        self.maintenance_state = msg.state
+        self.active = True if self.maintenance_state == "CHARGING" else False
+
+    # Adjust turn type if sign has a known ID for our path to charger
     def cbTurnType(self, msg):
         self.tag_id = msg.tag_id
         self.turn_type = msg.turn_type
 
-
-        if self.shouldCharge and self.inMaintenanceArea:
-            self.turn_type = getTurnType(self.charger, self.tag_id)
-
+        if self.active:
+            new_turn_type = self.getTurnType(self.charger, self.tag_id)
+            if new_turn_type != -1:
+                self.turn_type = new_turn_type
 
         self.pub_turn_type.publish(self.turn_type)
 
 
     def setReady2Go(self, event):
         self.ready2go = True
+        rospy.loginfo("[Charing Control Node]: Requesting the Duckiebot to leave the charger")
+
+    def goToCharger(self, event):
+        go_to_charger = Bool()
+        go_to_charger.data = True
+        self.pub_go_charging.publish(go_to_charger)
+        rospy.loginfo("[Charing Control Node]: Requesting the Duckiebot to go charging")
 
     # Executes when intersection is done
     def cbIntersecDone(self, msg):
+        if not self.active:
+            return
         turn = [self.tag_id, self.turn_type]
 
-        # Entering maintenance area
-        if turn in self.maintenance_entrance:
-            self.inMaintenanceArea = True
-            rospy.loginfo("Entering maintenance area!")
-
-        # Leaving maintenance area
-        if turn in self.maintenance_exit:
-            self.inMaintenanceArea = False
-            self.shouldCharge = False
-            rospy.loginfo("Leaving maintenance area!")
-
-
+        # get parameters of charging station
         station = self.stations['station' + str(self.charger)]
 
         # Entering charger
-        if turn == station.path_in[-1]:
+        if turn == (station['path_in'])[-1]:
             rospy.loginfo("Entering charging station")
-            #TODO: CHANGE FSM STATE here
+            in_charger = BoolStamped()
+            in_charger.header = msg.header
+            in_charger.data = True
+            self.pub_in_charger.publish(in_charger)
 
-        # Leaving charger
-        if turn == station.path_in[-1]:
-            rospy.loginfo("Entering charging station")
+            # Leaving charger
+            if turn == (station['path_out'])[-1]:
+                rospy.loginfo("Leaving charging station")
 
 
     def cbFSMState(self, state_msg):
@@ -97,35 +110,38 @@ class ChargingControlNode(object):
 
 
 
-    def cbGoFirst(self, msg):
-        return
+    #def cbGoFirst(self, msg):
+    #    return
 
     # Executes every time april tag det detects a tag
     def cbAprilTag(self, tag_msg):
+        if not self.active:
+            return
+
         tags = tag_msg.detections
-        at_exit = False
+        ready_at_exit = False
 
         # Check if a "first in line" tag is detected
         for tag in tags:
 
             if tag.id in self.FIL_tags:
-                at_exit = True
+                ready_at_exit = True
                 break
 
         # And let any subscriber know that we're first in line and ready2go
-        at_exit_msg = BoolStamped()
-        at_exit_msg.header = tag_msg.header
-        at_exit_msg.data = at_exit and self.ready2go
-        self.at_exit.publish(at_exit_msg)
+        ready_at_exit_msg = BoolStamped()
+        ready_at_exit_msg.header = tag_msg.header
+        ready_at_exit_msg.data = ready_at_exit and self.ready2go
+        self.ready_at_exit.publish(ready_at_exit_msg)
 
     # Returns the turn type for an intersection to get to charger
     def getTurnType(self, chargerID, tagID):
         station = self.stations['station' + str(chargerID)]
         turn = -1
-        for el in station.path_in:
+        for el in station['path_in']:
             if el[0] == tagID:
                 turn = el[1]
-        for el in station.path_out:
+        for el in station['path_out']:
             if el[0] == tagID:
                 turn = el[1]
         return turn
@@ -137,6 +153,8 @@ class ChargingControlNode(object):
         self.stations = self.setupParam("~charging_stations", 0)
         self.FIL_tags = self.setupParam("~charger_FIL_tags", 0)
         self.charge_time = self.setupParam("~charge_time", 1)
+        self.drive_time = self.setupParam("~drive_time", 2)
+        self.charger = self.setupParam("~charger", 3)
 
 
     def updateParams(self,event):
@@ -145,6 +163,8 @@ class ChargingControlNode(object):
         self.stations = rospy.get_param("~charging_stations")
         self.FIL_tags = rospy.get_param("~charger_FIL_tags")
         self.charge_time = rospy.get_param("~charge_time")
+        self.drive_time = rospy.get_param("~drive_time")
+        self.charger = rospy.get_param("~charger")
 
 
 
