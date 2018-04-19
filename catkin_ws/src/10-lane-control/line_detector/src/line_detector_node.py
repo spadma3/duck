@@ -66,8 +66,8 @@ class LineDetectorNode(object):
         self.pub_image = rospy.Publisher("~image_with_lines", Image, queue_size=1)
 
         # Subscribers
+        self.sub_image = rospy.Subscriber("~corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
         self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cbImage, queue_size=1)
-        self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         # FSM
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
@@ -110,6 +110,7 @@ class LineDetectorNode(object):
         self.fsm_state = mode_msg.state # String of current FSM state
 
     def cbImage(self, image_msg):
+        # print('line_detector_node: image received!!')
         self.stats.received()
 
         if not self.active:
@@ -186,14 +187,19 @@ class LineDetectorNode(object):
 
         tk.completed('resized')
 
+
         # apply color correction
+
+        # milansc: color correction is now done within the image_tranformer_node (antiInstagram pkg)
+        """
+        # apply color correction: AntiInstagram
         image_cv_corr = self.ai.applyTransform(image_cv)
         # image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
 
         tk.completed('corrected')
-
+        """
         # Set the image to be detected
-        self.detector.setImage(image_cv_corr)
+        self.detector.setImage(image_cv)
 
         # Detect lines and normals
 
@@ -233,8 +239,10 @@ class LineDetectorNode(object):
 
         if self.verbose:
 
+            # print('line_detect_node: verbose is on!')
+
             # Draw lines and normals
-            image_with_lines = np.copy(image_cv_corr)
+            image_with_lines = np.copy(image_cv)
             drawLines(image_with_lines, white.lines, (0, 0, 0))
             drawLines(image_with_lines, yellow.lines, (255, 0, 0))
             drawLines(image_with_lines, red.lines, (0, 255, 0))
