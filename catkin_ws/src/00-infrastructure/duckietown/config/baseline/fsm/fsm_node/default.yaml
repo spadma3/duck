@@ -208,7 +208,7 @@ states:
       - decoder_node
       - led_emitter_node
       - line_detector_node
-      - lane_filter_node
+      # - lane_filter_node NOTE check correct functionalities
       ###### TO USE OPEN LOOP INTERSECTION CONTROL (untested):
       # COMMENT OUT intersection_navigation_node, intersection_localization_node and lane_controller_node
       - intersection_navigation_node
