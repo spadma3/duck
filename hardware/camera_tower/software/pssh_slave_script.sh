@@ -3,25 +3,12 @@
 MASTER_BASH_NAME='.pssh_master_script.sh'
 SLAVE_BASH_NAME='.pssh_slave_script.sh'
 CMD_CPT='parallel-scp -i -h $HOME/.pssh_hosts_file '
+DUCKIEDES='$HOME/duckietown'
 
 #Name for different function
 DUCKIETOWN='dkt'
 COPYTO='cpM2S'
 COPTFROM='cpS2M'
-
-function Duckietown {
-	echo $1
-	CMD_DKT="cd duckietown && $1"
-	echo $CMD_DKT
-	$CMD_DKT
-	exit
-}
-function cmd2str {
-	local STR=""
-	echo $@
-	
-	#eval $STR
-}
 
 if [ $# -le 0 ]; then
 	echo "System Error: No Args!!!"
@@ -35,13 +22,25 @@ case "$1" in
 			exit
 		fi
 
-		PASS
-		for i in $@; do
-			#echo $STR
-			STR="$STR $i"
-		done
+		#CMD_DKT="cd duckietown && $2"
+		#echo $CMD_DKT
 
-		Duckietown $2
+		source duckietown/set_vehicle_name.sh $HOSTNAME
+		source duckietown/set_ros_master.sh $2
+
+		case $3 in
+			detection )
+				rosnode kill -a && roslaunch duckietown camera.launch veh:=$HOSTNAME
+				;;
+			camera )
+				rosnode kill -a && roslaunch duckietown camera.launch veh:=$HOSTNAME
+				;;
+			* )
+				cd duckietown && $3
+				;;
+		esac
+		
+		exit
 		;;
 	* )
 		echo "Execute what ever thing you type on slave machines."

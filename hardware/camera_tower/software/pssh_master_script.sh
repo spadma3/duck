@@ -14,31 +14,6 @@ DUCKIETOWN='dkt'
 COPYTO='cpM2S'
 COPTFROM='cpS2M'
 
-#Functions
-
-function Duckietown {
-	echo $1
-	CMD_NOR="$CMD_NOR./$SLAVE_BASH_NAME dkt $1"
-	echo $CMD_NOR
-	$CMD_NOR
-	exit
-}
-function Copy_master2slave {
-	echo "Copy this to destination: $1"
-
-	SOURCE=$1
-	DESTINATION=$SLAVE_HOME$2
-	CMD_CPT="$CMD_CPT $SOURCE $DESTINATION"
-	echo $CMD_CPT
-	$CMD_CPT
-
-	exit
-}
-function Copy_slave2master {
-	echo $1
-	exit
-}
-
 
 #Main Code
 
@@ -56,7 +31,11 @@ case "$1" in
 			exit
 		fi
 
-		Duckietown $2
+		echo $2
+		#CMD_NOR="$CMD_NOR./$SLAVE_BASH_NAME dkt '$2'"
+		CMD_NOR="$CMD_NOR source ~/duckietown/environment.sh && ./$SLAVE_BASH_NAME dkt $HOSTNAME '$2'"
+		echo $CMD_NOR
+		$CMD_NOR
 		;;
 
 	$COPYTO )
@@ -66,7 +45,12 @@ case "$1" in
 			exit
 		fi
 
-		Copy_master2slave $2 $3
+		echo "Copy this to destination: $2"
+		SOURCE=$2
+		DESTINATION=$SLAVE_HOME$3
+		CMD_CPT="$CMD_CPT $SOURCE $DESTINATION"
+		echo $CMD_CPT
+		$CMD_CPT
 		;;
 
 	$COPTFROM )
