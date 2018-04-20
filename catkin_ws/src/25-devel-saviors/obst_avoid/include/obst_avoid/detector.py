@@ -16,8 +16,7 @@ from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseArray, Point, Pose, Quaternion
 
 from duckietown_utils import d8_compressed_image_from_cv_image, logger, rgb_from_ros, yaml_load, get_duckiefleet_root
-from duckietown_utils import get_base_name, load_camera_intrinsics, load_homography, load_map, rectify
-from duckietown_utils import load_map, load_camera_intrinsics, load_homography, rectify
+from duckietown_utils import load_camera_intrinsics, load_homography, load_map, rectify
 
 
 class Detector():

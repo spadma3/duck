@@ -6,7 +6,6 @@ from std_msgs.msg import Float32
 from geometry_msgs.msg import PoseArray
 from duckietown_msgs.msg import LanePose, BoolStamped
 from obst_avoid.avoider import Avoider
-from duckietown_utils import get_base_name, rgb_from_ros, rectify, load_camera_intrinsics
 
 
 class ObstAvoidNode(object):
