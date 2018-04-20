@@ -118,7 +118,7 @@ class kMeansClass:
         idxRed = -1
         idxBlack = -1
         idxYellow = -1
-        idxWhite = -1b
+        idxWhite = -1
 
         # define the true centers. This color is preset. The color transformation
         # tries to transform a picture such that the black areas will become true black.
