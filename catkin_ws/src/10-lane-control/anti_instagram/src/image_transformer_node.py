@@ -7,6 +7,8 @@ from duckietown_utils.jpg import bgr_from_jpg
 from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
 import numpy as np
+# @UnresolvedImport
+
 import time
 import threading
 
@@ -37,6 +39,30 @@ class ImageTransformerNode():
         self.sub_trafo = rospy.Subscriber(
             '/{}/cont_anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
 
+        """# TODO verify if required? (This is from old saviors branch)
+
+        cont_mode = rospy.get_param("~cont_mode", "") #tells which topic to listen to
+        print cont_mode
+
+        # Initialize publishers and subscribers
+        self.pub_image = rospy.Publisher(
+            "~corrected_image", Image, queue_size=1)
+
+        self.sub_image = rospy.Subscriber(
+            # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            # "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            '/{}/camera_node/image/compressed'.format(robot_name), CompressedImage, self.callbackImage, queue_size=1)
+
+        if (cont_mode):
+            self.sub_trafo = rospy.Subscriber(
+                '/{}/cont_anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+                # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
+        else:
+            #print "HERE"
+            self.sub_trafo = rospy.Subscriber(
+                '/{}/anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+                # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)"""
+
         self.sub_colorBalance = rospy.Subscriber(
             '/{}/cont_anti_instagram_node/colorBalanceTrafo'.format(robot_name), AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
 
@@ -63,6 +89,10 @@ class ImageTransformerNode():
         # initialize image bridge
         self.bridge = CvBridge()
 
+        #if not(cont_mode):
+        #    self.trafo_mode = "lin"
+
+        #self.image_msg = None
 
 
     def setupParameter(self, param_name, default_value):
@@ -83,6 +113,8 @@ class ImageTransformerNode():
         if not self.thread_lock.acquire(False):
                 return
 
+        #start = time.time() #with this you can measure the time,..
+        # print('image received!')
         # memorize image
         self.image_msg = image_msg
 
@@ -124,6 +156,10 @@ class ImageTransformerNode():
         tk.completed('published')
 
 
+        # store image to ros message
+        #self.corrected_image = self.bridge.cv2_to_imgmsg(
+        #    corrected_image_cv2, "bgr8")
+
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
 
@@ -133,6 +169,10 @@ class ImageTransformerNode():
 
     def cbNewTrafo(self, trafo_msg):
         # this callback stores the received linear transformation parameters
+        # print('image transformer: received new trafo!')
+        # testwise write to file
+        # self.file.write('received new trafo\n')
+
         if self.verbose:
             rospy.loginfo('image transformer: received new trafo!')
 
@@ -143,9 +183,13 @@ class ImageTransformerNode():
         self.ai.shift = trafo_msg.s[0:3]
         self.ai.scale = trafo_msg.s[3:6]
 
+        if (abs(self.ai.shift[0]-0)>0.2): #this tells whether we can start or not!!!
+            rospy.logwarn('!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!')
 
     def cbNewTrafo_CB(self, th_msg):
         # this callback stores the received color balance transformation parameters
+
+
         if self.verbose:
             rospy.loginfo('image transformer: received new Color Balance trafo!')
 

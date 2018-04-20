@@ -8,7 +8,7 @@ CENTERS_BRYW = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240,
 CENTERS_BYW = np.array([[60, 60, 60], [50, 240, 240], [240, 240, 240]])
 """
 This class calculates the optimal transform parameters based on the least squares optimization.
-In this class there are two different ways to calculate this parameters. The first uses a standard least squares 
+In this class there are two different ways to calculate this parameters. The first uses a standard least squares
 method from numpy. The second uses a least squares method from scipy, which allows us to define bounds for the
 parameters that are to be calculated.
 
@@ -52,6 +52,16 @@ so that we can build the per-channel equations:
 
 I.e. we want to solve the problem Ax=b for each channel, where x are the transform parameters,
 b the desired color value and A the matrix containing the color values of the found centers.
+
+
+
+The inputs:
+- number of centers:      this is the number of centers which are used to compute the transform
+- found centers:          this is an array containing the centers of the clusters.
+- true centers:           this is the array containing the true centers
+
+The outputs:
+- scale and shift:        The scale and shift values correspond to 'a' and 'b' in y = a*x + b for each channel
 """
 
 class calcTransform:
@@ -72,8 +82,6 @@ class calcTransform:
     shift = []
     residuals = []
     residualNorm = -1
-
-
 
     # initialize
     def __init__(self, numOcenters, found_centers, true_centers = []):
@@ -116,6 +124,15 @@ class calcTransform:
         self.bounds = [(0.333,-100.0), (3.0,100.0)]
 
 
+        #for j in range(3):
+        #    self.matrices_Aw[j] = np.dot(self.matrices_A[j], self.weights_MA)
+        #    self.vectors_bw[j] = np.dot(self.vectors_b[j], self.weights_MA)
+
+
+        #print('matrices A: ' + str(self.matrices_A))
+        #print('vectors b: ' + str(self.vectors_b))
+
+        # print('created instance of calcTransform!')
 
     def returnResidualNorm(self):
         return self.residualNorm

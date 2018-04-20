@@ -32,6 +32,8 @@ class AntiInstagram():
         # thresholds for color balance
         self.ThLow = [0, 0, 0]
         self.ThHi = [255, 255, 255]
+        # milansc: ignoring health for now
+        #self.health = 0
 
         self.KM = None
         self.CB = simpleColorBalanceClass()
@@ -57,6 +59,7 @@ class AntiInstagram():
 
         # get the indices of the matched centers
         idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(self.KM.trained_centers, True)
+
 
         # get centers with red
         trained_centers = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxRed],
@@ -135,4 +138,3 @@ class AntiInstagram():
         # apply color balance
         corrected_image = self.CB.applyTrafo(img, ThLow, ThHi)
         return corrected_image
-

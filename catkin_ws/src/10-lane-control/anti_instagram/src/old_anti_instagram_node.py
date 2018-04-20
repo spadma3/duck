@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 import rospy
-
 from anti_instagram.AntiInstagram import *
-#from anti_instagram.AntiInstagram import *
-from anti_instagram.kmeans_rebuild import *
-from anti_instagram.calcLstsqTransform import *
-from anti_instagram.scale_and_shift import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
@@ -15,14 +10,12 @@ from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
 
 
-class AntiInstagramNode(object):
-
+class AntiInstagramNode():
     def __init__(self):
         self.node_name = rospy.get_name()
 
         self.active = True
         self.locked = False
-
 
         self.image_pub_switch = rospy.get_param(
             "~publish_corrected_image", True)
@@ -43,9 +36,7 @@ class AntiInstagramNode(object):
             "~click", BoolStamped, self.cbClick, queue_size=1)
 
         # Verbose option
-
         self.verbose = rospy.get_param('line_detector_node/verbose', True)
-
 
         # Initialize health message
         self.health = AntiInstagramHealth()
@@ -57,16 +48,6 @@ class AntiInstagramNode(object):
         self.ai = AntiInstagram()
         self.corrected_image = Image()
         self.bridge = CvBridge()
-	# create instance of kMeans
-	self.fancyGeom = rospy.get_param("~fancyGeom", "")
-        self.n_centers = rospy.get_param("~n_centers", "")
-	self.blur = rospy.get_param("~blur","")
-	self.resize = rospy.get_param("~resize","")
-	self.blur_kernel = rospy.get_param("~blur_kernel")
-        self.KM = kMeansClass(self.n_centers, self.blur, self.resize, self.blur_kernel)
-	self.scale = np.array([1, 1, 1])
-	self.shift = np.array([0, 0, 0])
-	self.ai_health = 0.1
 
         self.image_msg = None
         self.click_on = False
@@ -82,21 +63,10 @@ class AntiInstagramNode(object):
             corrected_image_cv2 = self.ai.applyTransform(cv_image)
             tk.completed('applyTransform')
 
-
             corrected_image_cv2 = np.clip(
                 corrected_image_cv2, 0, 255).astype(np.uint8)
             self.corrected_image = self.bridge.cv2_to_imgmsg(
                 corrected_image_cv2, "bgr8")
-
-        """if False:
-            tk = TimeKeeper(image_msg)
-            cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
-
-	    corrected_image_cv2 = scaleandshift2(cv_image, self.scale, self.shift)
-            tk.completed('applyTransform')
-
-    	    corrected_image_cv2 = np.clip(corrected_img, 0, 255).astype(np.uint8)
-	    self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")"""
 
             tk.completed('encode')
 
@@ -141,46 +111,12 @@ class AntiInstagramNode(object):
 
         tk.completed('converted')
 
-        # apply KMeans
-    	self.KM.applyKM(cv_image, fancyGeom=self.fancyGeom)
-
-    	# get the indices of the matched centers
-    	idxBlack, idxRed, idxYellow, idxWhite  = self.KM.determineColor(True, self.KM.trained_centers)
-
-    	# get centers with red
-    	trained_centers = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxRed],
-                                self.KM.trained_centers[idxYellow], self.KM.trained_centers[idxWhite]])
-
-    	# get centers w/o red
-    	trained_centers_woRed = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxYellow],
-                                self.KM.trained_centers[idxWhite]])
-
-    	# calculate transform with 4 centers
-    	T4 = calcTransform(4, trained_centers)
-    	T4.calcTransform()
-
-    	# calculate transform with 3 centers
-    	T3 = calcTransform(3, trained_centers_woRed)
-    	T3.calcTransform()
-
-    	# compare residuals
-	    #in practice, this is NOT a fair way to compare the residuals, 4 will almost always win out,
-	    #causing a serious red shift in any image that has only 3 colors
-    	if T4.returnResidualNorm() >= T3.returnResidualNorm():
-            self.shift = T4.shift
-            self.scale = T4.scale
-    	else:
-      	    self.shift = T3.shift
-            self.scale = T3.scale
-
-	self.shift = T3.shift
-	self.scale = T3.scale
-        tk.completed('calculateTransform')
+        self.ai.calculateTransform(cv_image)
 
         tk.completed('calculateTransform')
 
         # if health is much below the threshold value, do not update the color correction and log it.
-        if self.ai_health <= 0.001:
+        if self.ai.health <= 0.001:
             # health is not good
 
             rospy.loginfo("Health is not good")

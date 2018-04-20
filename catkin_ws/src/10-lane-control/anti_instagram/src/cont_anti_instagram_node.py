@@ -21,7 +21,9 @@ This node subscribed to the uncorrected images from the camera. Within a certain
 
     This node publishes the parameters for the linear transform as well as for the color balance based transform.
     Other than that, the node publishes the mask that was used.
+
 """
+
 
 
 class ContAntiInstagramNode():

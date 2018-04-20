@@ -55,6 +55,25 @@ class kMeansClass:
 
 
 
+
+    """# re-shape input image for kMeans
+    def _getimgdatapts(self, cv2img, fancyGeom=False):
+        x, y, p = cv2img.shape
+        if not fancyGeom:
+            img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
+            x_new, y_new, p = img_geom.shape
+            cv2_tpose = img_geom.transpose()
+            cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
+        else:
+            mask = processGeom2(cv2img)
+            img_geom = np.expand_dims(mask, axis=-1)*cv2img
+            mask = mask.transpose()
+            inds = np.array(np.nonzero(mask))
+            cv2_tpose = np.transpose(img_geom)
+            cv2_arr_tpose = cv2_tpose[:, inds[0, :], inds[1, :]]
+        npdata = np.transpose(cv2_arr_tpose)
+        return npdata
+"""
     def _blurImg(self):
         # blur image using median:
         if self.blur_alg == 'median':
@@ -63,7 +82,6 @@ class kMeansClass:
         # blur image using gaussian:
         elif self.blur_alg == 'gaussian':
             self.blurred_image = cv2.GaussianBlur(self.resized_image, (self.blur_kernel, self.blur_kernel), 0)
-
         else:
             self.blurred_image = self.resized_image
 
@@ -100,7 +118,7 @@ class kMeansClass:
         idxRed = -1
         idxBlack = -1
         idxYellow = -1
-        idxWhite = -1
+        idxWhite = -1b
 
         # define the true centers. This color is preset. The color transformation
         # tries to transform a picture such that the black areas will become true black.
@@ -194,6 +212,45 @@ class kMeansClass:
 
             # set entry in errorList to max
             errorList[category*n_trained_centers : (category+1)*n_trained_centers + 1] = 1000
+        """
+        Alternative approch from saviors branch, testing with new implementation for now
+
+        #w,h = errorSorted.shape
+        #errorList = np.reshape(errorSorted,(w*h))
+        # find for every true center the corresponding trained center.
+        # this code considers the global minimum for assigning clusters,
+        # instead of assigning first black, then white, yellow and red
+        while (not centersFound):
+
+            if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
+                ListOfIndices.append(errorBlackSortedIdx[index])
+                # print str(index) + " in black " + str(ListOfIndices)
+                blackIdxFound = True
+                idxBlack = errorBlackSortedIdx[index]
+            if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
+                ListOfIndices.append(errorWhiteSortedIdx[index])
+                # print str(index) + " in white " + str(ListOfIndices)
+                whiteIdxFound = True
+                idxWhite = errorWhiteSortedIdx[index]
+            if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
+                ListOfIndices.append(errorYellowSortedIdx[index])
+                # print str(index) + " in yellow " + str(ListOfIndices)
+                yellowIdxFound = True
+                idxYellow = errorYellowSortedIdx[index]
+            if withRed:
+                if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
+                    ListOfIndices.append(errorRedSortedIdx[index])
+                    redIdxFound = True
+                    # print str(index) + "in red" + str(ListOfIndices)
+                    idxRed = errorRedSortedIdx[index]
+                # print "True?: " + str(redIdxFound) + str(yellowIdxFound) + str(whiteIdxFound) + str(blackIdxFound)
+                centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
+                # print "centersFound: " + str(centersFound)
+
+            else:
+                centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
+            index = index + 1
+            # print "End of while loop. Index: " + str(index)"""
 
         # return the minimal error indices for the trained centers.
         if (withRed):
@@ -225,7 +282,6 @@ class kMeansClass:
                 errorArray[j] = self.estimateError(tempTrafoCenter, tempTrueCenter)
             errorArrayTotal[i] = np.sum(errorArray)
             # print "error of trafo: " + str(errorArrayTotal[i])
-
         errorArraySortedIdx = np.argsort(errorArrayTotal)
         averageError = np.average(errorArrayTotal[1:n_centers])
         # print(averageError)
