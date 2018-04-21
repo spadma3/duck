@@ -28,8 +28,10 @@ class ChargingControlNode(object):
         ## Subscribers
         self.sub_state = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
         self.sub_state = rospy.Subscriber("~maintenance_state", MaintenanceState, self.cbMaintenanceState)
-        self.sub_tags = rospy.Subscriber("~april_tags", AprilTagsWithInfos, self.cbAprilTag)
+        #####self.sub_tags = rospy.Subscriber("~april_tags", AprilTagsWithInfos, self.cbAprilTag)
         #self.go_first = rospy.Subscriber("~go_first", BoolStamped, self.cbGoFirst)
+        self.sub_stop_line = rospy.Subscriber("~at_stop_line", BoolStamped, self.cbStopLine)
+
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.inters_done = rospy.Subscriber("~intersection_done", BoolStamped, self.cbIntersecDone)
 
@@ -45,8 +47,17 @@ class ChargingControlNode(object):
         # Assume the Duckiebot is full, let him drive to charger after drive_time minutes
         self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
 
-    def cbMaintenanceState(self, msg):
 
+    # If Duckiebot first in charger and ready2go, leave charger
+    def cbStopLine(self, msg):
+        if self.state == "CHARGING_FIRST_IN_LINE" and msg.data and self.ready2go:
+            ready_at_exit_msg = BoolStamped()
+            ready_at_exit_msg.header = msg.header
+            ready_at_exit_msg.data = self.ready2go
+            self.ready_at_exit.publish(ready_at_exit_msg)
+
+
+    def cbMaintenanceState(self, msg):
         # Start timer which calls Duckiebot back to charger after charge_time mins
         if self.maintenance_state == "CHARGING" and msg.state == "NONE":
             self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
@@ -66,11 +77,12 @@ class ChargingControlNode(object):
 
         self.pub_turn_type.publish(self.turn_type)
 
-
+    # Set the status to: ready to leave charging area (battery full)
     def setReady2Go(self, event):
         self.ready2go = True
         rospy.loginfo("[Charing Control Node]: Requesting the Duckiebot to leave the charger")
 
+    # Request that Duckiebot should drive to maintenance area for charging
     def goToCharger(self, event):
         go_to_charger = Bool()
         go_to_charger.data = True
@@ -94,9 +106,9 @@ class ChargingControlNode(object):
             in_charger.data = True
             self.pub_in_charger.publish(in_charger)
 
-            # Leaving charger
-            if turn == (station['path_out'])[-1]:
-                rospy.loginfo("Leaving charging station")
+        # Leaving charger
+        if turn == (station['path_out'])[-1]:
+            rospy.loginfo("Leaving charging station")
 
 
     def cbFSMState(self, state_msg):
@@ -110,29 +122,27 @@ class ChargingControlNode(object):
 
 
 
-    #def cbGoFirst(self, msg):
-    #    return
 
-    # Executes every time april tag det detects a tag
-    def cbAprilTag(self, tag_msg):
-        if not self.active:
-            return
-
-        tags = tag_msg.detections
-        ready_at_exit = False
-
-        # Check if a "first in line" tag is detected
-        for tag in tags:
-
-            if tag.id in self.FIL_tags:
-                ready_at_exit = True
-                break
-
-        # And let any subscriber know that we're first in line and ready2go
-        ready_at_exit_msg = BoolStamped()
-        ready_at_exit_msg.header = tag_msg.header
-        ready_at_exit_msg.data = ready_at_exit and self.ready2go
-        self.ready_at_exit.publish(ready_at_exit_msg)
+    # # Executes every time april tag det detects a tag
+    # def cbAprilTag(self, tag_msg):
+    #     if not self.active:
+    #         return
+    #
+    #     tags = tag_msg.detections
+    #     ready_at_exit = False
+    #
+    #     # Check if a "first in line" tag is detected
+    #     for tag in tags:
+    #
+    #         if tag.id in self.FIL_tags:
+    #             ready_at_exit = True
+    #             break
+    #
+    #     # And let any subscriber know that we're first in line and ready2go
+    #     ready_at_exit_msg = BoolStamped()
+    #     ready_at_exit_msg.header = tag_msg.header
+    #     ready_at_exit_msg.data = ready_at_exit and self.ready2go
+    #     self.ready_at_exit.publish(ready_at_exit_msg)
 
     # Returns the turn type for an intersection to get to charger
     def getTurnType(self, chargerID, tagID):
@@ -165,8 +175,6 @@ class ChargingControlNode(object):
         self.charge_time = rospy.get_param("~charge_time")
         self.drive_time = rospy.get_param("~drive_time")
         self.charger = rospy.get_param("~charger")
-
-
 
 
     def setupParam(self,param_name,default_value):
