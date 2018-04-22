@@ -38,8 +38,9 @@ def create_machines(scuderia_contents):
 
     def make_line(name, entry):
         #         space = " "*(13-len(entry.robot_name))
-        p = """<machine name="%s"  address="%s.local" user="%s" env-loader="$(arg env_script_path)"/>"""
-        return p % (name, entry.hostname,  entry.username)
+        p = """<machine name="%s"  address="%s" user="%s" env-loader="$(arg env_script_path)"/>"""
+	hostname = "%s%s" % ( entry.hostname, '.local' if name != 'default' else '' )
+        return p % (name, hostname,  entry.username)
 
     names = sorted(scuderia_contents)
 
