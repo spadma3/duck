@@ -1,0 +1,12 @@
+<!-->
+The monitor node takes as input a configuration file (YAML?) that provides a list
+of image topics to be bridged to JS. The node monitors the number of subscribers
+to each one of the output topics (with prefix viz_). The work is done only if there
+is at least one subscriber. All the images are scaled to 320x240, throttled down to 
+8Hz and compressed.
+
+</-->
+
+<launch>
+	<node pkg="topic_tools" type='throttle" name="monitor_image_throttle" args="">
+</launch>
