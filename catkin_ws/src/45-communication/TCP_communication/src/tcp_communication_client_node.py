@@ -9,12 +9,13 @@ import math
 import socket
 import json
 from duckietown_msgs.srv import GetVariable, SetVariable
+from duckietown_utils import robot_name
 
 from duckietown_utils import tcp_communication
 class TCPCommunicationClientNode(object):
     def __init__(self):
         self.node_name = "TCP Communication Client Node"
-
+        self.veh_name = robot_name.get_current_robot_name()
         ## setup Parameters
         self.setupParams()
 
@@ -35,7 +36,8 @@ class TCPCommunicationClientNode(object):
     # Get variable from variable server (rosservice function)
     def getVariable(self, req):
         # Data is passed in JSON format (from rosservice and also TCP)
-        MESSAGE = ["GET", json.loads(req.name.data)]
+        # MESSAGE = [VEHICLE_NAME, ACTION, VAR_NAME(, VAR_VALUE)]
+        MESSAGE = [self.veh_name, "GET", json.loads(req.name.data)]
         
         # Check if data is too long
         if len(MESSAGE) > self.BUFFER_SIZE:
@@ -57,7 +59,8 @@ class TCPCommunicationClientNode(object):
     # Sett variable on variable server (rosservice function)
     def setVariable(self, req):
         # Data passed in JSON format
-        MESSAGE = ["SET", json.loads(req.name.data), json.loads(req.value.data)]
+        # MESSAGE = [VEHICLE_NAME, ACTION, VAR_NAME(, VAR_VALUE)]
+        MESSAGE = [self.veh_name, "SET", json.loads(req.name.data), json.loads(req.value.data)]
         
         # Check if data is too long
         if len(MESSAGE) > self.BUFFER_SIZE:
@@ -78,7 +81,7 @@ class TCPCommunicationClientNode(object):
 
 
     def setupParams(self):
-        self.IP = self.setupParam("~IP", "192.168.1.205")
+        self.IP = self.setupParam("~IP", "192.168.1.222")
         self.PORT = self.setupParam("~PORT", 5678)
         self.BUFFER_SIZE = self.setupParam("~BUFFER_SIZE", 1024)
 
