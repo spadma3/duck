@@ -209,7 +209,7 @@ states:
       - led_emitter_node
       - line_detector_node
 
-      # - lane_filter_node Hopefully works
+      - lane_filter_node
 
       ###### TO USE OPEN LOOP INTERSECTION CONTROL (untested):
       # COMMENT OUT intersection_navigation_node, intersection_localization_node and lane_controller_node
