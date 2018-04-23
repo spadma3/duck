@@ -96,6 +96,16 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
 
+  calibration_start:
+    topic: "auto_calibration_node/calibration_start"
+    msg_type: "BoolStamped"
+    trigger: True
+
+  calibration_stop:
+    topic: "auto_calibration_node/calibration_stop"
+    msg_type: "BoolStamped"
+    trigger: True
+
   # obstacle_detection:
   #   topic: "obstacle_safety_node/object_too_close"
   #   msg_type: "BoolStamped"
@@ -183,7 +193,9 @@ states:
       at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
       at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
       deep_lane_following_on: "DEEP_LANE_FOLLOWING"
+      calibration_start: "CALIBRATING"
       in_charger: "IN_CHARGING_AREA"
+
     active_nodes:
       - decoder_node
       - line_detector_node
@@ -309,6 +321,19 @@ states:
       - stop_line_filter_node
       - duckiebot_il_lane_following
 
+  CALIBRATING:
+    transitions:
+      calibration_stop: "LANE_FOLLOWING"
+    active_nodes:
+      - decoder_node
+      - line_detector_node
+      - apriltag_node
+      - lane_filter_node
+      - lane_controller_node
+      - stop_line_filter_node
+
+    lights: ["lane_following"]
+    current_status: "in_progress"
 
   # LANE_RECOVERY: # not implemented
   #   transitions:
