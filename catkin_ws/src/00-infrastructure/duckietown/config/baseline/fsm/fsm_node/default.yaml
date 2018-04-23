@@ -33,6 +33,11 @@ events: # Maps from subscribing topic to signal ids
     topic: "stop_line_filter_node/at_stop_line"
     msg_type: "BoolStamped"
     trigger: True
+
+  in_charger:
+    topic: "charging_control_node/in_charger"
+    msg_type: "BoolStamped"
+    trigger: True
   # Logical events from logic_gate_node
   # at_stop_line_and_velocity_zero:
   #   topic: "logic_gate_node/at_stop_line_and_velocity_zero"
@@ -87,6 +92,11 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
 
+  at_stop_line_and_charging_exit:
+    topic: "logic_gate_node/at_stop_line_and_charging_exit"
+    msg_type: "BoolStamped"
+    trigger: True
+
   # obstacle_detection:
   #   topic: "obstacle_safety_node/object_too_close"
   #   msg_type: "BoolStamped"
@@ -132,6 +142,8 @@ nodes:
   parking_control: "parking_control/switch"
   duckiebot_il_lane_following: "duckiebot_il_lane_following/switch"
 
+  charging_control: "charging_control_node/switch"
+
 # Define state transitions
 
 global_transitions:
@@ -172,6 +184,7 @@ states:
       at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
       at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
       deep_lane_following_on: "DEEP_LANE_FOLLOWING"
+      in_charger: "IN_CHARGING_AREA"
     active_nodes:
       - decoder_node
       - line_detector_node
@@ -183,6 +196,7 @@ states:
       - vehicle_filter_node
       - vehicle_detection_node
       - vehicle_avoidance_control_node
+      - charging_control
     lights: ["lane_following"]
     current_status: "in_progress"
   INTERSECTION_COORDINATION:
@@ -217,6 +231,41 @@ states:
       - intersection_localization_node
       - lane_controller_node
     current_status: "in_progress"
+
+  IN_CHARGING_AREA:
+    transitions:
+      at_stop_line_and_parking_off: "CHARGING_FIRST_IN_LINE"
+      at_stop_line_and_parking_on: "CHARGING_FIRST_IN_LINE"
+    active_nodes:
+      - decoder_node
+      - line_detector_node
+      #- apriltag_node
+      - lane_filter_node
+      - lane_controller_node
+      - stop_line_filter_node
+      - obstacle_avoidance_node
+      - vehicle_filter_node
+      - vehicle_detection_node
+      - vehicle_avoidance_control_node
+      - charging_control
+
+  CHARGING_FIRST_IN_LINE:
+    transitions:
+      at_stop_line_and_charging_exit: "LANE_FOLLOWING"
+    active_nodes:
+      - decoder_node
+      - line_detector_node
+      - apriltag_node
+      - lane_filter_node
+      - lane_controller_node
+      - stop_line_filter_node
+      - obstacle_avoidance_node
+      - vehicle_filter_node
+      - vehicle_detection_node
+      - vehicle_avoidance_control_node
+      - charging_control
+
+
 #   PARKING:
 #     transitions:
 # <<<<<<< HEAD

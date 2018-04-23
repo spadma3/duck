@@ -1385,100 +1385,100 @@
   traffic_sign_type: t-light-ahead
 
 - tag_id: 231
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 232
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 233
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 234
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 235
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 236
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 237
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 238
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 239
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 240
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 241
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 242
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 243
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 244
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 245
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 246
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 247
   tag_type:
@@ -1931,49 +1931,49 @@
   traffic_sign_type:
 
 - tag_id: 322
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 323
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 324
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 325
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 326
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 327
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 328
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 329
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:

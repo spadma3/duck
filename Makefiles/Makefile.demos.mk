@@ -59,3 +59,7 @@ demo-vehicle_follow_leader: check-environment
 # traffic lights
 traffic-light: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch traffic_light traffic_light_node.launch veh:=$(vehicle_name)"
+
+
+turn-duration-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; rosparam set /$*/open_loop_intersection_control_node/turn_$(type) '[[0.8, 0.43, 0],[$(time), 0.43, 2.896],[0.8, 0.43, 0.0]]'; "
