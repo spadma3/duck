@@ -23,11 +23,12 @@ class TCPCommunicationClientNode(object):
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
 
-
+        # Setting up rosservices
         self.service_getVariable = rospy.Service("~get_variable", GetVariable, self.getVariable)
         self.service_setVariable = rospy.Service("~set_variable", SetVariable, self.setVariable)
 
-        ans = tcp_communication.getTCPVariable("julien")
+        # Debugging example
+        ans = tcp_communication.getVariable("julien")
 
         rospy.loginfo("ans: " + ans)
 
