@@ -31,30 +31,48 @@ class TCPCommunicationClientNode(object):
 
         rospy.loginfo("ans: " + ans)
 
+    # Get variable from variable server (rosservice function)
     def getVariable(self, req):
-        rospy.loginfo(str(req))
+        # Data is passed in JSON format (from rosservice and also TCP)
         MESSAGE = ["GET", json.loads(req.name.data)]
+        
+        # Check if data is too long
+        if len(MESSAGE) > self.BUFFER_SIZE:
+            string = String()
+            string.data = json.dumps("ERROR")
+            return string
+        
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.IP, self.PORT))
         s.send(json.dumps(MESSAGE))
-        data = s.recv(self.BUFFER_SIZE)
-        response = data
+        response = s.recv(self.BUFFER_SIZE)
         s.close()
-
-        rospy.loginfo(str(response))
+        
+        # Create return String
         string = String()
         string.data = response
         return string
-
+    
+    # Sett variable on variable server (rosservice function)
     def setVariable(self, req):
-        MESSAGE = ["SET", json.loads(req.name), json.loads(req.value)]
+        # Data passed in JSON format
+        MESSAGE = ["SET", json.loads(req.name.data), json.loads(req.value.data)]
+        
+        # Check if data is too long
+        if len(MESSAGE) > self.BUFFER_SIZE:
+            string = String()
+            string.data = json.dumps("ERROR")
+            return string
+        
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.IP, self.PORT))
         s.send(json.dumps(MESSAGE))
-        data = s.recv(self.BUFFER_SIZE)
-        response = data
+        response = s.recv(self.BUFFER_SIZE)
         s.close()
-
+    
+        # Create return String
+        string = String()
+        string.data = response
         return response
 
 
