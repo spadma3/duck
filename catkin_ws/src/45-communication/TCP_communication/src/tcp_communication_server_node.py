@@ -20,12 +20,12 @@ class TCPCommunicationServerNode(object):
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
-
+        # Prepare socket
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_socket.bind((self.IP, self.PORT))
         self.tcp_socket.listen(1)
 
-
+        # Listen
         while not rospy.is_shutdown():
             try:
                 self.mainLoop()
@@ -34,25 +34,31 @@ class TCPCommunicationServerNode(object):
         self.tcp_socket.close()
 
     def mainLoop(self):
+        # Wait for and accept connection
         tcp_connection, addr = self.tcp_socket.accept()
         data_raw = tcp_connection.recv(self.BUFFER_SIZE)
-
+        
+        # Decode JSON format
         data = json.loads(data_raw)
 
-
-        if data[0] == "SET":
-            rospy.set_param(data[1], data[2])
+        # data = [VEHICLE_NAME, ACTION, VAR_NAME(, VAR_VALUE)]
+        if data[1] == "SET":
+            rospy.set_param(data[2], data[3])
             response = True
-            rospy.loginfo(str(addr[0]) +  " sets " + str(data[1]) + " to " + str(data[2]))
-        if data[0] == "GET":
-            response = rospy.get_param(data[1])
+            rospy.loginfo(str(data[0]) +  " sets " + str(data[2]) + " to " + str(data[3]))
+        if data[1] == "GET":
+            if rospy.has_param(data[2]): 
+                response = rospy.get_param(data[2])
+            else:
+                response = None
 
+        # Send response (either variable or confirmation)
         tcp_connection.send(json.dumps(response))
         tcp_connection.close()
 
 
     def setupParams(self):
-        self.IP = self.setupParam("~IP", "192.168.1.205")
+        self.IP = self.setupParam("~IP", "192.168.1.222")
         self.PORT = self.setupParam("~PORT", 5678)
         self.BUFFER_SIZE = self.setupParam("~BUFFER_SIZE", 1024)
 
