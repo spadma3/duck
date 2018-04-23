@@ -1,5 +1,6 @@
 import geometry as geo
 
+from .tcp_communication import *
 from .bag_info import *
 from .bag_logs import *
 from .bag_reading import *
@@ -90,4 +91,3 @@ if False:
                 __all__.append(c)
 
 # Use the PyGeometry library as dtu.geo
-

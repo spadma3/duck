@@ -74,6 +74,8 @@ add_service_files(
   FILES
   SetFSMState.srv
   SetValue.srv
+  SetVariable.srv
+  GetVariable.srv
   # Service2.srv
 )
 
