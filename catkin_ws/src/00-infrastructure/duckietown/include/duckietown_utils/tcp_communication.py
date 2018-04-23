@@ -14,4 +14,5 @@ def getTCPVariable(variable_name):
     name.data = json.dumps(variable_name)
     var = getVar(name)
 
-    return json.loads(var.data)
+    rospy.loginfo(str(var))
+    return json.loads(var.value_json.data)

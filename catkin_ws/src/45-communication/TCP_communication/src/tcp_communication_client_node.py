@@ -32,11 +32,8 @@ class TCPCommunicationClientNode(object):
         rospy.loginfo("ans: " + ans)
 
     def getVariable(self, req):
-        rospy.loginfo("YEEEEEEEEEEEEE")
-        s = String()
-        s.data = "aaaaa"
-        return s
-        MESSAGE = ["GET", json.loads(req.name)]
+        rospy.loginfo(str(req))
+        MESSAGE = ["GET", json.loads(req.name.data)]
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.IP, self.PORT))
         s.send(json.dumps(MESSAGE))
@@ -44,7 +41,10 @@ class TCPCommunicationClientNode(object):
         response = data
         s.close()
 
-        return response
+        rospy.loginfo(str(response))
+        string = String()
+        string.data = response
+        return string
 
     def setVariable(self, req):
         MESSAGE = ["SET", json.loads(req.name), json.loads(req.value)]
