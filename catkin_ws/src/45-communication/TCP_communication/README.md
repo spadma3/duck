@@ -3,7 +3,7 @@
 
 
 
-This package contains the necessary functions to communicate between different Duckiebots via a variable server.
+This package contains the necessary functions to communicate between different Duckiebots via a variable server. Delay approx. 50ms
 
 ## How to use this package
 
