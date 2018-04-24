@@ -7,3 +7,20 @@ BUFFER_SIZE: 1024
 
 
 # Charging
+charging_stations:
+  station1:
+    spots: 4
+    free_spots: 4
+    operational: True
+  station2:
+    spots: 4
+    free_spots: 4
+    operational: True
+  station3:
+    spots: 4
+    free_spots: 4
+    operational: True
+  station4:
+    spots: 4
+    free_spots: 4
+    operational: True
