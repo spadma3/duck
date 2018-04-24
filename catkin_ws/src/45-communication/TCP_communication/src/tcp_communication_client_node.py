@@ -29,55 +29,61 @@ class TCPCommunicationClientNode(object):
         self.service_setVariable = rospy.Service("~set_variable", SetVariable, self.setVariable)
 
         # Debugging example
+        millis1 = int(round(time.time() * 1000))
+        tcp_communication.setVariable("julien", "amigo")
+        millis2 = int(round(time.time() * 1000))
         ans = tcp_communication.getVariable("julien")
+        millis3 = int(round(time.time() * 1000))
 
-        rospy.loginfo("ans: " + ans)
+        if ans == None:
+            rospy.loginfo("Variable julien is not set")
+        else:
+            rospy.loginfo("ans: " + ans)
 
+        rospy.loginfo("Setting took " + str(millis2-millis1) +"ms. Getting took " + str(millis3-millis2) +"ms.")
     # Get variable from variable server (rosservice function)
     def getVariable(self, req):
         # Data is passed in JSON format (from rosservice and also TCP)
         # MESSAGE = [VEHICLE_NAME, ACTION, VAR_NAME(, VAR_VALUE)]
-        MESSAGE = [self.veh_name, "GET", json.loads(req.name.data)]
-        
+        MESSAGE = [self.veh_name, "GET", json.loads(req.name_json.data)]
         # Check if data is too long
         if len(MESSAGE) > self.BUFFER_SIZE:
             string = String()
             string.data = json.dumps("ERROR")
             return string
-        
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.IP, self.PORT))
         s.send(json.dumps(MESSAGE))
         response = s.recv(self.BUFFER_SIZE)
         s.close()
-        
         # Create return String
         string = String()
         string.data = response
+
         return string
-    
+
     # Sett variable on variable server (rosservice function)
     def setVariable(self, req):
         # Data passed in JSON format
         # MESSAGE = [VEHICLE_NAME, ACTION, VAR_NAME(, VAR_VALUE)]
-        MESSAGE = [self.veh_name, "SET", json.loads(req.name.data), json.loads(req.value.data)]
-        
+        MESSAGE = [self.veh_name, "SET", json.loads(req.name_json.data), json.loads(req.value_json.data)]
+
         # Check if data is too long
         if len(MESSAGE) > self.BUFFER_SIZE:
             string = String()
             string.data = json.dumps("ERROR")
             return string
-        
+
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.IP, self.PORT))
         s.send(json.dumps(MESSAGE))
         response = s.recv(self.BUFFER_SIZE)
         s.close()
-    
+
         # Create return String
         string = String()
         string.data = response
-        return response
+        return string
 
 
     def setupParams(self):
