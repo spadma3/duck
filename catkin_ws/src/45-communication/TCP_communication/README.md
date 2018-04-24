@@ -25,6 +25,8 @@ tcp_communication contains the following functions:
 | get Variable | object setVariable(string value_name, object value) |
 
 
+## Example
+
 The following example uses the communication link:
 
 
