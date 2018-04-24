@@ -28,6 +28,7 @@ events: # Maps from subscribing topic to signal ids
     topic: "apriltags_postprocessing_node/apriltags_intersection"
     msg_type: "BoolStamped"
     trigger: True
+
   at_stop_line:
     topic: "stop_line_filter_node/at_stop_line"
     msg_type: "BoolStamped"
@@ -221,7 +222,9 @@ states:
       - decoder_node
       - led_emitter_node
       - line_detector_node
+
       - lane_filter_node
+
       ###### TO USE OPEN LOOP INTERSECTION CONTROL (untested):
       # COMMENT OUT intersection_navigation_node, intersection_localization_node and lane_controller_node
       - intersection_navigation_node
