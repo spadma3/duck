@@ -21,8 +21,8 @@ tcp_communication contains the following functions:
 
 | purpose      | function definition                                 |
 |--------------|-----------------------------------------------------|
-| get Variable | object getVariable(string value_name)               |
-| get Variable | object setVariable(string value_name, object value) |
+| get Variable | bool getVariable(string value_name)                 |
+| set Variable | object setVariable(string value_name, object value) |
 
 
 ## Example
