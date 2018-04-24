@@ -74,7 +74,7 @@ except:
     raise Exception(msg)
 
 # this is from the exercises
-# from .augmented_reality_utils import *
+from .augmented_reality_utils import *
 # from .draw import *
 # from .cli import *
 
