@@ -28,19 +28,7 @@ class TCPCommunicationClientNode(object):
         self.service_getVariable = rospy.Service("~get_variable", GetVariable, self.getVariable)
         self.service_setVariable = rospy.Service("~set_variable", SetVariable, self.setVariable)
 
-        # Debugging example
-        millis1 = int(round(time.time() * 1000))
-        tcp_communication.setVariable("julien", "amigo")
-        millis2 = int(round(time.time() * 1000))
-        ans = tcp_communication.getVariable("julien")
-        millis3 = int(round(time.time() * 1000))
 
-        if ans == None:
-            rospy.loginfo("Variable julien is not set")
-        else:
-            rospy.loginfo("ans: " + ans)
-
-        rospy.loginfo("Setting took " + str(millis2-millis1) +"ms. Getting took " + str(millis3-millis2) +"ms.")
     # Get variable from variable server (rosservice function)
     def getVariable(self, req):
         # Data is passed in JSON format (from rosservice and also TCP)
@@ -51,11 +39,16 @@ class TCPCommunicationClientNode(object):
             string = String()
             string.data = json.dumps("ERROR")
             return string
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((self.IP, self.PORT))
-        s.send(json.dumps(MESSAGE))
-        response = s.recv(self.BUFFER_SIZE)
-        s.close()
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((self.IP, self.PORT))
+            s.send(json.dumps(MESSAGE))
+            response = s.recv(self.BUFFER_SIZE)
+            s.close()
+        except:
+            rospy.loginfo("[TCP Communication Client Node] Could not connect!")
+            response = json.dumps("ERROR")
         # Create return String
         string = String()
         string.data = response
@@ -74,12 +67,15 @@ class TCPCommunicationClientNode(object):
             string.data = json.dumps("ERROR")
             return string
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((self.IP, self.PORT))
-        s.send(json.dumps(MESSAGE))
-        response = s.recv(self.BUFFER_SIZE)
-        s.close()
-
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((self.IP, self.PORT))
+            s.send(json.dumps(MESSAGE))
+            response = s.recv(self.BUFFER_SIZE)
+            s.close()
+        except:
+            rospy.loginfo("[TCP Communication Client Node] Could not connect!")
+            response = json.dumps("ERROR")
         # Create return String
         string = String()
         string.data = response
