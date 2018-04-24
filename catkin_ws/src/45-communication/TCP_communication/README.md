@@ -13,6 +13,17 @@ Start a TCP server on any computer / Duckiebot with ROS. We will use the standar
 
 To use the client (the communication on every Duckiebot), you need to add the tcp_communication_client_node to the launch file of your demo (see megacity.launch as example).
 
+Your code needs to import tcp_communication from duckietown_utils
+
+    from duckietown_utils import tcp_communication
+    
+tcp_communication contains the following functions:
+| purpose      | function definition                                 |
+|--------------|-----------------------------------------------------|
+| get Variable | object getVariable(string value_name)               |
+| get Variable | object setVariable(string value_name, object value) |
+
+
 The following example uses the communication link:
 
 
@@ -22,7 +33,7 @@ The following example uses the communication link:
 from duckietown_utils import tcp_communication
 
 def someFunction():
-  # Set someVariable1 to someValue
+  # Set someVariable1 to someValue. the second argument could have any type
   success = tcp_communication.setVariable("someVariable1", "someValue")
 
   if success:
