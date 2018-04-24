@@ -18,6 +18,7 @@ Your code needs to import tcp_communication from duckietown_utils
     from duckietown_utils import tcp_communication
     
 tcp_communication contains the following functions:
+
 | purpose      | function definition                                 |
 |--------------|-----------------------------------------------------|
 | get Variable | object getVariable(string value_name)               |
@@ -33,7 +34,7 @@ The following example uses the communication link:
 from duckietown_utils import tcp_communication
 
 def someFunction():
-  # Set someVariable1 to someValue. the second argument could have any type
+  # Set someVariable1 to someValue. The second argument could have any type
   success = tcp_communication.setVariable("someVariable1", "someValue")
 
   if success:
