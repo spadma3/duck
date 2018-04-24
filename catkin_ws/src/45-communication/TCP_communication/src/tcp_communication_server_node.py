@@ -43,12 +43,12 @@ class TCPCommunicationServerNode(object):
 
         # data = [VEHICLE_NAME, ACTION, VAR_NAME(, VAR_VALUE)]
         if data[1] == "SET":
-            rospy.set_param(data[2], data[3])
+            rospy.set_param("~" + data[2], data[3])
             response = True
             rospy.loginfo(str(data[0]) +  " sets " + str(data[2]) + " to " + str(data[3]))
         if data[1] == "GET":
-            if rospy.has_param(data[2]): 
-                response = rospy.get_param(data[2])
+            if rospy.has_param("~" + data[2]): 
+                response = rospy.get_param("~" + data[2])
             else:
                 response = None
 
