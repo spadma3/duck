@@ -28,7 +28,7 @@ events:
     msg_type: "BoolStamped"
     trigger: True
   intersection_go_explicit:
-    topic: "LED_coordination/move_intersection"
+    topic: "coordinator_node/intersection_go"
     msg_type: "BoolStamped"
     trigger: True
   apriltag_parking:

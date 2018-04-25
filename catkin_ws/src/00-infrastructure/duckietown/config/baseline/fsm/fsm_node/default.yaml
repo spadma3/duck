@@ -208,8 +208,8 @@ states:
       - framerate_high
       - led_emitter_node
       - led_detector_node
-      - implicit_coordination_node
-      - LED_coordination_node
+    #  - implicit_coordination_node NOTE use the explicit when possible
+      - coordinator_node
       - LED_detection_node
     lights: ["coordination"]
     current_status: "in_progress"
