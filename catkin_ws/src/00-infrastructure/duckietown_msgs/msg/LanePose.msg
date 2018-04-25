@@ -13,5 +13,4 @@ bool in_lane #Status of duckietbot in lane
 
 #Enum for status
 int32 NORMAL=0
-
 int32 ERROR=1

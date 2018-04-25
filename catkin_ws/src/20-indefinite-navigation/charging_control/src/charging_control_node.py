@@ -6,6 +6,7 @@ from std_msgs.msg import Float32, Int16, Bool
 from geometry_msgs.msg import Point
 import time
 import math
+from duckietown_utils import tcp_communication
 
 class ChargingControlNode(object):
     def __init__(self):
@@ -80,14 +81,17 @@ class ChargingControlNode(object):
     # Set the status to: ready to leave charging area (battery full)
     def setReady2Go(self, event):
         self.ready2go = True
-        rospy.loginfo("[Charing Control Node]: Requesting the Duckiebot to leave the charger")
+        rospy.loginfo("[Charing Control Node] Requesting the Duckiebot to leave the charger")
 
     # Request that Duckiebot should drive to maintenance area for charging
     def goToCharger(self, event):
         go_to_charger = Bool()
         go_to_charger.data = True
         self.pub_go_charging.publish(go_to_charger)
-        rospy.loginfo("[Charing Control Node]: Requesting the Duckiebot to go charging")
+        rospy.loginfo("[Charing Control Node] Requesting the Duckiebot to go charging")
+
+        # Reserving a charging spot
+        self.reserveChargerSpot()
 
     # Executes when intersection is done
     def cbIntersecDone(self, msg):
@@ -120,9 +124,23 @@ class ChargingControlNode(object):
             self.charge_timer = rospy.Timer(rospy.Duration.from_sec(60*self.charge_time), self.setReady2Go, oneshot=True)
 
 
-
-
-
+    def reserveChargerSpot(self):
+        charging_stations = tcp_communication.getVariable("charging_stations")
+        if charging_stations is not None and charging_stations != "ERROR":
+            # Obtain the one with most free spots
+            max_free_spots = 0
+            for el in charging_stations:
+                if (charging_stations[el])['operational'] and (charging_stations[el])['free_spots'] > max_free_spots:
+                    max_free_spots = (charging_stations[el])['free_spots']
+                    self.charger = (charging_stations[el])['id']
+            if max_free_spots == 0:
+                rospy.loginfo("[Charing Control Node] WARNING: NO FREE CHARGING SPOTS AVAILABLE")
+                return
+            resp = tcp_communication.setVariable("charging_stations/station" + str(self.charger) + "/free_spots", max_free_spots-1)
+            if resp:
+                rospy.loginfo("[Charing Control Node] Reserved spot in charger " + str(self.charger))
+        else:
+            rospy.loginfo("[Charing Control Node] ERROR")
     # # Executes every time april tag det detects a tag
     # def cbAprilTag(self, tag_msg):
     #     if not self.active:
