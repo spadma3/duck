@@ -1,0 +1,15 @@
+<launch>
+	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
+	<arg name="pkg_name" value="auto_localization"/>
+    <arg name="node_name" default="bot_detection_node"/>
+
+    <arg name="verbose" default="false" />
+
+    <group ns="$(arg veh)">
+    	<node name="bot_detection_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
+    	<remap from="bot_detection_node/image" to="camera_node/image/compressed"/>
+    	<param name="verbose" value="$(arg verbose)"/>
+    	</node>
+	</group>
+
+</launch>
