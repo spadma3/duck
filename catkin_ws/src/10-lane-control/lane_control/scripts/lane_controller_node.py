@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 import math
-
 import time
-
-from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, ActuatorParameters, BoolStamped
 import numpy as np
 import rospy
-
-
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState
 import time
 
