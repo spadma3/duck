@@ -118,8 +118,8 @@ events: # Maps from subscribing topic to signal ids
 nodes:
   decoder_node: "decoder_node/switch"
   apriltag_node: "apriltag_detector_node/switch"
-  led_detector_node: "LED_detector_node/switch"
   led_emitter_node: "led_emitter_node/switch"
+  led_detector_node: led_detector_node/switch"
   static_object_detector_node: "static_object_detector_node/switch"
   line_detector_node: "line_detector_node/switch"
   lane_filter_node: "lane_filter_node/switch"
@@ -127,8 +127,7 @@ nodes:
   framerate_high: "camera_node/framerate_high_switch"
   # extras added
   central_fleet_planning_node: "central_fleet_planning_node/switch"
-  LED_coordination_node: "LED_coordination_node/switch"
-  LED_detection_node: "LED_detection_node/switch"
+  coordinator_node: "coordinator_node/switch"  #NOTE explicit coordination
   obstacle_avoidance_node: "obstacle_avoidance_node/switch"
   implicit_coordination_node: "implicit_coordination_node/switch"
   lane_controller_node: "lane_controller_node/switch"
@@ -136,7 +135,7 @@ nodes:
   vehicle_avoidance_control_node: "vehicle_avoidance_control_node/switch"
   vehicle_detection_node : "vehicle_detection_node/switch"
   intersection_navigation_node: "intersection_navigation_node/switch"
-  intersection_localization_node: "intersection_localization_node/switch"
+  intersection_localizer_node: "intersection_localizer_node/switch"
   parking_perception_localization: "parking_perception_localization/switch"
   parking_path_planning: "parking_path_planning/switch"
   parking_control: "parking_control/switch"
