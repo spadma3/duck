@@ -6,7 +6,7 @@ import rosbag
 from .bag_info import get_image_topic
 from .bag_reading import BagReadProxy
 from .expand_variables import expand_environment
-from .image_conversions import rgb_from_ros
+from .image_conversions import rgb_from_ros, numpy_from_ros_compressed
 from .logging_logger import logger
 
 __all__ = [
