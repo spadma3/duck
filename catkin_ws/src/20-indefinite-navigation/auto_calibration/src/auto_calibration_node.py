@@ -4,6 +4,8 @@ from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, AprilTags
 from std_msgs.msg import String, Int16 #Imports msg
 import copy
 import time
+import psutil
+import signal
 import subprocess, shlex
 
 class AutoCalibrationNode(object):
@@ -62,18 +64,23 @@ class AutoCalibrationNode(object):
     #starts the calibration procedure (i.e rosbag) and switches the fsm when command to calibrate is sent
     def cbCalib(self, bool_msg):
         if bool_msg.data:
-            command = "rosbag record -O ~/media/logs/test.bag subset /megabot05/tag_detections /megabot05/forward_kinematics_node/velocity"
+            command = "rosbag record -O /home/megaduck/media/logs/test.bag /megabot05/tag_detections /megabot05/forward_kinematics_node/velocity"
             command = shlex.split(command)
             #dir_save_bagfile="/media/logs"
-            self.rosbag_proc = subprocess.Popen(command)#, stdin=subprocess.PIPE, shell=True, cwd=dir_save_bagfile)
+            self.rosbag_proc = subprocess.Popen(command)#, stdin=subprocess.PIPE, shell=True)
             calibrate = BoolStamped()
             calibrate.data = True
             self.pub_start.publish(calibrate)
-            rospy.Timer(rospy.Duration.from_sec(10), self.finishCalib, oneshot=True)
+            rospy.Timer(rospy.Duration.from_sec(15), self.finishCalib, oneshot=True)
             rospy.loginfo("[%s] Rosbag recording started" %(self.node_name))
     #atm the calibration stops after 10 seconds --> condition needs to change in the future
     def finishCalib(self,event):
-        self.rosbag_proc.send_signal(subprocess.signal.SIGINT)
+        #self.rosbag_proc.send_signal(subprocess.signal.SIGTERM)
+        #self.rosbag_proc.terminate()
+        p = psutil.Process(self.rosbag_proc.pid)
+        for sub in p.children(recursive=True):
+            sub.send_signal(signal.SIGINT)
+        #self.process.send_signal(signal.SIGINT)
         stop = BoolStamped()
         stop.data = True
         self.pub_stop.publish(stop)
