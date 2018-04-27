@@ -1559,34 +1559,34 @@
   traffic_sign_type:
 
 - tag_id: 260
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 261
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: right-T-intersect
 
 - tag_id: 262
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 263
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 264
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: 4-way-intersect
 
 - tag_id: 265
   tag_type:
@@ -1931,49 +1931,49 @@
   traffic_sign_type:
 
 - tag_id: 322
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 323
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 324
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 325
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 326
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 327
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 328
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
 
 - tag_id: 329
-  tag_type:
+  tag_type: Localization
   street_name:
   vehicle_name:
   traffic_sign_type:
