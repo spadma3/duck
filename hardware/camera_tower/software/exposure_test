@@ -1,0 +1,13 @@
+#Exposure Test Commands
+
+source ~/duckietown/environment.sh
+
+if [ $# -le 0 ]; then
+	source ~/duckietown/set_ros_master.sh
+else
+	source ~/duckietown/set_ros_master.sh $1
+fi
+
+roslaunch auto_localization exposure_test.launch veh:=$HOSTNAME live:=false
+
+rosbag play -l ~/duckietown/hardware/camera_tower/software/art_reg_20_s_2018-03-22-15-57-07.bag /trafficlight3/camera_node/camera_info:=/homohrt/camera_node/camera_info /trafficlight3/camera_node/image/compressed:=/homohrt/camera_node/image/compressed 
