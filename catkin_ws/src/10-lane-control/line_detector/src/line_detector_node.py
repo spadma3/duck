@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-from anti_instagram.AntiInstagram import AntiInstagram
+from anti_instagram.AntiInstagram_rebuild import AntiInstagram
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
     SegmentList, Vector2D)
 from duckietown_utils.instantiate_utils import instantiate
-from duckietown_utils.jpg import image_cv_from_jpg
+from duckietown_utils.jpg import bgr_from_jpg
 from geometry_msgs.msg import Point
 from sensor_msgs.msg import CompressedImage, Image
 from visualization_msgs.msg import Marker
@@ -144,7 +144,7 @@ class LineDetectorNode(object):
 
         # Decode from compressed image with OpenCV
         try:
-            image_cv = image_cv_from_jpg(image_msg.data)
+            image_cv = bgr_from_jpg(image_msg.data)
         except ValueError as e:
             self.loginfo('Could not decode image: %s' % e)
             return
@@ -310,4 +310,4 @@ if __name__ == '__main__':
     rospy.init_node('line_detector',anonymous=False)
     line_detector_node = LineDetectorNode()
     rospy.on_shutdown(line_detector_node.onShutdown)
-    rospy.spin()
+rospy.spin()
