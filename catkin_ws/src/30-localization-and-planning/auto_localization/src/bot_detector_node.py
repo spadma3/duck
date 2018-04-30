@@ -84,14 +84,16 @@ class BotDetectorNode(object):
 			return
 		'''
 		# Record the first number of seq
+		image_cv = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
 		if self.first_seq == -1:
 			self.first_seq = image_msg.header.seq
 
 		n = image_msg.header.seq - self.first_seq
+		rospy.loginfo('Its %d image' % (n))
 		if n <= BG_SAMPLE:
 			#Compute background with the first 1000 images
 			if n == 0:
-				self.background = image_cv.data
+				self.background = image_cv
 				self.bg_b, self.bg_g, self.bg_r = cv2.split(self.background)
 			else:
 				self.bg_b, self.bg_g, self.bg_r = self.getMidBackground(self.bg_b, self.bg_g, self.bg_r, image_cv)
@@ -121,6 +123,8 @@ class BotDetectorNode(object):
 		b, g, r = cv2.split(img)
 
 		def sortList(li, el):
+			if not isinstance(li[0][0], list):
+				li = np.expand_dims(li, axis=1)
 			for i in range(len(li)):
 				for j in range(len(li[i])):
 					for k in range(len(li[i][j])):
