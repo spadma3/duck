@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
-from std_msgs.msg import String, Int16 #Imports msg
+from std_msgs.msg import Int16 #Imports msg
 import copy
 import time
 import psutil
@@ -47,12 +47,12 @@ class AutoCalibrationNode(object):
         self.sub_topic_tag = rospy.Subscriber("~tag", AprilTagsWithInfos, self.cbTag, queue_size=1)
         self.sub_at_stop_line = rospy.Subscriber("~at_stop_line", BoolStamped, self.cbStop, queue_size=1)
         self.sub_in_calibration_area = rospy.Subscriber("~in_calib", BoolStamped, self.cbCalib, queue_size=1)
-        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch)
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
 
     #Car entered calibration mode
     def cbFSMState(self,msg):
         if (not self.mode == "CALIBRATING") and msg.state == "CALIBRATING":
-            # Switch into INTERSECTION_CONTROL mode
+            # Switch into CALIBRATING mode
             self.mode = msg.state
             self.stopped = False
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
