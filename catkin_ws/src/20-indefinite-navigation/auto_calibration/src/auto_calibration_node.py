@@ -30,6 +30,9 @@ class AutoCalibrationNode(object):
         #Standing at stopline
         self.stopped = False
 
+        #Node active?
+        self.active = False
+
         #Publishers
         self.pub_car_cmd = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
         self.pub_start = rospy.Publisher("~calibration_start",BoolStamped,queue_size=1)
@@ -44,6 +47,7 @@ class AutoCalibrationNode(object):
         self.sub_topic_tag = rospy.Subscriber("~tag", AprilTagsWithInfos, self.cbTag, queue_size=1)
         self.sub_at_stop_line = rospy.Subscriber("~at_stop_line", BoolStamped, self.cbStop, queue_size=1)
         self.sub_in_calibration_area = rospy.Subscriber("~in_calib", BoolStamped, self.cbCalib, queue_size=1)
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch)
 
     #Car entered calibration mode
     def cbFSMState(self,msg):
@@ -56,10 +60,13 @@ class AutoCalibrationNode(object):
 
     #stops the Duckiebot at an intersection
     def cbStop(self, bool_msg):
-        if bool_msg.data:
-            self.stopped = True
-        if not bool_msg.data:
-            self.stopped = False
+        if not self.active:
+            return
+        else:
+            if bool_msg.data:
+                self.stopped = True
+            if not bool_msg.data:
+                self.stopped = False
 
     #starts the calibration procedure (i.e rosbag) and switches the fsm when command to calibrate is sent
     def cbCalib(self, bool_msg):
@@ -72,15 +79,13 @@ class AutoCalibrationNode(object):
             calibrate.data = True
             self.pub_start.publish(calibrate)
             rospy.Timer(rospy.Duration.from_sec(15), self.finishCalib, oneshot=True)
+
             rospy.loginfo("[%s] Rosbag recording started" %(self.node_name))
     #atm the calibration stops after 10 seconds --> condition needs to change in the future
     def finishCalib(self,event):
-        #self.rosbag_proc.send_signal(subprocess.signal.SIGTERM)
-        #self.rosbag_proc.terminate()
         p = psutil.Process(self.rosbag_proc.pid)
         for sub in p.children(recursive=True):
             sub.send_signal(signal.SIGINT)
-        #self.process.send_signal(signal.SIGINT)
         stop = BoolStamped()
         stop.data = True
         self.pub_stop.publish(stop)
@@ -88,16 +93,19 @@ class AutoCalibrationNode(object):
 
     #Tag detections
     def cbTag(self, tag_msgs):
-        #Check if seen tab allows to return to maintenance area
-        if(self.calib_done == True):
-            self.turnToExit(self,tag_msgs)
+        if not self.active:
+            return
         else:
-            #Do a U-turn if one of these tags is seen
-            for detection in tag_msgs.detections:
-                if((detection.id == self.tag_id_inter_1 or detection.id == self.tag_id_inter_2) and (detection.pose.pose.position.x < 1.5) and (self.last_tag != detection.id)):
-                    self.lane_follow_override = True
-                    self.last_tag = detection.id
-                    rospy.loginfo("[%s] U-Turn started at tag %s" %(self.node_name,detection.id))
+            #Check if seen tab allows to return to maintenance area
+            if(self.calib_done == True):
+                self.turnToExit(self,tag_msgs)
+            else:
+                #Do a U-turn if one of these tags is seen
+                for detection in tag_msgs.detections:
+                    if((detection.id == self.tag_id_inter_1 or detection.id == self.tag_id_inter_2) and (detection.pose.pose.position.x < 1.5) and (self.last_tag != detection.id)):
+                        self.lane_follow_override = True
+                        self.last_tag = detection.id
+                        rospy.loginfo("[%s] U-Turn started at tag %s" %(self.node_name,detection.id))
 
 
     #When calibration is done, return to maintenance area
@@ -120,25 +128,28 @@ class AutoCalibrationNode(object):
 
     #Decide which commands should be sent to wheels in calibration mode
     def publishControl(self, msg):
-        car_cmd_msg = msg
-        #Command to do a U-turn sent
-        if self.lane_follow_override:
-            self.stopped = False
-            if not self.timer_called:
-                rospy.Timer(rospy.Duration.from_sec(2.2), self.updateTimer, oneshot=True)
-                self.timer_called = True
-            car_cmd_msg.v = 0.2
-            car_cmd_msg.omega = 4
-        #Stopped at stop-line
-        elif self.stopped:
-            car_cmd_msg.v = 0
-            car_cmd_msg.omega = 0
-        #Do no U-turn
+        if not self.active:
+            return
         else:
-            car_cmd_msg.v = msg.v*0.5
-            car_cmd_msg.omega = msg.omega*0.5
-        #Commands to send to the wheels
-        self.pub_car_cmd.publish(car_cmd_msg)
+            car_cmd_msg = msg
+            #Command to do a U-turn sent
+            if self.lane_follow_override:
+                self.stopped = False
+                if not self.timer_called:
+                    rospy.Timer(rospy.Duration.from_sec(2.2), self.updateTimer, oneshot=True)
+                    self.timer_called = True
+                car_cmd_msg.v = 0.2
+                car_cmd_msg.omega = 4
+            #Stopped at stop-line
+            elif self.stopped:
+                car_cmd_msg.v = 0
+                car_cmd_msg.omega = 0
+            #Do no U-turn
+            else:
+                car_cmd_msg.v = msg.v*0.5
+                car_cmd_msg.omega = msg.omega*0.5
+            #Commands to send to the wheels
+            self.pub_car_cmd.publish(car_cmd_msg)
 
     #U-turn timer
     def updateTimer(self,event):
@@ -147,6 +158,9 @@ class AutoCalibrationNode(object):
         self.timer_called = False
         self.stopped = False
         rospy.loginfo("[%s] U-Turn stopped" %(self.node_name))
+
+    def cbSwitch(self, msg):
+        self.active=msg.data
 
 
     def on_shutdown(self):

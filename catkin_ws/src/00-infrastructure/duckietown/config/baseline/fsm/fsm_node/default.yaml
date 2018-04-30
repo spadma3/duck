@@ -153,6 +153,7 @@ nodes:
   duckiebot_il_lane_following: "duckiebot_il_lane_following/switch"
 
   charging_control: "charging_control_node/switch"
+  auto_calibration_node: "auto_calibration_node/switch"
 
 # Define state transitions
 
@@ -328,6 +329,7 @@ states:
     transitions:
       calibration_stop: "LANE_FOLLOWING"
     active_nodes:
+      - auto_calibration_node
       - decoder_node
       - line_detector_node
       - apriltag_node
