@@ -37,6 +37,7 @@ class AutoCalibrationNode(object):
         self.pub_car_cmd = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
         self.pub_start = rospy.Publisher("~calibration_start",BoolStamped,queue_size=1)
         self.pub_stop = rospy.Publisher("~calibration_stop",BoolStamped,queue_size=1)
+        self.pub_calc_start = rospy.Publisher("~calibration_calculation_start",BoolStamped, queue_size=1)
         #self.pub_turn_type = rospy.Publisher("~turn_type",Int16, queue_size=1, latch=True)
 
         self.rate = rospy.Rate(30)
@@ -48,6 +49,7 @@ class AutoCalibrationNode(object):
         self.sub_at_stop_line = rospy.Subscriber("~at_stop_line", BoolStamped, self.cbStop, queue_size=1)
         self.sub_in_calibration_area = rospy.Subscriber("~in_calib", BoolStamped, self.cbCalib, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_calc_stop = rospy.Subscriber("~calibration_calculation_stop",BoolStamped, self.CalibrationDone, queue_size=1)
 
     #Car entered calibration mode
     def cbFSMState(self,msg):
@@ -55,6 +57,7 @@ class AutoCalibrationNode(object):
             # Switch into CALIBRATING mode
             self.mode = msg.state
             self.stopped = False
+            self.calib_done = False
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
         self.mode = msg.state
 
@@ -73,23 +76,22 @@ class AutoCalibrationNode(object):
         if bool_msg.data:
             command = "rosbag record -O /home/megaduck/media/logs/test.bag /megabot05/tag_detections /megabot05/forward_kinematics_node/velocity"
             command = shlex.split(command)
-            #dir_save_bagfile="/media/logs"
-            self.rosbag_proc = subprocess.Popen(command)#, stdin=subprocess.PIPE, shell=True)
+            self.rosbag_proc = subprocess.Popen(command)
             calibrate = BoolStamped()
             calibrate.data = True
             self.pub_start.publish(calibrate)
             rospy.Timer(rospy.Duration.from_sec(15), self.finishCalib, oneshot=True)
-
             rospy.loginfo("[%s] Rosbag recording started" %(self.node_name))
+
     #atm the calibration stops after 10 seconds --> condition needs to change in the future
     def finishCalib(self,event):
         p = psutil.Process(self.rosbag_proc.pid)
         for sub in p.children(recursive=True):
             sub.send_signal(signal.SIGINT)
-        stop = BoolStamped()
-        stop.data = True
-        self.pub_stop.publish(stop)
+        done = BoolStamped()
+        done.data = True
         rospy.loginfo("[%s] Rosbag recording stopped" %(self.node_name))
+        self.pub_calc_start.publish(done)
 
     #Tag detections
     def cbTag(self, tag_msgs):
@@ -98,6 +100,7 @@ class AutoCalibrationNode(object):
         else:
             #Check if seen tab allows to return to maintenance area
             if(self.calib_done == True):
+                rospy.loginfo("[%s] Calibration calculation done and fed back to calibration node" %(self.node_name))
                 self.turnToExit(self,tag_msgs)
             else:
                 #Do a U-turn if one of these tags is seen
@@ -123,6 +126,9 @@ class AutoCalibrationNode(object):
                     #now randomly choose a possible direction
                 if(len(availableTurns)>0):
                     self.turn_type = availableTurns[0]
+                    stop = BoolStamped()
+                    stop.data = True
+                    self.pub_stop.publish(stop)
                     #self.pub_turn_type.publish(self.turn_type)
                     #rospy.loginfo("Turn type now: %i" %(self.turn_type))
 
@@ -162,6 +168,8 @@ class AutoCalibrationNode(object):
     def cbSwitch(self, msg):
         self.active=msg.data
 
+    def CalibrationDone(self,msg):
+        self.calib_done=msg.data
 
     def on_shutdown(self):
         rospy.loginfo("[%s] Shutting down." %(self.node_name))
