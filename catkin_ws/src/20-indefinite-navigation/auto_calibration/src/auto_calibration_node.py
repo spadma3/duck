@@ -158,7 +158,7 @@ class AutoCalibrationNode(object):
             self.pub_car_cmd.publish(car_cmd_msg)
 
     #U-turn timer
-    def updateTimer(self,event):
+    def updateTimer(self):
         #U-turn finishes after 2 seconds
         self.lane_follow_override = False
         self.timer_called = False

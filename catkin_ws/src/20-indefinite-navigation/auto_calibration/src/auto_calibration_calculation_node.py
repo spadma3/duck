@@ -11,13 +11,14 @@ class AutoCalibrationCalculationNode(object):
         # Save the name of the node
         self.node_name = rospy.get_name()
         self.mode = None
+        self.triggered = False
 
         #Node active?
         self.active = False
 
         #Publishers
         self.pub_car_cmd = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
-        self.pub_calc_done = rospy.Subscriber("~calibration_calculation_stop",BoolStamped, queue_size=1)
+        self.pub_calc_done = rospy.Publisher("~calibration_calculation_stop",BoolStamped, queue_size=1)
 
         self.rate = rospy.Rate(30)
 
@@ -32,6 +33,7 @@ class AutoCalibrationCalculationNode(object):
         if (not self.mode == "CALIBRATING_CALC") and msg.state == "CALIBRATING_CALC":
             # Switch into CALIBRATING_CALC mode
             self.mode = msg.state
+            self.triggered = True
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
             self.calibration()
         self.mode = msg.state
@@ -42,10 +44,13 @@ class AutoCalibrationCalculationNode(object):
             return
         else:
             return
+
     #The calibration calculation will come in this function
     def calibration(self):
         rospy.loginfo("[%s] Calculation started." %(self.node_name))
-        rospy.Timer(rospy.Duration.from_sec(5), self.finishCalc, oneshot=True)
+        if self.triggered:
+            rospy.Timer(rospy.Duration.from_sec(5), self.finishCalc, oneshot=True)
+            self.triggered = False
 
     #Exit function for calibration calculation
     def finishCalc(self):
@@ -56,13 +61,13 @@ class AutoCalibrationCalculationNode(object):
 
     #Decide which commands should be sent to wheels in calibration mode
     def publishControl(self, msg):
-        if not self.active:
-            return
-        else:
-            car_cmd_msg = msg
-            car_cmd_msg.v = 0
-            car_cmd_msg.omega = 0
-            self.pub_car_cmd.publish(car_cmd_msg)
+        #if not self.active:
+        #    return
+        #else:
+        car_cmd_msg = msg
+        car_cmd_msg.v = 0
+        car_cmd_msg.omega = 0
+        self.pub_car_cmd.publish(car_cmd_msg)
 
     def cbSwitch(self, msg):
         self.active=msg.data
