@@ -72,7 +72,7 @@ class AutoCalibrationCalculationNode(object):
 
 if __name__ == '__main__':
     # Initialize the node with rospy
-    rospy.init_node('auto_calibration_node', anonymous=False)
+    rospy.init_node('auto_calibration_calculation_node', anonymous=False)
 
     # Create the NodeName object
     node = AutoCalibrationCalculationNode()
