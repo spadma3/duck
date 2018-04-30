@@ -17,6 +17,7 @@ class AutoCalibrationCalculationNode(object):
 
         #Publishers
         self.pub_car_cmd = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
+        self.pub_calc_done = rospy.Subscriber("~calibration_calculation_stop",BoolStamped, queue_size=1)
 
         self.rate = rospy.Rate(30)
 
@@ -32,8 +33,8 @@ class AutoCalibrationCalculationNode(object):
             # Switch into CALIBRATING_CALC mode
             self.mode = msg.state
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
+            self.calibration()
         self.mode = msg.state
-
 
     #Tag detections
     def cbTag(self, tag_msgs):
@@ -41,6 +42,17 @@ class AutoCalibrationCalculationNode(object):
             return
         else:
             return
+    #The calibration calculation will come in this function
+    def calibration(self):
+        rospy.loginfo("[%s] Calculation started." %(self.node_name))
+        rospy.Timer(rospy.Duration.from_sec(5), self.finishCalc, oneshot=True)
+
+    #Exit function for calibration calculation
+    def finishCalc(self):
+        rospy.loginfo("[%s] Calculation finished." %(self.node_name))
+        done = BoolStamped()
+        done.data = True
+        self.pub_calc_done.publish(done)
 
     #Decide which commands should be sent to wheels in calibration mode
     def publishControl(self, msg):
