@@ -88,6 +88,7 @@ class ObstAvoidNode(object):
             # targets = self.avoider.avoid(obstacle_poses_on_track, self.d_current, self.theta_current)
             # target.d_ref = targets[0]
             target.v_ref = 0  # due to inaccuracies in theta, stop in any case
+            rospy.logerr('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
             # if targets[1]:  # emergency stop
             #    target.v_ref = 0
             # self.theta_target_pub.publish(targets[2]) # theta not calculated in current version
