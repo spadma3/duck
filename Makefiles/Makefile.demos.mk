@@ -61,6 +61,12 @@ csii-ex%: check-environment
 csii-test1-%: check-environment
 	bash -c "source TEST/valid.sh;echo "------------------";cp TEST/controllers/$*.py CSII/Exercises/HWExercise1/controller-6.py;valid; echo "----------------";source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; export CSII_EXERCISE='1-6';roslaunch duckietown_demos lane_following.launch"
 
+csii-test2-1-%: check-environment
+	bash -c "source TEST/valid.sh;echo "------------------";cp TEST/controllers2-1/$*.py CSII/Exercises/HWExercise2/controller-1.py;valid; echo "----------------";source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; export CSII_EXERCISE='2-1';roslaunch duckietown_demos lane_following.launch"
+
+csii-test2-2-%: check-environment
+	bash -c "source TEST/valid.sh;echo "------------------";cp TEST/controllers2-2/$*.py CSII/Exercises/HWExercise2/controller-2.py;valid; echo "----------------";source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; export CSII_EXERCISE='2-2';roslaunch duckietown_demos lane_following.launch"
+
 csii-trim-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; rosservice call /$*/inverse_kinematics_node/set_trim -- 0.4; echo 'Changed trim for $*'"
 

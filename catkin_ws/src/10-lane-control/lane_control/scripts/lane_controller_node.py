@@ -2,6 +2,7 @@
 import rospy
 import math
 from duckietown_msgs.msg import Twist2DStamped, LanePose, FSMState, BoolStamped
+from duckietown_msgs.srv import SetFSMState
 import os, imp, time
 
 
@@ -25,7 +26,10 @@ class lane_controller(object):
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         self.sub_fsm_mode = rospy.Subscriber("~switch", BoolStamped, self.cbMode, queue_size=1)
+        self.sub_stop_line = rospy.Subscriber("~at_stop_line", BoolStamped, self.cbStopLine, queue_size=1)
 
+        # Services
+        self.srv_fsm_mode = rospy.ServiceProxy('~fsm_mode', SetFSMState)
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -53,6 +57,10 @@ class lane_controller(object):
         # Setup variable for different sampling rate
         self.z_samp = 0
 
+        # Time measurement
+        self.start_time = 0
+        self.measure_time = False
+
         # Setup array for time delay
         if int(self.exercise[0]) == 1 and int(self.exercise[1]) == 5:
             k_d = self.controller_class.k_d
@@ -63,6 +71,20 @@ class lane_controller(object):
 
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
         rospy.loginfo("\n\n\n\n\nREADY FOR EXERCISE " + exercise_txt + "\n\n\n\n\n")
+
+
+    def cbStopLine(self, msg):
+        if msg.data and self.measure_time:
+            tracktime = self.getCurrentMillis() - self.start_time
+            rospy.loginfo("\n\n\n\n\nTRACK TOOK " + str(tracktime/1000.0) + " seconds" + "\n\n\n\n\n")
+            self.measure_time = False
+            self.operating = False
+            # Send stop command
+            car_control_msg = Twist2DStamped()
+            car_control_msg.v = 0.0
+            car_control_msg.omega = 0.0
+            self.publishCmd(car_control_msg)
+            self.srv_fsm_mode("JOYSTICK_CONTROL")
 
 
     def cbPose(self, lane_pose_msg):
@@ -155,8 +177,14 @@ class lane_controller(object):
 
     # FSM
     def cbMode(self,fsm_state_msg):
+        if not self.operating and fsm_state_msg.state == "LANE_FOLLOWING":
+            self.start_time = self.getCurrentMillis()
+            self.measure_time = True
+
         self.operating = fsm_state_msg.state == "LANE_FOLLOWING"
 
+    def getCurrentMillis(self):
+        return int(round(time.time() * 1000))
 
 
     def custom_shutdown(self):
