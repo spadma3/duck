@@ -123,6 +123,7 @@ class Implicit(object):
     def cbFSM(self, msg):
         self.mode = msg.state
         if self.mode == "INTERSECTION_COORDINATION":
+            rospy.loginfo("Potatoe")
             self.active = True
             self.CSMA()
 

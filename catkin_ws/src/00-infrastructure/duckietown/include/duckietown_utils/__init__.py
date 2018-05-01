@@ -1,6 +1,5 @@
 import geometry as geo
 
-from .tcp_communication import *
 from .bag_info import *
 from .bag_logs import *
 from .bag_reading import *
@@ -74,7 +73,7 @@ except:
     raise Exception(msg)
 
 # this is from the exercises
-from .augmented_reality_utils import *
+# from .augmented_reality_utils import *
 # from .draw import *
 # from .cli import *
 
@@ -91,3 +90,4 @@ if False:
                 __all__.append(c)
 
 # Use the PyGeometry library as dtu.geo
+

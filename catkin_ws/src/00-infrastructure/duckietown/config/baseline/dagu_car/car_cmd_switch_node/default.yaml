@@ -1,14 +1,8 @@
 mode_topic: "fsm_node/mode"
 source_topics: #Mapping from cmd source name to topics
   lane: "lane_controller_node/car_cmd"
-
-  # intersection: "open_loop_intersection_control_node/car_cmd"
+  intersection: "open_loop_intersection_control_node/car_cmd"
   # coordination: "simple_stop_controller_node/car_cmd"
-
-  # intersection: "intersection_navigation_node/cmds_out" #NOTE for open loop intersection navigation
-  intersection: "lane_controller_node/car_cmd" #NOTE for closed loop intersection navigation
-  coordination: "simple_coordinator_node/car_cmd"
-
   joystick: "joy_mapper_node/car_cmd"
   vehicle:  "vehicle_avoidance_control_node/car_cmd"
   obstacle: "simple_stop_controller_node/car_cmd"
@@ -17,13 +11,10 @@ source_topics: #Mapping from cmd source name to topics
   deep_learning: "duckiebot_il_lane_following/car_cmd"
   parking: "lane_controller_node/car_cmd"
   stop: "simple_stop_controller_node/car_cmd"
-  #stop: "stop_node/car_cmd" if above does not work this one works
-
 
 mappings: #Mapping from FSMStates.state to cmd source names. Allows different FSM mode to use the same source.
   LANE_FOLLOWING: "vehicle" #TODO blackmagic
   LANE_FOLLOWING_AVOID: "lane"
-  ARRIVE_AT_STOP_LINE: "stop"
   INTERSECTION_CONTROL: "intersection"
   INTERSECTION_COORDINATION: "stop"
   NORMAL_JOYSTICK_CONTROL: "joystick"

@@ -45,14 +45,10 @@ class MaintenanceControlNode(object):
     def cbGoCharging(self, msg):
         if msg.data:
             self.maintenance_state = "WAY_TO_CHARGING"
-            self.pubMaintenanceState()
-            rospy.loginfo("[Maintenance Control Node] State: WAY_TO_CHARGING")
 
     def cbGoCalibrating(self, msg):
         if msg.data:
             self.maintenance_state = "WAY_TO_CALIBRATING"
-            self.pubMaintenanceState()
-            rospy.loginfo("[Maintenance Control Node] State: WAY_TO_CALIBRATING")
 
 
 
@@ -66,12 +62,13 @@ class MaintenanceControlNode(object):
             maintenance_msg = MaintenanceState()
             if self.maintenance_state == "WAY_TO_CHARGING":
                 self.maintenance_state = "CHARGING"
-                self.pubMaintenanceState()
+                maintenance_msg.state = self.maintenance_state
+                self.pub_maintenance_state.publish(maintenance_msg)
 
             if self.maintenance_state == "WAY_TO_CALIBRATING":
                 self.maintenance_state = "CALIBRATING"
-                self.pubMaintenanceState()
-
+                maintenance_msg.state = self.maintenance_state
+                self.pub_maintenance_state.publish(maintenance_msg)
             rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
             rospy.loginfo("Entering maintenance area!")
             rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -79,18 +76,16 @@ class MaintenanceControlNode(object):
         # Leaving maintenance area
         if turn in self.maintenance_exit:
             self.inMaintenanceArea = False
+            maintenance_msg = MaintenanceState()
             self.maintenance_state = "NONE"
-            self.pubMaintenanceState()
+            maintenance_msg.state = self.maintenance_state
+            self.pub_maintenance_state.publish(maintenance_msg)
             rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
             rospy.loginfo("Leaving maintenance area!")
             rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
 
 
-    def pubMaintenanceState(self):
-        maintenance_msg = MaintenanceState()
-        maintenance_msg.state = self.maintenance_state
-        self.pub_maintenance_state.publish(maintenance_msg)
 
     # Returns the turn type for an intersection to get to charger
     def getTurnType(self, chargerID, tagID):
