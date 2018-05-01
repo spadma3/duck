@@ -20,6 +20,11 @@ add_message_files(
   CoordinationSignal.msg
   DuckieSensor.msg
   LanePose.msg
+
+  IntersectionPose.msg
+  IntersectionPoseImg.msg
+  IntersectionPoseImgDebug.msg
+
   TurnIDandType.msg
 #  LEDControl.msg
   LEDDetection.msg
@@ -74,6 +79,8 @@ add_service_files(
   FILES
   SetFSMState.srv
   SetValue.srv
+  SetVariable.srv
+  GetVariable.srv
   # Service2.srv
 )
 
