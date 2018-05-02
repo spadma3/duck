@@ -3,7 +3,7 @@ import rospy
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
 from std_msgs.msg import Int16 #Imports msg
 import copy
-import time
+import timer
 import psutil
 import signal
 import subprocess, shlex

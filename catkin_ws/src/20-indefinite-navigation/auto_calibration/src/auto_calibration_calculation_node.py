@@ -3,7 +3,7 @@ import rospy
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
 from std_msgs.msg import Int16
 import copy
-import time
+import timer
 
 class AutoCalibrationCalculationNode(object):
 
@@ -49,7 +49,7 @@ class AutoCalibrationCalculationNode(object):
     def calibration(self):
         rospy.loginfo("[%s] Calculation started." %(self.node_name))
         if self.triggered:
-            rospy.Timer(rospy.Duration.from_sec(5), self.finishCalc, oneshot=True)
+            rospy.Timer(rospy.Duration.from_sec(5.0), self.finishCalc, oneshot=True)
             self.triggered = False
 
     #Exit function for calibration calculation
