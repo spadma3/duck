@@ -7,12 +7,16 @@ import time
 import psutil
 import signal
 import subprocess, shlex
+import os
+import pwd
 
 class AutoCalibrationNode(object):
 
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
+        self.car_name = rospy.get_namespace()
+        self.user_name = pwd.getpwuid(os.getuid()).pw_name
         self.mode = None
 
         #Exit condition for the node
@@ -76,14 +80,14 @@ class AutoCalibrationNode(object):
     #starts the calibration procedure (i.e rosbag) and switches the fsm when command to calibrate is sent
     def cbCalib(self, bool_msg):
         if bool_msg.data:
-            command = "rosbag record -O /home/megaduck/media/logs/test.bag /megabot05/tag_detections /megabot05/forward_kinematics_node/velocity"
+            command = ("rosbag record -O /home/%s/media/logs/test.bag %stag_detections %swheels_driver_node/wheels_cmd %scamera_node/image/rect/compressed" %(self.user_name,self.car_name,self.car_name,self.car_name))
             command = shlex.split(command)
             self.rosbag_proc = subprocess.Popen(command)
             calibrate = BoolStamped()
             calibrate.data = True
             self.calib_done = False
             self.pub_start.publish(calibrate)
-            rospy.Timer(rospy.Duration.from_sec(15), self.finishCalib, oneshot=True)
+            rospy.Timer(rospy.Duration.from_sec(40), self.finishCalib, oneshot=True)
             rospy.loginfo("[%s] Rosbag recording started" %(self.node_name))
 
     #atm the calibration stops after 15 seconds --> condition needs to change in the future
