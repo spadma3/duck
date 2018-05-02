@@ -12,7 +12,7 @@ import time
 import threading
 import numpy as np
 
-BG_SAMPLE = 1000
+BG_SAMPLE = 150
 BG_WIDTH = (1296*972)*3
 
 class BotDetectorNode(object):
@@ -34,6 +34,18 @@ class BotDetectorNode(object):
 		self.detector = None
 		self.verbose = None
 		#self.updateParams(None)
+
+		#Initial Background and counter
+		self.background = []
+		self.count = 0
+
+		#Define doing getBackground or Doing Botdetect
+		#self.func = 'getBackground'
+		self.func = 'getDuckiebot'
+		if self.func == 'getDuckiebot':
+			self.background = cv2.imread('/home/erickiemvp/duckietown/background.png', cv2.IMREAD_COLOR)
+			self.bg_sum = np.sum(self.background)
+			self.loginfo('BG_SUM = %d' % (self.bg_sum))
 
 		#Publisher
 		self.pub_result = rospy.Publisher("~bot_existence", BoolStamped, queue_size=1)
@@ -68,12 +80,15 @@ class BotDetectorNode(object):
 
 		if not self.active:
 			return
-		self.processImage(image_msg)
+		if self.func == 'getBackground':
+			self.getBackground(image_msg)
+		elif self.func == 'getDuckiebot':
+			self.getDuckiebot(image_msg)
 
 	def loginfo(self, s):
 		rospy.loginfo('[%s] %s' % (self.node_name, s))
 
-	def processImage(self, image_msg):
+	def getDuckiebot(self, image_msg):
 
 		'''
 		# Decode from compressed image with OpenCV
@@ -82,6 +97,7 @@ class BotDetectorNode(object):
 		except ValueError as e:
 			self.loginfo('Could not load image: %s' % e)
 			return
+		'''
 		'''
 		# Record the first number of seq
 		image_cv = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
@@ -102,9 +118,10 @@ class BotDetectorNode(object):
 
 		elif n == (BG_SAMPLE+1):
 			self.background = cv2.merge(self.bg_b[:, :, BG_SAMPLE/2], self.bg_g[:, :, BG_SAMPLE/2], self.bg_r[:, :, BG_SAMPLE/2])
+		'''
 
-		self.bg_sum = sum(self.background)
-		self.img_sum = sum(image_cv)
+		image_cv = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
+		self.img_sum = np.sum(image_cv)
 
 		self.loginfo('Background sum: %d' % (self.bg_sum))
 		self.loginfo('Image sum: %d' % (self.img_sum))
@@ -116,31 +133,72 @@ class BotDetectorNode(object):
 		else:
 			result.data = False
 			
-		self.pub_result.Publish(result)
+		#self.pub_result.Publish(result)
 
-	def getMidBackground(self, bg_b, bg_g, bg_r, img):
+	def getBackground(self, image_msg):
+		image_cv = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
+		if self.first_seq == -1:
+			self.first_seq = image_msg.header.seq
+
+		n = image_msg.header.seq - self.first_seq
+		rospy.loginfo('Its %d image' % (n))
+		rospy.loginfo('Counts %d' % (self.count))
+
+		if self.count <= BG_SAMPLE:
+			#Compute background with the first 1000 images
+			if self.count == 0:
+				self.bg_b, self.bg_g, self.bg_r = cv2.split(image_cv)
+				self.count+=1
+				self.bg_b = np.expand_dims(self.bg_b, axis=2)
+				self.bg_g = np.expand_dims(self.bg_g, axis=2)
+				self.bg_r = np.expand_dims(self.bg_r, axis=2)
+			else:
+				self.bg_b, self.bg_g, self.bg_r = self.appendImage(self.bg_b, self.bg_g, self.bg_r, image_cv)
+				self.count+=1
+			return
+		else:
+			#Save background into file, do it once.
+			self.loginfo('Finish append, Start sorting')
+			self.active = False
+			self.MidBackground = self.getMidBackground(self.bg_b, self.bg_g, self.bg_r)
+			saveResult = cv2.imwrite('/home/erickiemvp/duckietown/background.png', self.MidBackground)
+			print "Save Result = ", saveResult
+			self.loginfo('Get Background Done! You can shutdown now.')
+			return
+
+	def appendImage(self, bg_b, bg_g, bg_r, img):
 		
 		b, g, r = cv2.split(img)
 
-		def sortList(li, el):
-			if not isinstance(li[0][0], list):
-				li = np.expand_dims(li, axis=1)
-			for i in range(len(li)):
-				for j in range(len(li[i])):
-					for k in range(len(li[i][j])):
-						if el[i][j] <= li[i][j][k]:
-							li[i][j].insert(k, el[i][j])
-							break
-						elif k == (len(li[i][j])-1):
-							li[i][j].append(el[i][j])
-							break
-			return li
+		#Append at beginning
+		#ap_index = 0
+		#Append at the end
+		ap_index = bg_b.shape[2]
 
-		bg_b = sortList(bg_b, b)
-		bg_g = sortList(bg_g, g)
-		bg_r = sortList(bg_r, r)
+		bg_b = np.insert(bg_b, ap_index, b, axis=2)
+		bg_g = np.insert(bg_g, ap_index, g, axis=2)
+		bg_r = np.insert(bg_r, ap_index, r, axis=2)
 
 		return bg_b, bg_g, bg_r
+
+	def getMidBackground(self, bg_b, bg_g, bg_r):
+
+		start = rospy.get_time()
+
+		bg_b = np.sort(bg_b, kind='mergesort')
+		bg_g = np.sort(bg_g, kind='mergesort')
+		bg_r = np.sort(bg_r, kind='mergesort')
+
+		bg_b = bg_b[:, :, BG_SAMPLE/2]
+		bg_g = bg_g[:, :, BG_SAMPLE/2]
+		bg_r = bg_r[:, :, BG_SAMPLE/2]
+
+		result_img = cv2.merge((bg_b, bg_g, bg_r))
+
+		end = rospy.get_time()
+		print "Time of running this image = ", (end - start)
+
+		return result_img
 
 	def on_Shutdown(self):
 		self.loginfo("Shutdown.")
@@ -194,7 +252,3 @@ if __name__ == '__main__':
 	bot_detector_node=BotDetectorNode()
 	rospy.on_shutdown(bot_detector_node.on_Shutdown)
 	rospy.spin()
-
-
-
-
