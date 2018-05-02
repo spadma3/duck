@@ -3,7 +3,7 @@ import rospy
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
 from std_msgs.msg import Int16 #Imports msg
 import copy
-import timer
+import time
 import psutil
 import signal
 import subprocess, shlex
@@ -24,8 +24,8 @@ class AutoCalibrationNode(object):
         self.timer_called = False
 
         #Tags to do a U-turn at
-        self.tag_id_inter_1 = 149
-        self.tag_id_inter_2 = 65
+        self.tag_id_inter_1 = 300
+        self.tag_id_inter_2 = 301
 
         #Standing at stopline
         self.stopped = False
@@ -38,7 +38,6 @@ class AutoCalibrationNode(object):
         self.pub_start = rospy.Publisher("~calibration_start",BoolStamped,queue_size=1)
         self.pub_stop = rospy.Publisher("~calibration_stop",BoolStamped,queue_size=1)
         self.pub_calc_start = rospy.Publisher("~calibration_calculation_start",BoolStamped, queue_size=1)
-        #self.pub_turn_type = rospy.Publisher("~turn_type",Int16, queue_size=1, latch=True)
 
         self.rate = rospy.Rate(30)
 
@@ -57,8 +56,11 @@ class AutoCalibrationNode(object):
             # Switch into CALIBRATING mode
             self.mode = msg.state
             self.stopped = False
-            self.calib_done = False
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
+            if self.calib_done:
+                done = BoolStamped()
+                done.data = True
+                self.pub_stop.publish(done)
         self.mode = msg.state
 
     #stops the Duckiebot at an intersection
@@ -79,11 +81,12 @@ class AutoCalibrationNode(object):
             self.rosbag_proc = subprocess.Popen(command)
             calibrate = BoolStamped()
             calibrate.data = True
+            self.calib_done = False
             self.pub_start.publish(calibrate)
             rospy.Timer(rospy.Duration.from_sec(15), self.finishCalib, oneshot=True)
             rospy.loginfo("[%s] Rosbag recording started" %(self.node_name))
 
-    #atm the calibration stops after 10 seconds --> condition needs to change in the future
+    #atm the calibration stops after 15 seconds --> condition needs to change in the future
     def finishCalib(self,event):
         p = psutil.Process(self.rosbag_proc.pid)
         for sub in p.children(recursive=True):
@@ -98,17 +101,12 @@ class AutoCalibrationNode(object):
         if not self.active:
             return
         else:
-            #Check if seen tab allows to return to maintenance area
-            if(self.calib_done == True):
-                rospy.loginfo("[%s] Calibration calculation done and fed back to calibration node" %(self.node_name))
-                self.turnToExit(self,tag_msgs)
-            else:
-                #Do a U-turn if one of these tags is seen
-                for detection in tag_msgs.detections:
-                    if((detection.id == self.tag_id_inter_1 or detection.id == self.tag_id_inter_2) and (detection.pose.pose.position.x < 1.5) and (self.last_tag != detection.id)):
-                        self.lane_follow_override = True
-                        self.last_tag = detection.id
-                        rospy.loginfo("[%s] U-Turn started at tag %s" %(self.node_name,detection.id))
+            #Do a U-turn if one of these tags is seen
+            for detection in tag_msgs.detections:
+                if((detection.id == self.tag_id_inter_1 or detection.id == self.tag_id_inter_2) and (detection.pose.pose.position.x < 1.5) and (self.last_tag != detection.id)):
+                    self.lane_follow_override = True
+                    self.last_tag = detection.id
+                    rospy.loginfo("[%s] U-Turn started at tag %s" %(self.node_name,detection.id))
 
 
     #When calibration is done, return to maintenance area
@@ -126,9 +124,7 @@ class AutoCalibrationNode(object):
                     #now randomly choose a possible direction
                 if(len(availableTurns)>0):
                     self.turn_type = availableTurns[0]
-                    stop = BoolStamped()
-                    stop.data = True
-                    self.pub_stop.publish(stop)
+
                     #self.pub_turn_type.publish(self.turn_type)
                     #rospy.loginfo("Turn type now: %i" %(self.turn_type))
 
@@ -158,7 +154,7 @@ class AutoCalibrationNode(object):
             self.pub_car_cmd.publish(car_cmd_msg)
 
     #U-turn timer
-    def updateTimer(self):
+    def updateTimer(self,event):
         #U-turn finishes after 2 seconds
         self.lane_follow_override = False
         self.timer_called = False

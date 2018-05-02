@@ -3,7 +3,7 @@ import rospy
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
 from std_msgs.msg import Int16
 import copy
-import timer
+import time
 
 class AutoCalibrationCalculationNode(object):
 
@@ -24,7 +24,6 @@ class AutoCalibrationCalculationNode(object):
 
         # Subscribers
         self.sub_mode = rospy.Subscriber("~mode", FSMState, self.cbFSMState, queue_size=1)
-        self.sub_car_cmd_in = rospy.Subscriber("~car_cmd_in", Twist2DStamped, self.publishControl, queue_size=1)
         self.sub_topic_tag = rospy.Subscriber("~tag", AprilTagsWithInfos, self.cbTag, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
 
@@ -36,6 +35,7 @@ class AutoCalibrationCalculationNode(object):
             self.triggered = True
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
             self.calibration()
+            self.publishControl()
         self.mode = msg.state
 
     #Tag detections
@@ -53,18 +53,15 @@ class AutoCalibrationCalculationNode(object):
             self.triggered = False
 
     #Exit function for calibration calculation
-    def finishCalc(self):
+    def finishCalc(self, event):
         rospy.loginfo("[%s] Calculation finished." %(self.node_name))
         done = BoolStamped()
         done.data = True
         self.pub_calc_done.publish(done)
 
     #Decide which commands should be sent to wheels in calibration mode
-    def publishControl(self, msg):
-        #if not self.active:
-        #    return
-        #else:
-        car_cmd_msg = msg
+    def publishControl(self):
+        car_cmd_msg = Twist2DStamped()
         car_cmd_msg.v = 0
         car_cmd_msg.omega = 0
         self.pub_car_cmd.publish(car_cmd_msg)
