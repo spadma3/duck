@@ -10,14 +10,23 @@ screen_size = 300
 speed_tang = 1.0
 speed_norm = 1.0
 
+
+time_to_wait = 10000
+last_ms = 0
+
+
 def loop():
+    global last_ms, time_to_wait
     veh_standing = True
 
     while True:
 
-        #query rosmaster status, which will raise socket.error when failure
-        rospy.get_master().getSystemState()
-        #end-of-checking
+        ms_now = int(round(time.time() * 1000))
+        if ms_now - last_ms > time_to_wait:
+            #query rosmaster status, which will raise socket.error when failure
+            rospy.get_master().getSystemState()
+            #end-of-checking
+            last_ms = ms_now
 
         # add dpad to screen
         screen.blit(dpad, (0,0))
