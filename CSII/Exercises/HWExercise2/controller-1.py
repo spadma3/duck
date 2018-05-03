@@ -30,7 +30,7 @@ class Controller():
 
         #TODO
 
-        v_out = v_ref       #This will only be relevant for HWExercise3
+        v_out = v_ref       #Change the speed of the bot here.
 
         #Calculate control input omega_out
         omega_out = #TODO
