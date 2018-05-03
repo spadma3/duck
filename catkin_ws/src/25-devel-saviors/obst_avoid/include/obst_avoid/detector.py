@@ -27,7 +27,7 @@ class Detector():
         # Robot name
         self.robot_name = robot_name
 
-        # Array which safes known obstacles to track them better
+        # Array which saves known obstacles to track them better
         self.track_array = np.int_([])
 
         # Load camera calibration parameters
