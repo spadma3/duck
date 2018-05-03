@@ -147,6 +147,18 @@ class LaneFilterNode(object):
         self.velocity = twist_msg
 
     def onShutdown(self):
+        self.sub.unregister()
+        self.sub_switch.unregister()
+        self.sub_velocity.unregister()
+        self.pub_lane_pose.unregister()
+        self.pub_belief_img.unregister()
+        self.pub_ml_img.unregister()
+        self.pub_entropy.unregister()
+        self.pub_in_lane.unregister()
+        self.sub_switch.unregister()
+        self.sub_fsm_mode.unregister()
+        self.timer.shutdown()
+
         rospy.loginfo("[LaneFilterNode] Shutdown.")
 
     def loginfo(self, s):

@@ -135,15 +135,20 @@ class AntiInstagramNode(object):
         rospy.sleep(2.)
         anti_instagram_msg.data = False
 
+    def onShutdown(self):
+        self.pub_image.unregister()
+        self.pub_health.unregister()
+        self.pub_transform.unregister()
+        self.sub_image.unregister()
+        self.sub_click.unregister()
+        rospy.loginfo("[anti_instagram_node] Shutdown.")
+
+
 
 if __name__ == '__main__':
     # Initialize the node with rospy
     rospy.init_node('anti_instagram_node', anonymous=False)
-
-    # Create the NodeName object
     node = AntiInstagramNode()
-
-    # Setup proper shutdown behavior
-    #rospy.on_shutdown(node.on_shutdown)
+    rospy.on_shutdown(node.onShutdown)
     # Keep it spinning to keep the node alive
-rospy.spin()
+    rospy.spin()
