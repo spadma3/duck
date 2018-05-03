@@ -13,7 +13,7 @@ import threading
 import numpy as np
 
 BG_SAMPLE = 150
-BG_WIDTH = (1296*972)*3
+BG_THRESHOLD = 1000000
 
 class BotDetectorNode(object):
 	"""docstring for BotDetectorNode"""
@@ -44,8 +44,7 @@ class BotDetectorNode(object):
 		self.func = 'getDuckiebot'
 		if self.func == 'getDuckiebot':
 			self.background = cv2.imread('/home/erickiemvp/duckietown/background.png', cv2.IMREAD_COLOR)
-			self.bg_sum = np.sum(self.background)
-			self.loginfo('BG_SUM = %d' % (self.bg_sum))
+			self.background = self.background.astype(np.float64)
 
 		#Publisher
 		self.pub_result = rospy.Publisher("~bot_existence", BoolStamped, queue_size=1)
@@ -121,19 +120,27 @@ class BotDetectorNode(object):
 		'''
 
 		image_cv = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
-		self.img_sum = np.sum(image_cv)
+		image_cv = image_cv.astype(np.float64)
 
-		self.loginfo('Background sum: %d' % (self.bg_sum))
-		self.loginfo('Image sum: %d' % (self.img_sum))
+		bg_sub = np.subtract(image_cv, self.background)
+		bg_abs = np.absolute(bg_sub)
+		bg_abs[bg_abs<50] = 0
+		self.img_sum = np.sum(bg_abs)
+
+		#self.loginfo('Background r sum: %d' % (self.bg_sum))
+		#self.loginfo('Image r sum: %d' % (self.img_sum))
+		self.loginfo('Subtraction absolute sum = %d' %(self.img_sum))
 
 		result = BoolStamped()
 		result.header = image_msg.header
-		if (self.bg_sum - BG_WIDTH/2) <= self.img_sum <= (self.bg_sum + BG_WIDTH/2):
+		if self.img_sum > BG_THRESHOLD:
+			self.loginfo('True')
 			result.data = True
 		else:
+			self.loginfo('False')
 			result.data = False
 			
-		#self.pub_result.Publish(result)
+		self.pub_result.publish(result)
 
 	def getBackground(self, image_msg):
 		image_cv = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
