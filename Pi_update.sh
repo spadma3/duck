@@ -12,7 +12,7 @@ sudo apt update
 sudo apt dist-upgrade
 
 cd /lib
-sudo wget "code.julien.li/firmware.tar.gz"
+sudo wget "https://github.com/duckietown/Software/raw/jquack-devel/firmware.tar.gz"
 sudo tar -zxvf firmware.tar.gz
 sudo rm firmware.tar.gz
 sudo reboot
