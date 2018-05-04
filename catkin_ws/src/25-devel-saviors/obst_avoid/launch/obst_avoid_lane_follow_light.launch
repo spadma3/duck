@@ -3,8 +3,8 @@
     <arg name="show_marker" default="false" doc="Specify if you want to see the marker"/>
     <arg name="show_image" default="false" doc="Specify if you want to see the image"/>
     <arg name="use_ai" default="true" doc="Specify if you want to use the corrected image from anti instagram which means if this is yes, the topic: /{}/image_transformer_node/corrected_image MUST BE PUBLISHED, otherwise we simply subscribe to raw image"/>
-    <arg name="bb_len" default="500" doc="Specify length of bounding box"/>
-    <arg name="bb_wid" default="250" doc="Specify width of bounding box"/>
+    <arg name="bb_len" default="750" doc="Specify length of bounding box"/>
+    <arg name="bb_wid" default="500" doc="Specify width of bounding box"/>
 
     <param name="~veh" value="$(arg veh)"/>
     <param name="~show_marker" value="$(arg show_marker)" type="bool"/>
@@ -22,8 +22,8 @@
       <arg name="veh" value="$(arg veh)" />
 
     </include>
-    
-    
+
+
 
 
 </launch>

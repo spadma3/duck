@@ -177,6 +177,7 @@ states:
       - framerate_high
       - line_detector_node
       - lane_filter_node
+      - lane_controller_node
       - stop_line_filter_node
     lights: ["joystick"]
     current_status: "implemented"

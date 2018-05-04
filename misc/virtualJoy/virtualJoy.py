@@ -1,23 +1,36 @@
+#!/usr/bin/python
 import pygame
 import time
 import rospy
 from sensor_msgs.msg import Joy
 import os, sys
+import socket
 
 screen_size = 300
 speed_tang = 1.0
 speed_norm = 1.0
 
+
+time_to_wait = 10000
+last_ms = 0
+
+
 def loop():
+    global last_ms, time_to_wait
     veh_standing = True
-    
+
     while True:
 
-        
-                
+        ms_now = int(round(time.time() * 1000))
+        if ms_now - last_ms > time_to_wait:
+            #query rosmaster status, which will raise socket.error when failure
+            rospy.get_master().getSystemState()
+            #end-of-checking
+            last_ms = ms_now
+
         # add dpad to screen
         screen.blit(dpad, (0,0))
-        
+
         # prepare message
         msg = Joy()
         msg.header.seq = 0
@@ -31,7 +44,7 @@ def loop():
         keys = pygame.key.get_pressed()
 
         ### checking keys and executing actions ###
-        
+
         # drive left
         if keys[pygame.K_LEFT]:
             screen.blit(dpad_l, (0,0))
@@ -52,11 +65,11 @@ def loop():
             screen.blit(dpad_b, (0,0))
             msg.axes[1] -= speed_tang
 
-        
+
 
         # activate line-following aka autopilot
         if keys[pygame.K_a]:
-            msg.buttons[7] = 1    
+            msg.buttons[7] = 1
 
         # stop line-following
         if keys[pygame.K_s]:
@@ -67,7 +80,7 @@ def loop():
             msg.buttons[3] = 1
 
         ## key/action for quitting the program
-            
+
         # check if top left [x] was hit
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -78,7 +91,7 @@ def loop():
             pygame.quit()
 
         ### END CHECKING KEYS ###
-            
+
         # refresh screen
         pygame.display.flip()
 
@@ -86,7 +99,7 @@ def loop():
         stands = (sum(map(abs, msg.axes)) == 0 and sum(map(abs, msg.buttons)) == 0)
         if not stands:
             veh_standing = False
-            
+
         # publish message
         if not veh_standing:
             pub_joystick.publish(msg)
@@ -96,7 +109,7 @@ def loop():
         # is made after the publishment of the message
         if stands:
             veh_standing = True
-            
+
         time.sleep(0.03)
 
         # obtain next key list
@@ -108,7 +121,7 @@ def prepare_dpad():
     global dpad, dpad_f, dpad_r, dpad_b, dpad_l
     file_dir = os.path.dirname(__file__)
     file_dir = (file_dir + "/") if  (file_dir) else ""
-    
+
     dpad = pygame.image.load(file_dir + "images/d-pad.png")
     dpad = pygame.transform.scale(dpad, (screen_size, screen_size))
     dpad_pressed = pygame.image.load(file_dir + "images/d-pad-pressed.png")
@@ -131,27 +144,30 @@ def print_hint():
     print("         [i]:    Toggle anti-instagram")
     print("\n")
     print("Questions? Contact Julien Kindle: jkindle@ethz.ch")
-    
 
-    
+
+
 if __name__ == '__main__':
-    
+
     # obtain vehicle name
     veh_name = os.environ['VEHICLE_NAME']
-    
+
     # prepare pygame
     pygame.init()
     screen = pygame.display.set_mode((screen_size,screen_size))
     prepare_dpad()
-    
+
     # prepare ROS node
     rospy.init_node('virtual_joy',anonymous=False)
-    
+
     # prepare ROS publisher
     pub_joystick = rospy.Publisher("/" + str(veh_name) + "/joy", Joy, queue_size=1)
 
     # print the hint
     print_hint()
 
-    # start the main loop
-    loop()
+    try:
+        # start the main loop
+        loop()
+    except socket.error:
+        os.execv('misc/virtualJoy/virtualJoy.py', [''])
