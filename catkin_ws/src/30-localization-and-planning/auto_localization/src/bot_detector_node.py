@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-from cv_bridge import CvBridge, CvBridgeError
-from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
-    SegmentList, Vector2D)
-from duckietown_utils.instantiate_utils import instantiate
-from duckietown_utils.jpg import image_cv_from_jpg
-from sensor_msgs.msg import CompressedImage, Image
-
-import cv2
-import rospy
 import time
-import threading
+import cv2
+
+from cv_bridge import CvBridge
 import numpy as np
+import rospy
+from sensor_msgs.msg import CompressedImage, Image
 
 BG_SAMPLE = 150
 BG_THRESHOLD = 1000000
@@ -25,29 +20,23 @@ class BotDetectorNode(object):
 
 		self.active  = True
 
-		#Only be verbose every 10 cycles
-		self.intermittent_intervel = 100
-		self.intermittent_counter = 0
-
-		# these will be added if it becomes verbose
-
-		self.detector = None
-		self.verbose = None
-		#self.updateParams(None)
 
 		#Initial Background and counter
 		self.background = []
 		self.count = 0
 
 		#Define doing getBackground or Doing Botdetect
-		#self.func = 'getBackground'
-		self.func = 'getDuckiebot'
+		if rospy.get_param('~bot', True):
+			self.func = 'getDuckiebot'
+		else:
+			self.func = 'getBackground'
+
 		if self.func == 'getDuckiebot':
 			self.background = cv2.imread('/home/erickiemvp/duckietown/background.png', cv2.IMREAD_COLOR)
 			self.background = self.background.astype(np.float64)
 
 		#Publisher
-		self.pub_result = rospy.Publisher("~bot_existence", BoolStamped, queue_size=1)
+		self.pub_result = rospy.Publisher("~bot_detection", BoolStamped, queue_size=1)
 
 		#Subscriber
 		self.sub_image = rospy.Subscriber("image", Image, self.cbImage, queue_size=1)
@@ -56,7 +45,7 @@ class BotDetectorNode(object):
 		#Record the first number of sequence
 		self.first_seq = -1
 
-		rospy.loginfo("[%s] Initialized (verbose = %s)" %(self.node_name, self.verbose))
+		rospy.loginfo("[%s] Initialized " %(self.node_name))
 
 		#rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)
 

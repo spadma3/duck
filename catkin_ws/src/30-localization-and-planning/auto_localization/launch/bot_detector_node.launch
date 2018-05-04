@@ -3,12 +3,12 @@
 	<arg name="pkg_name" value="auto_localization"/>
     <arg name="node_name" default="bot_detector_node"/>
 
-    <arg name="verbose" default="false" />
+    <arg name="bot" default="true" />
 
     <remap from="image" to="camera_node/image/rect"/>
     <group ns="$(arg veh)">
     	<node name="bot_detector_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
-    	<param name="verbose" value="$(arg verbose)"/>
+    	<param name="bot" value="$(arg bot)"/>
     	</node>
 	</group>
 
