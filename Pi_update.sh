@@ -1,6 +1,4 @@
 #!/bin/bash
-# This skript can be used to update a Raspberry Pi 3 B image
-# to a Raspberry Pi 3 B+ image
 
 sudo apt update
 sudo rm /var/lib/apt/lists/lock
