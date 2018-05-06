@@ -156,6 +156,8 @@ def is_ignored_by_catkin(dn):
         if os.path.exists(i):
             return True
         dn = os.path.dirname(dn)
+        if not dn:
+            break
     return False
 
 
