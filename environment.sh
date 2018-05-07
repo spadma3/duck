@@ -20,6 +20,8 @@ echo "Set DUCKIETOWN_ROOT to: $DUCKIETOWN_ROOT"
 export PYTHONPATH=$DUCKIETOWN_ROOT/catkin_ws/src:$PYTHONPATH
 echo "Set PYTHONPATH to: $PYTHONPATH"
 
+
+export LC_ALL="en_US.UTF-8"
 # Cannot make machines before building
 # echo "Building machines file..."
 # make -C $DUCKIETOWN_ROOT machines
