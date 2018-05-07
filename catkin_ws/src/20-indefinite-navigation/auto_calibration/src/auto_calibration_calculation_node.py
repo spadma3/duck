@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import rospy
-from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
+from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped
 from std_msgs.msg import Int16
+from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
 import copy
 import time
 
@@ -12,6 +13,7 @@ class AutoCalibrationCalculationNode(object):
         self.node_name = rospy.get_name()
         self.mode = None
         self.triggered = False
+        self.count_last = 0
 
         #Node active?
         self.active = False
@@ -24,8 +26,8 @@ class AutoCalibrationCalculationNode(object):
 
         # Subscribers
         self.sub_mode = rospy.Subscriber("~mode", FSMState, self.cbFSMState, queue_size=1)
-        self.sub_topic_tag = rospy.Subscriber("~tag", AprilTagsWithInfos, self.cbTag, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_tags = rospy.Subscriber("~tag",AprilTagDetectionArray, self.cbTag, queue_size=10)
 
     #Car entered calibration calculation mode
     def cbFSMState(self,msg):
@@ -37,13 +39,6 @@ class AutoCalibrationCalculationNode(object):
             self.calibration()
             self.publishControl()
         self.mode = msg.state
-
-    #Tag detections
-    def cbTag(self, tag_msgs):
-        if not self.active:
-            return
-        else:
-            return
 
     #The calibration calculation will come in this function
     def calibration(self):
@@ -58,6 +53,14 @@ class AutoCalibrationCalculationNode(object):
         done = BoolStamped()
         done.data = True
         self.pub_calc_done.publish(done)
+
+    def cbTag(self, msg):
+        count = 0
+        for detection in msg.detections:
+            count=count+1
+        if count!=0 and self.count_last!=0:
+            rospy.loginfo("[%s] Calculation started %s - %s" %(self.node_name, count, self.count_last))
+        self.count_last = count
 
     #Decide which commands should be sent to wheels in calibration mode
     def publishControl(self):
