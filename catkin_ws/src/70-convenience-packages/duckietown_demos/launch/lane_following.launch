@@ -9,7 +9,7 @@
 		<arg name="line_detector_param_file_name" default="default" />
 		<arg name="anti_instagram" default="true" />
 		<arg name="/lane_following/stop_line_filter" default="false" /> <!-- will not every allow a transition into COORDINATION mode -->
-		<arg name="vehicle_avoidance" value="true" />
+		<arg name="vehicle_avoidance" value="false" />
 		<arg name="/vehicle_avoidance/control" default="false"/>
 	</include>
 </launch>

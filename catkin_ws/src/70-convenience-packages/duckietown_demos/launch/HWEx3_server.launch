@@ -1,0 +1,20 @@
+<launch>
+	<arg name="veh" default="$(env VEHICLE_NAME)"/>
+	<!-- start basic args -->
+		
+
+
+    <remap from="vehicle_detection_node/image" to="camera_node/image/raw" />
+      <include file="$(find vehicle_detection)/launch/vehicle_detection_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+      </include>
+    <!-- Vehicle Filter Node -->
+    <remap from="vehicle_filter_node/camera_info" to="camera_node/camera_info" />
+    <remap from="vehicle_filter_node/corners" to="vehicle_detection_node/corners" />
+      <include file="$(find vehicle_detection)/launch/vehicle_filter_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+      </include>
+
+
+
+</launch>

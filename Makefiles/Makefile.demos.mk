@@ -47,7 +47,7 @@ demo-line_detector-quiet-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown line_detector.launch veh:=$(vehicle_name) line_detector_param_file_name:=$* verbose:=false"
 
 demo-vehicle_follow_leader: check-environment
-	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos vehicle_avoid.launch" 
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos vehicle_avoid.launch"
 
 
 # Basic demos
@@ -70,3 +70,6 @@ virtual-joystick-%: check-environment
 
 change-trim-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; rosservice call /$*/inverse_kinematics_node/set_trim -- $(trim); echo 'Changed trim for $* to $(trim)'"
+
+csii-ex3-server-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*;roslaunch duckietown_demos HWEx3_server.launch"
