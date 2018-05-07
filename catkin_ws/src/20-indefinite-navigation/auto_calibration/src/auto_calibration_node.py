@@ -28,8 +28,8 @@ class AutoCalibrationNode(object):
         self.timer_called = False
 
         #Tags to do a U-turn at
-        self.tag_id_inter_1 = 300
-        self.tag_id_inter_2 = 301
+        self.tag_id_inter_1 = 316
+        self.tag_id_inter_2 = 320
 
         #Standing at stopline
         self.stopped = False
@@ -61,6 +61,7 @@ class AutoCalibrationNode(object):
             self.mode = msg.state
             self.stopped = False
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
+            #Node shuts itself down after the calculations are complete
             if self.calib_done:
                 done = BoolStamped()
                 done.data = True
@@ -87,10 +88,10 @@ class AutoCalibrationNode(object):
             calibrate.data = True
             self.calib_done = False
             self.pub_start.publish(calibrate)
-            rospy.Timer(rospy.Duration.from_sec(40), self.finishCalib, oneshot=True)
+            rospy.Timer(rospy.Duration.from_sec(100), self.finishCalib, oneshot=True)
             rospy.loginfo("[%s] Rosbag recording started" %(self.node_name))
 
-    #atm the calibration stops after 15 seconds --> condition needs to change in the future
+    #stopping the rosbag recording and starting calibration calculations
     def finishCalib(self,event):
         p = psutil.Process(self.rosbag_proc.pid)
         for sub in p.children(recursive=True):
@@ -100,7 +101,7 @@ class AutoCalibrationNode(object):
         rospy.loginfo("[%s] Rosbag recording stopped" %(self.node_name))
         self.pub_calc_start.publish(done)
 
-    #Tag detections
+    #Tag detections for u-turn
     def cbTag(self, tag_msgs):
         if not self.active:
             return
@@ -112,26 +113,6 @@ class AutoCalibrationNode(object):
                     self.last_tag = detection.id
                     rospy.loginfo("[%s] U-Turn started at tag %s" %(self.node_name,detection.id))
 
-
-    #When calibration is done, return to maintenance area
-    def turnToExit(self, tag_msgs):
-        for taginfo in tag_msgs.infos:
-            rospy.loginfo("[%s] taginfo." %(taginfo))
-            if(taginfo.tag_type == taginfo.SIGN):
-                availableTurns = []
-                #go through possible intersection types
-                signType = taginfo.traffic_sign_type
-                if (signType == taginfo.LEFT_T_INTERSECT):
-                    availableTurns = [1] # these mystical numbers correspond to the array ordering in open_loop_intersection_control_node (very bad)
-                elif (signType == taginfo.T_INTERSECTION):
-                    availableTurns = [0]
-                    #now randomly choose a possible direction
-                if(len(availableTurns)>0):
-                    self.turn_type = availableTurns[0]
-
-                    #self.pub_turn_type.publish(self.turn_type)
-                    #rospy.loginfo("Turn type now: %i" %(self.turn_type))
-
     #Decide which commands should be sent to wheels in calibration mode
     def publishControl(self, msg):
         if not self.active:
@@ -139,11 +120,11 @@ class AutoCalibrationNode(object):
         else:
             car_cmd_msg = msg
             #Command to do a U-turn sent
-            if self.lane_follow_override:
-                self.stopped = False
+            if self.lane_follow_override and self.stopped:
                 if not self.timer_called:
                     rospy.Timer(rospy.Duration.from_sec(2.2), self.updateTimer, oneshot=True)
                     self.timer_called = True
+                self.stopped = False
                 car_cmd_msg.v = 0.2
                 car_cmd_msg.omega = 4
             #Stopped at stop-line
@@ -165,9 +146,11 @@ class AutoCalibrationNode(object):
         self.stopped = False
         rospy.loginfo("[%s] U-Turn stopped" %(self.node_name))
 
+    #On-off switch for calibration node
     def cbSwitch(self, msg):
         self.active=msg.data
 
+    #Flag for complete calculation
     def CalibrationDone(self,msg):
         self.calib_done=msg.data
 
