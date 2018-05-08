@@ -26,7 +26,7 @@ class SteeringWheelNode(object):
         self.v = 0 # Current longitudinal velocity
         self.omega = 0 # Current angular velocity
         self.last_ms = None # For integrating acceleration
-        self.gear = "DRIVE" # DRIVE, REVERSE, NEUTRAL, PARK
+        self.gear = "PARK" # DRIVE, REVERSE, NEUTRAL, PARK
 
         # Prepate pygame listener
         pygame.init()
@@ -49,15 +49,29 @@ class SteeringWheelNode(object):
     def mainLoop(self, event):
         pygame.event.pump()
 
-        steering_wheel_angle = -self.joy.get_axis(0)
-        throttle_amp = (1-self.joy.get_axis(3))/0.5
-        break_amp = self.joy.get_button(0)
 
-        rospy.loginfo("Angle: " + str(steering_wheel_angle) + "    Throttle: " + str(throttle_amp) +  "    Break: " + str(break_amp) + "    Omega: " + str(self.omega) + "    V: " + str(self.v))
+        steering_wheel_angle = -self.joy.get_axis(0)
+        throttle_amp = (1-self.joy.get_axis(2))/0.5
+        break_amp = (1-self.joy.get_axis(3))/0.5
+
+        w_left = self.joy.get_button(5)
+        w_right = self.joy.get_button(4)
+
+        rospy.loginfo("Gear: " + self.gear + "    Angle: " + str(steering_wheel_angle) + "    Throttle: " + str(throttle_amp) +  "    Break: " + str(break_amp) + "    Omega: " + str(self.omega) + "    V: " + str(self.v))
 
         # Apply driving actions to Duckiebot
         self.cbSteeringWheelActions(steering_wheel_angle, throttle_amp, break_amp)
 
+        if w_right and w_left:
+            if np.abs(self.v) < 0.01:
+                self.gear = "PARK"
+            else:
+                self.gear = "NEUTRAL"
+        else:
+            if w_left:
+                self.gear = "REVERSE"
+            if w_right:
+                self.gear = "DRIVE"
 
     def updateParams(self,event):
         self.k_angle = rospy.get_param("~k_angle") # Relation between angle of steering wheel and front wheels [1]
