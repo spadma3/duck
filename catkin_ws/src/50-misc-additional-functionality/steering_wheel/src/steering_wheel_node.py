@@ -28,12 +28,14 @@ class SteeringWheelNode(object):
         self.last_ms = None # For integrating acceleration
         self.gear = "DRIVE" # DRIVE, REVERSE, NEUTRAL, PARK
 
+        # Prepate pygame listener
         pygame.init()
         joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
-        rospy.loginfo(str(joysticks))
         self.joy = joysticks[0]
         self.joy.init()
         rospy.loginfo(self.joy.get_numaxes())
+
+        # Start main loop
         self.mainLoop = rospy.Timer(rospy.Duration.from_sec(0.05), self.mainLoop)
 
 
@@ -43,16 +45,19 @@ class SteeringWheelNode(object):
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
 
+
     def mainLoop(self, event):
         pygame.event.pump()
 
         steering_wheel_angle = -self.joy.get_axis(0)
         throttle_amp = (1-self.joy.get_axis(3))/0.5
-
         break_amp = self.joy.get_button(0)
 
-        rospy.loginfo("ANGLE: " + str(steering_wheel_angle) + "    Throttle: " + str(throttle_amp) +  "     Break: " + str(break_amp))
+        rospy.loginfo("Angle: " + str(steering_wheel_angle) + "    Throttle: " + str(throttle_amp) +  "    Break: " + str(break_amp) + "    Omega: " + str(self.omega) + "    V: " + str(self.v))
+
+        # Apply driving actions to Duckiebot
         self.cbSteeringWheelActions(steering_wheel_angle, throttle_amp, break_amp)
+
 
     def updateParams(self,event):
         self.k_angle = rospy.get_param("~k_angle") # Relation between angle of steering wheel and front wheels [1]
@@ -104,7 +109,6 @@ class SteeringWheelNode(object):
         # Calculate angular velocity
         self.omega = self.v / self.wheel_base * (np.tan(front_wheels_angle))
 
-        rospy.loginfo("OMEGA " + str(self.omega))
         # Publish update
         car_control_msg = Twist2DStamped()
         car_control_msg.v = self.v
@@ -113,7 +117,7 @@ class SteeringWheelNode(object):
 
     def onShutdown(self):
         rospy.loginfo("[SteeringWheelNode] Shutdown.")
-
+        self.mainLoop.shutdown()
     def getCurrentMillis(self):
         return int(round(time.time() * 1000))
 
