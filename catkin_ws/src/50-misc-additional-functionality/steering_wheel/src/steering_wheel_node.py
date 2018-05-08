@@ -34,7 +34,7 @@ class SteeringWheelNode(object):
         self.joy = joysticks[0]
         self.joy.init()
         rospy.loginfo(self.joy.get_numaxes())
-        self.mainLoop = rospy.Timer(rospy.Duration.from_sec(0.2), self.mainLoop)
+        self.mainLoop = rospy.Timer(rospy.Duration.from_sec(0.05), self.mainLoop)
 
 
     def setupParam(self,param_name,default_value):
@@ -50,11 +50,10 @@ class SteeringWheelNode(object):
         throttle_amp = (1-self.joy.get_axis(3))/0.5
 
         break_amp = self.joy.get_button(0)
-        for i in range(0, self.joy.get_numbuttons()):
-            rospy.loginfo("Button" + str(i) + ":    " + str(self.joy.get_button(i)))
 
+        rospy.loginfo("ANGLE: " + str(steering_wheel_angle) + "    Throttle: " + str(throttle_amp) +  "     Break: " + str(break_amp))
         self.cbSteeringWheelActions(steering_wheel_angle, throttle_amp, break_amp)
-        
+
     def updateParams(self,event):
         self.k_angle = rospy.get_param("~k_angle") # Relation between angle of steering wheel and front wheels [1]
         self.acc_max = rospy.get_param("~acc_max") # Maximal acceleration (full throttle) [m/s^2]
@@ -103,8 +102,9 @@ class SteeringWheelNode(object):
         v_l = self.v * np.cos(front_wheels_angle)
 
         # Calculate angular velocity
-        self.omega = self.v * self.wheel_base / (np.tan(front_wheels_angle))
+        self.omega = self.v / self.wheel_base * (np.tan(front_wheels_angle))
 
+        rospy.loginfo("OMEGA " + str(self.omega))
         # Publish update
         car_control_msg = Twist2DStamped()
         car_control_msg.v = self.v
