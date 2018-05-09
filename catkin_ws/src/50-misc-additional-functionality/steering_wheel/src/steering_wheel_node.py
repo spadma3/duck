@@ -18,6 +18,7 @@ class SteeringWheelNode(object):
         self.v_r_max   = self.setupParam("~v_r_max", 0.15) # Mximal velocity possible in reverse [m/s]
         self.angle_max = self.setupParam("~angle_max", np.pi/3) # Maximal possible angle of front wheels in both directions [rad]
         self.wheel_base = self.setupParam("~wheel_base", 3.125) # Distance between front and back wheels [m]
+        self.accel_fun = self.setupParam("~accel_fun(v,v_max, acc_max, throttle)", 1)
         ## publishers and subscribers
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
 
@@ -82,6 +83,12 @@ class SteeringWheelNode(object):
         self.v_r_max   = rospy.get_param("~v_r_max")
         self.angle_max = rospy.get_param("~angle_max")
         self.wheel_base = rospy.get_param("~wheel_base")
+        self.accel_fun = rospy.get_param("~accel_fun(v,v_max, acc_max, throttle)")
+
+
+    def getAcceleration(self, v, v_max, acc_max, throttle):
+        acc = eval(self.accel_fun)
+        return acc
 
     def cbSteeringWheelActions(self, steering_wheel_angle, throttle_amp, break_amp):
 
@@ -94,12 +101,12 @@ class SteeringWheelNode(object):
         if self.last_ms is not None:
             delta_t = (currentMillis - self.last_ms)/1000.0
             if self.gear == "DRIVE":
-                self.v = self.v + delta_t * throttle_amp * self.acc_max
+                self.v = self.v + delta_t * self.getAcceleration(self.v, self.v_max, self.acc_max, throttle_amp)
                 self.v = self.v - delta_t * break_amp * self.dec_max
                 self.v = self.v - delta_t * self.dec_nom
                 self.v = np.clip(self.v, 0, self.v_max)
             if self.gear == "REVERSE":
-                self.v = self.v - delta_t * throttle_amp * self.acc_max
+                self.v = self.v - delta_t * self.getAcceleration(self.v, self.v_max, self.acc_max, throttle_amp)
                 self.v = self.v + delta_t * break_amp * self.dec_max
                 self.v = self.v + delta_t * self.dec_nom
                 self.v = np.clip(self.v, -self.v_r_max, 0)
