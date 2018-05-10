@@ -8,7 +8,13 @@ else
 	source ~/duckietown/set_ros_master.sh $1
 fi
 
+#background subtraction
+roslaunch auto_localization exposure_test.launch veh:=$HOSTNAME live:=false bot:=false
+
+rosbag play --clock ~/duckietown/hardware/camera_tower/software/art_reg_auto_s_2018-03-22-15-52-20.bag /trafficlight3/camera_node/camera_info:=/$HOSTNAME/camera_node/camera_info /trafficlight3/camera_node/image/compressed:=/$HOSTNAME/camera_node/image/compressed 
+
+#Analyze with backgraound get in procedure 1
 roslaunch auto_localization exposure_test.launch veh:=$HOSTNAME live:=false
 
-rosbag play -l -r 0.3 ~/duckietown/hardware/camera_tower/software/art_reg_20_s_2018-03-22-15-57-07.bag /trafficlight3/camera_node/camera_info:=/homohrt/camera_node/camera_info /trafficlight3/camera_node/image/compressed:=/homohrt/camera_node/image/compressed 
+rosbag play --clock ~/duckietown/hardware/camera_tower/software/art_reg_auto_s_2018-03-22-15-52-20.bag /trafficlight3/camera_node/camera_info:=/$HOSTNAME/camera_node/camera_info /trafficlight3/camera_node/image/compressed:=/$HOSTNAME/camera_node/image/compressed 
 

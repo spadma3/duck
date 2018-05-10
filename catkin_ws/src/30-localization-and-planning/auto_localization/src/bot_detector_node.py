@@ -6,6 +6,7 @@ from cv_bridge import CvBridge
 import numpy as np
 import rospy
 from sensor_msgs.msg import CompressedImage, Image
+from duckietown_msgs.msg import BoolStamped
 
 BG_SAMPLE = 150
 BG_THRESHOLD = 1000000
@@ -26,7 +27,7 @@ class BotDetectorNode(object):
 		self.count = 0
 
 		#Define doing getBackground or Doing Botdetect
-		if rospy.get_param('~bot', True):
+		if rospy.get_param('~bot', False):
 			self.func = 'getDuckiebot'
 		else:
 			self.func = 'getBackground'

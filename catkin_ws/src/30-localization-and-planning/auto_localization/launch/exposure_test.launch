@@ -21,10 +21,10 @@
  		<arg name="bot" value="$(arg bot)"/>
  	</include>
 
- 	<!-->
- 	<include file="$(find auto_localization)/launch/analyze_expo_node.launch">
- 		<arg name="veh" value="$(arg veh)"/>
- 	</include>
- 	<-->
+ 	<group if="$(arg bot)">
+	 	<include file="$(find auto_localization)/launch/analyze_expo_node.launch">
+	 		<arg name="veh" value="$(arg veh)"/>
+	 	</include>
+ 	</group>>
 
 </launch>
