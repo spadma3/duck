@@ -7,14 +7,16 @@ import numpy as np
 import rospy
 from sensor_msgs.msg import CompressedImage, Image
 from duckietown_msgs.msg import BoolStamped
+import rospkg
 
-BG_SAMPLE = 150
+BG_SAMPLE = 15
 BG_THRESHOLD = 1000000
 
 class BotDetectorNode(object):
 	"""docstring for BotDetectorNode"""
 	def __init__(self):
 		self.node_name = "BotDetectorNode"
+		self.package_path = rospkg.RosPack().get_path('auto_localization')
 
 		#Constructor of bot detector
 		self.bridge = CvBridge()
@@ -33,7 +35,7 @@ class BotDetectorNode(object):
 			self.func = 'getBackground'
 
 		if self.func == 'getDuckiebot':
-			self.background = cv2.imread('/home/erickiemvp/duckietown/background.png', cv2.IMREAD_COLOR)
+			self.background = cv2.imread(self.package_path+'/image/background.png', cv2.IMREAD_COLOR)
 			self.background = self.background.astype(np.float64)
 
 		#Publisher
@@ -158,7 +160,7 @@ class BotDetectorNode(object):
 			self.loginfo('Finish append, Start sorting')
 			self.active = False
 			self.MidBackground = self.getMidBackground(self.bg_b, self.bg_g, self.bg_r)
-			saveResult = cv2.imwrite('/home/erickiemvp/duckietown/background.png', self.MidBackground)
+			saveResult = cv2.imwrite(self.package_path+'/image/background.png', self.MidBackground)
 			print "Save Result = ", saveResult
 			self.loginfo('Get Background Done! You can shutdown now.')
 			return
