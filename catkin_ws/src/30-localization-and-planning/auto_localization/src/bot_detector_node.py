@@ -9,8 +9,7 @@ from sensor_msgs.msg import CompressedImage, Image
 from duckietown_msgs.msg import BoolStamped
 import rospkg
 
-BG_SAMPLE = 15
-BG_THRESHOLD = 1000000
+BG_SAMPLE = 150
 
 class BotDetectorNode(object):
 	"""docstring for BotDetectorNode"""
@@ -37,6 +36,10 @@ class BotDetectorNode(object):
 		if self.func == 'getDuckiebot':
 			self.background = cv2.imread(self.package_path+'/image/background.png', cv2.IMREAD_COLOR)
 			self.background = self.background.astype(np.float64)
+
+		#bot detection threshold
+		self.BG_THRESHOLD = rospy.get_param('~det_th', 1000000)
+		self.loginfo('Detection threshold: %d' % (self.BG_THRESHOLD))
 
 		#Publisher
 		self.pub_result = rospy.Publisher("~bot_detection", BoolStamped, queue_size=1)
@@ -125,7 +128,7 @@ class BotDetectorNode(object):
 
 		result = BoolStamped()
 		result.header = image_msg.header
-		if self.img_sum > BG_THRESHOLD:
+		if self.img_sum > self.BG_THRESHOLD:
 			self.loginfo('True')
 			result.data = True
 		else:

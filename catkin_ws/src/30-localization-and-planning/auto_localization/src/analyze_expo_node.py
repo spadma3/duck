@@ -56,7 +56,7 @@ class AnalyzeExpo(object):
 		print 'tag seq = ', seq
 		for i in range(len(msg.detections)):
 			if msg.detections[i].id[i] == 0:
-				print 'get AT'
+				self.loginfo('Get Apriltags')
 				el = 1
 			else:
 				el = 0
