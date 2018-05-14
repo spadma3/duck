@@ -5,6 +5,7 @@ from anti_instagram.simpleColorBalanceClass import *
 from .scale_and_shift import scaleandshift
 import numpy as np
 import rospy
+import time
 
 
 class ScaleAndShift():
@@ -133,6 +134,9 @@ class AntiInstagram():
 
     def applyColorBalance(self, img, ThLow, ThHi):
         # apply color balance
+        begin=rospy.Time.now()
         corrected_image = self.CB.applyTrafo(img, ThLow, ThHi)
+        end=rospy.Time.now()
+        duration=end-begin
+        rospy.loginfo('Complete CB-Trafo Duration within AntiInstagra_rebuild: %s' % duration)
         return corrected_image
-
