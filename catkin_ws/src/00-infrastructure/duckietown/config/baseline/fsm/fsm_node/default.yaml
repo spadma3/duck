@@ -1,12 +1,12 @@
 # Initail state of the FSM
-initial_state: "JOYSTICK_CONTROL"
+initial_state: "PARALLEL_AUTONOMY"
 
 events: #Maps from subscribing topic to signal ids
-  joystick_override_on: 
+  joystick_override_on:
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
     trigger: True
-  joystick_override_off: 
+  joystick_override_off:
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
     trigger: False
@@ -81,7 +81,7 @@ global_transitions:
   parallel_autonomy_on: "PARALLEL_AUTONOMY"
   parallel_autonomy_off: "JOYSTICK_CONTROL"
 
-# Define nodes 
+# Define nodes
 nodes:
   decoder_node: "decoder_node/switch"
 # anti_instagram_node: "anti_instagram/switch"
@@ -158,7 +158,7 @@ states:
     transitions:
 #      intersection_done_and_not_parallel_autonomy: "LANE_FOLLOWING"
 #      intersection_done_and_parallel_autonomy: "PARALLEL_AUTONOMY"
-      intersection_done: "LANE_FOLLOWING"
+      intersection_done: "PARALLEL_AUTONOMY"
     active_nodes:
       - line_detector_node
       - lane_filter_node
