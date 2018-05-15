@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose, FSMState, BoolStamped
+from duckietown_msgs.msg import Twist2DStamped, LanePose, FSMState, BoolStamped, VehiclePose
 import os, imp, time
 
 
@@ -53,6 +53,9 @@ class lane_controller(object):
         # Setup variable for different sampling rate
         self.z_samp = 0
 
+        # Timer for abrupt stopVeh
+        self.stopTimer = None
+
         # Setup array for time delay
         if int(self.exercise[0]) == 1 and int(self.exercise[1]) == 5:
             k_d = self.controller_class.k_d
@@ -64,8 +67,70 @@ class lane_controller(object):
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
         rospy.loginfo("\n\n\n\n\nREADY FOR EXERCISE " + exercise_txt + "\n\n\n\n\n")
 
+        # Setup subscriptions for HWExercise 3
+        if int(self.exercise[0]) == 3:
+            self.sub_veh_pos = rospy.Subscriber("~veh_pos", VehiclePose, self.cbVehPose, queue_size=1)
+
+
+
+    def stopVeh(self, nth):
+        car_control_msg = Twist2DStamped()
+        car_control_msg.v = 0.0
+        car_control_msg.omega = 0.0
+        self.publishCmd(car_control_msg)
+
+    def cbVehPose(self, pose_msg):
+        if self.stopTimer is not None:
+            self.stopTimer.shutdown()
+        # Calculating the delay image processing took
+        timestamp_now = rospy.Time.now()
+        image_delay_stamp = timestamp_now - pose_msg.header.stamp
+
+        # delay from taking the image until now in seconds
+        t_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
+
+        # Calculate time since last command
+        currentMillis = int(round(time.time() * 1000))
+        if self.last_ms is not None:
+            dt_last = (currentMillis - self.last_ms) / 1000.0
+        else:
+            dt_last = 0 # None before, let's make 0 such that it is way simpler for students
+
+        # Return if not in autopilot
+        if not self.operating:
+            self.last_ms = currentMillis
+            return
+
+        # Obtain parameters for controller
+        rho = pose_msg.rho.data
+        theta = pose_msg.theta.data
+        psi = pose_msg.psi.data
+
+
+        # Obtain new v and omega from controller
+        v_out, omega_out = self.controller_class.getControlOutput(rho, theta, psi, t_delay, dt_last)
+
+
+        # Print out infos
+        rospy.loginfo("Omega: " + str(omega_out) + "    V: " + str(v_out) + "    Delay: " + str(t_delay) + "    T: " + str(dt_last) )
+
+        # Create message and publish
+        car_control_msg = Twist2DStamped()
+        car_control_msg.header = pose_msg.header
+        car_control_msg.v = v_out
+        car_control_msg.omega = omega_out
+        self.publishCmd(car_control_msg)
+
+        # Update last timestamp
+        self.last_ms = currentMillis
+
+        self.stopTimer = rospy.Timer(rospy.Duration(1), self.stopVeh, oneshot=True)
 
     def cbPose(self, lane_pose_msg):
+        if int(self.exercise[0]) == 3:
+            return
+
+
         self.z_samp += 1
 
         lane_reading = lane_pose_msg

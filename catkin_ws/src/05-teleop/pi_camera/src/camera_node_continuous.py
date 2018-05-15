@@ -72,6 +72,7 @@ class CameraNode(object):
         stream.seek(0)
         img_data = stream.getvalue()
 
+        self.uncompress = True
         if self.uncompress:
             # Publish raw image
             data = np.fromstring(img_data, dtype=np.uint8)
