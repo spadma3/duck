@@ -57,25 +57,25 @@ class simpleColorBalanceClass:
         if ThLow == [] and ThHi == []:
             ThLow = self.ThLow
             ThHi = self.ThHi
-        begin1=rospy.Time.now()
+        # begin1=rospy.Time.now()
         channels = cv2.split(img)
         out_channels = []
-        end1=rospy.Time.now()
-        duration1=end1-begin1
-        rospy.loginfo('Splitting of image: %s' % duration1)
+        # end1=rospy.Time.now()
+        # duration1=end1-begin1
+        # rospy.loginfo('Splitting of image: %s' % duration1)
 
         for idx, channel in enumerate(channels):
             # saturate below the low percentile and above the high percentile
-            begin2=rospy.Time.now()
+            # begin2=rospy.Time.now()
             thresholded = self.apply_threshold(channel, ThLow[idx], ThHi[idx])
-            end2=rospy.Time.now()
-            duration2=end2-begin2
-            rospy.loginfo('Applying threshold: %s' % duration2)
+            # end2=rospy.Time.now()
+            # duration2=end2-begin2
+            # rospy.loginfo('Applying threshold: %s' % duration2)
             # scale the channel
-            begin3=rospy.Time.now()
+            # begin3=rospy.Time.now()
             normalized = cv2.normalize(thresholded, thresholded.copy(), 0, 255, cv2.NORM_MINMAX)
             out_channels.append(normalized)
-            end3=rospy.Time.now()
-            duration3=end3-begin3
-            rospy.loginfo('Normalize: %s' % duration3)
+            # end3=rospy.Time.now()
+            # duration3=end3-begin3
+            # rospy.loginfo('Normalize: %s' % duration3)
         return cv2.merge(out_channels)

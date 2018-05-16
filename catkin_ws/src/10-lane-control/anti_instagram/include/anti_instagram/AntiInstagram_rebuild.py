@@ -6,6 +6,8 @@ from .scale_and_shift import scaleandshift
 import numpy as np
 import rospy
 import time
+import cv2
+import math
 
 
 class ScaleAndShift():
@@ -134,9 +136,49 @@ class AntiInstagram():
 
     def applyColorBalance(self, img, ThLow, ThHi):
         # apply color balance
-        begin=rospy.Time.now()
-        corrected_image = self.CB.applyTrafo(img, ThLow, ThHi)
-        end=rospy.Time.now()
-        duration=end-begin
-        rospy.loginfo('Complete CB-Trafo Duration within AntiInstagra_rebuild: %s' % duration)
+#
+        corrected_image = self.applyTrafo(img, ThLow, ThHi)
+#
         return corrected_image
+
+
+    def applyTrafo(self, img, ThLow = [], ThHi = []):
+        if ThLow == [] and ThHi == []:
+            ThLow = self.ThLow
+            ThHi = self.ThHi
+        # begin1=rospy.Time.now()c
+        channels = cv2.split(img)
+        out_channels = []
+        # end1=rospy.Time.now()
+        # duration1=end1-begin1
+        # rospy.loginfo('Splitting of image: %s' % duration1)
+
+        for idx, channel in enumerate(channels):
+            # saturate below the low percentile and above the high percentile
+            # begin2=rospy.Time.now()
+            thresholded = self.apply_threshold(channel, ThLow[idx], ThHi[idx])
+            # end2=rospy.Time.now()
+            # duration2=end2-begin2
+            # rospy.loginfo('Applying threshold: %s' % duration2)
+            # scale the channel
+            # begin3=rospy.Time.now()
+            normalized = cv2.normalize(thresholded, thresholded.copy(), 0, 255, cv2.NORM_MINMAX)
+            out_channels.append(normalized)
+            # end3=rospy.Time.now()
+            # duration3=end3-begin3
+            # rospy.loginfo('Normalize: %s' % duration3)
+        return cv2.merge(out_channels)
+
+    def apply_threshold(self, matrix, low_value, high_value):
+        matrix=np.delete(matrix,list(range(0,matrix.shape[0],5)),axis=0)
+        low_mask = matrix < low_value
+        matrix = self.apply_mask(matrix, low_mask, low_value)
+
+        high_mask = matrix > high_value
+        matrix = self.apply_mask(matrix, high_mask, high_value)
+
+        return matrix
+
+    def apply_mask(self, matrix, mask, fill_value):
+        masked = np.ma.array(matrix, mask=mask, fill_value=fill_value)
+        return masked.filled()

@@ -79,7 +79,7 @@ class ImageTransformerNode():
 
     def cbNewImage(self, image_msg):
         # this callback proceeds the latest image, i.e. it applies the current transformation to the image and publishes it
-        begin2=rospy.Time.now()
+        # begin2=rospy.Time.now()
         if not self.thread_lock.acquire(False):
                 return
 
@@ -92,23 +92,23 @@ class ImageTransformerNode():
         except ValueError as e:
             rospy.loginfo('Anti_instagram cannot decode image: %s' % e)
             return
-
-        end0=rospy.Time.now()
-        duration0=end0-begin2
-        rospy.loginfo('Conversion: %s' % duration0)
+        #
+        # end0=rospy.Time.now()
+        # duration0=end0-begin2
+        # rospy.loginfo('Conversion: %s' % duration0)
         tk.completed('converted')
 
 
 
         if self.trafo_mode == "cb" or self.trafo_mode == "both":
             # apply color balance using latest thresholds
-            begin1=rospy.Time.now()
+            # begin1=rospy.Time.now()
             colorBalanced_image_cv2 = self.ai.applyColorBalance(img=cv_image, ThLow=self.ai.ThLow, ThHi=self.ai.ThHi)
             tk.completed('applyColorBalance')
-            end1=rospy.Time.now()
-            duration=end1-begin1
+            # end1=rospy.Time.now()
+            # duration=end1-begin1
 
-            rospy.loginfo('Complete CB-Trafo Duration: %s' % duration)
+            # rospy.loginfo('Complete CB-Trafo Duration: %s' % duration)
         else:
             # pass input image
             colorBalanced_image_cv2 = cv_image
@@ -120,7 +120,7 @@ class ImageTransformerNode():
         else:
             # pass input image
             corrected_image_cv2 = colorBalanced_image_cv2
-        begin3=rospy.Time.now()
+        # begin3=rospy.Time.now()
         # store image to ros message
         self.corrected_image = self.bridge.cv2_to_compressed_imgmsg(
             corrected_image_cv2)# , "bgr8")
@@ -131,22 +131,22 @@ class ImageTransformerNode():
         # publish image
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
-        end3=rospy.Time.now()
-        duration3=end3-begin3
-        rospy.loginfo('Publishing time: %s' % duration3)
-        begin4=rospy.Time.now()
+        # end3=rospy.Time.now()
+        # duration3=end3-begin3
+        # rospy.loginfo('Publishing time: %s' % duration3)
+        # begin4=rospy.Time.now()
 
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
 
         #self.r.sleep() #to keep the rate
         self.thread_lock.release()
-        end4=rospy.Time.now()
-        duration4=end4-begin4
-        rospy.loginfo('END OF FUNCTION: %s' % duration4)
-        end2=rospy.Time.now()
-        duration2=end2-begin2
-        rospy.loginfo('TRANSFORMATION: %s' % duration2)
+        # end4=rospy.Time.now()
+        # duration4=end4-begin4
+        # rospy.loginfo('END OF FUNCTION: %s' % duration4)
+        # end2=rospy.Time.now()
+        # duration2=end2-begin2
+        # rospy.loginfo('TRANSFORMATION: %s' % duration2)
 
     def cbNewTrafo(self, trafo_msg):
         # this callback stores the received linear transformation parameters
