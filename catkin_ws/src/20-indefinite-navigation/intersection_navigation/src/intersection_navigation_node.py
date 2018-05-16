@@ -19,6 +19,7 @@ class IntersectionNavigation(object):
         # save the name of the node
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initializing." % (self.node_name))
+        self.active = True
 
         # read parameters
         self.veh = self.SetupParameter("~veh", "daisy")
@@ -51,7 +52,7 @@ class IntersectionNavigation(object):
         self.in_lane = False
         self.in_lane_time = rospy.Time()
         self.in_lane_timeout = 0.5
-        self.in_lane_wait_time = 2.0
+        self.in_lane_wait_time = 1.0
 
         self.state_dict = dict()
         for counter, key in enumerate(['IDLE',
@@ -124,6 +125,7 @@ class IntersectionNavigation(object):
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         # Needed if open loop
         self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
+        self.pub_path_computed = rospy.Publisher("~path_computed", BoolStamped, queue_size=1)
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
@@ -163,6 +165,9 @@ class IntersectionNavigation(object):
 
 
     def MainLoop(self):
+
+        if not self.active:
+            return
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             # run state machine
@@ -239,13 +244,13 @@ class IntersectionNavigation(object):
                         pose, _ = self.poseEstimator.PredictState(msg_lane_pose.header.stamp)
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
+                        rospy.loginfo("the s is: "+str(self.s))
                         if (self.s > 0.99):
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
                             msg_lane_pose.d_ref = 0.0
                             msg_lane_pose.phi = 0.0
                             msg_lane_pose.curvature_ref = 0.0
-
                             self.state = self.state_dict['DONE']
                             self.done_time = rospy.Time.now()
 
@@ -419,6 +424,11 @@ class IntersectionNavigation(object):
             return False
 
         else:
+            msg_path_computed = BoolStamped()
+            msg_path_computed.header.stamp = rospy.Time.now()
+            msg_path_computed.data = True
+            self.pub_path_computed.publish(msg_path_computed)
+            msg_path_computed.data = False
             return True
 
     def InLaneCallback(self,msg):
@@ -438,7 +448,6 @@ class IntersectionNavigation(object):
         #     self.SelfReset()
 
     def TurnTypeCallback(self, msg):
-        rospy.loginfo("I, Robot!")
         self.turn_type = msg.data
         self.turn_type_time = rospy.Time.now()
 
@@ -476,6 +485,9 @@ class IntersectionNavigation(object):
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
+
+    def cbSwitch(self, switch_msg):
+        self.active = switch_msg.data
 
     def OnShutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
