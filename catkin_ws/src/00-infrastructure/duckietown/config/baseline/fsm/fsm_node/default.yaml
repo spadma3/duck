@@ -156,12 +156,12 @@ states:
       joystick_override_off_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
       parallel_autonomy_on: "SAFE_JOYSTICK_CONTROL"
     active_nodes:
-      - lane_filter_node
-      - line_detector_node
-      - stop_line_filter_node
+      #- lane_filter_node
+      #- line_detector_node
+      #- stop_line_filter_node
       - framerate_high
       - decoder_node
-      - apriltag_node
+      #- apriltag_node
     lights: ["joystick"]
     current_status: "implemented"
   SAFE_JOYSTICK_CONTROL:
@@ -188,7 +188,7 @@ states:
     active_nodes:
       - decoder_node
       - line_detector_node
-      - apriltag_node
+    #  - apriltag_node # NOTE no reason for this?
       - lane_filter_node
       - lane_controller_node
       - stop_line_filter_node
@@ -210,7 +210,6 @@ states:
       - led_detector_node
     #  - implicit_coordination_node NOTE use the explicit when possible
       - coordinator_node
-      - LED_detection_node
     lights: ["coordination"]
     current_status: "in_progress"
   INTERSECTION_CONTROL:
