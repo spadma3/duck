@@ -15,3 +15,6 @@ formula-d-wheel-%: check-environment
 
 formula-d: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos formula_D.launch"
+
+camera-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; rosrun image_view image_view image:='/$*/camera_node/image' _image_transport:=compressed"
