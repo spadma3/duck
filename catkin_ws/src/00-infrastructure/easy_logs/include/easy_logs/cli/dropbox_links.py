@@ -1,41 +1,49 @@
 import os
+import sys
 
 from ruamel import yaml
+import ruamel.yaml
 
-from duckietown_utils import logger
-from duckietown_utils.download import get_urls_path
-from duckietown_utils.system_cmd_imp import system_cmd_result
-from easy_logs.logs_db import get_easy_logs_db
+import duckietown_utils as dtu
 
 
 def dropbox_links_main(query):
-    logger.info('NOTE: Run this inside ~/Dropbox/duckietown-data. ')
-    logger.info('NOTE: There are some hard-coded paths to modify in dropbox_links.py')
-    
-    output = get_urls_path()
+    if len(sys.argv) < 4:
+        msg = """
+
+dropbox-links  ~/Dropbox "*.bag" my.urls.yaml
+
+        """
+    base = sys.argv[1]
+    pattern = sys.argv[2]
+    output = sys.argv[3]
+
+    # dtu.get_urls_path()
     if os.path.exists(output):
-        urls = yaml.safe_load(open(output).read())
-        for k,v in list(urls.items()):
+        urls = yaml.load(open(output).read(), Loader=ruamel.yaml.Loader)
+        for k, v in list(urls.items()):
             if not v.startswith('http'):
                 del urls[k]
     else:
         urls = {}
-    command = '/home/andrea/bin/dropbox'
-    base = '/mnt/dorothy-duckietown-data/'
-    db = get_easy_logs_db()
-    logs  = db.query(query)
-    logger.info('Found %d logs.' % len(logs))
-    
-    for logname, log in logs.items():
-        if logname in urls:
-            logger.info('Already have %s' % logname)
-            continue
-        
-        filename = log.filename
-        only = filename.replace(base, '')
+    command = 'dropbox'
 
+    files = dtu.locate_files(base, pattern, normalize=False)
+    print('base: %s found %d' % (base, len(files)))
+    for filename in files:
+        if '.dropbox.cache' in filename:
+            continue
+        logname = os.path.basename(filename)
+        if logname in urls:
+            dtu.logger.info('Already have %s' % logname)
+            continue
+
+        #filename = log.filename
+        #only = filename.replace(base, '')
+
+        only = filename
         cmd = [command, 'sharelink', only]
-        res = system_cmd_result(cwd='.', cmd=cmd,
+        res = dtu.system_cmd_result(cwd='.', cmd=cmd,
                       display_stdout=False,
                       display_stderr=True,
                       raise_on_error=True,
@@ -43,16 +51,31 @@ def dropbox_links_main(query):
                       capture_keyboard_interrupt=False,
                       env=None)
         link = res.stdout.strip()
+        if 'unknown error' in link.lower():
+            msg = 'Could not get link: %s' % link
+            raise Exception(msg)
+        link = link.replace('dl=0', 'dl=1')
+
         if 'responding' in link:
-            logger.debug('Dropbox is not responding, I will stop here.')
-            
+            dtu.logger.debug('Dropbox is not responding, I will stop here.')
+
             break
-        
-        logger.info('link : %s' % link)
-        urls[logname] = link
-    
-    yaml.default_flow_style = True
-#     yaml.indent(mapping=2, sequence=4, offset=2)
+
+        dtu.logger.info('link : %s' % link)
+        key = logname
+        #key = logname.decode('utf-8')
+        #print key#, key.__type__
+        urls[key] = link
+        url = dtu.create_hash_url(filename)
+        urls[url] = link
+        dtu.logger.info('url : %s' % url)
+
+    from collections import OrderedDict
+    urls_sorted = OrderedDict()
+    for k in sorted(urls):
+        urls_sorted[k] = urls[k]
+    urls = urls_sorted
+    yaml.default_flow_style = False
     with open(output, 'w') as f:
-        yaml.dump(urls, f)
-        
+        yaml.dump(urls, f, default_flow_style=False, allow_unicode=True)
+

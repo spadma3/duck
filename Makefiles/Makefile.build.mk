@@ -1,6 +1,6 @@
 duckietown_package=$(catkin_ws)/src/00-infrastructure/duckietown
 machines=$(duckietown_package)/machines
-cloud_db=$(catkin_ws)/src/00-infrastructure/easy_logs/cloud.yaml
+# cloud_db=$(catkin_ws)/src/00-infrastructure/easy_logs/cloud.yaml
 
 build:
 	@echo "$(sep)Building commands"
@@ -24,10 +24,10 @@ build-machines:
 	rosrun duckieteam create-machines
 
 
-cloud-download: $(cloud_db)
+# cloud-download: $(cloud_db)
 
-$(cloud_db):
-	wget -O $@ "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
+# $(cloud_db):
+# 	wget -O $@ "https://www.dropbox.com/s/vdl1ej8fihggide/duckietown-cloud.yaml?dl=1"
 
 build-machines-clean:
 	@echo
@@ -36,7 +36,11 @@ build-machines-clean:
 
 build-clean: \
 	build-catkin-clean \
-	build-machines-clean
+	build-machines-clean\
+	build-pyc-clean
+
+build-pyc-clean:
+	find $(catkin_ws)/src/ -name '*pyc' -delete
 
 build-catkin:
 	catkin_make -C $(catkin_ws) --make-args --no-print-directory
@@ -61,6 +65,7 @@ check-environment:
 	# Put here procedures to check the environment is valid
 	#-./what-the-duck
 
+
 pdoc_packages=\
 	duckietown_utils\
 	easy_logs\
@@ -79,3 +84,33 @@ pdoc:
 
 pdoc-clean:
 	rm -rf  $(pdoc_out)
+
+
+python-module-stats:
+	./misc/python_environment.py \
+		compmake\
+		contracts\
+		decent_logs\
+		quickapp\
+		conf_tools\
+		comptests\
+		procgraph\
+		ros_node_utils\
+		pymongo\
+		ruamel.yaml\
+		ruamel.ordereddict\
+		geometry\
+		bs4\
+		cv2\
+		rospkg\
+		rosbag\
+		rospy\
+		catkin\
+		catkin-pkg\
+		matplotlib\
+		networkx\
+		Pillow\
+		qtfaststart
+
+rudolf-make-urls:
+	rosrun easy_logs dropbox-links /home/andrea/Dropbox/ "*.bag" ./catkin_ws/src/00-infrastructure/easy_logs/dropbox2.urls.yaml

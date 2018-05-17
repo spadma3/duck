@@ -1,0 +1,20 @@
+#Exposure Test Commands
+
+source ~/duckietown/environment.sh
+
+if [ $# -le 0 ]; then
+	source ~/duckietown/set_ros_master.sh
+else
+	source ~/duckietown/set_ros_master.sh $1
+fi
+
+#background subtraction
+roslaunch auto_localization exposure_test.launch veh:=$HOSTNAME live:=false bot:=false
+
+rosbag play --clock ~/duckietown/hardware/camera_tower/software/art_reg_auto_s_2018-03-22-15-52-20.bag /trafficlight3/camera_node/camera_info:=/$HOSTNAME/camera_node/camera_info /trafficlight3/camera_node/image/compressed:=/$HOSTNAME/camera_node/image/compressed 
+
+#Analyze with backgraound get in procedure 1
+roslaunch auto_localization exposure_test.launch veh:=$HOSTNAME live:=false param_file_name:=autolocal
+
+rosbag play --clock -r 0.3 ~/duckietown/hardware/camera_tower/software/art_reg_auto_s_2018-03-22-15-52-20.bag /trafficlight3/camera_node/camera_info:=/$HOSTNAME/camera_node/camera_info /trafficlight3/camera_node/image/compressed:=/$HOSTNAME/camera_node/image/compressed 
+

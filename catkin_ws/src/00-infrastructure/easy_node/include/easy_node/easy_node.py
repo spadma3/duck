@@ -3,12 +3,7 @@ from contextlib import contextmanager
 import rospy
 import threading
 
-from duckietown_utils import DTConfigException
-from duckietown_utils import DuckietownConstants
-from duckietown_utils import indent
-from duckietown_utils import raise_wrapped
-from duckietown_utils import rospy_timeit_wall
-from duckietown_utils import yaml_dump
+import duckietown_utils as dtu
 
 from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
 from .node_description.configuration import load_configuration_package_node
@@ -21,9 +16,9 @@ __all__ = [
 ]
 
 
-class EasyNode():
+class EasyNode(object):
 
-    ENV = DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
+    ENV = dtu.DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
     def __init__(self, package_name, node_type_name):
         self.package_name = package_name
@@ -189,15 +184,15 @@ class EasyNode():
 
         # load the configuration
         self.info('Loading parameters...')
-        with rospy_timeit_wall('getting configuration files'):
+        with dtu.rospy_timeit_wall('getting configuration files'):
             qr = get_user_configuration(self.package_name, self.node_type_name)
             
         if not qr.is_complete():
             msg = '\nThe configuration that I could load is not complete:\n'
-            msg += indent(str(qr), '   | ')
-            msg = indent(msg, '%s / %s fatal error >  ' %
+            msg += dtu.indent(str(qr), '   | ')
+            msg =  dtu.indent(msg, '%s / %s fatal error >  ' %
                          (self.package_name, self.node_type_name))
-            raise DTConfigException(msg)
+            raise  dtu.DTConfigException(msg)
         self.info('Loaded configuration:\n%s' % qr)
 
         for p in parameters.values():
@@ -205,7 +200,7 @@ class EasyNode():
                 val = qr.values.get(p.name)  # @UndefinedVariable
             except KeyError:
                 msg = 'Could not load required parameter %r.' % p.name
-                raise DTConfigException(msg)
+                raise  dtu.DTConfigException(msg)
 
             # write to parameter server, for transparency
             if val is not None:  # we cannot set None parameters
@@ -225,14 +220,14 @@ class EasyNode():
             values1 = UpdatedParameters(**values)
             values1.set_allowed(list(self._configuration.parameters))
             self.on_parameters_changed(first_time, values1)
-        except DTConfigException as e:
+        except  dtu.DTConfigException as e:
             msg = 'Configuration error raised by on_parameters_changed()' 
-            msg += '\n\n' + indent(yaml_dump(values), '  ', 'Configuration: ')
-            raise_wrapped(DTConfigException, e, msg, compact=True)
+            msg += '\n\n' +  dtu.indent( dtu.yaml_dump(values), '  ', 'Configuration: ')
+            dtu.raise_wrapped( dtu.DTConfigException, e, msg, compact=True)
         except Exception as e:
             msg = 'Configuration error raised by on_parameters_changed().'
-            msg += '\n\n' + indent(yaml_dump(values), '  ', 'Configuration: ')
-            raise_wrapped(DTConfigException, e, msg)
+            msg += '\n\n' +  dtu.indent( dtu.yaml_dump(values), '  ', 'Configuration: ')
+            dtu.raise_wrapped( dtu.DTConfigException, e, msg)
              
         
     def _update_parameters(self, _event):

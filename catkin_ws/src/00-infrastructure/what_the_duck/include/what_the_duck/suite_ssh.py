@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from duckietown_utils import on_duckiebot
-
+import duckietown_utils as dtu
 from .checks.existence import DirExists, FileExists
 from .checks.file_contains import FileContains
 from .checks.github import GithubLogin
@@ -58,7 +57,7 @@ def good_ssh_configuration(manager):
         FileContains(SSH_CONFIG, 'IdentityFile'),
         Diagnosis('You have not enabled any SSH key.'))
 
-    if on_duckiebot():
+    if dtu.on_duckiebot():
         add(ssh_is_there,
             "Existence of " + AUTHORIZED_KEYS,
             FileExists(AUTHORIZED_KEYS),

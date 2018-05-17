@@ -1,61 +1,75 @@
-from comptests.registrar import comptest, run_module_tests
-from duckietown_utils.system_cmd_imp import system_cmd_result, CmdException
-from easy_regression.conditions.interface import RTCheck
+import os
 import shutil
-from duckietown_utils.disk_hierarchy import create_tmpdir
+
+import duckietown_utils as dtu
+from easy_regression.conditions.interface import RTCheck
 
 
 def run(which, expect):
     v = False
-    cwd = create_tmpdir('run-regression')
+    cwd = dtu.get_output_dir_for_test()
+    if not os.path.exists(cwd):
+        dtu.mkdirs_thread_safe(cwd)
+
     try:
-        cmd = ['rosrun', 'easy_regression', 'run', 
-               '--expect', expect, 
+        cmd = ['rosrun', 'easy_regression', 'run',
+               '--expect', expect,
                '--test', which,
+               '-o', '.',
                '-c', 'rmake']
-        system_cmd_result(cwd, cmd,
+        dtu.system_cmd_result(cwd, cmd,
               display_stdout=v,
               display_stderr=v,
               raise_on_error=True)
     finally:
-        shutil.rmtree(cwd)  
-    
-@comptest
+        if False:
+            shutil.rmtree(cwd)
+
+
+@dtu.unit_test
 def run_abnormal1():
     run('expect_abnormal1', RTCheck.ABNORMAL)
 
 
-@comptest
+@dtu.unit_test
 def run_abnormal3():
     run('expect_abnormal3', RTCheck.ABNORMAL)
-    
-    
-@comptest
+
+
+@dtu.unit_test
 def run_dontrun1():
     try:
         run('expect_dontrun1', RTCheck.OK)
-    except CmdException as e:
+    except dtu.CmdException as e:
         if 'NOT-existing' in e.res.stderr:
             return
         raise
-    
-    
-@comptest
+
+
+@dtu.unit_test
 def run_ok1():
     run('expect_ok1', RTCheck.OK)
 
-@comptest
+
+@dtu.unit_test
 def run_nodata1():
     run('expect_nodata1', RTCheck.NODATA)
-@comptest
+
+
+@dtu.unit_test
 def run_nodata2():
     run('expect_nodata2', RTCheck.NODATA)
 
-@comptest
+
+@dtu.unit_test
 def run_fail1():
     run('expect_fail1', RTCheck.FAIL)
-    
-    
-    
+
+
+@dtu.unit_test
+def run_rt_small_video():
+    run('rt_small_video', RTCheck.OK)
+
+
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

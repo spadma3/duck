@@ -1,7 +1,15 @@
 import numpy as np
 
+__all__ = [
+    'make_images_grid',
+]
+
+
 # @contract(images='list[>=1](array)')
-def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
+def make_images_grid(images, cols=None, pad=0, bgcolor=[128, 128, 128]):
+    """
+        bgcolor: uint8 values
+    """
     n = len(images)
     if cols is None:
         cols = int(np.ceil(np.sqrt(n)))
@@ -11,7 +19,7 @@ def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
     assert cols > 0 and rows > 0
     assert n <= cols * rows
 
-    # find width and height for the grid 
+    # find width and height for the grid
     col_width = np.zeros(cols, dtype='int32')
     row_height = np.zeros(rows, dtype='int32')
     for i in range(n):
@@ -51,7 +59,7 @@ def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
 
     canvas = np.zeros((canvas_height, canvas_width, 3), dtype='uint8')
     for k in range(3):
-        canvas[:, :, k] = bgcolor[k] * 255
+        canvas[:, :, k] = bgcolor[k]
 
     for i in range(n):
         col = i % cols
@@ -61,7 +69,7 @@ def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
         image = images[i]
         x = col_x[col]
         y = row_y[row]
-        
+
         # Pad if not right shape
         extra_hor = col_width[col] - image.shape[1]
         extra_ver = row_height[row] - image.shape[0]
@@ -71,7 +79,7 @@ def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
         ebottom = extra_ver - etop
         image = image_border(image, left=eleft, right=eright, top=etop,
                              bottom=ebottom, color=bgcolor)
-        
+
         # TODO: align here
         place_at(canvas, image, x, y)
 
@@ -81,13 +89,13 @@ def make_images_grid(images, cols=None, pad=0, bgcolor=[1, 1, 1]):
 def rgb_pad(height, width, color):
     pad = np.zeros((height, width, 3), dtype='uint8')
     for i in range(3):
-        pad[:, :, i] = color[i] * 255
+        pad[:, :, i] = color[i]
     return pad
 
 
-def image_border(rgb, left=0, right=0, top=0, bottom=0, color=[1, 1, 1]):
+def image_border(rgb, left=0, right=0, top=0, bottom=0, color=[126, 128, 128]):
     orig_shape = rgb.shape
-    
+
     if left > 0:
         # note: do this every time because it changes throughout
         height, width = rgb.shape[0:2]
@@ -113,9 +121,8 @@ def image_border(rgb, left=0, right=0, top=0, bottom=0, color=[1, 1, 1]):
 
     assert rgb.shape[0] == orig_shape[0] + top + bottom
     assert rgb.shape[1] == orig_shape[1] + left + right
-        
-    return rgb
 
+    return rgb
 
 
 def place_at(canvas, image, xpix, ypix):
@@ -126,6 +133,4 @@ def place_at(canvas, image, xpix, ypix):
         image = image.reshape((image.shape[0], image.shape[1], 1))
     canvas[ypix:(ypix + ysize), xpix:(xpix + xsize), 0:3] = \
         image[0:ysize, 0:xsize, :]
-        
-        
-        
+

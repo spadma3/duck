@@ -1,21 +1,21 @@
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
+from easy_regression.conditions.implementation import _parse_regression_test_check
 from easy_regression.conditions.interface import RTParseError
 from easy_regression.conditions.references import parse_reference
-from easy_regression.conditions.implementation import _parse_regression_test_check
 
 
-@comptest
+@dtu.unit_test
 def parse_condition_check_good():
     good = [
-        'v:analyzer/test/statistic >= 12', 
+        'v:analyzer/test/statistic >= 12',
         'v:analyzer/test/statistic@2016-12-01 <= 2',
-        
+
     ]
     for g in good:
         _parse_regression_test_check(g)
-         
-    
-@comptest
+
+
+@dtu.unit_test
 def parse_condition_check_bad():
     bad = [
         'v:analyzer/test',
@@ -37,4 +37,4 @@ def parse_condition_check_bad():
 
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

@@ -1,7 +1,7 @@
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 
 
-@comptest
+@dtu.unit_test
 def test_config_ld2():
     
     pass
@@ -9,4 +9,4 @@ def test_config_ld2():
 
 
 if __name__ == '__main__': 
-    run_module_tests()
+    dtu.run_tests_for_this_module()

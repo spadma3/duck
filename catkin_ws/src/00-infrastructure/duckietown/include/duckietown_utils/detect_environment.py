@@ -1,3 +1,9 @@
+__all__ = [
+    'on_duckiebot',
+    'on_laptop',
+    'on_circle',
+]
+
 
 def on_duckiebot():
     """ True if we are on a Duckiebot. """
@@ -7,9 +13,11 @@ def on_duckiebot():
     # armv7l
     return on_the_duckiebot
 
+
 def on_laptop():
     """ True if we are on a laptop """
     return not on_circle() and not on_duckiebot()
+
 
 def on_circle():
     """ True if we are running tests on the cloud. """

@@ -1,8 +1,13 @@
 import getpass
 
-from duckietown_utils.system_cmd_imp import CmdException, system_cmd_result
+import duckietown_utils as dtu
+
 from what_the_duck.check import Check, CheckError, CheckFailed
 
+__all__ = [
+    'YouAreNotUser',
+    'UserBelongsToGroup',
+]
 
 def get_groups_in_etc(username):
     import grp
@@ -12,13 +17,13 @@ def get_groups_in_etc(username):
 def get_active_groups(username):
     cmd = ['groups', username]
     try:
-        res = system_cmd_result('.', cmd,
+        res = dtu.system_cmd_result('.', cmd,
                   display_stdout=False,
                   display_stderr=False,
                   raise_on_error=True,
                   capture_keyboard_interrupt=False,
                   env=None)
-    except CmdException as e:
+    except dtu.CmdException as e:
         raise CheckError(str(e))
     active_groups = res.stdout.split() # XXX
     return active_groups

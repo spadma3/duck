@@ -1,19 +1,24 @@
-from comptests.registrar import comptest
-from duckietown_utils.system_cmd_imp import system_cmd_result
+import duckietown_utils as dtu
+import os
 
-@comptest
+
+def _cwd():
+    cwd = dtu.get_output_dir_for_test()
+    if not os.path.exists(cwd):
+        dtu.mkdirs_thread_safe(cwd)
+    return cwd
+
+@dtu.unit_test
 def test_cli1():
-    cwd = '.'
     cmd = ['rosrun', 'easy_algo', 'summary']
-    system_cmd_result(cwd, cmd,
+    dtu.system_cmd_result(_cwd(), cmd,
                       display_stdout=True,
                       display_stderr=True,
                       raise_on_error=True)
-@comptest
+@dtu.unit_test
 def test_cli2():
-    cwd = '.'
     cmd = ['rosrun', 'easy_algo', 'summary', 'robot']
-    system_cmd_result(cwd, cmd,
+    dtu.system_cmd_result(_cwd(), cmd,
                       display_stdout=True,
                       display_stderr=True,
                       raise_on_error=True)

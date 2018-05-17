@@ -1,10 +1,10 @@
+
 # -*- coding: utf-8 -*-
 import sys
 
-from duckietown_utils import logger
+from .logging_logger import logger
 
 from .safe_reading import safe_read, safe_write
-
 
 # from .debug_pickler import find_pickling_error
 if sys.version_info[0] >= 3:

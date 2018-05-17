@@ -1,21 +1,45 @@
 from abc import ABCMeta, abstractmethod
-from collections import namedtuple
+import numpy as np
 
-FAMILY_LANE_FILTER = 'lane_filter'
+__all__ = [
+    'LaneFilterInterface',
+]
 
-#Detections = namedtuple('Detections', 
-#                        ['lines','normals','area','centers'])
 
+class LaneFilterInterface(object):
 
-class LaneFilterInterface():
     __metaclass__ = ABCMeta
 
-#    @abstractmethod
-#    def setImage(self, bgr):
-#        pass
-#
-#    @abstractmethod
-#    def detectLines(self, color):
-#        """ Returns a tuple of class Detections """
+    # These are not used yet
 
+    LOST = 'lost'
+    GOOD = 'good'
+    STRUGGLING = 'struggling'
+
+    POSSIBLE_STATUSES = [LOST, GOOD, STRUGGLING]
+
+    ESTIMATE_DATATYPE = np.dtype([('phi', 'float64'),
+                                  ('d', 'float64')])
+
+    @abstractmethod
+    def initialize(self):
+        pass
+
+    @abstractmethod
+    def predict(self, dt, v, w):
+        pass
+
+    @abstractmethod
+    def update(self, segment_list):
+        """
+            segment list: a list of Segment objects
+        """
+
+    @abstractmethod
+    def get_status(self):
+        """ Returns one of the statuses above """
+
+    @abstractmethod
+    def get_estimate(self):
+        """ Returns a numpy array of datatype ESTIMATE_DATATYPE """
 

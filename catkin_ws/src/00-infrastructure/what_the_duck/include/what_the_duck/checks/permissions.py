@@ -1,10 +1,12 @@
 import os
 import stat
 
+import duckietown_utils as dtu
 from what_the_duck.check import CheckFailed, CheckError, Check
 from what_the_duck.resolution import Suggestion
-from duckietown_utils import expand_all
 
+
+__all__ = ['CheckPermissions']
 
 class CheckPermissions(Check):
     def __init__(self, filename, expected):
@@ -16,7 +18,7 @@ class CheckPermissions(Check):
         self.expected = expected
         
     def check(self):
-        fn = expand_all(self.filename)
+        fn = dtu.expand_all(self.filename)
         
         if not os.path.exists(fn):
             msg = 'Cannot check permissions if file or dir does not exist.'

@@ -1,5 +1,6 @@
 from what_the_duck.check import Check, CheckFailed
 
+__all__ = ['CanImportPackages']
 
 class CanImportPackages(Check):
     

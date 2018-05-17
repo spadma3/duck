@@ -93,11 +93,11 @@ Eigen::Matrix4d TagDetection::getRelativeTransform(double tag_size, double fx, d
 
   cv::Mat rvec(1,3,CV_64F);
   cv::Mat tvec(1,3,CV_64F);
-  cv::Matx33d cameraMatrix(
+  cv::Matx33f cameraMatrix(
                            fx, 0, px,
                            0, fy, py,
                            0,  0,  1);
-  cv::Vec4d distParam(0,0,0,0); // all 0?
+  cv::Vec4f distParam(0,0,0,0); // all 0?
   cv::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
   cv::Matx33d r;
   cv::Rodrigues(rvec, r);

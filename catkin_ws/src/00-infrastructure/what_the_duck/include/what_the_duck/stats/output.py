@@ -2,8 +2,7 @@
 from collections import defaultdict
 from compmake.utils import duration_compact
 import datetime
-from duckietown_utils import  write_data_to_file
-from duckietown_utils.safe_pickling import safe_pickle_load
+import duckietown_utils as dtu
 import sys
 
 from bs4.dammit import EntitySubstitution
@@ -397,11 +396,11 @@ if __name__ == '__main__':
         mongo_data = yaml.load(data)
     else:
 #         data = open(filename).read()
-        mongo_data = safe_pickle_load(filename)
+        mongo_data = dtu.safe_pickle_load(filename)
         
 #     mongo_data = yaml_load(data)
     print('creating summary')
     html = create_summary(mongo_data)
-    write_data_to_file(html, output)
+    dtu.write_data_to_file(html, output)
     
     
