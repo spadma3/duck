@@ -117,6 +117,7 @@ events: # Maps from subscribing topic to signal ids
 # Define nodes
 nodes:
   decoder_node: "decoder_node/switch"
+  anti_instagram: "anti_instagram_node/switch"
   apriltag_node: "apriltag_detector_node/switch"
   led_emitter_node: "led_emitter_node/switch"
   led_detector_node: led_detector_node/switch"
@@ -186,6 +187,7 @@ states:
       deep_lane_following_on: "DEEP_LANE_FOLLOWING"
       in_charger: "IN_CHARGING_AREA"
     active_nodes:
+      - anti_instagram
       - decoder_node
       - line_detector_node
     #  - apriltag_node # NOTE no reason for this?
@@ -217,8 +219,8 @@ states:
       intersection_done_and_deep_lane_off: "LANE_FOLLOWING"
       intersection_done_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
     active_nodes:
-      - apriltag_node
-      - decoder_node
+      #- apriltag_node
+      #- decoder_node
       - led_emitter_node
       - line_detector_node
 
