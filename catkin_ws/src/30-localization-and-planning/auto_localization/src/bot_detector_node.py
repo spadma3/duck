@@ -134,7 +134,7 @@ class BotDetectorNode(object):
 		else:
 			self.loginfo('False')
 			result.data = False
-			
+
 		self.pub_result.publish(result)
 
 	def getBackground(self, image_msg):
@@ -169,7 +169,7 @@ class BotDetectorNode(object):
 			return
 
 	def appendImage(self, bg_b, bg_g, bg_r, img):
-		
+
 		b, g, r = cv2.split(img)
 
 		#Append at beginning
@@ -205,6 +205,37 @@ class BotDetectorNode(object):
 	def on_Shutdown(self):
 		self.loginfo("Shutdown.")
 
+
+    # Row-wise Correlation Coefficient calculation for two 2D arrays
+    # INPUT: 2 2D-Arrays / Matrices A , B
+    # OUTPUT: correlation matrix
+    # Code from: https://stackoverflow.com/questions/30143417/computing-the-correlation-coefficient-between-two-multi-dimensional-arrays
+    def corr2_coeff(A,B):
+    # Rowwise mean of input arrays & subtract from input arrays themeselves
+         A_mA = A - A.mean(1)[:,None]
+         B_mB = B - B.mean(1)[:,None]
+
+    # Sum of squares across rows
+         ssA = (A_mA**2).sum(1);
+         ssB = (B_mB**2).sum(1);
+
+    # Finally get corr coeff
+         return np.dot(A_mA,B_mB.T)/np.sqrt(np.dot(ssA[:,None],ssB[None]))
+
+	# INPUT: image and background images
+    #        detection tolerance e.g. tolerance = 1e-2
+    # OUTPUT: bool (TRUE = bot is detected, FALSE = no bot detected)
+    # Condition: the image is not shifted from the other image
+    def detect_bot(img, bg_img, tolerance):
+        # create correlation matrix
+        C = corr2_coeff(img, bg_img)
+        # check if diagonal entries of C are close to 1 within the tolerance given
+        return not(np.isclose(np.diagonal(C),np.ones(len(C)),rtol=tolerance).all())
+
+
+        
+
+
 '''
 class Stats(object):
 	"""docstring for Stats"""
@@ -218,7 +249,7 @@ class Stats(object):
 		self.nreceived = 0
 		self.nskipped = 0
 		self.nprocessed = 0
-	
+
 	def received(self):
 		if self.nreceived==0 and self.nresets==1:
 			rospy.loginfo('bot_detector_node received first image')
@@ -244,9 +275,9 @@ class Stats(object):
 			return '.1f fps' % (x / delta)
 
 		m = 'In the last %.1f s: received %d (%s) processed %d (%s) skipped %d (%s) (%1.f%%)' % (delta, self.nreceived, fps(self.nreceived), self.nprocessed, fps(self.processed), self.nskipped, fps(self.nskipped), skipped_perc)
-		return m 
+		return m
 '''
-		
+
 
 
 if __name__ == '__main__':
