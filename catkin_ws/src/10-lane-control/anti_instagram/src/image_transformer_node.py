@@ -9,6 +9,7 @@ from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
 import numpy as np
 import time
 import threading
+import cv2
 
 """
 This node subscribed to the uncorrected images from the camera and corrects these images
@@ -92,6 +93,14 @@ class ImageTransformerNode():
         except ValueError as e:
             rospy.loginfo('Anti_instagram cannot decode image: %s' % e)
             return
+
+        #cv_image = cv2.imread(cv_image)
+        scale_percent=45
+        width=int(cv_image.shape[1]*scale_percent / 100)
+        height=int(cv_image.shape[0]*scale_percent / 100)
+        dim = (width, height)
+        cv_image=cv2.resize(cv_image,dim,interpolation=cv2.INTER_NEAREST )
+        tk = TimeKeeper(image_msg)
         #
         # end0=rospy.Time.now()
         # duration0=end0-begin2

@@ -170,7 +170,7 @@ class AntiInstagram():
         return cv2.merge(out_channels)
 
     def apply_threshold(self, matrix, low_value, high_value):
-        matrix=np.delete(matrix,list(range(0,matrix.shape[0],5)),axis=0)
+        #matrix=np.delete(matrix,list(range(0,matrix.shape[0],5)),axis=0)
         low_mask = matrix < low_value
         matrix = self.apply_mask(matrix, low_mask, low_value)
 
