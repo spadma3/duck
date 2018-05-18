@@ -205,6 +205,7 @@ states:
     transitions:
       intersection_go: "INTERSECTION_CONTROL"
     active_nodes:
+      - line_detector_node # I think intersection nav needs this one for planning
       - decoder_node
       - apriltag_node
       - framerate_high
