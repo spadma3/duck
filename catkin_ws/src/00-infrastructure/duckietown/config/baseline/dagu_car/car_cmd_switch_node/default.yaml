@@ -20,7 +20,6 @@ source_topics: #Mapping from cmd source name to topics
   stop: "simple_stop_controller_node/car_cmd"
   #stop: "stop_node/car_cmd" if above does not work this one works
 
-
 mappings: #Mapping from FSMStates.state to cmd source names. Allows different FSM mode to use the same source.
   LANE_FOLLOWING: "vehicle" #TODO blackmagic
   LANE_FOLLOWING_AVOID: "lane"
@@ -38,6 +37,7 @@ mappings: #Mapping from FSMStates.state to cmd source names. Allows different FS
   DEEP_LANE_FOLLOWING: "deep_learning"
   PARKING: "parking"
   ARRIVE_AT_STOP_LINE: "stop"
+  INTERSECTION_PLANNING: "stop"
 
   IN_CHARGING_AREA: "vehicle"
   CHARGING_FIRST_IN_LINE: "stop"
