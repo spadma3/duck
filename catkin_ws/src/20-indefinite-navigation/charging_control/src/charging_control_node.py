@@ -19,8 +19,8 @@ class ChargingControlNode(object):
         self.active = False
 
         # TODO variables (add them to yaml file)
-        self.v_charger = 0.15
-
+        self.v_charger_entrance = 0.15
+        self.v_charger_inside = 0.35
         ## setup Parameters
         self.setupParams()
         self.maintenance_state = "NONE"
@@ -120,13 +120,15 @@ class ChargingControlNode(object):
         if turn == (station['path_out'])[-1]:
             rospy.loginfo("Leaving charging station")
 
+    def speedUp(self, event):
+        rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.v_charger_inside)
     # Callback on FSM changes
     def cbFSMState(self, state_msg):
-
+        
         # Leaving charging module
         if self.state == "IN_CHARGING_AREA" and state_msg.state == "LANE_FOLLOWING":
             rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.speed_old)
-
+            
         # if we enter charging area, setup timer for leaving again
         if state_msg.state == "IN_CHARGING_AREA":
             self.ready2go = False
@@ -134,7 +136,10 @@ class ChargingControlNode(object):
 
             # Adjust speed in charging area
             self.speed_old = rospy.get_param("/" + self.veh_name +"/lane_controller_node/v_bar")
-            rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.v_charger)
+            rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.v_charger_entrance)
+            
+            # Speed up after 10s (Duckiebot is then for sure on charging module)
+            self.speedup_timer = rospy.Timer(rospy.Duration.from_sec(10), self.speedUp, oneshot=True)
 
         self.state = state_msg.state
 
