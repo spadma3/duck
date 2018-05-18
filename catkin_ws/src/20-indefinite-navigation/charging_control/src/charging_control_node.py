@@ -158,8 +158,7 @@ class ChargingControlNode(object):
         else:
             rospy.loginfo("[Charing Control Node] ERROR")
 
-        # DEBUG
-        self.charger = 4
+     
     # # Executes every time april tag det detects a tag
     # def cbAprilTag(self, tag_msg):
     #     if not self.active:
