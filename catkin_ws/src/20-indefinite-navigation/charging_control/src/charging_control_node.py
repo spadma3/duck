@@ -18,9 +18,6 @@ class ChargingControlNode(object):
         # Active variable, triggered by FSM
         self.active = False
 
-        # TODO variables (add them to yaml file)
-        self.v_charger_entrance = 0.15
-        self.v_charger_inside = 0.35
         ## setup Parameters
         self.setupParams()
         self.maintenance_state = "NONE"
@@ -205,7 +202,8 @@ class ChargingControlNode(object):
         self.charge_time = self.setupParam("~charge_time", 1)
         self.drive_time = self.setupParam("~drive_time", 2)
         self.charger = self.setupParam("~charger", 3)
-
+        self.v_charger_entrance = self.setupParam("~v_charger_entrance", 0.15)
+        self.v_charger_inside = self.setupParam("~v_charger_inside", 0.35)
 
     def updateParams(self,event):
         self.maintenance_entrance = rospy.get_param("~maintenance_entrance")
@@ -215,7 +213,8 @@ class ChargingControlNode(object):
         self.charge_time = rospy.get_param("~charge_time")
         self.drive_time = rospy.get_param("~drive_time")
         self.charger = rospy.get_param("~charger")
-
+        self.v_charger_entrance = rospy.get_param("~v_charger_entrance")
+        self.v_charger_inside = rospy.get_param("~v_charger_inside")
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
