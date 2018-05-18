@@ -120,7 +120,7 @@ nodes:
   anti_instagram: "anti_instagram_node/switch"
   apriltag_node: "apriltag_detector_node/switch"
   led_emitter_node: "led_emitter_node/switch"
-  led_detector_node: led_detector_node/switch"
+  led_detector_node: "led_detector_node/switch"
   static_object_detector_node: "static_object_detector_node/switch"
   line_detector_node: "line_detector_node/switch"
   lane_filter_node: "lane_filter_node/switch"

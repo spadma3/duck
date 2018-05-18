@@ -6,14 +6,20 @@ from std_msgs.msg import Float32, Int16, Bool
 from geometry_msgs.msg import Point
 import time
 import math
-from duckietown_utils import tcp_communication
+from duckietown_utils import tcp_communication, robot_name
 
 class ChargingControlNode(object):
     def __init__(self):
         self.node_name = "Charging Control Node"
 
+        # Obtain vehicile name
+        self.veh_name = robot_name.get_current_robot_name()
 
+        # Active variable, triggered by FSM
         self.active = False
+
+        # TODO variables (add them to yaml file)
+        self.v_charger = 0.15
 
         ## setup Parameters
         self.setupParams()
@@ -57,7 +63,7 @@ class ChargingControlNode(object):
             ready_at_exit_msg.data = self.ready2go
             self.ready_at_exit.publish(ready_at_exit_msg)
 
-
+    # Callback maintenance state
     def cbMaintenanceState(self, msg):
         # Start timer which calls Duckiebot back to charger after charge_time mins
         if self.maintenance_state == "CHARGING" and msg.state == "NONE":
@@ -114,15 +120,23 @@ class ChargingControlNode(object):
         if turn == (station['path_out'])[-1]:
             rospy.loginfo("Leaving charging station")
 
-
+    # Callback on FSM changes
     def cbFSMState(self, state_msg):
-        self.state = state_msg.state
+
+        # Leaving charging module
+        if self.state == "IN_CHARGING_AREA" and state_msg.state == "LANE_FOLLOWING":
+            rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.speed_old)
 
         # if we enter charging area, setup timer for leaving again
-        if self.state == "IN_CHARGING_AREA":
+        if state_msg.state == "IN_CHARGING_AREA":
             self.ready2go = False
             self.charge_timer = rospy.Timer(rospy.Duration.from_sec(60*self.charge_time), self.setReady2Go, oneshot=True)
 
+            # Adjust speed in charging area
+            self.speed_old = rospy.get_param("/" + self.veh_name +"/lane_controller_node/v_bar")
+            rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.v_charger)
+
+        self.state = state_msg.state
 
     def reserveChargerSpot(self):
         charging_stations = tcp_communication.getVariable("charging_stations")
@@ -141,6 +155,9 @@ class ChargingControlNode(object):
                 rospy.loginfo("[Charing Control Node] Reserved spot in charger " + str(self.charger))
         else:
             rospy.loginfo("[Charing Control Node] ERROR")
+
+        # DEBUG
+        self.charger = 4
     # # Executes every time april tag det detects a tag
     # def cbAprilTag(self, tag_msg):
     #     if not self.active:

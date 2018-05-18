@@ -68,6 +68,6 @@ charger_FIL_tags:
   - 247
   - 199
 
-drive_time: 1
-charge_time: 1
+drive_time: 120
+charge_time: 120
 charger: 3
