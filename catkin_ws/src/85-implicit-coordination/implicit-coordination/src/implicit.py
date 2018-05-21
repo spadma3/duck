@@ -38,7 +38,7 @@ class Implicit(object):
         self.pub_coord_cmd = rospy.Publisher('simple_coordinator_node/car_cmd',
                                              Twist2DStamped, queue_size=1)
         self.pub_implicit_coordination = rospy.Publisher(
-            "implicit_coord/flag_go_wait", BoolStamped, queue_size=1) # TODO fix me
+            "~flag_go_wait", BoolStamped, queue_size=1) # TODO fix me
 
         # Setup subscriber
         # self.sub_at_intersection = rospy.Subscriber("~flag_at_intersection",

@@ -43,6 +43,11 @@ events: # Maps from subscribing topic to signal ids
   #   topic: "logic_gate_node/at_stop_line_and_velocity_zero"
   #   msg_type: "BoolStamped"
   #   trigger: True
+
+  intersection_path_computed:
+    topic: "intersection_navigation_node/path_computed"
+    msg_type: "BoolStamped"
+    trigger: True
   intersection_go:
     topic: "logic_gate_node/intersection_go"
     msg_type: "BoolStamped"
@@ -117,18 +122,19 @@ events: # Maps from subscribing topic to signal ids
 # Define nodes
 nodes:
   decoder_node: "decoder_node/switch"
+  anti_instagram: "anti_instagram_node/switch"
   apriltag_node: "apriltag_detector_node/switch"
-  led_detector_node: "LED_detector_node/switch"
   led_emitter_node: "led_emitter_node/switch"
+  led_detector_node: "led_detector_node/switch"
   static_object_detector_node: "static_object_detector_node/switch"
   line_detector_node: "line_detector_node/switch"
   lane_filter_node: "lane_filter_node/switch"
   stop_line_filter_node: "stop_line_filter_node/switch"
   framerate_high: "camera_node/framerate_high_switch"
   # extras added
+
   central_fleet_planning_node: "central_fleet_planning_node/switch"
-  LED_coordination_node: "LED_coordination_node/switch"
-  LED_detection_node: "LED_detection_node/switch"
+  coordinator_node: "coordinator_node/switch"  #NOTE explicit coordination
   obstacle_avoidance_node: "obstacle_avoidance_node/switch"
   obstacle_detection_node: "obstacle_detection_node/switch"
   implicit_coordination_node: "implicit_coordination_node/switch"
@@ -137,7 +143,7 @@ nodes:
   vehicle_avoidance_control_node: "vehicle_avoidance_control_node/switch"
   vehicle_detection_node : "vehicle_detection_node/switch"
   intersection_navigation_node: "intersection_navigation_node/switch"
-  intersection_localization_node: "intersection_localization_node/switch"
+  intersection_localizer_node: "intersection_localizer_node/switch"
   parking_perception_localization: "parking_perception_localization/switch"
   parking_path_planning: "parking_path_planning/switch"
   parking_control: "parking_control/switch"
@@ -158,12 +164,12 @@ states:
       joystick_override_off_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
       parallel_autonomy_on: "SAFE_JOYSTICK_CONTROL"
     active_nodes:
-      - lane_filter_node
-      - line_detector_node
-      - stop_line_filter_node
+      #- lane_filter_node
+      #- line_detector_node
+      #- stop_line_filter_node
       - framerate_high
       - decoder_node
-      - apriltag_node
+      #- apriltag_node
     lights: ["joystick"]
     current_status: "implemented"
   SAFE_JOYSTICK_CONTROL:
@@ -183,14 +189,15 @@ states:
     current_status: "implemented"
   LANE_FOLLOWING:
     transitions:
-      at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
+      at_stop_line_and_parking_off: "INTERSECTION_PLANNING"
       at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
       deep_lane_following_on: "DEEP_LANE_FOLLOWING"
       in_charger: "IN_CHARGING_AREA"
     active_nodes:
+      - anti_instagram
       - decoder_node
       - line_detector_node
-      - apriltag_node
+    #  - apriltag_node # NOTE no reason for this?
       - lane_filter_node
       - lane_controller_node
       - stop_line_filter_node
@@ -202,18 +209,31 @@ states:
       - charging_control
     lights: ["lane_following"]
     current_status: "in_progress"
+
+  INTERSECTION_PLANNING:
+    transitions:
+      intersection_path_computed: "INTERSECTION_COORDINATION"
+    active_nodes:
+      - decoder_node
+      - line_detector_node # I think intersection nav needs this one for planning
+      - apriltag_node
+      - intersection_navigation_node
+      - intersection_localization_node
+    #  - framerate_high NOTE probably?
+    lights: ["joystick"]
+    current_status: "in_progress"
+
   INTERSECTION_COORDINATION:
     transitions:
       intersection_go: "INTERSECTION_CONTROL"
     active_nodes:
+      #- line_detector_node # NOTE possibly
       - decoder_node
-      - apriltag_node
       - framerate_high
       - led_emitter_node
       - led_detector_node
-      - implicit_coordination_node
-      - LED_coordination_node
-      - LED_detection_node
+    #  - implicit_coordination_node NOTE use the explicit when possible
+      - coordinator_node
     lights: ["coordination"]
     current_status: "in_progress"
   INTERSECTION_CONTROL:
@@ -221,11 +241,9 @@ states:
       intersection_done_and_deep_lane_off: "LANE_FOLLOWING"
       intersection_done_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
     active_nodes:
-      - apriltag_node
       - decoder_node
       - led_emitter_node
       - line_detector_node
-
       - lane_filter_node
 
       ###### TO USE OPEN LOOP INTERSECTION CONTROL (untested):
@@ -242,7 +260,7 @@ states:
     active_nodes:
       - decoder_node
       - line_detector_node
-      #- apriltag_node
+      - apriltag_node
       - lane_filter_node
       - lane_controller_node
       - stop_line_filter_node
