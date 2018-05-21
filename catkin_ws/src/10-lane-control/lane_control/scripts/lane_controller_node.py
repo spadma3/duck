@@ -225,10 +225,19 @@ class lane_controller(object):
 
     def setFlag(self, msg_flag, flag_name):
         self.flag_dict[flag_name] = msg_flag.data
+        if flag_name == "obstacle_detected":
+             print "flag obstacle_detected changed"
+             print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
+
 
     def PoseHandling(self, input_pose_msg, pose_source):
         if not self.active:
             return
+
+        #if pose_source == "obstacle_avoidance":
+            # print "obstacle_avoidance pose_msg d_ref: ", input_pose_msg.d_ref
+            # print "obstacle_avoidance pose_msg v_ref: ", input_pose_msg.v_ref
+            # print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
 
         self.prev_pose_msg = self.pose_msg
         self.pose_msg_dict[pose_source] = input_pose_msg
@@ -265,14 +274,17 @@ class lane_controller(object):
                 self.pose_msg.d_ref = self.pose_msg_dict["fleet_planning"].d_ref
                 self.v_ref_possible["fleet_planning"] = self.pose_msg_dict["fleet_planning"].v_ref
         if self.flag_dict["obstacle_detected"] == True:
+            rospy.logerr('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
             if "obstacle_avoidance" in self.pose_msg_dict:
                 self.pose_msg.d_ref = self.pose_msg_dict["obstacle_avoidance"].d_ref
                 self.v_ref_possible["obstacle_avoidance"] = self.pose_msg_dict["obstacle_avoidance"].v_ref
+                print 'v_ref obst_avoid=' , self.v_ref_possible["obstacle_avoidance"] #For debugging
         if self.flag_dict["implicit_coord_velocity_limit_active"] == True:
             if "implicit_coord" in self.pose_msg_dict:
                 self.v_ref_possible["implicit_coord"] = self.pose_msg_dict["implicit_coord"].v_ref
 
         self.pose_msg.v_ref = min(self.v_ref_possible.itervalues())
+        print 'v_ref global=', self.pose_msg.v_ref #For debugging
 
         if self.pose_msg != self.prev_pose_msg and self.pose_initialized:
             self.cbPose(self.pose_msg)
@@ -396,13 +408,15 @@ class lane_controller(object):
             omega -= self.k_Id * (0.22/self.v_bar) * self.cross_track_integral
             omega -= self.k_Iphi * (0.22/self.v_bar) * self.heading_integral
 
-        # check if velocity is large enough such that car can actually execute desired omega
-        if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
-            car_control_msg.v = 0.065 + 0.5 * math.fabs(omega) * 0.1
-
-
         if car_control_msg.v == 0:
             omega = 0
+        else:
+        # check if velocity is large enough such that car can actually execute desired omega
+            if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
+                car_control_msg.v = 0.065 + 0.5 * math.fabs(omega) * 0.1
+
+
+
 
         # apply magic conversion factors
         car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
