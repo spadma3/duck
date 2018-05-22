@@ -28,7 +28,8 @@ sudo apt install -y \
     ipython \
     python-smbus \
     libturbojpeg \
-    python-cffi
+    python-cffi \
+    python-skimage
 
 sudo apt remove -y \
 	python-ruamel.yaml \

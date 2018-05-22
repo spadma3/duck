@@ -1,3 +1,9 @@
+drive_time: 120
+charge_time: 120
+charger: 3
+v_charger_entrance: 0.15
+v_charger_inside: 0.35
+
 charging_stations:
   station1:
     path_in:
@@ -68,6 +74,4 @@ charger_FIL_tags:
   - 247
   - 199
 
-drive_time: 120
-charge_time: 120
-charger: 3
+
