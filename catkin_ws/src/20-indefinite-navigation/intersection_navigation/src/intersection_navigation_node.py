@@ -77,9 +77,9 @@ class IntersectionNavigation(object):
 
         # Set constant velocity
         if self.open_loop:
-            self.v = 0.15
+            self.v = 0.1
         else:
-            self.v = 0.12 #TODO was 0.2 before
+            self.v = 0.1 #TODO was 0.2 before
 
         # nominal stop positions: centered in lane, 0.16m in front of center of red stop line,
         # 0 relative orientation error
