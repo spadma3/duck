@@ -66,6 +66,7 @@ add_message_files(
   LEDInterpreter.msg
   AntiInstagramHealth.msg
   AntiInstagramTransform.msg
+  AntiInstagramTransform_CB.msg
   KinematicsWeights.msg
   KinematicsParameters.msg
   ThetaDotSample.msg
