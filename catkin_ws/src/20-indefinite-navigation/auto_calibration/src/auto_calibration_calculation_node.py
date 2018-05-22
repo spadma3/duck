@@ -42,6 +42,8 @@ class AutoCalibrationCalculationNode(object):
 
     #The calibration calculation will come in this function
     def calibration(self):
+        if not self.active:
+            return
         rospy.loginfo("[%s] Calculation started." %(self.node_name))
         if self.triggered:
             rospy.Timer(rospy.Duration.from_sec(5.0), self.finishCalc, oneshot=True)
@@ -58,8 +60,8 @@ class AutoCalibrationCalculationNode(object):
         count = 0
         for detection in msg.detections:
             count=count+1
-        if count!=0 and self.count_last!=0:
-            rospy.loginfo("[%s] Calculation started %s - %s" %(self.node_name, count, self.count_last))
+        # if count!=0 and self.count_last!=0:
+        #     rospy.loginfo("[%s] Calculation started %s - %s" %(self.node_name, count, self.count_last))
         self.count_last = count
 
     #Decide which commands should be sent to wheels in calibration mode
