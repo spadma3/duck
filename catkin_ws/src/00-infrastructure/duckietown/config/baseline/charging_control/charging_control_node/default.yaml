@@ -4,6 +4,7 @@ charger: 3
 v_charger_entrance: 0.1
 v_charger_inside: 0.4
 charger_k_Id: 0.1
+time_until_speedup: 18
 
 charging_stations:
   station1:
