@@ -7,6 +7,7 @@
     <arg name="cam_info" default="true" doc="If set to true, use cam_info_reader_node to pusblish CameraInfo."/>
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
     <arg name="rect" default="false" />
+    <arg name="rect_full_ratio" default="false" />
 
     <!-- camera_node -->
     <group if="$(arg live)">
@@ -58,6 +59,17 @@
                 <remap from="camera_info" to="camera_node/raw_camera_info"/>
                 <remap from="image_rect_color" to="camera_node/image/rect" />
                 <include file="$(find pi_camera)/launch/image_proc_node.launch">
+                    <arg name="veh" value="$(arg veh)"/>
+                    <arg name="local" value="$(arg local)"/>
+                </include>
+            </group>
+
+            <!-- Rectification for Apriltags -->
+            <group if="$(arg rect_full_ratio)">
+                <remap from="image_raw" to="camera_node/image/raw"/>
+                <remap from="camera_info" to="camera_node/raw_camera_info"/>
+                <remap from="image_rect" to="camera_node/image/rect_full_ratio" />
+                <include file="$(find pi_camera)/launch/image_rect_full_ratio.launch">
                     <arg name="veh" value="$(arg veh)"/>
                     <arg name="local" value="$(arg local)"/>
                 </include>
