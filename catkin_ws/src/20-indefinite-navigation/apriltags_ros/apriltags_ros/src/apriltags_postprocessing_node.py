@@ -2,10 +2,11 @@
 import rospkg
 import rospy
 import yaml
-from duckietown_msgs.msg import AprilTagsWithInfos, TagInfo, AprilTagDetectionArray, BoolStamped
+from duckietown_msgs.msg import AprilTagsWithInfos, TagInfo, BoolStamped, AprilTagDetection
+from apriltags2_ros.msg import AprilTagDetectionArray
 import numpy as np
 import tf.transformations as tr
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Pose
 
 class AprilPostPros(object):
     """ """
@@ -79,13 +80,16 @@ class AprilPostPros(object):
 
         tag_infos = []
 
+        new_tag_data = AprilTagsWithInfos()
+
         # Load tag detections message
         for detection in msg.detections:
 
             # ------ start tag info processing
 
             new_info = TagInfo()
-            new_info.id = int(detection.id)
+            #Can use id 1 as long as no bundles are used
+            new_info.id = int(detection.id[0])
             id_info = self.tags_dict[new_info.id]
 
             # Check yaml file to fill in ID-specific information
@@ -143,8 +147,9 @@ class AprilPostPros(object):
             tagzout_T_tagxout = tr.euler_matrix(-np.pi/2, 0, np.pi/2, 'rxyz')
 
             #Load translation
-            trans = detection.pose.pose.position
-            rot = detection.pose.pose.orientation
+            trans = detection.pose.pose.pose.position
+            rot = detection.pose.pose.pose.orientation
+            header = detection.pose.header
 
             camzout_t_tagzout = tr.translation_matrix((trans.x*self.scale_x, trans.y*self.scale_y, trans.z*self.scale_z))
             camzout_R_tagzout = tr.quaternion_matrix((rot.x, rot.y, rot.z, rot.w))
@@ -156,11 +161,8 @@ class AprilPostPros(object):
             (trans.x, trans.y, trans.z) = tr.translation_from_matrix(veh_T_tagxout)
             (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_matrix(veh_T_tagxout)
 
-            detection.pose.pose.position = trans
-            detection.pose.pose.orientation = rot
+            new_tag_data.detections.append(AprilTagDetection(int(detection.id[0]),float(detection.size[0]),PoseStamped(header,Pose(trans,rot))))
 
-        new_tag_data = AprilTagsWithInfos()
-        new_tag_data.detections = msg.detections
         new_tag_data.infos = tag_infos
         # Publish Message
         self.pub_postPros.publish(new_tag_data)
