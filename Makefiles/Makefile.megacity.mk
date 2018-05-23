@@ -23,3 +23,8 @@ camera-%: check-environment
 set-in-charger-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; rostopic pub -1 /$*/maintenance_control_node/go_charging std_msgs/Bool True; rostopic pub -1 /$*/maintenance_control_node/set_state std_msgs/String 'CHARGING'; rosparam set /$*/charging_control_node/charger 4"
 
+prepare: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; cd $(DUCKIEFLEET_ROOT); git pull; cd $(DUCKIETOWN_ROOT)"
+
+prepare-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*"
