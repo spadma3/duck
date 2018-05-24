@@ -28,7 +28,7 @@ class ObstAvoidNode(object):
         # Emergency brake to be triggered iff == 1
         #self.pub_topic = 'obstacle_emergency_stop_flag'.format(robot_name)
         #self.brake_pub = rospy.Publisher(self.pub_topic, Bool, queue_size=1)
-        self.pub_topic = '/{}/obstacle_avoidance_active_flag'.format(robot_name)
+        self.pub_topic = "~obstacle_avoidance_active_flag"
         self.avoid_pub = rospy.Publisher(self.pub_topic, BoolStamped, queue_size=1)
 
         # Target d. Only read when Obstacle is detected
@@ -37,7 +37,7 @@ class ObstAvoidNode(object):
 
         ########################
         ###### Subscribers #####
-        self.sub_topic = '/{}/obst_detect/posearray'.format(robot_name)
+        self.sub_topic = "~posearray"
         self.subscriber = rospy.Subscriber(self.sub_topic, PoseArray, self.obstacleCallback)
 
         # ToDo: d_current, theta_current

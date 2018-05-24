@@ -30,10 +30,10 @@ class ObstDetectNode(object):
         self.detector = Detector(robot_name=robot_name)
 
         # Load camera calibration parameters
-	self.intrinsics = load_camera_intrinsics(robot_name)
+        self.intrinsics = load_camera_intrinsics(robot_name)
 
         # Create a Publisher
-        self.pub_topic_arr = "~posearray".format(robot_name)
+        self.pub_topic_arr = "~posearray"
         self.publisher_arr = rospy.Publisher(self.pub_topic_arr, PoseArray, queue_size=1)
 
         if (self.show_marker or self.show_image):
@@ -51,8 +51,9 @@ class ObstDetectNode(object):
 
         # Create a Subscriber
         if (self.use_ai):
-            self.sub_topic = '/{}/image_transformer_node/corrected_image'.format(robot_name)
-            self.subscriber = rospy.Subscriber(self.sub_topic, Image, self.callback_img,queue_size=1, buff_size=2**24)
+            #self.sub_topic = '/{}/image_transformer_node/corrected_image'.format(robot_name)
+            #self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback_img,queue_size=1, buff_size=2**24)
+            self.sub_topic = rospy.Subscriber('/{}/image_transformer_node/corrected_image/compressed'.format(robot_name), CompressedImage,self.callback_img , queue_size=1,buff_size=2**24)
             #buff size to approximately close to 2^24 such that always most recent pic is taken
             #essentail
         else:
