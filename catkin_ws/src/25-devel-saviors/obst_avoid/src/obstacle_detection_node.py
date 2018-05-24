@@ -33,7 +33,7 @@ class ObstDetectNode(object):
 	self.intrinsics = load_camera_intrinsics(robot_name)
 
         # Create a Publisher
-        self.pub_topic_arr = '/{}/obst_detect/posearray'.format(robot_name)
+        self.pub_topic_arr = "~posearray".format(robot_name)
         self.publisher_arr = rospy.Publisher(self.pub_topic_arr, PoseArray, queue_size=1)
 
         if (self.show_marker or self.show_image):

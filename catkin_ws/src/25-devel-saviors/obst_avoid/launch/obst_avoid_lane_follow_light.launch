@@ -18,12 +18,5 @@
     <node name="obstacle_avoidance_node" pkg="obst_avoid" type="obstacle_avoidance_node.py" output="screen">
     </node>
 
-    <include file="$(find anti_instagram)/launch/image_transformer_node.launch">
-      <arg name="veh" value="$(arg veh)" />
-
-    </include>
-
-
-
 
 </launch>
