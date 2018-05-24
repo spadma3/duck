@@ -28,3 +28,9 @@ prepare: check-environment
 
 prepare-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*"
+
+killall: check-environment
+	bash -c "pkill -9 python"
+
+git-reset: check-environment
+	bash -c "git reset --hard HEAD"
