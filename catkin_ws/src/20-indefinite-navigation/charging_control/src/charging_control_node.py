@@ -18,9 +18,6 @@ class ChargingControlNode(object):
         # Active variable, triggered by FSM
         self.active = False
 
-        # TODO variables (add them to yaml file)
-        self.v_charger_entrance = 0.15
-        self.v_charger_inside = 0.35
         ## setup Parameters
         self.setupParams()
         self.maintenance_state = "NONE"
@@ -38,6 +35,8 @@ class ChargingControlNode(object):
         #####self.sub_tags = rospy.Subscriber("~april_tags", AprilTagsWithInfos, self.cbAprilTag)
         #self.go_first = rospy.Subscriber("~go_first", BoolStamped, self.cbGoFirst)
         self.sub_stop_line = rospy.Subscriber("~at_stop_line", BoolStamped, self.cbStopLine)
+
+        self.sub_ready2go = rospy.Subscriber("~ready2go", Bool, self.setReady2Go)
 
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.inters_done = rospy.Subscriber("~intersection_done", BoolStamped, self.cbIntersecDone)
@@ -80,6 +79,7 @@ class ChargingControlNode(object):
         if self.active:
             new_turn_type = self.getTurnType(self.charger, self.tag_id)
             if new_turn_type != -1:
+                rospy.loginfo("Leading Bot to charger " + str(self.charger) + " - therefore going " + str(new_turn_type) + "at tag " + str(self.tag_id))
                 self.turn_type = new_turn_type
 
         self.pub_turn_type.publish(self.turn_type)
@@ -122,22 +122,26 @@ class ChargingControlNode(object):
 
     def speedUp(self, event):
         rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.v_charger_inside)
+
     # Callback on FSM changes
     def cbFSMState(self, state_msg):
-        
+
         # Leaving charging module
         if self.state == "IN_CHARGING_AREA" and state_msg.state == "LANE_FOLLOWING":
             rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.speed_old)
-            
+            rospy.set_param("/" + self.veh_name +"/lane_controller_node/k_Id", self.charger_k_Id_old)
+
         # if we enter charging area, setup timer for leaving again
         if state_msg.state == "IN_CHARGING_AREA":
             self.ready2go = False
             self.charge_timer = rospy.Timer(rospy.Duration.from_sec(60*self.charge_time), self.setReady2Go, oneshot=True)
 
-            # Adjust speed in charging area
+            # Adjust speed in charging area and k_Id
             self.speed_old = rospy.get_param("/" + self.veh_name +"/lane_controller_node/v_bar")
+            self.charger_k_Id_old = rospy.get_param("/" + self.veh_name +"/lane_controller_node/k_Id")
             rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.v_charger_entrance)
-            
+            rospy.set_param("/" + self.veh_name +"/lane_controller_node/k_Id", self.charger_k_Id)
+
             # Speed up after 10s (Duckiebot is then for sure on charging module)
             self.speedup_timer = rospy.Timer(rospy.Duration.from_sec(10), self.speedUp, oneshot=True)
 
@@ -161,8 +165,7 @@ class ChargingControlNode(object):
         else:
             rospy.loginfo("[Charing Control Node] ERROR")
 
-        # DEBUG
-        self.charger = 4
+
     # # Executes every time april tag det detects a tag
     # def cbAprilTag(self, tag_msg):
     #     if not self.active:
@@ -205,7 +208,9 @@ class ChargingControlNode(object):
         self.charge_time = self.setupParam("~charge_time", 1)
         self.drive_time = self.setupParam("~drive_time", 2)
         self.charger = self.setupParam("~charger", 3)
-
+        self.v_charger_entrance = self.setupParam("~v_charger_entrance", 0.15)
+        self.v_charger_inside = self.setupParam("~v_charger_inside", 0.35)
+        self.charger_k_Id = self.setupParam("~charger_k_Id", 0.1)
 
     def updateParams(self,event):
         self.maintenance_entrance = rospy.get_param("~maintenance_entrance")
@@ -215,7 +220,9 @@ class ChargingControlNode(object):
         self.charge_time = rospy.get_param("~charge_time")
         self.drive_time = rospy.get_param("~drive_time")
         self.charger = rospy.get_param("~charger")
-
+        self.v_charger_entrance = rospy.get_param("~v_charger_entrance")
+        self.v_charger_inside = rospy.get_param("~v_charger_inside")
+        self.charger_k_Id = rospy.get_param("~charger_k_Id")
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
