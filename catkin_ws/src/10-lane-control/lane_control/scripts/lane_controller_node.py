@@ -68,7 +68,7 @@ class lane_controller(object):
         rospy.loginfo("\n\n\n\n\nREADY FOR EXERCISE " + exercise_txt + "\n\n\n\n\n")
 
         # Setup subscriptions for HWExercise 3
-        if int(self.exercise[0]) == 3:
+        if int(self.exercise[0]) == 3 and str(self.exercise[1]) != "reference":
             self.sub_veh_pos = rospy.Subscriber("~veh_pos", VehiclePose, self.cbVehPose, queue_size=1)
 
 
@@ -127,7 +127,7 @@ class lane_controller(object):
         self.stopTimer = rospy.Timer(rospy.Duration(1), self.stopVeh, oneshot=True)
 
     def cbPose(self, lane_pose_msg):
-        if int(self.exercise[0]) == 3:
+        if int(self.exercise[0]) == 3 and str(self.exercise[1]) != "reference":
             return
 
 
