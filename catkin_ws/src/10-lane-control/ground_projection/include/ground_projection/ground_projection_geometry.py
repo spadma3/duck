@@ -9,6 +9,8 @@ from image_geometry import PinholeCameraModel
 import numpy as np
 from sensor_msgs.msg import CameraInfo
 
+import time
+
 __all__ = [
     'GroundProjectionGeometry',
 ]
@@ -192,6 +194,7 @@ class GroundProjectionGeometry(object):
 #        print('validPixROI: %s' % str(validPixROI))
 
         # Use the same camera matrix
+        start_time = time.time()
         new_camera_matrix = self.pcm.K.copy()
         new_camera_matrix[0, 2] = W / 2
         new_camera_matrix[1, 2] = H / 2
@@ -199,9 +202,13 @@ class GroundProjectionGeometry(object):
         mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
                                                  new_camera_matrix, (W, H),
                                                  cv2.CV_32FC1)
+        map_time = time.time()
         cv_image_rectified = np.empty_like(cv_image_raw)
         res = cv2.remap(cv_image_raw, mapx, mapy, interpolation,
                         cv_image_rectified)
+        end_time = time.time()
+        print "map time = ", (map_time - start_time)
+        print "rectify time = ", (end_time - map_time)
         return new_camera_matrix, res
 
 
