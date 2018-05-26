@@ -191,7 +191,6 @@ states:
       - stop_line_filter_node
       - framerate_high
       - decoder_node
-      - apriltag_node
     lights: ["joystick"]
     current_status: "implemented"
   SAFE_JOYSTICK_CONTROL:
