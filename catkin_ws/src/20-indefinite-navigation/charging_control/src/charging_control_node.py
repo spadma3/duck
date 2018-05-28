@@ -127,12 +127,12 @@ class ChargingControlNode(object):
     def cbFSMState(self, state_msg):
 
         # Leaving charging module
-        if self.state == "IN_CHARGING_AREA" and state_msg.state == "LANE_FOLLOWING":
+        if self.state == "CHARGING_FIRST_IN_LINE" and state_msg.state == "LANE_FOLLOWING":
             rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.speed_old)
             rospy.set_param("/" + self.veh_name +"/lane_controller_node/k_Id", self.charger_k_Id_old)
 
         # if we enter charging area, setup timer for leaving again
-        if state_msg.state == "IN_CHARGING_AREA":
+        if state_msg.state == "IN_CHARGING_AREA" and self.state != state_msg.state:
             self.ready2go = False
             self.charge_timer = rospy.Timer(rospy.Duration.from_sec(60*self.charge_time), self.setReady2Go, oneshot=True)
 
@@ -143,7 +143,7 @@ class ChargingControlNode(object):
             rospy.set_param("/" + self.veh_name +"/lane_controller_node/k_Id", self.charger_k_Id)
 
             # Speed up after 10s (Duckiebot is then for sure on charging module)
-            self.speedup_timer = rospy.Timer(rospy.Duration.from_sec(10), self.speedUp, oneshot=True)
+            self.speedup_timer = rospy.Timer(rospy.Duration.from_sec(self.slow_time), self.speedUp, oneshot=True)
 
         self.state = state_msg.state
 
@@ -211,6 +211,7 @@ class ChargingControlNode(object):
         self.v_charger_entrance = self.setupParam("~v_charger_entrance", 0.15)
         self.v_charger_inside = self.setupParam("~v_charger_inside", 0.35)
         self.charger_k_Id = self.setupParam("~charger_k_Id", 0.1)
+        self.slow_time = self.setupParam("~slow_time", 20)
 
     def updateParams(self,event):
         self.maintenance_entrance = rospy.get_param("~maintenance_entrance")
@@ -223,6 +224,7 @@ class ChargingControlNode(object):
         self.v_charger_entrance = rospy.get_param("~v_charger_entrance")
         self.v_charger_inside = rospy.get_param("~v_charger_inside")
         self.charger_k_Id = rospy.get_param("~charger_k_Id")
+        self.slow_time = rospy.get_param("~slow_time")
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
