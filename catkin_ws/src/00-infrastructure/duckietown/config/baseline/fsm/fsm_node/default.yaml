@@ -263,11 +263,13 @@ states:
     transitions:
       intersection_done_and_deep_lane_off: "LANE_FOLLOWING"
       intersection_done_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
+      in_charger: "IN_CHARGING_AREA"
     active_nodes:
       - decoder_node
       - led_emitter_node
       - line_detector_node
       - lane_filter_node
+      - charging_control
 
       ###### TO USE OPEN LOOP INTERSECTION CONTROL (untested):
       # COMMENT OUT intersection_navigation_node, intersection_localization_node and lane_controller_node
