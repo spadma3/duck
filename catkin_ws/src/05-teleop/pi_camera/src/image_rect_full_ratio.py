@@ -2,6 +2,7 @@
 
 #This nodes insert a better calibration to image pipeline for Apriltag detections (full ratio)
 import rospy
+import time
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
@@ -56,7 +57,8 @@ class ImgRectFullRatio(object):
             return
         if self.gpg is None:
             return
-
+        
+        start_time = time.time()
         cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
 
         new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.65)
@@ -65,6 +67,8 @@ class ImgRectFullRatio(object):
 
         img_msg.header.stamp = msg.header.stamp
         img_msg.header.frame_id = msg.header.frame_id
+        end_time = time.time()
+        print "Rect cbImg time = ", (end_time - start_time)
         self.pub_rect.publish(img_msg)
 
 
