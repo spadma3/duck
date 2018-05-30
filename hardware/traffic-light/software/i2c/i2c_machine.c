@@ -45,9 +45,16 @@
 #define LED_FLICKER()
 #endif
 
-volatile uint8_t i2c_update = 0;
-volatile uint8_t i2c_state = 0;
-volatile uint8_t i2c_offset = 0;
+volatile uint8_t i2c_update[I2C_N_SLAVES] = {0}; //byte count written in the last i2c write command
+volatile uint8_t i2c_current_Slave=0; //current slave index, which is communicating at the moment, 0xFF means no slave!
+ 
+ 
+//these variables are just there once and are used for motor and led,
+//because there is just one state machine and the i2c master can just
+//talk to one slave at a time.
+volatile uint8_t i2c_state = 0;  //state of the i2c state machine, see below  
+volatile uint8_t i2c_offset = 0; //read or write offset of the current operation
+
 
 /* USI i2c Slave State Machine
  * ===========================
@@ -133,6 +140,9 @@ volatile uint8_t i2c_offset = 0;
   * For some reason, avr-libc uses different vector names for the USI
   * on different chips! We have to workaround that here
   */
+
+
+//I2C Start Interrupt
 #if defined(USI_START_vect)
 ISR(USI_START_vect)
 #elif defined(USI_STRT_vect)
@@ -146,6 +156,8 @@ ISR(USI_STRT_vect)
 	USISR = 0xF0;
 }
 
+
+//I2C Overflow Interrupt
 #if defined(USI_OVERFLOW_vect)
 ISR(USI_OVERFLOW_vect)
 #elif defined(USI_OVF_vect)
@@ -166,31 +178,59 @@ ISR(USI_OVF_vect)
 
 		switch (i2c_state) {
 		case I2C_STATE_ADDR_MATCH:
-			tmp = USIDR >> 1;
-			if (tmp && (tmp != I2C_SLAVE_ADDR)) {
-				/* Transition h */
+			tmp = USIDR >> 1;//tmp=slave address
+			
+			i2c_current_Slave=0xFF;//set slave address invalid
+			
+			/*
+			//check if the actual slave is in the slave address array
+			for(uint8_t i=0;i<I2C_N_SLAVES;i++)
+			{
+				if (I2C_SLAVE_ADDR[i]==tmp)
+				{
+					//if slave address is found, stop searching and save index
+					i2c_current_Slave=i;
+					break;
+				}
+			}
+			*/
+			if (I2C_SLAVE_ADDR[0]==tmp)
+			{
+				i2c_current_Slave=0;
+			}
+			
+			if (I2C_SLAVE_ADDR[1]==tmp)
+			{
+				i2c_current_Slave=1;
+			}
+			
+			
+			//i2c_current_Slave=0;
+						
+			if (tmp && i2c_current_Slave==0xFF) { // old code: (tmp != I2C_SLAVE_ADDR)
+				/* Transition h: Address not matched */
 				i2c_state = I2C_STATE_IDLE;
 				NAK();
 			} else {
 				if (USIDR & 1) {
-					/* Transition b */
+					/* Transition b: Address matched, read mode */
 					i2c_state = I2C_STATE_MASTER_READ;
 				} else {
-					/* Transition a */
+					/* Transition a: Address matched, write mode */
 					i2c_offset = 0;
 					i2c_state = I2C_STATE_REG_ADDR;
-					i2c_update = 1;
+					i2c_update[i2c_current_Slave] = 1;
 				}
 				ACK();
 			}
 			break;
 		case I2C_STATE_REG_ADDR:
 			if (USIDR > (I2C_N_REG - 1)) {
-				/* Transition i */
+				/* Transition i:  Invalid reg addr*/
 				i2c_state = I2C_STATE_IDLE;
 				NAK();
 			} else {
-				/* Transition d */
+				/* Transition d:  Initialise write*/
 				i2c_offset = USIDR;
 				i2c_state = I2C_STATE_MASTER_WRITE;
 				ACK();
@@ -209,10 +249,10 @@ ISR(USI_OVF_vect)
 #endif
 			if (tmp) {
 				/* Only heed writeable bits */
-				i2c_reg[i2c_offset] &= ~tmp;
-				i2c_reg[i2c_offset] |= USIDR & tmp;
+				i2c_reg[i2c_current_Slave][i2c_offset] &= ~tmp;
+				i2c_reg[i2c_current_Slave][i2c_offset] |= USIDR & tmp;
 			}
-			i2c_update++;
+			i2c_update[i2c_current_Slave]++;
 			i2c_offset++;
 			ACK();
 			break;
@@ -228,13 +268,13 @@ ISR(USI_OVF_vect)
 		switch (i2c_state) {
 		case I2C_STATE_MASTER_READ:
 			if (USIDR) {
-				/* Transition e */
+				/* Transition e: Read finished */
 				i2c_offset = 0;
 				i2c_state = I2C_STATE_IDLE;
 			} else {
-				/* Transition f */
+				/* Transition f: Read continues */
 				sda_direction = I2C_SDA_DIR_OUT;
-				USIDR = i2c_reg[i2c_offset++];
+				USIDR = i2c_reg[i2c_current_Slave][i2c_offset++];
 			}
 			break;
 		}
@@ -255,6 +295,8 @@ ISR(USI_OVF_vect)
 	USISR = usisr_tmp;
 }
 
+
+/* Initialise the USI and I2C state machine */
 void i2c_init()
 {
 	i2c_state = 0;
@@ -265,6 +307,12 @@ void i2c_init()
 	USISR = 0xF0;
 }
 
+
+/*
+ * Return non-zero if a transaction is ongoing
+ * A transaction is considered ongoing if the slave address has
+ * been matched, but a stop has not been received yet.
+ */
 uint8_t i2c_transaction_ongoing()
 {
 	if ((i2c_state != I2C_STATE_IDLE) &&
@@ -275,17 +323,21 @@ uint8_t i2c_transaction_ongoing()
 	}
 }
 
-uint8_t i2c_check_stop()
+/*
+ * Check for and handle a stop condition.
+ * Returns non-zero if any registers have been changed
+ */
+uint8_t i2c_check_stop(int8_t SlaveIndex)
 {
 	uint8_t ret = 0;
 
-	if ((i2c_state == I2C_STATE_MASTER_WRITE) && i2c_update) {
+	if ((i2c_state == I2C_STATE_MASTER_WRITE) && i2c_update[SlaveIndex]) {
 		cli();
 		uint8_t tmp = USISR;
 		if (tmp & (1 << USIPF)) {
 			i2c_state = I2C_STATE_IDLE;
-			ret = i2c_update;
-			i2c_update = 0;
+			ret = i2c_update[SlaveIndex];
+			i2c_update[SlaveIndex] = 0;
 		}
 		sei();
 	}
