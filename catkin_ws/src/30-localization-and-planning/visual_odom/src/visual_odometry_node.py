@@ -1,110 +1,110 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String, Int32
+from std_msgs.msg import String, Int32, Bool
+from sensor_msgs.msg import Image
+from duckietown_msgs.msg import Pose2DStamped
+from cv_bridge import CvBridge, CvBridgeError
 
+
+from visual_odometry import PinholeCamera, VisualOdometry
 # DVisual Odometry node
 # Author: Gianmarco Bernasconi/Julien Kindle
 # Inputs: ~Image/Image - Input raw image
 # Outputs: ~pose/Int32 - The output pose
 
-class PinholeCamera:
-	def __init__(self, width, height, fx, fy, cx, cy,
-				k1=0.0, k2=0.0, p1=0.0, p2=0.0, k3=0.0):
-		self.width = width
-		self.height = height
-		self.fx = fx
-		self.fy = fy
-		self.cx = cx
-		self.cy = cy
-		self.distortion = (abs(k1) > 0.0000001)
-		self.d = [k1, k2, p1, p2, k3]
+class VOEstimator(object):
+	def __init__(self):
+        self.node_name = "Visual Odometry Node"
+		self.running = False
 
+		# Subscribers
+        self.sub_img = rospy.Subscriber("~image", Image, self.cbImage)
+		self.sub_start = rospy.Subscriber("~start_estimation", Bool, self.cbStartEstimation)
+		self.sub_stop = rospy.Subscriber("~stop_estimation", Bool, self.cbStopEstimation)
 
-class VisualOdometry:
-	def __init__(self, cam, velocity):
-        self.node_name = 'visual_odometry_node'
+		## Publisher
+        self.pub_estimation = rospy.Publisher("~estimation", Pose2DStamped, queue_size=1)
 
+		self.VisualOdometryEstimator = None
+		self.frame_id = -2
+		self.last_pos = np.array([0,0])
 
-		self.frame_stage = 0
-		self.cam = cam
-		self.new_frame = None
-		self.last_frame = None
-		self.cur_R = None
-		self.cur_t = None
-		self.px_ref = None
-		self.px_cur = None
-		self.focal = cam.fx
-		self.pp = (cam.cx, cam.cy)
-		self.trueX, self.trueY, self.trueZ = 0, 0, 0
-		self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
-		self.velocity = velocity
+	######## Callback functions begin ########
+	def cbImage(self, msg):
+		if not self.running: return
 
-        # Setup the publisher and subscriber
-        self.sub_img = rospy.Subscriber("~img", Image, self.Image)
+		self.frame_id = self.frame_id + 1
+		try:
+        	img = self.bridge.imgmsg_to_cv2(msg, "mono8")
+     	except CvBridgeError as e:
+	      	print(e)
+			return
 
-        rospy.loginfo("[%s] has started", self.node_name)
+		# Update our estimation
+		self.VisualOdometryEstimator.update(img)
 
-	def getAbsoluteScale(self, frame_id):
-        #TODO calculate driven distance between frames and return it here
-		return 1
+		if self.frame_id <= 0: return
+		self.estimatePosition()
 
-	def processFirstFrame(self):
-		self.px_ref = self.detector.detect(self.new_frame)
-		self.px_ref = np.array([x.pt for x in self.px_ref], dtype=np.float32)
-		self.frame_stage = STAGE_SECOND_FRAME
+	def cbStopEstimation(self, msg):
+		if not msg.data: return
+		self.running = False
+		self.VisualOdometryEstimator = None
 
-	def processSecondFrame(self):
-		self.px_ref, self.px_cur = featureTracking(self.last_frame, self.new_frame, self.px_ref)
-		E, mask = cv2.findEssentialMat(self.px_cur, self.px_ref, focal=self.focal, pp=self.pp, method=cv2.RANSAC, prob=0.999, threshold=1.0)
-		_, self.cur_R, self.cur_t, mask = cv2.recoverPose(E, self.px_cur, self.px_ref, focal=self.focal, pp = self.pp)
-		self.frame_stage = STAGE_DEFAULT_FRAME
-		self.px_ref = self.px_cur
+	def cbStartEstimation(self, msg):
+		if not msg.data: return
+		self.running = True
+		cam = PinholeCamera(640.0, 480.0, 1192, 1192, 320.0, 240.0)
+		self.VisualOdometryEstimator = VisualOdometry(cam, self.intersection_speed, self.min_features)
+		self.frame_id = -2
 
-	def processFrame(self, frame_id):
-                if not self.px_ref.any(): return
-		self.px_ref, self.px_cur = featureTracking(self.last_frame, self.new_frame, self.px_ref)
-		E, mask = cv2.findEssentialMat(self.px_cur, self.px_ref, focal=self.focal, pp=self.pp, method=cv2.RANSAC, prob=0.999, threshold=1.0)
-		if E is None: return
-                _, R, t, mask = cv2.recoverPose(E.copy(), self.px_cur, self.px_ref, focal=self.focal, pp = self.pp)
-		absolute_scale = self.getAbsoluteScale(frame_id)
-		if(absolute_scale > 0.1): # TODO: if we change scaling, this needs to be changes as well I think
-			self.cur_t = self.cur_t + absolute_scale*self.cur_R.dot(t)
-			self.cur_R = R.dot(self.cur_R)
-		if(self.px_ref.shape[0] < kMinNumFeature):
-			self.px_cur = self.detector.detect(self.new_frame)
-			self.px_cur = np.array([x.pt for x in self.px_cur], dtype=np.float32)
-		self.px_ref = self.px_cur
+	######## Callback functions end ########
 
-	def update(self, img, frame_id):
-		assert(img.ndim==2 and img.shape[0]==self.cam.height and img.shape[1]==self.cam.width), "Frame: provided image has not the same size as the camera model or image is not grayscale"
-		self.new_frame = img
-		if(self.frame_stage == STAGE_DEFAULT_FRAME):
-			self.processFrame(frame_id)
-		elif(self.frame_stage == STAGE_SECOND_FRAME):
-			self.processSecondFrame()
-		elif(self.frame_stage == STAGE_FIRST_FRAME):
-			self.processFirstFrame()
-		self.last_frame = self.new_frame
+	######## Functionality begin ########
+	def estimatePosition(self):
+		cur_t = self.VisualOdometryEstimator.cur_t
+		x, y, z = cur_t[0], cur_t[1], cur_t[2]
 
-    def featureTracking(image_ref, image_cur, px_ref):
-    	kp2, st, err = cv2.calcOpticalFlowPyrLK(image_ref, image_cur, px_ref, None, **lk_params)  #shape: [k,2] [k,1] [k,1]
+		# Rotate around axis (since camera is tilted)
+		a = -np.pi/36
+		vec = np.array([x,y,z])
+		R = np.matrix([[1,0,0],[0,np.cos(a),-np.sin(a)],[0,np.sin(a),np.cos(a)]])
+		vec_rot = R.dot(vec)
 
-    	st = st.reshape(st.shape[0])
-    	kp1 = px_ref[st == 1]
-    	kp2 = kp2[st == 1]
+		# Using coordinate system: x initial driving direction, y 90deg right of init pose
+		y,_,x = float(vec_rot[0]),float(vec_rot[1]),float(vec_rot[2])
 
-    	return kp1, kp2
+		direction = np.array([x,y]) - self.last_pos
+		theta = np.arctan2(y,x)
 
-    def ImageCallback(self, msg_quacks):
-        msg_duckiecall = String()
-        msg_duckiecall.data = self.quacker.get_quack_string(msg_quacks.data)
-        self.pub_duckiecall.publish(msg_duckiecall)
+		# Publish obtained position
+		pose_msg = Pose2DStamped()
+		pose.msg.x = x
+		pose.msg.y = y
+		pose.msg.theta = theta
 
+		self.pub_estimation.publish(pose_msg)
 
+	######## Functionality end ########
 
+	######## Parameter functions begin ########
+	def setupParams(self):
+        self.min_features = self.setupParam("~min_features", 50)
+        self.intersection_speed = self.setupParam("~intersection_speed", 0.1)
 
+    def updateParams(self,event):
+        self.min_features = rospy.get_param("~min_features")
+        self.intersection_speed = rospy.get_param("~intersection_speed")
+
+    def setupParam(self,param_name,default_value):
+        value = rospy.get_param(param_name,default_value)
+        rospy.set_param(param_name,value) #Write to parameter server for transparancy
+        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
+        return value
+
+	### Parameter functions end ###
 
 if __name__ == '__main__':
     rospy.init_node('visual_odometry_node', anonymous=False)
-
+	voestimator = VOEstimator()
     rospy.spin()
