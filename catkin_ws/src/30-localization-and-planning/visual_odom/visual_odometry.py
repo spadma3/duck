@@ -54,7 +54,7 @@ class VisualOdometry:
         self.velocity = velocity
         self.time_now=0
 
-    def getAbsoluteScale(self, frame_id):
+    def getAbsoluteScale(self):
         #TODO calculate driven distance between frames and return it here
         self.time_now=time.time()
         self.elapsed_time = self.time_now - self.time_last
@@ -89,7 +89,7 @@ class VisualOdometry:
         if E is None:
             return
         _, R, t, mask = cv2.recoverPose(E.copy(), self.px_cur, self.px_ref, focal=self.focal, pp = self.pp)
-        absolute_scale = self.getAbsoluteScale(frame_id)
+        absolute_scale = self.getAbsoluteScale()
         if(absolute_scale > 0.01): # TODO: if we change scaling, this needs to be changed as well, I think
             #print self.cur_t
             self.cur_t = self.cur_t + absolute_scale*self.cur_R.dot(t)
@@ -99,11 +99,11 @@ class VisualOdometry:
             self.px_cur = np.array([x.pt for x in self.px_cur], dtype=np.float32)
         self.px_ref = self.px_cur
 
-    def update(self, img, frame_id):
+    def update(self, img):
         assert(img.ndim==2 and img.shape[0]==self.cam.height and img.shape[1]==self.cam.width), "Frame: provided image has not the same size as the camera model or image is not grayscale"
         self.new_frame = img
         if(self.frame_stage == STAGE_DEFAULT_FRAME):
-            self.processFrame(frame_id)
+            self.processFrame()
         elif(self.frame_stage == STAGE_SECOND_FRAME):
             self.processSecondFrame()
         elif(self.frame_stage == STAGE_FIRST_FRAME):

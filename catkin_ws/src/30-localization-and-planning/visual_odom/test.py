@@ -40,7 +40,7 @@ for img_id in range(22,85):
 	img = cv2.imread('DB_duckiebot/test_g_'+str(img_id).zfill(6)+'.png', 0)
 
 	# Update odometry
-	vo.update(img, img_id)
+	vo.update(img)
 	# Obtain positions
 	cur_t = vo.cur_t
 	t = t - 1
