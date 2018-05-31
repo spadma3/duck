@@ -53,9 +53,9 @@
     </include>
 
     <!-- run the odometry thing -->
-    <include file="$(find camera)/launch/camera_node.launch">
+    <include file="$(find duckietown)/launch/camera.launch">
         <arg name="veh" value="$(arg veh)"/>
-        <arg name="local" value="$(arg local)"/>
+        <arg name="raw" value="true"/>
         <arg name="config" value="$(arg config)"/>
     </include>
     <!-- run the odometry thing -->

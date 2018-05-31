@@ -6,8 +6,6 @@ STAGE_FIRST_FRAME = 0
 STAGE_SECOND_FRAME = 1
 STAGE_DEFAULT_FRAME = 2
 
-#TODO: It was 1500 before, I think 5 is fine 1500 gives just shit
-kMinNumFeature = 50
 
 # No idea what this is
 lk_params = dict(winSize  = (21, 21),
@@ -38,7 +36,8 @@ class PinholeCamera:
 
 
 class VisualOdometry:
-    def __init__(self, cam, velocity):
+    def __init__(self, cam, velocity, min_features):
+        self.min_features = min_features
         self.frame_stage = 0
         self.cam = cam
         self.new_frame = None
@@ -79,13 +78,13 @@ class VisualOdometry:
         self.px_ref = self.px_cur
         self.time_last = time.time()
 
-    def processFrame(self, frame_id):
+    def processFrame(self):
         if not self.px_ref.any():
             return
         self.px_ref, self.px_cur = featureTracking(self.last_frame, self.new_frame, self.px_ref)
         if not self.px_cur.any():
             return
-        E, mask = cv2.findEssentialMat(self.px_cur, self.px_ref, focal=self.focal, pp=self.pp, method=cv2.RANSAC, prob=0.999, threshold=1.0)
+        E, mask = cv2.findEssentialMat(self.px_cur, self.px_ref, focal=self.focal, pp=self.pp, method=cv2.RANSAC, prob=0.9, threshold=1.0)
         if E is None:
             return
         _, R, t, mask = cv2.recoverPose(E.copy(), self.px_cur, self.px_ref, focal=self.focal, pp = self.pp)
@@ -94,7 +93,7 @@ class VisualOdometry:
             #print self.cur_t
             self.cur_t = self.cur_t + absolute_scale*self.cur_R.dot(t)
             self.cur_R = R.dot(self.cur_R)
-        if(self.px_ref.shape[0] < kMinNumFeature):
+        if(self.px_ref.shape[0] < self.min_features):
             self.px_cur = self.detector.detect(self.new_frame)
             self.px_cur = np.array([x.pt for x in self.px_cur], dtype=np.float32)
         self.px_ref = self.px_cur
