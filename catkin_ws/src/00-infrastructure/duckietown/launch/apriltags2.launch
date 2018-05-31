@@ -21,10 +21,19 @@
  	</include>
  
  	<!-- AprilTags Detections -->
-    <remap from="image_rect" to="camera_node/image/rect" />
-    <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
-    <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
-        <arg name="veh" value="$(arg veh)"/>
-    </include>
- dkf
+ 	<group if="$(arg rect_full_ratio)">
+	    <remap from="image_rect" to="camera_node/image/rect" />
+	    <remap from="camera_node/image/camera_info" to="camera_node/rect_camera_info" />
+	    <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
+	        <arg name="veh" value="$(arg veh)"/>
+	    </include>
+	</group>
+	<group unless="$(arg rect_full_ratio)">
+	    <remap from="image_rect" to="camera_node/image/rect" />
+	    <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
+	    <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
+	        <arg name="veh" value="$(arg veh)"/>
+	    </include>
+	</group>
+
 </launch>

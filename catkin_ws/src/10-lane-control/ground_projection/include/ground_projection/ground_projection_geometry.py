@@ -201,14 +201,14 @@ class GroundProjectionGeometry(object):
             Returns the new camera matrix as well.
         '''
         start_time = time.time()
-        W = int(self.pcm.width * ratio)
-        H = int(self.pcm.height * ratio)
         if not self._rectify_inited:
+            W = int(self.pcm.width * ratio)
+            H = int(self.pcm.height * ratio)
             self._init_rectify_maps_for_rectfullratio(W, H) 
 #        mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
 #        mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
-        print('K: %s' % self.pcm.K)
-        print('P: %s' % self.pcm.P)
+        #print('K: %s' % self.pcm.K)
+        #print('P: %s' % self.pcm.P)
 
 #        alpha = 1
 #        new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H, W), alpha)
@@ -230,8 +230,8 @@ class GroundProjectionGeometry(object):
         res = cv2.remap(cv_image_raw, self.mapx, self.mapy, interpolation,
                         cv_image_rectified)
         end_time = time.time()
-        print "map time = ", (map_time - start_map_time)
-        print "rectify time = ", (end_time - map_time)
+        #print "map time = ", (map_time - start_map_time)
+        #print "rectify time = ", (end_time - map_time)
         print "total time = ", (end_time - start_time)
         return self.new_camera_matrix, res
 

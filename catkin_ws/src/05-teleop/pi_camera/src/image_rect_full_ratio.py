@@ -28,6 +28,7 @@ class ImgRectFullRatio(object):
         self.gpg = None
 
         self.pub_rect = rospy.Publisher("image_rect",Image,queue_size=1)
+        self.pub_cam_info = rospy.Publisher("rect_camera_info",CameraInfo,queue_size=1)
         self.sub_img = rospy.Subscriber("image_raw",Image,self.cbImg,queue_size=1)
         self.sub_cam_info = rospy.Subscriber("camera_info",CameraInfo,self.cbCamInfo,queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
@@ -58,14 +59,21 @@ class ImgRectFullRatio(object):
             return
 
         cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-
         new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.65)
-
         img_msg = self.bridge.cv2_to_imgmsg(result_img, "bgr8")
 
         img_msg.header.stamp = msg.header.stamp
         img_msg.header.frame_id = msg.header.frame_id
+
+        rect_cam_info = self.cam_info
+        rect_cam_info.header.stamp = img_msg.header.stamp
+        rect_cam_info.header.frame_id = img_msg.header.frame_id
+        rect_cam_info.height = result_img.shape[0]
+        rect_cam_info.width = result_img.shape[1]
+        print "Image h, w = ", rect_cam_info.height, rect_cam_info.width
+
         self.pub_rect.publish(img_msg)
+        self.pub_cam_info.publish(rect_cam_info)
 
 
 if __name__ == '__main__': 
