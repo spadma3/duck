@@ -8,7 +8,7 @@ STAGE_DEFAULT_FRAME = 2
 
 
 # No idea what this is
-lk_params = dict(winSize  = (21, 21),
+lk_params = dict(winSize  = (15, 15),
                 #maxLevel = 3,
                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.01))
 
@@ -16,9 +16,14 @@ def featureTracking(image_ref, image_cur, px_ref):
     kp2, st, err = cv2.calcOpticalFlowPyrLK(image_ref, image_cur, px_ref, None, **lk_params)  #shape: [k,2] [k,1] [k,1]
 
     st = st.reshape(st.shape[0])
+    #err = err.reshape(err.shape[0])
     kp1 = px_ref[st == 1]
     kp2 = kp2[st == 1]
-
+    # err = err[st == 1]
+    # err_mean = np.mean(err)
+    # kp1 = kp1[err < err_mean]
+    # kp2 = kp2[err < err_mean]
+    print("Points img_k: " + str(len(px_ref)) + ", points img_k+1: " + str(len(kp2)))
     return kp1, kp2
 
 
@@ -49,7 +54,8 @@ class VisualOdometry:
         self.focal = cam.fx
         self.pp = (cam.cx, cam.cy)
         self.trueX, self.trueY, self.trueZ = 0, 0, 0
-        self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
+        # self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
+        self.detector = cv2.xfeatures2d.SURF_create(600)
         self.velocity = velocity
         self.time_now=0
 
@@ -84,7 +90,9 @@ class VisualOdometry:
         self.px_ref, self.px_cur = featureTracking(self.last_frame, self.new_frame, self.px_ref)
         if not self.px_cur.any():
             return
-        E, mask = cv2.findEssentialMat(self.px_cur, self.px_ref, focal=self.focal, pp=self.pp, method=cv2.RANSAC, prob=0.9, threshold=1.0)
+
+        print("Points used for E calculation: " + str(len(self.px_ref)) + ","+str(len(self.px_cur)))
+        E, mask = cv2.findEssentialMat(self.px_cur, self.px_ref, focal=self.focal, pp=self.pp, method=cv2.RANSAC, prob=0.999, threshold=1.0)
         if E is None:
             return
         _, R, t, mask = cv2.recoverPose(E.copy(), self.px_cur, self.px_ref, focal=self.focal, pp = self.pp)

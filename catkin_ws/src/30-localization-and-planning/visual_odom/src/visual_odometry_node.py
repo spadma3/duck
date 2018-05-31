@@ -110,7 +110,7 @@ class VOEstimator(object):
 	def updateParams(self,event):
 		self.min_features = rospy.get_param("~min_features")
 		self.intersection_speed = rospy.get_param("~intersection_speed")
-
+		
 	def setupParam(self,param_name,default_value):
 		value = rospy.get_param(param_name,default_value)
 		rospy.set_param(param_name,value) #Write to parameter server for transparancy
