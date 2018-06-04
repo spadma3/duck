@@ -83,7 +83,7 @@ class VOEstimator(object):
 		y,_,x = float(vec_rot[0]),float(vec_rot[1]),float(vec_rot[2])
 
 		direction = np.array([x,y]) - self.last_pos
-		theta = np.arctan2(y,x)
+		theta = np.arctan2(direction[1],direction[0])
 
 		# Publish obtained position
 		pose_msg = Pose2DStamped()
@@ -110,7 +110,7 @@ class VOEstimator(object):
 	def updateParams(self,event):
 		self.min_features = rospy.get_param("~min_features")
 		self.intersection_speed = rospy.get_param("~intersection_speed")
-		
+
 	def setupParam(self,param_name,default_value):
 		value = rospy.get_param(param_name,default_value)
 		rospy.set_param(param_name,value) #Write to parameter server for transparancy

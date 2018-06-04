@@ -54,8 +54,8 @@ class VisualOdometry:
         self.focal = cam.fx
         self.pp = (cam.cx, cam.cy)
         self.trueX, self.trueY, self.trueZ = 0, 0, 0
-        # self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
-        self.detector = cv2.xfeatures2d.SURF_create(600)
+        self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
+        #self.detector = cv2.xfeatures2d.SURF_create(600)
         self.velocity = velocity
         self.time_now=0
 
@@ -97,7 +97,7 @@ class VisualOdometry:
             return
         _, R, t, mask = cv2.recoverPose(E.copy(), self.px_cur, self.px_ref, focal=self.focal, pp = self.pp)
         absolute_scale = self.getAbsoluteScale()
-        if(absolute_scale > 0.01): # TODO: if we change scaling, this needs to be changed as well, I think
+        if(absolute_scale > 0.000001): # TODO: if we change scaling, this needs to be changed as well, I think
             #print self.cur_t
             self.cur_t = self.cur_t + absolute_scale*self.cur_R.dot(t)
             self.cur_R = R.dot(self.cur_R)

@@ -71,15 +71,7 @@ class IntersectionNavigation(object):
         self.intersection_type = 0 # 0: three way intersection, 1: four way intersection
         self.current_tag_info = None
 
-        # Velocities conversion parameters
-        self.v_scale = 1.53
-        self.omega_scale = 4.75
-
-        # Set constant velocity
-        if self.open_loop:
-            self.v = 0.1
-        else:
-            self.v = 0.2 #TODO was 0.2 before
+        self.v = 0.2 #TODO param
 
         # nominal stop positions: centered in lane, 0.16m in front of center of red stop line,
         # 0 relative orientation error
@@ -101,48 +93,39 @@ class IntersectionNavigation(object):
                                               Int16,
                                               self.TurnTypeCallback,
                                               queue_size=1)
-        self.sub_img = rospy.Subscriber("~img",
-                                        CompressedImage,
-                                        self.ImageCallback,
-                                        queue_size=1,
-                                        buff_size=2**24)
+
         self.sub_pose = rospy.Subscriber("~pose_in",
                                          IntersectionPose,
                                          self.PoseCallback,
                                          queue_size=1)
-        self.sub_cmd = rospy.Subscriber("~cmds",
-                                        Twist2DStamped,
-                                        self.CmdCallback,
-                                        queue_size=30)
-        self.sub_in_lane = rospy.Subscriber("~in_lane",
-                                        BoolStamped,
-                                        self.InLaneCallback,
-                                        queue_size=1)
+
+
 
         # set up publishers
-        self.pub_intersection_pose_img = rospy.Publisher("~pose_img_out", IntersectionPoseImg, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~intersection_navigation_pose", LanePose, queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
-        # Needed if open loop
-        self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
-        self.pub_path_computed = rospy.Publisher("~path_computed", BoolStamped, queue_size=1)
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
         rospy.set_param("~v_inters", 0.2)
-        rospy.set_param("~s_max", 0.5)
+
+
+        # TODO add paths
+        # self.path_left = [...]
+        # self.path_straight = [...]
+        # self.path_right = [...]
+        self.transformed_path = None
 
         self.param_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParameter)
 
+
     def updateParameter(self, event):
         self.v = rospy.get_param("~v_inters")
-        self.s_max = rospy.get_param("~s_max")
 
     def SelfReset(self):
         self.go = False
         self.turn_type = -1
         self.intersection_type = 0
-        self.in_lane = False
         self.state = self.state_dict['IDLE']
 
 
@@ -175,168 +158,73 @@ class IntersectionNavigation(object):
 
 
     def MainLoop(self):
-
-        if not self.active:
-            return
         rate = rospy.Rate(self.rate)
+
         while not rospy.is_shutdown():
             # run state machine
 
             if self.state == self.state_dict['IDLE']:
-                # waiting for FSMState to tell us that Duckiebot is at an intersection (see FSMCallback)
-                pass
+                break
 
-            elif self.state == self.state_dict['INITIALIZING_LOCALIZATION']:
+            elif self.state == self.state_dict['INITIALIZING_LOCALIZATION']: # Get location of Duckiebot to intersection
                 if self.InitializeLocalization():
                     self.state = self.state_dict['INITIALIZING_PATH']
                     rospy.loginfo("[%s] Initialized intersection localization, initializing path." % (self.node_name))
 
-            elif self.state == self.state_dict['INITIALIZING_PATH']:
+            elif self.state == self.state_dict['INITIALIZING_PATH']: # Transform path to match intersection
                 if self.InitializePath():
                     self.state = self.state_dict['TRAVERSING']
-                    self.s = 0.0
-                    self.traversing_start = rospy.Time.now()
                     rospy.loginfo("[%s] Initialized path, waiting for go signal." % (self.node_name))
-                else:
-                    rospy.loginfo("[%s] Could not initialize path. Trying again." % (self.node_name))
 
             elif self.state == self.state_dict['TRAVERSING']:
-                '''open-loop'''
-                if self.open_loop:
-                    msg_cmds = Twist2DStamped()
-                    msg_cmds.header.stamp = rospy.Time.now()
 
-                    if 1.0 < (rospy.Time.now() - self.traversing_start).to_sec() and self.go:
+                # TODO
+                # pos = get data from visual odometer (and start it the first time, 0.2s after start driving)
 
-                        pos, vel = self.pathPlanner.EvaluatePath(self.s)
-                        dt = 0.01
-                        _, vel2 = self.pathPlanner.EvaluatePath(self.s + dt)
-                        self.alpha = self.v/np.linalg.norm(vel)
+                nearest_idx = 0
+                nearest_dis = 100
 
-                        dir = vel/np.linalg.norm(vel)
-                        dir2 = vel2/np.linalg.norm(vel2)
-                        theta = np.arctan2(dir[1],dir[0])
-                        theta2 = np.arctan2(dir2[1], dir2[0])
-                        omega = (theta2 - theta)/dt
-
-                        msg_cmds.v = self.v
-                        msg_cmds.omega = self.alpha * omega
-
-                        if (msg_cmds.v - 0.5 * math.fabs(msg_cmds.omega) * 0.1) < 0.065:
-                            msg_cmds.v = 0.065 + 0.5 * math.fabs(msg_cmds.omega) * 0.1
-                            self.alpha = self.alpha*msg_cmds.v/self.v
-
-                        msg_cmds.v = msg_cmds.v * self.v_scale
-                        msg_cmds.omega = msg_cmds.omega * self.omega_scale
-
-                        self.s = self.s + self.alpha*(rospy.Time.now() - self.traversing_last_time).to_sec()
-
-                        if (self.s > 0.99):
-                            msg_cmds.v = self.v
-                            msg_cmds.omega = 0.0
-
-                            self.state = self.state_dict['DONE']
-                            self.done_time = rospy.Time.now()
-
-                    else:
-                        msg_cmds.v = 0.0
-                        msg_cmds.omega = 0.0
-
-                    self.traversing_last_time = rospy.Time.now()
-                    self.pub_cmds.publish(msg_cmds)
-
-                else:
-                    '''closed-loop'''
-                    msg_lane_pose = LanePose()
-                    msg_lane_pose.header.stamp = rospy.Time.now()
-
-                    if 1.0 < (rospy.Time.now() - self.traversing_start).to_sec() and self.go:
-                        pose, _ = self.poseEstimator.PredictState(msg_lane_pose.header.stamp)
-                        dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
-
-                        rospy.loginfo("the s is: "+str(self.s))
-
-                        if (self.s > self.s_max):
-
-                            msg_lane_pose.v_ref = self.v
-                            msg_lane_pose.d = 0.0
-                            msg_lane_pose.d_ref = 0.0
-                            msg_lane_pose.phi = 0.0
-                            msg_lane_pose.curvature_ref = 0.0
-                            self.state = self.state_dict['DONE']
-                            self.done_time = rospy.Time.now()
-
-                        else:
-                            msg_lane_pose.v_ref = self.v
-                            msg_lane_pose.d = dist
-                            msg_lane_pose.d_ref = 0.0
-                            msg_lane_pose.phi = theta
-                            msg_lane_pose.curvature_ref = curvature
+                # find nearest point
+                for i in range(0, len(self.transformed_path)):
+                    vec = self.transformed_path[i] - pos
+                    dis = np.sqrt(vec[0]**2 + vec[1]**2)
+                    if dis < nearest_dis:
+                        nearest_dis = dis
+                        nearest_idx = i
 
 
-                    else:
-                        msg_lane_pose.v_ref = 0.0
-                        msg_lane_pose.d = 0.0
-                        msg_lane_pose.d_ref = 0.0
-                        msg_lane_pose.phi = 0.0
-                        msg_lane_pose.curvature_ref = 0.0
+                #TODO if  distance from last point smaller than 0.05:
+                    #TODO we're done!
+                    # msg_lane_pose.v_ref = self.v
+                    # msg_lane_pose.d = 0.0
+                    # msg_lane_pose.d_ref = 0.0
+                    # msg_lane_pose.phi = 0.0
+                    # msg_lane_pose.curvature_ref = 0.0
+                    # self.state = self.state_dict['DONE']
+                    # self.done_time = rospy.Time.now()
 
-                    self.pub_lane_pose.publish(msg_lane_pose)
+                #if nearest_idx < len(self.transformed_path)-1:
+                    # TODO calc d and phi from nearest_idx and nearest_idx+1
+                #else:
+                    #TODO lane_pose msg should be that we just go straigt, do d and phi = 0
+
+                #TODO publish pose to lane controller
+                # msg_lane_pose.v_ref = self.v
+                # msg_lane_pose.d = dist
+                # msg_lane_pose.d_ref = 0.0
+                # msg_lane_pose.phi = theta
+                # msg_lane_pose.curvature_ref = 0
+                #self.pub_lane_pose.publish(msg_lane_pose)
+
 
             elif self.state == self.state_dict['DONE']:
 
-                # switch back to lane following if in lane
-                if self.in_lane and (rospy.Time.now() - self.in_lane_time).to_sec() < self.in_lane_timeout:
                     msg_done = BoolStamped()
                     msg_done.header.stamp = rospy.Time.now()
                     msg_done.data = True
                     self.pub_done.publish(msg_done)
                     self.state = self.state_dict['IDLE']
 
-                # go straight for 2.0 secs if not in lane yet. After 2 secs stop.
-                else:
-                    '''open-loop'''
-                    if self.open_loop:
-                        if (rospy.Time.now() - self.done_time).to_sec() < self.in_lane_wait_time:
-                            msg_cmds = Twist2DStamped()
-                            msg_cmds.header.stamp = rospy.Time.now()
-                            msg_cmds.v = self.v * self.v_scale
-                            msg_cmds.omega = 0.0 * self.omega_scale
-                            self.pub_cmds.publish(msg_cmds)
-                        else:
-                            msg_cmds = Twist2DStamped()
-                            msg_cmds.header.stamp = rospy.Time.now()
-                            msg_cmds.v = 0.0 * self.v_scale
-                            msg_cmds.omega = 0.0 * self.omega_scale
-                            self.pub_cmds.publish(msg_cmds)
-                            rospy.loginfo("[%s] Could not find lane. Stopping now." % (self.node_name))
-                            self.state = self.state_dict['ERROR']
-
-                    else:
-                        '''closed-loop'''
-                        if (rospy.Time.now() - self.done_time).to_sec() < self.in_lane_wait_time:
-                            msg_lane_pose = LanePose()
-                            msg_lane_pose.header.stamp = rospy.Time.now()
-                            msg_lane_pose.v_ref = self.v
-                            msg_lane_pose.d = 0.0
-                            msg_lane_pose.d_ref = 0.0
-                            msg_lane_pose.phi = 0.0
-                            msg_lane_pose.curvature_ref = 0.0
-                            self.pub_lane_pose.publish(msg_lane_pose)
-                        else:
-                            msg_lane_pose = LanePose()
-                            msg_lane_pose.header.stamp = rospy.Time.now()
-                            msg_lane_pose.v_ref = 0.0
-                            msg_lane_pose.d = 0.0
-                            msg_lane_pose.d_ref = 0.0
-                            msg_lane_pose.phi = 0.0
-                            msg_lane_pose.curvature_ref = 0.0
-                            self.pub_lane_pose.publish(msg_lane_pose)
-                            rospy.loginfo("[%s] Could not find lane. Stopping now." % (self.node_name))
-                            self.state = self.state_dict['ERROR']
-
-            else:
-                rospy.loginfo("[%s] Something went wrong." % (self.node_name))
 
             rate.sleep()
 
@@ -420,37 +308,30 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Could not initialize intersection localizer." % (self.node_name))
             return False
 
+        self.intersection_init_pose = best_pose_meas
         self.poseEstimator.Reset(best_pose_meas, img_msg.header.stamp)
         return True
 
     def InitializePath(self):
-        # waiting for instructions where to go
-         #if self.turn_type < 0 or (rospy.Time.now() - self.turn_type_time).to_sec() > self.turn_type_timeout:
-        #     rospy.loginfo("[%s] No current turn type information." % (self.node_name))
-        #     return False
-        #TODO uncomment
-        pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
 
-        rospy.loginfo("The duck will go: " +str(self.turn_type))
-        pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
+        pose_pred, _ = self.poseEstimator.PredictState(rospy.Time.now())
+        x = pose_pred[0]
+        y = pose_pred[1]
+        theta = pose_pred[2]
+        direction = "LEFT" if self.turn_type == 0 else ("RIGHT" if self.turn_type == 2 else "STRAIGHT")
+        rospy.loginfo("Duckiebot will drive: " + str(direction))
 
         rospy.loginfo("[%s] Planning path from (%f,%f,%f) to (%f,%f,%f)." % (self.node_name, pose_init[0], pose_init[1],pose_init[2],pose_final[0],pose_final[1],pose_final[2]))
 
-        if not self.pathPlanner.PlanPath(pose_init, pose_final):
-            rospy.loginfo("[%s] Could not compute feasible path." % (self.node_name))
-            return False
+        #TODO use pose_pred to transform path
+        # self.transformed_path = magic(pose_pred)
 
-        else:
-            msg_path_computed = BoolStamped()
-            msg_path_computed.header.stamp = rospy.Time.now()
-            msg_path_computed.data = True
-            self.pub_path_computed.publish(msg_path_computed)
-            msg_path_computed.data = False
-            return True
+        msg_path_computed = BoolStamped()
+        msg_path_computed.header.stamp = rospy.Time.now()
+        msg_path_computed.data = True
+        self.pub_path_computed.publish(msg_path_computed)
+        return True
 
-    def InLaneCallback(self,msg):
-        self.in_lane = msg.data
-        self.in_lane_time = rospy.Time.now()
 
 
     def stopCar(self,event):
@@ -464,6 +345,7 @@ class IntersectionNavigation(object):
 
         if self.state == self.state_dict['IDLE'] and msg.state == 'INTERSECTION_PLANNING':
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
+            self.MainLoop()
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
 
         if msg.state == 'INTERSECTION_CONTROL' and self.go == False:
@@ -482,18 +364,7 @@ class IntersectionNavigation(object):
         rospy.loginfo("YOOOO TURNTYPE  " + str(self.turn_type))
         self.turn_type_time = rospy.Time.now()
 
-    def ImageCallback(self, msg):
-        if self.state == self.state_dict['TRAVERSING']:
-            # predict pose
-            pose_pred, _ = self.poseEstimator.PredictState(msg.header.stamp)
-            msg_out = IntersectionPoseImg()
-            msg_out.header.stamp = msg.header.stamp
-            msg_out.x = pose_pred[0]
-            msg_out.y = pose_pred[1]
-            msg_out.theta = pose_pred[2]
-            msg_out.type = self.intersection_type
-            msg_out.img = msg
-            self.pub_intersection_pose_img.publish(msg_out)
+
 
     def PoseCallback(self, msg):
         if msg.likelihood > 0.40:
@@ -503,13 +374,7 @@ class IntersectionNavigation(object):
                                                              msg.header.stamp)
 
 
-    def CmdCallback(self, msg):
-        if self.state == self.state_dict['INITIALIZING_PATH'] or self.state == self.state_dict['TRAVERSING']:
-            cmd_msg = Twist2DStamped()
-            cmd_msg.v = msg.v / self.v_scale
-            cmd_msg.omega = msg.omega / self.omega_scale
-            cmd_msg.header.stamp = msg.header.stamp
-            self.poseEstimator.FeedCommandQueue(cmd_msg)
+
 
     def SetupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -532,6 +397,3 @@ if __name__ == '__main__':
 
     # setup proper shutdown behavior
     rospy.on_shutdown(node.OnShutdown)
-
-    # run main logic
-    node.MainLoop()
