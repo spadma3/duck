@@ -157,8 +157,10 @@ if __name__ == '__main__':
 
     # prepare pygame
     pygame.init()
-
-    logo = pygame.image.load("images/logo.png")
+    
+    file_dir = os.path.dirname(__file__)
+    file_dir = (file_dir + "/") if  (file_dir) else ""
+    logo = pygame.image.load(file_dir + "images/logo.png")
 
     pygame.display.set_icon(logo)
     screen = pygame.display.set_mode((screen_size,screen_size))
