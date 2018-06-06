@@ -11,7 +11,7 @@ import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped
 
 
-# This node localizes Apriltags prior defined in TODO: Add Config File
+# This node localizes Apriltags prior defined in
 # Coordinates will be given in
 # Subscribes:   Apriltag detections (tf)
 # Publishes:    Coordinates of BotAprilTag in Reference to FixedTags as tf_message
@@ -112,39 +112,30 @@ class AprilLocalLocalization(object):
                 # cantrans = tf.canTransform('quacky/color_optical_frame', 'Tag15', now)
 
 
-                # TODO: Coordinates transform for each fixed frame
+                # Coordinates transform for each fixed frame
                 for fixed_frame in self.fixed_tags_dict:
 
 
                     #  in terminal it would be rosrun tf tf_echo fixed_frame bot_frame
+                    # how about the time, does it work this way?
                     try:
                         (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(new_info.id), 'Tag'+str(fixed_frame), rospy.Time(0))
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                         continue
 
-
-
-
-                    # # Broadcast transform of fixed AprilTag
-                    # pos_x = detection.pose.pose.pose.position.x
-                    # pos_y = detection.pose.pose.pose.position.y
-                    # pos_z = detection.pose.pose.pose.position.z
-                    # orient_x = detection.pose.pose.pose.orientation.x
-                    # orient_y = detection.pose.pose.pose.orientation.y
-                    # orient_z = detection.pose.pose.pose.orientation.z
-                    # orient_w = detection.pose.pose.pose.orientation.w
-                    #
-                    #
-                    #
-                    #
+                    # Publish this as a tf message TODO: maybe an new unique topic would be more useful here?
                     self.pub_tf.sendTransform(trans,
-                                                              rot,
-                                                              rospy.Time.now(),
-                                                              new_info.vehicle_name,
-                                                              'Tag'+str(fixed_frame))
+                                              rot,
+                                              rospy.Time.now(),
+                                              new_info.vehicle_name,
+                                              'Tag'+str(fixed_frame))
 
-                    #self.pub_fixed_apriltags_tf.transform
-
+                    #TODO: Test if this output is actually correct
+                    # Debugging Output
+                    trans_rnd = ['%.2f' % elem for elem in trans]
+                    rot_rnd   = ['%.2f' % elem for elem in rot]
+                    rospy.loginfo("%s: Translation: %s Orientation: %s in reference to Tag%s",
+                                   new_info.vehicle_name, trans_rnd, rot_rnd, fixed_frame)
 
 
 
