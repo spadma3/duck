@@ -5,6 +5,8 @@ import rospy
 from sensor_msgs.msg import Joy
 import os, sys
 import socket
+import re
+
 
 screen_size = 300
 speed_tang = 1.0
