@@ -152,9 +152,18 @@ if __name__ == '__main__':
     # obtain vehicle name
     veh_name = os.environ['VEHICLE_NAME']
 
+    veh_no = re.sub("\D", "", veh_name)
+    main_letter = veh_name[0]
+
     # prepare pygame
     pygame.init()
+
+    logo = pygame.image.load("images/logo.png")
+
+    pygame.display.set_icon(logo)
     screen = pygame.display.set_mode((screen_size,screen_size))
+    pygame.display.set_caption(veh_name)
+
     prepare_dpad()
 
     # prepare ROS node
