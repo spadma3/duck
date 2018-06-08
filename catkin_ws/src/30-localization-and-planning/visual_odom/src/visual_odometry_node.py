@@ -19,6 +19,9 @@ class VOEstimator(object):
 		self.running = False
 		self.pinhole_cam = PinholeCamera(640.0, 480.0, 347.5, 338.46, 313.8, 263.9)
 		self.bridge = CvBridge()
+		self.v = 0.0
+		self.point_1 = np.array([0.0,0.0])
+		self.point_2 = np.array([0.0, 0.0])
 
 		self.setupParams()
 
@@ -34,7 +37,7 @@ class VOEstimator(object):
 		self.pub_pose_viz = rospy.Publisher("~pose_visualization", PointStamped, queue_size=1)
 
 		self.VisualOdometryEstimator = None
-		self.frame_id = -2
+		self.frame_id = -5
 		self.last_pos = np.array([0,0])
 
 		## update Parameters timer
@@ -43,6 +46,7 @@ class VOEstimator(object):
 
 	######## Callback functions begin ########
 	def cbVelocities(self, msg):
+		self.v = msg.v
 		if self.VisualOdometryEstimator is not None:
 			self.VisualOdometryEstimator.velocity = msg.v
 
@@ -52,7 +56,7 @@ class VOEstimator(object):
 	def cbImage(self, msg):
 		if not self.running: return
 
-		self.frame_id = self.frame_id + 1
+
 		try:
 			img = self.bridge.imgmsg_to_cv2(msg, "mono8")
 		except CvBridgeError as e:
@@ -60,9 +64,19 @@ class VOEstimator(object):
 			return
 
 		# Update our estimation
-		self.VisualOdometryEstimator.update(img)
+		if self.v != 0.0:
+			self.frame_id = self.frame_id + 1
+			self.VisualOdometryEstimator.update(img)
+
+		if self.frame_id == -3:
+			x,y,_ = self.getRawEstimate()
+			self.point_1 = np.array([x,y])
+		if self.frame_id == 0:
+			x,y,_ = self.getRawEstimate()
+			self.point_2 = np.array([x,y])
 
 		if self.frame_id <= 0: return
+
 		self.estimatePosition()
 
 	def cbStopEstimation(self, msg):
@@ -71,16 +85,14 @@ class VOEstimator(object):
 		self.VisualOdometryEstimator = None
 
 	def cbStartEstimation(self, msg):
+		self.frame_id = -5
 		if not msg.data: return
 		self.running = True
 
 		self.VisualOdometryEstimator = VisualOdometry(self.pinhole_cam, self.min_features)
-		self.frame_id = -2
 
-	######## Callback functions end ########
 
-	######## Functionality begin ########
-	def estimatePosition(self):
+	def getRawEstimate(self):
 		cur_t = self.VisualOdometryEstimator.cur_t
 		x, y, z = cur_t[0], cur_t[1], cur_t[2]
 		x2,y2,z2 = x,y,z
@@ -90,11 +102,29 @@ class VOEstimator(object):
 		R = np.matrix([[1,0,0],[0,np.cos(a),-np.sin(a)],[0,np.sin(a),np.cos(a)]])
 		vec_rot = R.dot(vec)
 
-		# Using coordinate system: x initial driving direction, y 90deg right of init pose
+		# Using coordinate system: x initial driving direction, y 90deg left of init pose
 		y,_,x = -float(vec_rot[0]),float(vec_rot[1]),float(vec_rot[2])
 
 		direction = np.array([x,y]) - self.last_pos
 		theta = np.arctan2(direction[1],direction[0])
+		self.last_pos = np.array([x,y])
+		return x,y,theta
+	######## Callback functions end ########
+
+	######## Functionality begin ########
+	def estimatePosition(self):
+		init_dir_vec = self.point_2 - self.point_1
+		angle = np.arctan2(init_dir_vec[1], init_dir_vec[0])
+		R = np.matrix([[np.cos(angle), -np.sin(angle)],[np.sin(angle), np.cos(angle)]])
+
+
+		x_r,y_r,theta_r = self.getRawEstimate()
+		vec = np.array([[x_r],[y_r]])
+		vec_transl = vec - np.reshape(self.point_1, (2,1))
+
+		pose_corrected = R.dot(vec_transl)
+		x,y,theta = float(pose_corrected[0]), float(pose_corrected[1]), theta_r + angle
+
 
 		# Publish obtained position
 		pose_msg = Pose2DStamped()
@@ -115,7 +145,7 @@ class VOEstimator(object):
 
 	######## Parameter functions begin ########
 	def setupParams(self):
-		self.min_features = self.setupParam("~min_features", 50)
+		self.min_features = self.setupParam("~min_features", 150)
 		self.intersection_speed = self.setupParam("~intersection_speed", 0.1)
 
 	def updateParams(self,event):
