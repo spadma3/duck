@@ -54,13 +54,12 @@ class VisualOdometry:
         self.focal = cam.fx
         self.pp = (cam.cx, cam.cy)
         self.trueX, self.trueY, self.trueZ = 0, 0, 0
-        self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
-        #self.detector = cv2.xfeatures2d.SURF_create(600)
+        #self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
+        self.detector = cv2.xfeatures2d.SURF_create(900)
         self.velocity = velocity
         self.time_now=0
 
     def getAbsoluteScale(self):
-        #TODO calculate driven distance between frames and return it here
         self.time_now=time.time()
         self.elapsed_time = self.time_now - self.time_last
         print self.elapsed_time
@@ -85,6 +84,7 @@ class VisualOdometry:
         self.time_last = time.time()
 
     def processFrame(self):
+
         if not self.px_ref.any():
             return
         self.px_ref, self.px_cur = featureTracking(self.last_frame, self.new_frame, self.px_ref)

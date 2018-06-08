@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import String, Int32, Bool
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CameraInfo
 from duckietown_msgs.msg import Pose2DStamped
 from geometry_msgs.msg import PointStamped
 from cv_bridge import CvBridge, CvBridgeError
@@ -17,6 +17,7 @@ class VOEstimator(object):
 	def __init__(self):
 		self.node_name = "Visual Odometry Node"
 		self.running = False
+		self.pinhole_cam = PinholeCamera(640.0, 480.0, 347.5, 338.46, 313.8, 263.9)
 		self.bridge = CvBridge()
 
 		self.setupParams()
@@ -25,6 +26,7 @@ class VOEstimator(object):
 		self.sub_img = rospy.Subscriber("~image", Image, self.cbImage, queue_size=1)
 		self.sub_start = rospy.Subscriber("~start_estimation", Bool, self.cbStartEstimation, queue_size=1)
 		self.sub_stop = rospy.Subscriber("~stop_estimation", Bool, self.cbStopEstimation, queue_size=1)
+		self.sub_cam_info = rospy.Subscriber("~camera_info", CameraInfo, self.cbCameraInfo, queue_size=1)
 
 		## Publisher
 		self.pub_estimation = rospy.Publisher("~estimation", Pose2DStamped, queue_size=1)
@@ -37,7 +39,11 @@ class VOEstimator(object):
 		## update Parameters timer
 		self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
+
 	######## Callback functions begin ########
+	def cbCameraInfo(self, msg):
+		K = msg.K
+		self.cam = PinholeCamera(msg.width, msg.height, K[0], K[4], K[2], K[5])
 	def cbImage(self, msg):
 		if not self.running: return
 
@@ -62,8 +68,8 @@ class VOEstimator(object):
 	def cbStartEstimation(self, msg):
 		if not msg.data: return
 		self.running = True
-		cam = PinholeCamera(640.0, 480.0, 1192, 1192, 320.0, 240.0)
-		self.VisualOdometryEstimator = VisualOdometry(cam, self.intersection_speed, self.min_features)
+
+		self.VisualOdometryEstimator = VisualOdometry(self.pinhole_cam, self.intersection_speed, self.min_features)
 		self.frame_id = -2
 
 	######## Callback functions end ########
@@ -72,7 +78,7 @@ class VOEstimator(object):
 	def estimatePosition(self):
 		cur_t = self.VisualOdometryEstimator.cur_t
 		x, y, z = cur_t[0], cur_t[1], cur_t[2]
-
+		x2,y2,z2 = x,y,z
 		# Rotate around axis (since camera is tilted)
 		a = -np.pi/36
 		vec = np.array([x,y,z])
