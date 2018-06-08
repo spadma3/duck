@@ -63,6 +63,7 @@
     <!-- run the odometry thing -->
     <remap from="visual_odometry_node/image" to="camera_node/image/rect" />
     <remap from="visual_odometry_node/camera_info" to="camera_node/camera_info" />
+    <remap from="visual_odometry_node/for_kin_node_velocities" to="forward_kinematics_node/velocity" />
     <include file="$(find visual_odometry)/launch/visual_odometry_node.launch">
         <arg name="veh" value="$(arg veh)"/>
         <arg name="local" value="$(arg local)"/>

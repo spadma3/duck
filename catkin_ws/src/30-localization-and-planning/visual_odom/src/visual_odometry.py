@@ -41,7 +41,7 @@ class PinholeCamera:
 
 
 class VisualOdometry:
-    def __init__(self, cam, velocity, min_features):
+    def __init__(self, cam, min_features):
         self.min_features = min_features
         self.frame_stage = 0
         self.cam = cam
@@ -56,7 +56,7 @@ class VisualOdometry:
         self.trueX, self.trueY, self.trueZ = 0, 0, 0
         #self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
         self.detector = cv2.xfeatures2d.SURF_create(900)
-        self.velocity = velocity
+        self.velocity = 0.0
         self.time_now=0
 
     def getAbsoluteScale(self):

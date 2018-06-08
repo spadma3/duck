@@ -2,7 +2,7 @@
 import rospy
 from std_msgs.msg import String, Int32, Bool
 from sensor_msgs.msg import Image, CameraInfo
-from duckietown_msgs.msg import Pose2DStamped
+from duckietown_msgs.msg import Pose2DStamped, Twist2DStamped
 from geometry_msgs.msg import PointStamped
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
@@ -27,6 +27,7 @@ class VOEstimator(object):
 		self.sub_start = rospy.Subscriber("~start_estimation", Bool, self.cbStartEstimation, queue_size=1)
 		self.sub_stop = rospy.Subscriber("~stop_estimation", Bool, self.cbStopEstimation, queue_size=1)
 		self.sub_cam_info = rospy.Subscriber("~camera_info", CameraInfo, self.cbCameraInfo, queue_size=1)
+		self.sub_for_kin = rospy.Subscriber("~for_kin_node_velocities", Twist2DStamped, self.cbVelocities, queue_size=1)
 
 		## Publisher
 		self.pub_estimation = rospy.Publisher("~estimation", Pose2DStamped, queue_size=1)
@@ -41,6 +42,10 @@ class VOEstimator(object):
 
 
 	######## Callback functions begin ########
+	def cbVelocities(self, msg):
+		if self.VisualOdometryEstimator is not None:
+			self.VisualOdometryEstimator.velocity = msg.v
+
 	def cbCameraInfo(self, msg):
 		K = msg.K
 		self.cam = PinholeCamera(msg.width, msg.height, K[0], K[4], K[2], K[5])
@@ -69,7 +74,7 @@ class VOEstimator(object):
 		if not msg.data: return
 		self.running = True
 
-		self.VisualOdometryEstimator = VisualOdometry(self.pinhole_cam, self.intersection_speed, self.min_features)
+		self.VisualOdometryEstimator = VisualOdometry(self.pinhole_cam, self.min_features)
 		self.frame_id = -2
 
 	######## Callback functions end ########
@@ -86,7 +91,7 @@ class VOEstimator(object):
 		vec_rot = R.dot(vec)
 
 		# Using coordinate system: x initial driving direction, y 90deg right of init pose
-		y,_,x = float(vec_rot[0]),float(vec_rot[1]),float(vec_rot[2])
+		y,_,x = -float(vec_rot[0]),float(vec_rot[1]),float(vec_rot[2])
 
 		direction = np.array([x,y]) - self.last_pos
 		theta = np.arctan2(direction[1],direction[0])
