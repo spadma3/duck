@@ -26,7 +26,8 @@ class UnicornIntersectionNode(object):
         self.traj_straight = np.array([[0.000,0.027,0.054,0.081,0.107,0.134,0.161,0.188,0.215,0.242,0.268,0.295,0.322,0.349,0.376,0.403,0.429,0.456,0.483,0.510], [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
         self.traj_right = np.array([[0.000,0.011,0.022,0.033,0.044,0.054,0.064,0.074,0.083,0.091,0.099,0.107,0.113,0.119,0.124,0.128,0.131,0.133,0.135,0.135], [0.000,0.000,-0.002,-0.004,-0.007,-0.011,-0.016,-0.022,-0.028,-0.036,-0.044,-0.052,-0.061,-0.071,-0.081,-0.091,-0.102,-0.113,-0.124,-0.135]])
 
-        self.traj = self.traj_left
+        shift = np.array([[0.1],[0]])
+        self.traj = self.traj_left + shift
         ## Subscribers
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.set_state = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)

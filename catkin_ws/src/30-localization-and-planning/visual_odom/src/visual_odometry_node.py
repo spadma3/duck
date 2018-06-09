@@ -6,7 +6,7 @@ from duckietown_msgs.msg import Pose2DStamped, Twist2DStamped
 from geometry_msgs.msg import PointStamped
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
-
+import time
 from visual_odometry import PinholeCamera, VisualOdometry
 # DVisual Odometry node
 # Author: Gianmarco Bernasconi/Julien Kindle
@@ -69,9 +69,11 @@ class VOEstimator(object):
 			self.VisualOdometryEstimator.update(img)
 
 		if self.frame_id == -3:
+			self.start_time = time.time()
 			x,y,_ = self.getRawEstimate()
 			self.point_1 = np.array([x,y])
 		if self.frame_id == 0:
+			self.t_sec_frame = time.time()
 			x,y,_ = self.getRawEstimate()
 			self.point_2 = np.array([x,y])
 
@@ -121,7 +123,7 @@ class VOEstimator(object):
 		x_r,y_r,theta_r = self.getRawEstimate()
 		vec = np.array([[x_r],[y_r]])
 		vec_transl = vec - np.reshape(self.point_1, (2,1))
-
+		vec_transl = vec_transl - np.array([[(self.t_sec_frame-self.start_time) * self.v],[0]])
 		pose_corrected = R.dot(vec_transl)
 		x,y,theta = float(pose_corrected[0]), float(pose_corrected[1]), theta_r + angle
 

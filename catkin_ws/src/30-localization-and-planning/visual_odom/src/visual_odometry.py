@@ -57,7 +57,6 @@ class VisualOdometry:
         #self.detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
         self.detector = cv2.xfeatures2d.SURF_create(900)
         self.velocity = 0.0
-        self.time_now=0
 
     def getAbsoluteScale(self):
         self.time_now=time.time()
@@ -81,7 +80,7 @@ class VisualOdometry:
         #print self.cur_t
         self.frame_stage = STAGE_DEFAULT_FRAME
         self.px_ref = self.px_cur
-        self.time_last = time.time()
+        #self.time_last = time.time()
 
     def processFrame(self):
 
