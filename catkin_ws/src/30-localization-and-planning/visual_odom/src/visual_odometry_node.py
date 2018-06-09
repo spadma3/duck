@@ -79,7 +79,7 @@ class VOEstimator(object):
 
 		if self.frame_id <= 0: return
 
-		self.estimatePosition()
+		self.estimatePosition(msg.header)
 
 	def cbStopEstimation(self, msg):
 		if not msg.data: return
@@ -114,7 +114,7 @@ class VOEstimator(object):
 	######## Callback functions end ########
 
 	######## Functionality begin ########
-	def estimatePosition(self):
+	def estimatePosition(self, header_img):
 		init_dir_vec = self.point_2 - self.point_1
 		angle = np.arctan2(init_dir_vec[1], init_dir_vec[0])
 		R = np.matrix([[np.cos(angle), -np.sin(angle)],[np.sin(angle), np.cos(angle)]])
@@ -130,6 +130,7 @@ class VOEstimator(object):
 
 		# Publish obtained position
 		pose_msg = Pose2DStamped()
+		pose_msg.header = header_img
 		pose_msg.x = x
 		pose_msg.y = y
 		pose_msg.theta = theta

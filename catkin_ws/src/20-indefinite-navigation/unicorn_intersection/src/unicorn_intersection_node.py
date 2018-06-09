@@ -3,7 +3,7 @@ import rospy
 import numpy as np
 from duckietown_msgs.msg import TurnIDandType, FSMState, BoolStamped, LanePose, Pose2DStamped, Twist2DStamped
 from std_msgs.msg import Float32, Int16, Bool, String
-from geometry_msgs.msg import Point, PoseStamped, Pose
+from geometry_msgs.msg import Point, PoseStamped, Pose, PointStamped
 from nav_msgs.msg import Path
 import time
 import math
@@ -19,6 +19,11 @@ class UnicornIntersectionNode(object):
 
         self.active = False
         self.pos = np.array([0.0,0.0,0.0])
+        self.pos_est = self.pos
+
+        self.w_est = 0.5
+        self.w_meas = 0.5
+
         self.turn_type = -1
         self.traj2 =np.array([[0.000,0.031,0.062,0.092,0.122,0.151,0.178,0.205,0.230,0.254,0.276,0.296,0.314,0.330,0.343,0.355,0.364,0.370,0.374,0.375,0.376,0.380,0.386,0.395,0.407,0.420,0.436,0.454,0.474,0.496,0.520,0.545,0.572,0.599,0.628,0.658,0.688,0.719,0.750],[0.000,0.001,0.005,0.011,0.020,0.032,0.045,0.061,0.079,0.099,0.121,0.145,0.170,0.197,0.224,0.253,0.283,0.313,0.344,0.375,0.406,0.437,0.467,0.497,0.526,0.553,0.580,0.605,0.629,0.651,0.671,0.689,0.705,0.718,0.730,0.739,0.745,0.749,0.750]])
 
@@ -41,12 +46,12 @@ class UnicornIntersectionNode(object):
         self.pub_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_viz_path = rospy.Publisher("~viz_path", Path, queue_size=1)
         self.pub_car_cmd = rospy.Publisher("/lex/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
-
-
+        self.pub_pose_viz = rospy.Publisher("~pos_est_viz", PointStamped, queue_size=1)
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
-
+        self.last_ts = None
+        self.omega_last = 0.0
 
     def controlActions(self, d, theta,v):
         msg = Twist2DStamped()
@@ -57,11 +62,16 @@ class UnicornIntersectionNode(object):
 
         rospy.loginfo("OMEGA:  " + str(msg.omega))
         self.pub_car_cmd.publish(msg)
+        return msg.omega
 
     def cbEstimation(self, msg):
+        timestamp_now = rospy.Time.now()
+        image_delay_stamp = timestamp_now - msg.header.stamp
+        image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs / 1e9
+
         x,y,theta = msg.x, msg.y, msg.theta
         self.pos = np.array([x,y,theta])
-
+        self.pos_est = self.w_est*self.pos_est + self.w_meas * self.pos
 
     def cbDebugging(self, msg):
         pathmsg = Path()
@@ -83,6 +93,8 @@ class UnicornIntersectionNode(object):
 
         if msg.data:
             self.pos = np.array([0.0,0.0,0.0])
+            self.last_ts = None
+            self.pos_est = self.pos
             self.active = True
             msg_bool = Bool()
             msg_bool.data = True
@@ -108,7 +120,7 @@ class UnicornIntersectionNode(object):
         self.turn_type = msg.turn_type
 
     def pubStandStill(self):
-        self.controlActions(0, 0,0.0)
+        self.controlActions(0, 0, 0.0)
         return
         pose_msg = LanePose()
         pose_msg.d = 0
@@ -118,23 +130,39 @@ class UnicornIntersectionNode(object):
         self.pub_pose.publish(pose_msg)
     def navigationLoop(self):
         while self.active:
-            idx_nearest = self.getNearestIdx(self.pos, self.traj)
+            time_now = time.time()
+            dt = 0
+            if self.last_ts is not None: dt = self.last_ts-time_now
+
+            self.last_ts = time_now
+            # Update estimate
+            theta_n = self.pos_est[2] + self.omega_last*dt
+            x_n =  -self.v * dt * np.cos(theta_n) + self.pos_est[0]
+            y_n =  self.v * dt * np.sin(theta_n) + self.pos_est[1]
+
+            self.pos_est = np.array([x_n, y_n, theta_n])
+
+
+
+
+
+            idx_nearest = self.getNearestIdx(self.pos_est, self.traj)
             if idx_nearest >= self.traj.shape[1]-6:
                 rospy.loginfo("DOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONE")
                 self.active = False
                 self.pubStandStill()
                 return
-            rospy.loginfo("POS " + str(self.pos) + "   IDX " + str(idx_nearest))
+            rospy.loginfo("POS " + str(self.pos_est) + "   IDX " + str(idx_nearest))
 
             p1_x,p1_y = self.traj[0,idx_nearest], self.traj[1,idx_nearest]
             p2_x,p2_y = self.traj[0,idx_nearest+1], self.traj[1,idx_nearest+1]
             p1 = np.array([p1_x, p1_y])
             p2 = np.array([p2_x, p2_y])
-            pc = np.array([self.pos[0], self.pos[1]])
+            pc = np.array([self.pos_est[0], self.pos_est[1]])
             d_err = np.cross(p2-p1, pc-p1) / np.linalg.norm(p2-p1)
             theta_ref = -(np.arctan2(p2_x-p1_x,p2_y-p1_y)-np.pi/2)
 
-            theta_err = theta_ref - self.pos[2]
+            theta_err = theta_ref - self.pos_est[2]
             theta_err = (theta_err + np.pi) % (2*np.pi) - np.pi
             theta_err = -theta_err
             rospy.loginfo("NEAREST IDX: " + str(idx_nearest))
@@ -147,8 +175,17 @@ class UnicornIntersectionNode(object):
 
             #self.pub_pose.publish(pose_msg)
 
-            self.controlActions(d_err, -theta_err,self.v)
-            rospy.sleep(0.05)
+            omega = self.controlActions(d_err, -theta_err,self.v)
+
+            self.omega_last = omega
+
+            pose_msg2 = PointStamped()
+            pose_msg2.point.x = self.pos_est[0]
+            pose_msg2.point.y = self.pos_est[1]
+            pose_msg2.point.z = 0.0
+            pose_msg2.header.frame_id = "base_link"
+            self.pub_pose_viz.publish(pose_msg2)
+            rospy.sleep(0.02)
 
 
     def getDistanceToDestination(self, pos, traj):
@@ -172,11 +209,16 @@ class UnicornIntersectionNode(object):
         self.k_theta = self.setupParam("~k_d", 0)
         self.omega_max = self.setupParam("~omega_max", 0)
         self.v = self.setupParam("~v", 0)
+        self.w_est = self.setupParam("~w_est", 0)
+        self.w_meas = self.setupParam("~w_meas", 0)
+
     def updateParams(self,event):
         self.k_d = rospy.get_param("~k_d")
         self.k_theta = rospy.get_param("~k_theta")
         self.omega_max = rospy.get_param("~omega_max")
         self.v = rospy.get_param("~v")
+        self.w_est = rospy.get_param("~w_est")
+        self.w_meas = rospy.get_param("~w_meas")
 
 
     def setupParam(self,param_name,default_value):

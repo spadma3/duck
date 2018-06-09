@@ -2,3 +2,5 @@ k_d: 12
 k_theta: 2
 omega_max: 2.2
 v: 0.13
+w_meas: 0.7
+w_est: 0.3
