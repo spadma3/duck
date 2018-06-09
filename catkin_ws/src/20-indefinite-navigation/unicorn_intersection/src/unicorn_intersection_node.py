@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from duckietown_msgs.msg import TurnIDandType, FSMState, BoolStamped, LanePose, Pose2DStamped
+from duckietown_msgs.msg import TurnIDandType, FSMState, BoolStamped, LanePose, Pose2DStamped, Twist2DStamped
 from std_msgs.msg import Float32, Int16, Bool, String
 from geometry_msgs.msg import Point, PoseStamped, Pose
 from nav_msgs.msg import Path
@@ -40,6 +40,7 @@ class UnicornIntersectionNode(object):
         self.pub_stop_est = rospy.Publisher("~stop_estimation", Bool, queue_size=1)
         self.pub_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_viz_path = rospy.Publisher("~viz_path", Path, queue_size=1)
+        self.pub_car_cmd = rospy.Publisher("/lex/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
 
 
         ## update Parameters timer
@@ -47,6 +48,15 @@ class UnicornIntersectionNode(object):
 
 
 
+    def controlActions(self, d, theta,v):
+        msg = Twist2DStamped()
+        msg.v = v
+        msg.omega = -self.k_d*d + self.k_theta*theta
+        if np.abs(msg.omega) > self.omega_max:
+            msg.omega = np.sign(msg.omega)*self.omega_max
+
+        rospy.loginfo("OMEGA:  " + str(msg.omega))
+        self.pub_car_cmd.publish(msg)
 
     def cbEstimation(self, msg):
         x,y,theta = msg.x, msg.y, msg.theta
@@ -98,6 +108,8 @@ class UnicornIntersectionNode(object):
         self.turn_type = msg.turn_type
 
     def pubStandStill(self):
+        self.controlActions(0, 0,0.0)
+        return
         pose_msg = LanePose()
         pose_msg.d = 0
         pose_msg.phi = 0
@@ -123,7 +135,8 @@ class UnicornIntersectionNode(object):
             theta_ref = -(np.arctan2(p2_x-p1_x,p2_y-p1_y)-np.pi/2)
 
             theta_err = theta_ref - self.pos[2]
-
+            theta_err = (theta_err + np.pi) % (2*np.pi) - np.pi
+            theta_err = -theta_err
             rospy.loginfo("NEAREST IDX: " + str(idx_nearest))
             rospy.loginfo("D_ERR: " + str(d_err))
             rospy.loginfo("THETA_ERR: " + str(theta_err))
@@ -132,7 +145,9 @@ class UnicornIntersectionNode(object):
             pose_msg.phi = -theta_err
             pose_msg.v_ref = 0.1
 
-            self.pub_pose.publish(pose_msg)
+            #self.pub_pose.publish(pose_msg)
+
+            self.controlActions(d_err, -theta_err,self.v)
             rospy.sleep(0.05)
 
 
@@ -153,13 +168,15 @@ class UnicornIntersectionNode(object):
         return idx_min
 
     def setupParams(self):
-        self.maintenance_entrance = self.setupParam("~maintenance_entrance", 0)
-        self.maintenance_exit = self.setupParam("~maintenance_exit", 0)
-
-
+        self.k_d = self.setupParam("~k_theta", 0)
+        self.k_theta = self.setupParam("~k_d", 0)
+        self.omega_max = self.setupParam("~omega_max", 0)
+        self.v = self.setupParam("~v", 0)
     def updateParams(self,event):
-        self.maintenance_entrance = rospy.get_param("~maintenance_entrance")
-        self.maintenance_exit = rospy.get_param("~maintenance_exit")
+        self.k_d = rospy.get_param("~k_d")
+        self.k_theta = rospy.get_param("~k_theta")
+        self.omega_max = rospy.get_param("~omega_max")
+        self.v = rospy.get_param("~v")
 
 
     def setupParam(self,param_name,default_value):

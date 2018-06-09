@@ -96,17 +96,17 @@ class VOEstimator(object):
 
 	def getRawEstimate(self):
 		cur_t = self.VisualOdometryEstimator.cur_t
-		x, y, z = cur_t[0], cur_t[1], cur_t[2]
-		x2,y2,z2 = x,y,z
+		x_t, y_t, z_t = cur_t[0], cur_t[1], cur_t[2]
 		# Rotate around axis (since camera is tilted)
-		a = -np.pi/36
-		vec = np.array([x,y,z])
-		R = np.matrix([[1,0,0],[0,np.cos(a),-np.sin(a)],[0,np.sin(a),np.cos(a)]])
-		vec_rot = R.dot(vec)
+		#a = -np.pi/36
+		#vec = np.array([x,y,z])
+		#R = np.matrix([[1,0,0],[0,np.cos(a),-np.sin(a)],[0,np.sin(a),np.cos(a)]])
+		#vec_rot = R.dot(vec)
 
 		# Using coordinate system: x initial driving direction, y 90deg left of init pose
-		y,_,x = -float(vec_rot[0]),float(vec_rot[1]),float(vec_rot[2])
-
+		#y,_,x = -float(vec_rot[0]),float(vec_rot[1]),float(vec_rot[2])
+		y = -float(x_t)
+		x = float(z_t)
 		direction = np.array([x,y]) - self.last_pos
 		theta = np.arctan2(direction[1],direction[0])
 		self.last_pos = np.array([x,y])

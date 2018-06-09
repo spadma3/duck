@@ -1,2 +1,4 @@
-maintenance_entrance: 0
-maintenance_exit: 0
+k_d: 12
+k_theta: 2
+omega_max: 2.2
+v: 0.13
