@@ -3,6 +3,7 @@ import pygame
 import time
 import rospy
 from sensor_msgs.msg import Joy
+from duckietown_msgs.msg import BoolStamped
 import os, sys
 import socket
 import re
@@ -16,9 +17,10 @@ speed_norm = 1.0
 time_to_wait = 10000
 last_ms = 0
 
+last_ms_p = 0
 
 def loop():
-    global last_ms, time_to_wait
+    global last_ms, time_to_wait, last_ms_p
     veh_standing = True
 
     while True:
@@ -29,6 +31,7 @@ def loop():
             rospy.get_master().getSystemState()
             #end-of-checking
             last_ms = ms_now
+
 
         # add dpad to screen
         screen.blit(dpad, (0,0))
@@ -70,6 +73,11 @@ def loop():
 
 
         # activate line-following aka autopilot
+        if keys[pygame.K_p]:
+            msg_int = BoolStamped()
+            msg_int.data = True
+            pub_int.publish(msg_int)
+
         if keys[pygame.K_a]:
             msg.buttons[7] = 1
 
@@ -159,7 +167,7 @@ if __name__ == '__main__':
 
     # prepare pygame
     pygame.init()
-    
+
     file_dir = os.path.dirname(__file__)
     file_dir = (file_dir + "/") if  (file_dir) else ""
     logo = pygame.image.load(file_dir + "images/logo.png")
@@ -175,6 +183,7 @@ if __name__ == '__main__':
 
     # prepare ROS publisher
     pub_joystick = rospy.Publisher("/" + str(veh_name) + "/joy", Joy, queue_size=1)
+    pub_int = rospy.Publisher("/" + str(veh_name) + "/coordinator_node/intersection_go", BoolStamped, queue_size=1)
 
     # print the hint
     print_hint()
