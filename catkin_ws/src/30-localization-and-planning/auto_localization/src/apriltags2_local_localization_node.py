@@ -81,13 +81,13 @@ class AprilLocalLocalization(object):
         # Load tag detections message
         for detection in msg.detections:
 
-            rospy.loginfo("[%s] detection", self.node_name)
+            # rospy.loginfo("[%s] detection", self.node_name)
             # ------ start tag info processing
-            # rospy.loginfo("detection.id [%s]", detection.id[0])
+
             new_info = TagInfo()
             new_info.id = int(detection.id[0])
             id_info = self.tags_dict[new_info.id]
-            #rospy.loginfo(id_info)
+
 
 
             # Check yaml file to fill in ID-specific information
@@ -117,7 +117,7 @@ class AprilLocalLocalization(object):
 
 
                     #  in terminal it would be rosrun tf tf_echo fixed_frame bot_frame
-                    # how about the time, does it work this way?
+                    # how about the time?? rospy.time(0) probably induces an artificial delay
                     try:
                         (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(new_info.id), 'Tag'+str(fixed_frame), rospy.Time(0))
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
@@ -132,10 +132,12 @@ class AprilLocalLocalization(object):
 
                     #TODO: Test if this output is actually correct
                     # Debugging Output
-                    trans_rnd = ['%.2f' % elem for elem in trans]
-                    rot_rnd   = ['%.2f' % elem for elem in rot]
-                    rospy.loginfo("%s: Translation: %s Orientation: %s in reference to Tag%s",
-                                   new_info.vehicle_name, trans_rnd, rot_rnd, fixed_frame)
+                    rot_euler = tf.transformations.euler_from_quaternion(rot)
+                    rot_euler = [elem * 360 / (2 *3.14159) for elem in rot_euler]
+                    trans_rnd = ['%.3f' % elem for elem in trans]
+                    rot_rnd   = ['%.1f' % elem for elem in rot_euler]
+                    rospy.loginfo("%s In reference to Tag%s: \nTranslation: %s \nOrientation: %s \n",
+                                   new_info.vehicle_name, fixed_frame, trans_rnd, rot_rnd)
 
 
 
