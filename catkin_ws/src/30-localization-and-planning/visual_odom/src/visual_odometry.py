@@ -108,6 +108,7 @@ class VisualOdometry:
     def update(self, img):
         assert(img.ndim==2 and img.shape[0]==self.cam.height and img.shape[1]==self.cam.width), "Frame: provided image has not the same size as the camera model or image is not grayscale"
         self.new_frame = img
+        
         if(self.frame_stage == STAGE_DEFAULT_FRAME):
             self.processFrame()
         elif(self.frame_stage == STAGE_SECOND_FRAME):

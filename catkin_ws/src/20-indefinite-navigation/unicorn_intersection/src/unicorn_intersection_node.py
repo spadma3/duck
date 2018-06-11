@@ -52,11 +52,14 @@ class UnicornIntersectionNode(object):
 
         self.last_ts = None
         self.omega_last = 0.0
+        self.init_odo = False
+        
 
     def controlActions(self, d, theta,v):
         msg = Twist2DStamped()
         msg.v = v
         msg.omega = -self.k_d*d + self.k_theta*theta
+        msg.omega += 0.8
         if np.abs(msg.omega) > self.omega_max:
             msg.omega = np.sign(msg.omega)*self.omega_max
 
@@ -96,6 +99,7 @@ class UnicornIntersectionNode(object):
             self.last_ts = None
             self.pos_est = self.pos
             self.active = True
+            self.init_odo = False
             msg_bool = Bool()
             msg_bool.data = True
             self.pub_start_est.publish(msg_bool)
@@ -130,6 +134,14 @@ class UnicornIntersectionNode(object):
         self.pub_pose.publish(pose_msg)
     def navigationLoop(self):
         while self.active:
+
+            if not self.init_odo:
+                self.init_odo = True
+                self.controlActions(0,0,0.1)
+                rospy.sleep(1)
+                self.controlActions(0,0,0.0)
+                rospy.sleep(2)
+
             time_now = time.time()
             dt = 0
             if self.last_ts is not None: dt = self.last_ts-time_now

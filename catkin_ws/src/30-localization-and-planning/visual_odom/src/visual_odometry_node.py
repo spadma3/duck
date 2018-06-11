@@ -43,6 +43,8 @@ class VOEstimator(object):
 		## update Parameters timer
 		self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
+		self.img_between = 2
+		self.first_frame = True
 
 	######## Callback functions begin ########
 	def cbVelocities(self, msg):
@@ -66,7 +68,13 @@ class VOEstimator(object):
 		# Update our estimation
 		if self.v != 0.0:
 			self.frame_id = self.frame_id + 1
-			self.VisualOdometryEstimator.update(img)
+			if self.first_frame or self.img_between < 0:
+				self.VisualOdometryEstimator.update(img)
+				self.first_frame = False
+			else:
+				self.img_between -=1
+		else:
+			self.VisualOdometryEstimator.time_last=time.time()
 
 		if self.frame_id == -3:
 			self.start_time = time.time()
@@ -87,6 +95,8 @@ class VOEstimator(object):
 		self.VisualOdometryEstimator = None
 
 	def cbStartEstimation(self, msg):
+		self.img_between = 2
+		self.first_frame = True
 		self.frame_id = -5
 		if not msg.data: return
 		self.running = True
@@ -125,6 +135,7 @@ class VOEstimator(object):
 		vec_transl = vec - np.reshape(self.point_1, (2,1))
 		vec_transl = vec_transl - np.array([[(self.t_sec_frame-self.start_time) * self.v],[0]])
 		pose_corrected = R.dot(vec_transl)
+		pose_corrected = vec_transl
 		x,y,theta = float(pose_corrected[0]), float(pose_corrected[1]), theta_r + angle
 
 
