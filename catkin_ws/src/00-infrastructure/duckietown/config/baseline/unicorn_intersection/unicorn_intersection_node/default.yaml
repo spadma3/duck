@@ -8,6 +8,6 @@ ff_right: -0.2
 
 LFparams_left: {"red_to_white": True}
 LFparams_straight: {"red_to_white": True}
-LFparams_right: {}
+LFparams_right: {"red_to_white": False}
 
 debug_dir: -1
