@@ -1,5 +1,13 @@
 time_left_turn: 2
 time_straight_turn: 2
 time_right_turn: 2
-ff_left: 1.5
-ff_right: -1
+
+ff_left: 0.5
+ff_straight: 0
+ff_right: -0.2
+
+LFparams_left: {"red_to_white": True}
+LFparams_straight: {"red_to_white": True}
+LFparams_right: {}
+
+debug_dir: -1
