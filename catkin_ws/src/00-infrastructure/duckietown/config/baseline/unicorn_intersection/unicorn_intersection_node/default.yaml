@@ -10,4 +10,7 @@ LFparams_left: {"red_to_white": True}
 LFparams_straight: {"red_to_white": True}
 LFparams_right: {"red_to_white": False}
 
+omega_max_left: 2
+omega_max_straight: 1
+omega_max_right: 999
 debug_dir: -1
