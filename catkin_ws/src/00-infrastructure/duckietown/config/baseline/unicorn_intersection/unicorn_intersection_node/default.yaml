@@ -1,16 +1,16 @@
-time_left_turn: 2
+time_left_turn: 3.5
 time_straight_turn: 2
 time_right_turn: 2
 
-ff_left: 0.5
+ff_left: 1.1
 ff_straight: 0
-ff_right: -0.2
+ff_right: -1.8
 
 LFparams_left: {"red_to_white": True}
 LFparams_straight: {"red_to_white": True}
 LFparams_right: {"red_to_white": False}
 
-omega_max_left: 2
+omega_max_left: 0.7
 omega_max_straight: 1
-omega_max_right: 999
+omega_max_right: 1
 debug_dir: -1
