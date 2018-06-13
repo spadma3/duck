@@ -11,9 +11,9 @@ class MocapLocalizationNode(object):
         self.node_name = "Mocap Localization" 
 
         # base tag id      
-        self.base_tag_id = [191, 192, 193]
+        self.base_tag_id = [581, 582, 583]
         # vehicle tag id    
-        self.vehicle_tag_id = [194, 195]
+        self.vehicle_tag_id = [584, 585]
 
         # base tag groundtruth point
         self.base_tag_point = np.array([[0, 0, 0], [1.5, 0, 0], [0, 1.5, 0]], dtype='f')
@@ -33,7 +33,7 @@ class MocapLocalizationNode(object):
         self.pub_vehicle_pose_pair = rospy.Publisher("~vehicle_pose_pair", PoseArray, queue_size=1)
 
     def processTagDetections(self,tag_detections_msg):
-        print "-----------------------------------------------"
+        ## print "-----------------------------------------------"
         # assign base tag coordination
         self.base_tag_point = np.array([[0, 0, 0], [1.5, 0, 0], [0, 1.5, 0]], dtype='f')
         for tag_detection in tag_detections_msg.detections:
@@ -58,6 +58,7 @@ class MocapLocalizationNode(object):
                     self.tag_detect_count += 1 
         if(self.tag_detect_count != 5):
             self.tag_detect_count = 0
+            print 'non enough tags'
             return
         self.tag_detect_count = 0
 
