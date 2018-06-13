@@ -6,11 +6,15 @@ ff_left: 1.1
 ff_straight: 0
 ff_right: -1.8
 
-LFparams_left: {"red_to_white": True}
+LFparams_left: {"red_to_white": True, phi_max: 0.1, range_est: 0.6}
 LFparams_straight: {"red_to_white": True}
 LFparams_right: {"red_to_white": False}
 
-omega_max_left: 0.7
+omega_min_left: -1.5
+omega_max_left: 0.4
+omega_min_straight: -1
 omega_max_straight: 1
+omega_min_right: -1
 omega_max_right: 1
+
 debug_dir: -1
