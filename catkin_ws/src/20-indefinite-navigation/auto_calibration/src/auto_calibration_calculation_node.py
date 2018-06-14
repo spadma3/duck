@@ -20,6 +20,9 @@ class AutoCalibrationCalculationNode(object):
         #Node active?
         self.active = False
 
+        #Parameters
+        self.setupParams()
+
         #Publishers
         self.pub_car_cmd = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
         self.pub_calc_done = rospy.Publisher("~calibration_calculation_stop",BoolStamped, queue_size=1)
@@ -78,14 +81,43 @@ class AutoCalibrationCalculationNode(object):
             tag.position.x = 1
             tag.position.y = 0.5
             tag.position.z = 0.05
-            tag.orientation.x = 4.48965921e-11
+            tag.orientation.x = 0
             tag.orientation.y = 0
-            tag.orientation.z = 0
-            tag.orientation.w = 1
+            tag.orientation.z = 1
+            tag.orientation.w = 0
             tag_t_world = tr.translation_matrix((tag.position.x,tag.position.y,tag.position.z))
-            tag_R_world = tr.quaternion_matrix((tag.orientation.x,tag.orientation.y,tag.orientation.z,tag.orientation.w))
+            tag_R_world = tr.quaternion_matrix((tag.orientation.w,tag.orientation.x,tag.orientation.y,tag.orientation.z))
             tag_T_world = tr.concatenate_matrices(tag_t_world,tag_R_world)
-            rospy.loginfo("matrix = %s" %(tag_T_world))
+
+            cam=Pose()
+            cam.position.x = 0.2
+            cam.position.y = 0.1
+            cam.position.z = 0
+            cam.orientation.x = 0.173643
+            cam.orientation.y = 0
+            cam.orientation.z = 0.984808
+            cam.orientation.w = 0
+            tag_t_cam= tr.translation_matrix((cam.position.x,cam.position.y,cam.position.z))
+            tag_R_cam = tr.quaternion_matrix((cam.orientation.w,cam.orientation.x,cam.orientation.y,cam.orientation.z))
+            tag_T_cam = tr.concatenate_matrices(tag_t_cam,tag_R_cam)
+            cam_T_tag = tr.inverse_matrix(tag_T_cam)
+
+            cam_T_world = tr.concatenate_matrices(cam_T_tag,tag_T_world)
+
+            cam_abs=Pose()
+            cam_abs.position = tr.translation_from_matrix(cam_T_world)
+            (roll,pitch,yaw) = tr.euler_from_quaternion(tr.quaternion_from_matrix(cam_T_world))
+
+            tag_loc=self.tags_locations['tag300']
+            rospy.loginfo("test %s" %(tag_loc[0]))
+
+    def setupParams(self):
+        self.tags_locations = self.setupParam("~tags",0)
+
+    def setupParam(self,param_name,default_value):
+        value = rospy.get_param(param_name,default_value)
+        rospy.set_param(param_name,value) #Write to parameter server for transparancy
+        return value
 
     def cbSwitch(self, msg):
         self.active=msg.data
