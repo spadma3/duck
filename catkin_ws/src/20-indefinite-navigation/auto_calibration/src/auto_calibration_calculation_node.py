@@ -3,8 +3,10 @@ import rospy
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped
 from std_msgs.msg import Int16
 from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
+from geometry_msgs.msg import Pose
 import copy
 import time
+import tf.transformations as tr
 
 class AutoCalibrationCalculationNode(object):
 
@@ -28,6 +30,7 @@ class AutoCalibrationCalculationNode(object):
         self.sub_mode = rospy.Subscriber("~mode", FSMState, self.cbFSMState, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_tags = rospy.Subscriber("~tag",AprilTagDetectionArray, self.cbTag, queue_size=10)
+        self.sub_test = rospy.Subscriber("~test",BoolStamped, self.cbTest, queue_size=1)
 
     #Car entered calibration calculation mode
     def cbFSMState(self,msg):
@@ -68,6 +71,21 @@ class AutoCalibrationCalculationNode(object):
         car_cmd_msg.v = 0
         car_cmd_msg.omega = 0
         self.pub_car_cmd.publish(car_cmd_msg)
+
+    def cbTest(self,msg):
+        if msg.data:
+            tag=Pose()
+            tag.position.x = 1
+            tag.position.y = 0.5
+            tag.position.z = 0.05
+            tag.orientation.x = 4.48965921e-11
+            tag.orientation.y = 0
+            tag.orientation.z = 0
+            tag.orientation.w = 1
+            tag_t_world = tr.translation_matrix((tag.position.x,tag.position.y,tag.position.z))
+            tag_R_world = tr.quaternion_matrix((tag.orientation.x,tag.orientation.y,tag.orientation.z,tag.orientation.w))
+            tag_T_world = tr.concatenate_matrices(tag_t_world,tag_R_world)
+            rospy.loginfo("matrix = %s" %(tag_T_world))
 
     def cbSwitch(self, msg):
         self.active=msg.data
