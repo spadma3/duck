@@ -24,7 +24,7 @@ class CameraNode(object):
         self.framerate_low = self.setupParam("~framerate_low",15.0)
         self.res_w = self.setupParam("~res_w",640)
         self.res_h = self.setupParam("~res_h",480)
-	self.expo_time = self.setupParam("~expo_time", 20000)
+	self.expo_time = self.setupParam("~expo_time", 8000)
 
         self.image_msg = CompressedImage()
 
