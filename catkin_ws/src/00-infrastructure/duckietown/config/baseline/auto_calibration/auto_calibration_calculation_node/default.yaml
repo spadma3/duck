@@ -1,9 +1,9 @@
 tags:
   tag300:
     #position:
-    - 0   #x
-    - 2   #y
-    - 4   #z
+    - 1   #x
+    - 0.5   #y
+    - 0.05   #z
     #orientation:
     - 0   #roll
     - 0   #pitch

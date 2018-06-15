@@ -3,10 +3,10 @@ import rospy
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped
 from std_msgs.msg import Int16
 from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
-from geometry_msgs.msg import Pose
 import copy
 import time
 import tf.transformations as tr
+import numpy as np
 
 class AutoCalibrationCalculationNode(object):
 
@@ -68,7 +68,7 @@ class AutoCalibrationCalculationNode(object):
             rospy.loginfo("[%s] Calculation started %s - %s" %(self.node_name, count, self.count_last))
         self.count_last = count
 
-    #Decide which commands should be sent to wheels in calibration mode
+    #In calibration calculation mode, the bot shouldn't move
     def publishControl(self):
         car_cmd_msg = Twist2DStamped()
         car_cmd_msg.v = 0
@@ -77,39 +77,60 @@ class AutoCalibrationCalculationNode(object):
 
     def cbTest(self,msg):
         if msg.data:
-            tag=Pose()
-            tag.position.x = 1
-            tag.position.y = 0.5
-            tag.position.z = 0.05
-            tag.orientation.x = 0
-            tag.orientation.y = 0
-            tag.orientation.z = 1
-            tag.orientation.w = 0
-            tag_t_world = tr.translation_matrix((tag.position.x,tag.position.y,tag.position.z))
-            tag_R_world = tr.quaternion_matrix((tag.orientation.w,tag.orientation.x,tag.orientation.y,tag.orientation.z))
-            tag_T_world = tr.concatenate_matrices(tag_t_world,tag_R_world)
-
-            cam=Pose()
-            cam.position.x = 0.2
-            cam.position.y = 0.1
-            cam.position.z = 0
-            cam.orientation.x = 0.173643
-            cam.orientation.y = 0
-            cam.orientation.z = 0.984808
-            cam.orientation.w = 0
-            tag_t_cam= tr.translation_matrix((cam.position.x,cam.position.y,cam.position.z))
-            tag_R_cam = tr.quaternion_matrix((cam.orientation.w,cam.orientation.x,cam.orientation.y,cam.orientation.z))
-            tag_T_cam = tr.concatenate_matrices(tag_t_cam,tag_R_cam)
-            cam_T_tag = tr.inverse_matrix(tag_T_cam)
-
-            cam_T_world = tr.concatenate_matrices(cam_T_tag,tag_T_world)
-
-            cam_abs=Pose()
-            cam_abs.position = tr.translation_from_matrix(cam_T_world)
-            (roll,pitch,yaw) = tr.euler_from_quaternion(tr.quaternion_from_matrix(cam_T_world))
-
+            #Read tag location from yaml file
             tag_loc=self.tags_locations['tag300']
-            rospy.loginfo("test %s" %(tag_loc[0]))
+
+            #This part can be done outside of the optimization algorithm --> save computation time
+            #If more than 1 tag detected, take the average location of the N detections
+            #Homogenuous transform World to Tag
+            #The tags are assumed to have 0 rotation in x and y
+            tag_R_world = np.array([[np.cos(tag_loc[5]),-np.sin(tag_loc[5]),0],
+                                    [np.sin(tag_loc[5]), np.cos(tag_loc[5]),0],
+                                    [0,0,1]])
+            tag_t_world = np.array([[tag_loc[0]],[tag_loc[1]],[tag_loc[2]]])
+            tag_T_world = np.concatenate((np.concatenate((tag_R_world,tag_t_world), axis=1),np.array([[0,0,0,1]])), axis=0)
+
+            cam_loc=np.array([0.2,0.1,0,0,20/180*3.1415926,3.1415926])
+            #Homogenuous transform Tag to Cam
+            #something wrong between lines 96 and 110 TODO
+            tag_Rx_cam = np.array([[1,0,0],
+                                   [0,np.cos(cam_loc[3]),-np.sin(cam_loc[3])],
+                                   [0,np.sin(cam_loc[3]), np.cos(cam_loc[3])]])
+            tag_Ry_cam = np.array([[ np.cos(cam_loc[4]),0,np.sin(cam_loc[4])],
+                                   [0,1,0],
+                                   [-np.sin(cam_loc[4]),0,np.cos(cam_loc[4])]])
+            tag_Rz_cam = np.array([[np.cos(cam_loc[5]),-np.sin(cam_loc[5]),0],
+                                   [np.sin(cam_loc[5]), np.cos(cam_loc[5]),0],
+                                   [0,0,1]])
+            tag_R_cam = np.dot(np.dot(tag_Rx_cam,tag_Ry_cam),tag_Rz_cam)
+            tag_t_cam = np.array([[cam_loc[0]],[cam_loc[1]],[cam_loc[2]]])
+            tag_T_cam = np.concatenate((np.concatenate((tag_R_cam,tag_t_cam), axis=1),np.array([[0,0,0,1]])), axis=0)
+            cam_T_tag = np.linalg.inv(tag_T_cam)
+
+            rospy.loginfo("test %s" %(cam_T_tag))
+
+            cam_T_world = np.dot(tag_T_world,cam_T_tag)
+
+            x=np.array([0,0,0,0,0,0,0,0,0,0])
+            #to be put into optimization algorithm, x is the parameter vector
+            cam_Rx_bot = np.array([[1,0,0],
+                                   [0,np.cos(x[7]),-np.sin(x[7])],
+                                   [0,np.sin(x[7]), np.cos(x[7])]])
+            cam_Ry_bot = np.array([[ np.cos(x[8]),0,np.sin(x[8])],
+                                   [0,1,0],
+                                   [-np.sin(x[8]),0,np.cos(x[8])]])
+            cam_Rz_bot = np.array([[np.cos(x[9]),-np.sin(x[9]),0],
+                                   [np.sin(x[9]), np.cos(x[9]),0],
+                                   [0,0,1]])
+            cam_R_bot = np.dot(np.dot(cam_Rx_bot,cam_Ry_bot),cam_Rz_bot)
+            cam_t_bot = np.array([[x[4]],[x[5]],[x[6]]])
+            cam_T_bot = np.concatenate((np.concatenate((cam_R_bot,cam_t_bot), axis=1),np.array([[0,0,0,1]])), axis=0)
+            bot_T_cam = np.linalg.inv(cam_T_bot)
+
+            bot_T_world = np.dot(cam_T_world,bot_T_cam)
+
+            #cam_abs.position = tr.translation_from_matrix(cam_T_world)
+            #(roll,pitch,yaw) = tr.euler_from_quaternion(tr.quaternion_from_matrix(cam_T_world))
 
     def setupParams(self):
         self.tags_locations = self.setupParam("~tags",0)
