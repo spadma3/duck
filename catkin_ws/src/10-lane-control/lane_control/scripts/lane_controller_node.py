@@ -152,6 +152,7 @@ class lane_controller(object):
         self.d_ref = self.setupParameter("~d_ref", 0)
         self.phi_ref = self.setupParameter("~phi_ref",0)
         self.object_detected = self.setupParameter("~object_detected", 0)
+        self.shaking = self.setupParameter("~shaking", False)
         self.v_ref_possible["default"] = self.v_max
 
 
@@ -168,6 +169,7 @@ class lane_controller(object):
         object_detected = rospy.get_param("~object_detected")
         self.omega_ff = rospy.get_param("~omega_ff")
         self.omega_max = rospy.get_param("~omega_max")
+        self.shaking = rospy.get_param("~shaking")
         #FeedForward
         #TODO: Feedforward was not working, go away with this error source! (Julien)
 
@@ -453,6 +455,12 @@ class lane_controller(object):
         if np.abs(omega) > self.omega_max: omega = np.sign(omega)*self.omega_max
         omega += self.omega_ff
         car_control_msg.omega = omega
+
+        if self.shaking:
+            tim = time.time()
+            ms = float(str(tim-int(tim))[1:])
+            omega = np.sign(ms-0.5)*8.0
+            car_control_msg.omega = omega
         self.publishCmd(car_control_msg)
         self.last_ms = currentMillis
 

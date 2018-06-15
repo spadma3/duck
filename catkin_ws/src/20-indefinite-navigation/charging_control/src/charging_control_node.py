@@ -122,6 +122,8 @@ class ChargingControlNode(object):
 
     def speedUp(self, event):
         rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.v_charger_inside)
+        rospy.sleep(2.0)
+        rospy.set_param("/" + self.veh_name +"/lane_controller_node/shaking", True)
 
     # Callback on FSM changes
     def cbFSMState(self, state_msg):
@@ -130,6 +132,7 @@ class ChargingControlNode(object):
         if self.state == "CHARGING_FIRST_IN_LINE" and state_msg.state == "LANE_FOLLOWING":
             rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.speed_old)
             rospy.set_param("/" + self.veh_name +"/lane_controller_node/k_Id", self.charger_k_Id_old)
+            rospy.set_param("/" + self.veh_name +"/lane_controller_node/shaking", False)
 
         # if we enter charging area, setup timer for leaving again
         if state_msg.state == "IN_CHARGING_AREA" and self.state != state_msg.state:
