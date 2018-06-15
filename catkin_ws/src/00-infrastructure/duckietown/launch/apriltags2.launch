@@ -45,4 +45,14 @@
           <arg name="param_file_name" value="$(arg param_file_name)"/>
     </include>
 
+    <remap from="apriltags_out" to="apriltags2_local_localization_node/apriltags_out" />
+    <node name="pub2server_easy" pkg="auto_localization" type="pub2server_easy.py" output="screen">
+    </node>
+
+    <include file="$(find tcp_communication)/launch/tcp_communication_client.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+
 </launch>
