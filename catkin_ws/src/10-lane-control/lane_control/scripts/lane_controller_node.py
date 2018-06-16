@@ -5,7 +5,7 @@ import numpy as np
 import rospy
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState
 import time
-
+import numpy as np
 
 class lane_controller(object):
 
@@ -129,6 +129,8 @@ class lane_controller(object):
 
         self.active = True
 
+        self.sleepMaintenance = False
+
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file (see launch-file of this node))
 
         self.v_bar = self.setupParameter("~v_bar",v_bar_fallback)   # Linear velocity
@@ -219,16 +221,37 @@ class lane_controller(object):
         rospy.loginfo("active: " + str(self.active))
     # FSM
 
+    def unsleepMaintenance(self, event):
+        self.sleepMaintenance = False
+
     def cbMode(self,fsm_state_msg):
+
+        if self.fsm_state != fsm_state_msg.state and fsm_state_msg.state == "IN_CHARGING_AREA":
+            self.sleepMaintenance = True
+            self.sendStop()
+            rospy.Timer(rospy.Duration.from_sec(2.0), self.unsleepMaintenance)
+
         self.fsm_state = fsm_state_msg.state    # String of current FSM state
         print "fsm_state changed in lane_controller_node to: " , self.fsm_state
 
     def setFlag(self, msg_flag, flag_name):
         self.flag_dict[flag_name] = msg_flag.data
+        if flag_name == "obstacle_detected":
+             print "flag obstacle_detected changed"
+             print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
+
 
     def PoseHandling(self, input_pose_msg, pose_source):
         if not self.active:
             return
+
+        if self.sleepMaintenance:
+            return
+
+        #if pose_source == "obstacle_avoidance":
+            # print "obstacle_avoidance pose_msg d_ref: ", input_pose_msg.d_ref
+            # print "obstacle_avoidance pose_msg v_ref: ", input_pose_msg.v_ref
+            # print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
 
         self.prev_pose_msg = self.pose_msg
         self.pose_msg_dict[pose_source] = input_pose_msg
@@ -270,11 +293,13 @@ class lane_controller(object):
             if "obstacle_avoidance" in self.pose_msg_dict:
                 self.pose_msg.d_ref = self.pose_msg_dict["obstacle_avoidance"].d_ref
                 self.v_ref_possible["obstacle_avoidance"] = self.pose_msg_dict["obstacle_avoidance"].v_ref
+                #print 'v_ref obst_avoid=' , self.v_ref_possible["obstacle_avoidance"] #For debugging
         if self.flag_dict["implicit_coord_velocity_limit_active"] == True:
             if "implicit_coord" in self.pose_msg_dict:
                 self.v_ref_possible["implicit_coord"] = self.pose_msg_dict["implicit_coord"].v_ref
 
         self.pose_msg.v_ref = min(self.v_ref_possible.itervalues())
+        #print 'v_ref global=', self.pose_msg.v_ref #For debugging
 
         if self.pose_msg != self.prev_pose_msg and self.pose_initialized:
             self.cbPose(self.pose_msg)
@@ -290,6 +315,13 @@ class lane_controller(object):
         msg_actuator_limits_received = BoolStamped()
         msg_actuator_limits_received.data = True
         self.pub_actuator_limits_received.publish(msg_actuator_limits_received)
+
+    def sendStop(self):
+        # Send stop command
+        car_control_msg = Twist2DStamped()
+        car_control_msg.v = 0.0
+        car_control_msg.omega = 0.0
+        self.publishCmd(car_control_msg)
 
     def custom_shutdown(self):
         rospy.loginfo("[%s] Shutting down..." % self.node_name)
@@ -382,7 +414,8 @@ class lane_controller(object):
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
-        omega = self.k_d * self.cross_track_err + self.k_theta * self.heading_err
+        # Scale the parameters linear such that their real value is at 0.22m/s TODO do this nice that  * (0.22/self.v_bar)
+        omega = self.k_d * (0.22/self.v_bar) * self.cross_track_err + self.k_theta * (0.22/self.v_bar) * self.heading_err
         omega += (omega_feedforward)
 
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
@@ -392,17 +425,20 @@ class lane_controller(object):
                 self.heading_integral -= self.heading_err * dt
             omega = math.copysign(car_control_msg.v / self.min_radius, omega)
 
-        # apply integral correction (these should not affect radius, hence checked afterwards)
-        omega -= self.k_Id * self.cross_track_integral
-        omega -= self.k_Iphi * self.heading_integral
-
-        # check if velocity is large enough such that car can actually execute desired omega
-        if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
-            car_control_msg.v = 0.065 + 0.5 * math.fabs(omega) * 0.1
-
+        if not self.fsm_state == "SAFE_JOYSTICK_CONTROL":
+            # apply integral correction (these should not affect radius, hence checked afterwards)
+            omega -= self.k_Id * (0.22/self.v_bar) * self.cross_track_integral
+            omega -= self.k_Iphi * (0.22/self.v_bar) * self.heading_integral
 
         if car_control_msg.v == 0:
             omega = 0
+        else:
+        # check if velocity is large enough such that car can actually execute desired omega
+            if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
+                car_control_msg.v = 0.065 + 0.5 * math.fabs(omega) * 0.1
+
+
+
 
         # apply magic conversion factors
         car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
@@ -418,4 +454,4 @@ if __name__ == "__main__":
     rospy.init_node("lane_controller_node", anonymous=False)  # adapted to sonjas default file
 
     lane_control_node = lane_controller()
-    rospy.spin()
+rospy.spin()

@@ -35,11 +35,11 @@ namespace apriltags_ros{
     AprilTags::TagCodes tag_codes = AprilTags::tagCodes36h11;
     tag_detector_= boost::shared_ptr<AprilTags::TagDetector>(new AprilTags::TagDetector(tag_codes));
     image_sub_ = it_.subscribeCamera("image_rect", 1, &AprilTagDetector::imageCb, this);
-    switch_sub_ = nh.subscribe("switch",1,&AprilTagDetector::switchCB, this);
+    switch_sub_ = nh.subscribe("apriltag_detector_node/switch",1,&AprilTagDetector::switchCB, this);
     image_pub_ = it_.advertise("tag_detections_image", 1);
     detections_pub_ = nh.advertise<duckietown_msgs::AprilTagDetectionArray>("tag_detections", 1);
     pose_pub_ = nh.advertise<geometry_msgs::PoseArray>("tag_detections_pose", 1);
-    on_switch=true;
+    on_switch=false;
   }
   AprilTagDetector::~AprilTagDetector(){
     image_sub_.shutdown();
@@ -50,6 +50,7 @@ namespace apriltags_ros{
   }
 
   void AprilTagDetector::imageCb(const sensor_msgs::ImageConstPtr& msg,const sensor_msgs::CameraInfoConstPtr& cam_info){
+    if (!on_switch) return;
     cv_bridge::CvImagePtr cv_ptr;
     try{
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);

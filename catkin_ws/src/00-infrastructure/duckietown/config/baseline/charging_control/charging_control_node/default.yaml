@@ -1,7 +1,14 @@
+drive_time: 120
+charge_time: 120
+charger: 3
+v_charger_entrance: 0.1
+v_charger_inside: 0.4
+charger_k_Id: 0.1
+
 charging_stations:
   station1:
     path_in:
-      - - 198
+      - - 231
         - 2
     path_out:
       - - 240
@@ -50,15 +57,15 @@ charging_stations:
 
 
 maintenance_entrance:
-  - - 243
+  - - 144
     - 2
-  - - 241
+  - - 135
     - 1
 
 maintenance_exit:
-  - - 242
+  - - 64
     - 1
-  - - 242
+  - - 64
     - 0
 
 charger_FIL_tags:
@@ -67,7 +74,3 @@ charger_FIL_tags:
   - 246
   - 247
   - 199
-
-drive_time: 1
-charge_time: 1
-charger: 3

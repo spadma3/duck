@@ -3,21 +3,35 @@ import pygame
 import time
 import rospy
 from sensor_msgs.msg import Joy
+from duckietown_msgs.msg import BoolStamped
 import os, sys
 import socket
+import re
+
 
 screen_size = 300
 speed_tang = 1.0
 speed_norm = 1.0
 
+
+time_to_wait = 10000
+last_ms = 0
+
+last_ms_p = 0
+
 def loop():
+    global last_ms, time_to_wait, last_ms_p
     veh_standing = True
 
     while True:
 
-        #query rosmaster status, which will raise socket.error when failure
-        rospy.get_master().getSystemState()
-        #end-of-checking
+        ms_now = int(round(time.time() * 1000))
+        if ms_now - last_ms > time_to_wait:
+            #query rosmaster status, which will raise socket.error when failure
+            rospy.get_master().getSystemState()
+            #end-of-checking
+            last_ms = ms_now
+
 
         # add dpad to screen
         screen.blit(dpad, (0,0))
@@ -59,6 +73,11 @@ def loop():
 
 
         # activate line-following aka autopilot
+        if keys[pygame.K_p]:
+            msg_int = BoolStamped()
+            msg_int.data = True
+            pub_int.publish(msg_int)
+
         if keys[pygame.K_a]:
             msg.buttons[7] = 1
 
@@ -143,9 +162,20 @@ if __name__ == '__main__':
     # obtain vehicle name
     veh_name = os.environ['VEHICLE_NAME']
 
+    veh_no = re.sub("\D", "", veh_name)
+    main_letter = veh_name[0]
+
     # prepare pygame
     pygame.init()
+
+    file_dir = os.path.dirname(__file__)
+    file_dir = (file_dir + "/") if  (file_dir) else ""
+    logo = pygame.image.load(file_dir + "images/logo.png")
+
+    pygame.display.set_icon(logo)
     screen = pygame.display.set_mode((screen_size,screen_size))
+    pygame.display.set_caption(veh_name)
+
     prepare_dpad()
 
     # prepare ROS node
@@ -153,6 +183,7 @@ if __name__ == '__main__':
 
     # prepare ROS publisher
     pub_joystick = rospy.Publisher("/" + str(veh_name) + "/joy", Joy, queue_size=1)
+    pub_int = rospy.Publisher("/" + str(veh_name) + "/coordinator_node/intersection_go", BoolStamped, queue_size=1)
 
     # print the hint
     print_hint()

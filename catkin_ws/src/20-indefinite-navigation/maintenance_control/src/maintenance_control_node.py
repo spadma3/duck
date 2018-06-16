@@ -2,7 +2,7 @@
 import rospy
 import numpy as np
 from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos, TurnIDandType, MaintenanceState
-from std_msgs.msg import Float32, Int16, Bool
+from std_msgs.msg import Float32, Int16, Bool, String
 from geometry_msgs.msg import Point
 import time
 import math
@@ -28,6 +28,7 @@ class MaintenanceControlNode(object):
 
         self.go_charging = rospy.Subscriber("~go_charging", Bool, self.cbGoCharging)
         self.go_calibrating = rospy.Subscriber("~go_calibrating", Bool, self.cbGoCalibrating)
+        self.set_state = rospy.Subscriber("~set_state", String, self.cbSetState)
 
         ## Publisher
         self.pub_maintenance_state = rospy.Publisher("~maintenance_state", MaintenanceState, queue_size=1)
@@ -37,7 +38,10 @@ class MaintenanceControlNode(object):
 
 
 
-
+    def cbSetState(self, msg):
+        self.maintenance_state = msg.data
+        self.pubMaintenanceState()
+        
     def cbTurnType(self, msg):
         self.tag_id = msg.tag_id
         self.turn_type = msg.turn_type

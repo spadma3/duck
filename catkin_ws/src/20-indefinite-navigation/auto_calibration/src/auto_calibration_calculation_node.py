@@ -49,6 +49,8 @@ class AutoCalibrationCalculationNode(object):
 
     #The calibration calculation will come in this function
     def calibration(self):
+        if not self.active:
+            return
         rospy.loginfo("[%s] Calculation started." %(self.node_name))
         #Prevents multiple instances of a calibration
         if self.triggered:
@@ -124,8 +126,8 @@ class AutoCalibrationCalculationNode(object):
         count = 0
         for detection in msg.detections:
             count=count+1
-        if count!=0 and self.count_last!=0:
-            rospy.loginfo("[%s] Calculation started %s - %s" %(self.node_name, count, self.count_last))
+        # if count!=0 and self.count_last!=0:
+        #     rospy.loginfo("[%s] Calculation started %s - %s" %(self.node_name, count, self.count_last))
         self.count_last = count
 
     #In calibration calculation mode, the bot shouldn't move
