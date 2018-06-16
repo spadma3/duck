@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-import rospy
+import rospy,copy,time,math
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped
 from std_msgs.msg import Int16
 from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
-import copy
-import time
 import tf.transformations as tr
 import numpy as np
 from scipy.optimize import minimize
@@ -17,6 +15,9 @@ class AutoCalibrationCalculationNode(object):
         self.mode = None
         self.triggered = False
         self.count_last = 0
+
+        #determined by averaging Duckiebot speeds (in rad/s)
+        self.K = 9.45*math.pi
 
         #Node active?
         self.active = False
@@ -35,6 +36,7 @@ class AutoCalibrationCalculationNode(object):
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_tags = rospy.Subscriber("~tag",AprilTagDetectionArray, self.cbTag, queue_size=10)
         self.sub_test = rospy.Subscriber("~test",BoolStamped, self.cbTest, queue_size=1)
+        self.sub_duty_cycle = rospy.Subscriber("~wheels_duty_cycle",WheelsCmdStamped, self.cbDutyCycle, queue_size=1)
 
     #Car entered calibration calculation mode
     def cbFSMState(self,msg):
@@ -110,7 +112,7 @@ class AutoCalibrationCalculationNode(object):
             para=np.ones((9,100))
 
             # optimization
-            solution = minimize(objective,x0,args=para, method='SLSQP',bounds=bnds)
+            solution = minimize(self.objective,x0,args=para, method='SLSQP',bounds=bnds)
             x = solution.x
 
             self.finishCalc()
@@ -130,11 +132,16 @@ class AutoCalibrationCalculationNode(object):
         #     rospy.loginfo("[%s] Calculation started %s - %s" %(self.node_name, count, self.count_last))
         self.count_last = count
 
+    def cbDutyCycle(self,msg):
+        return
+
     #In calibration calculation mode, the bot shouldn't move
     def publishControl(self):
         car_cmd_msg = Twist2DStamped()
         car_cmd_msg.v = 0
         car_cmd_msg.omega = 0
+        car_cmd_msg.header.stamp.secs=0
+        car_cmd_msg.header.stamp.nsecs=0
         self.pub_car_cmd.publish(car_cmd_msg)
 
     #Only test algorithm, can be deleted at the end when everything works, not used in calibration
@@ -206,7 +213,7 @@ class AutoCalibrationCalculationNode(object):
 #########################################################################################################
 
     #Determines the travel of the Duckiebot using the inputs sent to the motors
-    def wheels(x,args): #maybe done? --> Need data to check if right
+    def wheels(self,x,args): #maybe done? --> Need data to check if right
         size=args.shape[1]
         #get velocity and yaw rate from kinematic model
         vel=0.5*(np.dot(x[0],args[1])+np.dot(x[1],args[2]))
@@ -214,9 +221,7 @@ class AutoCalibrationCalculationNode(object):
 
         #extract initial yaw angle form yaw measurement of camera
         yaw=np.zeros(size)
-        tmp=np.zeros(3)
-        tmp=qte(args[6][0],args[7][0],args[8][0],args[9][0])
-        yaw[0]=tmp[2]
+        yaw[0]=args[8][0]
 
         #calculate yaw angle for every single timestamp, using euler forward
         for i in range(1,size):
@@ -231,7 +236,7 @@ class AutoCalibrationCalculationNode(object):
         return [x_est,y_est,0,0,0,yaw[size-1]]
 
     #Determines the travel of the Duckiebot camera from Apriltag detections
-    def odometry(x,args):
+    def odometry(self,x,args):
         #TODO adapt code to work with any apriltag and with camera inputs
 
         #Read tag location from yaml file
@@ -267,7 +272,7 @@ class AutoCalibrationCalculationNode(object):
         return np.zeros(6)
 
     #Determines the travel of the Duckiebot from the movement of its camera
-    def camera(x,args):
+    def camera(self,x,args):
         #TODO adapt code to work
         #Homogenuous transform from camera to Duckiebot 'center'
         cam_Rx_bot = np.array([[1,0,0],
@@ -288,7 +293,7 @@ class AutoCalibrationCalculationNode(object):
         return np.zeros(6)
 
     #quaternion to euler, taken from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles on 05.06.18
-    def qte(w, x, y, z):
+    def qte(self, w, x, y, z):
     	ysqr = y * y
 
     	t0 = +2.0 * (w * x + y * z)
@@ -305,17 +310,32 @@ class AutoCalibrationCalculationNode(object):
     	Z = math.atan2(t3, t4)
 
     	return X, Y, Z
+    #euler to quaternion, adapted from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles on 05.06.18
+    def etq(self,r,p,y):
+        cy = math.cos(y*0.5)
+        sy = math.sin(y*0.5)
+        cr = math.cos(r*0.5)
+        sr = math.sin(r*0.5)
+        cp = math.cos(p*0.5)
+        sp = math.sin(p*0.5)
+
+        w = cy * cr * cp + sy * sr * sp
+        x = cy * sr * cp - sy * cr * sp
+        y = cy * cr * sp + sy * sr * cp
+        z = sy * cr * cp - cy * sr * sp
+
+        return w,x,y,z
 
     #Objective function of the optimization algorithm
-    def objective(x,args):
+    def objective(self,x,args):
         #Weighting matrix
         Q=np.identity(6)
 
         #estimation by wheels
-        est1=wheels(x,args)
+        est1=self.wheels(x,args)
 
         #estimation by camera
-        est2=camera(x,args)
+        est2=self.camera(x,args)
 
         return np.linalg.norm(np.dot(Q,est1-est2))
 

@@ -88,7 +88,7 @@ class AutoCalibrationNode(object):
             calibrate.data = True
             self.calib_done = False
             self.pub_start.publish(calibrate)
-            rospy.Timer(rospy.Duration.from_sec(100), self.finishCalib, oneshot=True)
+            rospy.Timer(rospy.Duration.from_sec(10), self.finishCalib, oneshot=True)
             rospy.loginfo("[%s] Rosbag recording started" %(self.node_name))
 
     #stopping the rosbag recording and starting calibration calculations
