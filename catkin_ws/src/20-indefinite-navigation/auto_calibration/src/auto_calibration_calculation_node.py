@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy,copy,time,math
-from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped
+from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, WheelsCmdStamped
 from std_msgs.msg import Int16
 from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
 import tf.transformations as tr
@@ -16,8 +16,8 @@ class AutoCalibrationCalculationNode(object):
         self.triggered = False
         self.count_last = 0
 
-        #determined by averaging Duckiebot speeds (in rad/s)
-        self.K = 9.45*math.pi
+        #determined 9.35*math.pi by averaging Duckiebot speeds (in rad/s), this value taken from calibration files
+        self.K = 27.0
 
         #Node active?
         self.active = False
