@@ -26,7 +26,7 @@ class ImageTransformerNode():
         self.locked = False
         self.thread_lock = threading.Lock()
         self.r = rospy.Rate(5) # Rate in Hz
-        self.scale_percent=45
+        self.scale_percent=1
         rospy.set_param("~scale_percent", self.scale_percent)
 
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
@@ -66,12 +66,15 @@ class ImageTransformerNode():
         self.ai = AntiInstagram()
         # initialize image bridge
         self.bridge = CvBridge()
+        self.i=0
+        self.sum=0.0
+        self.result_array = np.array([])
+        #rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+        #rospy.Timer(rospy.Duration.from_sec(10.0), self.change_percentage)
 
-        rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
-
-    def updateParams(self, event):
-        self.scale_percent = rospy.get_param("~scale_percent")
+    #def updateParams(self, event):
+        #self.scale_percent = rospy.get_param("~scale_percent")
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -87,7 +90,7 @@ class ImageTransformerNode():
 
     def cbNewImage(self, image_msg):
         # this callback proceeds the latest image, i.e. it applies the current transformation to the image and publishes it
-        # begin2=rospy.Time.now()
+        begin=rospy.get_time()
         if not self.thread_lock.acquire(False):
                 return
 
@@ -147,8 +150,17 @@ class ImageTransformerNode():
         # publish image
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
-        # end3=rospy.Time.now()
-        # duration3=end3-begin3
+        end=rospy.get_time()
+        duration=end-begin
+        rospy.loginfo('i ist: %s' %self.i)
+        if self.i<=49:
+            self.sum=self.sum+float(duration)
+            self.i+=1
+        else:
+            average=(self.sum/50)*10**(-3)
+            self.result_array = np.append(self.result_array, average)
+            self.change_percentage()
+
         # rospy.loginfo('Publishing time: %s' % duration3)
         # begin4=rospy.Time.now()
 
@@ -161,13 +173,13 @@ class ImageTransformerNode():
         # duration4=end4-begin4
         # rospy.loginfo('END OF FUNCTION: %s' % duration4)
         # end2=rospy.Time.now()
-        # duration2=end2-begin2
+        # duration2=end2-begin2self.sub_image
         # rospy.loginfo('TRANSFORMATION: %s' % duration2)
 
     def cbNewTrafo(self, trafo_msg):
         # this callback stores the received linear transformation parameters
         if self.verbose:
-            rospy.loginfo('image transformer: received new trafo!')
+            rospy.loginfo('image tself.sub_imageransformer: received new trafo!')
 
         # memorize transform message
         self.transform = trafo_msg
@@ -185,6 +197,29 @@ class ImageTransformerNode():
         self.transform_CB = th_msg
         self.ai.ThLow = th_msg.th[0:3]
         self.ai.ThHi = th_msg.th[3:6]
+
+
+    def change_percentage(self):
+        rospy.loginfo('scaling: %s' % self.scale_percent)
+        if self.scale_percent<=99:
+            self.scale_percent+=1
+            self.i=0
+            self.sum=0
+
+        else:
+            self.write()
+            self.sub_image.unregister()
+
+    def write(self):
+        csv = open('/home/megaduck/inter_nearest.csv','w+')
+        csv.write('Latencies in ms:'+'\n')
+        csv.write('  ['+'\n')
+        for scaling in xrange(0,99):
+            scale = str(scaling)
+            average=str(self.result_array[scaling])
+            csv.write(average)
+            #csv.write('    {scale percentage: '+ scale +' average time '+ average +'},\n')
+        csv.write('  ]')
 
 
 
