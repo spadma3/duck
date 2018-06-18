@@ -15,6 +15,11 @@ class AutoCalibrationCalculationNode(object):
         self.mode = None
         self.triggered = False
         self.count_last = 0
+        self.data_gathering = False
+        #timestamp, omega_l, omega_r
+        self.wheel_motion = np.zeros((1,3))
+        #timestamp, x , y, z, roll, pitch, yaw
+        self.camera_motion = np.zeros((1,7))
 
         #determined 9.35*math.pi by averaging Duckiebot speeds (in rad/s), this value taken from calibration files
         self.K = 27.0
@@ -36,6 +41,7 @@ class AutoCalibrationCalculationNode(object):
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_tags = rospy.Subscriber("~tag",AprilTagDetectionArray, self.cbTag, queue_size=10)
         self.sub_test = rospy.Subscriber("~test",BoolStamped, self.cbTest, queue_size=1)
+        self.sub_record = rospy.Subscriber("~record",BoolStamped, self.cbRecord, queue_size=1)
         self.sub_duty_cycle = rospy.Subscriber("~wheels_duty_cycle",WheelsCmdStamped, self.cbDutyCycle, queue_size=1)
 
     #Car entered calibration calculation mode
@@ -46,76 +52,10 @@ class AutoCalibrationCalculationNode(object):
             self.triggered = True
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
             self.publishControl()
+            self.data_gathering = False
+            self.resample()
             self.calibration()
         self.mode = msg.state
-
-    #The calibration calculation will come in this function
-    def calibration(self):
-        if not self.active:
-            return
-        rospy.loginfo("[%s] Calculation started." %(self.node_name))
-        #Prevents multiple instances of a calibration
-        if self.triggered:
-            self.triggered = False
-            #rospy.Timer(rospy.Duration.from_sec(5.0), self.finishCalc, oneshot=True)
-            # initial guesses, still random, need to be made more precise
-
-            # x[0] = Rl left wheel radius
-            # x[1] = Rr right wheel radius
-            # x[2] = bl left wheel baseline
-            # x[3] = br right wheel baseline
-            # x[4] = lx x-distance of camera from center
-            # x[5] = ly y-distance of camera from center
-            # x[6] = lz z-distance of camera from center
-            # x[7] = lr roll of camera from center
-            # x[8] = lp pitch of camera from center
-            # x[9] = ly yaw of camera from center
-
-            # args[0][] = timestamp
-            # args[1][] = wl wheel velocity left
-            # args[2][] = wr wheel velocity right
-            # args[3][] = X camera position in X
-            # args[4][] = Y camera position in Y
-            # args[5][] = Z camera position in Z
-            # args[6][] = camera roll
-            # args[7][] = camera pitch
-            # args[8][] = camera yaw
-
-            n = 10
-            x0 = np.zeros(n)
-            x0[0] = 0.025
-            x0[1] = 0.025
-            x0[2] = 0.05
-            x0[3] = 0.05
-            x0[4] = 0.06
-            x0[5] = 0
-            x0[6] = 0.075
-            x0[7] = 0
-            x0[8] = 0.349
-            x0[9] = 0
-
-            # bounds, need to be changed, still random
-            b0 = (0.02,0.035)
-            b1 = (0.02,0.035)
-            b2 = (0.04,0.06)
-            b3 = (0.04,0.06)
-            b4 = (0.04,0.08)
-            b5 = (-0.01,0.01)
-            b6 = (0.06,0.09)
-            b7 = (-0.174,0.174)
-            b8 = (0.174,0.523)
-            b9 = (-0.087,0.087)
-
-            bnds = (b0, b1, b2, b3, b4, b5, b6, b7, b8, b9)
-
-            #Array of camera positions and wheel velocities with corresponding timestamp
-            para=np.ones((9,100))
-
-            # optimization
-            solution = minimize(self.objective,x0,args=para, method='SLSQP',bounds=bnds)
-            x = solution.x
-
-            self.finishCalc()
 
     #Exit function for calibration calculation
     def finishCalc(self, event):
@@ -124,16 +64,33 @@ class AutoCalibrationCalculationNode(object):
         done.data = True
         self.pub_calc_done.publish(done)
 
+    #extract the camera motion from apriltags
     def cbTag(self, msg):
-        count = 0
-        for detection in msg.detections:
-            count=count+1
-        # if count!=0 and self.count_last!=0:
-        #     rospy.loginfo("[%s] Calculation started %s - %s" %(self.node_name, count, self.count_last))
-        self.count_last = count
+        if self.data_gathering:
+            count = 0
+            tmp = np.zeros(6)
+            for detection in msg.detections:
+                count=count+1
+                x = detection.pose.pose.pose.position.x
+                y = detection.pose.pose.pose.position.x
+                z = detection.pose.pose.pose.position.y
+                xq = detection.pose.pose.pose.orientation.x
+                yq = detection.pose.pose.pose.orientation.y
+                zq = detection.pose.pose.pose.orientation.z
+                wq = detection.pose.pose.pose.orientation.w
+                [roll,pitch,yaw] = self.qte(wq,xq,yq,zq)
+                cam_loc=np.array([x,y,z,roll,pitch,yaw])
+                tmp=tmp+self.visual_odometry(cam_loc,detection.id[0])
+            if count != 0:
+                tmp = tmp/count
+                secs = self.toSeconds(msg.header.stamp.secs,msg.header.stamp.nsecs)
+                self.camera_motion = np.append(self.camera_motion,([[secs,tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5]]]),axis=0)
 
+    #extract the wheel motion
     def cbDutyCycle(self,msg):
-        return
+        if self.data_gathering:
+            secs = self.toSeconds(msg.header.stamp.secs,msg.header.stamp.nsecs)
+            self.wheel_motion = np.append(self.wheel_motion,([[secs,msg.vel_left*self.K,msg.vel_right*self.K]]),axis=0)
 
     #In calibration calculation mode, the bot shouldn't move
     def publishControl(self):
@@ -197,16 +154,15 @@ class AutoCalibrationCalculationNode(object):
 
             bot_T_world = np.dot(cam_T_world,bot_T_cam)
 
-    def setupParams(self):
-        self.tags_locations = self.setupParam("~tags",0)
-
-    def setupParam(self,param_name,default_value):
-        value = rospy.get_param(param_name,default_value)
-        rospy.set_param(param_name,value) #Write to parameter server for transparancy
-        return value
 
     def cbSwitch(self, msg):
         self.active=msg.data
+
+    def cbRecord(self, msg):
+        if msg.data:
+            self.data_gathering=msg.data
+            self.wheel_motion = np.zeros((1,3))
+            self.camera_motion = np.zeros((1,7))
 
 #########################################################################################################
 #Functions used in the calibration of the duckiebot
@@ -236,11 +192,11 @@ class AutoCalibrationCalculationNode(object):
         return [x_est,y_est,0,0,0,yaw[size-1]]
 
     #Determines the travel of the Duckiebot camera from Apriltag detections
-    def odometry(self,x,args):
+    def visual_odometry(self,cam_loc,id):
         #TODO adapt code to work with any apriltag and with camera inputs
 
         #Read tag location from yaml file
-        tag_loc=self.tags_locations['tag300']
+        tag_loc=self.tags_locations['tag'+str(id)]
 
         #This part can be done outside of the optimization algorithm --> save computation time
         #If more than 1 tag detected, take the average location of the N detections
@@ -269,7 +225,7 @@ class AutoCalibrationCalculationNode(object):
         cam_T_tag = np.linalg.inv(tag_T_cam)
 
         cam_T_world = np.dot(tag_T_world,cam_T_tag)
-        return np.zeros(6)
+        return np.array([1,2,3,4,5,6])
 
     #Determines the travel of the Duckiebot from the movement of its camera
     def camera(self,x,args):
@@ -326,6 +282,74 @@ class AutoCalibrationCalculationNode(object):
 
         return w,x,y,z
 
+    #The calibration calculation will come in this function
+    def calibration(self):
+        if not self.active:
+            return
+        rospy.loginfo("[%s] Calculation started." %(self.node_name))
+        #Prevents multiple instances of a calibration
+        if self.triggered:
+            self.triggered = False
+            #rospy.Timer(rospy.Duration.from_sec(5.0), self.finishCalc, oneshot=True)
+            # initial guesses, still random, need to be made more precise
+
+            # x[0] = Rl left wheel radius
+            # x[1] = Rr right wheel radius
+            # x[2] = bl left wheel baseline
+            # x[3] = br right wheel baseline
+            # x[4] = lx x-distance of camera from centerecs,nsecs,
+            # x[5] = ly y-distance of camera from center
+            # x[6] = lz z-distance of camera from center
+            # x[7] = lr roll of camera from center
+            # x[8] = lp pitch of camera from center
+            # x[9] = ly yaw of camera from center
+
+            # args[0][] = timestamp
+            # args[1][] = wl wheel velocity left
+            # args[2][] = wr wheel velocity right
+            # args[3][] = X camera position in X
+            # args[4][] = Y camera position in Y
+            # args[5][] = Z camera position in Z
+            # args[6][] = camera roll
+            # args[7][] = camera pitch
+            # args[8][] = camera yaw
+
+            n = 10
+            x0 = np.zeros(n)
+            x0[0] = 0.025
+            x0[1] = 0.025
+            x0[2] = 0.05
+            x0[3] = 0.05
+            x0[4] = 0.06
+            x0[5] = 0
+            x0[6] = 0.075
+            x0[7] = 0
+            x0[8] = 0.349
+            x0[9] = 0
+
+            # bounds, need to be changed, still random
+            b0 = (0.02,0.035)
+            b1 = (0.02,0.035)
+            b2 = (0.04,0.06)
+            b3 = (0.04,0.06)
+            b4 = (0.04,0.08)
+            b5 = (-0.01,0.01)
+            b6 = (0.06,0.09)
+            b7 = (-0.174,0.174)
+            b8 = (0.174,0.523)
+            b9 = (-0.087,0.087)
+
+            bnds = (b0, b1, b2, b3, b4, b5, b6, b7, b8, b9)
+
+            #Array of camera positions and wheel velocities with corresponding timestamp
+            para=np.ones((9,100))
+
+            # optimization
+            #solution = minimize(self.objective,x0,args=para, method='SLSQP',bounds=bnds)
+            #x = solution.x
+
+            self.finishCalc()
+
     #Objective function of the optimization algorithm
     def objective(self,x,args):
         #Weighting matrix
@@ -338,6 +362,21 @@ class AutoCalibrationCalculationNode(object):
         est2=self.camera(x,args)
 
         return np.linalg.norm(np.dot(Q,est1-est2))
+
+    def toSeconds(self,secs,nsecs):
+        return secs + nsecs/1000000000.0
+
+    def resample():
+
+        return
+
+    def setupParams(self):
+        self.tags_locations = self.setupParam("~tags",0)
+
+    def setupParam(self,param_name,default_value):
+        value = rospy.get_param(param_name,default_value)
+        rospy.set_param(param_name,value) #Write to parameter server for transparancy
+        return value
 
     def on_shutdown(self):
         rospy.loginfo("[%s] Shutting down." %(self.node_name))
