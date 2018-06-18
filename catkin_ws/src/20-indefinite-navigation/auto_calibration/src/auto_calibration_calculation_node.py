@@ -140,7 +140,7 @@ class AutoCalibrationCalculationNode(object):
 
     #Determines the travel of the Duckiebot camera from Apriltag detections
     def visual_odometry(self,cam_loc,id):
-        #TODO adapt code to work with any apriltag and with camera inputs
+        #TODO adapt code to have the right output
 
         #Read tag location from yaml file
         tag_loc=self.tags_locations['tag'+str(id)]
@@ -176,7 +176,7 @@ class AutoCalibrationCalculationNode(object):
 
     #Determines the travel of the Duckiebot from the movement of its camera
     def camera(self,x,args):
-        #TODO adapt code to work
+        #TODO adapt code to have the right output
         #Homogenuous transform from camera to Duckiebot 'center'
         cam_Rx_bot = np.array([[1,0,0],
                                [0,np.cos(x[7]),-np.sin(x[7])],
@@ -289,11 +289,11 @@ class AutoCalibrationCalculationNode(object):
             bnds = (b0, b1, b2, b3, b4, b5, b6, b7, b8, b9)
 
             #Array of camera positions and wheel velocities with corresponding timestamp
-            para=np.ones((9,100))
+            #para=np.ones((9,100))
 
             # optimization
-            #solution = minimize(self.objective,x0,args=para, method='SLSQP',bounds=bnds)
-            #x = solution.x
+            solution = minimize(self.objective,x0,args=self.para, method='SLSQP',bounds=bnds)
+            x = solution.x
 
             self.finishCalc()
 
@@ -318,6 +318,40 @@ class AutoCalibrationCalculationNode(object):
         #delete first row of both arrays, as they are filled with zeros
         self.wheel_motion = np.delete(self.wheel_motion,0,0)
         self.camera_motion = np.delete(self.camera_motion,0,0)
+        wheel_entries = np.size(self.wheel_entries,0)
+        camera_entries = np.size(self.camera_motion,0)
+        #delete last camera entry, to be sure that there are wheel entries coming after it
+        self.camera_motion = np.delete(self.camera_motion,camera_entries-1,0)
+        camera_entries=camera_entries-1
+        for i in range(0,camera_entries):
+            for j in range(0,wheel_entries):
+                if (self.wheel_motion[j][0]>self.camera_motion[i][0]):
+                    self.wheel_motion = np.insert(self.wheel_motion,j,[self.camera_motion[i][0],self.wheel_motion[j-1][1],self.wheel_motion[j-1][2]],axis=0)
+                    wheel_entries=wheel_entries+1
+                    #delete all wheel entries before the first camera entry
+                    if (i==0):
+                        self.wheel_motion = np.delete(self.wheel_motion,slice(0,j),0)
+                        wheel_entries = np.size(self.wheel_entries,0)
+                    #delete all wheel entries after the last camera entry
+                    if (i==camera_entries-1):
+                        self.wheel_motion = np.delete(self.wheel_motion,slice(j+1,wheel_entries),0)
+                    break
+        self.para = self.wheel_motion
+
+        self.para = np.append(self.para, np.zeros((np.size(self.para,0),6)),axis=1)
+        wheel_entries = np.size(self.para,0)
+        j = 0
+        for i in range(0,wheel_entries):
+            if (self.camera_motion[j][0]==self.para[i][0]):
+                self.para[i][3] = self.camera_motion[j][1]
+                self.para[i][4] = self.camera_motion[j][2]
+                self.para[i][5] = self.camera_motion[j][3]
+                self.para[i][6] = self.camera_motion[j][4]
+                self.para[i][7] = self.camera_motion[j][5]
+                self.para[i][8] = self.camera_motion[j][6]
+                j=j+1
+
+
 
 
     def setupParams(self):
