@@ -40,7 +40,6 @@ class AutoCalibrationCalculationNode(object):
         self.sub_mode = rospy.Subscriber("~mode", FSMState, self.cbFSMState, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_tags = rospy.Subscriber("~tag",AprilTagDetectionArray, self.cbTag, queue_size=10)
-        self.sub_test = rospy.Subscriber("~test",BoolStamped, self.cbTest, queue_size=1)
         self.sub_record = rospy.Subscriber("~record",BoolStamped, self.cbRecord, queue_size=1)
         self.sub_duty_cycle = rospy.Subscriber("~wheels_duty_cycle",WheelsCmdStamped, self.cbDutyCycle, queue_size=1)
 
@@ -101,63 +100,11 @@ class AutoCalibrationCalculationNode(object):
         car_cmd_msg.header.stamp.nsecs=0
         self.pub_car_cmd.publish(car_cmd_msg)
 
-    #Only test algorithm, can be deleted at the end when everything works, not used in calibration
-    #Also remember to delete the corresponding topic
-    def cbTest(self,msg):
-        if msg.data:
-            #Read tag location from yaml file
-            tag_loc=self.tags_locations['tag300']
-
-            #This part can be done outside of the optimization algorithm --> save computation time
-            #If more than 1 tag detected, take the average location of the N detections
-            #Homogenuous transform World to Tag
-            #The tags are assumed to have 0 rotation in x and y
-            tag_R_world = np.array([[np.cos(tag_loc[5]),-np.sin(tag_loc[5]),0],
-                                    [np.sin(tag_loc[5]), np.cos(tag_loc[5]),0],
-                                    [0,0,1]])
-            tag_t_world = np.array([[tag_loc[0]],[tag_loc[1]],[tag_loc[2]]])
-            tag_T_world = np.concatenate((np.concatenate((tag_R_world,tag_t_world), axis=1),np.array([[0,0,0,1]])), axis=0)
-
-            cam_loc=np.array([0.2,0.1,0,0,20.0/180.0*3.1415926,3.1415926])
-            #Homogenuous transform Tag to Cam
-            tag_Rx_cam = np.array([[1,0,0],
-                                   [0,np.cos(cam_loc[3]),-np.sin(cam_loc[3])],
-                                   [0,np.sin(cam_loc[3]), np.cos(cam_loc[3])]])
-            tag_Ry_cam = np.array([[ np.cos(cam_loc[4]),0,np.sin(cam_loc[4])],
-                                   [0,1,0],
-                                   [-np.sin(cam_loc[4]),0,np.cos(cam_loc[4])]])
-            tag_Rz_cam = np.array([[np.cos(cam_loc[5]),-np.sin(cam_loc[5]),0],
-                                   [np.sin(cam_loc[5]), np.cos(cam_loc[5]),0],
-                                   [0,0,1]])
-            tag_R_cam = np.dot(np.dot(tag_Rz_cam,tag_Ry_cam),tag_Rx_cam)
-            tag_t_cam = np.array([[cam_loc[0]],[cam_loc[1]],[cam_loc[2]]])
-            tag_T_cam = np.concatenate((np.concatenate((tag_R_cam,tag_t_cam), axis=1),np.array([[0,0,0,1]])), axis=0)
-            cam_T_tag = np.linalg.inv(tag_T_cam)
-
-            cam_T_world = np.dot(tag_T_world,cam_T_tag)
-
-            x=np.array([0,0,0,0,0,0,0,0,0,0])
-            #to be put into optimization algorithm, x is the parameter vector
-            cam_Rx_bot = np.array([[1,0,0],
-                                   [0,np.cos(x[7]),-np.sin(x[7])],
-                                   [0,np.sin(x[7]), np.cos(x[7])]])
-            cam_Ry_bot = np.array([[ np.cos(x[8]),0,np.sin(x[8])],
-                                   [0,1,0],
-                                   [-np.sin(x[8]),0,np.cos(x[8])]])
-            cam_Rz_bot = np.array([[np.cos(x[9]),-np.sin(x[9]),0],
-                                   [np.sin(x[9]), np.cos(x[9]),0],
-                                   [0,0,1]])
-            cam_R_bot = np.dot(np.dot(cam_Rz_bot,cam_Ry_bot),cam_Rx_bot)
-            cam_t_bot = np.array([[x[4]],[x[5]],[x[6]]])
-            cam_T_bot = np.concatenate((np.concatenate((cam_R_bot,cam_t_bot), axis=1),np.array([[0,0,0,1]])), axis=0)
-            bot_T_cam = np.linalg.inv(cam_T_bot)
-
-            bot_T_world = np.dot(cam_T_world,bot_T_cam)
-
-
+    #switch for activating the node
     def cbSwitch(self, msg):
         self.active=msg.data
 
+    #Flag for data gathering
     def cbRecord(self, msg):
         if msg.data:
             self.data_gathering=msg.data
@@ -363,12 +310,15 @@ class AutoCalibrationCalculationNode(object):
 
         return np.linalg.norm(np.dot(Q,est1-est2))
 
+    #secs and nsecs to secs double
     def toSeconds(self,secs,nsecs):
         return secs + nsecs/1000000000.0
 
     def resample():
+        #delete first row of both arrays, as they are filled with zeros
+        self.wheel_motion = np.delete(self.wheel_motion,0,0)
+        self.camera_motion = np.delete(self.camera_motion,0,0)
 
-        return
 
     def setupParams(self):
         self.tags_locations = self.setupParam("~tags",0)
