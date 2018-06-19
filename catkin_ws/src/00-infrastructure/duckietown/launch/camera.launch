@@ -67,6 +67,7 @@
 
             <!-- other Rectification node -->
             <group if="$(arg get_rect)">
+                <remap from="image_compressed" to="camera_node/image/compressed"/>
                 <remap from="image_raw" to="camera_node/image/raw"/>
                 <remap from="camera_info" to="camera_node/raw_camera_info"/>
                 <remap from="image_rect_new" to="camera_node/image/rect" />

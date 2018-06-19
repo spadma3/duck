@@ -36,10 +36,13 @@ class ImgRect(object):
         self.bridge = CvBridge()
 
         self.pub_rect = rospy.Publisher("image_rect_new",Image,queue_size=1)
-        # self.sub_compressed_img = rospy.Subscriber("image_raw",CompressedImage,self.cbImg,queue_size=1)
-        self.sub_raw_img = rospy.Subscriber("image_raw",Image,self.cbImg,queue_size=1)
+        self.sub_compressed_img = rospy.Subscriber("image_compressed",CompressedImage,self.cbImg,queue_size=1)
+        #self.sub_raw_img = rospy.Subscriber("image_raw",Image,self.cbImg,queue_size=1)
         self.robot_name = rospy.get_namespace()
         self.robot_name = self.robot_name[1:-1]
+
+        # this is entireliy unessecary but ued for debugging:
+        #self.sub_raw_camera_info = rospy.Subscriber("raw_camera_info", )
 
         self.camera_info_msg = get_camera_info_for_robot(self.robot_name)
         D=self.camera_info_msg.D
