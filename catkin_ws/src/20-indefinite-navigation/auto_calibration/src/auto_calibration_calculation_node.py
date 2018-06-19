@@ -116,26 +116,26 @@ class AutoCalibrationCalculationNode(object):
 #########################################################################################################################################################################################
 
     #Determines the travel of the Duckiebot using the inputs sent to the motors
-    def wheels(self,x,args): #maybe done? --> Need data to check if right
-        size=args.shape[1]
+    def wheels(self,x,args):
+        size=np.size(args,0)
         #get velocity and yaw rate from kinematic model
-        vel=0.5*(np.dot(x[0],args[1])+np.dot(x[1],args[2]))
-        omega=-np.dot(x[0]/x[2],args[1])+np.dot(x[1]/x[3],args[2])
+        vel=0.5*(np.dot(x[0],args[:,1])+np.dot(x[1],args[:,2]))
+        omega=-np.dot(x[0]/x[2],args[:,1])+np.dot(x[1]/x[3],args[:,2])
 
         #extract initial yaw angle form yaw measurement of camera
         yaw=np.zeros(size)
-        yaw[0]=args[8][0]
+        yaw[0]=args[0][8]
 
         #calculate yaw angle for every single timestamp, using euler forward
         for i in range(1,size):
-            yaw[i]=yaw[i-1]+omega[i-1]*(args[0][i]-args[0][i-1])
+            yaw[i]=yaw[i-1]+omega[i-1]*(args[i][0]-args[i-1][0])
 
         x_est=0
         y_est=0
         #calculate x and y movement, using euler forward
         for i in range (0,size-1):
-            x_est=x_est+(args[0][i+1]-args[0][i])*math.cos(yaw[i])*vel[i]
-            y_est=y_est+(args[0][i+1]-args[0][i])*math.sin(yaw[i])*vel[i]
+            x_est=x_est+(args[i+1][0]-args[i][0])*math.cos(yaw[i])*vel[i]
+            y_est=y_est+(args[i+1][0]-args[i][0])*math.sin(yaw[i])*vel[i]
         return [x_est,y_est,0,0,0,yaw[size-1]]
 
     #Determines the travel of the Duckiebot camera from Apriltag detections
@@ -228,15 +228,15 @@ class AutoCalibrationCalculationNode(object):
             # x[8] = lp pitch of camera from center
             # x[9] = ly yaw of camera from center
 
-            # args[0][] = timestamp
-            # args[1][] = wl wheel velocity left
-            # args[2][] = wr wheel velocity right
-            # args[3][] = X camera position in X
-            # args[4][] = Y camera position in Y
-            # args[5][] = Z camera position in Z
-            # args[6][] = camera roll
-            # args[7][] = camera pitch
-            # args[8][] = camera yaw
+            # args[][0] = timestamp
+            # args[][1] = wl wheel velocity left
+            # args[][2] = wr wheel velocity right
+            # args[][3] = X camera position in X
+            # args[][4] = Y camera position in Y
+            # args[][5] = Z camera position in Z
+            # args[][6] = camera roll
+            # args[][7] = camera pitch
+            # args[][8] = camera yaw
 
             n = 10
             x0 = np.zeros(n)
@@ -268,31 +268,43 @@ class AutoCalibrationCalculationNode(object):
             #Array of camera positions and wheel velocities with corresponding timestamp
 
             # optimization
-            solution = minimize(self.objective,x0,args=self.para, method='SLSQP',bounds=bnds)
+            #solution = minimize(self.objective,x0,args=self.para, method='SLSQP',bounds=bnds)
+            solution = minimize(self.objective,x0, method='SLSQP',bounds=bnds)
             x = solution.x
 
             self.finishCalc()
 
     #Objective function of the optimization algorithm
-    def objective(self,x,args):
-        #Weighting matrix
-        #Q=np.identity(6)
-
-        #estimation by wheels
-        est1=self.wheels(x,args)
+    def objective(self,x):
 
         camera_frames = np.size(self.camera_motion,0)
+        wheel_frames = np.size(self.para,0)
         camera_pos = np.zeros(camera_frames,6)
         camera_mov = np.zeros(camera_frames-1,6)
+        wheel_mov = np.zeros(camera_frames-1,6)
+
+        #estimation by wheels
+        start = 0
+        stop = 0
+        for i in range(0,camera_frames-1):
+            for j in range(0,wheel_frames):
+                if self.para[j][0]==self.camera_motion[i][0]:
+                    start=j
+                if self.para[j][0]==self.camera_motion[i+1][0]:
+                    stop=j
+            wheel_mov[i]=self.wheels(x,self.para[start:stop+1])
+
+        #estimation by camera
         for i in range(0,camera_frames):
-            #estimation by camera
-            camera_pos[i]=self.camera(x,self.camera_motion[i])
+            camera_pos[i]=self.camera(x,self.camera_motion[i,1:])
             if i>0:
                 camera_mov[i-1]=camera_pos[i]-camera_pos[i-1]
 
+        #Create vectors to calculate the norm
         camera_mov=np.reshape(camera_mov,np.size(camera_mov))
-        #return np.linalg.norm(np.dot(Q,est1-est2))
-        return np.linalg.norm(est1-camera_mov)
+        wheel_mov=np.reshape(wheel_mov,np.size(wheel_mov))
+
+        return np.linalg.norm(wheel_mov-camera_mov)
 
     #secs and nsecs to secs double
     def toSeconds(self,secs,nsecs):
