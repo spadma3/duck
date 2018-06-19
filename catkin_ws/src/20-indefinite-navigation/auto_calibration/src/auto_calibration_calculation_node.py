@@ -269,19 +269,20 @@ class AutoCalibrationCalculationNode(object):
 
             # optimization
             #solution = minimize(self.objective,x0,args=self.para, method='SLSQP',bounds=bnds)
+            print "Before optimizer"
+            print self.para
             solution = minimize(self.objective,x0, method='SLSQP',bounds=bnds)
             x = solution.x
-
+            print "After optimizer"
             self.finishCalc()
 
     #Objective function of the optimization algorithm
     def objective(self,x):
-
         camera_frames = np.size(self.camera_motion,0)
         wheel_frames = np.size(self.para,0)
-        camera_pos = np.zeros(camera_frames,6)
-        camera_mov = np.zeros(camera_frames-1,6)
-        wheel_mov = np.zeros(camera_frames-1,6)
+        camera_pos = np.zeros((camera_frames,6))
+        camera_mov = np.zeros((camera_frames-1,6))
+        wheel_mov = np.zeros((camera_frames-1,6))
 
         #estimation by wheels
         start = 0
@@ -314,10 +315,10 @@ class AutoCalibrationCalculationNode(object):
         #delete first row of both arrays, as they are filled with zeros
         self.wheel_motion = np.delete(self.wheel_motion,0,0)
         self.camera_motion = np.delete(self.camera_motion,0,0)
-        wheel_entries = np.size(self.wheel_entries,0)
+        wheel_entries = np.size(self.wheel_motion,0)
         camera_entries = np.size(self.camera_motion,0)
         #delete last camera entry, to be sure that there are wheel entries coming after it
-        self.camera_motion = np.delete(self.cametHera_motion,camera_entries-1,0)
+        self.camera_motion = np.delete(self.camera_motion,camera_entries-1,0)
         camera_entries=camera_entries-1
         for i in range(0,camera_entries):
             for j in range(0,wheel_entries):
@@ -327,7 +328,7 @@ class AutoCalibrationCalculationNode(object):
                     #delete all wheel entries before the first camera entry
                     if (i==0):
                         self.wheel_motion = np.delete(self.wheel_motion,slice(0,j),0)
-                        wheel_entries = np.size(self.wheel_entries,0)
+                        wheel_entries = np.size(self.wheel_motion,0)
                     #delete all wheel entries after the last camera entry
                     if (i==camera_entries-1):
                         self.wheel_motion = np.delete(self.wheel_motion,slice(j+1,wheel_entries),0)
@@ -364,7 +365,7 @@ class AutoCalibrationCalculationNode(object):
     # of the euler angles ( x and z are swapped ).
     def Rte(self,R) :
 
-        assert(isRotationMatrix(R))
+        assert(self.isRotationMatrix(R))
         sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
         singular = sy < 1e-6
         if not singular :
