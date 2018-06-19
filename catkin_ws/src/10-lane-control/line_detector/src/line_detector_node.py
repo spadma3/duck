@@ -69,6 +69,12 @@ class LineDetectorNode(object):
 
         rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)
 
+        # For performance evaluation
+        self.total_segments = 0
+        self.false_positives_red = 0
+        self.false_positives_white = 0
+        self.false_positives_yellow = 0
+
 
     def cbFSM(self, msg):
         self.fsm_state = msg.state
@@ -226,6 +232,12 @@ class LineDetectorNode(object):
             lines_normalized_red = ((red.lines + arr_cutoff) * arr_ratio)
             segmentList.segments.extend(self.toSegmentMsg(lines_normalized_red, red.normals, Segment.RED))
 
+
+
+        #Performance evaluation
+        old_total_segments = self.total_segments
+        self.total_segments = old_total_segments + len(white.lines) + len(yellow.lines) + len(red.lines)
+
         self.intermittent_log('# segments: white %3d yellow %3d red %3d' % (len(white.lines),
                 len(yellow.lines), len(red.lines)))
 
@@ -271,6 +283,11 @@ class LineDetectorNode(object):
 
     def onShutdown(self):
         self.loginfo("Shutdown.")
+        #Performance evaluation
+        print '# OF TOTAL SEGMENTS: ', self.total_segments
+        print 'RED FALSE: ', self.false_positives_red
+        print 'YELLOW FALSE: ', self.false_positives_yellow
+        print 'WHITE FALSE: ', self.false_positives_white
 
     def toSegmentMsg(self,  lines, normals, color):
 
@@ -284,6 +301,23 @@ class LineDetectorNode(object):
             segment.pixels_normalized[1].y = y2
             segment.normal.x = norm_x
             segment.normal.y = norm_y
+
+            #Performance evaluation
+            if color == 0:
+                if not 0.66 <= y1 <= 1:
+                    self.false_positives_white += 1
+                elif not 0.66 <= y2 <= 1:
+                    self.false_positives_white += 1
+            elif color == 1:
+                if not 0 <= y1 <= 0.33:
+                    self.false_positives_yellow += 1
+                elif not 0 <= y2 <= 0.33:
+                    self.false_positives_yellow += 1
+            elif color == 2:
+                if not 0.33 <= y1 <= 0.66:
+                    self.false_positives_red += 1
+                elif not 0.33 <= y2 <= 0.66:
+                    self.false_positives_red += 1
 
             segmentMsgList.append(segment)
         return segmentMsgList
