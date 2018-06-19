@@ -8,6 +8,7 @@
     <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
     <arg name="rect" default="false" />
     <arg name="rect_full_ratio" default="false" />
+    <arg name="get_rect" default="true"/>
 
     <!-- camera_node -->
     <group if="$(arg live)">
@@ -26,7 +27,7 @@
             <arg name="veh" value="$(arg veh)"/>
             <arg name="local" value="$(arg local)"/>
             <arg name="config" value="$(arg config)"/>
-            <arg name="param_file_name" value="$(arg param_file_name)"/>
+            <arg name="param_file_name" value="$(arg param_file_name)"/>1
         </include>
     </group>
 
@@ -54,11 +55,22 @@
             </include>
 
             <!-- Rectification -->
-            <group if="$(arg rect)">
+           <!--  <group if="$(arg rect)">
                 <remap from="image_raw" to="camera_node/image/raw"/>
                 <remap from="camera_info" to="camera_node/raw_camera_info"/>
                 <remap from="image_rect_color" to="camera_node/image/rect" />
                 <include file="$(find pi_camera)/launch/image_proc_node.launch">
+                    <arg name="veh" value="$(arg veh)"/>
+                    <arg name="local" value="$(arg local)"/>
+                </include>
+            </group> -->
+
+            <!-- other Rectification node -->
+            <group if="$(arg get_rect)">
+                <remap from="image_raw" to="camera_node/image/raw"/>
+                <remap from="camera_info" to="camera_node/raw_camera_info"/>
+                <remap from="image_rect_new" to="camera_node/image/rect" />
+                <include file="$(find pi_camera)/launch/get_rect_node.launch">
                     <arg name="veh" value="$(arg veh)"/>
                     <arg name="local" value="$(arg local)"/>
                 </include>
