@@ -67,8 +67,14 @@ class ImageTransformerNode():
         # initialize image bridge
         self.bridge = CvBridge()
         self.i=0
+        self.average=0
         self.sum=0.0
+        self.interpolation_count=0
         self.result_array = np.array([])
+        self.standart_deviation=np.array([])
+        self.standart_error=np.array([])
+        self.values=np.array([])
+        #self.interplation=['cv2.INTER_NEAREST','cv2.INTER_LINEAR ','cv2.INTER_AREA','cv2.INTER_CUBIC','cv2.INTER_LANCZOS4' ]
         #rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
         #rospy.Timer(rospy.Duration.from_sec(10.0), self.change_percentage)
 
@@ -109,7 +115,7 @@ class ImageTransformerNode():
         width=int(cv_image.shape[1]*scale_percent / 100)
         height=int(cv_image.shape[0]*scale_percent / 100)
         dim = (width, height)
-        cv_image=cv2.resize(cv_image,dim,interpolation=cv2.INTER_NEAREST )
+        cv_image=cv2.resize(cv_image,dim,interpolation=cv2.INTER_LINEAR)
         tk = TimeKeeper(image_msg)
         #
         # end0=rospy.Time.now()
@@ -151,19 +157,22 @@ class ImageTransformerNode():
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
         end=rospy.get_time()
-        duration=end-begin
+        duration=(end-begin)*10**(3)
         rospy.loginfo('i ist: %s' %self.i)
-        if self.i<=49:
+        if self.i<=99:
+            self.values=np.append(self.values, duration)
             self.sum=self.sum+float(duration)
             self.i+=1
         else:
-            average=(self.sum/50)*10**(-3)
-            self.result_array = np.append(self.result_array, average)
+            self.average=(self.sum/100)
+            se=self.calc_standart_error()
+            rospy.loginfo('Standart_error= %s' %se)
+            self.standart_error=np.append(self.standart_error, se)
+            self.result_array = np.append(self.result_array, self.average)
             self.change_percentage()
 
         # rospy.loginfo('Publishing time: %s' % duration3)
         # begin4=rospy.Time.now()
-
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
 
@@ -179,7 +188,7 @@ class ImageTransformerNode():
     def cbNewTrafo(self, trafo_msg):
         # this callback stores the received linear transformation parameters
         if self.verbose:
-            rospy.loginfo('image tself.sub_imageransformer: received new trafo!')
+            rospy.loginfo('image tself.sub_imageransformer: received cv2.INTER_NEARESTnew trafo!')
 
         # memorize transform message
         self.transform = trafo_msg
@@ -205,23 +214,46 @@ class ImageTransformerNode():
             self.scale_percent+=1
             self.i=0
             self.sum=0
+            self.values=([])
+
+        #
+        # elif self.interpolation_count<=4:
+        #     self.interpolation_count+=1
+        #     self.scale_percent=1
+        #     self.i=0
 
         else:
             self.write()
             self.sub_image.unregister()
 
     def write(self):
-        csv = open('/home/megaduck/inter_nearest.csv','w+')
-        csv.write('Latencies in ms:'+'\n')
-        csv.write('  ['+'\n')
+        csv = open('/home/megaduck/inter_linear.csv','w+')
+        csv.write('average'+'\n')
         for scaling in xrange(0,99):
             scale = str(scaling)
             average=str(self.result_array[scaling])
-            csv.write(average)
+            csv.write(average+', ')
+        csv = open('/home/megaduck/inter_linear_error.csv','w+')
+        csv.write('error'+'\n')
+        for scaling in xrange(0,99):
+            scale = str(scaling)
+            error=str(self.standart_error[scaling])
+            csv.write(error+', ')
+            #csv.write(scale+','+average+'\n')
             #csv.write('    {scale percentage: '+ scale +' average time '+ average +'},\n')
-        csv.write('  ]')
 
+    def calc_standart_error(self):
+        sd=0.0
+        se=sd/((99)**0.5)
 
+        rospy.loginfo('Average: %s' %self.average)
+        for x in xrange(0,99):
+            rospy.loginfo('Value: %s' %self.values[x])
+            sd+=(self.average-self.values[x])**2
+        sd=sd/98
+        sd=sd**0.5
+        se=sd/((99)**0.5)
+        return sd
 
 if __name__ == '__main__':
     # Initialize the node with rospy
