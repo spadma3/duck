@@ -269,11 +269,8 @@ class AutoCalibrationCalculationNode(object):
 
             # optimization
             #solution = minimize(self.objective,x0,args=self.para, method='SLSQP',bounds=bnds)
-            print "Before optimizer"
-            print self.para
             solution = minimize(self.objective,x0, method='SLSQP',bounds=bnds)
             x = solution.x
-            print "After optimizer"
             self.finishCalc()
 
     #Objective function of the optimization algorithm
