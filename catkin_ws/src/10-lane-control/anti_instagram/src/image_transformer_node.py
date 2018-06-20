@@ -27,8 +27,9 @@ class ImageTransformerNode():
         self.thread_lock = threading.Lock()
         self.r = rospy.Rate(5) # Rate in Hz
         self.scale_percent=1
+        self.latency_test=False
         rospy.set_param("~scale_percent", self.scale_percent)
-
+        rospy.set_param("~latency_test", self.latency_test)
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
 
         # Initialize publishers and subscribers
@@ -75,12 +76,14 @@ class ImageTransformerNode():
         self.standart_error=np.array([])
         self.values=np.array([])
         #self.interplation=['cv2.INTER_NEAREST','cv2.INTER_LINEAR ','cv2.INTER_AREA','cv2.INTER_CUBIC','cv2.INTER_LANCZOS4' ]
-        #rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+        rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
         #rospy.Timer(rospy.Duration.from_sec(10.0), self.change_percentage)
 
 
-    #def updateParams(self, event):
-        #self.scale_percent = rospy.get_param("~scale_percent")
+    def updateParams(self, event):
+        self.latency_test=rospy.get_param("~latency_test")
+        if not self.latency_test:
+            self.scale_percent = rospy.get_param("~scale_percent")
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -156,20 +159,22 @@ class ImageTransformerNode():
         # publish image
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
-        end=rospy.get_time()
-        duration=(end-begin)*10**(3)
-        rospy.loginfo('i ist: %s' %self.i)
-        if self.i<=99:
-            self.values=np.append(self.values, duration)
-            self.sum=self.sum+float(duration)
-            self.i+=1
-        else:
-            self.average=(self.sum/100)
-            se=self.calc_standart_error()
-            rospy.loginfo('Standart_error= %s' %se)
-            self.standart_error=np.append(self.standart_error, se)
-            self.result_array = np.append(self.result_array, self.average)
-            self.change_percentage()
+        if self.latency_test:
+
+            end=rospy.get_time()
+            duration=(end-begin)*10**(3)
+            rospy.loginfo('i ist: %s' %self.i)
+            if self.i<=99:
+                self.values=np.append(self.values, duration)
+                self.sum=self.sum+float(duration)
+                self.i+=1
+            else:
+                self.average=(self.sum/100)
+                se=self.calc_standart_error()
+                rospy.loginfo('Standart_error= %s' %se)
+                self.standart_error=np.append(self.standart_error, se)
+                self.result_array = np.append(self.result_array, self.average)
+                self.change_percentage()
 
         # rospy.loginfo('Publishing time: %s' % duration3)
         # begin4=rospy.Time.now()
