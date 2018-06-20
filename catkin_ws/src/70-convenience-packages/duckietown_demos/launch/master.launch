@@ -93,9 +93,13 @@
 <arg name="/navigation/intersection_control" default="false"/>
 <arg name="/navigation/intersection_navigation" default="true"/>
 <arg name="/navigation/intersection_localization" default="true"/>
-<arg name="/navigation/apriltags_random" default="true"/>
 <arg name="/navigation/random_sr_turns" default="false"/>
 <arg name="/navigation/graph_planner" default="false"/>
+
+<arg name="apriltags_random" default="true"/>
+
+
+<arg name="unicorn_intersection" default="false"/>
 <!-- NOTE: either apriltags_random or graph_planner but not both -->
 
 
@@ -338,7 +342,6 @@
 	<!-- Lane controller -->
 	<group if="$(arg /lane_following/lane_controller)">
 		<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
-		<remap from="lane_controller_node/lane_pose_intersection_navigation" to="intersection_navigation_node/lane_pose_intersection_navigation"/>
 		<!--NO!!! <remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/> --><!--TODO what is this -->
 		<!-- <remap from="lane_controller_node/lane_pose_obstacle_avoidance" to="lane_filter_node/lane_pose_obstacle_avoidance"/> TODO: add correct node_name
 		<remap from="lane_controller_node/lane_pose_parking" to="lane_filter_node/lane_pose_parking"/>
@@ -348,6 +351,7 @@
 		<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
 		<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
 		<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_node/obstacle_avoidance_active_flag" />
+		<remap from="lane_controller_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading" />
 
 
 
@@ -620,16 +624,62 @@
 </group>
 <!-- End Coordination -->
 
+<!-- Start Unicorn intersection -->
+<group if="$(arg unicorn_intersection)">
+
+</group>
+<!-- End Unicorn intersection -->
+	<remap from="unicorn_intersection_node/fsm_state" to="fsm_node/mode"/>
+	<remap from="unicorn_intersection_node/turn_type" to="intersection_navigation_node/turn_type"/>
+	<remap from="unicorn_intersection_node/intersection_go" to="logic_gate_node/intersection_go"/>
+	<remap from="unicorn_intersection_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
+	<remap from="unicorn_intersection_node/lane_filter_params" to="lane_filter_node/change_params"/>
+	<remap from="unicorn_intersection_node/lane_controller/omega_ff" to="lane_controller_node/omega_ff"/>
+	<remap from="unicorn_intersection_node/lane_controller/omega_min" to="lane_controller_node/omega_min"/>
+	<remap from="unicorn_intersection_node/lane_controller/omega_max" to="lane_controller_node/omega_max"/>
+	<remap from="unicorn_intersection_node/lane_pose_in" to="lane_filter_node/lane_pose"/>
+	<remap from="unicorn_intersection_node/lane_pose_out" to="lane_controller_node/intersection_navigation_pose"/>
+
+
+	<include file="$(find unicorn_intersection)/launch/unicorn_intersection_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+
+
+<!-- Start Random Apriltag -->
+<group if="$(arg apriltags_random)">
+	<!-- random april tags -->
+	<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
+	<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
+
+
+	<group unless="$(arg charging_control)">
+		<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
+	</group>
+
+
+	<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+
+<!-- End Random Apriltag -->
 <!-- Start Navigation -->
 <group if="$(arg navigation)">
 
 
 	<group if="$(arg /navigation/intersection_control)">
 		<!-- open loop intersection_controller -->
-		<remap from="open_loop_intersection_control_node/mode" to="fsm_node/mode"/>
+		<remap from="open_loop_intersection_control_node/fsm_state" to="fsm_node/mode"/>
 		<remap from="open_loop_intersection_control_node/lane_pose" to="lane_filter_node/lane_pose"/>
 		<remap from="open_loop_intersection_control_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading"/>
 		<remap from="open_loop_intersection_control_node/in_lane" to="lane_filter_node/in_lane"/>
+		<remap from="intersection_navigation_node/lane_pose_intersection_navigation" to="lane_controller_node/lane_pose_intersection_navigation"/>
+
 		<include file="$(find intersection_control)/launch/open_loop_intersection_controller_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -677,23 +727,7 @@
 
 
 
-	<group if="$(arg /navigation/apriltags_random)">
-		<!-- random april tags -->
-		<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
-		<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
 
-
-		<group unless="$(arg charging_control)">
-			<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
-		</group>
-
-
-		<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-	</group>
 
 
 
