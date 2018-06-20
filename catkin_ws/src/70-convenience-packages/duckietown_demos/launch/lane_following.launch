@@ -4,7 +4,22 @@
 	<include file="$(find duckietown_demos)/launch/master.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="visualization" default="true" />
-		<arg name="verbose" default="false" />
+		
+		<arg name="wheels" default="false"/>
+		<arg name="joystick" default="false"/>
+		<arg name="/obstacle_avoidance/simple_stop" default="false"/>
+		<arg name="/obstacle_avoidance/detection" default="false"/>
+		<arg name="/obstacle_avoidance/safety" default="false"/>
+		<arg name="/vehicle_avoidance/detection" default="false" />
+		<arg name="/vehicle_avoidance/control" default="false"/>
+		<arg name="LED" default="false" />
+		<arg name="/LED/emitter" default="false" />
+		<arg name="/odometry_learning/kinematics" default="false"/>
+		<arg name="/navigation/intersection_navigation" default="false"/>
+		<arg name="/navigation/intersection_localisation" default="false"/>
+		<arg name="/navigation/apriltags_random" default="false"/>
+
+		<arg name="verbose" default="true" />
 		<arg name="param_file_name" default="default" />
 		<arg name="line_detector_param_file_name" default="default" />
 		<arg name="anti_instagram" default="true" />
