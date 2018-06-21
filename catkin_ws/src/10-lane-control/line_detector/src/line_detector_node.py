@@ -74,6 +74,7 @@ class LineDetectorNode(object):
         self.false_positives_red = 0
         self.false_positives_white = 0
         self.false_positives_yellow = 0
+        self.pic_taken = False
 
 
     def cbFSM(self, msg):
@@ -196,6 +197,12 @@ class LineDetectorNode(object):
         image_cv = image_cv[self.top_cutoff:,:,:]
 
         tk.completed('resized')
+
+        #Performance evaluation
+
+        if not self.pic_taken:
+            self.pic_taken = True
+            cv2.imwrite('/home/bings/Documents/megabot26_test1.png',image_cv)
 
         # milansc: color correction is now done within the image_tranformer_node (antiInstagram pkg)
         """
