@@ -58,12 +58,29 @@ class ImgRectFullRatio(object):
             return
         if self.gpg is None:
             return
-        
+
         start_time = time.time()
         cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-        new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.65)
-        img_msg = self.bridge.cv2_to_imgmsg(result_img, "bgr8")
 
+        # undistort the image
+        new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.65)
+
+
+        # resulting image has a different size
+        # bring back the image to the old size, also crop a little from the outside
+        # code from: https://docs.opencv.org/3.4.0/da/d6e/tutorial_py_geometric_transformations.html
+        # Preferable interpolation methods are cv2.INTER_AREA for shrinking and cv2.INTER_CUBIC (slow) & cv2.INTER_LINEAR for zooming
+
+        #crop by 20%
+        # code is from here: https://stackoverflow.com/questions/15589517/how-to-crop-an-image-in-opencv-using-python
+        #result_img = result_img[round(0.1*cv_image.shape[0]):round(0.9*cv_image.shape[0]), round(0.1*cv_image.shape[1]):round(0.9*cv_image.shape[1])]
+        #result_img = result_img[50:100, 50:100]
+
+        #resize
+        #result_img = cv2.resize(result_img,(cv_image.shape[1], cv_image.shape[0]), interpolation = cv2.INTER_AREA)
+
+        img_msg = self.bridge.cv2_to_imgmsg(result_img, "bgr8")
+        print "Old Image h,w =", cv_image.shape
         img_msg.header.stamp = msg.header.stamp
         img_msg.header.frame_id = msg.header.frame_id
 
@@ -72,6 +89,11 @@ class ImgRectFullRatio(object):
         rect_cam_info.header.frame_id = img_msg.header.frame_id
         rect_cam_info.height = result_img.shape[0]
         rect_cam_info.width = result_img.shape[1]
+
+        #add new camera info matrix to the camera info message
+        new_K = tuple(new_matrix.reshape(-1).tolist()[0])
+        rect_cam_info.K = new_K
+
         print "Image h, w = ", rect_cam_info.height, rect_cam_info.width
 
         end_time = time.time()
@@ -80,7 +102,7 @@ class ImgRectFullRatio(object):
         self.pub_cam_info.publish(rect_cam_info)
 
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     rospy.init_node('image_rect_full_ratio',anonymous=False)
     node = ImgRectFullRatio()
     rospy.spin()
