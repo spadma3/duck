@@ -71,6 +71,10 @@ class LineDetectorNode(object):
 
         # For performance evaluation
         self.total_segments = 0
+        self.white = 0
+        self.yellow = 0
+        self.red = 0
+        self.white_true = 0
         self.false_positives_red = 0
         self.false_positives_white = 0
         self.false_positives_yellow = 0
@@ -200,9 +204,9 @@ class LineDetectorNode(object):
 
         #Performance evaluation
 
-        if not self.pic_taken:
-            self.pic_taken = True
-            cv2.imwrite('/home/bings/Documents/megabot26_test1.png',image_cv)
+        # if not self.pic_taken:
+        #     self.pic_taken = True
+        #     cv2.imwrite('/home/bings/Documents/megabot24_test1.png',image_cv)
 
         # milansc: color correction is now done within the image_tranformer_node (antiInstagram pkg)
         """
@@ -292,8 +296,12 @@ class LineDetectorNode(object):
         self.loginfo("Shutdown.")
         #Performance evaluation
         print '# OF TOTAL SEGMENTS: ', self.total_segments
+        print 'RED TOTAL: ', self.red
         print 'RED FALSE: ', self.false_positives_red
+        print 'YELLOW TOTAL: ', self.yellow
         print 'YELLOW FALSE: ', self.false_positives_yellow
+        print 'WHITE TRUE: ', self.white_true
+        print 'WHITE TOTAL: ', self.white
         print 'WHITE FALSE: ', self.false_positives_white
 
     def toSegmentMsg(self,  lines, normals, color):
@@ -309,22 +317,28 @@ class LineDetectorNode(object):
             segment.normal.x = norm_x
             segment.normal.y = norm_y
 
+            #if (not 1.49*x1-0.93 <= y1 and not y1 <= 2.35*x1-1.35) or (not 1.49*x2-0.93 <= y2 and not y2 <= 2.35*x2-1.35):
             #Performance evaluation
             if color == 0:
-                if not 0.66 <= y1 <= 1:
-                    self.false_positives_white += 1
-                elif not 0.66 <= y2 <= 1:
-                    self.false_positives_white += 1
-            elif color == 1:
-                if not 0 <= y1 <= 0.33:
-                    self.false_positives_yellow += 1
-                elif not 0 <= y2 <= 0.33:
-                    self.false_positives_yellow += 1
-            elif color == 2:
-                if not 0.33 <= y1 <= 0.66:
-                    self.false_positives_red += 1
-                elif not 0.33 <= y2 <= 0.66:
-                    self.false_positives_red += 1
+                self.white += 1
+                #check if white point is in "white area"
+                if y1 >= 1.49*x1-0.93:
+                    if y1 <= 2.35*x1-1.35:
+                        self.white_true += 1
+                elif y2 >= 1.49*x2-0.93:
+                    if y2 <= 2.35*x2-1.35:
+                        self.white_true += 1
+
+            # elif color == 1:
+            #     self.yellow += 1
+            #     #check if yellow point is in "yellow area"
+            #     if (not -1.72*x1+0.6875 <= y1 and not y1 <= -2.43*x1+1.106) or (not -1.72*x2+0.6875 <= y2 and not y2 <= -2.43*x2+1.106):
+            #         self.false_positives_yellow += 1
+            # elif color == 2:
+            #     self.red +=1
+            #     #check if red point is in "red area"
+            #     if (not -2.71*x1+1.24 <= y1 and not 2.63*x1-1.47 <= y1) or (not -2.71*x2+1.24 <= y2 and not 2.63*x2-1.47 <= y2):
+            #         self.false_positives_red += 1
 
             segmentMsgList.append(segment)
         return segmentMsgList
