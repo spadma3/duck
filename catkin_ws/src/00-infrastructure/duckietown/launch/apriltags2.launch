@@ -4,8 +4,9 @@
  	<arg name="config" default="baseline" doc="Specify a config."/>
 	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
  	<arg name="camera" default="true" doc="camera set to false means only apriltags no camera nodes are launched"/>
-    <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
-    <arg name="rect_full_ratio" default="false" doc="use full ration rectified image for apriltags detections " />
+  <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
+  <arg name="rect_full_ratio" default="false" doc="use full ration rectified image for apriltags detections " />
+  <arg name="localization" default="false" doc="set to true to start Dcukietown localization function"/>
 
     <!-- Camera -->
  	<include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">
@@ -37,22 +38,30 @@
 	</group>
 
     <!-- Local Localization Postprocessing node -->
-    <remap from="apriltags_in" to="tag_detections" />
-    <include file="$(find auto_localization)/launch/apriltags2_local_localization_node.launch">
-      <arg name="veh" value="$(arg veh)"/>
-          <arg name="local" value="$(arg local)"/>
-          <arg name="config" value="$(arg config)"/>
-          <arg name="param_file_name" value="$(arg param_file_name)"/>
-    </include>
+    <group if="$(arg localization)">
+      <remap from="apriltags_in" to="tag_detections" />
+      <include file="$(find auto_localization)/launch/apriltags2_local_localization_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+            <arg name="local" value="$(arg local)"/>
+            <arg name="config" value="$(arg config)"/>
+            <arg name="param_file_name" value="$(arg param_file_name)"/>
+      </include>
 
-    <remap from="apriltags_out" to="apriltags2_local_localization_node/apriltags_out" />
-    <node name="pub2server_easy" pkg="auto_localization" type="pub2server_easy.py" output="screen">
-    </node>
 
-    <include file="$(find tcp_communication)/launch/tcp_communication_client.launch">
-		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
-		<arg name="param_file_name" value="$(arg param_file_name)"/>
-    </include>
+      <!-- Sebt the process result to server-->
+      <!--
+      <remap from="apriltags_out" to="apriltags2_local_localization_node/apriltags_out" />
+      <node name="pub2server_easy" pkg="auto_localization" type="pub2server_easy.py" output="screen">
+      </node>
+
+
+      <include file="$(find tcp_communication)/launch/tcp_communication_client.launch">
+  		<arg name="veh" value="$(arg veh)"/>
+  		<arg name="config" value="$(arg config)"/>
+  		<arg name="param_file_name" value="$(arg param_file_name)"/>
+      </include>
+      -->
+      
+    </group>
 
 </launch>

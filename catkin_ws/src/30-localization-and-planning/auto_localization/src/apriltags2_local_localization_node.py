@@ -135,8 +135,13 @@ class AprilLocalLocalization(object):
                     #Add data to remap pose message
                     remap_pose.frame_id = fixed_frame
                     remap_pose.bot_id = new_info.id
-                    remap_pose.posestamped.pose.position = trans
-                    remap_pose.posestamped.pose.orientation = rot
+                    remap_pose.posestamped.pose.position.x = trans[0]
+                    remap_pose.posestamped.pose.position.y = trans[1]
+                    remap_pose.posestamped.pose.position.z = trans[2]
+                    remap_pose.posestamped.pose.orientation.x = rot[0]
+                    remap_pose.posestamped.pose.orientation.y = rot[1]
+                    remap_pose.posestamped.pose.orientation.z = rot[2]
+                    remap_pose.posestamped.pose.orientation.w = rot[3]
                     #Add this remap pose to the array
                     remap_poses_array.poses.append(remap_pose)
                     print remap_poses_array
