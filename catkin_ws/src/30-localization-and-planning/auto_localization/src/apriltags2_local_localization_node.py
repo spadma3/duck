@@ -2,6 +2,7 @@
 import rospkg
 import rospy
 import yaml
+import socket
 from duckietown_msgs.msg import TagInfo, BoolStamped, RemapPose, RemapPoseArray
 from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
 import numpy as np
@@ -133,6 +134,7 @@ class AprilLocalLocalization(object):
                                               'Tag'+str(fixed_frame))
 
                     #Add data to remap pose message
+                    remap_pose.host = socket.gethostname()
                     remap_pose.frame_id = fixed_frame
                     remap_pose.bot_id = new_info.id
                     remap_pose.posestamped.pose.position.x = trans[0]
