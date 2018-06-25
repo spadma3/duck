@@ -144,7 +144,6 @@ class AprilLocalLocalization(object):
                     remap_pose.posestamped.pose.orientation.w = rot[3]
                     #Add this remap pose to the array
                     remap_poses_array.poses.append(remap_pose)
-                    print remap_poses_array
 
                     #TODO: Test if this output is actually correct
                     # Debugging Output
