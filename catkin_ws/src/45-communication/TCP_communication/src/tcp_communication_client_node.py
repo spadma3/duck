@@ -15,7 +15,10 @@ from duckietown_utils import tcp_communication
 class TCPCommunicationClientNode(object):
     def __init__(self):
         self.node_name = "TCP Communication Client Node"
-        self.veh_name = robot_name.get_current_robot_name()
+        import socket
+        #self.veh_name = robot_name.get_current_robot_name()
+        self.veh_name = socket.gethostname()
+        
         ## setup Parameters
         self.setupParams()
 

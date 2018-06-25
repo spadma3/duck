@@ -7,7 +7,9 @@ import json
 
 def getVariable(variable_name):
     # Get vehicle name
-    veh = robot_name.get_current_robot_name()
+    import socket
+    #veh = robot_name.get_current_robot_name()
+    veh = socket.gethostname()
 
     # Create rosservice proxy
     getVar = rospy.ServiceProxy("/" + str(veh) + "/tcp_communication_client_node/get_variable", GetVariable)
@@ -24,7 +26,9 @@ def getVariable(variable_name):
 
 def setVariable(variable_name, value):
     # Get vehicle name
-    veh = robot_name.get_current_robot_name()
+    import socket
+    #veh = robot_name.get_current_robot_name()
+    veh = socket.gethostname()
 
     # Create rosservice proxy
     setVar = rospy.ServiceProxy("/" + str(veh) + "/tcp_communication_client_node/set_variable", SetVariable)
