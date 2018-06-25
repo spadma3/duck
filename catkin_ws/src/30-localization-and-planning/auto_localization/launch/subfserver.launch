@@ -1,0 +1,12 @@
+<launch>
+    <arg name="pkg_name" value="auto_localization"/>
+    <arg name="node_name" default="subfserver_easy"/>
+
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+
+    <group ns="$(arg veh)">
+        <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py"
+              output="screen">
+        </node>
+    </group>
+</launch>
