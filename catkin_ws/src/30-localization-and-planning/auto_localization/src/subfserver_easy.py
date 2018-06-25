@@ -27,7 +27,7 @@ def poselist2pose(poselist):
 
 def pubPoses():
 
-    pub_poses = rospy.Publisher('local_poses', RemapPoseArray, queue_size=1)
+    pub_poses = rospy.Publisher('~local_poses', RemapPoseArray, queue_size=1)
     rate = rospy.Rate(5) # 5hz
 
     while not rospy.is_shutdown():
