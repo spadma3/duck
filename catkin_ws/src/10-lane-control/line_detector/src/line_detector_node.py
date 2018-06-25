@@ -64,6 +64,7 @@ class LineDetectorNode(object):
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_fsm = rospy.Subscriber("~fsm_mode", FSMState, self.cbFSM, queue_size=1)
+        self.sub_seg = rospy.Subscriber("~segment_list", SegmentList, self.cbPerformanceEval, queue_size=1)
 
         rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
 
@@ -71,15 +72,78 @@ class LineDetectorNode(object):
 
         # For performance evaluation
         self.total_segments = 0
-        self.white = 0
-        self.yellow = 0
-        self.red = 0
-        self.white_true = 0
+
         self.false_positives_red = 0
         self.false_positives_white = 0
         self.false_positives_yellow = 0
         self.pic_taken = False
 
+        self.oneonly=0
+
+    def cbPerformanceEval(self, msg):
+        self.white = 0
+        self.yellow = 0
+        self.red = 0
+        self.white_true = 0
+        self.yellow_true = 0
+        self.red_true = 0
+        # file = open("segment_try"+str(msg.header.seq)+".csv",'a')
+
+
+        segment = Segment()
+        for i in xrange(0,len(msg.segments)):
+            segment = msg.segments[i]
+            x1 = segment.pixels_normalized[0].x
+            y1 = segment.pixels_normalized[0].y
+            x2 = segment.pixels_normalized[1].x
+            y2 = segment.pixels_normalized[1].y
+
+
+            color = segment.color
+
+            # file.write(str(color)+","+str(x1)+","+str(y1)+","+str(x2)+","+str(y2)+"\n")
+
+            #Check if point is in considered range of picture
+            if (y1 >= -0.714*x1+0.65 and y1 >= 1.16*x1-0.41) or (y2 >= -0.714*x2+0.65 and y2 >= 1.16*x2-0.41):
+                if color == 0:
+                    #Add to white counter
+                    self.white += 1
+                    #Check if white point is in "white area"
+                    #Lower bound check
+                    if y1 >= 1.16*x1-0.41 and y2 >= 1.16*x2-0.41:
+                        #Upper bound check
+                        if y1 <= 1.833*x1-0.65 and y2 <= 1.833*x2-0.65:
+                            #Add to "true" counter if both conditions met
+                            self.white_true += 1
+
+                elif color == 1:
+                    #Add to yellow counter
+                    self.yellow += 1
+                    #Check if yellow point is in "yellow area"
+                    #Lower bound check
+                    if y1 >= -0.714*x1+0.65 and y2 >= -0.714*x2+0.65:
+                        #Upper bound check
+                        if y1 <= -1.833*x1+1.1833 and y2 <= -1.833*x2+1.1833:
+                            #Add to "true" counter if both conditions met
+                            self.yellow_true += 1
+
+                elif color == 2:
+                    self.red += 1
+                    #Check if red point is in "red area"
+                    #1st lower bound check
+                    if y1 >= -1.833*x1+1.11 and y2 >= -1.833*x2+1.11:
+                        #2nd lower bound check
+                        if y1 >= 2*x1-0.8 and y2 >= 2*x2-0.8:
+                            #Add to "true" counter if both conditions met
+                            self.red_true += 1
+
+        # file.close()
+        print 'WHITE TOTAL: ', self.white
+        print 'WHITE TRUE: ', self.white_true
+        print 'YELLOW TOTAL: ', self.yellow
+        print 'YELLOW TRUE: ', self.yellow_true
+        print 'RED TOTAL: ', self.red
+        print 'RED TRUE: ', self.red_true
 
     def cbFSM(self, msg):
         self.fsm_state = msg.state
@@ -206,7 +270,7 @@ class LineDetectorNode(object):
 
         # if not self.pic_taken:
         #     self.pic_taken = True
-        #     cv2.imwrite('/home/bings/Documents/megabot24_test1.png',image_cv)
+        #     cv2.imwrite('/home/bings/Documents/megabot24_red1.png',image_cv)
 
         # milansc: color correction is now done within the image_tranformer_node (antiInstagram pkg)
         """
@@ -295,14 +359,14 @@ class LineDetectorNode(object):
     def onShutdown(self):
         self.loginfo("Shutdown.")
         #Performance evaluation
-        print '# OF TOTAL SEGMENTS: ', self.total_segments
-        print 'RED TOTAL: ', self.red
-        print 'RED FALSE: ', self.false_positives_red
-        print 'YELLOW TOTAL: ', self.yellow
-        print 'YELLOW FALSE: ', self.false_positives_yellow
-        print 'WHITE TRUE: ', self.white_true
-        print 'WHITE TOTAL: ', self.white
-        print 'WHITE FALSE: ', self.false_positives_white
+
+        # print '# OF TOTAL SEGMENTS: ', self.total_segments
+        # print 'TOTAL WHITE: ', self.white
+        # print 'TRUE WHITE: ', self.white_true
+        # print 'TOTAL YELLOW: ', self.yellow
+        # print 'TRUE YELLOW: ', self.yellow_true
+        # print 'TOTAL RED: ', self.red
+        # print 'TRUE RED: ', self.red_true
 
     def toSegmentMsg(self,  lines, normals, color):
 
@@ -317,28 +381,58 @@ class LineDetectorNode(object):
             segment.normal.x = norm_x
             segment.normal.y = norm_y
 
-            #if (not 1.49*x1-0.93 <= y1 and not y1 <= 2.35*x1-1.35) or (not 1.49*x2-0.93 <= y2 and not y2 <= 2.35*x2-1.35):
-            #Performance evaluation
-            if color == 0:
-                self.white += 1
-                #check if white point is in "white area"
-                if y1 >= 1.49*x1-0.93:
-                    if y1 <= 2.35*x1-1.35:
-                        self.white_true += 1
-                elif y2 >= 1.49*x2-0.93:
-                    if y2 <= 2.35*x2-1.35:
-                        self.white_true += 1
 
-            # elif color == 1:
-            #     self.yellow += 1
-            #     #check if yellow point is in "yellow area"
-            #     if (not -1.72*x1+0.6875 <= y1 and not y1 <= -2.43*x1+1.106) or (not -1.72*x2+0.6875 <= y2 and not y2 <= -2.43*x2+1.106):
-            #         self.false_positives_yellow += 1
-            # elif color == 2:
-            #     self.red +=1
-            #     #check if red point is in "red area"
-            #     if (not -2.71*x1+1.24 <= y1 and not 2.63*x1-1.47 <= y1) or (not -2.71*x2+1.24 <= y2 and not 2.63*x2-1.47 <= y2):
-            #         self.false_positives_red += 1
+            #Performance evaluation
+            #Check if point is in considered range of picture
+            # if (y1 >= -0.714*x1+0.75 and y1 >= 1.16*x1-0.41) or (y2 >= -0.714*x2+0.75 and y2 >= 1.16*x2-0.41):
+            #     if color == 0:
+            #         #Add to white counter
+            #         self.white += 1
+            #         #Check if white point is in "white area"
+            #         #Lower bound check
+            #         if y1 >= 1.16*x1-0.41 and y2 >= 1.16*x2-0.41:
+            #             #Upper bound check
+            #             if y1 <= 1.833*x1-0.65 and y2 <= 1.833*x2-0.65:
+            #                 #Add to "true" counter if both conditions met
+            #                 self.white_true += 1
+            #         # #Repeat for second point of segment
+            #         # elif y2 >= 1.16*x2-0.41:
+            #         #     if y2 <= 1.833*x2-0.65:
+            #         #         self.white_true += 1
+            #
+            #     elif color == 1:
+            #         #Add to yellow counter
+            #         self.yellow += 1
+            #         print 'x1: ',x1
+            #         print 'y1: ',y1
+            #         print 'x2: ',x2
+            #         print 'y2: ',y2
+            #         #Check if yellow point is in "yellow area"
+            #         #Lower bound check
+            #         if y1 >= -0.714*x1+0.75 and y2 >= -0.714*x2+0.75:
+            #             #Upper bound check
+            #             if y1 <= -4*x1+1.67 and y2 <= -4*x2+1.67:
+            #                 #Add to "true" counter if both conditions met
+            #                 self.yellow_true += 1
+            #
+            #         #Repeat for second point of segment
+            #         # elif y2 >= -0.714*x2+0.75:
+            #         #     if y2 <= -4*x2+1.67:
+            #         #         self.yellow_true += 1
+            #
+            #     elif color == 2:
+            #         self.red += 1
+            #         #Check if red point is in "red area"
+            #         #1st lower bound check
+            #         if y1 >= -2.71*x1+1.22 and y2 >= -2.71*x2+1.22:
+            #             #2nd lower bound check
+            #             if y1 >= 2.56*x1-0.65 and y2 >= 2.56*x2-0.65:
+            #                 #Add to "true" counter if both conditions met
+            #                 self.red_true += 1
+            #         #Repeat for second point of segment
+            #         # elif y2 >= -2.71*x2+1.22:
+            #         #     if y2 >= 2.56*x2-0.65:
+            #         #         self.red_true += 1
 
             segmentMsgList.append(segment)
         return segmentMsgList
