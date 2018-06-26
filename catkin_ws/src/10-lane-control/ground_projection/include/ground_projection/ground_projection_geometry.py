@@ -232,7 +232,7 @@ class GroundProjectionGeometry(object):
         end_time = time.time()
         #print "map time = ", (map_time - start_map_time)
         #print "rectify time = ", (end_time - map_time)
-        print "total time = ", (end_time - start_time)
+        #print "total time = ", (end_time - start_time)
         return self.new_camera_matrix, res
 
 

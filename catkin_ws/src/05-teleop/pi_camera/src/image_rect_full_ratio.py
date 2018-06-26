@@ -44,7 +44,7 @@ class ImgRectFullRatio(object):
         self.cam_info = caminfo_msg
 
         if self.gpg is None:
-            print "Run initialize gpg"
+            #print "Run initialize gpg"
             robot_name = rospy.get_namespace()
             robot_name = robot_name[1:-1]
             disable_old_homography(robot_name)
@@ -97,7 +97,7 @@ class ImgRectFullRatio(object):
         print "Image h, w = ", rect_cam_info.height, rect_cam_info.width
 
         end_time = time.time()
-        print "Rect cbImg time = ", (end_time - start_time)
+        #print "Rect cbImg time = ", (end_time - start_time)
         self.pub_rect.publish(img_msg)
         self.pub_cam_info.publish(rect_cam_info)
 
