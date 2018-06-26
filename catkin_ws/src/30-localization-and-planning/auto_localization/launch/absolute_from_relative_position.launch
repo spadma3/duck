@@ -1,0 +1,16 @@
+<launch>
+    <arg name="pkg_name" value="auto_localization"/>
+    <arg name="node_name" default="absolute_from_relative_position"/>
+
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+
+    <arg name="map" default="testcircle" doc="Specify the map you wants"/>
+
+    <group ns="$(arg veh)">
+        <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py"
+              output="screen">
+              <param name="~map" value="$(arg map)" type="str"/>
+        </node>
+    </group>
+
+</launch>
