@@ -22,43 +22,61 @@
         <xacro:tile rotation="90" type="straight" x="0" y="3"/>
         <xacro:tile rotation="270" type="3way" x="0" y="4"/>
         <xacro:tile rotation="90" type="straight" x="0" y="5"/>
+        <xacro:tile rotation="270" type="3way" x="0" y="6"/>
+        <xacro:tile rotation="90" type="straight" x="0" y="7"/>
+        <xacro:tile rotation="180" type="turn" x="0" y="8"/>
         <xacro:tile rotation="0" type="straight" x="1" y="0"/>
         <xacro:tile rotation="0" type="empty" x="1" y="1"/>
         <xacro:tile rotation="0" type="straight" x="1" y="2"/>
         <xacro:tile rotation="0" type="empty" x="1" y="3"/>
         <xacro:tile rotation="0" type="straight" x="1" y="4"/>
         <xacro:tile rotation="0" type="empty" x="1" y="5"/>
+        <xacro:tile rotation="0" type="straight" x="1" y="6"/>
+        <xacro:tile rotation="0" type="empty" x="1" y="7"/>
+        <xacro:tile rotation="0" type="straight" x="1" y="8"/>
         <xacro:tile rotation="0" type="3way" x="2" y="0"/>
         <xacro:tile rotation="90" type="straight" x="2" y="1"/>
         <xacro:tile rotation="0" type="4way" x="2" y="2"/>
         <xacro:tile rotation="90" type="straight" x="2" y="3"/>
         <xacro:tile rotation="180" type="3way" x="2" y="4"/>
         <xacro:tile rotation="0" type="empty" x="2" y="5"/>
+        <xacro:tile rotation="90" type="turn" x="2" y="6"/>
+        <xacro:tile rotation="0" type="empty" x="2" y="7"/>
+        <xacro:tile rotation="0" type="turn" x="2" y="8"/>
         <xacro:tile rotation="0" type="straight" x="3" y="0"/>
         <xacro:tile rotation="0" type="empty" x="3" y="1"/>
         <xacro:tile rotation="0" type="straight" x="3" y="2"/>
         <xacro:tile rotation="0" type="empty" x="3" y="3"/>
         <xacro:tile rotation="0" type="straight" x="3" y="4"/>
         <xacro:tile rotation="0" type="empty" x="3" y="5"/>
+        <xacro:tile rotation="0" type="empty" x="3" y="6"/>
+        <xacro:tile rotation="0" type="empty" x="3" y="7"/>
+        <xacro:tile rotation="0" type="empty" x="3" y="8"/>
         <xacro:tile rotation="0" type="turn" x="4" y="0"/>
         <xacro:tile rotation="90" type="straight" x="4" y="1"/>
         <xacro:tile rotation="90" type="3way" x="4" y="2"/>
         <xacro:tile rotation="90" type="straight" x="4" y="3"/>
         <xacro:tile rotation="90" type="turn" x="4" y="4"/>
         <xacro:tile rotation="0" type="empty" x="4" y="5"/>
+        <xacro:tile rotation="0" type="empty" x="4" y="6"/>
+        <xacro:tile rotation="0" type="empty" x="4" y="7"/>
+        <xacro:tile rotation="0" type="empty" x="4" y="8"/>
         <!--Empty border tiles-->
-        <xacro:tile visible="false" x="0" y="6"/>
-        <xacro:tile visible="false" x="1" y="6"/>
-        <xacro:tile visible="false" x="2" y="6"/>
-        <xacro:tile visible="false" x="3" y="6"/>
-        <xacro:tile visible="false" x="4" y="6"/>
-        <xacro:tile visible="false" x="5" y="6"/>
+        <xacro:tile visible="false" x="0" y="9"/>
+        <xacro:tile visible="false" x="1" y="9"/>
+        <xacro:tile visible="false" x="2" y="9"/>
+        <xacro:tile visible="false" x="3" y="9"/>
+        <xacro:tile visible="false" x="4" y="9"/>
+        <xacro:tile visible="false" x="5" y="9"/>
         <xacro:tile visible="false" x="5" y="0"/>
         <xacro:tile visible="false" x="5" y="1"/>
         <xacro:tile visible="false" x="5" y="2"/>
         <xacro:tile visible="false" x="5" y="3"/>
         <xacro:tile visible="false" x="5" y="4"/>
         <xacro:tile visible="false" x="5" y="5"/>
+        <xacro:tile visible="false" x="5" y="6"/>
+        <xacro:tile visible="false" x="5" y="7"/>
+        <xacro:tile visible="false" x="5" y="8"/>
         <!--Describe the tags-->
         <xacro:tag id="66" pos="${pos_4}" rotation="90" x="2" y="0"/>
         <xacro:tag id="155" pos="${pos_7}" rotation="180" x="3" y="0"/>
