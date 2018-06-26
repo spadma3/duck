@@ -23,9 +23,9 @@ x, y, type     , rotation
 2,3,straight,90
 2,4,3way,180
 2,5,empty,0
-2,6,turn,90
-2,7,empty,0
-2,8,turn,0
+2,6,turn,0
+2,7,straight,90
+2,8,turn,90
 3,0,straight,0
 3,1,empty,0
 3,2,straight,0
