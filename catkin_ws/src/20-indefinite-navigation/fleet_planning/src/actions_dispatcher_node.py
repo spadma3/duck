@@ -29,7 +29,7 @@ class ActionsDispatcherNode:
         self.actions = []
         self.path = []
         self.current_node = None
-        self.target_node = 231 #originaly 59
+        self.target_node = 240
         self.last_red_line = rospy.get_time()
         self.active = False
         self.graphSearchSuccessful = False

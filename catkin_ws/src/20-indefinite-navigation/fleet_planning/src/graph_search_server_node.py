@@ -26,7 +26,7 @@ class graph_search_server():
 
         print "Graph loaded successfully!\n"
 
-        #print self.apriltags_mapping
+        print self.apriltags_mapping
 
     def handle_graph_search(self, req):
         """takes request, calculates path and creates corresponding graph image. returns path"""

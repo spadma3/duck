@@ -97,4 +97,5 @@
         <xacro:tag id="62" pos="${pos_4}" rotation="90" x="0" y="4"/>
         <xacro:tag id="68" pos="${pos_3}" rotation="0" x="0" y="5"/>
         <xacro:tag id="238" pos="${pos_0}" rotation="270" x="1" y="5"/>
+        <xacro:tag id="240" pos="${pos_0}" rotation="270" x="1" y="7"/>
     </robot>
