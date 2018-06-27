@@ -119,7 +119,9 @@ class Graph(object):
     def get_apriltags_mapping(self,map_dir,csv_filename='autolab_tags_map'):
         apriltags_mapping = dict()
         for n in self._nodes:
-            print n 
+            print n
+            print self.get_node_pos(n)
+            print '--------------'
         map_path = os.path.join(map_dir, csv_filename + '.csv')
         with open(map_path, 'rb') as f:
             spamreader = csv.reader(f,skipinitialspace=True)
