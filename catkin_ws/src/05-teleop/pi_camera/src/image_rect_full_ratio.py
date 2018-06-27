@@ -63,7 +63,7 @@ class ImgRectFullRatio(object):
         cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
 
         # undistort the image
-        new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.65)
+        new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.5)
 
 
         # resulting image has a different size
@@ -78,9 +78,11 @@ class ImgRectFullRatio(object):
 
         #resize
         #result_img = cv2.resize(result_img,(cv_image.shape[1], cv_image.shape[0]), interpolation = cv2.INTER_AREA)
+        ratio = 0.5
+        result_img = cv2.resize(result_img,(int(result_img.shape[1]*ratio), int(result_img.shape[0]*ratio)), interpolation = cv2.INTER_AREA)
 
         img_msg = self.bridge.cv2_to_imgmsg(result_img, "bgr8")
-        print "Old Image h,w =", cv_image.shape
+        #print "Old Image h,w =", cv_image.shape
         img_msg.header.stamp = msg.header.stamp
         img_msg.header.frame_id = msg.header.frame_id
 
@@ -94,7 +96,7 @@ class ImgRectFullRatio(object):
         new_K = tuple(new_matrix.reshape(-1).tolist()[0])
         rect_cam_info.K = new_K
 
-        print "Image h, w = ", rect_cam_info.height, rect_cam_info.width
+        #print "Image h, w = ", rect_cam_info.height, rect_cam_info.width
 
         end_time = time.time()
         #print "Rect cbImg time = ", (end_time - start_time)

@@ -32,7 +32,7 @@ def cbPose(msg):
         pub_pose.append(poselist[:3])
         pub_pose.append(poselist[3:])
         poses2server.append(pub_pose)
-    print "pub2server: ", poses2server
+    #print "pub2server: ", poses2server
 
     import socket
     var = socket.gethostname()

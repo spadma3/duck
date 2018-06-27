@@ -111,7 +111,7 @@ class AprilLocalLocalization(object):
             #    in reference to the fixed tags
             elif new_info.tag_type == self.info.VEHICLE:
                 new_info.vehicle_name = id_info['vehicle_name']
-                rospy.loginfo("Detected %s with Tag ID %s", new_info.vehicle_name, new_info.id)
+                #rospy.loginfo("Detected %s with Tag ID %s", new_info.vehicle_name, new_info.id)
                 # cantrans = tf.canTransform('quacky/color_optical_frame', 'Tag15', now)
 
 
@@ -123,6 +123,8 @@ class AprilLocalLocalization(object):
                     # how about the time?? rospy.time(0) probably induces an artificial delay
                     try:
                         (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(new_info.id), 'Tag'+str(fixed_frame), rospy.Time(0))
+                        #trans = [0, 0, 0]
+                        #rot = [0, 0, 0, 1]
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                         continue
 
@@ -148,14 +150,15 @@ class AprilLocalLocalization(object):
                     #Add this remap pose to the array
                     remap_poses_array.poses.append(remap_pose)
 
-                    #TODO: Test if this output is actually correct
-                    # Debugging Output
+                    # Debugging Output (comment that to optimiza the code)
+                    '''
                     rot_euler = tf.transformations.euler_from_quaternion(rot)
                     rot_euler = [elem * 360 / (2 *3.14159) for elem in rot_euler]
                     trans_rnd = ['%.3f' % elem for elem in trans]
                     rot_rnd   = ['%.1f' % elem for elem in rot_euler]
                     rospy.loginfo("%s In reference to Tag%s: \nTranslation: %s \nOrientation: %s \n",
                                    new_info.vehicle_name, fixed_frame, trans_rnd, rot_rnd)
+                    '''
 
         self.pub_postPros.publish(remap_poses_array)
 
