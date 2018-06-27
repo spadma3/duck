@@ -141,7 +141,7 @@ class Graph(object):
 
     def get_node_by_pos(self,position):
         for n in self._nodes:
-            if round(self.node_positions[n],2) == round(position,2):
+            if round(self.node_positions[n][0],2) == round(position[0],2) and round(self.node_positions[n][1],2) == round(position[1],2):
                 return n
         return None
 
