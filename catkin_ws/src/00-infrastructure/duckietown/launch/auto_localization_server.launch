@@ -5,15 +5,10 @@
 
     <arg name="map" default="testcircle" doc="Specify the map you wants"/>
 
-    <include file="$(find auto_localization)/launch/subfserver.launch">
+    <include file="$(find auto_localization)/launch/server_localization.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="config" value="$(arg config)"/>
       <arg name="param_file_name" value="$(arg param_file_name)"/>
-    </include>
-
-    <remap from="local_poses" to="subfserver_easy/local_poses" />
-    <include file="$(find auto_localization)/launch/absolute_from_relative_position.launch">
-      <arg name="veh" value="$(arg veh)"/>
       <arg name="map" value="$(arg map)"/>
     </include>
 
