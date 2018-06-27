@@ -27,6 +27,7 @@ def cbPose(msg):
         pub_pose.append(pose.host)
         pub_pose.append(pose.frame_id)
         pub_pose.append(pose.bot_id)
+        pub_pose.append([pose.posestamped.header.stamp.secs, pose.posestamped.header.stamp.nsecs])
         poselist = pose2poselist(pose.posestamped.pose)
         pub_pose.append(poselist[:3])
         pub_pose.append(poselist[3:])
