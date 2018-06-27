@@ -2,20 +2,19 @@
 initial_state: "NORMAL_JOYSTICK_CONTROL"
 
 events: # Maps from subscribing topic to signal ids
-  joystick_override_on: 
-    topic: "joy_mapper_node/joystick_override"
-    msg_type: "BoolStamped"
-    trigger: True
-  joystick_override_off: 
-    topic: "joy_mapper_node/joystick_override"
-    msg_type: "BoolStamped"
-    trigger: False
+  # joystick_override_on: 
+  #   topic: "joy_mapper_node/joystick_override"
+  #   msg_type: "BoolStamped"
+  #   trigger: True
+  # joystick_override_off: 
+  #   topic: "joy_mapper_node/joystick_override"
+  #   msg_type: "BoolStamped"
+  #   trigger: False
   parallel_autonomy_on:
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
     trigger: True
   parallel_autonomy_off:
-    default: True
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
     trigger: False
@@ -23,19 +22,19 @@ events: # Maps from subscribing topic to signal ids
     topic: "joy_mapper_node/start_avoidance"
     msg_type: "BoolStamped"
     trigger: True
-  intersection_done:
-    topic: "intersection_navigation_node/intersection_done"
+  apriltag_intersection:
+    topic: "apriltags_postprocessing_node/apriltags_intersection" 
     msg_type: "BoolStamped"
     trigger: True
-  apriltag_intersection:
-    topic: "apriltag_postprocessing_node/apriltag_intersection" 
+  at_stop_line:
+    topic: "stop_line_filter_node/at_stop_line"
     msg_type: "BoolStamped"
     trigger: True
   # Logical events from logic_gate_node
-  at_stop_line_and_velocity_zero:
-    topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
-    msg_type: "BoolStamped"
-    trigger: True
+  # at_stop_line_and_velocity_zero:
+  #   topic: "logic_gate_node/at_stop_line_and_velocity_zero" 
+  #   msg_type: "BoolStamped"
+  #   trigger: True
   intersection_go:
     topic: "logic_gate_node/intersection_go"
     msg_type: "BoolStamped"
@@ -52,6 +51,39 @@ events: # Maps from subscribing topic to signal ids
     topic: "logic_gate_node/joystick_override_on_and_parallel_autonomy_on" 
     msg_type: "BoolStamped"
     trigger: True
+  joystick_override_off_and_deep_lane_off:
+    topic: "logic_gate_node/joystick_override_off_and_deep_lane_off"
+    msg_type: "BoolStamped"
+    trigger: True
+  joystick_override_off_and_deep_lane_on:
+    topic: "logic_gate_node/joystick_override_off_and_deep_lane_on"
+    msg_type: "BoolStamped"
+    trigger: True
+  deep_lane_following_on: 
+    topic: "joy_mapper_node/deep_learn_toggle"
+    msg_type: "BoolStamped"
+    trigger: True
+  deep_lane_following_off: 
+    topic: "joy_mapper_node/deep_learn_toggle"
+    msg_type: "BoolStamped"
+    trigger: False
+  intersection_done_and_deep_lane_off:
+    topic: "logic_gate_node/intersection_done_and_deep_lane_off"
+    msg_type: "BoolStamped"
+    trigger: True
+  intersection_done_and_deep_lane_on:
+    topic: "logic_gate_node/intersection_done_and_deep_lane_on"
+    msg_type: "BoolStamped"
+    trigger: True
+  at_stop_line_and_parking_off:
+    topic: "logic_gate_node/at_stop_line_and_parking_off"
+    msg_type: "BoolStamped"
+    trigger: True
+  at_stop_line_and_parking_on:
+    topic: "logic_gate_node/at_stop_line_and_parking_on"
+    msg_type: "BoolStamped"
+    trigger: True
+
   # obstacle_detection:
   #   topic: "obstacle_safety_node/object_too_close"
   #   msg_type: "BoolStamped"
@@ -68,10 +100,6 @@ events: # Maps from subscribing topic to signal ids
   #   topic: "vehicle_avoidance_control_node/vehicle_detected"
   #   msg_type: "BoolStamped"
   #   trigger: False
-
-global_transitions:
-  joystick_override_on_and_parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
-  joystick_override_on_and_parallel_autonomy_on: "SAFE_JOYSTICK_CONTROL"
 
 # Define nodes 
 nodes:
@@ -99,16 +127,19 @@ nodes:
   parking_perception_localization: "parking_perception_localization/switch"
   parking_path_planning: "parking_path_planning/switch"
   parking_control: "parking_control/switch"
+  duckiebot_il_lane_following: "duckiebot_il_lane_following/switch"
 
 # Define state transitions
+
+global_transitions:
+  joystick_override_on_and_parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
+  joystick_override_on_and_parallel_autonomy_on: "SAFE_JOYSTICK_CONTROL"
+
 states:
-  # ALWAYS:
-  #   active_nodes:
-  #     - inverse_kinematics
-  #     - anti_instagram
   NORMAL_JOYSTICK_CONTROL:
     transitions:
-      joystick_override_off: "LANE_FOLLOWING"
+      joystick_override_off_and_deep_lane_off: "LANE_FOLLOWING"
+      joystick_override_off_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
       parallel_autonomy_on: "SAFE_JOYSTICK_CONTROL"
     active_nodes:
       - lane_filter_node
@@ -121,7 +152,8 @@ states:
     current_status: "implemented"
   SAFE_JOYSTICK_CONTROL:
     transitions:
-      joystick_override_off: "LANE_FOLLOWING"
+      joystick_override_off_and_deep_lane_off: "LANE_FOLLOWING"
+      joystick_override_off_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
       parallel_autonomy_off: "NORMAL_JOYSTICK_CONTROL"
     active_nodes:
       - decoder_node
@@ -134,10 +166,13 @@ states:
     current_status: "implemented"
   LANE_FOLLOWING:
     transitions:
-      at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
+      at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
+      at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
+      deep_lane_following_on: "DEEP_LANE_FOLLOWING"
     active_nodes:
       - decoder_node
       - line_detector_node
+      - apriltag_node
       - lane_filter_node
       - lane_controller_node
       - stop_line_filter_node
@@ -163,38 +198,27 @@ states:
     current_status: "in_progress"
   INTERSECTION_CONTROL:
     transitions:
-      intersection_done: "LANE_FOLLOWING"
+      intersection_done_and_deep_lane_off: "LANE_FOLLOWING"
+      intersection_done_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
     active_nodes:
       - apriltag_node
       - decoder_node
       - led_emitter_node
       - line_detector_node
       - lane_filter_node
-      - lane_controller_node
+      ###### TO USE OPEN LOOP INTERSECTION CONTROL (untested):
+      # COMMENT OUT intersection_navigation_node, intersection_localization_node and lane_controller_node
       - intersection_navigation_node
       - intersection_localization_node
+      - lane_controller_node
     current_status: "in_progress"
-  # LANE_RECOVERY: # not implemented
-  #   transitions:
-  #     found_lane: "LANE_FOLLOWING"
-  #     lane_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
-  #   active_nodes:
-  #     - lane_filter_node
-  #     - line_detector_node
-  #   current_status: "planned"
-  # INTERSECTION_RECOVERY: # not implemented
-  #   transitions:
-  #     found_lane: "LANE_FOLLOWING"
-  #     intersection_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
-  #   active_nodes:
-  #     - lane_filter_node
-  #     - line_detector_node
-  #   current_status: "planned"
   PARKING:
     transitions:
-      at_stop_line_and_velocity_zero: "ARRIVE_AT_STOP_LINE"
+      at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
+      at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
     active_nodes:
       - decoder_node
+      - apriltag_node
       - line_detector_node
       - lane_filter_node
       - parking_node
@@ -211,3 +235,32 @@ states:
       - apriltag_node
       - decoder_node
     current_status: "implemented"
+  DEEP_LANE_FOLLOWING:
+    transitions:
+      at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
+      at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
+      deep_lane_following_off: "LANE_FOLLOWING"
+    active_nodes:
+      - decoder_node
+      - apriltag_node
+      - line_detector_node
+      - stop_line_filter_node
+      - duckiebot_il_lane_following
+      
+
+  # LANE_RECOVERY: # not implemented
+  #   transitions:
+  #     found_lane: "LANE_FOLLOWING"
+  #     lane_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
+  #   active_nodes:
+  #     - lane_filter_node
+  #     - line_detector_node
+  #   current_status: "planned"
+  # INTERSECTION_RECOVERY: # not implemented
+  #   transitions:
+  #     found_lane: "LANE_FOLLOWING"
+  #     intersection_recovery_timeout_reached: "SAFE_JOYSTICK_CONTROL"
+  #   active_nodes:
+  #     - lane_filter_node
+  #     - line_detector_node
+  #   current_status: "planned"
