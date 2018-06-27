@@ -59,8 +59,8 @@ class global_localization(object):
 
         # Load map file path with ros param set in launch file
         self.map_filename = rospy.get_param("~map") + ".yaml"
-
         self.load_map_info()
+
         # Open Output .csv file
         self.output_file = self.init_output_file()
 
@@ -74,30 +74,52 @@ class global_localization(object):
 # Listens to Local Poses
 # Returns Global Poses <3
 
-    def local_poses_callback(self, locpos_msg):
-        # TODO: Parse Message
-        # x,y,theta = transform_bot_position(local_pose)
-        # new_data = [time, bot_ID, x, y, theta, camera_ID, Tag_ID]
-        # self.write_data_to_output_file(new_data)
-
+    def local_poses_callback(self, locpos_msgs):
+        # Message is an Array need to iterate trogh each element
         # The node will publish an array full of poses of robots
         global_poses = GlobalPoseArray()
-        # Each element of the array is an GlobalPose()
-        g_pose = GlobalPose()
+        has_this_bot_been_detected_already = {}
 
-        # Demonstrate how to use GlobalPose message
-        g_pose.bot_id = 1
-        g_pose.pose.x = 0.2 # in meter
-        g_pose.pose.y = 0.1
-        g_pose.pose.theta = 90 # Degree, increase in counter-clockwise
-        g_pose.cam_id = [1, 2] # Seen by watchtower01 and watchtower02
-        g_pose.header.stamp = rospy.Time.now() # Set time of the header
+        for locpos_msg in locpos_msgs.poses:
+            # Each element of the array is an GlobalPose()
+            g_pose = GlobalPose()
 
-        global_poses.poses.append(g_pose) # Add the pose to the pose array
+            # TODO: handle if bot is detected multiple times
+            # if g_pose.bot_id in has_this_bot_been_detected_already.keys()
+            g_pose.bot_id = locpos_msg.bot_id
+
+            g_pose.reference_tag_id.append(locpos_msg.frame_id)
+
+            # time of global pose should be same as relative pose
+            g_pose.header.stamp = locpos_msg.posestamped.header.stamp
+            g_pose.pose.x, g_pose.pose.y, g_pose.pose.theta = self.transform_bot_position(locpos_msg)
+
+
+            # Which watchtowers have seen the duckiebot. take last to charakters of
+            # string such that "watchtower02" turns to 02
+            #print locpos_msg.host[-2:]
+            #print int(locpos_msg.host[-2:])
+
+            g_pose.cam_id.append(int(locpos_msg.host[-2:]))
+
+            global_poses.poses.append(g_pose) # Add the pose to the pose array
+
+            # Dump new global pose information into output file
+            # TODO do this with the entire GlobalPoseArray
+            new_data = [g_pose.header.stamp, g_pose.bot_id,  g_pose.pose.x, g_pose.pose.y, g_pose.pose.theta, g_pose.cam_id ,g_pose.reference_tag_id]
+            self.write_data_to_output_file(new_data)
 
         self.pub_abs_pos.publish(global_poses) # Publish the global poses
 
+
+### -------------- FIND GLOBAL POSE FROM MULITPLE LOCAL POSES------------#####
+# This function takes mulitiple local poses from the same time frame
+# and converts it to a single global pose
+    def estimate_pose(self, global_poses):
+
+
         print "Hello World"
+
 
 
 
@@ -130,11 +152,12 @@ class global_localization(object):
     # INPUT:    none
     # OUTPUT:   output_file object
     def init_output_file(self):
+        path = "/home/jquack/duckietown/statistics/"
         time = "{:%Y%m%d-%H%M%S}".format(datetime.now())
-        output_file_name = 'localization-statistics-' + time + '.csv'
+        output_file_name = path + 'localization-statistics-' + time + '.csv'
         print output_file_name
         output_file = open(output_file_name, 'w+')
-        output_file.write('time, bot_ID, x, y, theta\n')
+        output_file.write('time, bot_ID, x, y, theta, camera_id, reference_tag_id\n')
         return output_file
 
 
@@ -160,7 +183,8 @@ class global_localization(object):
         y = trans_bot_abs[1]
 
         rot_bot_abs = tf.transformations.quaternion_from_matrix(mat_bot_abs)
-        # TODO: check which one is actually theta
+
+        # returns theta in radians
         alpha,beta, theta = tr.euler_from_matrix(mat_bot_abs, 'rxyz')
 
         return x,y,theta
@@ -180,13 +204,16 @@ class global_localization(object):
         # trans: xyz translation
         # rot: xyzw quaternion
         # mat: 4x4 transformation matrix
+        position = local_pose.posestamped.pose.position
+        orientation = local_pose.posestamped.pose.orientation
+        trans_bot_tag = [position.x, position.y, position.z]
+        rot_bot_tag = [orientation.x, orientation.y, orientation.z, orientation.w]
 
-        # Lookupframe ID
-        frame_ID = 'Tag1' # TODO: read from message
 
-        # TODO: robostify in case fixed Tag is ditacted which is not in the database
+        # TODO: robostify in case fixed Tag is detected which is not in the database
         #       raise exception or error
-        mat_tag_abs = self.fixed_tags[frame_ID]
+        mat_tag_abs = self.fixed_tags["Tag"+str(local_pose.frame_id)]
+        mat_bot_tag = self.create_tf_matrix(trans_bot_tag,rot_bot_tag)
 
         # absolute position of the bot
         mat_bot_abs = self.absolute_from_relative_position(mat_bot_tag, mat_tag_abs)

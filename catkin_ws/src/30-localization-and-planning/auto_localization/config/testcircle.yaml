@@ -27,7 +27,7 @@ origin:
 
 
 fixed_tags:
-- id: 1
+- id: 142 # this is the tag ID of the Unit test
   translation: [0,0,0]
   orientation: [0,0,0,0]
 
