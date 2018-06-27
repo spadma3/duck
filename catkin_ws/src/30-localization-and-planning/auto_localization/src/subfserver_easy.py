@@ -30,6 +30,8 @@ def pubPoses():
     pub_poses = rospy.Publisher('~local_poses', RemapPoseArray, queue_size=1)
     rate = rospy.Rate(5) # 5hz
 
+    rospy.sleep(10.) # Wait to insure that the client TCP/IP node has launched
+
     while not rospy.is_shutdown():
         local_poses_pub = RemapPoseArray()
 
