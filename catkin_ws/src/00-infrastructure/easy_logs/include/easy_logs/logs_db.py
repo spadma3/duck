@@ -13,7 +13,7 @@ from .time_slice import filters_slice
 
 
 def get_easy_logs_db():
-    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB)
+    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB, write_candidate_cloud=False)
 
 
 def delete_easy_logs_cache():
@@ -92,7 +92,6 @@ def get_easy_logs_db_cloud():
     with dtu.timeit_wall("loading DB"):
         dtu.logger.info('Loading cloud DB %s' % dtu.friendly_path(cloud_file))
         data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
-#        data = yaml.load(open(cloud_file).read())
         dtu.logger.debug('Conversion')
         logs = logs_from_yaml(data)
 
@@ -148,12 +147,15 @@ class EasyLogsDB(object):
             aliases.update(self.logs)
             # adding aliases unless we are asking for everything
             if query != '*':
-#                print('adding more (query = %s)' % query)
+                #print('adding more (query = %s)' % query)
                 for _, log in self.logs.items():
                     dtr = DTR.from_yaml(log.resources['bag'])
 
                     original_name = dtr.name
 
+                    # print ('alias: %s %s' % (original_name, dtr.name))
+                    aliases[original_name] = log
+                    original_name = original_name.replace('.bag', '')
                     aliases[original_name] = log
 
             result = dtu.fuzzy_match(query, aliases, filters=filters,

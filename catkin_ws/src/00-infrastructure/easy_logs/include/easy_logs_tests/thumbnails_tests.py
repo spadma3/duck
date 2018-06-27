@@ -5,14 +5,14 @@ import duckietown_utils as dtu
 
 @dtu.unit_test
 def test_thumbnails():
-    id_log = '2016-04-29-dp3auto-neptunus-1'
+    id_log = '20160429223659_neptunus'
     cmd = ['/opt/ros/kinetic/bin/rosrun', 'easy_logs', 'thumbnails', id_log, '-c', 'rmake']
     run_one(cmd)
 
 
 @dtu.unit_test
 def test_videos():
-    id_log = '2016-04-29-dp3auto-neptunus-1/{1:3}'
+    id_log = '20160429223659_neptunus/{1:3}'
     cmd = ['rosrun', 'easy_logs', 'videos', id_log, '-c', 'rmake']
     run_one(cmd)
 

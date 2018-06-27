@@ -141,9 +141,9 @@ def look_everywhere_for_files(patterns, strict=False, silent=False):
     results = OrderedDict()
     for s in sources:
         for pattern in patterns:
-            logger.debug('Looking for files with pattern %s...' % pattern)
+            # logger.debug('Looking for files with pattern %s...' % pattern)
             filenames = locate_files(s, pattern, case_sensitive=False)
-            logger.debug('%5d files in %s' % (len(filenames), friendly_path(s)))
+            # logger.debug('%5d files in %s' % (len(filenames), friendly_path(s)))
             for filename in filenames:
                 basename = os.path.basename(filename)
                 if basename in results:

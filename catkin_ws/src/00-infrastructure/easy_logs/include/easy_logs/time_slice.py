@@ -31,9 +31,10 @@ class MakeTimeSlice(dtu.Spec):
         return matches
 
     def transform(self, id_log, log):
-        if not log.valid:
-            # Not sure this is the right thing to do
-            return id_log, log
+#        if not log.valid:
+#            # Not sure this is the right thing to do
+#            print('log not valid')
+#            return id_log, log
         u0 = log.t0
         u1 = log.t1
         assert (u0 is not None) and  (u1 is not None), log
