@@ -15,13 +15,15 @@ def poselist2pose(poselist):
     pose.host = poselist[0]
     pose.frame_id = poselist[1]
     pose.bot_id = poselist[2]
-    pose.posestamped.pose.position.x = poselist[3][0]
-    pose.posestamped.pose.position.y = poselist[3][1]
-    pose.posestamped.pose.position.z = poselist[3][2]
-    pose.posestamped.pose.orientation.x = poselist[4][0]
-    pose.posestamped.pose.orientation.y = poselist[4][1]
-    pose.posestamped.pose.orientation.z = poselist[4][2]
-    pose.posestamped.pose.orientation.w = poselist[4][3]
+    pose.posestamped.header.stamp.secs = poselist[3][0]
+    pose.posestamped.header.stamp.nsecs = poselist[3][1]
+    pose.posestamped.pose.position.x = poselist[4][0]
+    pose.posestamped.pose.position.y = poselist[4][1]
+    pose.posestamped.pose.position.z = poselist[4][2]
+    pose.posestamped.pose.orientation.x = poselist[5][0]
+    pose.posestamped.pose.orientation.y = poselist[5][1]
+    pose.posestamped.pose.orientation.z = poselist[5][2]
+    pose.posestamped.pose.orientation.w = poselist[5][3]
 
     return pose
 
@@ -29,6 +31,8 @@ def pubPoses():
 
     pub_poses = rospy.Publisher('~local_poses', RemapPoseArray, queue_size=1)
     rate = rospy.Rate(5) # 5hz
+
+    rospy.sleep(10.) # Wait to insure that the client TCP/IP node has launched
 
     while not rospy.is_shutdown():
         local_poses_pub = RemapPoseArray()

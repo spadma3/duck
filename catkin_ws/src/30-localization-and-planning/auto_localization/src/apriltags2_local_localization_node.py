@@ -137,6 +137,7 @@ class AprilLocalLocalization(object):
                     remap_pose.host = socket.gethostname()
                     remap_pose.frame_id = fixed_frame
                     remap_pose.bot_id = new_info.id
+                    remap_pose.posestamped.header.stamp = detection.pose.header.stamp
                     remap_pose.posestamped.pose.position.x = trans[0]
                     remap_pose.posestamped.pose.position.y = trans[1]
                     remap_pose.posestamped.pose.position.z = trans[2]
