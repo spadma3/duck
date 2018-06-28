@@ -153,7 +153,9 @@ class global_localization(object):
     # INPUT:    none
     # OUTPUT:   output_file object
     def init_output_file(self, filename):
-        output_file_name = rospkg.RosPack().get_path('auto_localization') + "/config/" + filename + ".csv"
+        time = "{:%Y%m%d-%H%M%S}".format(datetime.now())
+        filename_dates = filename +time + ".csv"
+        output_file_name = rospkg.RosPack().get_path('auto_localization') + "/config/" + filename_dates
         print output_file_name
         output_file = open(output_file_name, 'w+')
         output_file.write('time, bot_ID, x, y, theta, camera_id, reference_tag_id\n')
