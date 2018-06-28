@@ -195,7 +195,8 @@ class global_localization(object):
         # https://answers.ros.org/question/215656/how-to-transform-a-pose/
 
         # TODO: verify order of arguments
-        mat_bot_abs = tr.concatenate_matrices(mat_tag_abs, mat_bot_tag)
+        # mat_bot_abs = tr.concatenate_matrices(mat_tag_abs, mat_bot_tag)
+        mat_bot_abs = tr.concatenate_matrices(mat_bot_tag, mat_tag_abs)
 
         return mat_bot_abs
 
