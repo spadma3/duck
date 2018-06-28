@@ -74,12 +74,15 @@ class ImgRectFullRatio(object):
         #crop by 20%
         # code is from here: https://stackoverflow.com/questions/15589517/how-to-crop-an-image-in-opencv-using-python
         #result_img = result_img[round(0.1*cv_image.shape[0]):round(0.9*cv_image.shape[0]), round(0.1*cv_image.shape[1]):round(0.9*cv_image.shape[1])]
-        #result_img = result_img[50:100, 50:100]
+        result_img = result_img[120:result_img.shape[0], 0:result_img.shape[1]]
 
         #resize
         #result_img = cv2.resize(result_img,(cv_image.shape[1], cv_image.shape[0]), interpolation = cv2.INTER_AREA)
-        ratio = 0.5
-        result_img = cv2.resize(result_img,(int(result_img.shape[1]*ratio), int(result_img.shape[0]*ratio)), interpolation = cv2.INTER_AREA)
+        ratio = 1
+        #result_img = cv2.resize(result_img,(int(result_img.shape[1]*ratio), int(result_img.shape[0]*ratio)), interpolation = cv2.INTER_AREA)
+
+        new_matrix[0, 2] = result_img.shape[1] / 2
+        new_matrix[1, 2] = result_img.shape[0] / 2
 
         img_msg = self.bridge.cv2_to_imgmsg(result_img, "bgr8")
         #print "Old Image h,w =", cv_image.shape
@@ -93,7 +96,9 @@ class ImgRectFullRatio(object):
         rect_cam_info.width = result_img.shape[1]
 
         #add new camera info matrix to the camera info message
+        print "new_matrix", new_matrix
         new_K = tuple(new_matrix.reshape(-1).tolist()[0])
+        print "new_K, ", new_K
         rect_cam_info.K = new_K
 
         #print "Image h, w = ", rect_cam_info.height, rect_cam_info.width

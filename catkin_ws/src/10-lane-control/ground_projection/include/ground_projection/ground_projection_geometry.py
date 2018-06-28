@@ -154,7 +154,7 @@ class GroundProjectionGeometry(object):
         new_camera_matrix[1, 2] = H / 2
         print('new_camera_matrix: %s' % new_camera_matrix)
 
-        
+
         mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
         mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
         mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
@@ -200,11 +200,11 @@ class GroundProjectionGeometry(object):
 
             Returns the new camera matrix as well.
         '''
-        start_time = time.time()
+        #start_time = time.time()
         if not self._rectify_inited:
             W = int(self.pcm.width * ratio)
             H = int(self.pcm.height * ratio)
-            self._init_rectify_maps_for_rectfullratio(W, H) 
+            self._init_rectify_maps_for_rectfullratio(W, H)
 #        mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
 #        mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
         #print('K: %s' % self.pcm.K)
@@ -215,7 +215,7 @@ class GroundProjectionGeometry(object):
 #        print('validPixROI: %s' % str(validPixROI))
 
         # Use the same camera matrix
-        start_map_time = time.time()
+        #start_map_time = time.time()
         '''
         new_camera_matrix = self.pcm.K.copy()
         new_camera_matrix[0, 2] = W / 2
@@ -225,11 +225,11 @@ class GroundProjectionGeometry(object):
                                                  new_camera_matrix, (W, H),
                                                  cv2.CV_32FC1)
         '''
-        map_time = time.time()
+        #map_time = time.time()
         cv_image_rectified = np.empty_like(cv_image_raw)
         res = cv2.remap(cv_image_raw, self.mapx, self.mapy, interpolation,
                         cv_image_rectified)
-        end_time = time.time()
+        #end_time = time.time()
         #print "map time = ", (map_time - start_map_time)
         #print "rectify time = ", (end_time - map_time)
         #print "total time = ", (end_time - start_time)
@@ -322,4 +322,3 @@ def fill_holes(rmapx, rmapy):
 
 #     print('holes: %s' % holes)
 #     print('deltas: %s' % get_deltas())
-
