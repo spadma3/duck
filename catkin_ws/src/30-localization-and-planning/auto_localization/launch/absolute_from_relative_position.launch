@@ -5,11 +5,13 @@
     <arg name="veh" doc="Name of vehicle. ex: megaman"/>
 
     <arg name="map" default="testcircle" doc="Specify the map you wants"/>
+    <arg name="output" default="test" doc="Specify the output name of the statistics file"/>
 
     <group ns="$(arg veh)">
         <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py"
               output="screen">
               <param name="~map" value="$(arg map)" type="str"/>
+              <param name="~output_file" value="$(arg output)" type="str"/>
         </node>
     </group>
 
