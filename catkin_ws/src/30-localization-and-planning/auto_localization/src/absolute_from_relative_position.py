@@ -62,7 +62,8 @@ class global_localization(object):
         self.load_map_info()
 
         # Open Output .csv file
-        self.output_file = self.init_output_file()
+        self.output_file_name = rospy.get_param("~output_file")
+        self.output_file = self.init_output_file(self.output_file_name)
 
         #Add Subscriber (Eric add on 0626)
         self.sub_local_pos = rospy.Subscriber("local_poses", RemapPoseArray, self.local_poses_callback, queue_size=1)
@@ -151,10 +152,8 @@ class global_localization(object):
     # creates and initilizes the output file
     # INPUT:    none
     # OUTPUT:   output_file object
-    def init_output_file(self):
-        path = "/home/jquack/duckietown/statistics/"
-        time = "{:%Y%m%d-%H%M%S}".format(datetime.now())
-        output_file_name = path + 'localization-statistics-' + time + '.csv'
+    def init_output_file(self, filename):
+        output_file_name = rospkg.RosPack().get_path('auto_localization') + "/config/" + filename + ".csv"
         print output_file_name
         output_file = open(output_file_name, 'w+')
         output_file.write('time, bot_ID, x, y, theta, camera_id, reference_tag_id\n')
