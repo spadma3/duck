@@ -2,7 +2,7 @@
 import rospy
 import numpy as np
 from sensor_msgs.msg import Joy
-from std_msgs.msg import Float32, Int8, String
+from std_msgs.msg import Float32, Int8, String, Bool
 import time
 
 
@@ -20,15 +20,17 @@ class LEDJoyMapper(object):
         self.pub_pattern= rospy.Publisher("~change_color_pattern", String, queue_size=1)
 
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
+        self.sub_start = rospy.Subscriber("~start", Bool, self.cbStart, queue_size=1)
+        self.startTime = 0
 
         self.button2patterns = {
              # 'a' is pressed
             0: 'CAR_SIGNAL_A',
             # 'b' is pressed
-            1: 'OFF',
+            1: 'tl_off',
 	    #1: 'ON_RED',
             # 'Y' is pressed
-            3: 'ON_GREEN'
+            3: 'SIGNAL_GREEN'
             # 'X' is pressed
 #            4: 'ON_BLUE',
             # lb is pressed
@@ -42,13 +44,27 @@ class LEDJoyMapper(object):
     def cbJoy(self, joy_msg):
         self.joy = joy_msg
         self.publishControl()
+    def cbStart(self, flag):
+        self.startTime = time.time()
+        self.publishControl()
+
+    # def publishControl(self):
+    #
+    #     for b, pattern in self.button2patterns.items():
+    #         if self.joy.buttons[b] == 1:
+    #             self.pub_pattern.publish(pattern)
+    #             rospy.loginfo("Publishing pattern %s" % (pattern))
 
     def publishControl(self):
+        while(True):
+            now = time.time()
+            if now - self.startTime < 20:
+                self.pub_pattern.publish('CAR_SIGNAL_A')
+            elif now - self.startTime < 40:
+                self.pub_pattern.publish('CAR_SIGNAL_GREEN')
+            else:
+                self.pub_pattern.publish('OFF')
 
-        for b, pattern in self.button2patterns.items():
-            if self.joy.buttons[b] == 1:
-                self.pub_pattern.publish(pattern)
-                rospy.loginfo("Publishing pattern %s" % (pattern))
 
 if __name__ == "__main__":
     rospy.init_node("led_joy_mapper",anonymous=False)
