@@ -34,3 +34,9 @@ killall: check-environment
 
 git-reset: check-environment
 	bash -c "git reset --hard HEAD"
+
+ledjoy-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; roslaunch led_joy_mapper led_joy_with_led_emitter.launch veh:=$*"
+
+set-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*"
