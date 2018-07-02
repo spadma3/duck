@@ -22,6 +22,7 @@ class LEDJoyMapper(object):
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
         self.sub_start = rospy.Subscriber("~start", Bool, self.cbStart, queue_size=1)
         self.startTime = 0
+        self.last = 0
 
         self.button2patterns = {
              # 'a' is pressed
@@ -43,10 +44,21 @@ class LEDJoyMapper(object):
 
     def cbJoy(self, joy_msg):
         self.joy = joy_msg
-        self.publishControl()
+        self.startTime = time.time()
+        self.friendlyTimer()
     def cbStart(self, flag):
         self.startTime = time.time()
-        self.publishControl()
+        self.friendlyTimer()
+
+    def friendlyTimer(self):
+
+        while(True):
+            now = time.time()
+
+            if now -self.last> 1:
+                self.last=now
+                self.publishControl()
+                time.sleep(0.2)
 
     # def publishControl(self):
     #
@@ -56,14 +68,26 @@ class LEDJoyMapper(object):
     #             rospy.loginfo("Publishing pattern %s" % (pattern))
 
     def publishControl(self):
-        while(True):
-            now = time.time()
-            if now - self.startTime < 20:
-                self.pub_pattern.publish('CAR_SIGNAL_A')
-            elif now - self.startTime < 40:
-                self.pub_pattern.publish('CAR_SIGNAL_GREEN')
-            else:
-                self.pub_pattern.publish('OFF')
+
+        now = time.time()
+        if now - self.startTime < 20:
+            self.pub_pattern.publish('CAR_SIGNAL_A')
+        elif now - self.startTime < 40:
+            self.pub_pattern.publish('CAR_SIGNAL_GREEN')
+        elif now - self.startTime < 50:
+            self.pub_pattern.publish('CAR_SIGNAL_A')
+        elif now - self.startTime < 60:
+            self.pub_pattern.publish('CAR_SIGNAL_GREEN')
+        elif now - self.startTime < 65:
+            self.pub_pattern.publish('CAR_SIGNAL_A')
+        elif now - self.startTime < 70:
+            self.pub_pattern.publish('CAR_SIGNAL_GREEN')
+        elif now - self.startTime < 72.5:
+            self.pub_pattern.publish('CAR_SIGNAL_A')
+        elif now - self.startTime < 75:
+            self.pub_pattern.publish('CAR_SIGNAL_GREEN')
+        else:
+            self.pub_pattern.publish('OFF')
 
 
 if __name__ == "__main__":
