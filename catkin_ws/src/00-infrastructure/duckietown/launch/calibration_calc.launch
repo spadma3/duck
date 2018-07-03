@@ -23,5 +23,6 @@
       <arg name="camera" value="$(arg camera)"/>
       <arg name="live" value="$(arg live)"/>
   		<arg name="rect_full_ratio" value="$(arg rect_full_ratio)" />
+    </include>
 
 </launch>

@@ -96,9 +96,9 @@ class ImgRectFullRatio(object):
         rect_cam_info.width = result_img.shape[1]
 
         #add new camera info matrix to the camera info message
-        print "new_matrix", new_matrix
+        #print "new_matrix", new_matrix
         new_K = tuple(new_matrix.reshape(-1).tolist()[0])
-        print "new_K, ", new_K
+        #print "new_K, ", new_K
         rect_cam_info.K = new_K
 
         #print "Image h, w = ", rect_cam_info.height, rect_cam_info.width
