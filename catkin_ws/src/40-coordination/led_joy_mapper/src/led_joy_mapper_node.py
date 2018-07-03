@@ -70,21 +70,17 @@ class LEDJoyMapper(object):
     def publishControl(self):
 
         now = time.time()
-        if now - self.startTime < 20:
+        if now - self.startTime < 10:
             self.pub_pattern.publish('CAR_SIGNAL_A')
-        elif now - self.startTime < 40:
+        elif now - self.startTime < 20:
             self.pub_pattern.publish('CAR_SIGNAL_GREEN')
-        elif now - self.startTime < 50:
+        elif now - self.startTime < 25:
             self.pub_pattern.publish('CAR_SIGNAL_A')
-        elif now - self.startTime < 60:
+        elif now - self.startTime < 30:
             self.pub_pattern.publish('CAR_SIGNAL_GREEN')
-        elif now - self.startTime < 65:
+        elif now - self.startTime < 32.5:
             self.pub_pattern.publish('CAR_SIGNAL_A')
-        elif now - self.startTime < 70:
-            self.pub_pattern.publish('CAR_SIGNAL_GREEN')
-        elif now - self.startTime < 72.5:
-            self.pub_pattern.publish('CAR_SIGNAL_A')
-        elif now - self.startTime < 75:
+        elif now - self.startTime < 35:
             self.pub_pattern.publish('CAR_SIGNAL_GREEN')
         else:
             self.pub_pattern.publish('OFF')
