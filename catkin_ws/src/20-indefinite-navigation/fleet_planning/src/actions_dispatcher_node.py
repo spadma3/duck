@@ -29,7 +29,7 @@ class ActionsDispatcherNode:
         self.actions = []
         self.path = []
         self.current_node = None
-        self.target_node = 240
+        self.target_node = rospy.get_param('end_node','240')
         self.last_red_line = rospy.get_time()
         self.active = False
         self.graphSearchSuccessful = False
@@ -76,9 +76,15 @@ class ActionsDispatcherNode:
             #if self.current_node != None:
             self.current_node = self.tag_id
             self.graph_search(self.current_node, self.target_node)
+            if self.graphSearchSuccessful == True:
+                self.dispatch_action(msg)
+        else:
+            self.pub_action.publish(msg)
 
-        if self.graphSearchSuccessful == True:
-            self.dispatch_action(msg)
+        if self.current_node == self.target_node:
+            print 'Destination reached' #TODO change state?
+            self.actions = []
+            #self.active = False
 
     def graph_search(self, source_node, target_node):
         print 'Requesting map for src: ', source_node, ' and target: ', target_node
@@ -92,14 +98,28 @@ class ActionsDispatcherNode:
 
             if actions:
                 # remove 'f' (follow line) from actions
-                self.actions = [x for x in actions if x != 'f']
-                print '\n \n ************ \n {} at node {} \n \n Actions to be executed: {}'.format(self.duckiebot_name, source_node, self.actions)
+                temp_actions = [x for x in actions if x != 'f']
+                self.check_for_path_change(self.actions,temp_actions)
+                self.actions = temp_actions
+                info_msg = '\n \n ************ \n {} at node {} \n \n Actions to be executed: {}'.format(self.duckiebot_name, source_node, self.actions)
+                print info_msg
+                rospy.loginfo("%s", info_msg)
                 self.graphSearchSuccessful = True
             else:
                 print 'No actions to be executed'
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
+
+
+    def check_for_path_change(self, actions_old, actions_new):
+        if actions_old == []:
+            rospy.loginfo("Starting new route")
+        else:
+            act = actions_old.pop(0)
+            if actions_old != actions_new:
+                rospy.loginfo("Made a wrong turn! Planned turn %s", act)
+
 
 
     def dispatch_action(self,msg):

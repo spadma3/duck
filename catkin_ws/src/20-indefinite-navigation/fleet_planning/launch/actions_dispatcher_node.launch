@@ -10,6 +10,7 @@
 	<param name="veh" value="$(arg veh)"/>
 	<param name="map_name" value="$(arg map_name)"/>
 	<param name="map_dir" value="$(arg map_dir)"/>
+	<param name="target_node" value="$(arg target_node)"/>
 
 	<group ns="$(arg veh)">
 	    <!-- Local -->
