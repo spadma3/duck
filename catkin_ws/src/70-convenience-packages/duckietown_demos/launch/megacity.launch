@@ -31,6 +31,7 @@
 
     <arg name="tcp_communication" value="true"/>
 		<arg name="auto_calibration" value="true"/>
+		<arg name="rect_full_ratio" value="true"/>
 
 	</include>
 </launch>

@@ -112,6 +112,7 @@
 
 <arg name="charging_control" default="false"/>
 <arg name="auto_calibration" default="false"/>
+<arg name="rect_full_ratio" default="false"/>
 
 <arg name="auto_ion" default="true"/>
 
