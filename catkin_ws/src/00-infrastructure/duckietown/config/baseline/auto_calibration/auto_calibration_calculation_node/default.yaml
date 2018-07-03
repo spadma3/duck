@@ -1,4 +1,13 @@
 tags:
+  tag24:
+    #position:
+    - 1   #x
+    - 0.5   #y
+    - 0.05   #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 3.14159  #yaw
   tag300:
     #position:
     - 1   #x

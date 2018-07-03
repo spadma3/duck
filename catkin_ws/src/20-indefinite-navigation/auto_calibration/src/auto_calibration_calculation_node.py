@@ -15,7 +15,7 @@ class AutoCalibrationCalculationNode(object):
         self.mode = None
         self.triggered = False
         self.count_last = 0
-        self.data_gathering = False
+        self.data_gathering = True #ONLY for testing purposes, default is FALSE
         #timestamp, omega_l, omega_r
         self.wheel_motion = np.zeros((1,3))
         #timestamp, x , y, z, roll, pitch, yaw
@@ -67,23 +67,47 @@ class AutoCalibrationCalculationNode(object):
     def cbTag(self, msg):
         if self.data_gathering:
             count = 0
-            tmp = np.zeros(6)
+            tmp = np.zeros(9)
+            tmp_6 = np.zeros(6)
             for detection in msg.detections:
                 count=count+1
-                x = detection.pose.pose.pose.position.x
-                y = detection.pose.pose.pose.position.x
-                z = detection.pose.pose.pose.position.y
+                #Coordinate transformation
+                x = detection.pose.pose.pose.position.z
+                y = -detection.pose.pose.pose.position.x
+                z = -detection.pose.pose.pose.position.y
                 xq = detection.pose.pose.pose.orientation.x
                 yq = detection.pose.pose.pose.orientation.y
                 zq = detection.pose.pose.pose.orientation.z
                 wq = detection.pose.pose.pose.orientation.w
-                [roll,pitch,yaw] = self.qte(wq,xq,yq,zq)
+                [r,p,y] = self.qte(wq,xq,yq,zq)
+                roll = y
+                pitch = (r+3.14159)*-1
+                yaw = -p+3.14159
                 cam_loc=np.array([x,y,z,roll,pitch,yaw])
-                tmp=tmp+self.visual_odometry(cam_loc,detection.id[0])
+                tmp_6 = self.visual_odometry(cam_loc,detection.id[0])
+                tmp=tmp+([tmp_6[0],tmp_6[1],tmp_6[2],math.sin(tmp_6[3]),math.cos(tmp_6[3]),math.sin(tmp_6[4]),math.cos(tmp_6[4]),math.sin(tmp_6[5]),math.cos(tmp_6[5])])
             if count != 0:
+                roll = math.atan2(tmp[3],tmp[4])
+                pitch = math.atan2(tmp[5],tmp[6])
+                yaw = math.atan2(tmp[7],tmp[8])
                 tmp = tmp/count
                 secs = self.toSeconds(msg.header.stamp.secs,msg.header.stamp.nsecs)
-                self.camera_motion = np.append(self.camera_motion,([[secs,tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5]]]),axis=0)
+                self.camera_motion = np.append(self.camera_motion,([[secs,tmp[0],tmp[1],tmp[2],roll,pitch,yaw]]),axis=0)
+                #rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,tmp[0],tmp[1],tmp[2],roll,pitch,yaw))
+        # for detection in msg.detections:
+        #     #Coordinate transformation
+        #     x = detection.pose.pose.pose.position.z
+        #     y = -detection.pose.pose.pose.position.x
+        #     z = -detection.pose.pose.pose.position.y
+        #     xq = detection.pose.pose.pose.orientation.x
+        #     yq = detection.pose.pose.pose.orientation.y
+        #     zq = detection.pose.pose.pose.orientation.z
+        #     wq = detection.pose.pose.pose.orientation.w
+        #     [r,p,y] = self.qte(wq,xq,yq,zq)
+        #     roll = y*180/3.1415
+        #     pitch = (r*180/3.1415+180)*-1
+        #     yaw = p*180/3.1415*-1+180
+        #     rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,x,y,z,roll,pitch,yaw))
 
     #extract the wheel motion
     def cbDutyCycle(self,msg):
