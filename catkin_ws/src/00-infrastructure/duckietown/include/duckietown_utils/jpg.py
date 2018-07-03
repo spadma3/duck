@@ -3,8 +3,9 @@
 """
 
 import os
-
 import cv2
+import time
+import picamera
 
 from duckietown_utils.disk_hierarchy import tmpfile
 from duckietown_utils.mkdirs import d8n_make_sure_dir_exists
@@ -93,13 +94,18 @@ def bgr_from_raspistill(frame=None):
         if frame is not None:
             filename = frame
         d8n_make_sure_dir_exists(filename)
-        cmd = ['raspistill', '-o', filename,
-            '--awb', 'auto',
-#              '--exposure', 'off',
-              ]
-        logger.debug('Capturing using command:\n   %s' % " ".join(cmd))
-        cwd = '.'
-        _ = system_cmd_result(cwd, cmd, raise_on_error=True)
+        #cmd = ['raspistill', '-o', filename,
+        #    '--awb', 'auto',
+#       #       '--exposure', 'off',
+        #      ]
+        #logger.debug('Capturing using command:\n   %s' % " ".join(cmd))
+        #cwd = '.'
+        #_ = system_cmd_result(cwd, cmd, raise_on_error=True)
+        with picamera.PiCamera() as camera:
+            #camera.resolution = (1280, 720)   # 720p
+            time.sleep(2)
+            camera.capture(filename)
+
         res = bgr_from_jpg_fn(filename)
         return res
 
