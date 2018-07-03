@@ -9,6 +9,8 @@ from image_geometry import PinholeCameraModel
 import numpy as np
 from sensor_msgs.msg import CameraInfo
 
+import time
+
 __all__ = [
     'GroundProjectionGeometry',
 ]
@@ -145,6 +147,24 @@ class GroundProjectionGeometry(object):
         self.mapy = mapy
         self._rectify_inited = True
 
+    def _init_rectify_maps_for_rectfullratio(self, W, H):
+
+        new_camera_matrix = self.pcm.K.copy()
+        new_camera_matrix[0, 2] = W / 2
+        new_camera_matrix[1, 2] = H / 2
+        print('new_camera_matrix: %s' % new_camera_matrix)
+
+
+        mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
+        mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
+        mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
+                                                 new_camera_matrix, (W, H),
+                                                 cv2.CV_32FC1)
+        self.mapx = mapx
+        self.mapy = mapy
+        self.new_camera_matrix = new_camera_matrix
+        self._rectify_inited = True
+
     def rectify(self, cv_image_raw, interpolation=cv2.INTER_NEAREST):
         ''' Undistort an image.
 
@@ -180,18 +200,23 @@ class GroundProjectionGeometry(object):
 
             Returns the new camera matrix as well.
         '''
-        W = int(self.pcm.width * ratio)
-        H = int(self.pcm.height * ratio)
+        #start_time = time.time()
+        if not self._rectify_inited:
+            W = int(self.pcm.width * ratio)
+            H = int(self.pcm.height * ratio)
+            self._init_rectify_maps_for_rectfullratio(W, H)
 #        mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
 #        mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
-        print('K: %s' % self.pcm.K)
-        print('P: %s' % self.pcm.P)
+        #print('K: %s' % self.pcm.K)
+        #print('P: %s' % self.pcm.P)
 
 #        alpha = 1
 #        new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H, W), alpha)
 #        print('validPixROI: %s' % str(validPixROI))
 
         # Use the same camera matrix
+        #start_map_time = time.time()
+        '''
         new_camera_matrix = self.pcm.K.copy()
         new_camera_matrix[0, 2] = W / 2
         new_camera_matrix[1, 2] = H / 2
@@ -199,10 +224,16 @@ class GroundProjectionGeometry(object):
         mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
                                                  new_camera_matrix, (W, H),
                                                  cv2.CV_32FC1)
+        '''
+        #map_time = time.time()
         cv_image_rectified = np.empty_like(cv_image_raw)
-        res = cv2.remap(cv_image_raw, mapx, mapy, interpolation,
+        res = cv2.remap(cv_image_raw, self.mapx, self.mapy, interpolation,
                         cv_image_rectified)
-        return new_camera_matrix, res
+        #end_time = time.time()
+        #print "map time = ", (map_time - start_map_time)
+        #print "rectify time = ", (end_time - map_time)
+        #print "total time = ", (end_time - start_time)
+        return self.new_camera_matrix, res
 
 
 def invert_map(mapx, mapy):
@@ -291,4 +322,3 @@ def fill_holes(rmapx, rmapy):
 
 #     print('holes: %s' % holes)
 #     print('deltas: %s' % get_deltas())
-

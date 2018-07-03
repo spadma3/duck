@@ -43,6 +43,10 @@ add_message_files(
   AprilTagDetectionArray.msg
   AprilTagsWithInfos.msg
   TagInfo.msg
+  RemapPose.msg
+  RemapPoseArray.msg
+  GlobalPose.msg
+  GlobalPoseArray.msg
   Pixel.msg
   Vector2D.msg
   Segment.msg

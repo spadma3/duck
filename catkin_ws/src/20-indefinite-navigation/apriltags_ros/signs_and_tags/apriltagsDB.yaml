@@ -1679,123 +1679,123 @@
   traffic_sign_type:
 
 - tag_id: 280
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot01
   traffic_sign_type:
 
 - tag_id: 281
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot02
   traffic_sign_type:
 
 - tag_id: 282
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot03
   traffic_sign_type:
 
 - tag_id: 283
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot04
   traffic_sign_type:
 
 - tag_id: 284
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot05
   traffic_sign_type:
 
 - tag_id: 285
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot06
   traffic_sign_type:
 
 - tag_id: 286
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot07
   traffic_sign_type:
 
 - tag_id: 287
-  tag_type:
   street_name:
-  vehicle_name:
+  tag_type: Vehicle
+  vehicle_name: megabot08
   traffic_sign_type:
 
 - tag_id: 288
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot09
   traffic_sign_type:
 
 - tag_id: 289
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot10
   traffic_sign_type:
 
 - tag_id: 290
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot11
   traffic_sign_type:
 
 - tag_id: 291
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot12
   traffic_sign_type:
 
 - tag_id: 292
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot13
   traffic_sign_type:
 
 - tag_id: 293
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot14
   traffic_sign_type:
 
 - tag_id: 294
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot15
   traffic_sign_type:
 
 - tag_id: 295
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot16
   traffic_sign_type:
 
 - tag_id: 296
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot17
   traffic_sign_type:
 
 - tag_id: 297
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot18
   traffic_sign_type:
 
 - tag_id: 298
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot19
   traffic_sign_type:
 
 - tag_id: 299
-  tag_type:
+  tag_type: Vehicle
   street_name:
-  vehicle_name:
+  vehicle_name: megabot20
   traffic_sign_type:
 
 - tag_id: 300
