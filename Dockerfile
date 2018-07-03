@@ -1,4 +1,4 @@
-FROM duckietown/rpi-ros-kinetic-picam
+FROM duckietown/rpi-ros-kinetic-dev
 
 MAINTAINER Breandan Considine breandan.considine@umontreal.ca
 
