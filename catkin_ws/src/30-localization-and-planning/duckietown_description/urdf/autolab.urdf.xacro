@@ -79,7 +79,7 @@
         <xacro:tile visible="false" x="5" y="8"/>
         <!--Describe the tags-->
         <xacro:tag id="66" pos="${pos_4}" rotation="90" x="2" y="0"/>
-        <xacro:tag id="155" pos="${pos_6}" rotation="180" x="3" y="0"/>
+        <xacro:tag id="64" pos="${pos_6}" rotation="180" x="3" y="0"/>
         <xacro:tag id="58" pos="${pos_2}" rotation="0" x="2" y="1"/>
         <xacro:tag id="153" pos="${pos_4}" rotation="90" x="0" y="2"/>
         <xacro:tag id="65" pos="${pos_2}" rotation="0" x="0" y="3"/>
@@ -98,4 +98,5 @@
         <xacro:tag id="68" pos="${pos_2}" rotation="0" x="0" y="5"/>
         <xacro:tag id="238" pos="${pos_0}" rotation="270" x="1" y="5"/>
         <xacro:tag id="240" pos="${pos_0}" rotation="270" x="1" y="7"/>
+        <xacro:tag id="237" pos="${pos_4}" rotation="90" x="0" y="6"/>
     </robot>
