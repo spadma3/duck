@@ -7,6 +7,7 @@
 	<arg name="node_name" default="actions_dispatcher_node" doc="name of the node"/>
 	<arg name="map_name" default="autolab_tiles_map"/>
 	<arg name="map_dir" default="$(find fleet_planning)/src/maps/"/>
+	<arg name="target_node" default="240"/>
 	<param name="veh" value="$(arg veh)"/>
 	<param name="map_name" value="$(arg map_name)"/>
 	<param name="map_dir" value="$(arg map_dir)"/>
