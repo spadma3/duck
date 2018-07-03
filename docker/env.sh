@@ -7,3 +7,5 @@ export ROS_MASTER_URI=http://${IP}:11311/
 export ROS_IP=${IP}
 export VEHICLE_NAME=$HOSTNAME
 cat misc/duckie.art
+
+/home/software/docker/init_config_defaults.sh
