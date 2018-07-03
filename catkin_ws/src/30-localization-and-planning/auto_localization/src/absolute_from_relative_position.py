@@ -5,9 +5,7 @@
 
 ## This script converts relative positions of the localization tool
 # into a abslute positions
-# how to launch this program:
-# $ source environment.sh
-# $ python absolute_from_relative_position.py 'path/to/map.yaml' 'port'
+
 
 ## coordinates: Origin in top left corner, theta counterclockwise from x-axis
 #  O -----> x
@@ -31,12 +29,16 @@
 
 import rospkg
 import rospy
-import sys
+# import sys # not needed anymore
 import yaml
 import numpy as np
 from datetime import datetime
 import tf
 import tf.transformations as tr
+import global_pose_functions as gposf
+
+## package for list sorting
+##from operator import itemgetter
 
 #add local poses Message (Eric add on 0626)
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
@@ -82,26 +84,31 @@ class global_localization(object):
         has_this_bot_been_detected_already = {}
 
         for locpos_msg in locpos_msgs.poses:
+
             # Each element of the array is an GlobalPose()
             g_pose = GlobalPose()
 
-            # TODO: handle if bot is detected multiple times
-            # if g_pose.bot_id in has_this_bot_been_detected_already.keys()
             g_pose.bot_id = locpos_msg.bot_id
-
             g_pose.reference_tag_id.append(locpos_msg.frame_id)
 
             # time of global pose should be same as relative pose
             g_pose.header.stamp = locpos_msg.posestamped.header.stamp
             g_pose.pose.x, g_pose.pose.y, g_pose.pose.theta = self.transform_bot_position(locpos_msg)
 
-
             # Which watchtowers have seen the duckiebot. take last to charakters of
             # string such that "watchtower02" turns to 02
-            #print locpos_msg.host[-2:]
-            #print int(locpos_msg.host[-2:])
-
             g_pose.cam_id.append(int(locpos_msg.host[-2:]))
+
+
+
+
+            # check if this bot has been detected already
+            if g_pose.bot_id in has_this_bot_been_detected_already.keys():
+                # do something
+                has_this_bot_been_detected_already[g_pose.bot_id].append(len(global_poses.poses))
+            else:
+                has_this_bot_been_detected_already[g_pose.bot_id] = [len(global_poses.poses)]
+
 
             global_poses.poses.append(g_pose) # Add the pose to the pose array
 
@@ -110,6 +117,8 @@ class global_localization(object):
             new_data = [g_pose.header.stamp, g_pose.bot_id,  g_pose.pose.x, g_pose.pose.y, g_pose.pose.theta, g_pose.cam_id ,g_pose.reference_tag_id]
             self.write_data_to_output_file(new_data)
 
+
+        # before publishing the global_poses merge the redundant poses
         self.pub_abs_pos.publish(global_poses) # Publish the global poses
 
 
@@ -117,6 +126,7 @@ class global_localization(object):
 # This function takes mulitiple local poses from the same time frame
 # and converts it to a single global pose
     def estimate_pose(self, global_poses):
+
 
 
         print "Hello World"
@@ -141,7 +151,7 @@ class global_localization(object):
             rot_tag_abs   = fixed_tag['orientation']
 
             # Save Transformation Matrix of each fixed Tag into a dictionary
-            tag_tf_mat = self.create_tf_matrix(trans_tag_abs, rot_tag_abs)
+            tag_tf_mat = gposf.create_tf_matrix(trans_tag_abs, rot_tag_abs)
             self.fixed_tags['Tag'+str(tag_id)] = tag_tf_mat
 
 
@@ -163,44 +173,9 @@ class global_localization(object):
 
 
 
+### ---------------------- TRANSFORMATION FUNCTION ----------------------#####
 
-
-### ---------------------- TRANSFORMATION FUNCTIONS ----------------------#####
-    def create_tf_matrix(self, trans, rot):
-        # numpy arrays to 4x4 transform matrix
-        trans_mat = tr.translation_matrix(trans)
-        rot_mat = tr.quaternion_matrix(rot)
-        # create a 4x4 matrix
-        transformation_matrix = np.dot(trans_mat, rot_mat)
-        return transformation_matrix
-
-
-
-    # This function projects the 3D position onto the 2D plane
-    def project_position_to_2D_plane(self,mat_bot_abs):
-        # go back to quaternion and 3x1 array
-        trans_bot_abs = tf.transformations.translation_from_matrix(mat_bot_abs)
-        x = trans_bot_abs[0]
-        y = trans_bot_abs[1]
-
-        rot_bot_abs = tf.transformations.quaternion_from_matrix(mat_bot_abs)
-
-        # returns theta in radians
-        alpha,beta, theta = tr.euler_from_matrix(mat_bot_abs, 'rxyz')
-
-        return x,y,theta
-
-
-    # returns the absolute position of the bot in reference to the origin
-    def absolute_from_relative_position(self, mat_bot_tag, mat_tag_abs):
-        # https://answers.ros.org/question/215656/how-to-transform-a-pose/
-
-        # TODO: verify order of arguments
-        # mat_bot_abs = tr.concatenate_matrices(mat_tag_abs, mat_bot_tag)
-        mat_bot_abs = tr.concatenate_matrices(mat_bot_tag, mat_tag_abs)
-
-        return mat_bot_abs
-
+# utility functions are in global_pose_functions.py
 
     def transform_bot_position(self, local_pose):
         # trans: xyz translation
@@ -215,13 +190,13 @@ class global_localization(object):
         # TODO: robostify in case fixed Tag is detected which is not in the database
         #       raise exception or error
         mat_tag_abs = self.fixed_tags["Tag"+str(local_pose.frame_id)]
-        mat_bot_tag = self.create_tf_matrix(trans_bot_tag,rot_bot_tag)
+        mat_bot_tag = gposf.create_tf_matrix(trans_bot_tag,rot_bot_tag)
 
         # absolute position of the bot
-        mat_bot_abs = self.absolute_from_relative_position(mat_bot_tag, mat_tag_abs)
+        mat_bot_abs = gposf.absolute_from_relative_position(mat_bot_tag, mat_tag_abs)
 
         # projected Position
-        x,y,theta = self.project_position_to_2D_plane(mat_bot_abs)
+        x,y,theta = gposf.project_position_to_2D_plane(mat_bot_abs)
 
 
         return x, y, theta
