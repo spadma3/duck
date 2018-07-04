@@ -77,11 +77,12 @@ class AutoCalibrationCalculationNode(object):
                 yq = detection.pose.pose.pose.orientation.y
                 zq = detection.pose.pose.pose.orientation.z
                 wq = detection.pose.pose.pose.orientation.w
-                [r,p,y] = self.qte(wq,xq,yq,zq)
-                roll = y
+                [r,p,ya] = self.qte(wq,xq,yq,zq)
+                roll = ya
                 pitch = (r+3.14159)*-1
                 yaw = -p+3.14159
                 cam_loc=np.array([x,y,z,roll,pitch,yaw])
+                #rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,x,y,z,roll*180/3.1415,pitch*180/3.1415,yaw*180/3.1415))
                 tmp_6 = self.visual_odometry(cam_loc,detection.id[0])
                 tmp=tmp+([tmp_6[0],tmp_6[1],tmp_6[2],math.sin(tmp_6[3]),math.cos(tmp_6[3]),math.sin(tmp_6[4]),math.cos(tmp_6[4]),math.sin(tmp_6[5]),math.cos(tmp_6[5])])
             if count != 0:
@@ -91,7 +92,7 @@ class AutoCalibrationCalculationNode(object):
                 tmp = tmp/count
                 secs = self.toSeconds(msg.header.stamp.secs,msg.header.stamp.nsecs)
                 self.camera_motion = np.append(self.camera_motion,([[secs,tmp[0],tmp[1],tmp[2],roll,pitch,yaw]]),axis=0)
-                #rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,tmp[0],tmp[1],tmp[2],roll,pitch,yaw))
+                #rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,tmp[0],tmp[1],tmp[2],roll*180/3.1415,pitch*180/3.1415,yaw*180/3.1415))
         # for detection in msg.detections:
         #     #Coordinate transformation
         #     x = detection.pose.pose.pose.position.z
@@ -101,8 +102,8 @@ class AutoCalibrationCalculationNode(object):
         #     yq = detection.pose.pose.pose.orientation.y
         #     zq = detection.pose.pose.pose.orientation.z
         #     wq = detection.pose.pose.pose.orientation.w
-        #     [r,p,y] = self.qte(wq,xq,yq,zq)
-        #     roll = y*180/3.1415
+        #     [r,p,ya] = self.qte(wq,xq,yq,zq)
+        #     roll = ya*180/3.1415
         #     pitch = (r*180/3.1415+180)*-1
         #     yaw = p*180/3.1415*-1+180
         #     rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,x,y,z,roll,pitch,yaw))
