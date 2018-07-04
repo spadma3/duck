@@ -7,6 +7,18 @@
 # and save them into map file
 # The scenerio is that the system will calibrate itself from time to time.
 
+import rospkg
+import rospy
+import sys
+import yaml
+import numpy as np
+from datetime import datetime
+import tf
+import tf.transformations as tr
+import numpy as np
+
+from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
+
 class system_calibration(object):
 
     def __init__(self):
@@ -15,6 +27,7 @@ class system_calibration(object):
 
         # load the map file, notice that it will overwrite the file
         self.map_filename = rospy.get_param("~map") + ".yaml"
+        self.output_map_filename = rospy.get_param("~output_file") + ".yaml"
         self.map_data = self.load_map_info(self.map_filename)
 
         # Subscribe all tfs from subfserver node
@@ -40,7 +53,7 @@ class system_calibration(object):
 
         # Make sure that we get meesage from all watchtowers
         if self.wait_for_message == 15:
-            for tf in msg_tfs:
+            for tf in msg_tfs.poses:
                 self.watchtowers[tf.host] = True
             not_ready = ""
             for wt in self.watchtowers:
@@ -56,46 +69,94 @@ class system_calibration(object):
         rospy.loginfo("Start Calibration in %d secs", self.wait_for_message/5)
 
         if self.wait_for_message == 0:
-            self.sys_calib(msg_tfs)
             self.start_calibrate = True
+            self.sys_calib(msg_tfs.poses)
 
 
     def sys_calib(self, msg_tfs):
 
-        self.find_tag_relationship(msg_tfs)
+        self.tag_relationship = self.find_tag_relationship(msg_tfs)
+
+        fixed_tags_data = []
+        for tag in self.tag_relationship:
+            tag_data = {}
+            tag_data['id'] = tag
+            tag_data['translation'] = self.tag_relationship[tag][0]
+            tag_data['orientation'] = self.tag_relationship[tag][1]
+            fixed_tags_data.append(tag_data)
 
 
+        # Write the translation relationship to map file
+        data = {'tiles':self.map_tiles, 'watchtowers':self.map_watchtowers, 'origin':self.map_origins, 'fixed_tags':fixed_tags_data}
+        with open(rospkg.RosPack().get_path('auto_localization')+"/config/"+self.output_map_filename, 'w') as outfile:
+            yaml.dump(data, outfile, default_flow_style=False)
+
+        rospy.loginfo("Calibration Finished!")
+        rospy.signal_shutdown("Finished Calibration")
+
+    # find relationship of each tags with origin
+    # return a dictionary with tag id as key and translation, rotation as content of each key
     def find_tag_relationship(self, tfs):
 
         # https://www.python.org/doc/essays/graphs/
-        tag_graph = {}
+        # make all pose to pose relationship into a graph
+        # so that we could compute shortest path
+        # and get the tag to origin transformation later
+        tag_graph = dict() # Save tag node connection graph with a 1D dictionary
+        tag_transformation = dict() # Save tag transformation with a 2D dictionary
         for tf in tfs:
             if not tag_graph.has_key(tf.frame_id):
-                tag_graph{'tf.frame_id'} = []
+                tag_graph[tf.frame_id] = []
+                tag_transformation[tf.frame_id] = dict()
+            tag_graph[tf.frame_id].append(tf.bot_id)
+            tag_transformation[tf.frame_id][tf.bot_id] = [  [tf.posestamped.pose.position.x, tf.posestamped.pose.position.y, tf.posestamped.pose.position.z],
+                                                            [tf.posestamped.pose.orientation.x, tf.posestamped.pose.orientation.y, tf.posestamped.pose.orientation.z, tf.posestamped.pose.orientation.w]]
+
+        # Define a find shortest path function here
+        def find_shortest_path(graph, start, end, path=[]):
+            path = path + [start]
+            if start == end:
+                return path
+            if not graph.has_key(start):
+                return None
+            shortest = None
+            for node in graph[start]:
+                if node not in path:
+                    newpath = find_shortest_path(graph, node, end, path)
+                    if newpath:
+                        if not shortest or len(newpath) < len(shortest):
+                            shortest = newpath
+            return shortest
+
+        # A little recursive function to find the transformation from origin to end_tag
+        def from_origin_to_end(path):
+            trans = tag_transformation[path[0]][path[1]][0]
+            rot = tag_transformation[path[0]][path[1]][1]
+            if len(path) == 2:
+                return trans, rot
             else:
-                tag_graph{'tf.frame_id'}.append(tf.bot_id)
+                next_trans, next_rot = from_origin_to_end(path[1:])
+                print np.add(trans, next_trans)
+                return np.add(trans, next_trans).tolist(), np.matmul(tr.quaternion_matrix(rot), next_rot).tolist()
 
+        tag_relationship = dict()
+        origin = self.map_origins[0]['id'] # a.t.m. we only consider one origin
+        for tag_node in tag_graph:
+            print "tag_node: ", tag_node
+            if tag_node == origin:
+                tag_relationship[tag_node] = [[0, 0, 0], [0, 0, 0, 1]]
+            else:
+                path_node = find_shortest_path(tag_graph, origin, tag_node)
+                print "path_node: ", path_node
+                tag_relationship[tag_node] = from_origin_to_end(path_node)
 
-    def find_shortest_path(graph, start, end, path=[]):
-        path = path + [start]
-        if start == end:
-            return path
-        if not graph.has_key(start):
-            return None
-        shortest = None
-        for node in graph[start]:
-            if node not in path:
-                newpath = find_shortest_path(graph, node, end, path)
-                if newpath:
-                    if not shortest or len(newpath) < len(shortest):
-                        shortest = newpath
-        return shortest
-
+        print tag_relationship
+        return tag_relationship
 
     ## Load Map Data
     def load_map_info(self, filename):
 
-        map_data = yaml.load(file(rospkg.RosPack().get_path('auto_localization')+"/config/"+filename,'w'+'r')) # Need RosPack get_path to find the file path
+        map_data = yaml.load(file(rospkg.RosPack().get_path('auto_localization')+"/config/"+filename,'r')) # Need RosPack get_path to find the file path
         print "Loaded map from file: ", self.map_filename
 
         self.map_tiles = map_data['tiles']
@@ -112,6 +173,6 @@ class system_calibration(object):
 
 ### ------------------- ------- MAIN -------------------------------#####
 if __name__ == '__main__':
-    rospy.init_node('system_calibration',anonymous=False)
+    rospy.init_node('system_calibration',anonymous=False, disable_signals=True)
     node = system_calibration()
     rospy.spin()
