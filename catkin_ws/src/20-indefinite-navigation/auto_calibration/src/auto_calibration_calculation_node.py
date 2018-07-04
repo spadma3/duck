@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-import rospy,copy,time,math
+import rospy,math # ,copy,time
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, WheelsCmdStamped
-from std_msgs.msg import Int16
 from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
-import tf.transformations as tr
 import numpy as np
 from scipy.optimize import minimize
 
