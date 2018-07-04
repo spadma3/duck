@@ -1,0 +1,48 @@
+Designator Footprint               Mid X         Mid Y         Ref X         Ref Y         Pad X         Pad Y TB      Rotation Comment        
+
+D1         TO263-3L_DIODE      37.7016mm     52.3544mm     37.7016mm       52.07mm     35.1616mm       58.07mm  T        270.00 SM74611KTTR    
+ADR_LED    1X04                 47.371mm      71.215mm      47.371mm      75.025mm      47.371mm      75.025mm  T        270.00 M04PTH         
+RPI2       PI_HAT_SLOTS        57.9001mm     56.0351mm        25.4mm        27.4mm     33.7701mm       78.63mm  B          0.00 RASPBERRYPI_BPLUS_HATSLOTS
+C1         C0603                59.182mm      67.056mm      59.182mm      67.056mm     60.0319mm      67.056mm  T        180.00 0.1uF          
+R1         R0603                67.056mm      56.642mm      67.056mm      56.642mm      67.056mm     55.7921mm  T         90.00 10K            
+MOTA       1X05-3.5MM           52.578mm      30.988mm      52.578mm      30.988mm      59.578mm      30.988mm  T          0.00 1X5            
+IC10       SOIC8_150MIL         60.198mm      72.136mm      60.198mm      72.136mm     57.5981mm      74.041mm  T        270.00 CAT24C32       
+C3         CAP_1206i_3216m_-n      38.608mm      62.992mm      38.608mm      62.992mm      38.608mm      64.442mm  T        270.00 22uF           
+LED1       CHIPLED_0805_NOOUTLINE      26.416mm      37.338mm      26.416mm      37.338mm      26.416mm      36.288mm  T        360.00 Green 5V EXT USB
+R10        R0603                66.294mm       73.66mm      66.294mm       73.66mm     67.1439mm       73.66mm  T        180.00 3.9K           
+R11        R0603                66.294mm      71.882mm      66.294mm      71.882mm     67.1439mm      71.882mm  T        180.00 3.9K           
+R12        R0603                66.294mm      70.104mm      66.294mm      70.104mm     67.1439mm      70.104mm  T        180.00 3.9K           
+R7         R0603                28.194mm      37.338mm      28.194mm      37.338mm      28.194mm     38.1879mm  T        270.00 1.8K           
+C2         C0603                51.816mm       46.99mm      51.816mm       46.99mm     50.9661mm       46.99mm  T        360.00 0.1uF          
+LED2       CHIPLED_0805_NOOUTLINE      26.416mm       41.91mm      26.416mm       41.91mm      26.416mm       42.96mm  T        180.00 Green 5V RPI   
+R8         R0603                28.194mm       41.91mm      28.194mm       41.91mm      28.194mm     42.7599mm  T        270.00 1.8K           
+C10        C0603                60.198mm      75.438mm      60.198mm      75.438mm     61.0479mm      75.438mm  T        180.00 0.1uF          
+SER_A      1X03                  66.04mm      41.402mm       66.04mm      43.942mm       66.04mm      43.942mm  T        270.00 M03PTH         
+R2         R0603                 66.04mm       46.99mm       66.04mm       46.99mm       66.04mm     47.8399mm  T        270.00 220            
+SER_B      1X03                 62.738mm      41.402mm      62.738mm      43.942mm      62.738mm      43.942mm  T        270.00 M03PTH         
+R3         R0603                62.738mm       46.99mm      62.738mm       46.99mm      62.738mm     47.8399mm  T        270.00 220            
+PA5        1X03                 71.755mm      69.945mm      71.755mm      72.485mm      71.755mm      72.485mm  T        270.00 M03PTH         
+PA6        1X03                 71.755mm      62.325mm      71.755mm      64.865mm      71.755mm      64.865mm  T        270.00 M03PTH         
+PA7        1X03                 71.755mm      54.705mm      71.755mm      57.245mm      71.755mm      57.245mm  T        270.00 M03PTH         
+R4         R0603                69.342mm      71.628mm      69.342mm      71.628mm      69.342mm     70.7781mm  T         90.00 220            
+R5         R0603                69.342mm      65.786mm      69.342mm      65.786mm      69.342mm     66.6359mm  T        270.00 220            
+R6         R0603                69.342mm     60.3641mm      69.342mm     60.3641mm      69.342mm      61.214mm  T        270.00 220            
+IMU        1X04                 76.835mm       47.72mm      80.645mm       47.72mm      80.645mm       47.72mm  T        180.00 I2C_IMU_L3GD20H+LSM303
+5V_EXT_USB MICROUSBCON          37.592mm     30.3501mm      37.592mm        27.4mm      36.292mm     31.8501mm  T          0.00 MICROUSBCON    
+C4         CAP_1206i_3216m_-n      35.814mm      62.992mm      35.814mm      62.992mm      35.814mm      64.442mm  T        270.00 22uF           
+C5         CAP_0603i_1608m_-N      59.182mm      53.594mm      59.182mm      53.594mm      59.982mm      53.594mm  T        180.00 100nF          
+C6         CAP_0603i_1608m_-L      43.815mm      40.259mm      43.815mm      40.259mm      43.815mm      39.559mm  T         90.00 100nF          
+C7         CAP_1206i_3216m_-n      45.974mm      44.323mm      45.974mm      44.323mm      45.974mm      45.773mm  T        270.00 22uF           
+C8         CAP_1206i_3216m_-n       52.07mm      49.022mm       52.07mm      49.022mm       53.52mm      49.022mm  T        180.00 22uF           
+J1         SOLDERJUMPER_CLOSEDWIRE        50.8mm      74.168mm        50.8mm      74.168mm        50.8mm      73.406mm  B         90.00 SOLDERJUMPER_CLOSED
+J2         SOLDERJUMPER_CLOSEDWIRE       53.34mm      74.168mm       53.34mm      74.168mm       53.34mm      73.406mm  B         90.00 SOLDERJUMPER_CLOSED
+J4         SOLDERJUMPER_CLOSEDWIRE      70.358mm        76.2mm      70.358mm        76.2mm       71.12mm        76.2mm  B        180.00 SOLDERJUMPER_CLOSED
+J3         SOLDERJUMPER_CLOSEDWIRE       55.88mm      74.168mm       55.88mm      74.168mm       55.88mm      73.406mm  B         90.00 SOLDERJUMPER_CLOSED
+IC1        SO20L                59.309mm     60.5917mm      58.674mm       60.96mm      53.594mm     55.8292mm  T        360.00 ATTINY861V-10SU
+C9         CAP_1206i_3216m_-n      45.974mm      39.751mm      45.974mm      39.751mm      45.974mm      38.301mm  T         90.00 22uF           
+P1         PIN1_style_2         32.639mm      60.325mm      32.639mm      60.325mm      32.639mm      60.325mm  T          0.00 Pad            
+P2         PIN1_style_2          66.04mm      28.702mm       66.04mm      28.702mm       66.04mm      28.702mm  T          0.00 Pad            
+P3         PIN1_style_2         33.147mm      40.513mm      33.147mm      40.513mm      33.147mm      40.513mm  T          0.00 Pad            
+J5         SOLDERJUMPER_CLOSEDWIRE      61.976mm      73.152mm      61.976mm      73.152mm      61.214mm      73.152mm  B        360.00 WP             
+IC2        SSOP24                52.07mm      41.148mm       52.07mm      41.148mm      48.495mm     37.5229mm  T          0.00 TB6612FNG      
+

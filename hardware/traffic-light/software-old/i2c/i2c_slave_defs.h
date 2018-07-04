@@ -21,18 +21,13 @@
 /* Set these appropriately for your platform */
 #define USI_PORT PORTA
 #define USI_DDR DDRA
-#define USI_PIN PINA
-#define I2C_SCL 2
 #define I2C_SDA 0
+#define I2C_SCL 2
 
-
-#define N_LEDS 5 //maximal LED count, which are accessed by the addressable led bus
+#define N_LEDS 20
 #define I2C_N_GLB_REG 4
-#define I2C_N_REG 76 //PCA9685 has registers 0-69dez and 250-255dez. To Save memory, the registers 250-255 are mapped to 70-75! TODO
-#define I2C_N_SLAVES 2 //maximal Count of i2c Slaves, which should be emulated
-//TODO
-
-extern volatile uint8_t I2C_SLAVE_ADDR[I2C_N_SLAVES];
+#define I2C_N_REG 0xFE//maximal memory address of PCA9685 is FE
+#define I2C_SLAVE_ADDR 0x40
 
 /*
  * The library supports a write mask for each individual register (bits set are
@@ -42,11 +37,11 @@ extern volatile uint8_t I2C_SLAVE_ADDR[I2C_N_SLAVES];
  */
 #define I2C_GLOBAL_WRITE_MASK 0xFF
 
-#define REG_CTRL    i2c_reg[I2C_SLAVE_LED][0]
+#define REG_CTRL    i2c_reg[0]
 #define     CTRL_RST    (1 << 0)
 #define     CTRL_GLB    (1 << 1)
-#define REG_GLB_G   i2c_reg[I2C_SLAVE_LED][1]
-#define REG_GLB_R   i2c_reg[I2C_SLAVE_LED][2]
-#define REG_GLB_B   i2c_reg[I2C_SLAVE_LED][3]
+#define REG_GLB_G   i2c_reg[1]
+#define REG_GLB_R   i2c_reg[2]
+#define REG_GLB_B   i2c_reg[3]
 
 #endif /* __I2C_SLAVE_DEFS__ */

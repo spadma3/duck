@@ -15,7 +15,7 @@
  *
  */
 
-//#define DEBUG
+#define DEBUG
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -35,49 +35,19 @@
 #define I2C_STATE_MASTER_WRITE 3
 #define I2C_STATE_IDLE         4
 
-// #ifdef DEBUG
-// #define LED_ON() PORTB |= 0x2
-// #define LED_OFF() PORTB &= ~0x2
-// #define LED_FLICKER() LED_OFF(); LED_ON()
-// #else
-// #define LED_ON()
-// #define LED_OFF()
-// #define LED_FLICKER()
-// #endif
+#ifdef DEBUG
+#define LED_ON() PORTB |= 0x2
+#define LED_OFF() PORTB &= ~0x2
+#define LED_FLICKER() LED_OFF(); LED_ON()
+#else
+#define LED_ON()
+#define LED_OFF()
+#define LED_FLICKER()
+#endif
 
-volatile uint8_t i2c_update[I2C_N_SLAVES] = {0}; //byte count written in the last i2c write command
-volatile uint8_t i2c_current_Slave=0; //current slave index, which is communicating at the moment, 0xFF means no slave!
- 
- 
-//these variables are just there once and are used all emulated slaves.
-//because there is just one state machine and the i2c master can just
-//talk to one slave at a time.
-volatile uint8_t i2c_state = 0;  //state of the i2c state machine, see below  
-volatile uint8_t i2c_offset = 0; //read or write array index of the current operation
-
-
-
-//this function translates an I2C register index to an array index (e.g. to save memory because there could be gaps in the i2c address registers)
-//PCA9685 has registers 0-69dez and 250-255dez. To Save memory, the registers 250-255dez are mapped to 70-75! This is achieved with this function.
-uint16_t I2CAddressToArrayIndex(uint8_t I2CAddress) //Error= 0xFFFF
-{
-	if (I2CAddress <= 0x45)//i2c 0-69dez --> Index 0-69dez
-	{
-		return I2CAddress;
-	}
-	else if (I2CAddress >= 0xFA && I2CAddress <= 0XFF)// i2c 250-255dez --> Index 70-25dez
-	{
-		return I2CAddress - 0xFA+0x46;// the address 0xFA (250dez) should give 0x46 (70dez)
-	}
-	else
-	{
-		return 0xFFFF;//Error
-	}
-}
-
-
-
-
+volatile uint8_t i2c_update = 0;
+volatile uint8_t i2c_state = 0;
+volatile uint8_t i2c_offset = 0;
 
 /* USI i2c Slave State Machine
  * ===========================
@@ -163,12 +133,6 @@ uint16_t I2CAddressToArrayIndex(uint8_t I2CAddress) //Error= 0xFFFF
   * For some reason, avr-libc uses different vector names for the USI
   * on different chips! We have to workaround that here
   */
-
-
-
-
-
-//I2C Start Interrupt
 #if defined(USI_START_vect)
 ISR(USI_START_vect)
 #elif defined(USI_STRT_vect)
@@ -178,12 +142,10 @@ ISR(USI_STRT_vect)
 #endif
 {
 	i2c_state = 0;
-	while (USI_PIN & (1 << I2C_SCL));
+	while (PINB & (1 << I2C_SCL));
 	USISR = 0xF0;
 }
 
-
-//I2C Overflow Interrupt
 #if defined(USI_OVERFLOW_vect)
 ISR(USI_OVERFLOW_vect)
 #elif defined(USI_OVF_vect)
@@ -204,48 +166,32 @@ ISR(USI_OVF_vect)
 
 		switch (i2c_state) {
 		case I2C_STATE_ADDR_MATCH:
-			tmp = USIDR >> 1;//tmp=slave address
-			
-			i2c_current_Slave=0xFF;//set slave address invalid
-			
-			
-			//check if the actual slave is in the slave address array
-			for(uint8_t i=0;i<I2C_N_SLAVES;i++)
-			{
-				if (I2C_SLAVE_ADDR[i]==tmp)
-				{
-					//if slave address is found, stop searching and save index
-					i2c_current_Slave=i;
-					break;
-				}
-			}
-			
-			//Slave is found if current address is not initial value and temp is not 0			
-			if (tmp==0 || i2c_current_Slave==0xFF) {
-				/* Transition h: Address not matched */
+			tmp = USIDR >> 1;
+			if (tmp && (tmp != I2C_SLAVE_ADDR)) {
+				/* Transition h */
 				i2c_state = I2C_STATE_IDLE;
 				NAK();
 			} else {
 				if (USIDR & 1) {
-					/* Transition b: Address matched, read mode */
+					/* Transition b */
 					i2c_state = I2C_STATE_MASTER_READ;
 				} else {
-					/* Transition a: Address matched, write mode */
+					/* Transition a */
 					i2c_offset = 0;
 					i2c_state = I2C_STATE_REG_ADDR;
-					i2c_update[i2c_current_Slave] = 1;
+					i2c_update = 1;
 				}
 				ACK();
 			}
 			break;
 		case I2C_STATE_REG_ADDR:
-			if (I2CAddressToArrayIndex(USIDR)==0xFFFF) {
-				/* Transition i:  Invalid reg addr*/
+			if (USIDR > (I2C_N_REG - 1)) {
+				/* Transition i */
 				i2c_state = I2C_STATE_IDLE;
 				NAK();
 			} else {
-				/* Transition d:  Initialise write*/
-				i2c_offset = I2CAddressToArrayIndex(USIDR);
+				/* Transition d */
+				i2c_offset = USIDR;
 				i2c_state = I2C_STATE_MASTER_WRITE;
 				ACK();
 			}
@@ -263,10 +209,10 @@ ISR(USI_OVF_vect)
 #endif
 			if (tmp) {
 				/* Only heed writeable bits */
-				i2c_reg[i2c_current_Slave][i2c_offset] &= ~tmp;
-				i2c_reg[i2c_current_Slave][i2c_offset] |= USIDR & tmp;
+				i2c_reg[i2c_offset] &= ~tmp;
+				i2c_reg[i2c_offset] |= USIDR & tmp;
 			}
-			i2c_update[i2c_current_Slave]++;
+			i2c_update++;
 			i2c_offset++;
 			ACK();
 			break;
@@ -282,13 +228,13 @@ ISR(USI_OVF_vect)
 		switch (i2c_state) {
 		case I2C_STATE_MASTER_READ:
 			if (USIDR) {
-				/* Transition e: Read finished */
+				/* Transition e */
 				i2c_offset = 0;
 				i2c_state = I2C_STATE_IDLE;
 			} else {
-				/* Transition f: Read continues */
+				/* Transition f */
 				sda_direction = I2C_SDA_DIR_OUT;
-				USIDR = i2c_reg[i2c_current_Slave][i2c_offset++];
+				USIDR = i2c_reg[i2c_offset++];
 			}
 			break;
 		}
@@ -309,8 +255,6 @@ ISR(USI_OVF_vect)
 	USISR = usisr_tmp;
 }
 
-
-/* Initialise the USI and I2C state machine */
 void i2c_init()
 {
 	i2c_state = 0;
@@ -321,12 +265,6 @@ void i2c_init()
 	USISR = 0xF0;
 }
 
-
-/*
- * Return non-zero if a transaction is ongoing
- * A transaction is considered ongoing if the slave address has
- * been matched, but a stop has not been received yet.
- */
 uint8_t i2c_transaction_ongoing()
 {
 	if ((i2c_state != I2C_STATE_IDLE) &&
@@ -337,21 +275,17 @@ uint8_t i2c_transaction_ongoing()
 	}
 }
 
-/*
- * Check for and handle a stop condition.
- * Returns non-zero if any registers have been changed
- */
-uint8_t i2c_check_stop(int8_t SlaveIndex)
+uint8_t i2c_check_stop()
 {
 	uint8_t ret = 0;
 
-	if ((i2c_state == I2C_STATE_MASTER_WRITE) && i2c_update[SlaveIndex]) {
+	if ((i2c_state == I2C_STATE_MASTER_WRITE) && i2c_update) {
 		cli();
 		uint8_t tmp = USISR;
 		if (tmp & (1 << USIPF)) {
 			i2c_state = I2C_STATE_IDLE;
-			ret = i2c_update[SlaveIndex];
-			i2c_update[SlaveIndex] = 0;
+			ret = i2c_update;
+			i2c_update = 0;
 		}
 		sei();
 	}
