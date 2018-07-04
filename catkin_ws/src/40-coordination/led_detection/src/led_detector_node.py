@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import time
+import os
 from led_detection.LEDDetector import LEDDetector
 from std_msgs.msg import Byte
 from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, BoolStamped, SignalsDetection
@@ -106,7 +107,7 @@ class LEDDetectorNode(object):
         self.freqIdentify = self.protocol['signals']['CAR_SIGNAL_A']['frequency']
 
         #rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
-
+        self.bag_name = os.environ['BAGNAME']
         # Check vehicle name
         if not self.veh_name:
             # fall back on private param passed thru rosrun
@@ -120,6 +121,7 @@ class LEDDetectorNode(object):
         # Loginfo
         rospy.loginfo('[%s] Vehicle: %s'%(self.node_name, self.veh_name))
         rospy.loginfo('[%s] Waiting for camera image...' %self.node_name)
+        self.file = open(os.path.splitext(str(self.bag_name))[0]+".csv",'w')
 
     def cbSwitch(self, switch_msg): # active/inactive switch from FSM
         self.active = switch_msg.data
@@ -440,7 +442,10 @@ class LEDDetectorNode(object):
         self.pub_debug.publish(debug_msg)
 
         # Loginfo (right)
+        right_det = False
+        front_det = False
         if self.right != SignalsDetection.NO_CAR:
+            right_det = True
             rospy.loginfo('Right: LED detected')
         else:
             rospy.loginfo('Right: No LED detected')
@@ -448,6 +453,7 @@ class LEDDetectorNode(object):
         # Loginfo (front)
         if self.front != SignalsDetection.NO_CAR:
             rospy.loginfo('Front: LED detected')
+            front_det = True
         else:
             rospy.loginfo('Front: No LED detected')
 
@@ -459,9 +465,11 @@ class LEDDetectorNode(object):
         else:
             rospy.loginfo('[%s] No traffic light' %(self.node_name))
 
+        self.file.write(str(right_det)+","+str(front_det)+"\n")
         #Publish
         rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
         self.pub_detections.publish(SignalsDetection(front=self.front, right=self.right, left=self.left, traffic_light_state=self.traffic_light))
+
 
     def send_state(self, msg):
         msg.state = self.node_state
