@@ -1,7 +1,11 @@
 maintenance_entrance:
-  - - 240
+  - - 68
     - 2
+  - - 238
+    - 1
 
 maintenance_exit:
-  - - 237
+  - - 62
     - 1
+  - - 62
+    - 0
