@@ -45,20 +45,12 @@ class LEDJoyMapper(object):
     def cbJoy(self, joy_msg):
         self.joy = joy_msg
         self.startTime = time.time()
-        self.friendlyTimer()
+        #self.publishControl()
     def cbStart(self, flag):
         self.startTime = time.time()
-        self.friendlyTimer()
+        self.publishControl()
 
-    def friendlyTimer(self):
 
-        while(True):
-            now = time.time()
-
-            if now -self.last> 1:
-                self.last=now
-                self.publishControl()
-                time.sleep(0.2)
 
     # def publishControl(self):
     #
@@ -68,23 +60,13 @@ class LEDJoyMapper(object):
     #             rospy.loginfo("Publishing pattern %s" % (pattern))
 
     def publishControl(self):
-
-        now = time.time()
-        if now - self.startTime < 10:
+        dt = 5
+        for i in range(0,2):
             self.pub_pattern.publish('CAR_SIGNAL_A')
-        elif now - self.startTime < 20:
-            self.pub_pattern.publish('CAR_SIGNAL_GREEN')
-        elif now - self.startTime < 25:
-            self.pub_pattern.publish('CAR_SIGNAL_A')
-        elif now - self.startTime < 30:
-            self.pub_pattern.publish('CAR_SIGNAL_GREEN')
-        elif now - self.startTime < 32.5:
-            self.pub_pattern.publish('CAR_SIGNAL_A')
-        elif now - self.startTime < 35:
-            self.pub_pattern.publish('CAR_SIGNAL_GREEN')
-        else:
-            self.pub_pattern.publish('OFF')
-
+            rospy.sleep(dt/pow(2,i))
+            self.pub_pattern.publish('light_off')
+            rospy.sleep(dt/pow(2,i))
+        rospy.loginfo("###############Finished#############")
 
 if __name__ == "__main__":
     rospy.init_node("led_joy_mapper",anonymous=False)
