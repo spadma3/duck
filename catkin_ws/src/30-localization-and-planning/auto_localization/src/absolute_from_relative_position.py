@@ -178,14 +178,8 @@ class global_localization(object):
 # utility functions are in global_pose_functions.py
 
     def transform_bot_position(self, local_pose):
-        # trans: xyz translation
-        # rot: xyzw quaternion
-        # mat: 4x4 transformation matrix
-        position = local_pose.posestamped.pose.position
-        orientation = local_pose.posestamped.pose.orientation
-        trans_bot_tag = [position.x, position.y, position.z]
-        rot_bot_tag = [orientation.x, orientation.y, orientation.z, orientation.w]
 
+        trans_bot_tag, rot_bot_tag = gposf.get_trans_rot_from_pose(local_pose.posestamped.pose)
 
         # TODO: robostify in case fixed Tag is detected which is not in the database
         #       raise exception or error
