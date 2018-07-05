@@ -4,7 +4,10 @@ MAINTAINER Breandan Considine breandan.considine@umontreal.ca
 
 RUN [ "cross-build-start" ]
 
-# RUN mkdir /home/software
+RUN pip install --upgrade \
+	matplotlib \
+
+RUN mkdir /home/software
 COPY . /home/software/
 COPY docker/machines.xml /home/software/catkin_ws/src/00-infrastructure/duckietown/machines
 
