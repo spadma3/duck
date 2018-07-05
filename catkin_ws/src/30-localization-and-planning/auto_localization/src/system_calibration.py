@@ -78,11 +78,14 @@ class system_calibration(object):
         self.tag_relationship = self.find_tag_relationship(msg_tfs)
 
         fixed_tags_data = []
-        for tag in self.tag_relationship:
+        for matrix in self.tag_relationship:
+            # Every matrix is the transformation matrix between the tag and origin tag
+            # We here decompose the matrix and save only translation and rotation
+            scale, shear, angles, translate, perspective = tr.decompose_matrix(matrix)
             tag_data = {}
             tag_data['id'] = tag
-            tag_data['translation'] = self.tag_relationship[tag][0]
-            tag_data['orientation'] = self.tag_relationship[tag][1]
+            tag_data['translation'] = translate
+            tag_data['orientation'] = tr.quaternion_from_euler(angles[0], angles[1], angles[2])
             fixed_tags_data.append(tag_data)
 
 
@@ -104,13 +107,16 @@ class system_calibration(object):
         # and get the tag to origin transformation later
         tag_graph = dict() # Save tag node connection graph with a 1D dictionary
         tag_transformation = dict() # Save tag transformation with a 2D dictionary
-        for tf in tfs:
-            if not tag_graph.has_key(tf.frame_id):
-                tag_graph[tf.frame_id] = []
-                tag_transformation[tf.frame_id] = dict()
-            tag_graph[tf.frame_id].append(tf.bot_id)
-            tag_transformation[tf.frame_id][tf.bot_id] = [  [tf.posestamped.pose.position.x, tf.posestamped.pose.position.y, tf.posestamped.pose.position.z],
-                                                            [tf.posestamped.pose.orientation.x, tf.posestamped.pose.orientation.y, tf.posestamped.pose.orientation.z, tf.posestamped.pose.orientation.w]]
+        for tf_node in tfs:
+            if not tag_graph.has_key(tf_node.frame_id):
+                tag_graph[tf_node.frame_id] = []
+                tag_transformation[tf_node.frame_id] = dict()
+            # Here we create transformation link with python dictionary between tag and tag
+            # For convenient, we reuse RemapPose message data type here
+            # frame_id = parent frame, bot_id = child_frame
+            tag_graph[tf_node.frame_id].append(tf_node.bot_id)
+            tag_transformation[tf_node.frame_id][tf_node.bot_id] = [  [tf_node.posestamped.pose.position.x, tf_node.posestamped.pose.position.y, tf_node.posestamped.pose.position.z],
+                                                            [tf_node.posestamped.pose.orientation.x, tf_node.posestamped.pose.orientation.y, tf_node.posestamped.pose.orientation.z, tf_node.posestamped.pose.orientation.w]]
 
         # Define a find shortest path function here
         def find_shortest_path(graph, start, end, path=[]):
@@ -130,21 +136,24 @@ class system_calibration(object):
 
         # A little recursive function to find the transformation from origin to end_tag
         def from_origin_to_end(path):
-            trans = tag_transformation[path[0]][path[1]][0]
-            rot = tag_transformation[path[0]][path[1]][1]
+            trans = tag_transformation[path[1]][path[0]][0] # tag_transformation[parent_frame][child_frame]
+            rot = tag_transformation[path[1]][path[0]][1]
+            # Compse transformation matrix with translation and angle (in euler)
+            transformation_mat = tr.compose_matrix(angles=tr.euler_from_quaternion(rot), translate=trans)
             if len(path) == 2:
-                return trans, rot
+                return transformation_mat
             else:
-                next_trans, next_rot = from_origin_to_end(path[1:])
-                print np.add(trans, next_trans)
-                return np.add(trans, next_trans).tolist(), np.matmul(tr.quaternion_matrix(rot), next_rot).tolist()
+                next_transformation = from_origin_to_end(path[1:])
+                print next_transformation
+                print np.dot(next_transformation, transformation_mat)
+                return np.dot(next_transformation, transformation_mat)
 
         tag_relationship = dict()
         origin = self.map_origins[0]['id'] # a.t.m. we only consider one origin
         for tag_node in tag_graph:
             print "tag_node: ", tag_node
             if tag_node == origin:
-                tag_relationship[tag_node] = [[0, 0, 0], [0, 0, 0, 1]]
+                tag_relationship[tag_node] = np.identity(4)
             else:
                 path_node = find_shortest_path(tag_graph, origin, tag_node)
                 print "path_node: ", path_node

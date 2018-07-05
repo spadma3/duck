@@ -1,0 +1,22 @@
+<launch>
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+    <arg name="config" default="baseline" doc="Specify a config."/>
+  	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
+
+    <arg name="map" default="testcircle" doc="Specify the map you wants"/>
+    <arg name="output" default="testcircle" doc="Specify the output name of the new map"/>
+
+    <include file="$(find auto_localization)/launch/subfserver.launch">
+      <arg name="veh" value="$(arg veh)"/>
+      <arg name="config" value="$(arg config)"/>
+      <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+
+    <remap from="local_poses" to="subfserver_easy/local_poses" />
+    <include file="$(find auto_localization)/launch/system_calibration.launch">
+      <arg name="veh" value="$(arg veh)"/>
+      <arg name="map" value="$(arg map)"/>
+      <arg name="output" value="$(arg output)"/>
+    </include>
+
+</launch>
