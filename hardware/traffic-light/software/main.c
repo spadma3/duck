@@ -4,7 +4,7 @@
 * At boot, scrolls a bright spot (init_color) along the array
 * Will stop as soon as an i2c transaction is received
 */
-
+// MA: test
 #include <util/delay.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
