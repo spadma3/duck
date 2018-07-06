@@ -63,7 +63,7 @@ jobs:
                 # git clone git@github.com:duckietown/duckiefleet-fall2017.git $DUCKIEFLEET_ROOT
                 mkdir -p $DUCKIEFLEET_ROOT
 
-                # make test-download-logs
+                make test-download-logs
                 make test-circle
 
 # - run:

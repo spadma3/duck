@@ -129,10 +129,27 @@ def get_log_if_not_exists(log):
         if url.startswith('http'):
             use.append(url)
 
+    def priority(x):
+        if '8080' in x:
+            return 0
+        else:
+            return 1
+
+    use.sort(key=priority)
+
+    dtu.logger.info('URLS: \n' + '\n'.join(use))
+
     for url in use:
-        print('Trying %s' % url)
-        dtu.d8n_make_sure_dir_exists(filename)
-        download_if_not_exist(url, filename)
+        try:
+            print('Trying %s' % url)
+            dtu.d8n_make_sure_dir_exists(filename)
+            download_if_not_exist(url, filename)
+        except Exception as e:  # XXX
+            dtu.logger.error(e)
+        else:
+            break
+    else:
+        log.error('could not download any file')
 
     #        parsed = parse_hash_url(hash_url)
     #        basename = parsed.name if parsed.name is not None else parsed.sha1
