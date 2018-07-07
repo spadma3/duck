@@ -60,13 +60,16 @@ class LEDJoyMapper(object):
     #             rospy.loginfo("Publishing pattern %s" % (pattern))
 
     def publishControl(self):
-        dt = 5
-        for i in range(0,2):
-            self.pub_pattern.publish('CAR_SIGNAL_A')
-            rospy.sleep(dt/pow(2,i))
-            self.pub_pattern.publish('light_off')
-            rospy.sleep(dt/pow(2,i))
-        rospy.loginfo("###############Finished#############")
+        # dt = 5
+        # for i in range(0,2):
+        #     self.pub_pattern.publish('CAR_SIGNAL_A')
+        #     rospy.sleep(dt/pow(2,i))
+        #     self.pub_pattern.publish('light_off')
+        #     rospy.sleep(dt/pow(2,i))
+        # rospy.loginfo("###############Finished#############")
+        dt = 1200
+        self.pub_pattern.publish('CAR_SIGNAL_A')
+        rospy.sleep(dt)
 
 if __name__ == "__main__":
     rospy.init_node("led_joy_mapper",anonymous=False)
