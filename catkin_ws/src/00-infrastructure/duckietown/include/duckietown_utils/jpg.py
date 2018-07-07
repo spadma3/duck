@@ -5,7 +5,8 @@
 import os
 import cv2
 import time
-import picamera
+# cannot be reliably installed with pip on Linux x86
+#import picamera
 
 from duckietown_utils.disk_hierarchy import tmpfile
 from duckietown_utils.mkdirs import d8n_make_sure_dir_exists
@@ -89,6 +90,7 @@ def write_bgr_to_file_as_jpg(image_cv, fn):
 
 
 def bgr_from_raspistill(frame=None):
+    import picamera
     with tmpfile(".jpg") as filename:
 
         if frame is not None:
