@@ -172,10 +172,6 @@ For example:
 
     $ rosrun easy_logs download 20160429223659_neptunus
 
-The database of URLs is at [the file `dropbox.urls.yaml`][DB] in the package `easy_node`.
-
-[DB]: github:org=duckietown,repo=Software,path=dropbox.urls.yaml
-
 
 A typical use case would be the following, in which a script needs a
 log with which to work.
@@ -307,8 +303,6 @@ This is [the link](https://www.dropbox.com/sh/gt5ls6bh8s58ysj/AADoP0zI1ugde-BSMc
 
 You need to ask Liam/Andrea because only them have write access.
 
-Then, get the public link address and put it in [the file `dropbox.urls.yaml`][DB] in the package `easy_node`. Remember to have `?dl=1` instead of `?dl=0` in the url.
-
 In the code, use the function `require_resource()`:
 
     from duckietown_utils import require_resource
@@ -324,4 +318,3 @@ is to change the filename every time the file changes.)
 
 The function `require_resource()` returns the path to the downloaded file.
 
-Also note that you can put any URL in [the file `dropbox.urls.yaml`][DB]; but the convention is that we only link things to Dropbox.
