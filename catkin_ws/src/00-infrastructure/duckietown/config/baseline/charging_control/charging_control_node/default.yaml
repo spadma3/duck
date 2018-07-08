@@ -1,9 +1,7 @@
 drive_time: 120
 charge_time: 120
 charger: 3
-v_charger_entrance: 0.1
-v_charger_inside: 0.4
-charger_k_Id: 0.1
+
 
 charging_stations:
   station1:
