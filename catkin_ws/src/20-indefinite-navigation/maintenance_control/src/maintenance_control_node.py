@@ -19,12 +19,13 @@ class MaintenanceControlNode(object):
 
         self.state = "JOYSTICK_CONTROL"
 
-        self.tag_id = -1
-        self.turn_type = -1
+        #self.tag_id = -1
+        #self.turn_type = -1
 
         ## Subscribers
-        self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
-        self.inters_done = rospy.Subscriber("~intersection_done", BoolStamped, self.cbIntersecDone)
+        #self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
+        #self.inters_done = rospy.Subscriber("~intersection_done", BoolStamped, self.cbIntersecDone)
+        self.sub_inters_done_detailed = rospy.Subscriber("~intersection_done_detailed", TurnIDandType, self.cbIntersecDoneDetailed)
 
         self.go_charging = rospy.Subscriber("~go_charging", Bool, self.cbGoCharging)
         self.go_calibrating = rospy.Subscriber("~go_calibrating", Bool, self.cbGoCalibrating)
@@ -41,10 +42,10 @@ class MaintenanceControlNode(object):
     def cbSetState(self, msg):
         self.maintenance_state = msg.data
         self.pubMaintenanceState()
-        
-    def cbTurnType(self, msg):
-        self.tag_id = msg.tag_id
-        self.turn_type = msg.turn_type
+
+    # def cbTurnType(self, msg):
+    #     self.tag_id = msg.tag_id
+    #     self.turn_type = msg.turn_type
 
     def cbGoCharging(self, msg):
         if msg.data:
@@ -59,13 +60,34 @@ class MaintenanceControlNode(object):
             rospy.loginfo("[Maintenance Control Node] State: WAY_TO_CALIBRATING")
 
 
+    # Check if tag_id&turn_type are in dictionary
+    def isInDict(self, tag_id, turn_type, dictionary):
+        inDict = False
+        if str(tag_id) in dictionary:
+            turns = dictionary[str(tag_id)]
+            if isinstance(turns, int): # single turntypes for this tag
+                inDict = True if (turn_type == turns) else False
+            else: # multiple turntypes for this tag
+                inDict = True if (turn_type in turns) else False
+        return inDict
+
 
     # Executes when intersection is done
-    def cbIntersecDone(self, msg):
-        turn = [self.tag_id, self.turn_type]
+    def cbIntersecDoneDetailed(self, msg):
+
+        tag_id = msg.tag_id
+        turn_type = msg.turn_type
+
+        rospy.loginfo(str(tag_id) + "   :   " + str(turn_type))
+        rospy.loginfo(str(self.maintenance_entrance) )
+        # Check if we just drove through an entrance defined in YAML file
+        entered = self.isInDict(tag_id, turn_type, self.maintenance_entrance)
+
+        # Check if we just drove through an exit defined in YAML file
+        exited = self.isInDict(tag_id, turn_type, self.maintenance_exit)
 
         # Entering maintenance area
-        if turn in self.maintenance_entrance:
+        if entered:
             self.inMaintenanceArea = True
             maintenance_msg = MaintenanceState()
             if self.maintenance_state == "WAY_TO_CHARGING":
@@ -76,18 +98,18 @@ class MaintenanceControlNode(object):
                 self.maintenance_state = "CALIBRATING"
                 self.pubMaintenanceState()
 
-            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@")
             rospy.loginfo("Entering maintenance area!")
-            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
         # Leaving maintenance area
-        if turn in self.maintenance_exit:
+        if exited:
             self.inMaintenanceArea = False
             self.maintenance_state = "NONE"
             self.pubMaintenanceState()
-            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@")
             rospy.loginfo("Leaving maintenance area!")
-            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@")
 
 
 
@@ -96,17 +118,7 @@ class MaintenanceControlNode(object):
         maintenance_msg.state = self.maintenance_state
         self.pub_maintenance_state.publish(maintenance_msg)
 
-    # Returns the turn type for an intersection to get to charger
-    def getTurnType(self, chargerID, tagID):
-        station = self.stations['station' + str(chargerID)]
-        turn = -1
-        for el in station.path_in:
-            if el[0] == tagID:
-                turn = el[1]
-        for el in station.path_out:
-            if el[0] == tagID:
-                turn = el[1]
-        return turn
+
 
 
     def setupParams(self):

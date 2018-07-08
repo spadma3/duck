@@ -24,8 +24,7 @@ class ChargingControlNode(object):
         # Class variables
         self.ready2go = False # Whether the bot is fully charged or not
 
-        self.turn_type = -1 # Turn type for intersections
-        self.tag_id = -1 # Tag ID from intersections
+
 
         self.state = "JOYSTICK_CONTROL"
 
@@ -39,7 +38,8 @@ class ChargingControlNode(object):
         self.sub_ready2go = rospy.Subscriber("~ready2go", Bool, self.setReady2Go)
 
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
-        self.inters_done = rospy.Subscriber("~intersection_done", BoolStamped, self.cbIntersecDone)
+        #self.sub_inters_done = rospy.Subscriber("~intersection_done", BoolStamped, self.cbIntersecDone)
+        self.sub_inters_done_detailed = rospy.Subscriber("~intersection_done_detailed", TurnIDandType, self.cbIntersecDoneDetailed)
 
         ## Publisher
         self.ready_at_exit = rospy.Publisher("~ready_at_exit", BoolStamped, queue_size=1)
@@ -73,16 +73,16 @@ class ChargingControlNode(object):
 
     # Adjust turn type if sign has a known ID for our path to charger
     def cbTurnType(self, msg):
-        self.tag_id = msg.tag_id
-        self.turn_type = msg.turn_type
+        tag_id = msg.tag_id
+        turn_type = msg.turn_type
 
         if self.active:
-            new_turn_type = self.getTurnType(self.charger, self.tag_id)
+            new_turn_type = self.getTurnType(self.charger, tag_id)
             if new_turn_type != -1:
-                rospy.loginfo("Leading Bot to charger " + str(self.charger) + " - therefore going " + str(new_turn_type) + "at tag " + str(self.tag_id))
-                self.turn_type = new_turn_type
+                rospy.loginfo("Leading Bot to charger " + str(self.charger) + " - therefore going " + str(new_turn_type) + "at tag " + str(tag_id))
+                turn_type = new_turn_type
 
-        self.pub_turn_type.publish(self.turn_type)
+        self.pub_turn_type.publish(turn_type)
 
     # Set the status to: ready to leave charging area (battery full)
     def setReady2Go(self, event):
@@ -100,16 +100,20 @@ class ChargingControlNode(object):
         self.reserveChargerSpot()
 
     # Executes when intersection is done
-    def cbIntersecDone(self, msg):
+    def cbIntersecDoneDetailed(self, msg):
         if not self.active:
             return
-        turn = [self.tag_id, self.turn_type]
+
+        tag_id = msg.tag_id
+        turn_type = msg.turn_type
 
         # get parameters of charging station
-        station = self.stations['station' + str(self.charger)]
+        stations = self.stations['station']
+        entrances = stations['entrances']
+        exits = stations['exits']
 
         # Entering charger
-        if turn == (station['path_in'])[-1]:
+        if (str(tag_id) in entrances) and (entrances[str(tag_id)] == turn_type):
             rospy.loginfo("Entering charging station")
             in_charger = BoolStamped()
             in_charger.header = msg.header
@@ -117,8 +121,10 @@ class ChargingControlNode(object):
             self.pub_in_charger.publish(in_charger)
 
         # Leaving charger
-        if turn == (station['path_out'])[-1]:
+        if (str(tag_id) in exits) and (exits[str(tag_id)] == turn_type):
             rospy.loginfo("Leaving charging station")
+
+
 
     def speedUp(self, event):
         rospy.set_param("/" + self.veh_name +"/lane_controller_node/v_bar", self.v_charger_inside)
@@ -166,45 +172,22 @@ class ChargingControlNode(object):
             rospy.loginfo("[Charing Control Node] ERROR")
 
 
-    # # Executes every time april tag det detects a tag
-    # def cbAprilTag(self, tag_msg):
-    #     if not self.active:
-    #         return
-    #
-    #     tags = tag_msg.detections
-    #     ready_at_exit = False
-    #
-    #     # Check if a "first in line" tag is detected
-    #     for tag in tags:
-    #
-    #         if tag.id in self.FIL_tags:
-    #             ready_at_exit = True
-    #             break
-    #
-    #     # And let any subscriber know that we're first in line and ready2go
-    #     ready_at_exit_msg = BoolStamped()
-    #     ready_at_exit_msg.header = tag_msg.header
-    #     ready_at_exit_msg.data = ready_at_exit and self.ready2go
-    #     self.ready_at_exit.publish(ready_at_exit_msg)
 
     # Returns the turn type for an intersection to get to charger
     def getTurnType(self, chargerID, tagID):
         station = self.stations['station' + str(chargerID)]
+        path_in = station['path_in']
+        path_out = station['path_out']
         turn = -1
-        for el in station['path_in']:
-            if el[0] == tagID:
-                turn = el[1]
-        for el in station['path_out']:
-            if el[0] == tagID:
-                turn = el[1]
+        # Get turn type if defined in YAML file
+        turn = path_in[str(tagID)] if str(tagID) in path_in else turn
+        turn = path_out[str(tagID)] if str(tagID) in path_out else turn
+
         return turn
 
 
     def setupParams(self):
-        self.maintenance_entrance = self.setupParam("~maintenance_entrance", 0)
-        self.maintenance_exit = self.setupParam("~maintenance_exit", 0)
         self.stations = self.setupParam("~charging_stations", 0)
-        self.FIL_tags = self.setupParam("~charger_FIL_tags", 0)
         self.charge_time = self.setupParam("~charge_time", 1)
         self.drive_time = self.setupParam("~drive_time", 2)
         self.charger = self.setupParam("~charger", 3)
@@ -214,10 +197,7 @@ class ChargingControlNode(object):
         self.slow_time = self.setupParam("~slow_time", 20)
 
     def updateParams(self,event):
-        self.maintenance_entrance = rospy.get_param("~maintenance_entrance")
-        self.maintenance_exit = rospy.get_param("~maintenance_exit")
         self.stations = rospy.get_param("~charging_stations")
-        self.FIL_tags = rospy.get_param("~charger_FIL_tags")
         self.charge_time = rospy.get_param("~charge_time")
         self.drive_time = rospy.get_param("~drive_time")
         self.charger = rospy.get_param("~charger")

@@ -1,11 +1,2 @@
-maintenance_entrance:
-  - - 243
-    - 2
-  - - 241
-    - 1
-
-maintenance_exit:
-  - - 242
-    - 1
-  - - 242
-    - 0
+maintenance_entrance: {'233': 1, '232': 0, '231': 2}
+maintenance_exit: {'244': [0,1,2]}
