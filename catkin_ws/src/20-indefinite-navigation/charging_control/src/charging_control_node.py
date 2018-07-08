@@ -32,13 +32,12 @@ class ChargingControlNode(object):
         self.sub_mt_state = rospy.Subscriber("~maintenance_state", MaintenanceState, self.cbMaintenanceState)
         self.sub_stop_line = rospy.Subscriber("~at_stop_line", BoolStamped, self.cbStopLine)
         self.sub_ready2go = rospy.Subscriber("~ready2go", Bool, self.setReady2Go)
-        self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
+
         self.sub_inters_done_detailed = rospy.Subscriber("~intersection_done_detailed", TurnIDandType, self.cbIntersecDoneDetailed)
 
         ## Publishers
         self.ready_at_exit = rospy.Publisher("~ready_at_exit", BoolStamped, queue_size=1)
         self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1)
-        self.pub_in_charger = rospy.Publisher("~in_charger", BoolStamped, queue_size=1)
         self.pub_go_charging = rospy.Publisher("~go_charging", Bool, queue_size=1)
 
         ## update Parameters timer
@@ -61,52 +60,10 @@ class ChargingControlNode(object):
     # Callback maintenance state
     def cbMaintenanceState(self, msg):
         # Start timer which calls Duckiebot back to charger after charge_time mins
-        if self.maintenance_state == "CHARGING" and msg.state == "NONE":
+        if self.maintenance_state == "CHARGING" and msg.state != self.maintenance_state:
             self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
 
         self.maintenance_state = msg.state
-        self.active = True if self.maintenance_state == "CHARGING" else False
-
-    # Adjust turn type if sign has a known ID for our path to charger
-    def cbTurnType(self, msg):
-        tag_id = msg.tag_id
-        turn_type = msg.turn_type
-
-        if self.active:
-            new_turn_type = self.getTurnType(self.charger, tag_id)
-            if new_turn_type != -1:
-                rospy.loginfo("Leading Bot to charger " + str(self.charger) + " - therefore going " + str(new_turn_type) + "at tag " + str(tag_id))
-                turn_type = new_turn_type
-
-        self.pub_turn_type.publish(turn_type)
-
-
-
-    # Executes when intersection is done
-    def cbIntersecDoneDetailed(self, msg):
-        if not self.active:
-            return
-
-        tag_id = msg.tag_id
-        turn_type = msg.turn_type
-
-        # get parameters of charging station
-        stations = self.stations
-        entrances = stations['entrances']
-        exits = stations['exits']
-
-        # Entering charger
-        if (str(tag_id) in entrances) and (entrances[str(tag_id)] == turn_type):
-            rospy.loginfo("Entering charging station")
-            in_charger = BoolStamped()
-
-            in_charger.data = True
-            self.pub_in_charger.publish(in_charger)
-
-        # Leaving charger
-        if (str(tag_id) in exits) and (exits[str(tag_id)] == turn_type):
-            rospy.loginfo("Leaving charging station")
-
 
 
     # Callback on FSM changes
@@ -156,34 +113,19 @@ class ChargingControlNode(object):
             rospy.loginfo("[Charing Control Node] ERROR")
 
 
-
-    # Returns the turn type for an intersection to get to charger
-    def getTurnType(self, chargerID, tagID):
-        station = self.stations['station' + str(chargerID)]
-        path_in = station['path_in']
-        path_out = station['path_out']
-        turn = -1
-        # Get turn type if defined in YAML file
-        turn = path_in[str(tagID)] if str(tagID) in path_in else turn
-        turn = path_out[str(tagID)] if str(tagID) in path_out else turn
-
-        return turn
-
     ##### END internal functions #####
 
     ##### BEGIN standard functions #####
 
     def setupParams(self):
-        self.stations = self.setupParam("~charging_stations", 0)
         self.charge_time = self.setupParam("~charge_time", 1)
         self.drive_time = self.setupParam("~drive_time", 2)
-        self.charger = self.setupParam("~charger", 3)
+
 
     def updateParams(self,event):
-        self.stations = rospy.get_param("~charging_stations")
         self.charge_time = rospy.get_param("~charge_time")
         self.drive_time = rospy.get_param("~drive_time")
-        self.charger = rospy.get_param("~charger")
+
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
