@@ -1,12 +1,12 @@
-
-from collections import OrderedDict
 import os
 import shutil
 import time
+from collections import OrderedDict
 
 from bs4.element import Tag
 
 import duckietown_utils as dtu
+import rosbag
 from duckietown_utils.bag_visualization import get_summary_of_bag_messages
 from easy_algo import get_easy_algo_db
 from easy_logs.app_with_logs import D8AppWithLogs, get_log_if_not_exists
@@ -17,7 +17,6 @@ from easy_regression.cli.processing import process_one_dynamic
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.regression_test import RegressionTest
 from quickapp import QuickApp
-import rosbag
 
 logger = dtu.logger
 
@@ -67,7 +66,6 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
 
 @dtu.contract(rt=RegressionTest)
 def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db, delete):
-
     logs = rt.get_logs(easy_logs_db)
 
     processors = rt.get_processors()
@@ -92,14 +90,14 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db, d
         # process one
         log_out = os.path.join(tmpdir, 'logs', log_name + '/' + 'out.bag')
 
-        bag_filename = c.comp(get_log_if_not_exists, log)
+        bag_filename = c.comp(get_log_if_not_exists, log, resource_name='bag')
         t0 = log.t0
         t1 = log.t1
 
         log_out_ = c.comp_dynamic(process_one_dynamic,
                                   bag_filename, t0, t1, processors, log_out, log,
                                   delete=delete, tmpdir=os.path.join(tmpdir, log_name),
-                                   job_id='process_one_dynamic')
+                                  job_id='process_one_dynamic')
 
         for a in analyzers:
             r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id='analyze-%s' % a)
@@ -133,7 +131,7 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db, d
 
     for a in analyzers:
         v = results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a, job_id='merge-%s' % a)
-#         do_before_deleting_tmp_dir.append(v)
+    #         do_before_deleting_tmp_dir.append(v)
 
     context.comp(print_results, analyzers, results_all, out)
 
@@ -194,7 +192,7 @@ def create_report_html(log_name, filenames, out):
 def video_for_source(rel, width='100%'):
     video = Tag(name='video')
     video.attrs['width'] = width
-#    video.attrs['height'] = height
+    #    video.attrs['height'] = height
     video.attrs['loop'] = 1
     video.attrs['autoplay'] = 1
     source = Tag(name='source')
@@ -205,7 +203,7 @@ def video_for_source(rel, width='100%'):
 
 
 def write_images(bag_filename, topic, basename):
-    ''' Returns the name of the first created file '''
+    """ Returns the name of the first created file """
     dtu.logger.info('reading topic %r from %r' % (topic, bag_filename))
     bag = rosbag.Bag(bag_filename)
     nfound = bag.get_message_count(topic)

@@ -20,7 +20,7 @@ class Pack(D8AppWithLogs):
 
     """
 
-    cmd = 'rosrun easy_logs pack'
+    cmd = 'dt-logs-ipfs-pack'
 
     deploy_ipfs = False
 

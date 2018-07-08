@@ -13,7 +13,7 @@ __all__ = [
 def get_cached(cache_name, f, quiet='not-given', just_delete=False):
     """
         Caches the result of f() in a file called
-            ${DUCKIETOWN_ROOT}/caches/![name].cache.pickle
+            ${DUCKIETOWN_ROOT}/caches/![cache_name].cache.pickle
     """
 
     cache_dir = get_duckietown_cache_dir()
@@ -23,6 +23,8 @@ def get_cached(cache_name, f, quiet='not-given', just_delete=False):
         if os.path.exists(cache):
             logger.info('Removing %s' % cache)
             os.unlink(cache)
+            return
+        else:
             return
 
     if quiet == 'not-given':

@@ -25,7 +25,7 @@ class Gallery(D8AppWithLogs):
 
     """
 
-    cmd = 'rosrun easy_logs gallery'
+    cmd = 'dt-logs-gallery'
 
     deploy_ipfs = False
 

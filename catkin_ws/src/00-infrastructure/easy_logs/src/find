@@ -1,21 +1,5 @@
 #!/usr/bin/env python
 # @create-shortcut-for-this
-from duckietown_utils.cli import d8app_run
-from easy_logs.cli.generic import GenericLogDisplay
-import duckietown_utils as dtu
+from easy_logs.cli import main_find
 
-class Find(GenericLogDisplay):
-    """ Prints the filename for the specified log. """
-    
-    cmd = 'rosrun easy_logs find'
-    
-    def show_info(self, logs):
-        for id_log, log in logs.items():
-            if log.filename is None:
-                dtu.logger.error('No local file for %s' % id_log)
-            else:
-                print(log.filename)
-
-
-if __name__ == '__main__':
-    d8app_run(Find)
+main_find()

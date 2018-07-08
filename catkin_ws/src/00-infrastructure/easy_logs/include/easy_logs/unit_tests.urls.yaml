@@ -1,8 +1,6 @@
 !!omap
 - cloud.yaml: https://github.com/duckietown/logs/raw/master/index/v1/cloud.yaml
-# second version
 # - cloud2.yaml: https://gateway.ipfs.io/ipns/data.duckietown.org/db2.yaml
-
 # - cloud2.yaml: https://gateway.ipfs.io/ipfs/QmVMp86nmsuBH3mPvuej6xPfhuuHdwVQtQ3S6aHJMHumFa/cloud2.yaml
 - cloud2.yaml: http://ipfs.duckietown.org:8080/ipfs/QmVMp86nmsuBH3mPvuej6xPfhuuHdwVQtQ3S6aHJMHumFa/cloud2.yaml
 

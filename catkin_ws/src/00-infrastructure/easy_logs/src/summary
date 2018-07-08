@@ -1,20 +1,5 @@
 #!/usr/bin/env python
 # @create-shortcut-for-this
-from duckietown_utils import col_logging  # @UnusedImport
-from duckietown_utils.cli import d8app_run
-from easy_logs.cli.easy_logs_summary_imp import format_logs
-from easy_logs.cli.generic import GenericLogDisplay
+from easy_logs.cli import main_summary
 
-
-class Summary(GenericLogDisplay):
-    """ Shows a table summary for the logs. """
-    
-    cmd = 'rosrun easy_logs summary'
-    
-    def show_info(self, logs):
-        s = format_logs(logs)
-        print(s)
-
-
-if __name__ == '__main__':
-    d8app_run(Summary)
+main_summary()

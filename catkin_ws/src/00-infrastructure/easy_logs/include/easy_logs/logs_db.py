@@ -1,23 +1,40 @@
-from collections import OrderedDict, namedtuple, defaultdict
-import copy
 import os
+from collections import OrderedDict, namedtuple, defaultdict
 
 import duckietown_utils as dtu
 from duckietown_utils.yaml_pretty import yaml_dump_pretty
-
-from .logs_structure import PhysicalLog
-from .logs_structure import yaml_from_physical_log, \
-    physical_log_from_yaml
-from .resource_desc import create_dtr_version_1, DTR
+from .constants import EasyLogsConstants
+from .logs_structure import PhysicalLog, yaml_from_physical_log, physical_log_from_yaml
+from .resource_desc import create_dtr_version_1, DTR, get_local_filepath, NotLocalPath
 from .time_slice import filters_slice
 
 
-def get_easy_logs_db():
-    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB, write_candidate_cloud=False)
+
+def get_easy_logs_db2(do_not_use_cloud, do_not_use_local, ignore_cache):
+    if ignore_cache:
+        delete_easy_logs_cache()
+
+    db = EasyLogsDB()
+
+    if not do_not_use_cloud:
+        logs_cloud = dtu.get_cached(EasyLogsConstants.CACHE_CLOUD, get_logs_cloud, just_delete=False)
+        assert isinstance(logs_cloud, OrderedDict)
+        db.update_logs(logs_cloud)
+
+    if not do_not_use_local:
+        logs_local = dtu.get_cached(EasyLogsConstants.CACHE_LOCAL, get_logs_local, just_delete=False)
+        db.update_logs(logs_local)
+
+    return db
+
+
+def invalidate_log_cache_because_downloaded():
+    dtu.get_cached(EasyLogsConstants.CACHE_LOCAL, lambda: None, just_delete=True)
 
 
 def delete_easy_logs_cache():
-    dtu.get_cached('EasyLogsDB', lambda:None, just_delete=True)
+    dtu.get_cached(EasyLogsConstants.CACHE_LOCAL, lambda: None, just_delete=True)
+    dtu.get_cached(EasyLogsConstants.CACHE_CLOUD, lambda: None, just_delete=True)
 
     cache_dir = dtu.get_duckietown_cache_dir()
     fn = os.path.join(cache_dir, 'candidate_cloud.yaml')
@@ -27,38 +44,16 @@ def delete_easy_logs_cache():
         os.unlink(fn)
 
 
-def get_easy_logs_db_cached_if_possible(write_candidate_cloud=False):
-    return get_easy_logs_db_cached_if_possiblew(EasyLogsDB, write_candidate_cloud)
+def write_candidate_cloud(logs):
+    cache_dir = dtu.get_duckietown_cache_dir()
+    fn = os.path.join(cache_dir, 'candidate_cloud.yaml')
+    s = yaml_representation_of_phy_logs(logs)
+    dtu.write_data_to_file(s, fn)
 
-
-def get_easy_logs_db_cloud_cached_if_possible(write_candidate_cloud=False):
-    return get_easy_logs_db_cached_if_possiblew(get_easy_logs_db_cloud, write_candidate_cloud)
-
-
-def get_easy_logs_db_cached_if_possiblew(f, write_candidate_cloud):
-    if EasyLogsDB._singleton is None:
-        EasyLogsDB._singleton = dtu.get_cached('EasyLogsDB', f)
-
-        cache_dir = dtu.get_duckietown_cache_dir()
-        fn = os.path.join(cache_dir, 'candidate_cloud.yaml')
-
-        if not os.path.exists(fn):
-            logs = copy.deepcopy(EasyLogsDB._singleton.logs)
-            # remove the field "filename"
-            for k, v in logs.items():
-                logs[k] = v._replace(filename=None)
-
-            if write_candidate_cloud:
-                s = yaml_representation_of_phy_logs(logs)
-                dtu.write_data_to_file(s, fn)
-
-            # try reading
-
-                print('reading back logs')
-                logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
-                print('read back %s' % len(logs2))
-
-    return EasyLogsDB._singleton
+    # try reading
+    print('reading back logs')
+    logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
+    print('read back %s' % len(logs2))
 
 
 def logs_from_yaml(data):
@@ -79,107 +74,105 @@ def yaml_representation_of_phy_logs(logs):
     return s
 
 
-def get_easy_logs_db_fresh():
-    if EasyLogsDB._singleton is None:
-        f = EasyLogsDB
-        EasyLogsDB._singleton = f()
-    return EasyLogsDB._singleton
-
-
-def get_easy_logs_db_cloud():
+def get_logs_cloud():
     cloud_file = dtu.require_resource('cloud2.yaml')
 
     with dtu.timeit_wall("loading DB"):
         dtu.logger.info('Loading cloud DB %s' % dtu.friendly_path(cloud_file))
-        data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
+        with dtu.timeit_wall('YAML load file'):
+            data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
+        # with dtu.timeit_wall('plain'):
+        #     data = open(cloud_file).read()
+        #     import yaml
+        #     yaml.load(data)
+
         dtu.logger.debug('Conversion')
         logs = logs_from_yaml(data)
 
     logs = OrderedDict(logs)
     dtu.logger.info('Loaded cloud DB with %d entries.' % len(logs))
 
-    return EasyLogsDB(logs)
+    return logs
 
 
 class EasyLogsDB(object):
     _singleton = None
 
-    def __init__(self, logs=None):
+    def __init__(self):
         # ordereddict str -> PhysicalLog
-        if logs is None:
-            logs = load_all_logs()
-        else:
-            dtu.check_isinstance(logs, OrderedDict)
+        self.logs = OrderedDict()
 
-        # Let's get rid of these redundant logs from 2016
-        for k in list(logs):
-            if 'RCDP' in k:
-                del logs[k]
-        self.logs = logs
+    def update_logs(self, logs2):
+        self.logs.update(logs2)
 
     @dtu.contract(returns=OrderedDict, query='str|list(str)')
     def query(self, query, raise_if_no_matches=True):
-        """
-            query: a string or a list of strings
+        return query_logs(logs=self.logs, query=query, raise_if_no_matches=raise_if_no_matches)
 
-            Returns an OrderedDict str -> PhysicalLog.
 
-            The query can also be a filename.
+@dtu.contract(returns=OrderedDict, query='str|list(str)')
+def query_logs(logs, query, raise_if_no_matches=True):
+    """
+        query: a string or a list of strings
 
-        """
-        if isinstance(query, list):
-            res = OrderedDict()
+        Returns an OrderedDict str -> PhysicalLog.
+
+        The query can also be a filename.
+
+    """
+    if isinstance(query, list):
+        res = OrderedDict()
+        for q in query:
+            res.update(query_logs(logs, q, raise_if_no_matches=False))
+        if raise_if_no_matches and not res:
+            msg = "Could not find any match for the queries:"
             for q in query:
-                res.update(self.query(q, raise_if_no_matches=False))
-            if raise_if_no_matches and not res:
-                msg = "Could not find any match for the queries:"
-                for q in query:
-                    msg += '\n- %s' % q
-                raise dtu.DTNoMatches(msg)
-            return res
-        else:
-            dtu.check_isinstance(query, str)
+                msg += '\n- %s' % q
+            raise dtu.DTNoMatches(msg)
+        return res
+    else:
+        dtu.check_isinstance(query, str)
 
-            filters = OrderedDict()
-            filters.update(filters_slice)
-            filters.update(dtu.filters0)
-            aliases = OrderedDict()
-            aliases.update(self.logs)
-            # adding aliases unless we are asking for everything
-            if query != '*':
-                #print('adding more (query = %s)' % query)
-                for _, log in self.logs.items():
-                    dtr = DTR.from_yaml(log.resources['bag'])
+        filters = OrderedDict()
+        filters.update(filters_slice)
+        filters.update(dtu.filters0)
+        aliases = OrderedDict()
+        aliases.update(logs)
+        # adding aliases unless we are asking for everything
+        if query != '*':
+            # print('adding more (query = %s)' % query)
+            for _, log in logs.items():
+                dtr = DTR.from_yaml(log.resources['bag'])
 
-                    original_name = dtr.name
+                original_name = dtr.name
 
-                    # print ('alias: %s %s' % (original_name, dtr.name))
-                    aliases[original_name] = log
-                    original_name = original_name.replace('.bag', '')
-                    aliases[original_name] = log
+                # print ('alias: %s %s' % (original_name, dtr.name))
+                aliases[original_name] = log
+                original_name = original_name.replace('.bag', '')
+                aliases[original_name] = log
 
-            result = dtu.fuzzy_match(query, aliases, filters=filters,
-                                     raise_if_no_matches=raise_if_no_matches)
-            # remove doubles after
-            # XXX: this still has bugs
-            present = defaultdict(set)
-            for k, v in result.items():
-                present[id(v)].add(k)
+        result = dtu.fuzzy_match(query, aliases, filters=filters,
+                                 raise_if_no_matches=raise_if_no_matches)
+        # remove doubles after
+        # XXX: this still has bugs
+        present = defaultdict(set)
+        for k, v in result.items():
+            present[id(v)].add(k)
 
-            def choose(options):
-                if len(options) == 1:
-                    return list(options)[0]
-                else:
-                    options = sorted(options, key=len)
-                    return options[0]
+        def choose(options):
+            if len(options) == 1:
+                return list(options)[0]
+            else:
+                options = sorted(options, key=len)
+                return options[0]
 
-            c = OrderedDict()
-            for k, v in result.items():
-                chosen = choose(present[id(v)])
-                if k == chosen:
-                    c[k] = v
+        c = OrderedDict()
+        for k, v in result.items():
+            chosen = choose(present[id(v)])
+            if k == chosen:
+                c[k] = v
 
-            return c
+        return c
 
 
 def _read_stats(pl, use_filename):
@@ -227,7 +220,7 @@ def which_robot_from_bag_info(info):
 
 def is_valid_name(basename):
     forbidden = [',', '(', 'conflicted'
-                 #, ' '
+                 # , ' '
                  ]
     for f in forbidden:
         if f in basename:
@@ -263,13 +256,13 @@ def get_all_resources():
     base2basename2filename = defaultdict(lambda: {})
     for basename, fn in basename2filename.items():
         base = _get_base_base(basename)
-#        print('basename: %s base: %s filename: %s' % (basename, base, fn))
+        #        print('basename: %s base: %s filename: %s' % (basename, base, fn))
         base2basename2filename[base][basename] = fn
     return AllResources(basename2filename=basename2filename,
                         base2basename2filename=base2basename2filename)
 
 
-def load_all_logs():
+def get_logs_local():
     raise_if_duplicated = False
     all_resources = get_all_resources()
 
@@ -299,8 +292,8 @@ def load_all_logs():
 
         if basename != base + '.bag':
             continue
-#        print('basename: %s base: %s filename: %s related : %s' % (basename, base, filename,
-#                                                      related))
+        #        print('basename: %s base: %s filename: %s related : %s' % (basename, base, filename,
+        #                                                      related))
         l = physical_log_from_filename(filename, all_resources.base2basename2filename)
 
         if l.log_name in logs:
@@ -333,13 +326,6 @@ def load_all_logs():
 
     return logs
 
-#
-#def choose_hash_url_from_list(l):
-#    for k in l:
-#        if k.startswith('hash'):
-#            return k
-#    raise ValueError(l)
-
 
 @dtu.contract(returns=PhysicalLog, filename=str)
 def physical_log_from_filename(filename, base2basename2filename):
@@ -355,7 +341,7 @@ def physical_log_from_filename(filename, base2basename2filename):
         raise Exception(filename)
 
     def ignore_record(rname):
-        forbidden = [' ',  #names with spaces,
+        forbidden = [' ',  # names with spaces,
                      'active.avi',
                      'bag.info.yaml',
                      'bag.info ',
@@ -365,8 +351,8 @@ def physical_log_from_filename(filename, base2basename2filename):
                      ]
         for f in forbidden:
             if f in rname:
-#                msg = 'Ignoring resource %s' % rname
-#                dtu.logger.warning(msg)
+                #                msg = 'Ignoring resource %s' % rname
+                #                dtu.logger.warning(msg)
                 return True
 
         return False
@@ -385,7 +371,7 @@ def physical_log_from_filename(filename, base2basename2filename):
                     has_camera=None,
                     vehicle=None,
                     filename=None,
-#                    filename=filename,
+                    #                    filename=filename,
                     bag_info=None,
                     valid=True,
                     error_if_invalid=None)
@@ -403,7 +389,7 @@ def physical_log_from_filename(filename, base2basename2filename):
         else:
             s = 'unknown'
         canonical = canonical + '_' + s
-        #print('canonical: %s' % canonical)
+        # print('canonical: %s' % canonical)
         l = l._replace(log_name=canonical)
 
     possible_bases = set()
@@ -425,3 +411,32 @@ def physical_log_from_filename(filename, base2basename2filename):
 
     return l
 
+
+class NotAvailableLocally(Exception):
+    pass
+
+
+def get_local_file(dtr):
+    """ Returns the local hostname if it exists, otherwise raises NotAvailableLocally() """
+    for url in dtr['urls']:
+        try:
+            filename = get_local_filepath(url)
+            if not os.path.exists(filename):
+                msg = 'DB said this file existed but it does not: %s' % url
+                dtu.logger.error(msg)
+                continue
+            return filename
+        except NotLocalPath:
+            pass
+    msg = 'None of the paths are local:\n%s' % "\n".join(dtr['urls'])
+    raise NotAvailableLocally(msg)
+
+
+def get_local_bag_file(log):
+    """
+    Raise NotAvailableLocally.
+    :param log:
+    :return:
+    """
+    dtr = log.resources['bag']
+    return get_local_file(dtr)

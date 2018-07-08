@@ -175,4 +175,3 @@ def image_clip_255(image_float):
 # with libjpeg-turbo
 # Convert from uncompressed image message
 # image_cv = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
-

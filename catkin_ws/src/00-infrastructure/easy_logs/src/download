@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # @create-shortcut-for-this
+from easy_logs.cli import main_download
 
-from duckietown_utils.cli import d8app_run
-from easy_logs.cli.require import Download
-
-if __name__ == '__main__':
-    d8app_run(Download)
+main_download()
