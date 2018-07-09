@@ -1481,22 +1481,22 @@
   traffic_sign_type: T-intersection
 
 - tag_id: 247
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: T-intersection
 
 - tag_id: 248
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 249
-  tag_type:
+  tag_type: TrafficSign
   street_name:
   vehicle_name:
-  traffic_sign_type:
+  traffic_sign_type: left-T-intersect
 
 - tag_id: 250
   tag_type:

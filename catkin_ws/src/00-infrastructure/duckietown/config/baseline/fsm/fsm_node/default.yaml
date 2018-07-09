@@ -35,7 +35,7 @@ events: # Maps from subscribing topic to signal ids
     trigger: True
 
   in_charger:
-    topic: "charging_control_node/in_charger"
+    topic: "maintenance_control_node/in_charger"
     msg_type: "BoolStamped"
     trigger: True
   # Logical events from logic_gate_node
@@ -210,7 +210,7 @@ states:
     current_status: "implemented"
   LANE_FOLLOWING:
     transitions:
-      at_stop_line_and_parking_off: "INTERSECTION_PLANNING"
+      at_stop_line_and_parking_off: "INTERSECTION_COORDINATION"
       at_stop_line_and_parking_on: "ARRIVE_AT_STOP_LINE"
       deep_lane_following_on: "DEEP_LANE_FOLLOWING"
       calibration_start: "CALIBRATING"
@@ -233,24 +233,27 @@ states:
     lights: ["lane_following"]
     current_status: "in_progress"
 
-  INTERSECTION_PLANNING:
-    transitions:
-      intersection_path_computed: "INTERSECTION_COORDINATION"
-    active_nodes:
-      - decoder_node
-      - line_detector_node # I think intersection nav needs this one for planning
-      - apriltag_node
-      - intersection_navigation_node
-      - intersection_localization_node
-    #  - framerate_high NOTE probably?
-    lights: ["joystick"]
-    current_status: "in_progress"
+  # INTERSECTION_PLANNING:
+  #   transitions:
+  #     intersection_path_computed: "INTERSECTION_COORDINATION"
+  #   active_nodes:
+  #     - decoder_node
+  #     - line_detector_node # I think intersection nav needs this one for planning
+  #     - apriltag_node
+  #     - intersection_navigation_node
+  #     - intersection_localization_node
+  #   #  - framerate_high NOTE probably?
+  #   lights: ["joystick"]
+  #   current_status: "in_progress"
 
   INTERSECTION_COORDINATION:
     transitions:
       intersection_go: "INTERSECTION_CONTROL"
     active_nodes:
-      #- line_detector_node # NOTE possibly
+      - apriltag_node #NOTE
+      - lane_filter_node
+      - lane_controller_node
+      - line_detector_node # NOTE possibly
       - decoder_node
       - framerate_high
       - led_emitter_node
@@ -265,6 +268,7 @@ states:
       intersection_done_and_deep_lane_on: "DEEP_LANE_FOLLOWING"
       in_charger: "IN_CHARGING_AREA"
     active_nodes:
+      - apriltag_node
       - decoder_node
       - led_emitter_node
       - line_detector_node
