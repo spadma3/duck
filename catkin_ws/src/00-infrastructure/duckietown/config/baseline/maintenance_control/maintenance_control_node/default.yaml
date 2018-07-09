@@ -1,2 +1,28 @@
+# Maintenance gate
 maintenance_entrance: {'233': 1, '232': 0, '231': 2}
-maintenance_exit: {'244': [0,1,2]}
+maintenance_exit: {'234': [0,1,2]}
+
+# General path back to city
+path_to_city: {'66': 2, '260': 2, '149': 0}
+
+# Charging station
+charging_stations:
+  station1:
+    path_in: {'261': 1, '235': 2}
+    path_calib: {'240': 2, '260': 1}
+  station2:
+    path_in: {'261': 2, '243': 0, '249': 0}
+    path_calib: {'222': 1}
+  station3:
+    path_in: {'261': 1, '235': 1}
+    path_calib: {'222': 1}
+  station4:
+    path_in: {'261': 2, '243': 0, '249': 1}
+    path_calib: {'222': 1}
+  entrances: {'235': 2, '249': 0, '247': 0, '249': 1}
+  exits: {'240': [0,2], 236': [0,2], '238': [1,2], '236': [0,1]}
+
+# Calibration station
+calibration_station:
+  entrances: {'260': 1, '243': 2}
+  exits: {'242': [0,1]}

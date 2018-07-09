@@ -1,21 +1,3 @@
 drive_time: 120
 charge_time: 120
-charger: 3
-
-
-charging_stations:
-  station1:
-    path_in: {'261': 1, '235': 2}
-    path_out: {'240': 0, '237': 1, '248': 1}
-  station2:
-    path_in: {'261': 2, '243': 0, '249': 0}
-    path_out: {'236': 0, '248': 1}
-  station3:
-    path_in: {'261': 1, '235': 1}
-    path_out: {'238': 1, '260': 2, '247': 0}
-  station4:
-    path_in: {'261': 2, '243': 0, '249': 1}
-    path_out: {'237': 1, '248': 1}
-
-  entrances: {'235': 2, '249': 0, '247': 0, '249': 1}
-  exits: {'240': [0,2], 236': [0,2], '238': [1,2], '236': [0,1]}
+do_calib: False

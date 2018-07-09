@@ -27,16 +27,24 @@ class MaintenanceControlNode(object):
         self.go_mt_full = rospy.Subscriber("~go_mt_full", Bool, self.cbGoMTFull)
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.set_state = rospy.Subscriber("~set_state", String, self.cbSetState)
-
+        self.rdy_at_exit = rospy.Subscriber("~ready_at_exit",  BoolStamped, self.cbReadyAtExit)
         ## Publishers
         self.pub_maintenance_state = rospy.Publisher("~maintenance_state", MaintenanceState, queue_size=1)
         self.pub_in_charger = rospy.Publisher("~in_charger", BoolStamped, queue_size=1)
+        self.pub_turn_type = rospy.Publisher("~turn_id_and_type_out", TurnIDandType, queue_size=1)
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
 
     ##### Begin callback functions #####
+
+    # Executed as soon as Duckiebot leaves charging rails
+    def cbReadyAtExit(self, msg):
+        if self.maintenance_state == "CHARGING" and msg.data:
+            new_state = "WAY_TO_CALIBRATING" if self.calibration else "WAY_TO_CITY"
+            self.changeMTState(new_state)
+
 
     # For manual debugging
     def cbSetState(self, msg):
@@ -74,15 +82,18 @@ class MaintenanceControlNode(object):
         calib_exited = self.isInDict(tag_id, turn_type, self.calibration_station['exits'])
 
         # summarize gates in two lists
-        gate_bools = [mt_entered,           mt_exited,  charging_entered,   charging_exited,                                                calib_entered,  calib_exited]
-        gate_trans = ["WAY_TO_CHARGING",    "NONE",     "CHARGING",         "WAY_TO_CALIBRATING" if self.calibration else "WAY_TO_CITY",    "CALIBRATING",  "WAY_TO_CITY"]
+        gate_bools = [mt_entered,           mt_exited,  charging_entered,   calib_entered,  calib_exited]
+        gate_trans = ["WAY_TO_CHARGING",    "NONE",     "CHARGING",         "CALIBRATING",  "WAY_TO_CITY"]
 
         # Change state if Duckiebot drives through any gate
-        for i in range(0, gate_bools):
+        for i in range(0, len(gate_bools)):
             if gate_bools[i]: self.changeMTState(gate_trans[i])
 
         # Notify world that we're in a charger
-        if charging_entered: self.pub_in_charger()
+        if charging_entered:
+            entered_msg = BoolStamped()
+            entered_msg.data = True
+            self.pub_in_charger.publish(entered_msg)
 
         # Turn on active navigation for WAY_TO_ states
         self.active_navigation = self.maintenance_state in ["WAY_TO_CHARGING", "WAY_TO_CALIBRATING", "WAY_TO_CITY"]
@@ -97,8 +108,11 @@ class MaintenanceControlNode(object):
             if new_turn_type != -1:
                 rospy.loginfo("State: " + str(self.maintenance_state) + ", Charger: " + str(self.charger) + ", tag_ID: "  + str(tag_id) + " - therefore driving " + str(new_turn_type))
                 turn_type = new_turn_type
+            else:
+                rospy.loginfo("Active navigation running, but unknown tag ID " + str(tag_id))
 
-        self.pub_turn_type.publish(turn_type)
+        msg.turn_type = turn_type
+        self.pub_turn_type.publish(msg)
 
 
     ##### END callback functions #####
@@ -151,13 +165,17 @@ class MaintenanceControlNode(object):
         self.maintenance_entrance = self.setupParam("~maintenance_entrance", 0)
         self.maintenance_exit = self.setupParam("~maintenance_exit", 0)
         self.stations = self.setupParam("~charging_stations", 0)
-        self.charger = self.setupParam("~charger", 3)
+        self.calibration_station = self.setupParam("~calibration_station", 0)
+        self.path_to_city = self.setupParam("~path_to_city", 0)
+        if not rospy.has_param("/maintenance_charger"): self.charger = self.setupParam("/maintenance_charger", 1)
 
     def updateParams(self,event):
         self.maintenance_entrance = rospy.get_param("~maintenance_entrance")
         self.maintenance_exit = rospy.get_param("~maintenance_exit")
         self.stations = rospy.get_param("~charging_stations")
-        self.charger = rospy.get_param("~charger")
+        self.calibration_station = rospy.get_param("~calibration_station")
+        self.path_to_city = rospy.get_param("~path_to_city")
+        self.charger = rospy.get_param("/maintenance_charger")
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)

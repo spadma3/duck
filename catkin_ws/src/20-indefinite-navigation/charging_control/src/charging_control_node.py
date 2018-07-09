@@ -33,12 +33,10 @@ class ChargingControlNode(object):
         self.sub_stop_line = rospy.Subscriber("~at_stop_line", BoolStamped, self.cbStopLine)
         self.sub_ready2go = rospy.Subscriber("~ready2go", Bool, self.setReady2Go)
 
-        self.sub_inters_done_detailed = rospy.Subscriber("~intersection_done_detailed", TurnIDandType, self.cbIntersecDoneDetailed)
-
         ## Publishers
         self.ready_at_exit = rospy.Publisher("~ready_at_exit", BoolStamped, queue_size=1)
-        self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1)
-        self.pub_go_charging = rospy.Publisher("~go_charging", Bool, queue_size=1)
+        self.pub_go_mt_charging = rospy.Publisher("~go_mt_charging", Bool, queue_size=1)
+        self.pub_go_mt_full = rospy.Publisher("~go_mt_full", Bool, queue_size=1)
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -88,8 +86,12 @@ class ChargingControlNode(object):
     def goToCharger(self, event):
         go_to_charger = Bool()
         go_to_charger.data = True
-        self.pub_go_charging.publish(go_to_charger)
-        rospy.loginfo("[Charing Control Node] Requesting the Duckiebot to go charging")
+        if self.do_calib:
+            self.pub_go_mt_full.publish(go_to_charger)
+            rospy.loginfo("[Charing Control Node] Requesting the Duckiebot to go charging and calibrating.")
+        else:
+            self.pub_go_mt_charging.publish(go_to_charger)
+            rospy.loginfo("[Charing Control Node] Requesting the Duckiebot to go charging.")
 
         # Reserving a charging spot
         self.reserveChargerSpot()
@@ -102,6 +104,7 @@ class ChargingControlNode(object):
             for el in charging_stations:
                 if (charging_stations[el])['operational'] and (charging_stations[el])['free_spots'] > max_free_spots:
                     max_free_spots = (charging_stations[el])['free_spots']
+                    rospy.set_param("/maintenance_charger", (charging_stations[el])['id'])
                     self.charger = (charging_stations[el])['id']
             if max_free_spots == 0:
                 rospy.loginfo("[Charing Control Node] WARNING: NO FREE CHARGING SPOTS AVAILABLE")
@@ -120,11 +123,14 @@ class ChargingControlNode(object):
     def setupParams(self):
         self.charge_time = self.setupParam("~charge_time", 1)
         self.drive_time = self.setupParam("~drive_time", 2)
-
+        self.do_calib = self.setupParam("~do_calib", False)
+        if not rospy.has_param("/maintenance_charger"): self.charger = self.setupParam("/maintenance_charger", 1)
 
     def updateParams(self,event):
         self.charge_time = rospy.get_param("~charge_time")
         self.drive_time = rospy.get_param("~drive_time")
+        self.do_calib = rospy.get_param("~do_calib")
+        self.charger = rospy.get_param("/maintenance_charger")
 
 
     def setupParam(self,param_name,default_value):
