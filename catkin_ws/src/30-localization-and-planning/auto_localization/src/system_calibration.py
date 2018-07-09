@@ -78,18 +78,17 @@ class system_calibration(object):
         self.tag_relationship = self.find_tag_relationship(msg_tfs)
 
         fixed_tags_data = []
-        for matrix in self.tag_relationship:
+        for tag in self.tag_relationship:
             # Every matrix is the transformation matrix between the tag and origin tag
             # We here decompose the matrix and save only translation and rotation
-            scale, shear, angles, translate, perspective = tr.decompose_matrix(matrix)
+            scale, shear, angles, translate, perspective = tr.decompose_matrix(self.tag_relationship[tag])
             tag_data = {}
             tag_data['id'] = tag
-            tag_data['translation'] = translate
-            tag_data['orientation'] = tr.quaternion_from_euler(angles[0], angles[1], angles[2])
+            tag_data['transformation'] = list(self.tag_relationship[tag])
             fixed_tags_data.append(tag_data)
 
 
-        # Write the translation relationship to map file
+        # Write the transformation relationship to map file
         data = {'tiles':self.map_tiles, 'watchtowers':self.map_watchtowers, 'origin':self.map_origins, 'fixed_tags':fixed_tags_data}
         with open(rospkg.RosPack().get_path('auto_localization')+"/config/"+self.output_map_filename, 'w') as outfile:
             yaml.dump(data, outfile, default_flow_style=False)

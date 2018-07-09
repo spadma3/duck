@@ -10,22 +10,20 @@ import numpy as np
 # creates a 4x4 translation matrix from a 1x3 translation vector and
 # a 1x4 quaternion vector
 
-'''
 # Josefine Version of getting tf matrix
-def create_tf_matrix(trans, rot):
-    # numpy arrays to 4x4 transform matrix
-    trans_mat = tr.translation_matrix(trans)
-    rot_mat = tr.quaternion_matrix(rot)
-    transformation_matrix = np.dot(trans_mat, rot_mat)
-    return transformation_matrix
-'''
+# def create_tf_matrix(trans, rot):
+#     # numpy arrays to 4x4 transform matrix
+#     trans_mat = tr.translation_matrix(trans)
+#     rot_mat = tr.quaternion_matrix(rot)
+#     transformation_matrix = np.dot(trans_mat, rot_mat)
+#     return transformation_matrix
 
 # Eric Version of getting tf matrix
 # using tf.transformation.compose_matrix
 # See here for more information http://docs.ros.org/jade/api/tf/html/python/transformations.html
 def create_tf_matrix(trans, rot):
     # numpy arrays to 4x4 transform matrix
-    transformation_matrix = tr.compose_matrix(angle = tr.euler_from_quaternion(rot), translate = trans)
+    transformation_matrix = tr.compose_matrix(angles = tr.euler_from_quaternion(rot), translate = trans)
     return transformation_matrix
 
 

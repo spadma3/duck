@@ -8,7 +8,6 @@ import numpy as np
 from geometry_msgs.msg import PoseStamped
 
 # Read clients (watchtower), read from yaml that describe the map in the future.
-watchtowers = ['watchtower01', 'watchtower02', 'watchtower03', 'watchtower04', 'watchtower05', 'watchtower06', 'watchtower07', 'watchtower08']
 
 def poselist2pose(poselist):
     pose = RemapPose()
@@ -27,7 +26,7 @@ def poselist2pose(poselist):
 
     return pose
 
-def pubPoses():
+def pubPoses(watchtowers):
 
     pub_poses = rospy.Publisher('~local_poses', RemapPoseArray, queue_size=1)
     rate = rospy.Rate(5) # 5hz
@@ -53,7 +52,10 @@ def pubPoses():
 
 if __name__ == '__main__':
     rospy.init_node('subfserver_easy',anonymous=False)
+    filename = rospy.get_param("~map") + ".yaml"
+    map_data = yaml.load(file(rospkg.RosPack().get_path('auto_localization')+"/config/"+filename,'r')) # Need RosPack get_path to find the file path
+    watchtowers = map_data['watchtowers']
     try:
-        pubPoses()
+        pubPoses(watchtowers)
     except rospy.ROSInterruptException:
         pass
