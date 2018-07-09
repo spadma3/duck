@@ -19,7 +19,7 @@ On one terminal, set up the Duckietown environment and set ros master to the ser
 
 Next, on the server computer, launch the node that get messages.
 
-    roslaunch duckietown auto_localization_server.launch veh:=$HOSTNAME
+    make auto_localization_server
 
 Congrats! You are done with server sides.
 
@@ -27,7 +27,7 @@ Congrats! You are done with server sides.
 
 Start the local-localization function on local watchtower. They will then launch apriltags2 detection, local-postprocessing, publish to server through tcp communication.
 
-    roslaunch duckietown auto_localization_watchtower.launch veh:=$HOSTNAME
+    make auto_localization_watchtower
 
 Congrats! Easy peasy huh?
 
