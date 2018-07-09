@@ -140,7 +140,7 @@ class AutoCalibrationCalculationNode(object):
         # print omega
         #extract initial yaw angle form yaw measurement of camera
         yaw=np.zeros(size)
-        yaw[0]=args[0][8]
+        yaw[0]=args[0][8]%6.2831852
 
         #calculate yaw angle for every single timestamp, using euler forward
         for i in range(1,size):
@@ -152,7 +152,7 @@ class AutoCalibrationCalculationNode(object):
         for i in range (0,size-1):
             x_est=x_est+(args[i+1][0]-args[i][0])*math.cos(yaw[i])*vel[i]
             y_est=y_est+(args[i+1][0]-args[i][0])*math.sin(yaw[i])*vel[i]
-        return [x_est,y_est,0,0,0,yaw[size-1]]
+        return [x_est,y_est,0,0,0,(yaw[size-1]-yaw[0])%6.2831852]
 
     #Determines the travel of the Duckiebot camera from Apriltag detections
     def visual_odometry(self,cam_loc,id):
@@ -186,6 +186,7 @@ class AutoCalibrationCalculationNode(object):
         bot_T_world = np.dot(cam_T_world,bot_T_cam)
         R = bot_T_world[:3,:3]
         [roll,pitch,yaw] = self.Rte(R)
+        yaw = yaw%6.2831852
         return np.array([bot_T_world[0][3],bot_T_world[1][3],bot_T_world[2][3],roll,pitch,yaw])
 
     #quaternion to euler, taken from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles on 05.06.18
@@ -255,16 +256,27 @@ class AutoCalibrationCalculationNode(object):
 
             n = 10
             x0 = np.zeros(n)
-            x0[0] = 0.033
-            x0[1] = 0.033
-            x0[2] = 0.1
+            # x0[0] = 0.033
+            # x0[1] = 0.033
+            # x0[2] = 0.1
+            # x0[3] = 0.085
+            # x0[4] = 0.055
+            # x0[5] = 0
+            # x0[6] = 0.1
+            # x0[7] = 0
+            # x0[8] = 0.349
+            # x0[9] = 0
+
+            x0[0] = 0.03
+            x0[1] = 0.03
+            x0[2] = 0.11
             x0[3] = 0.085
-            x0[4] = 0.055
-            x0[5] = 0
-            x0[6] = 0.1
-            x0[7] = 0
-            x0[8] = 0.349
-            x0[9] = 0
+            x0[4] = 0.06
+            x0[5] = 0.005
+            x0[6] = 0.104
+            x0[7] = 0.1
+            x0[8] = 0.25
+            x0[9] = 0.05
 
             # bounds
             b0 = (0.025,0.035)
@@ -313,16 +325,28 @@ class AutoCalibrationCalculationNode(object):
             camera_pos[i]=self.camera(x,self.camera_motion[i,1:])
             if i>0:
                 camera_mov[i-1]=camera_pos[i]-camera_pos[i-1]
+                camera_mov[i-1][5]=camera_mov[i-1][5]%6.2831852
 
         #Create vectors to calculate the norm
-        # print wheel_mov
-        # print camera_mov
+        # print x
+        #print wheel_mov
+        #print camera_mov
 
         camera_mov=np.reshape(camera_mov,np.size(camera_mov))
         wheel_mov=np.reshape(wheel_mov,np.size(wheel_mov))
-        print x
-        print np.linalg.norm(wheel_mov-camera_mov)
-        return np.linalg.norm(wheel_mov-camera_mov)
+        #print x
+        #print np.linalg.norm(wheel_mov-camera_mov)
+        length = np.size(camera_mov)
+        diff = np.zeros(length)
+        diff = wheel_mov-camera_mov
+        for i in range(0,length):
+            if (i%6==5):
+                if diff[i]>3.1415926:
+                    diff[i]=diff[i]-6.2831852
+                if diff[i]<-3.1415926:
+                    diff[i]=diff[i]+6.2831852
+        print np.linalg.norm(diff)
+        return np.linalg.norm(diff)
 
     #secs and nsecs to secs double
     def toSeconds(self,secs,nsecs):
