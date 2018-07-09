@@ -5,7 +5,7 @@ demos:
 	@echo
 	@echo TODO: to write
 	@echo
-	
+
 ### These are not using master.launch
 demo-joystick: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh;  roslaunch duckietown joystick.launch veh:=$(vehicle_name)"
@@ -52,3 +52,18 @@ demo-line_detector-quiet-%: check-environment
 # traffic lights
 traffic-light: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch traffic_light traffic_light_node.launch veh:=$(vehicle_name)"
+
+# auto_localization demo
+# watchtower side
+auto_localization_watchtower: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown auto_localization_watchtower.launch veh:=$(HOSTNAME)"
+# Server side
+auto_localization_server: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown auto_localization_server.launch veh:=$(HOSTNAME)"
+
+# auto_localization system calibration
+auto_localization_calibration_watchtower: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown auto_localization_watchtower_calibration.launch veh:=$(HOSTNAME)"
+
+auto_localization_calibration_server: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown auto_localization_server_calibration.launch veh:=$(HOSTNAME)"

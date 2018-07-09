@@ -60,7 +60,7 @@ class ImgRectFullRatio(object):
             return
 
         start_time = time.time()
-        cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        cv_image = self.bridge.imgmsg_to_cv2(msg, "mono8")
 
         # undistort the image
         new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.5)
@@ -84,7 +84,7 @@ class ImgRectFullRatio(object):
         new_matrix[0, 2] = result_img.shape[1] / 2
         new_matrix[1, 2] = result_img.shape[0] / 2
 
-        img_msg = self.bridge.cv2_to_imgmsg(result_img, "bgr8")
+        img_msg = self.bridge.cv2_to_imgmsg(result_img, "mono8")
         #print "Old Image h,w =", cv_image.shape
         img_msg.header.stamp = msg.header.stamp
         img_msg.header.frame_id = msg.header.frame_id
