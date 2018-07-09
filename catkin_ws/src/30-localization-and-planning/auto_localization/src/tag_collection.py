@@ -100,8 +100,8 @@ class Tag_collection(object):
 
                     remap_pose = RemapPose()
                     remap_pose.host = socket.gethostname()
-                    remap_pose.frame_id = parent_frame_tags_id
-                    remap_pose.bot_id = child_frame_tags_id
+                    remap_pose.frame_id = child_frame_tags_id
+                    remap_pose.bot_id = parent_frame_tags_id
                     remap_pose.posestamped.pose.position.x = trans[0]
                     remap_pose.posestamped.pose.position.y = trans[1]
                     remap_pose.posestamped.pose.position.z = trans[2]

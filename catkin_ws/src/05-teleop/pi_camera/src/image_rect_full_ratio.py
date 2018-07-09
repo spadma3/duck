@@ -63,6 +63,7 @@ class ImgRectFullRatio(object):
         cv_image = self.bridge.imgmsg_to_cv2(msg, "mono8")
 
         # undistort the image
+        # Oriin ratio = 1.65, change to lower ratio to increase the speed of apriltags detection
         new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.5)
 
 
@@ -71,9 +72,9 @@ class ImgRectFullRatio(object):
         # code from: https://docs.opencv.org/3.4.0/da/d6e/tutorial_py_geometric_transformations.html
         # Preferable interpolation methods are cv2.INTER_AREA for shrinking and cv2.INTER_CUBIC (slow) & cv2.INTER_LINEAR for zooming
 
-        #crop by 20%
+        #crop
         # code is from here: https://stackoverflow.com/questions/15589517/how-to-crop-an-image-in-opencv-using-python
-        #result_img = result_img[round(0.1*cv_image.shape[0]):round(0.9*cv_image.shape[0]), round(0.1*cv_image.shape[1]):round(0.9*cv_image.shape[1])]
+        # crop the height from pixel 120 to increase the speed of apriltags detection
         result_img = result_img[120:result_img.shape[0], 0:result_img.shape[1]]
 
         #resize

@@ -81,7 +81,6 @@ class system_calibration(object):
         for tag in self.tag_relationship:
             # Every matrix is the transformation matrix between the tag and origin tag
             # We here decompose the matrix and save only translation and rotation
-            scale, shear, angles, translate, perspective = tr.decompose_matrix(self.tag_relationship[tag])
             tag_data = {}
             tag_data['id'] = tag
             tag_data['transformation'] = list(self.tag_relationship[tag])
@@ -112,7 +111,8 @@ class system_calibration(object):
                 tag_transformation[tf_node.frame_id] = dict()
             # Here we create transformation link with python dictionary between tag and tag
             # For convenient, we reuse RemapPose message data type here
-            # frame_id = parent frame, bot_id = child_frame
+            # frame_id = child frame, bot_id = parent frame
+            # tag_transformation[child_frame][parent_frame]
             tag_graph[tf_node.frame_id].append(tf_node.bot_id)
             tag_transformation[tf_node.frame_id][tf_node.bot_id] = [  [tf_node.posestamped.pose.position.x, tf_node.posestamped.pose.position.y, tf_node.posestamped.pose.position.z],
                                                             [tf_node.posestamped.pose.orientation.x, tf_node.posestamped.pose.orientation.y, tf_node.posestamped.pose.orientation.z, tf_node.posestamped.pose.orientation.w]]
@@ -135,8 +135,9 @@ class system_calibration(object):
 
         # A little recursive function to find the transformation from origin to end_tag
         def from_origin_to_end(path):
-            trans = tag_transformation[path[1]][path[0]][0] # tag_transformation[parent_frame][child_frame]
-            rot = tag_transformation[path[1]][path[0]][1]
+            # tag_transformation[child_frame][parent_frame]
+            trans = tag_transformation[path[0]][path[1]][0]
+            rot = tag_transformation[path[0]][path[1]][1]
             # Compse transformation matrix with translation and angle (in euler)
             transformation_mat = tr.compose_matrix(angles=tr.euler_from_quaternion(rot), translate=trans)
             if len(path) == 2:
@@ -144,8 +145,8 @@ class system_calibration(object):
             else:
                 next_transformation = from_origin_to_end(path[1:])
                 print next_transformation
-                print np.dot(next_transformation, transformation_mat)
-                return np.dot(next_transformation, transformation_mat)
+                print np.dot(transformation_mat, next_transformation)
+                return np.dot(transformation_mat, next_transformation)
 
         tag_relationship = dict()
         origin = self.map_origins[0]['id'] # a.t.m. we only consider one origin
