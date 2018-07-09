@@ -3,6 +3,7 @@ import rospy,math # ,copy,time
 from duckietown_msgs.msg import FSMState, BoolStamped, Twist2DStamped, WheelsCmdStamped
 from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
 import numpy as np
+np.set_printoptions(threshold=np.nan)
 from scipy.optimize import minimize
 
 class AutoCalibrationCalculationNode(object):
@@ -13,17 +14,19 @@ class AutoCalibrationCalculationNode(object):
         self.mode = None
         self.triggered = False
         self.count_last = 0
-        self.data_gathering = True #ONLY for testing purposes, default is FALSE
+        self.data_gathering = False #ONLY for testing purposes, default is FALSE
         #timestamp, omega_l, omega_r
-        self.wheel_motion = np.zeros((1,3))
+        #self.wheel_motion = np.zeros((1,3))
+        self.wheel_motion = np.array([[0,0.4,0.4],[0.09,0.4,0.4],[0.18,0.4,0.4],[0.27,0.4,0.4],[0.36,0.4,0.4],[0.45,0.4,0.4],[0.54,0.4,0.4],[0.63,0.4,0.4],[0.72,0.4,0.4],[0.81,0.4,0.4],[0.9,0.4,0.4],[0.99,0.4,0.4],[1.08,0.4,0.4],[1.17,0.4,0.4],[1.26,0.4,0.4],[1.35,0.4,0.4],[1.44,0.4,0.4],[1.53,0.4,0.4],[1.62,0.4,0.4],[1.71,0.4,0.4],[1.8,0.4,0.4],[1.89,0.4,0.4],[1.98,0.4,0.4],[2.07,0.5,0.3],[2.16,0.5,0.3],[2.25,0.5,0.3],[2.34,0.5,0.3],[2.43,0.5,0.3],[2.52,0.5,0.3],[2.61,0.5,0.3],[2.7,0.5,0.3],[2.79,0.5,0.3],[2.88,0.5,0.3],[2.97,0.5,0.3],[3.06,0.5,0.3],[3.15,0.5,0.3],[3.24,0.5,0.3],[3.33,0.5,0.3],[3.42,0.5,0.3],[3.51,0.5,0.3],[3.6,0.5,0.3],[3.69,0.5,0.3],[3.78,0.5,0.3],[3.87,0.5,0.3],[3.96,0.5,0.3],[4.05,0.5,0.3],[4.14,0.5,0.3],[4.23,0.5,0.3],[4.32,0.5,0.3],[4.41,0.5,0.3],[4.5,0.5,0.3],[4.59,0.5,0.3],[4.68,0.5,0.3],[4.77,0.5,0.3],[4.86,0.5,0.3],[4.95,0.5,0.3],[5.04,0.3,0.5],[5.13,0.3,0.5],[5.22,0.3,0.5],[5.31,0.3,0.5],[5.4,0.3,0.5],[5.49,0.3,0.5],[5.58,0.3,0.5],[5.67,0.3,0.5],[5.76,0.3,0.5],[5.85,0.3,0.5],[5.94,0.3,0.5],[6.03,0.3,0.5],[6.12,0.3,0.5],[6.21,0.3,0.5],[6.3,0.3,0.5],[6.39,0.3,0.5],[6.48,0.3,0.5],[6.57,0.3,0.5],[6.66,0.3,0.5],[6.75,0.3,0.5],[6.84,0.3,0.5],[6.93,0.3,0.5],[7.02,0.3,0.5],[7.11,0.3,0.5],[7.2,0.3,0.5],[7.29,0.3,0.5],[7.38,0.3,0.5],[7.47,0.3,0.5],[7.56,0.3,0.5],[7.65,0.3,0.5],[7.74,0.3,0.5],[7.83,0.3,0.5],[7.92,0.3,0.5],[8.01,0.4,0.4],[8.1,0.4,0.4],[8.19,0.4,0.4],[8.28,0.4,0.4],[8.37,0.4,0.4],[8.46,0.4,0.4],[8.55,0.4,0.4],[8.64,0.4,0.4],[8.73,0.4,0.4],[8.82,0.4,0.4],[8.91,0.4,0.4],[9,0.4,0.4],[9.09,0.4,0.4],[9.18,0.4,0.4],[9.27,0.4,0.4],[9.36,0.4,0.4],[9.45,0.4,0.4],[9.54,0.4,0.4],[9.63,0.4,0.4],[9.72,0.4,0.4],[9.81,0.4,0.4],[9.9,0.4,0.4],[9.99,0.4,0.4]])
         #timestamp, x , y, z, roll, pitch, yaw
-        self.camera_motion = np.zeros((1,7))
+        #self.camera_motion = np.zeros((1,7))
+        self.camera_motion = np.array([[0,0.055,0,0.1,0,0.349,0],[0.52,0.23962,0,0.1,0,0.349,0],[1.04,0.42494,0,0.1,0,0.349,0],[1.56,0.61027,0,0.1,0,0.349,0],[2.08,0.79498,-0.0095497,0.1,-7.384e-18,0.349,-0.139],[2.6,0.91444,-0.15134,0.1,-2.9536e-17,0.349,-1.0656],[3.12,0.8728,-0.33201,0.1,0,0.349,-1.9923],[3.64,0.70333,-0.40721,0.1,0,0.349,-2.9189],[4.16,0.54143,-0.31686,0.1,0,0.349,2.4376],[4.68,0.51645,-0.13314,0.1,2.9536e-17,0.349,1.511],[5.2,0.59785,0.03425,0.1,2.9536e-17,0.349,1.29],[5.72,0.51705,0.20112,0.1,0,0.349,2.2167],[6.24,0.3351,0.23673,0.1,0,0.349,-3.1399],[6.76,0.19736,0.11262,0.1,2.9536e-17,0.349,-2.2132],[7.28,0.21389,-0.072047,0.1,2.9536e-17,0.349,-1.2866],[7.8,0.37147,-0.16973,0.1,7.384e-18,0.349,-0.35996],[8.32,0.55878,-0.16318,0.1,0,0.349,8.9744e-07],[8.84,0.74411,-0.16318,0.1,0,0.349,4.0642e-07],[9.36,0.92943,-0.16318,0.1,1.7605e-24,0.349,7.1342e-08],[9.88,1.1148,-0.16318,0.1,0,0.349,3.6352e-07]])
 
         #determined 9.35*math.pi by averaging Duckiebot speeds (in rad/s), this value taken from calibration files
         self.K = 27.0
 
         #Node active?
-        self.active = False
+        self.active = True
 
         #Parameters
         self.setupParams()
@@ -49,7 +52,7 @@ class AutoCalibrationCalculationNode(object):
             self.mode = msg.state
             self.triggered = True
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
-            self.publishControl()
+            #self.publishControl()
             self.resample()
             self.calibration()
         self.mode = msg.state
@@ -82,7 +85,7 @@ class AutoCalibrationCalculationNode(object):
                 pitch = r+3.14159
                 yaw = -p+3.14159
                 cam_loc=np.array([x,y,z,roll,pitch,yaw])
-                rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,x,y,z,roll*180/3.1415,pitch*180/3.1415,yaw*180/3.1415))
+                #rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,x,y,z,roll*180/3.1415,pitch*180/3.1415,yaw*180/3.1415))
                 tmp_6 = self.visual_odometry(cam_loc,detection.id[0])
                 tmp=tmp+([tmp_6[0],tmp_6[1],tmp_6[2],math.sin(tmp_6[3]),math.cos(tmp_6[3]),math.sin(tmp_6[4]),math.cos(tmp_6[4]),math.sin(tmp_6[5]),math.cos(tmp_6[5])])
             if count != 0:
@@ -128,9 +131,13 @@ class AutoCalibrationCalculationNode(object):
     def wheels(self,x,args):
         size=np.size(args,0)
         #get velocity and yaw rate from kinematic model
-        vel=0.5*(np.dot(x[0],args[:,1])+np.dot(x[1],args[:,2]))
-        omega=-np.dot(x[0]/x[2],args[:,1])+np.dot(x[1]/x[3],args[:,2])
-
+        vel=0.5*(np.dot(x[0],args[:,1])+np.dot(x[1],args[:,2]))*self.K
+        #print vel
+        #TODO changed the baseline to 1 single entity x[2], x[3]  should now be ignored in the algo
+        omega=-np.dot(x[0]/x[2],args[:,1])*self.K+np.dot(x[1]/x[2],args[:,2])*self.K
+        # print x
+        # print args
+        # print omega
         #extract initial yaw angle form yaw measurement of camera
         yaw=np.zeros(size)
         yaw[0]=args[0][8]
@@ -224,7 +231,6 @@ class AutoCalibrationCalculationNode(object):
         if self.triggered:
             self.triggered = False
             #rospy.Timer(rospy.Duration.from_sec(5.0), self.finishCalc, oneshot=True)
-            # initial guesses, still random, need to be made more precise
 
             # x[0] = Rl left wheel radius
             # x[1] = Rr right wheel radius
@@ -249,25 +255,25 @@ class AutoCalibrationCalculationNode(object):
 
             n = 10
             x0 = np.zeros(n)
-            x0[0] = 0.025
-            x0[1] = 0.025
-            x0[2] = 0.05
-            x0[3] = 0.05
-            x0[4] = 0.06
+            x0[0] = 0.033
+            x0[1] = 0.033
+            x0[2] = 0.1
+            x0[3] = 0.085
+            x0[4] = 0.055
             x0[5] = 0
-            x0[6] = 0.075
+            x0[6] = 0.1
             x0[7] = 0
             x0[8] = 0.349
             x0[9] = 0
 
-            # bounds, need to be changed, still random
-            b0 = (0.02,0.035)
-            b1 = (0.02,0.035)
-            b2 = (0.04,0.06)
-            b3 = (0.04,0.06)
-            b4 = (0.04,0.08)
+            # bounds
+            b0 = (0.025,0.035)
+            b1 = (0.025,0.035)
+            b2 = (0.085,0.115)
+            b3 = (0.085,0.115)
+            b4 = (0.05,0.07)
             b5 = (-0.01,0.01)
-            b6 = (0.06,0.09)
+            b6 = (0.09,0.11)
             b7 = (-0.174,0.174)
             b8 = (0.174,0.523)
             b9 = (-0.087,0.087)
@@ -280,7 +286,8 @@ class AutoCalibrationCalculationNode(object):
             #solution = minimize(self.objective,x0,args=self.para, method='SLSQP',bounds=bnds)
             solution = minimize(self.objective,x0, method='SLSQP',bounds=bnds)
             x = solution.x
-            self.finishCalc()
+            print x
+            #self.finishCalc()
 
     #Objective function of the optimization algorithm
     def objective(self,x):
@@ -308,9 +315,13 @@ class AutoCalibrationCalculationNode(object):
                 camera_mov[i-1]=camera_pos[i]-camera_pos[i-1]
 
         #Create vectors to calculate the norm
+        # print wheel_mov
+        # print camera_mov
+
         camera_mov=np.reshape(camera_mov,np.size(camera_mov))
         wheel_mov=np.reshape(wheel_mov,np.size(wheel_mov))
-
+        print x
+        print np.linalg.norm(wheel_mov-camera_mov)
         return np.linalg.norm(wheel_mov-camera_mov)
 
     #secs and nsecs to secs double
