@@ -16,7 +16,6 @@ class MaintenanceControlNode(object):
 
         ## Internal variables
         self.maintenance_state = "NONE"
-        self.inMaintenanceArea = False
         self.active_navigation = False
         self.state = "JOYSTICK_CONTROL"
         self.calibration = False
@@ -25,9 +24,11 @@ class MaintenanceControlNode(object):
         self.sub_inters_done_detailed = rospy.Subscriber("~intersection_done_detailed", TurnIDandType, self.cbIntersecDoneDetailed)
         self.go_mt_charging = rospy.Subscriber("~go_mt_charging", Bool, self.cbGoMTCharging)
         self.go_mt_full = rospy.Subscriber("~go_mt_full", Bool, self.cbGoMTFull)
+        self.calib_done = rospy.Subscriber("~calibration_done", Bool, self.cbCalibrationDone)
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.set_state = rospy.Subscriber("~set_state", String, self.cbSetState)
         self.rdy_at_exit = rospy.Subscriber("~ready_at_exit",  BoolStamped, self.cbReadyAtExit)
+
         ## Publishers
         self.pub_maintenance_state = rospy.Publisher("~maintenance_state", MaintenanceState, queue_size=1)
         self.pub_in_charger = rospy.Publisher("~in_charger", BoolStamped, queue_size=1)
@@ -43,12 +44,14 @@ class MaintenanceControlNode(object):
     def cbReadyAtExit(self, msg):
         if self.maintenance_state == "CHARGING" and msg.data:
             new_state = "WAY_TO_CALIBRATING" if self.calibration else "WAY_TO_CITY"
+            self.active_navigation = True
             self.changeMTState(new_state)
 
 
     # For manual debugging
     def cbSetState(self, msg):
         self.changeMTState(msg.data)
+        self.active_navigation = self.maintenance_state in ["WAY_TO_CHARGING", "WAY_TO_CALIBRATING", "WAY_TO_CITY"]
 
     # Request to go charging only
     def cbGoMTCharging(self, msg):
@@ -61,6 +64,12 @@ class MaintenanceControlNode(object):
         if msg.data:
             self.calibration = True
             self.changeMTState("WAY_TO_MAINTENANCE")
+
+    # Called as soon as calibration has finished
+    def cbCalibrationDone(self, msg):
+        if msg.data:
+            self.changeMTState("WAY_TO_CITY")
+            self.active_navigation = True
 
     # Executes when intersection is done - this function is used to determine
     # if a maintenance state should be changed by driving into a specific area
@@ -82,8 +91,8 @@ class MaintenanceControlNode(object):
         calib_exited = self.isInDict(tag_id, turn_type, self.calibration_station['exits'])
 
         # summarize gates in two lists
-        gate_bools = [mt_entered,           mt_exited,  charging_entered,   calib_entered,  calib_exited]
-        gate_trans = ["WAY_TO_CHARGING",    "NONE",     "CHARGING",         "CALIBRATING",  "WAY_TO_CITY"]
+        gate_bools = [mt_entered,           mt_exited,  charging_entered,   calib_entered]
+        gate_trans = ["WAY_TO_CHARGING",    "NONE",     "CHARGING",         "CALIBRATING"]
 
         # Change state if Duckiebot drives through any gate
         for i in range(0, len(gate_bools)):
