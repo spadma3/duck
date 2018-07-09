@@ -147,15 +147,19 @@ class global_localization(object):
         for fixed_tag in fixed_tags_data:
 
             tag_id        = fixed_tag['id']
-            trans_tag_abs = fixed_tag['translation']
-            rot_tag_abs   = fixed_tag['orientation']
+            #trans_tag_abs = fixed_tag['translation']
+            #rot_tag_abs   = fixed_tag['orientation']
 
             # Save Transformation Matrix of each fixed Tag into a dictionary
-            tag_tf_mat = gposf.create_tf_matrix(trans_tag_abs, rot_tag_abs)
+            #tag_tf_mat = gposf.create_tf_matrix(trans_tag_abs, rot_tag_abs)
+
+            tag_tf_mat = fixed_tag['transformation']
+
+            # since now we save the transformation directily
             self.fixed_tags['Tag'+str(tag_id)] = tag_tf_mat
 
-
-            print "Fixed Tag", tag_id, " at Position: ", trans_tag_abs, " and Rotation: ", rot_tag_abs
+            #print "Fixed Tag", tag_id, " at Position: ", trans_tag_abs, " and Rotation: ", rot_tag_abs
+            print "Fixed Tag", tag_id, " transformation: ", tag_tf_mat
 
 
 
@@ -183,11 +187,19 @@ class global_localization(object):
 
         # TODO: robostify in case fixed Tag is detected which is not in the database
         #       raise exception or error
-        mat_tag_abs = self.fixed_tags["Tag"+str(local_pose.frame_id)]
-        mat_bot_tag = gposf.create_tf_matrix(trans_bot_tag,rot_bot_tag)
+
+        # mat_tag_abs = self.fixed_tags["Tag"+str(local_pose.frame_id)]
+        # mat_bot_tag = gposf.create_tf_matrix(trans_bot_tag,rot_bot_tag)
+        #
+        # # absolute position of the bot
+        # mat_bot_abs = gposf.absolute_from_relative_position(mat_bot_tag, mat_tag_abs)
+
+        # 0709 Eric move the order of matrix multiplication
+        mat_abs_tag = self.fixed_tags["Tag"+str(local_pose.frame_id)]
+        mat_tag_bot = gposf.create_tf_matrix(trans_bot_tag,rot_bot_tag)
 
         # absolute position of the bot
-        mat_bot_abs = gposf.absolute_from_relative_position(mat_bot_tag, mat_tag_abs)
+        mat_bot_abs = gposf.absolute_from_relative_position(mat_abs_tag, mat_tag_bot)
 
         # projected Position
         x,y,theta = gposf.project_position_to_2D_plane(mat_bot_abs)
