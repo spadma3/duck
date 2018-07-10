@@ -124,8 +124,8 @@ class ObstDetectNode(object):
                 obst_image.format = "jpeg"
                 obst_image.data = self.visualizer.visualize_image(rectify(rgb_from_ros(image),self.intrinsics),obst_list)
                 #here i want to display cropped image
-                image=rgb_from_ros(obst_image.data)
-                obst_image.data = d8_compressed_image_from_cv_image(image[self.detector.crop:,:,::-1])
+                image_temp=rgb_from_ros(obst_image.data)
+                obst_image.data = d8_compressed_image_from_cv_image(image_temp[self.detector.crop:,:,::-1])
                 #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
                 #the visualizer.py modular!!!
                 self.publisher_img.publish(obst_image.data)
@@ -136,8 +136,8 @@ class ObstDetectNode(object):
             bird_perspective_image.format = "jpeg"
             bird_perspective_image.data = self.visualizer.visualize_bird_perspective(rectify(rgb_from_ros(image),self.intrinsics),obst_list)
             #here i want to display cropped image
-            image=rgb_from_ros(obst_image.data)
-            obst_image.data = d8_compressed_image_from_cv_image(image[self.detector.crop:,:,::-1])
+            image_temp=rgb_from_ros(obst_image.data)
+            obst_image.data = d8_compressed_image_from_cv_image(image_temp[self.detector.crop:,:,::-1])
             #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
             #the visualizer.py modular!!!
             self.publisher_img_bird_perspective.publish(obst_image.data)
