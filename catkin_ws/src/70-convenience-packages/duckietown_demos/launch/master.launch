@@ -222,15 +222,16 @@
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg fsm_file_name)"/>
-
-		<!-- Visualization -->
-		<group if="$(arg visualization)">
-			<include file="$(find lane_filter)/launch/lane_pose_visualizer_node.launch">
-				<arg name="veh" value="$(arg veh)"/>
-			</include>
-		</group>
-
 	</group>
+
+	<!-- Visualization -->
+	<group if="$(arg visualization)">
+		<include file="$(find lane_filter)/launch/lane_pose_visualizer_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+		</include>
+	</group>
+
+
 <!-- End Lane Control -->
 
 <!-- Start Obstacle Avoidance -->
