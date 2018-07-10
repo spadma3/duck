@@ -17,10 +17,14 @@ class AutoCalibrationCalculationNode(object):
         self.data_gathering = False #ONLY for testing purposes, default is FALSE
         #timestamp, omega_l, omega_r
         #self.wheel_motion = np.zeros((1,3))
-        self.wheel_motion = np.array([[0,0.4,0.4],[0.09,0.4,0.4],[0.18,0.4,0.4],[0.27,0.4,0.4],[0.36,0.4,0.4],[0.45,0.4,0.4],[0.54,0.4,0.4],[0.63,0.4,0.4],[0.72,0.4,0.4],[0.81,0.4,0.4],[0.9,0.4,0.4],[0.99,0.4,0.4],[1.08,0.4,0.4],[1.17,0.4,0.4],[1.26,0.4,0.4],[1.35,0.4,0.4],[1.44,0.4,0.4],[1.53,0.4,0.4],[1.62,0.4,0.4],[1.71,0.4,0.4],[1.8,0.4,0.4],[1.89,0.4,0.4],[1.98,0.4,0.4],[2.07,0.5,0.3],[2.16,0.5,0.3],[2.25,0.5,0.3],[2.34,0.5,0.3],[2.43,0.5,0.3],[2.52,0.5,0.3],[2.61,0.5,0.3],[2.7,0.5,0.3],[2.79,0.5,0.3],[2.88,0.5,0.3],[2.97,0.5,0.3],[3.06,0.5,0.3],[3.15,0.5,0.3],[3.24,0.5,0.3],[3.33,0.5,0.3],[3.42,0.5,0.3],[3.51,0.5,0.3],[3.6,0.5,0.3],[3.69,0.5,0.3],[3.78,0.5,0.3],[3.87,0.5,0.3],[3.96,0.5,0.3],[4.05,0.5,0.3],[4.14,0.5,0.3],[4.23,0.5,0.3],[4.32,0.5,0.3],[4.41,0.5,0.3],[4.5,0.5,0.3],[4.59,0.5,0.3],[4.68,0.5,0.3],[4.77,0.5,0.3],[4.86,0.5,0.3],[4.95,0.5,0.3],[5.04,0.3,0.5],[5.13,0.3,0.5],[5.22,0.3,0.5],[5.31,0.3,0.5],[5.4,0.3,0.5],[5.49,0.3,0.5],[5.58,0.3,0.5],[5.67,0.3,0.5],[5.76,0.3,0.5],[5.85,0.3,0.5],[5.94,0.3,0.5],[6.03,0.3,0.5],[6.12,0.3,0.5],[6.21,0.3,0.5],[6.3,0.3,0.5],[6.39,0.3,0.5],[6.48,0.3,0.5],[6.57,0.3,0.5],[6.66,0.3,0.5],[6.75,0.3,0.5],[6.84,0.3,0.5],[6.93,0.3,0.5],[7.02,0.3,0.5],[7.11,0.3,0.5],[7.2,0.3,0.5],[7.29,0.3,0.5],[7.38,0.3,0.5],[7.47,0.3,0.5],[7.56,0.3,0.5],[7.65,0.3,0.5],[7.74,0.3,0.5],[7.83,0.3,0.5],[7.92,0.3,0.5],[8.01,0.4,0.4],[8.1,0.4,0.4],[8.19,0.4,0.4],[8.28,0.4,0.4],[8.37,0.4,0.4],[8.46,0.4,0.4],[8.55,0.4,0.4],[8.64,0.4,0.4],[8.73,0.4,0.4],[8.82,0.4,0.4],[8.91,0.4,0.4],[9,0.4,0.4],[9.09,0.4,0.4],[9.18,0.4,0.4],[9.27,0.4,0.4],[9.36,0.4,0.4],[9.45,0.4,0.4],[9.54,0.4,0.4],[9.63,0.4,0.4],[9.72,0.4,0.4],[9.81,0.4,0.4],[9.9,0.4,0.4],[9.99,0.4,0.4]])
+        self.wheel_motion = np.array([[0,0.4,0.4],[0.1,0.4,0.4],[0.2,0.4,0.4],[0.3,0.4,0.4],[0.4,0.4,0.4],[0.5,0.4,0.4],[0.6,0.4,0.4],[0.7,0.4,0.4],[0.8,0.4,0.4],[0.9,0.4,0.4],[1,0.4,0.4],[1.1,0.4,0.4],[1.2,0.4,0.4],[1.3,0.4,0.4],[1.4,0.4,0.4],[1.5,0.4,0.4],[1.6,0.4,0.4],[1.7,0.4,0.4],[1.8,0.4,0.4],[1.9,0.4,0.4],[2,0.5,0.3],[2.1,0.5,0.3],[2.2,0.5,0.3],[2.3,0.5,0.3],[2.4,0.5,0.3],[2.5,0.5,0.3],[2.6,0.5,0.3],[2.7,0.5,0.3],[2.8,0.5,0.3],[2.9,0.5,0.3],[3,0.5,0.3],[3.1,0.5,0.3],[3.2,0.5,0.3],[3.3,0.5,0.3],[3.4,0.5,0.3],[3.5,0.5,0.3],[3.6,0.5,0.3],[3.7,0.5,0.3],[3.8,0.5,0.3],[3.9,0.5,0.3],[4,0.5,0.3],[4.1,0.5,0.3],[4.2,0.5,0.3],[4.3,0.5,0.3],[4.4,0.5,0.3],[4.5,0.5,0.3],[4.6,0.5,0.3],[4.7,0.5,0.3],[4.8,0.5,0.3],[4.9,0.5,0.3],[5,0.3,0.5],[5.1,0.3,0.5],[5.2,0.3,0.5],[5.3,0.3,0.5],[5.4,0.3,0.5],[5.5,0.3,0.5],[5.6,0.3,0.5],[5.7,0.3,0.5],[5.8,0.3,0.5],[5.9,0.3,0.5],[6,0.3,0.5],[6.1,0.3,0.5],[6.2,0.3,0.5],[6.3,0.3,0.5],[6.4,0.3,0.5],[6.5,0.3,0.5],[6.6,0.3,0.5],[6.7,0.3,0.5],[6.8,0.3,0.5],[6.9,0.3,0.5],[7,0.3,0.5],[7.1,0.3,0.5],[7.2,0.3,0.5],[7.3,0.3,0.5],[7.4,0.3,0.5],[7.5,0.3,0.5],[7.6,0.3,0.5],[7.7,0.3,0.5],[7.8,0.3,0.5],[7.9,0.3,0.5],[8,0.4,0.4],[8.1,0.4,0.4],[8.2,0.4,0.4],[8.3,0.4,0.4],[8.4,0.4,0.4],[8.5,0.4,0.4],[8.6,0.4,0.4],[8.7,0.4,0.4],[8.8,0.4,0.4],[8.9,0.4,0.4],[9,0.4,0.4],[9.1,0.4,0.4],[9.2,0.4,0.4],[9.3,0.4,0.4],[9.4,0.4,0.4],[9.5,0.4,0.4],[9.6,0.4,0.4],[9.7,0.4,0.4],[9.8,0.4,0.4],[9.9,0.4,0.4],[10,0.4,0.4]])
+
+
         #timestamp, x , y, z, roll, pitch, yaw
         #self.camera_motion = np.zeros((1,7))
-        self.camera_motion = np.array([[0,0.055,0,0.1,0,0.349,0],[0.52,0.23962,0,0.1,0,0.349,0],[1.04,0.42494,0,0.1,0,0.349,0],[1.56,0.61027,0,0.1,0,0.349,0],[2.08,0.79498,-0.0095497,0.1,-7.384e-18,0.349,-0.139],[2.6,0.91444,-0.15134,0.1,-2.9536e-17,0.349,-1.0656],[3.12,0.8728,-0.33201,0.1,0,0.349,-1.9923],[3.64,0.70333,-0.40721,0.1,0,0.349,-2.9189],[4.16,0.54143,-0.31686,0.1,0,0.349,2.4376],[4.68,0.51645,-0.13314,0.1,2.9536e-17,0.349,1.511],[5.2,0.59785,0.03425,0.1,2.9536e-17,0.349,1.29],[5.72,0.51705,0.20112,0.1,0,0.349,2.2167],[6.24,0.3351,0.23673,0.1,0,0.349,-3.1399],[6.76,0.19736,0.11262,0.1,2.9536e-17,0.349,-2.2132],[7.28,0.21389,-0.072047,0.1,2.9536e-17,0.349,-1.2866],[7.8,0.37147,-0.16973,0.1,7.384e-18,0.349,-0.35996],[8.32,0.55878,-0.16318,0.1,0,0.349,8.9744e-07],[8.84,0.74411,-0.16318,0.1,0,0.349,4.0642e-07],[9.36,0.92943,-0.16318,0.1,1.7605e-24,0.349,7.1342e-08],[9.88,1.1148,-0.16318,0.1,0,0.349,3.6352e-07]])
+
+
+        self.camera_motion = np.array([[0,0.055,0,0.1,0,0.349,0],[0.5,0.23249,0,0.1,0,0.349,0],[1,0.41069,0,0.1,0,0.349,0],[1.5,0.58889,0,0.1,0,0.349,0],[2,0.76709,0,0.1,0,0.349,0],[2.5,0.90262,-0.11637,0.1,0,0.349,-0.88744],[3,0.89717,-0.29505,0.1,0,0.349,-1.7784],[3.5,0.75478,-0.40313,0.1,0,0.349,-2.6694],[4,0.58121,-0.36034,0.1,0,0.349,2.7227],[4.5,0.50538,-0.19846,0.1,0,0.349,1.8317],[5,0.58361,-0.037724,0.1,0,0.349,0.94075],[5.5,0.57022,0.14028,0.1,0,0.349,1.8246],[6,0.423,0.24168,0.1,0,0.349,2.7156],[6.5,0.25159,0.19092,0.1,0,0.349,-2.6766],[7,0.18332,0.025711,0.1,0,0.349,-1.7856],[7.5,0.26888,-0.13124,0.1,0,0.349,-0.89456],[8,0.44473,-0.16337,0.1,0,0.349, 0],[8.5,0.62293,-0.16318,0.1,0,0.349,0],[9,0.80113,-0.16318,0.1,0,0.349,0],[9.5,0.97933,-0.16318,0.1,0,0.349,0],[10,1.1575,-0.16318,0.1,0,0.349,0]])
 
         #determined 9.35*math.pi by averaging Duckiebot speeds (in rad/s), this value taken from calibration files
         self.K = 27.0
@@ -82,8 +86,8 @@ class AutoCalibrationCalculationNode(object):
                 wq = detection.pose.pose.pose.orientation.w
                 [r,p,ya] = self.qte(wq,xq,yq,zq)
                 roll = ya
-                pitch = r+3.14159
-                yaw = -p+3.14159
+                pitch = r+np.pi
+                yaw = -p+np.pi
                 cam_loc=np.array([x,y,z,roll,pitch,yaw])
                 #rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,x,y,z,roll*180/3.1415,pitch*180/3.1415,yaw*180/3.1415))
                 tmp_6 = self.visual_odometry(cam_loc,detection.id[0])
@@ -135,24 +139,37 @@ class AutoCalibrationCalculationNode(object):
         #print vel
         #TODO changed the baseline to 1 single entity x[2], x[3]  should now be ignored in the algo
         omega=-np.dot(x[0]/x[2],args[:,1])*self.K+np.dot(x[1]/x[2],args[:,2])*self.K
+
         # print x
         # print args
         # print omega
         #extract initial yaw angle form yaw measurement of camera
-        yaw=np.zeros(size)
-        yaw[0]=args[0][8]%6.2831852
 
+        #yaw=np.zeros(size)
+        yaw=np.zeros((size-1)*100+1)
+
+        yaw[0]=args[0][8]%(2*np.pi)
+
+        # #calculate yaw angle for every single timestamp, using euler forward
+        # for i in range(1,size):
+        #     yaw[i]=yaw[i-1]+omega[i-1]*(args[i][0]-args[i-1][0])
         #calculate yaw angle for every single timestamp, using euler forward
-        for i in range(1,size):
-            yaw[i]=yaw[i-1]+omega[i-1]*(args[i][0]-args[i-1][0])
-
+        for i in range(1,(size-1)*100+1):
+            yaw[i]=yaw[i-1]+(omega[int(np.ceil(i/100.0))-1]*(args[int(np.ceil(i/100.0))][0]-args[int(np.ceil(i/100.0))-1][0]))/100.0
         x_est=0
         y_est=0
         #calculate x and y movement, using euler forward
-        for i in range (0,size-1):
-            x_est=x_est+(args[i+1][0]-args[i][0])*math.cos(yaw[i])*vel[i]
-            y_est=y_est+(args[i+1][0]-args[i][0])*math.sin(yaw[i])*vel[i]
-        return [x_est,y_est,0,0,0,(yaw[size-1]-yaw[0])%6.2831852]
+        # for i in range (0,size-1):
+        #     x_est=x_est+(args[i+1][0]-args[i][0])*math.cos(yaw[i])*vel[i]
+        #     y_est=y_est+(args[i+1][0]-args[i][0])*math.sin(yaw[i])*vel[i]
+        # return [x_est,y_est,0,0,0,(yaw[size-1]-yaw[0])%(2*np.pi)]
+        print 'hello'
+        #calculate x and y movement, using euler forward
+        for i in range (1,(size-1)*100+1):
+            x_est=x_est+(args[int(np.ceil(i/100.0))][0]-args[int(np.ceil(i/100.0))-1][0])/100.0*math.cos(yaw[i-1])*vel[int(np.floor(i/100.0))]
+            print x_est
+            y_est=y_est+(args[int(np.ceil(i/100.0))][0]-args[int(np.ceil(i/100.0))-1][0])/100.0*math.sin(yaw[i-1])*vel[int(np.floor(i/100.0))]
+        return [x_est,y_est,0,0,0,(yaw[(size-1)*100]-yaw[0])%(2*np.pi)]
 
     #Determines the travel of the Duckiebot camera from Apriltag detections
     def visual_odometry(self,cam_loc,id):
@@ -186,7 +203,7 @@ class AutoCalibrationCalculationNode(object):
         bot_T_world = np.dot(cam_T_world,bot_T_cam)
         R = bot_T_world[:3,:3]
         [roll,pitch,yaw] = self.Rte(R)
-        yaw = yaw%6.2831852
+        yaw = yaw%(2*np.pi)
         return np.array([bot_T_world[0][3],bot_T_world[1][3],bot_T_world[2][3],roll,pitch,yaw])
 
     #quaternion to euler, taken from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles on 05.06.18
@@ -295,7 +312,6 @@ class AutoCalibrationCalculationNode(object):
             #Array of camera positions and wheel velocities with corresponding timestamp
 
             # optimization
-            #solution = minimize(self.objective,x0,args=self.para, method='SLSQP',bounds=bnds)
             solution = minimize(self.objective,x0, method='SLSQP',bounds=bnds)
             x = solution.x
             print x
@@ -310,13 +326,16 @@ class AutoCalibrationCalculationNode(object):
         wheel_mov = np.zeros((camera_frames-1,6))
 
         #estimation by wheels
-        start = 0
-        stop = 0
+        start = -1
+        stop = -1
         for i in range(0,camera_frames-1):
+            #To prevent resampling errors (if motor and camera frame have exact same timeframe)
+            start = -1
+            stop = -1
             for j in range(0,wheel_frames):
-                if self.para[j][0]==self.camera_motion[i][0]:
+                if (self.para[j][0]==self.camera_motion[i][0])&(start==-1):
                     start=j
-                if self.para[j][0]==self.camera_motion[i+1][0]:
+                if (self.para[j][0]==self.camera_motion[i+1][0])&(stop==-1):
                     stop=j
             wheel_mov[i]=self.wheels(x,self.para[start:stop+1])
 
@@ -325,12 +344,12 @@ class AutoCalibrationCalculationNode(object):
             camera_pos[i]=self.camera(x,self.camera_motion[i,1:])
             if i>0:
                 camera_mov[i-1]=camera_pos[i]-camera_pos[i-1]
-                camera_mov[i-1][5]=camera_mov[i-1][5]%6.2831852
+                camera_mov[i-1][5]=camera_mov[i-1][5]%(2*np.pi)
 
         #Create vectors to calculate the norm
         # print x
-        #print wheel_mov
-        #print camera_mov
+        # print wheel_mov
+        # print camera_mov
 
         camera_mov=np.reshape(camera_mov,np.size(camera_mov))
         wheel_mov=np.reshape(wheel_mov,np.size(wheel_mov))
@@ -341,10 +360,10 @@ class AutoCalibrationCalculationNode(object):
         diff = wheel_mov-camera_mov
         for i in range(0,length):
             if (i%6==5):
-                if diff[i]>3.1415926:
-                    diff[i]=diff[i]-6.2831852
-                if diff[i]<-3.1415926:
-                    diff[i]=diff[i]+6.2831852
+                if diff[i]>np.pi:
+                    diff[i]=diff[i]-(2*np.pi)
+                if diff[i]<-np.pi:
+                    diff[i]=diff[i]+(2*np.pi)
         print np.linalg.norm(diff)
         return np.linalg.norm(diff)
 
