@@ -21,6 +21,7 @@ class ObstDetectNode(object):
         robot_name = rospy.get_param("~veh", "")
         self.show_marker = (rospy.get_param("~show_marker", ""))
         self.show_image = (rospy.get_param("~show_image", ""))
+        self.show_bird_perspective = (rospy.get_param("~show_bird_perspective",""))
         self.use_ai = (rospy.get_param("~use_ai", ""))
 
         self.active = False #initialize our node as active!! < -- How about no
@@ -48,6 +49,11 @@ class ObstDetectNode(object):
                 self.pub_topic_img = '/{}/obst_detect/image_cropped/compressed'.format(robot_name)
                 self.publisher_img = rospy.Publisher(self.pub_topic_img, CompressedImage, queue_size=1)
                 print "show_image is active: image will be published as /veh/obst_detect/image_cropped/compressed"
+
+        if (self.show_bird_perspective):
+                self.pub_topic_img_bird_perspective = '/{}/obst_detect/image_bird_perspective/compressed'.format(robot_name)
+                self.publisher_img_bird_perspective = rospy.Publisher(self.pub_topic_img_bird_perspective, CompressedImage, queue_size=1)
+                print "show_image is active: image will be published as /veh/obst_detect/image_bird_perspective/compressed"
 
         # Create a Subscriber
         if (self.use_ai):
@@ -127,6 +133,19 @@ class ObstDetectNode(object):
                 #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
                 #the visualizer.py modular!!!
                 self.publisher_img.publish(obst_image.data)
+
+        if (self.show_bird_perspective):
+            bird_perspective_image = CompressedImage()
+            bird_perspective_image.header.stamp = image.header.stamp
+            bird_perspective_image.format = "jpeg"
+            bird_perspective_image.data = self.visualizer.visualize_bird_perspective(rectify(rgb_from_ros(image),self.intrinsics),obst_list)
+            #here i want to display cropped image
+            image=rgb_from_ros(obst_image.data)
+            obst_image.data = d8_compressed_image_from_cv_image(image[self.detector.crop:,:,::-1])
+            #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
+            #the visualizer.py modular!!!
+            self.publisher_img_bird_perspective.publish(obst_image.data)
+
 
         #end = time.time()
         #print "OBST DETECTION TOOK: s"
