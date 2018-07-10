@@ -222,6 +222,7 @@
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg fsm_file_name)"/>
+		</include>
 	</group>
 
 	<!-- Visualization -->
