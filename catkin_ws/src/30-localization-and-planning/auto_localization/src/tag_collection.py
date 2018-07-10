@@ -96,21 +96,25 @@ class Tag_collection(object):
                     # We don't need to know the tf of same tags
                     continue
                 else:
-                    (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(child_frame_tags_id), 'Tag'+str(parent_frame_tags_id), rospy.Time(0))
+                    child_frame_name = 'Tag'+str(child_frame_tags_id)
+                    parent_frame_name = 'Tag'+str(parent_frame_tags_id)
+                    if self.sub_tf.frameExists(child_frame_name) and self.sub_tf.frameExists(parent_frame_name):
+                        t = self.sub_tf.getLatestCommonTime(child_frame_name, parent_frame_name)
+                        (trans,rot) = self.sub_tf.lookupTransform(child_frame_name, parent_frame_name, t)
 
-                    remap_pose = RemapPose()
-                    remap_pose.host = socket.gethostname()
-                    remap_pose.frame_id = child_frame_tags_id
-                    remap_pose.bot_id = parent_frame_tags_id
-                    remap_pose.posestamped.pose.position.x = trans[0]
-                    remap_pose.posestamped.pose.position.y = trans[1]
-                    remap_pose.posestamped.pose.position.z = trans[2]
-                    remap_pose.posestamped.pose.orientation.x = rot[0]
-                    remap_pose.posestamped.pose.orientation.y = rot[1]
-                    remap_pose.posestamped.pose.orientation.z = rot[2]
-                    remap_pose.posestamped.pose.orientation.w = rot[3]
-                    #Add this remap pose to the array
-                    remap_poses_array.poses.append(remap_pose)
+                        remap_pose = RemapPose()
+                        remap_pose.host = socket.gethostname()
+                        remap_pose.frame_id = child_frame_tags_id
+                        remap_pose.bot_id = parent_frame_tags_id
+                        remap_pose.posestamped.pose.position.x = trans[0]
+                        remap_pose.posestamped.pose.position.y = trans[1]
+                        remap_pose.posestamped.pose.position.z = trans[2]
+                        remap_pose.posestamped.pose.orientation.x = rot[0]
+                        remap_pose.posestamped.pose.orientation.y = rot[1]
+                        remap_pose.posestamped.pose.orientation.z = rot[2]
+                        remap_pose.posestamped.pose.orientation.w = rot[3]
+                        #Add this remap pose to the array
+                        remap_poses_array.poses.append(remap_pose)
 
         self.pub_postPros.publish(remap_poses_array)
 

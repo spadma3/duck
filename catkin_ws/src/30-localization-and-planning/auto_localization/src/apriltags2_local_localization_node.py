@@ -122,10 +122,14 @@ class AprilLocalLocalization(object):
                     #  in terminal it would be rosrun tf tf_echo fixed_frame bot_frame
                     # how about the time?? rospy.time(0) probably induces an artificial delay
                     try:
+                        # Determines that most recent time for which Transformer can compute the transform between
+                        # 'Tag'+str(fixed_frame) and 'Tag'+str(new_info.id)
+                        t = self.sub_tf.getLatestCommonTime('Tag'+str(fixed_frame), 'Tag'+str(new_info.id))
+                        
                         # Switch the position of look up transform
                         # Set parent frame to Duckiebot frame, child frame to fixed frame (tag)
                         # Since we want the transform from Duckiebot to fixed frame (tag)
-                        (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(fixed_frame), 'Tag'+str(new_info.id), rospy.Time(0))
+                        (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(fixed_frame), 'Tag'+str(new_info.id), t)
                         #trans = [0, 0, 0]
                         #rot = [0, 0, 0, 1]
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):

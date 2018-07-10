@@ -56,14 +56,14 @@ traffic-light: check-environment
 # auto_localization demo
 # watchtower side
 auto_localization_watchtower: check-environment
-	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown auto_localization_watchtower.launch veh:=$(HOSTNAME)"
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown auto_localization_watchtower.launch veh:=$(vehicle_name)"
 # Server side
 auto_localization_server: check-environment
-	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown auto_localization_server.launch veh:=$(HOSTNAME)"
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown auto_localization_server.launch veh:=$(vehicle_name)"
 
 # auto_localization system calibration
 auto_localization_calibration_watchtower: check-environment
-	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown auto_localization_watchtower_calibration.launch veh:=$(HOSTNAME)"
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown auto_localization_watchtower_calibration.launch veh:=$(vehicle_name)"
 
 auto_localization_calibration_server: check-environment
-	bash -c "source environment.sh; source set_ros_master.sh; roslaunch duckietown auto_localization_server_calibration.launch veh:=$(HOSTNAME)"
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown auto_localization_server_calibration.launch veh:=$(vehicle_name)"
