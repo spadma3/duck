@@ -51,7 +51,7 @@ class MaintenanceControlNode(object):
     # For manual debugging
     def cbSetState(self, msg):
         self.changeMTState(msg.data)
-        self.active_navigation = self.maintenance_state in ["WAY_TO_CHARGING", "WAY_TO_CALIBRATING", "WAY_TO_CITY"]
+        self.active_navigation = self.maintenance_state in ["WAY_TO_CHARGING", "WAY_TO_CALIBRATING", "WAY_TO_CITY", "WAY_TO_MAINTENANCE"]
 
     # Request to go charging only
     def cbGoMTCharging(self, msg):
@@ -105,7 +105,7 @@ class MaintenanceControlNode(object):
             self.pub_in_charger.publish(entered_msg)
 
         # Turn on active navigation for WAY_TO_ states
-        self.active_navigation = self.maintenance_state in ["WAY_TO_CHARGING", "WAY_TO_CALIBRATING", "WAY_TO_CITY"]
+        self.active_navigation = self.maintenance_state in ["WAY_TO_CHARGING", "WAY_TO_CALIBRATING", "WAY_TO_CITY", "WAY_TO_MAINTENANCE"]
 
     # Adjust turn type if sign has a known ID for our path to charger
     def cbTurnType(self, msg):
@@ -118,7 +118,8 @@ class MaintenanceControlNode(object):
                 rospy.loginfo("State: " + str(self.maintenance_state) + ", Charger: " + str(self.charger) + ", tag_ID: "  + str(tag_id) + " - therefore driving " + str(new_turn_type))
                 turn_type = new_turn_type
             else:
-                rospy.loginfo("Active navigation running, but unknown tag ID " + str(tag_id))
+                if self.maintenance_state != "WAY_TO_MAINTENANCE":
+                    rospy.loginfo("Active navigation running, but unknown tag ID " + str(tag_id))
 
         msg.turn_type = turn_type
         self.pub_turn_type.publish(msg)
@@ -151,6 +152,7 @@ class MaintenanceControlNode(object):
         rospy.loginfo("[Maintenance Control Node] MT State: " + str(state))
         rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
+        self.active_navigation = self.maintenance_state in ["WAY_TO_CHARGING", "WAY_TO_CALIBRATING", "WAY_TO_CITY", "WAY_TO_MAINTENANCE"]
 
     # Returns the turn type for an intersection to get to charger
     def getTurnType(self, chargerID, tagID, maintenance_state):
@@ -160,6 +162,8 @@ class MaintenanceControlNode(object):
             path = (self.stations['station' + str(chargerID)])['path_calib']
         if maintenance_state == "WAY_TO_CITY":
             path = self.path_to_city
+        if maintenance_state == "WAY_TO_MAINTENANCE":
+            path = self.maintenance_entrance
 
         turn = -1
         # Get turn type if defined in YAML file
