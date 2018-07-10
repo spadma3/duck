@@ -213,6 +213,7 @@
 	</group>
 	<!-- End Joystick -->
 
+<<<<<<< HEAD
 	<!-- Start FSM -->
 	<group if="$(arg fsm)">
 		<!-- FSM -->
@@ -221,6 +222,38 @@
 			<arg name="veh" value="$(arg veh)"/>        
 			<arg name="config" value="$(arg config)"/>        
 			<arg name="param_file_name" value="$(arg fsm_file_name)"/>        
+=======
+	<!-- Visualization -->
+	<group if="$(arg visualization)">
+		<include file="$(find lane_filter)/launch/lane_pose_visualizer_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+		</include>
+	</group>
+
+</group>
+<!-- End Lane Control -->
+
+<!-- Start Obstacle Avoidance -->
+<group if="$(arg obstacle_avoidance_and_detection)">
+  <remap from="obstacle_avoidance_node/posearray" to="obstacle_detection_node/posearray"/>
+	<include file="$(find obst_avoid)/launch/obst_avoid_lane_follow_light.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="show_bird_perspective" value="$(arg show_bird_perspective)"/>
+	</include>
+</group>
+
+
+
+<!-- TODO: Deprecated? -->
+<!-- <group if="$(arg obstacle_avoidance)">
+
+	<group if="$(arg /obstacle_avoidance/detection)">
+		<remap from="static_object_detector_node/image_raw" to="camera_node/image/raw"/>
+		<include file="$(find mdoap)/launch/static_object_detector_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+>>>>>>> 63139d3b8... Added visualization of bird perspective images
 		</include>
 
 		<!-- car_cmd_switch_node -->
