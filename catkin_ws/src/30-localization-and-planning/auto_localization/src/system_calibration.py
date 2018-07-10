@@ -138,7 +138,7 @@ class system_calibration(object):
             # tag_transformation[child_frame][parent_frame]
             trans = tag_transformation[path[0]][path[1]][0]
             rot = tag_transformation[path[0]][path[1]][1]
-            # Compse transformation matrix with translation and angle (in euler)
+            # Compose transformation matrix with translation and angle (in euler)
             transformation_mat = tr.compose_matrix(angles=tr.euler_from_quaternion(rot), translate=trans)
             if len(path) == 2:
                 return transformation_mat
