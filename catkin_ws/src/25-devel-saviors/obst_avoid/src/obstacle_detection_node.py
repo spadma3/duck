@@ -23,7 +23,7 @@ class ObstDetectNode(object):
         self.show_image = (rospy.get_param("~show_image", ""))
         self.show_bird_perspective = (rospy.get_param("~show_bird_perspective",""))
         self.use_ai = (rospy.get_param("~use_ai", ""))
-        
+
         self.active = True #initialize our node as active!!
         self.r = rospy.Rate(3) # Rate in Hz
         self.thread_lock = threading.Lock()
@@ -37,7 +37,7 @@ class ObstDetectNode(object):
         self.pub_topic_arr = '/{}/obst_detect/posearray'.format(robot_name)
         self.publisher_arr = rospy.Publisher(self.pub_topic_arr, PoseArray, queue_size=1)
 
-        if (self.show_marker or self.show_image):
+        if (self.show_marker or self.show_image or self.show_bird_perspective):
                 self.visualizer = Visualizer(robot_name=robot_name)
 
         if (self.show_marker):
@@ -60,13 +60,13 @@ class ObstDetectNode(object):
             self.sub_topic = '/{}/image_transformer_node/corrected_image'.format(robot_name)
             self.subscriber = rospy.Subscriber(self.sub_topic, Image, self.callback_img,queue_size=1, buff_size=2**24)
             #buff size to approximately close to 2^24 such that always most recent pic is taken
-            #essentail 
+            #essentail
         else:
             self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
             self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback_img,queue_size=1, buff_size=2**24)
 
 
-        # FSM 
+        # FSM
         self.sub_switch = rospy.Subscriber('/{}/obstacle_avoidance_node/switch'.format(robot_name), BoolStamped, self.cbSwitch,  queue_size=1)     # for this topic, no remapping is required, since it is directly defined in the namespace lane_controller_node by the fsm_node (via it's default.yaml file)
         self.sub_fsm_mode = rospy.Subscriber('/{}/fsm_node/mode'.format(robot_name), FSMState, self.cbMode, queue_size=1)
 
@@ -99,7 +99,7 @@ class ObstDetectNode(object):
         #start = time.time()
         obst_list = PoseArray()
         marker_list = MarkerArray()
-    
+
         # pass RECTIFIED IMAGE TO DETECTOR MODULE
         #1. EXTRACT OBSTACLES and return the pose array
         obst_list = self.detector.process_image(rectify(rgb_from_ros(image),self.intrinsics))
@@ -109,7 +109,7 @@ class ObstDetectNode(object):
         #print image.header.stamp.to_sec()
         self.publisher_arr.publish(obst_list)
         #EXPLANATION: (x,y) is world coordinates of obstacle, z is radius of obstacle
-        #QUATERNION HAS NO MEANING!!!!    
+        #QUATERNION HAS NO MEANING!!!!
 
         #3. VISUALIZE POSE ARRAY IN TF
         if (self.show_marker):
