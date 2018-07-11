@@ -15,9 +15,6 @@ class ChargingControlNode(object):
         # Obtain vehicile name
         self.veh_name = robot_name.get_current_robot_name()
 
-        # Active variable, triggered by Maintenance Control Node
-        self.active = False
-
         ## setup Parameters
         self.setupParams()
 
@@ -50,10 +47,7 @@ class ChargingControlNode(object):
     # If Duckiebot first in charger and ready2go, leave charger
     def cbStopLine(self, msg):
         if self.state == "CHARGING_FIRST_IN_LINE" and msg.data and self.ready2go:
-            ready_at_exit_msg = BoolStamped()
-            ready_at_exit_msg.header = msg.header
-            ready_at_exit_msg.data = self.ready2go
-            self.ready_at_exit.publish(ready_at_exit_msg)
+            self.pubReady(True)
 
     # Callback maintenance state
     def cbMaintenanceState(self, msg):
@@ -69,6 +63,7 @@ class ChargingControlNode(object):
         # if we enter charging area, setup timer for leaving again
         if state_msg.state == "IN_CHARGING_AREA" and self.state != state_msg.state:
             self.ready2go = False
+            self.pubReady(False)
             self.charge_timer = rospy.Timer(rospy.Duration.from_sec(60*self.charge_time), self.setReady2Go, oneshot=True)
 
         self.state = state_msg.state
@@ -76,6 +71,12 @@ class ChargingControlNode(object):
     ##### END callback functions #####
 
     ##### BEGIN internal functions #####
+
+    def pubReady(self, ready):
+        ready_at_exit_msg = BoolStamped()
+        ready_at_exit_msg.data = ready
+        self.ready_at_exit.publish(ready_at_exit_msg)
+
 
     # Set the status to: ready to leave charging area (battery full)
     def setReady2Go(self, event):
