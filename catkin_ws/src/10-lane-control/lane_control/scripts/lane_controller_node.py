@@ -153,6 +153,7 @@ class lane_controller(object):
         self.phi_ref = self.setupParameter("~phi_ref",0)
         self.object_detected = self.setupParameter("~object_detected", 0)
         self.v_ref_possible["default"] = self.v_max
+        self.counter = 0
 
 
     def getGains_event(self, event):
@@ -242,11 +243,11 @@ class lane_controller(object):
 
 
     def PoseHandling(self, input_pose_msg, pose_source):
-        if not self.active:
-            return
-
-        if self.sleepMaintenance:
-            return
+        # if not self.active:
+        #     return
+        #
+        # if self.sleepMaintenance:
+        #     return
 
         #if pose_source == "obstacle_avoidance":
             # print "obstacle_avoidance pose_msg d_ref: ", input_pose_msg.d_ref
@@ -356,6 +357,16 @@ class lane_controller(object):
     def cbPose(self, pose_msg):
         self.lane_reading = pose_msg
 
+        # Performance evaluation
+        file = open("/home/bings/Documents/Tests/Lane_Pose/"+str(self.file)+".csv",'a')
+        pose = pose_msg
+        if self.counter in range(0,50):
+            file.write(str(pose.d)+","+str(pose.phi)+"\n")
+        else:
+            file.close()
+            rospy.signal_shutdown('Done')
+        self.counter += 1
+
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
@@ -418,12 +429,12 @@ class lane_controller(object):
         omega = self.k_d * (0.22/self.v_bar) * self.cross_track_err + self.k_theta * (0.22/self.v_bar) * self.heading_err
         omega += (omega_feedforward)
 
-        # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
-        if math.fabs(omega) > car_control_msg.v / self.min_radius:
-            if self.last_ms is not None:
-                self.cross_track_integral -= self.cross_track_err * dt
-                self.heading_integral -= self.heading_err * dt
-            omega = math.copysign(car_control_msg.v / self.min_radius, omega)
+        # # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
+        # if math.fabs(omega) > car_control_msg.v / self.min_radius:
+        #     if self.last_ms is not None:
+        #         self.cross_track_integral -= self.cross_track_err * dt
+        #         self.heading_integral -= self.heading_err * dt
+        #     omega = math.copysign(car_control_msg.v / self.min_radius, omega)
 
         if not self.fsm_state == "SAFE_JOYSTICK_CONTROL":
             # apply integral correction (these should not affect radius, hence checked afterwards)
