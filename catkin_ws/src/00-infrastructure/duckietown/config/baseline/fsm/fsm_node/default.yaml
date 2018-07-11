@@ -35,7 +35,7 @@ events: # Maps from subscribing topic to signal ids
     trigger: True
 
   in_charger:
-    topic: "charging_control_node/in_charger"
+    topic: "maintenance_control_node/in_charger"
     msg_type: "BoolStamped"
     trigger: True
   # Logical events from logic_gate_node

@@ -1,6 +1,9 @@
 megacity: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos megacity.launch"
 
+megacity-no-maintenance: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos megacity-no-maintenance.launch"
+
 tcp-server: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown_demos tcp_server.launch"
 
@@ -18,7 +21,8 @@ formula-d: check-environment
 
 camera-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; rosrun image_view image_view image:='/$*/camera_node/image' _image_transport:=compressed"
-
+camera-joy-%: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; source misc/camera_joy.sh $*"
 
 set-in-charger-%: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh $*; source set_vehicle_name.sh $*; rostopic pub -1 /$*/maintenance_control_node/go_charging std_msgs/Bool True; rostopic pub -1 /$*/maintenance_control_node/set_state std_msgs/String 'CHARGING'; rosparam set /$*/charging_control_node/charger 4"
