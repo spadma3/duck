@@ -124,6 +124,8 @@ class LEDDetectorNode(object):
 
         self.file = open("LD_TL"+str(self.veh_name),'w')
 
+        self.t0 = time.time()
+
     def cbSwitch(self, switch_msg): # active/inactive switch from FSM
         self.active = switch_msg.data
         if self.active:
@@ -455,15 +457,16 @@ class LEDDetectorNode(object):
             rospy.loginfo('Front: No LED detected')
 
         # Loginfo (TL)
+        dt = time.time()-self.t0
         if self.traffic_light == SignalsDetection.STOP:
             rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
-            self.file.write("0\n")
+            self.file.write(str(dt)+",0\n")
         elif self.traffic_light == SignalsDetection.GO:
             rospy.loginfo('[%s] Traffic Light: green' %(self.node_name))
-            self.file.write("1\n")
+            self.file.write(str(dt)+",1\n")
         else:
             rospy.loginfo('[%s] No traffic light' %(self.node_name))
-            self.file.write("0\n")
+            self.file.write(str(dt)+",0\n")
 
         #Publish
         rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
