@@ -15,6 +15,7 @@ from cv_bridge import CvBridge, CvBridgeError
 class LEDDetectorNode(object):
     def __init__(self):
         self.active = True # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active
+
         self.first_timestamp = 0
         self.capture_finished = True
         self.tinit = None
@@ -120,6 +121,8 @@ class LEDDetectorNode(object):
         # Loginfo
         rospy.loginfo('[%s] Vehicle: %s'%(self.node_name, self.veh_name))
         rospy.loginfo('[%s] Waiting for camera image...' %self.node_name)
+
+        self.file = open("LD_TL"+str(self.veh_name),'w')
 
     def cbSwitch(self, switch_msg): # active/inactive switch from FSM
         self.active = switch_msg.data
@@ -454,10 +457,13 @@ class LEDDetectorNode(object):
         # Loginfo (TL)
         if self.traffic_light == SignalsDetection.STOP:
             rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
+            self.file.write("0\n")
         elif self.traffic_light == SignalsDetection.GO:
             rospy.loginfo('[%s] Traffic Light: green' %(self.node_name))
+            self.file.write("1\n")
         else:
             rospy.loginfo('[%s] No traffic light' %(self.node_name))
+            self.file.write("0\n")
 
         #Publish
         rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
