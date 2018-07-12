@@ -6,6 +6,7 @@ import rospy
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState
 import time
 import numpy as np
+import os
 
 class lane_controller(object):
 
@@ -14,6 +15,11 @@ class lane_controller(object):
         self.lane_reading = None
         self.last_ms = None
         self.pub_counter = 0
+
+        # Performance evaluation
+        self.d = os.environ['D']
+        self.phi = os.environ['PHI']
+        self.file = os.environ['OUTFILE']
 
 
         self.velocity_to_m_per_s = 0.67
@@ -361,7 +367,7 @@ class lane_controller(object):
         file = open("/home/bings/Documents/Tests/Lane_Pose/"+str(self.file)+".csv",'a')
         pose = pose_msg
         if self.counter in range(0,50):
-            file.write(str(pose.d)+","+str(pose.phi)+"\n")
+            file.write(str(self.d)+","+str(self.phi)+","+str(pose.d)+","+str(pose.phi)+"\n")
         else:
             file.close()
             rospy.signal_shutdown('Done')
