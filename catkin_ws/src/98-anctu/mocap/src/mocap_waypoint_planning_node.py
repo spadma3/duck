@@ -18,8 +18,8 @@ class MocapWaypointPlanningNode(object):
         self.start = True
         # waypoint position
         self.waypoint_index = 0
-        self.X = [0, 1.5]
-        self.Y = [0, 1.5]
+        self.X = [1.27, 1.27, 0.26, 0.17, 1.24, 1.27, 0.18, 0.16, 1.23]
+        self.Y = [0.21, 0.51, 0.45, 0.71, 0.79, 1.04, 1.07, 1.29, 1.36]
 
         # vehicle point pair
         self.vehicle_yaw_pre = 0
@@ -28,8 +28,14 @@ class MocapWaypointPlanningNode(object):
         # the previous vehicle point of last moment
         #self.pre_vehicle_point = Point()
 
+        # goal distance check
+        self.dis_goal = 0.15
+
         self.kd = 0.04
         self.kp = 0.08
+
+        self.u_pre = 0
+        self.ku = 0
 
         self.switch = True
 
@@ -50,7 +56,12 @@ class MocapWaypointPlanningNode(object):
         # assign vehicle point pair 
         self.vehicle_front_point = point_array_msg.poses[0].position
         self.vehicle_back_point = point_array_msg.poses[1].position
+        self.vehicle_center_point = Point()
+        self.vehicle_center_point.x = 0.5 * (self.vehicle_front_point.x + self.vehicle_back_point.x) 
+        self.vehicle_center_point.y = 0.5 * (self.vehicle_front_point.y + self.vehicle_back_point.y) 
+        self.vehicle_center_point.z = 0.5 * (self.vehicle_front_point.z + self.vehicle_back_point.z) 
 
+        print "vehicle center: ", self.vehicle_center_point.x, self.vehicle_center_point.y, self.vehicle_center_point.z
         # set target waypoint position
         target_point = self.set_target_point(self.waypoint_index)
 
@@ -60,23 +71,35 @@ class MocapWaypointPlanningNode(object):
         # calculate yaw angle from vehicle to previous vehicle
         vehicle_yaw = self.get_yaw_two_point(self.vehicle_back_point, self.vehicle_front_point)
 
-        dist = self.get_dist_two_point(self.vehicle_back_point, target_point)
+        dist = self.get_dist_two_point(self.vehicle_center_point, target_point)
 
         #self.set_pre_vehicle_point(point_msg)
         print "yaw from vehicle to waypoint: ", target_yaw
-        print "yaw from previous vehicle to vehicle: ", vehicle_yaw
+        print "yaw from vehicle to vehicle: ", vehicle_yaw
         print "distance between vehicle and waypoint", dist
 
+        if (dist <= self.dis_goal):
+            self.waypoint_index += 1
+            return
         ess = vehicle_yaw - target_yaw
+        if (ess < -180):
+            ess += 360
+        if (ess > 180):
+            ess -= 360
         diff = vehicle_yaw - self.vehicle_yaw_pre
-        u = self.kp * ess + self.kd * diff
-        print 'omega pd: ', -u
+        self.vehicle_yaw_pre = vehicle_yaw
+        print "ess: ", ess
+        print "diff: ", diff
+        u = -1 * (self.kp * ess + self.kd * diff)
+        print 'omega pd: ', u
         if( u < -7):
             u = -7
         if( u > 7):
             u = 7
-        print 'mega pd com: ', -u
-        self.publish_car_cmd(0.3, -u , 0.2)
+        u = u * (1 - self.ku) + self.u_pre * self.ku
+        print 'mega pd com: ', u
+        self.publish_car_cmd(0.2, u , 0.05)
+        self.u_pre = u
 
     def set_target_point(self, order):
         # set a target_point
@@ -136,10 +159,10 @@ class MocapWaypointPlanningNode(object):
         self.pub_car_cmd.publish(car_cmd_msg)
         rospy.sleep(duration)
         # stop 1s
-        car_cmd_msg.v = 0
-        car_cmd_msg.omega = 0
-        self.pub_car_cmd.publish(car_cmd_msg)
-        rospy.sleep(0)      
+        #car_cmd_msg.v = 0
+        #car_cmd_msg.omega = 0
+        #self.pub_car_cmd.publish(car_cmd_msg)
+        #rospy.sleep(0)      
 
     def onShutdown(self):
         # Send stop command
