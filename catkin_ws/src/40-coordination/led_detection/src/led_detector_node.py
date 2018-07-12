@@ -457,7 +457,7 @@ class LEDDetectorNode(object):
             rospy.loginfo('Front: No LED detected')
 
         # Loginfo (TL)
-        dt = time.time()-self.t0
+        dt = time.time()
         if self.traffic_light == SignalsDetection.STOP:
             rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
             self.file.write(str(dt)+",0\n")
