@@ -1,35 +1,271 @@
 tags:
   tag300:
     #position:
-    - 1   #x
-    - 0.5   #y
-    - 0.05   #z
+    - 0  #x
+    - 0   #y
+    - 0  #z
     #orientation:
     - 0   #roll
     - 0   #pitch
-    - 3.14159  #yaw
+    - 0  #yaw
   tag301:
-    - 12
-    - 14
-    - 16
-
-    - 0
-    - 0
-    - 22
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
   tag302:
-    - 12
-    - 14
-    - 16
-
-    - 0
-    - 0
-    - 22
-
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
   tag303:
-    - 12
-    - 14
-    - 16
-
-    - 0
-    - 0
-    - 22
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag304:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag305:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag306:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag307:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag308:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag309:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag310:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag311:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag312:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag313:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag314:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag315:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag316:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag317:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag318:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag319:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag320:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag321:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag322:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag323:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag324:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag325:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag326:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag327:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag328:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
+  tag329:
+    #position:
+    - 0  #x
+    - 0   #y
+    - 0  #z
+    #orientation:
+    - 0   #roll
+    - 0   #pitch
+    - 0  #yaw
