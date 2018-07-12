@@ -16,8 +16,8 @@ class AutoCalibrationCalculationNode(object):
         self.count_last = 0
         self.data_gathering = False #ONLY for testing purposes, default is FALSE
         # Number of steps to integrate omega for wheelspeeds
-        self.intersampling = 100
-        self.intersampling_f = 100.0
+        self.intersampling = 1
+        self.intersampling_f = 1.0
 
         #timestamp, omega_l, omega_r
         #self.wheel_motion = np.zeros((1,3))
@@ -64,7 +64,7 @@ class AutoCalibrationCalculationNode(object):
             self.mode = msg.state
             self.triggered = True
             rospy.loginfo("[%s] %s triggered." %(self.node_name,self.mode))
-            #self.publishControl()
+            self.publishControl()
             self.resample()
             self.calibration()
         self.mode = msg.state
@@ -131,6 +131,7 @@ class AutoCalibrationCalculationNode(object):
     #Flag for data gathering
     def cbRecord(self, msg):
         if msg.data:
+            rospy.loginfo("[%s] Data recording started" %(self.node_name))
             self.wheel_motion = np.zeros((1,3))
             self.camera_motion = np.zeros((1,7))
             self.data_gathering=msg.data
@@ -344,7 +345,7 @@ class AutoCalibrationCalculationNode(object):
                     diff[i]=diff[i]-(2*np.pi)
                 if diff[i]<-np.pi:
                     diff[i]=diff[i]+(2*np.pi)
-
+        #print np.linalg.norm(diff)
         return np.linalg.norm(diff)
 
     #secs and nsecs to secs double

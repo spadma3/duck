@@ -82,8 +82,9 @@ class AutoCalibrationNode(object):
             self.pub_start.publish(calibrate)
             rospy.loginfo("[%s] Data recording started" %(self.node_name))
 
-    #stopping the rosbag recording and starting calibration calculations
-    def finishCalib(self,event):
+    #stopping the data recording and starting calibration calculations
+    def finishCalib(self):
+        self.calib_done = True
         done = BoolStamped()
         done.data = True
         rospy.loginfo("[%s] Recording stopped" %(self.node_name))
