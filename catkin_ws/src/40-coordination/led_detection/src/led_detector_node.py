@@ -460,13 +460,11 @@ class LEDDetectorNode(object):
         dt = time.time()
         if self.traffic_light == SignalsDetection.STOP:
             rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
-            self.file.write(str(dt)+",0\n")
         elif self.traffic_light == SignalsDetection.GO:
             rospy.loginfo('[%s] Traffic Light: green' %(self.node_name))
             self.file.write(str(dt)+",1\n")
         else:
             rospy.loginfo('[%s] No traffic light' %(self.node_name))
-            self.file.write(str(dt)+",0\n")
 
         #Publish
         rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
