@@ -83,31 +83,30 @@ class AutoCalibrationCalculationNode(object):
             tmp = np.zeros(9)
             tmp_6 = np.zeros(6)
             for detection in msg.detections:
-                count=count+1
-                #Coordinate transformation
-                x = detection.pose.pose.pose.position.z
-                y = -detection.pose.pose.pose.position.x
-                z = -detection.pose.pose.pose.position.y
-                xq = detection.pose.pose.pose.orientation.x
-                yq = detection.pose.pose.pose.orientation.y
-                zq = detection.pose.pose.pose.orientation.z
-                wq = detection.pose.pose.pose.orientation.w
-                [r,p,ya] = self.qte(wq,xq,yq,zq)
-                roll = ya
-                pitch = r+np.pi
-                yaw = -p+np.pi
-                cam_loc=np.array([x,y,z,roll,pitch,yaw])
-                #rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,x,y,z,roll*180/3.1415,pitch*180/3.1415,yaw*180/3.1415))
-                tmp_6 = self.visual_odometry(cam_loc,detection.id[0])
-                tmp=tmp+([tmp_6[0],tmp_6[1],tmp_6[2],math.sin(tmp_6[3]),math.cos(tmp_6[3]),math.sin(tmp_6[4]),math.cos(tmp_6[4]),math.sin(tmp_6[5]),math.cos(tmp_6[5])])
-            if count != 0:
-                roll = math.atan2(tmp[3],tmp[4])
-                pitch = math.atan2(tmp[5],tmp[6])
-                yaw = math.atan2(tmp[7],tmp[8])
-                tmp = tmp/count
-                secs = self.toSeconds(msg.header.stamp.secs,msg.header.stamp.nsecs)
-                self.camera_motion = np.append(self.camera_motion,([[secs,tmp[0],tmp[1],tmp[2],roll,pitch,yaw]]),axis=0)
-                #rospy.loginfo("[%s] %s %s %s %s %s %s" %(self.node_name,tmp[0],tmp[1],tmp[2],roll*180/3.1415,pitch*180/3.1415,yaw*180/3.1415))
+                if (detection.id[0]>=300 & detection.id[0]<=329):
+                    count=count+1
+                    #Coordinate transformation
+                    x = detection.pose.pose.pose.position.z
+                    y = -detection.pose.pose.pose.position.x
+                    z = -detection.pose.pose.pose.position.y
+                    xq = detection.pose.pose.pose.orientation.x
+                    yq = detection.pose.pose.pose.orientation.y
+                    zq = detection.pose.pose.pose.orientation.z
+                    wq = detection.pose.pose.pose.orientation.w
+                    [r,p,ya] = self.qte(wq,xq,yq,zq)
+                    roll = ya
+                    pitch = r+np.pi
+                    yaw = -p+np.pi
+                    cam_loc=np.array([x,y,z,roll,pitch,yaw])
+                    tmp_6 = self.visual_odometry(cam_loc,detection.id[0])
+                    tmp=tmp+([tmp_6[0],tmp_6[1],tmp_6[2],math.sin(tmp_6[3]),math.cos(tmp_6[3]),math.sin(tmp_6[4]),math.cos(tmp_6[4]),math.sin(tmp_6[5]),math.cos(tmp_6[5])])
+                if count != 0:
+                    roll = math.atan2(tmp[3],tmp[4])
+                    pitch = math.atan2(tmp[5],tmp[6])
+                    yaw = math.atan2(tmp[7],tmp[8])
+                    tmp = tmp/count
+                    secs = self.toSeconds(msg.header.stamp.secs,msg.header.stamp.nsecs)
+                    self.camera_motion = np.append(self.camera_motion,([[secs,tmp[0],tmp[1],tmp[2],roll,pitch,yaw]]),axis=0)
 
     #extract the wheel motion
     def cbDutyCycle(self,msg):
@@ -128,6 +127,7 @@ class AutoCalibrationCalculationNode(object):
     def cbSwitch(self, msg):
         self.active=msg.data
 
+
     #Flag for data gathering
     def cbRecord(self, msg):
         if msg.data:
@@ -144,33 +144,20 @@ class AutoCalibrationCalculationNode(object):
         size=np.size(args,0)
         #get velocity and yaw rate from kinematic model
         vel=0.5*(np.dot(x[0],args[:,1])+np.dot(x[1],args[:,2]))*self.K
-        #print vel
-        #TODO changed the baseline to 1 single entity x[2], x[3]  should now be ignored in the algo
+        #changed the baseline to 1 single entity x[2], x[3] now ignored in the algo
         omega=-np.dot(x[0]/x[2],args[:,1])*self.K+np.dot(x[1]/x[2],args[:,2])*self.K
-
-        # print x
-        # print args
-        # print omega
-        #extract initial yaw angle form yaw measurement of camera
 
         #yaw=np.zeros(size)
         yaw=np.zeros((size-1)*self.intersampling+1)
 
+        #extract initial yaw angle form yaw measurement of camera and take the modulo
         yaw[0]=args[0][8]%(2*np.pi)
 
-        # #calculate yaw angle for every single timestamp, using euler forward
-        # for i in range(1,size):
-        #     yaw[i]=yaw[i-1]+omega[i-1]*(args[i][0]-args[i-1][0])
         #calculate yaw angle for every single timestamp, using euler forward
         for i in range(1,(size-1)*self.intersampling+1):
             yaw[i]=yaw[i-1]+(omega[int(np.ceil(i/self.intersampling_f))-1]*(args[int(np.ceil(i/self.intersampling_f))][0]-args[int(np.ceil(i/self.intersampling_f))-1][0]))/self.intersampling_f
         x_est=0
         y_est=0
-        #calculate x and y movement, using euler forward
-        # for i in range (0,size-1):
-        #     x_est=x_est+(args[i+1][0]-args[i][0])*math.cos(yaw[i])*vel[i]
-        #     y_est=y_est+(args[i+1][0]-args[i][0])*math.sin(yaw[i])*vel[i]
-        # return [x_est,y_est,0,0,0,(yaw[size-1]-yaw[0])%(2*np.pi)]
 
         #calculate x and y movement, using euler forward
         for i in range (1,(size-1)*self.intersampling+1):
@@ -183,7 +170,6 @@ class AutoCalibrationCalculationNode(object):
         #Read tag location from yaml file
         tag_loc=self.tags_locations['tag'+str(id)]
 
-        #This part can be done outside of the optimization algorithm --> save computation time
         #If more than 1 tag detected, take the average location of the N detections
         #Homogenuous transform World to Tag
         tag_T_world = self.etH(tag_loc)
@@ -279,28 +265,19 @@ class AutoCalibrationCalculationNode(object):
             # args[][8] = camera yaw
 
             n = 10
-            x0 = np.zeros(n)
-            # x0[0] = 0.033
-            # x0[1] = 0.033
-            # x0[2] = 0.1
-            # x0[3] = 0.085
-            # x0[4] = 0.055
-            # x0[5] = 0
-            # x0[6] = 0.1
-            # x0[7] = 0
-            # x0[8] = 0.349
-            # x0[9] = 0
 
-            x0[0] = 0.03
-            x0[1] = 0.03
-            x0[2] = 0.11
+            #Ideal initial conditions (the way a Duckiebot should be)
+            x0 = np.zeros(n)
+            x0[0] = 0.033
+            x0[1] = 0.033
+            x0[2] = 0.1
             x0[3] = 0.085
-            x0[4] = 0.06
-            x0[5] = 0.005
-            x0[6] = 0.104
-            x0[7] = 0.1
-            x0[8] = 0.25
-            x0[9] = 0.05
+            x0[4] = 0.055
+            x0[5] = 0
+            x0[6] = 0.1
+            x0[7] = 0
+            x0[8] = 0.349
+            x0[9] = 0
 
             # bounds
             b0 = (0.025,0.035)
@@ -321,8 +298,7 @@ class AutoCalibrationCalculationNode(object):
             # optimization
             solution = minimize(self.objective,x0, method='SLSQP',bounds=bnds)
             x = solution.x
-            print x
-            #self.finishCalc()
+            self.finishCalc()
 
     #Objective function of the optimization algorithm
     def objective(self,x):
@@ -354,24 +330,21 @@ class AutoCalibrationCalculationNode(object):
                 camera_mov[i-1][5]=camera_mov[i-1][5]%(2*np.pi)
 
         #Create vectors to calculate the norm
-        # print x
-        # print wheel_mov
-        # print camera_mov
-
         camera_mov=np.reshape(camera_mov,np.size(camera_mov))
         wheel_mov=np.reshape(wheel_mov,np.size(wheel_mov))
-        #print x
-        #print np.linalg.norm(wheel_mov-camera_mov)
+
         length = np.size(camera_mov)
         diff = np.zeros(length)
         diff = wheel_mov-camera_mov
+
+        #Ensure that all angles are in the same range
         for i in range(0,length):
             if (i%6==5):
                 if diff[i]>np.pi:
                     diff[i]=diff[i]-(2*np.pi)
                 if diff[i]<-np.pi:
                     diff[i]=diff[i]+(2*np.pi)
-        print np.linalg.norm(diff)
+
         return np.linalg.norm(diff)
 
     #secs and nsecs to secs double
