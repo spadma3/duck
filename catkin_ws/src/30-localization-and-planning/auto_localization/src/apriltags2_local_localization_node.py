@@ -7,15 +7,15 @@ from duckietown_msgs.msg import TagInfo, BoolStamped, RemapPose, RemapPoseArray
 from apriltags2_ros.msg import AprilTagDetectionArray, AprilTagDetection
 import numpy as np
 import tf
-# from tf
 import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped
+import global_pose_functions as gposf
 
 
 # This node localizes Apriltags prior defined in
 # Coordinates will be given in
 # Subscribes:   Apriltag detections (tf)
-# Publishes:    Coordinates of BotAprilTag in Reference to FixedTags as tf_message
+# Publishes:    Coordinates of BotAprilTag in Reference to FixedTags
 
 class AprilLocalLocalization(object):
     """ """
@@ -32,7 +32,7 @@ class AprilLocalLocalization(object):
         self.fixed_tags_number = 0
 
         # This dictionary contains information of the fixed tags
-        # {TagID : [Type | detection.pose]}
+        # {TagID : [detection.pose | time detected]}
         self.fixed_tags_dict = dict()
         # Setup the publishers and subscribers from localization_node
         # self.sub_april = rospy.Subscriber("~apriltags", AprilTagsWithInfos, self.tag_callback)
@@ -99,11 +99,19 @@ class AprilLocalLocalization(object):
 
             # fixed tags will be added to the database,
             # StreetSigns, TrafficSigns are considered to be fixed tags
-            if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN):
-                 # add fixed tag to the database, overwrite old information
-                 self.fixed_tags_dict[new_info.id] = [new_info.tag_type, detection.pose]
-                 # for fixed_frame in self.fixed_tags_dict:
-                 #    rospy.loginfo("FixedFrame: %s",fixed_frame)
+            if new_info.tag_type != self.info.VEHICLE:
+                #TODO: only use this information for the part of the time
+
+                pose = detection.pose.pose.pose
+                mat_tag_cam = gposf.get_matrix_from_pose(detection.pose.pose.pose)
+                mat_cam_tag = np.linalg.inv(mat_tag_cam)
+                #mat_cam_tag = mat_tag_cam
+
+                # add fixed tag to the database, overwrite old information
+                self.fixed_tags_dict[new_info.id] = [detection.pose, mat_cam_tag]
+                # for fixed_frame in self.fixed_tags_dict:
+                #    rospy.loginfo("FixedFrame: %s",fixed_frame)
+
 
 
 
@@ -113,31 +121,50 @@ class AprilLocalLocalization(object):
                 new_info.vehicle_name = id_info['vehicle_name']
                 #rospy.loginfo("Detected %s with Tag ID %s", new_info.vehicle_name, new_info.id)
                 # cantrans = tf.canTransform('quacky/color_optical_frame', 'Tag15', now)
+                pose = detection.pose.pose.pose
+                mat_bot_cam = gposf.get_matrix_from_pose(detection.pose.pose.pose)
+                # print "translation bot camera", trans_bot_cam
+
+
 
 
                 # Coordinates transform for each fixed frame
-                for fixed_frame in self.fixed_tags_dict:
+                #for fixed_frame in self.fixed_tags_dict:
+                for fixed_tag_id, fixed_tag_pose in self.fixed_tags_dict.iteritems():
+                    # TODO:check if information might be outdated
+                    # if fixed_tag_pose[1]-now > 1s: delete dict entry, continue
                     remap_pose = RemapPose()
+
+                    mat_bot_tag = gposf.absolute_from_relative_position(mat_bot_cam, fixed_tag_pose[1])
+                    trans, rot = gposf.rot_trans_from_matrix(mat_bot_tag)
+                    rot_euler = tf.transformations.euler_from_quaternion(rot)
+                    rot_euler = [elem * 360 / (2 *3.14159) for elem in rot_euler]
+                    rot_rnd   = ['%.1f' % elem for elem in rot_euler]
+                    trans_rnd = ['%.3f' % elem for elem in trans]
+
+                    print "Translation: ", trans_rnd
+                    print "Rotation: ", rot_rnd
+
+                    # get pose of moving tag in reference to the fixed tags
+
+
+
 
                     #  in terminal it would be rosrun tf tf_echo fixed_frame bot_frame
                     # how about the time?? rospy.time(0) probably induces an artificial delay
                     try:
-                        (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(new_info.id), 'Tag'+str(fixed_frame), rospy.Time(0))
+                        (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(new_info.id), 'Tag'+str(fixed_tag_id), rospy.Time(0))
                         #trans = [0, 0, 0]
-                        #rot = [0, 0, 0, 1]
+                        # rot = [0, 0, 0, 1]
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                         continue
 
-                    # Publish this as a tf message TODO: maybe an new unique topic would be more useful here?
-                    self.pub_tf.sendTransform(trans,
-                                              rot,
-                                              rospy.Time.now(),
-                                              new_info.vehicle_name,
-                                              'Tag'+str(fixed_frame))
+                    # Publish this as a tf message
+                    # self.pub_tf.sendTransform(trans,rot, rospy.Time.now(), new_info.vehicle_name,'Tag'+str(fixed_frame))
 
                     #Add data to remap pose message
                     remap_pose.host = socket.gethostname()
-                    remap_pose.frame_id = fixed_frame
+                    remap_pose.frame_id = fixed_tag_id
                     remap_pose.bot_id = new_info.id
                     remap_pose.posestamped.header.stamp = detection.pose.header.stamp
                     remap_pose.posestamped.pose.position.x = trans[0]
@@ -151,14 +178,14 @@ class AprilLocalLocalization(object):
                     remap_poses_array.poses.append(remap_pose)
 
                     # Debugging Output (comment that to optimiza the code)
-                    '''
+                    #'''
                     rot_euler = tf.transformations.euler_from_quaternion(rot)
                     rot_euler = [elem * 360 / (2 *3.14159) for elem in rot_euler]
                     trans_rnd = ['%.3f' % elem for elem in trans]
                     rot_rnd   = ['%.1f' % elem for elem in rot_euler]
                     rospy.loginfo("%s In reference to Tag%s: \nTranslation: %s \nOrientation: %s \n",
-                                   new_info.vehicle_name, fixed_frame, trans_rnd, rot_rnd)
-                    '''
+                                   new_info.vehicle_name, fixed_tag_id, trans_rnd, rot_rnd)
+                    #'''
 
         self.pub_postPros.publish(remap_poses_array)
 
