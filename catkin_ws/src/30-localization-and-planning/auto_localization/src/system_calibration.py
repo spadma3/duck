@@ -83,7 +83,7 @@ class system_calibration(object):
             # We here decompose the matrix and save only translation and rotation
             tag_data = {}
             tag_data['id'] = tag
-            tag_data['transformation'] = list(self.tag_relationship[tag])
+            tag_data['transformation'] = self.tag_relationship[tag]
             fixed_tags_data.append(tag_data)
 
 
@@ -135,6 +135,9 @@ class system_calibration(object):
 
         # A little recursive function to find the transformation from origin to end_tag
         def from_origin_to_end(path):
+            # If there's no path connect to the tag, saves null.
+            if path == None:
+                return None
             # tag_transformation[child_frame][parent_frame]
             trans = tag_transformation[path[0]][path[1]][0]
             rot = tag_transformation[path[0]][path[1]][1]
