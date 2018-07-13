@@ -7,7 +7,6 @@ project(multivehicle_tracking_visualizer)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  duckietown_msgs # Every duckietown packages must use this.
   std_msgs
   sensor_msgs
 )
