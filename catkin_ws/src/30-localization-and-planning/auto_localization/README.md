@@ -31,6 +31,42 @@ Start the local-localization function on local watchtower. They will then launch
 
 Congrats! Easy peasy huh?
 
+## System Calibration
+
+The auto-localization relies on the local reference Apriltags. The system will first calculate the pose of an Duckiebot w.r.t the reference tag and later on do transfer the pose from the local frame to the global frame. Therefore, to have a precise localization, we need to know the transformation between local frame and the global frame. Of course one could enter the pose of each tag hand-by-hand, but that will be pretty annoying and inefficient. Here we introduce a tool that could calibrate the whole system, provide the transformation of each tag and save them to and yaml file for future usage.
+
+### Before Calibration
+
+The system calibration require the reference tags to be linked to the origin tag. Thus, we might need to put some "linked" tag to make the graph complete. The linked tags are suggested to be put in the overlap region of watchtowers so that they really achieve their function.
+
+The only constraint of putting the linked tag is that don't use the tags that have been used in the town. Always make sure you don't use the same tag twice.
+
+### On server computer
+
+First, we still need to launch tcp-server on the server computer.
+
+On one terminal, set up the Duckietown environment and set ros master to the server computer itself. then
+
+    roslaunch duckietown_demos tcp_server.launch
+
+Next, on the server computer, launch the node that calculate tag transformations.
+
+    make auto_localization_calibration_server
+
+Server side, done.
+
+### On watchtowers
+
+Start the local-localization function on local watchtower. They will then launch apriltags2 detection, local-postprocessing, publish to server through tcp communication.
+
+    make auto_localization_calibration_watchtower
+
+Done.
+
+### Some more talk about System Calibration
+
+The system calibration require the reference tags to be linked to the origin tag.
+
 ## System Architecture
 
 ###  Nodes
