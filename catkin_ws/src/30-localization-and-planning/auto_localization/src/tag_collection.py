@@ -82,7 +82,7 @@ class Tag_collection(object):
 
             # fixed tags will be added to the database,
             # StreetSigns, TrafficSigns, Localize are considered to be fixed tags
-            if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.LOCALIZE):
+            if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.LOCALIZE) or (new_info.tag_type == self.info.LIGHT):
                  # add fixed tag to the database, overwrite old information
                  self.fixed_tags_dict[new_info.id] = [new_info.tag_type, detection.pose]
                  # for fixed_frame in self.fixed_tags_dict:
