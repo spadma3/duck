@@ -8,12 +8,14 @@
     <arg name="apriltag" default="true" doc="apriltag set to false means no apriltag detection"/>
     <arg name="cam_info" default="true" doc="If set to true, use cam_info_reader_node to pusblish CameraInfo."/> 
     <arg name="raw" default="false" doc="If set to true, also publish raw image using decoder."/>
-    <arg name="rect" default="false" />
-    <arg name="mocap" default="false" />
-    <arg name="laptop" default="false" />
-    <arg name="duckiebot" default="false" />
-    
+    <arg name="rect" default="false" doc="If set to true, also publish rected image using decoder."/>
+    <arg name="mocap" default="false" doc="Set to true, if you run in mocap unit."/>
+    <arg name="laptop" default="false" doc="Set to true, if you run in laptop."/>
+    <arg name="duckiebot" default="false" doc="Set to true, if you run in duckiebot."/>
+    <arg name="mocap_device" default="mocap1" doc="the name of mocap unit"/>  
+     
     <group if="$(arg mocap)">
+
         <!-- camera_node -->
         <include  file="$(find pi_camera)/launch/camera_node.launch">
             <arg name="veh" value="$(arg veh)"/>
@@ -97,7 +99,7 @@
     <group if="$(arg duckiebot)">
         <include file="$(find duckietown)/machines"/>
         <!-- run inverse_kinematics_node -->
-        <remap from="inverse_kinematics_node/car_cmd" to="/mocap1/mocap_waypoint_planning_node/car_cmd"/>
+        <remap from="inverse_kinematics_node/car_cmd" to="/$(arg mocap_device)/mocap_waypoint_planning_node/car_cmd"/>
         <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
         <include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
             <arg name="veh" value="$(arg veh)"/>
