@@ -79,9 +79,7 @@ class lane_controller(object):
 
         self.stop_line_distance = 999
         self.stop_line_detected = False
-        self.file = os.environ['OUTFILE']
-        self.d = os.environ['D']
-        self.phi = os.environ['PHI']
+
 
     def cbStopLineReading(self, msg):
         self.stop_line_distance = np.sqrt(msg.stop_line_point.x**2 + msg.stop_line_point.y**2 + msg.stop_line_point.z**2)
@@ -384,6 +382,9 @@ class lane_controller(object):
 
     def cbPose(self, pose_msg):
         self.lane_reading = pose_msg
+        self.file = os.environ["OUTFILE"]
+        self.d = os.environ["D"]
+        self.phi = os.environ["PHI"]
         pose = pose_msg
         file = open("/home/bings/Documents/Lane_Pose/"+str(self.file)+".csv",'a')
         if self.counter in range (0, 50):

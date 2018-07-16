@@ -1,15 +1,15 @@
 <launch>
-	<arg name="veh"/>
-	<arg name="bagin"/>
+				<arg name="veh"/>
+				<arg name="bagin"/>
 
     <!-- play one bag -->
     <node pkg="rosbag" type="play" name="player" args="$(arg bagin)"/>
 
 
-		<remap from="/lane_controller_node/actuator_limits" to="/$(arg veh)/inverse_kinematics_node/actuator_limits"/>
-		<remap from="/lane_controller_node/fsm_mode" to="/$(arg veh)/fsm_node/mode"/>
-		<remap from="/lane_controller_node/switch" to="/$(arg veh)/lane_controller_node/switch"/>
-    <remap from="/lane_controller_node/lane_pose" to="/$(arg veh)/lane_filter_node/lane_pose"/>
+					<remap from="/lane_controller_node/actuator_limits" to="/$(arg veh)/inverse_kinematics_node/actuator_limits"/>
+					<remap from="/lane_controller_node/fsm_mode" to="/$(arg veh)/fsm_node/mode"/>
+					<remap from="/lane_controller_node/switch" to="/$(arg veh)/lane_controller_node/switch"/>
+    			<remap from="/lane_controller_node/lane_pose" to="/$(arg veh)/lane_filter_node/lane_pose"/>
 
 
     <node name="lane_controller_node" pkg="lane_control" type="lane_controller_node.py" output="screen" clear_params="true" required="true">
