@@ -6,6 +6,7 @@ import rospy
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
 import time
 import numpy as np
+import os
 
 class lane_controller(object):
 
@@ -14,6 +15,8 @@ class lane_controller(object):
         self.lane_reading = None
         self.last_ms = None
         self.pub_counter = 0
+
+        self.counter = 0
 
 
         self.velocity_to_m_per_s = 0.67
@@ -76,6 +79,9 @@ class lane_controller(object):
 
         self.stop_line_distance = 999
         self.stop_line_detected = False
+        self.file = os.environ['OUTFILE']
+        self.d = os.environ['D']
+        self.phi = os.environ['PHI']
 
     def cbStopLineReading(self, msg):
         self.stop_line_distance = np.sqrt(msg.stop_line_point.x**2 + msg.stop_line_point.y**2 + msg.stop_line_point.z**2)
@@ -254,8 +260,8 @@ class lane_controller(object):
 
 
     def PoseHandling(self, input_pose_msg, pose_source):
-        if not self.active:
-            return
+        # if not self.active:
+        #     return
 
         if self.sleepMaintenance:
             return
@@ -294,19 +300,17 @@ class lane_controller(object):
                 #rospy.loginfo("pose source: lane_filter")
                 self.pose_msg = input_pose_msg
                 self.pose_msg.curvature_ref = input_pose_msg.curvature
-
-
                 self.v_ref_possible["main_pose"] = self.v_bar
 
-                # Adapt speed to stop line!
-                if self.stop_line_detected:
-                    # 60cm -> v_bar, 15cm -> v_bar/2
-                    d1, d2 = 0.8, 0.25
-                    a = self.v_bar/(2*(d1-d2))
-                    b = self.v_bar - a*d1
-                    v_new = a*self.stop_line_distance + b
-                    v_new = np.max([self.v_bar/2.0, np.min([self.v_bar, v_new])])
-                    self.v_ref_possible["main_pose"] = v_new
+                # # Adapt speed to stop line!
+                # if self.stop_line_detected:
+                #     # 60cm -> v_bar, 15cm -> v_bar/2
+                #     d1, d2 = 0.8, 0.25
+                #     a = self.v_bar/(2*(d1-d2))
+                #     b = self.v_bar - a*d1
+                #     v_new = a*self.stop_line_distance + b
+                #     v_new = np.max([self.v_bar/2.0, np.min([self.v_bar, v_new])])
+                #     self.v_ref_possible["main_pose"] = v_new
                 self.main_pose_source = pose_source
                 self.pose_initialized = True
 
@@ -380,6 +384,14 @@ class lane_controller(object):
 
     def cbPose(self, pose_msg):
         self.lane_reading = pose_msg
+        pose = pose_msg
+        file = open("/home/bings/Documents/Lane_Pose/"+str(self.file)+".csv",'a')
+        if self.counter in range (0, 50):
+            file.write(str(self.d)+","+str(self.phi)+","+str(pose.d)+","+str(pose.phi)+"\n")
+            self.counter +=1
+        else:
+            file.close()
+            rospy.signal_shutdown('Done')
 
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
@@ -446,12 +458,12 @@ class lane_controller(object):
 
 
 
-        # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
-        if math.fabs(omega) > car_control_msg.v / self.min_radius:
-            if self.last_ms is not None:
-                self.cross_track_integral -= self.cross_track_err * dt
-                self.heading_integral -= self.heading_err * dt
-            omega = math.copysign(car_control_msg.v / self.min_radius, omega)
+        # # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
+        # if math.fabs(omega) > car_control_msg.v / self.min_radius:
+        #     if self.last_ms is not None:
+        #         self.cross_track_integral -= self.cross_track_err * dt
+        #         self.heading_integral -= self.heading_err * dt
+        #     omega = math.copysign(car_control_msg.v / self.min_radius, omega)
 
         if not self.fsm_state == "SAFE_JOYSTICK_CONTROL":
             # apply integral correction (these should not affect radius, hence checked afterwards)

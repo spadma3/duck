@@ -36,4 +36,4 @@ fi
 # add the shortcuts to the path
 export PATH=$PATH:$DUCKIETOWN_ROOT/shortcuts
 
-exec "$@" #Passes arguments. Need this for ROS remote launching to work.
+# exec "$@" #Passes arguments. Need this for ROS remote launching to work.
