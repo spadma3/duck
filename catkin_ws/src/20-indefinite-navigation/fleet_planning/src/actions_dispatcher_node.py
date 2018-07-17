@@ -66,20 +66,21 @@ class ActionsDispatcherNode:
             self.active = False
 
     def cbTurnType(self, msg):
-        self.graphSearchSuccessful = False
+        if not (self.graphSearchSuccessful and self.tag_id == msg.tag_id):
+            self.graphSearchSuccessful = False
 
-        self.tag_id = msg.tag_id
-        self.turn_type = msg.turn_type
+            self.tag_id = msg.tag_id
+            self.turn_type = msg.turn_type
 
-        if self.active == True:
-            #self.update_current_node()
-            #if self.current_node != None:
-            self.current_node = self.tag_id
-            self.graph_search(self.current_node, self.target_node)
-            if self.graphSearchSuccessful == True:
-                self.dispatch_action(msg)
-        else:
-            self.pub_action.publish(msg)
+            if self.active == True:
+                #self.update_current_node()
+                #if self.current_node != None:
+                self.current_node = self.tag_id
+                self.graph_search(self.current_node, self.target_node)
+                if self.graphSearchSuccessful == True:
+                    self.dispatch_action(msg)
+            else:
+                self.pub_action.publish(msg)
 
         if self.current_node == self.target_node:
             print 'Destination reached' #TODO change state?
