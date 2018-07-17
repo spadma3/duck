@@ -178,9 +178,9 @@
         <xacro:tile rotation="0" type="empty" x="8" y="7"/>
         <xacro:tile rotation="270" type="turn" x="8" y="8"/>
         <xacro:tile rotation="90" type="turn" x="8" y="9"/>
-        <xacro:tile rotation="270" type="turn" x="8" y="10"/>
-        <xacro:tile rotation="90" type="straight" x="8" y="11"/>
-        <xacro:tile rotation="180" type="turn" x="8" y="12"/>
+        <xacro:tile rotation="0" type="empty" x="8" y="10"/>
+        <xacro:tile rotation="0" type="empty" x="8" y="11"/>
+        <xacro:tile rotation="0" type="empty" x="8" y="12"/>
         <xacro:tile rotation="0" type="empty" x="8" y="13"/>
         <xacro:tile rotation="0" type="straight" x="8" y="14"/>
         <xacro:tile rotation="0" type="empty" x="8" y="15"/>
@@ -197,11 +197,11 @@
         <xacro:tile rotation="90" type="straight" x="9" y="7"/>
         <xacro:tile rotation="90" type="turn" x="9" y="8"/>
         <xacro:tile rotation="0" type="empty" x="9" y="9"/>
-        <xacro:tile rotation="0" type="return" x="9" y="10"/>
+        <xacro:tile rotation="0" type="empty" x="9" y="10"/>
         <xacro:tile rotation="0" type="empty" x="9" y="11"/>
-        <xacro:tile rotation="0" type="turn" x="9" y="12"/>
-        <xacro:tile rotation="90" type="straight" x="9" y="13"/>
-        <xacro:tile rotation="90" type="3way" x="9" y="14"/>
+        <xacro:tile rotation="0" type="empty" x="9" y="12"/>
+        <xacro:tile rotation="0" type="empty" x="9" y="13"/>
+        <xacro:tile rotation="0" type="turn" x="9" y="14"/>
         <xacro:tile rotation="90" type="straight" x="9" y="15"/>
         <xacro:tile rotation="90" type="3way" x="9" y="16"/>
         <xacro:tile rotation="90" type="straight" x="9" y="17"/>
@@ -271,4 +271,5 @@
         <xacro:tag id="57" pos="${pos_4}" rotation="90" x="9" y="6"/>
         <xacro:tag id="65" pos="${pos_6}" rotation="180" x="10" y="6"/>
         <xacro:tag id="64" pos="${pos_0}" rotation="270" x="10" y="7"/>
+        <xacro:tag id="261" pos="${pos_0}" rotation="270" x="3" y="15"/>
     </robot>
