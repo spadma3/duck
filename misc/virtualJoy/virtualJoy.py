@@ -19,6 +19,8 @@ last_ms = 0
 
 last_ms_p = 0
 
+auto_restart = False
+
 def loop():
     global last_ms, time_to_wait, last_ms_p
     veh_standing = True
@@ -192,4 +194,4 @@ if __name__ == '__main__':
         # start the main loop
         loop()
     except socket.error:
-        os.execv('misc/virtualJoy/virtualJoy.py', [''])
+        if auto_restart: os.execv('misc/virtualJoy/virtualJoy.py', [''])
