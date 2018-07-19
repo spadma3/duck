@@ -26,9 +26,15 @@ class LEDJoyMapper(object):
             0: 'CAR_SIGNAL_A',
             # 'b' is pressed
             1: 'OFF',
+
+            2: 'ON_BLUE',
 	    #1: 'ON_RED',
             # 'Y' is pressed
-            3: 'ON_GREEN'
+            3: 'ON_GREEN',
+
+            4: 'ON_RED',
+            9: 'ON_RED',
+            10: 'CAR_SIGNAL_B'
             # 'X' is pressed
 #            4: 'ON_BLUE',
             # lb is pressed

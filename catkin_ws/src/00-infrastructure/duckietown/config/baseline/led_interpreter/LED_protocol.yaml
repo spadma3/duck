@@ -1,6 +1,6 @@
 LED_protocol:
 
-  colors: 
+  colors:
     green: [0,1,0]
     red: [1,0,0]
     blue: [0,0,1]
@@ -14,6 +14,7 @@ LED_protocol:
     f1: &f1 7.8
     f2: &f2 4
     f3: &f3 5.7
+    f4: &f4 40
 
   signals:
     CAR_SIGNAL_A:
@@ -21,7 +22,7 @@ LED_protocol:
       color: "white"
 
     CAR_SIGNAL_GREEN:
-      frequency: *f3
+      frequency: *f4
       color: "green"
 
     CAR_SIGNAL_A_OLD:

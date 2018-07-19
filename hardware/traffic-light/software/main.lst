@@ -1,0 +1,843 @@
+   1               		.file	"main.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 130               	getI2CPWMValue.part.0:
+ 131               		.stabd	46,0,0
+   1:main.c        **** /*
+   2:main.c        **** * Neopixel I2C Slave application
+   3:main.c        **** *
+   4:main.c        **** * At boot, scrolls a bright spot (init_color) along the array
+   5:main.c        **** * Will stop as soon as an i2c transaction is received
+   6:main.c        **** */
+   7:main.c        **** 
+   8:main.c        **** #include <util/delay.h>
+   9:main.c        **** #include <avr/io.h>
+  10:main.c        **** #include <avr/interrupt.h>
+  11:main.c        **** #include <avr/pgmspace.h>
+  12:main.c        **** 
+  13:main.c        **** #include<stdio.h>
+  14:main.c        **** #include<stdlib.h>
+  15:main.c        **** 
+  16:main.c        **** #include "i2c/i2c_slave_defs.h"
+  17:main.c        **** #include "i2c/i2c_machine.h"
+  18:main.c        **** #include "ws2812/light_ws2812.h"
+  19:main.c        **** 
+  20:main.c        **** #define FirstRegisterAddress 0x06 //The LED0_ON_L Register on the PCA9685 is at 0x06
+  21:main.c        **** #define BytesPerLedPwmChannel 0x04 //For each LED, 4 Byte of date are used in the PCA9685
+  22:main.c        **** 
+  23:main.c        **** #define I2C_SLAVE_LED 0
+  24:main.c        **** #define I2C_SLAVE_MOTOR 1
+  25:main.c        **** 
+  26:main.c        **** const uint8_t led_remappings[N_LEDS] = LED_REMAPS; // i2c/defined in i2c_slave_defs.h
+  27:main.c        **** 
+  28:main.c        **** volatile uint8_t I2C_SLAVE_ADDR[I2C_N_SLAVES]={0x40,0x60};
+  29:main.c        **** volatile uint8_t i2c_reg[I2C_N_SLAVES][I2C_N_REG];
+  30:main.c        **** 
+  31:main.c        **** volatile uint8_t led_data[N_LEDS*3];
+  32:main.c        **** 
+  33:main.c        **** 
+  34:main.c        **** static inline void set_leds_global(void)
+  35:main.c        **** {
+  36:main.c        ****        ws2812_setleds_constant((struct cRGB *)&REG_GLB_G, N_LEDS);
+  37:main.c        **** }
+  38:main.c        **** 
+  39:main.c        **** 
+  40:main.c        **** //calculates the PWM Value (0-255) from a PWM Channel of the PCA9685 emlulated slave
+  41:main.c        **** static inline uint8_t getI2CPWMValue(uint8_t Slave, uint8_t PWMChannel)//from 0 to 15
+ 133               	.LM0:
+ 134               	.LFBB1:
+ 135               	/* prologue: function */
+ 136               	/* frame size = 0 */
+ 137               	/* stack size = 0 */
+ 138               	.L__stack_usage = 0
+ 139               	.LBB3:
+  42:main.c        **** {
+  43:main.c        **** 	if (PWMChannel>=0 && PWMChannel<=15)
+  44:main.c        **** 	{
+  45:main.c        **** 		int RegisterStartAddress=PWMChannel*BytesPerLedPwmChannel+FirstRegisterAddress;//LEDx_ON_L is in 
+ 141               	.LM1:
+ 142 0000 262F      		mov r18,r22
+ 143 0002 30E0      		ldi r19,0
+ 144 0004 F901      		movw r30,r18
+ 145 0006 EE0F      		lsl r30
+ 146 0008 FF1F      		rol r31
+ 147 000a EE0F      		lsl r30
+ 148 000c FF1F      		rol r31
+  46:main.c        **** 		int16_t iOn=(i2c_reg[Slave][RegisterStartAddress+1]<<8) + i2c_reg[Slave][RegisterStartAddress];
+ 150               	.LM2:
+ 151 000e 90E0      		ldi r25,0
+ 152 0010 6CE4      		ldi r22,lo8(76)
+ 153 0012 70E0      		ldi r23,0
+ 154 0014 00D0      		rcall __mulhi3
+ 155 0016 9C01      		movw r18,r24
+ 156 0018 DF01      		movw r26,r30
+ 157 001a A80F      		add r26,r24
+ 158 001c B91F      		adc r27,r25
+ 159 001e A050      		subi r26,lo8(-(i2c_reg+7))
+ 160 0020 B040      		sbci r27,hi8(-(i2c_reg+7))
+ 161 0022 4C91      		ld r20,X
+ 162 0024 DF01      		movw r26,r30
+ 163 0026 A80F      		add r26,r24
+ 164 0028 B91F      		adc r27,r25
+ 165 002a A050      		subi r26,lo8(-(i2c_reg+6))
+ 166 002c B040      		sbci r27,hi8(-(i2c_reg+6))
+ 167 002e 5C91      		ld r21,X
+  47:main.c        **** 		int16_t iOff=(i2c_reg[Slave][RegisterStartAddress+3]<<8) + i2c_reg[Slave][RegisterStartAddress+2]
+ 169               	.LM3:
+ 170 0030 DF01      		movw r26,r30
+ 171 0032 A80F      		add r26,r24
+ 172 0034 B91F      		adc r27,r25
+ 173 0036 A050      		subi r26,lo8(-(i2c_reg+9))
+ 174 0038 B040      		sbci r27,hi8(-(i2c_reg+9))
+ 175 003a 9C91      		ld r25,X
+ 176 003c 2E0F      		add r18,r30
+ 177 003e 3F1F      		adc r19,r31
+ 178 0040 F901      		movw r30,r18
+ 179 0042 E050      		subi r30,lo8(-(i2c_reg+8))
+ 180 0044 F040      		sbci r31,hi8(-(i2c_reg+8))
+ 181 0046 2081      		ld r18,Z
+ 182 0048 892F      		mov r24,r25
+ 183 004a 90E0      		ldi r25,0
+ 184 004c 982F      		mov r25,r24
+ 185 004e 8827      		clr r24
+ 186 0050 820F      		add r24,r18
+ 187 0052 911D      		adc r25,__zero_reg__
+  46:main.c        **** 		int16_t iOn=(i2c_reg[Slave][RegisterStartAddress+1]<<8) + i2c_reg[Slave][RegisterStartAddress];
+ 189               	.LM4:
+ 190 0054 242F      		mov r18,r20
+ 191 0056 30E0      		ldi r19,0
+ 192 0058 322F      		mov r19,r18
+ 193 005a 2227      		clr r18
+ 194 005c 250F      		add r18,r21
+ 195 005e 311D      		adc r19,__zero_reg__
+  48:main.c        **** 		int16_t iOnTime=iOff-iOn;//can be from -4095 to +4095
+ 197               	.LM5:
+ 198 0060 821B      		sub r24,r18
+ 199 0062 930B      		sbc r25,r19
+  49:main.c        **** 		if (iOnTime<0)
+ 201               	.LM6:
+ 202 0064 97FF      		sbrs r25,7
+ 203 0066 00C0      		rjmp .L2
+  50:main.c        **** 		{
+  51:main.c        **** 			iOnTime=iOnTime+4096; //is now from 0 to +4095
+ 205               	.LM7:
+ 206 0068 905F      		subi r25,-16
+ 207 006a 00C0      		rjmp .L4
+ 208               	.L2:
+  52:main.c        **** 		}
+  53:main.c        **** 		if (iOnTime>4095)
+ 210               	.LM8:
+ 211 006c 8115      		cp r24,__zero_reg__
+ 212 006e 20E1      		ldi r18,16
+ 213 0070 9207      		cpc r25,r18
+ 214 0072 04F0      		brlt .L4
+  54:main.c        **** 		{
+  55:main.c        **** 			iOnTime=4095;
+ 216               	.LM9:
+ 217 0074 8FEF      		ldi r24,lo8(-1)
+ 218 0076 9FE0      		ldi r25,lo8(15)
+ 219               	.L4:
+  56:main.c        **** 		}
+  57:main.c        **** 		uint8_t ret = (iOnTime>>4); //is now from 0 to 255
+ 221               	.LM10:
+ 222 0078 24E0      		ldi r18,4
+ 223               		1:
+ 224 007a 9595      		asr r25
+ 225 007c 8795      		ror r24
+ 226 007e 2A95      		dec r18
+ 227 0080 01F4      		brne 1b
+ 228               	.LBE3:
+  58:main.c        **** 		return  ret;
+  59:main.c        **** 	}
+  60:main.c        **** 	else
+  61:main.c        **** 	{
+  62:main.c        **** 		return 0;
+  63:main.c        **** 	}
+  64:main.c        **** }
+ 230               	.LM11:
+ 231 0082 0895      		ret
+ 236               	.Lscope1:
+ 238               		.stabd	78,0,0
+ 240               	.global	TIM0_ReadTCNT0
+ 242               	TIM0_ReadTCNT0:
+ 243               		.stabd	46,0,0
+  65:main.c        **** 
+  66:main.c        **** //Calculates all values for the led's and send values
+  67:main.c        **** static inline void update_led_values(void)
+  68:main.c        **** {
+  69:main.c        **** 	uint8_t i=0;
+  70:main.c        **** 	for (i=0;i<N_LEDS;i++)
+  71:main.c        **** 	{
+  72:main.c        ****     // Remap from old to new convention (due to new wiring scheme)
+  73:main.c        ****     uint8_t j = led_remappings[i];
+  74:main.c        **** 
+  75:main.c        **** 		//the analog led were common anonde led. this means, that the negative pad was switched. at a val
+  76:main.c        **** 		//analog LED channel were as follows: R, G, B
+  77:main.c        **** 		//addressable LED channel are as follows: G, R, B
+  78:main.c        **** 
+  79:main.c        **** 		//led_data[3*i+0]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+  80:main.c        **** 		//led_data[3*i+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+0);
+  81:main.c        **** 		//led_data[3*i+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+  82:main.c        ****     // I guess that was wrong, they are mapped R, G, B as well:
+  83:main.c        ****     led_data[3*j+0]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+0);
+  84:main.c        **** 		led_data[3*j+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+  85:main.c        **** 		led_data[3*j+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+  86:main.c        **** 	}
+  87:main.c        **** 	//send led values
+  88:main.c        **** 	ws2812_sendarray((uint8_t *)led_data, N_LEDS * 3);
+  89:main.c        **** }
+  90:main.c        **** 
+  91:main.c        **** 
+  92:main.c        **** 
+  93:main.c        **** //Channel Description Motor
+  94:main.c        **** //PWM8	PWMA	OC1B/PB3
+  95:main.c        **** //PWM9	AIN2	PA4
+  96:main.c        **** //PWM10	AIN1	PA3
+  97:main.c        **** //PWM11	BIN1	PB4
+  98:main.c        **** //PWM12	BIN2	PB6
+  99:main.c        **** //PWM13 PWMB	OC1D/PB5
+ 100:main.c        **** 
+ 101:main.c        **** #define I2CPWMCH_PWMA 8
+ 102:main.c        **** #define I2CPWMCH_AIN2 9
+ 103:main.c        **** #define I2CPWMCH_AIN1 10
+ 104:main.c        **** #define I2CPWMCH_BIN1 11
+ 105:main.c        **** #define I2CPWMCH_BIN2 12
+ 106:main.c        **** #define I2CPWMCH_PWMB 13
+ 107:main.c        **** 
+ 108:main.c        **** #define PORT_PWMA PORTB
+ 109:main.c        **** #define PORT_AIN2 PORTA
+ 110:main.c        **** #define PORT_AIN1 PORTA
+ 111:main.c        **** #define PORT_BIN1 PORTB
+ 112:main.c        **** #define PORT_BIN2 PORTB
+ 113:main.c        **** #define PORT_PWMB PORTB
+ 114:main.c        **** 
+ 115:main.c        **** #define DDR_PWMA DDRB
+ 116:main.c        **** #define DDR_AIN2 DDRA
+ 117:main.c        **** #define DDR_AIN1 DDRA
+ 118:main.c        **** #define DDR_BIN1 DDRB
+ 119:main.c        **** #define DDR_BIN2 DDRB
+ 120:main.c        **** #define DDR_PWMB DDRB
+ 121:main.c        **** 
+ 122:main.c        **** #define PORTINDEX_PWMA 3
+ 123:main.c        **** #define PORTINDEX_AIN2 4
+ 124:main.c        **** #define PORTINDEX_AIN1 3
+ 125:main.c        **** #define PORTINDEX_BIN1 4
+ 126:main.c        **** #define PORTINDEX_BIN2 6
+ 127:main.c        **** #define PORTINDEX_PWMB 5
+ 128:main.c        **** 
+ 129:main.c        **** #define PWMOutput_PWMA OCR1B
+ 130:main.c        **** #define PWMOutput_PWMB OCR1D
+ 131:main.c        **** 
+ 132:main.c        **** static inline void update_motor_values(void)
+ 133:main.c        **** {
+ 134:main.c        **** 	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_AIN1)>=128)
+ 135:main.c        **** 	{
+ 136:main.c        **** 		PORT_AIN1 |= (1<<PORTINDEX_AIN1);//set output
+ 137:main.c        **** 	}
+ 138:main.c        **** 	else
+ 139:main.c        **** 	{
+ 140:main.c        **** 		PORT_AIN1 &= ~(1<<PORTINDEX_AIN1);//reset output
+ 141:main.c        **** 	}
+ 142:main.c        **** 
+ 143:main.c        **** 	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_AIN2)>=128)
+ 144:main.c        **** 	{
+ 145:main.c        **** 		PORT_AIN2 |= (1<<PORTINDEX_AIN2);//set output
+ 146:main.c        **** 	}
+ 147:main.c        **** 	else
+ 148:main.c        **** 	{
+ 149:main.c        **** 		PORT_AIN2 &= ~(1<<PORTINDEX_AIN2);//reset output
+ 150:main.c        **** 	}
+ 151:main.c        **** 
+ 152:main.c        **** 	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_BIN1)>=128)
+ 153:main.c        **** 	{
+ 154:main.c        **** 		PORT_BIN1 |= (1<<PORTINDEX_BIN1);//set output
+ 155:main.c        **** 	}
+ 156:main.c        **** 	else
+ 157:main.c        **** 	{
+ 158:main.c        **** 		PORT_BIN1 &= ~(1<<PORTINDEX_BIN1);//reset output
+ 159:main.c        **** 	}
+ 160:main.c        **** 
+ 161:main.c        **** 	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_BIN2)>=128)
+ 162:main.c        **** 	{
+ 163:main.c        **** 		PORT_BIN2 |= (1<<PORTINDEX_BIN2);//set output
+ 164:main.c        **** 	}
+ 165:main.c        **** 	else
+ 166:main.c        **** 	{
+ 167:main.c        **** 		PORT_BIN2 &= ~(1<<PORTINDEX_BIN2);//reset output
+ 168:main.c        **** 	}
+ 169:main.c        **** 
+ 170:main.c        **** 	//set PWM Values
+ 171:main.c        **** 	PWMOutput_PWMA=getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_PWMA);
+ 172:main.c        **** 	PWMOutput_PWMB=getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_PWMB);
+ 173:main.c        **** 
+ 174:main.c        **** }
+ 175:main.c        **** 
+ 176:main.c        **** 
+ 177:main.c        **** static inline void init_motor_outputs(void)
+ 178:main.c        **** {
+ 179:main.c        **** 	//Configure Data Direction of Output Port to output
+ 180:main.c        **** 	DDR_PWMA |= (1<<PORTINDEX_PWMA);
+ 181:main.c        **** 	DDR_AIN2 |= (1<<PORTINDEX_AIN2);
+ 182:main.c        **** 	DDR_AIN1 |= (1<<PORTINDEX_AIN1);
+ 183:main.c        **** 	DDR_BIN1 |= (1<<PORTINDEX_BIN1);
+ 184:main.c        **** 	DDR_BIN2 |= (1<<PORTINDEX_BIN2);
+ 185:main.c        **** 	DDR_PWMB |= (1<<PORTINDEX_PWMB);
+ 186:main.c        **** 
+ 187:main.c        **** 
+ 188:main.c        **** 	//PWM Configuration
+ 189:main.c        **** 
+ 190:main.c        **** 	//set Fast PWM Mode
+ 191:main.c        **** 	TCCR1D &= ~(1<<WGM10);
+ 192:main.c        **** 	TCCR1D &= ~(1<<WGM11);
+ 193:main.c        **** 
+ 194:main.c        **** 	//Activate Pulse With Modulator B
+ 195:main.c        **** 	TCCR1A |= (1<<PWM1B);
+ 196:main.c        **** 
+ 197:main.c        **** 	//OCW1A Behavior: Clear on CompareMatch, Set when TCNT1=0x000, Connect just OC1B
+ 198:main.c        **** 	TCCR1A |= (1<<COM1B1);
+ 199:main.c        **** 	TCCR1A &= ~(1<<COM1B0);
+ 200:main.c        **** 
+ 201:main.c        **** 	//Activate Pulse With Modulator D
+ 202:main.c        **** 	TCCR1C |= (1<<PWM1D);
+ 203:main.c        **** 
+ 204:main.c        **** 	//OCW1A Behavior: Clear on CompareMatch, Set when TCNT1=0x000, Connect just OC1D
+ 205:main.c        **** 	TCCR1C |= (1<<COM1D1);
+ 206:main.c        **** 	TCCR1C &= ~(1<<COM1D0);
+ 207:main.c        **** 
+ 208:main.c        **** 	//Set the prescaler to 1/16(0101b)--> 8Mhz System Clock --> 500kHz Counter Clock --> 0-255 Countin
+ 209:main.c        **** 	TCCR1B |= (1<<CS10); //Warning: This Counter is also used for calculating the time for updating th
+ 210:main.c        **** 	TCCR1B &= ~(1<<CS11);
+ 211:main.c        **** 	TCCR1B |= (1<<CS12);
+ 212:main.c        **** 	TCCR1B &= ~(1<<CS13);
+ 213:main.c        **** 
+ 214:main.c        **** 	//Set PWM Counter Top Value to 255
+ 215:main.c        **** 	OCR1C  =0xFF;
+ 216:main.c        **** }
+ 217:main.c        **** 
+ 218:main.c        **** static inline void TIM0_Init(void)
+ 219:main.c        **** {
+ 220:main.c        **** 	//Set Conter0 to 16Bit Mode, disable InputCapture
+ 221:main.c        **** 	TCCR0A = 0b10000000;
+ 222:main.c        **** 
+ 223:main.c        **** 	//Set internal Clock and Prescaler to 256 --> 8MHz/256=31.25kHz --> Overflow 31.25kHz/65536 = ever
+ 224:main.c        **** 	TCCR0B = 0b100;
+ 225:main.c        **** }
+ 226:main.c        **** 
+ 227:main.c        **** uint16_t TIM0_ReadTCNT0(void)
+ 228:main.c        **** {
+ 245               	.LM12:
+ 246               	.LFBB2:
+ 247               	/* prologue: function */
+ 248               	/* frame size = 0 */
+ 249               	/* stack size = 0 */
+ 250               	.L__stack_usage = 0
+ 229:main.c        **** 	unsigned char sreg;
+ 230:main.c        **** 	uint16_t i;
+ 231:main.c        **** 	/* Save global interrupt flag */
+ 232:main.c        **** 	sreg = SREG;
+ 252               	.LM13:
+ 253 0084 9FB7      		in r25,__SREG__
+ 233:main.c        **** 	/* Disable interrupts */
+ 234:main.c        **** 	cli();
+ 255               	.LM14:
+ 256               	/* #APP */
+ 257               	 ;  234 "main.c" 1
+ 258 0086 F894      		cli
+ 259               	 ;  0 "" 2
+ 235:main.c        **** 	/* Read TCNT0 into i */
+ 236:main.c        **** 	i = TCNT0L;
+ 261               	.LM15:
+ 262               	/* #NOAPP */
+ 263 0088 82B7      		in r24,0x32
+ 237:main.c        **** 	i |= ((unsigned int)TCNT0H << 8);
+ 265               	.LM16:
+ 266 008a 24B3      		in r18,0x14
+ 238:main.c        **** 	/* Restore global interrupt flag */
+ 239:main.c        **** 	SREG = sreg;
+ 268               	.LM17:
+ 269 008c 9FBF      		out __SREG__,r25
+ 237:main.c        **** 	i |= ((unsigned int)TCNT0H << 8);
+ 271               	.LM18:
+ 272 008e 90E0      		ldi r25,0
+ 240:main.c        **** 	return i;
+ 241:main.c        **** }
+ 274               	.LM19:
+ 275 0090 922B      		or r25,r18
+ 276 0092 0895      		ret
+ 281               	.Lscope2:
+ 283               		.stabd	78,0,0
+ 284               		.section	.text.startup,"ax",@progbits
+ 286               	.global	main
+ 288               	main:
+ 289               		.stabd	46,0,0
+ 242:main.c        **** 
+ 243:main.c        **** 
+ 244:main.c        **** 
+ 245:main.c        **** int main(void)
+ 246:main.c        **** {
+ 291               	.LM20:
+ 292               	.LFBB3:
+ 293               	/* prologue: function */
+ 294               	/* frame size = 0 */
+ 295               	/* stack size = 0 */
+ 296               	.L__stack_usage = 0
+ 247:main.c        **** 	//if PERIODIC_LED_UPDATE is defined, the values of the leds are sent periodically. If new values a
+ 248:main.c        **** 	//if you like to update the LED each time, one single value is changed over i2c and only then, com
+ 249:main.c        **** 	//Warning: This could cause problems because much CPU time is used to update the led's and this co
+ 250:main.c        **** 	#define PERIODIC_LED_UPDATE
+ 251:main.c        **** 
+ 252:main.c        **** 	const uint16_t MinCyclesBetweenLEDUpdate=31;//min is 50us!, good is 1000us-->1kHz --> 6 Cykles
+ 253:main.c        **** 	const uint16_t MaxCyclesBetweenLEDUpdate=15625;//Min. Updaterate = 2Hz -->15625 Cykles
+ 254:main.c        **** 
+ 255:main.c        **** 	static uint8_t LedDataSendRequest=0;	//1= new data can be transfered, 0=no new data
+ 256:main.c        **** 	static uint16_t LedDataLastSend=0;		//Counter value of last data transfer end
+ 257:main.c        **** 	static uint16_t ActualDelay;			//Cycles since last update
+ 258:main.c        **** 
+ 259:main.c        **** 
+ 260:main.c        **** 
+ 261:main.c        **** 	//enable second USI Port (PA0:2)
+ 262:main.c        **** 	USIPP=0x01;
+ 298               	.LM21:
+ 299 0000 81E0      		ldi r24,lo8(1)
+ 300 0002 81BB      		out 0x11,r24
+ 263:main.c        **** 	i2c_init();
+ 302               	.LM22:
+ 303 0004 00D0      		rcall i2c_init
+ 304               	.LBB31:
+ 305               	.LBB32:
+ 180:main.c        **** 	DDR_AIN2 |= (1<<PORTINDEX_AIN2);
+ 307               	.LM23:
+ 308 0006 BB9A      		sbi 0x17,3
+ 181:main.c        **** 	DDR_AIN1 |= (1<<PORTINDEX_AIN1);
+ 310               	.LM24:
+ 311 0008 D49A      		sbi 0x1a,4
+ 182:main.c        **** 	DDR_BIN1 |= (1<<PORTINDEX_BIN1);
+ 313               	.LM25:
+ 314 000a D39A      		sbi 0x1a,3
+ 183:main.c        **** 	DDR_BIN2 |= (1<<PORTINDEX_BIN2);
+ 316               	.LM26:
+ 317 000c BC9A      		sbi 0x17,4
+ 184:main.c        **** 	DDR_PWMB |= (1<<PORTINDEX_PWMB);
+ 319               	.LM27:
+ 320 000e BE9A      		sbi 0x17,6
+ 185:main.c        **** 
+ 322               	.LM28:
+ 323 0010 BD9A      		sbi 0x17,5
+ 191:main.c        **** 	TCCR1D &= ~(1<<WGM11);
+ 325               	.LM29:
+ 326 0012 86B5      		in r24,0x26
+ 327 0014 8E7F      		andi r24,lo8(-2)
+ 328 0016 86BD      		out 0x26,r24
+ 192:main.c        **** 
+ 330               	.LM30:
+ 331 0018 86B5      		in r24,0x26
+ 332 001a 8D7F      		andi r24,lo8(-3)
+ 333 001c 86BD      		out 0x26,r24
+ 195:main.c        **** 
+ 335               	.LM31:
+ 336 001e 80B7      		in r24,0x30
+ 337 0020 8160      		ori r24,lo8(1)
+ 338 0022 80BF      		out 0x30,r24
+ 198:main.c        **** 	TCCR1A &= ~(1<<COM1B0);
+ 340               	.LM32:
+ 341 0024 80B7      		in r24,0x30
+ 342 0026 8062      		ori r24,lo8(32)
+ 343 0028 80BF      		out 0x30,r24
+ 199:main.c        **** 
+ 345               	.LM33:
+ 346 002a 80B7      		in r24,0x30
+ 347 002c 8F7E      		andi r24,lo8(-17)
+ 348 002e 80BF      		out 0x30,r24
+ 202:main.c        **** 
+ 350               	.LM34:
+ 351 0030 87B5      		in r24,0x27
+ 352 0032 8160      		ori r24,lo8(1)
+ 353 0034 87BD      		out 0x27,r24
+ 205:main.c        **** 	TCCR1C &= ~(1<<COM1D0);
+ 355               	.LM35:
+ 356 0036 87B5      		in r24,0x27
+ 357 0038 8860      		ori r24,lo8(8)
+ 358 003a 87BD      		out 0x27,r24
+ 206:main.c        **** 
+ 360               	.LM36:
+ 361 003c 87B5      		in r24,0x27
+ 362 003e 8B7F      		andi r24,lo8(-5)
+ 363 0040 87BD      		out 0x27,r24
+ 209:main.c        **** 	TCCR1B &= ~(1<<CS11);
+ 365               	.LM37:
+ 366 0042 8FB5      		in r24,0x2f
+ 367 0044 8160      		ori r24,lo8(1)
+ 368 0046 8FBD      		out 0x2f,r24
+ 210:main.c        **** 	TCCR1B |= (1<<CS12);
+ 370               	.LM38:
+ 371 0048 8FB5      		in r24,0x2f
+ 372 004a 8D7F      		andi r24,lo8(-3)
+ 373 004c 8FBD      		out 0x2f,r24
+ 211:main.c        **** 	TCCR1B &= ~(1<<CS13);
+ 375               	.LM39:
+ 376 004e 8FB5      		in r24,0x2f
+ 377 0050 8460      		ori r24,lo8(4)
+ 378 0052 8FBD      		out 0x2f,r24
+ 212:main.c        **** 
+ 380               	.LM40:
+ 381 0054 8FB5      		in r24,0x2f
+ 382 0056 877F      		andi r24,lo8(-9)
+ 383 0058 8FBD      		out 0x2f,r24
+ 215:main.c        **** }
+ 385               	.LM41:
+ 386 005a 8FEF      		ldi r24,lo8(-1)
+ 387 005c 8BBD      		out 0x2b,r24
+ 388               	.LBE32:
+ 389               	.LBE31:
+ 390               	.LBB33:
+ 391               	.LBB34:
+ 221:main.c        **** 
+ 393               	.LM42:
+ 394 005e 80E8      		ldi r24,lo8(-128)
+ 395 0060 85BB      		out 0x15,r24
+ 224:main.c        **** }
+ 397               	.LM43:
+ 398 0062 84E0      		ldi r24,lo8(4)
+ 399 0064 83BF      		out 0x33,r24
+ 400               	.LBE34:
+ 401               	.LBE33:
+ 264:main.c        **** 
+ 265:main.c        **** 	//init motor outputs
+ 266:main.c        **** 	init_motor_outputs();
+ 267:main.c        **** 
+ 268:main.c        **** 	//init Timer0
+ 269:main.c        **** 	TIM0_Init();
+ 270:main.c        **** 
+ 271:main.c        **** 	//enable interrupts
+ 272:main.c        **** 	sei();
+ 403               	.LM44:
+ 404               	/* #APP */
+ 405               	 ;  272 "main.c" 1
+ 406 0066 7894      		sei
+ 407               	 ;  0 "" 2
+ 273:main.c        **** 	while(1)
+ 274:main.c        **** 	{
+ 275:main.c        **** 
+ 276:main.c        **** 		//check if master has written new LED data, if yes, update leds
+ 277:main.c        **** 		if (i2c_check_stop(I2C_SLAVE_LED))
+ 278:main.c        **** 		{
+ 279:main.c        **** 			#ifdef PERIODIC_LED_UPDATE
+ 280:main.c        **** 				LedDataSendRequest=1;
+ 409               	.LM45:
+ 410               	/* #NOAPP */
+ 411 0068 01E0      		ldi r16,lo8(1)
+ 412               	.L9:
+ 277:main.c        **** 		{
+ 414               	.LM46:
+ 415 006a 80E0      		ldi r24,0
+ 416 006c 00D0      		rcall i2c_check_stop
+ 417 006e 8111      		cpse r24,__zero_reg__
+ 419               	.LM47:
+ 420 0070 0093 0000 		sts LedDataSendRequest.2157,r16
+ 421               	.L10:
+ 281:main.c        **** 			#else
+ 282:main.c        **** 				update_led_values();
+ 283:main.c        **** 			#endif
+ 284:main.c        **** 		}
+ 285:main.c        **** 		//check if master has written new Motor data, if yes, update motor valued
+ 286:main.c        **** 		if (i2c_check_stop(I2C_SLAVE_MOTOR))
+ 423               	.LM48:
+ 424 0074 81E0      		ldi r24,lo8(1)
+ 425 0076 00D0      		rcall i2c_check_stop
+ 426 0078 8823      		tst r24
+ 427 007a 01F0      		breq .L11
+ 428               	.LBB35:
+ 429               	.LBB36:
+ 430               	.LBB37:
+ 431               	.LBB38:
+ 432 007c 6AE0      		ldi r22,lo8(10)
+ 433 007e 81E0      		ldi r24,lo8(1)
+ 434 0080 00D0      		rcall getI2CPWMValue.part.0
+ 435               	.LBE38:
+ 436               	.LBE37:
+ 134:main.c        **** 	{
+ 438               	.LM49:
+ 439 0082 87FF      		sbrs r24,7
+ 440 0084 00C0      		rjmp .L12
+ 136:main.c        **** 	}
+ 442               	.LM50:
+ 443 0086 DB9A      		sbi 0x1b,3
+ 444 0088 00C0      		rjmp .L13
+ 445               	.L12:
+ 140:main.c        **** 	}
+ 447               	.LM51:
+ 448 008a DB98      		cbi 0x1b,3
+ 449               	.L13:
+ 450               	.LBB39:
+ 451               	.LBB40:
+ 452 008c 69E0      		ldi r22,lo8(9)
+ 453 008e 81E0      		ldi r24,lo8(1)
+ 454 0090 00D0      		rcall getI2CPWMValue.part.0
+ 455               	.LBE40:
+ 456               	.LBE39:
+ 143:main.c        **** 	{
+ 458               	.LM52:
+ 459 0092 87FF      		sbrs r24,7
+ 460 0094 00C0      		rjmp .L14
+ 145:main.c        **** 	}
+ 462               	.LM53:
+ 463 0096 DC9A      		sbi 0x1b,4
+ 464 0098 00C0      		rjmp .L15
+ 465               	.L14:
+ 149:main.c        **** 	}
+ 467               	.LM54:
+ 468 009a DC98      		cbi 0x1b,4
+ 469               	.L15:
+ 470               	.LBB41:
+ 471               	.LBB42:
+ 472 009c 6BE0      		ldi r22,lo8(11)
+ 473 009e 81E0      		ldi r24,lo8(1)
+ 474 00a0 00D0      		rcall getI2CPWMValue.part.0
+ 475               	.LBE42:
+ 476               	.LBE41:
+ 152:main.c        **** 	{
+ 478               	.LM55:
+ 479 00a2 87FF      		sbrs r24,7
+ 480 00a4 00C0      		rjmp .L16
+ 154:main.c        **** 	}
+ 482               	.LM56:
+ 483 00a6 C49A      		sbi 0x18,4
+ 484 00a8 00C0      		rjmp .L17
+ 485               	.L16:
+ 158:main.c        **** 	}
+ 487               	.LM57:
+ 488 00aa C498      		cbi 0x18,4
+ 489               	.L17:
+ 490               	.LBB43:
+ 491               	.LBB44:
+ 492 00ac 6CE0      		ldi r22,lo8(12)
+ 493 00ae 81E0      		ldi r24,lo8(1)
+ 494 00b0 00D0      		rcall getI2CPWMValue.part.0
+ 495               	.LBE44:
+ 496               	.LBE43:
+ 161:main.c        **** 	{
+ 498               	.LM58:
+ 499 00b2 87FF      		sbrs r24,7
+ 500 00b4 00C0      		rjmp .L18
+ 163:main.c        **** 	}
+ 502               	.LM59:
+ 503 00b6 C69A      		sbi 0x18,6
+ 504 00b8 00C0      		rjmp .L19
+ 505               	.L18:
+ 167:main.c        **** 	}
+ 507               	.LM60:
+ 508 00ba C698      		cbi 0x18,6
+ 509               	.L19:
+ 510               	.LBB45:
+ 511               	.LBB46:
+ 512 00bc 68E0      		ldi r22,lo8(8)
+ 513 00be 81E0      		ldi r24,lo8(1)
+ 514 00c0 00D0      		rcall getI2CPWMValue.part.0
+ 515               	.LBE46:
+ 516               	.LBE45:
+ 171:main.c        **** 	PWMOutput_PWMB=getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_PWMB);
+ 518               	.LM61:
+ 519 00c2 8CBD      		out 0x2c,r24
+ 520               	.LBB47:
+ 521               	.LBB48:
+ 522 00c4 6DE0      		ldi r22,lo8(13)
+ 523 00c6 81E0      		ldi r24,lo8(1)
+ 524 00c8 00D0      		rcall getI2CPWMValue.part.0
+ 525               	.LBE48:
+ 526               	.LBE47:
+ 172:main.c        **** 
+ 528               	.LM62:
+ 529 00ca 8ABD      		out 0x2a,r24
+ 530               	.L11:
+ 531               	.LBE36:
+ 532               	.LBE35:
+ 287:main.c        **** 		{
+ 288:main.c        **** 			update_motor_values();
+ 289:main.c        **** 		}
+ 290:main.c        **** 
+ 291:main.c        **** 		//Calculate Cycles since last sending
+ 292:main.c        **** 		ActualDelay=TIM0_ReadTCNT0()-LedDataLastSend;
+ 534               	.LM63:
+ 535 00cc 00D0      		rcall TIM0_ReadTCNT0
+ 536 00ce 2091 0000 		lds r18,LedDataLastSend.2158
+ 537 00d2 3091 0000 		lds r19,LedDataLastSend.2158+1
+ 538 00d6 821B      		sub r24,r18
+ 539 00d8 930B      		sbc r25,r19
+ 540 00da 9093 0000 		sts ActualDelay.2159+1,r25
+ 541 00de 8093 0000 		sts ActualDelay.2159,r24
+ 293:main.c        **** 
+ 294:main.c        **** 		#ifdef PERIODIC_LED_UPDATE
+ 295:main.c        **** 			//update if minimal time reached and update request or if maximal time reached
+ 296:main.c        **** 			//minimal time reached and
+ 297:main.c        **** 			if((ActualDelay>MinCyclesBetweenLEDUpdate && LedDataSendRequest==1) || (ActualDelay>MaxCyclesBet
+ 543               	.LM64:
+ 544 00e2 8032      		cpi r24,32
+ 545 00e4 9105      		cpc r25,__zero_reg__
+ 546 00e6 00F4      		brsh .+2
+ 547 00e8 00C0      		rjmp .L9
+ 549               	.LM65:
+ 550 00ea 2091 0000 		lds r18,LedDataSendRequest.2157
+ 551 00ee 2130      		cpi r18,lo8(1)
+ 552 00f0 01F0      		breq .L21
+ 554               	.LM66:
+ 555 00f2 8A30      		cpi r24,10
+ 556 00f4 9D43      		sbci r25,61
+ 557 00f6 00F4      		brsh .+2
+ 558 00f8 00C0      		rjmp .L9
+ 559               	.L21:
+ 298:main.c        **** 			{
+ 299:main.c        **** 				//clear send request
+ 300:main.c        **** 				LedDataSendRequest=0;
+ 561               	.LM67:
+ 562 00fa 1092 0000 		sts LedDataSendRequest.2157,__zero_reg__
+ 563 00fe 80E0      		ldi r24,lo8(led_remappings)
+ 564 0100 C82E      		mov r12,r24
+ 565 0102 80E0      		ldi r24,hi8(led_remappings)
+ 566 0104 D82E      		mov r13,r24
+ 567 0106 10E0      		ldi r17,0
+ 568               	.L22:
+ 569               	.LBB49:
+ 570               	.LBB50:
+ 571               	.LBB51:
+  73:main.c        **** 
+ 573               	.LM68:
+ 574 0108 F601      		movw r30,r12
+ 575 010a 8191      		ld r24,Z+
+ 576 010c 6F01      		movw r12,r30
+  83:main.c        **** 		led_data[3*j+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+ 578               	.LM69:
+ 579 010e 90E0      		ldi r25,0
+ 580 0110 63E0      		ldi r22,lo8(3)
+ 581 0112 70E0      		ldi r23,0
+ 582 0114 00D0      		rcall __mulhi3
+ 583 0116 EC01      		movw r28,r24
+ 584               	.LBB52:
+ 585               	.LBB53:
+ 586 0118 612F      		mov r22,r17
+ 587 011a 80E0      		ldi r24,0
+ 588 011c 00D0      		rcall getI2CPWMValue.part.0
+ 589               	.LBE53:
+ 590               	.LBE52:
+ 591 011e 8095      		com r24
+ 592 0120 FE01      		movw r30,r28
+ 593 0122 E050      		subi r30,lo8(-(led_data))
+ 594 0124 F040      		sbci r31,hi8(-(led_data))
+ 595 0126 8083      		st Z,r24
+  84:main.c        **** 		led_data[3*j+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+ 597               	.LM70:
+ 598 0128 7E01      		movw r14,r28
+ 599 012a FFEF      		ldi r31,-1
+ 600 012c EF1A      		sub r14,r31
+ 601 012e FF0A      		sbc r15,r31
+ 602 0130 61E0      		ldi r22,lo8(1)
+ 603 0132 610F      		add r22,r17
+ 604               	.LBB54:
+ 605               	.LBB55:
+ 606 0134 80E0      		ldi r24,0
+ 607 0136 00D0      		rcall getI2CPWMValue.part.0
+ 608               	.LBE55:
+ 609               	.LBE54:
+ 610 0138 8095      		com r24
+ 611 013a F701      		movw r30,r14
+ 612 013c E050      		subi r30,lo8(-(led_data))
+ 613 013e F040      		sbci r31,hi8(-(led_data))
+ 614 0140 8083      		st Z,r24
+  85:main.c        **** 	}
+ 616               	.LM71:
+ 617 0142 2296      		adiw r28,2
+ 618 0144 62E0      		ldi r22,lo8(2)
+ 619 0146 610F      		add r22,r17
+ 620               	.LBB56:
+ 621               	.LBB57:
+ 622 0148 80E0      		ldi r24,0
+ 623 014a 00D0      		rcall getI2CPWMValue.part.0
+ 624               	.LBE57:
+ 625               	.LBE56:
+ 626 014c 8095      		com r24
+ 627 014e C050      		subi r28,lo8(-(led_data))
+ 628 0150 D040      		sbci r29,hi8(-(led_data))
+ 629 0152 8883      		st Y,r24
+ 630 0154 1D5F      		subi r17,lo8(-(3))
+ 631               	.LBE51:
+  70:main.c        **** 	{
+ 633               	.LM72:
+ 634 0156 1F30      		cpi r17,lo8(15)
+ 635 0158 01F4      		brne .L22
+  88:main.c        **** }
+ 637               	.LM73:
+ 638 015a 6FE0      		ldi r22,lo8(15)
+ 639 015c 70E0      		ldi r23,0
+ 640 015e 80E0      		ldi r24,lo8(led_data)
+ 641 0160 90E0      		ldi r25,hi8(led_data)
+ 642 0162 00D0      		rcall ws2812_sendarray
+ 643               	.LBE50:
+ 644               	.LBE49:
+ 301:main.c        **** 
+ 302:main.c        **** 				//update led
+ 303:main.c        **** 				update_led_values();
+ 304:main.c        **** 
+ 305:main.c        **** 				//save current time
+ 306:main.c        **** 				LedDataLastSend=TIM0_ReadTCNT0();
+ 646               	.LM74:
+ 647 0164 00D0      		rcall TIM0_ReadTCNT0
+ 648 0166 9093 0000 		sts LedDataLastSend.2158+1,r25
+ 649 016a 8093 0000 		sts LedDataLastSend.2158,r24
+ 650 016e 00C0      		rjmp .L9
+ 660               	.Lscope3:
+ 662               		.stabd	78,0,0
+ 663               		.local	ActualDelay.2159
+ 664               		.comm	ActualDelay.2159,2,1
+ 665               		.local	LedDataLastSend.2158
+ 666               		.comm	LedDataLastSend.2158,2,1
+ 667               		.local	LedDataSendRequest.2157
+ 668               		.comm	LedDataSendRequest.2157,1,1
+ 669               		.comm	led_data,15,1
+ 670               		.comm	i2c_reg,152,1
+ 671               	.global	I2C_SLAVE_ADDR
+ 672               		.data
+ 675               	I2C_SLAVE_ADDR:
+ 676 0000 40        		.byte	64
+ 677 0001 60        		.byte	96
+ 678               	.global	led_remappings
+ 679               		.section	.rodata
+ 682               	led_remappings:
+ 683 0000 00        		.byte	0
+ 684 0001 04        		.byte	4
+ 685 0002 01        		.byte	1
+ 686 0003 03        		.byte	3
+ 687 0004 02        		.byte	2
+ 692               		.text
+ 694               	.Letext0:
+ 695               		.ident	"GCC: (GNU) 4.9.2"
+ 696               	.global __do_copy_data
+ 697               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+     /tmp/cca7WYmO.s:2      *ABS*:0000003e __SP_H__
+     /tmp/cca7WYmO.s:3      *ABS*:0000003d __SP_L__
+     /tmp/cca7WYmO.s:4      *ABS*:0000003f __SREG__
+     /tmp/cca7WYmO.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/cca7WYmO.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/cca7WYmO.s:130    .text:00000000 getI2CPWMValue.part.0
+                            *COM*:00000098 i2c_reg
+     /tmp/cca7WYmO.s:242    .text:00000084 TIM0_ReadTCNT0
+     /tmp/cca7WYmO.s:288    .text.startup:00000000 main
+     /tmp/cca7WYmO.s:666    .bss:00000004 LedDataSendRequest.2157
+     /tmp/cca7WYmO.s:664    .bss:00000002 LedDataLastSend.2158
+                             .bss:00000000 ActualDelay.2159
+     /tmp/cca7WYmO.s:682    .rodata:00000000 led_remappings
+                            *COM*:0000000f led_data
+     /tmp/cca7WYmO.s:675    .data:00000000 I2C_SLAVE_ADDR
+
+UNDEFINED SYMBOLS
+__mulhi3
+i2c_init
+i2c_check_stop
+ws2812_sendarray
+__do_copy_data
+__do_clear_bss

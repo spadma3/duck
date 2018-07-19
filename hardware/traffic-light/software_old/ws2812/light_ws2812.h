@@ -17,7 +17,6 @@
 #include <avr/interrupt.h>
 #include "ws2812_config.h"
 
-
 /*
  *  Structure of the LED array
  *

@@ -19,12 +19,15 @@
             <param name="verbose" value="false"/>
             <param name="intersectionType" value="$(arg intersectionType)"/>
             <!-- Input to coordination node -->
+
             <remap from="~signals_detection" to="led_detector_node/led_detection"/>
         </node>
 
         <!-- Run with detection node -->
+        <remap from="camera_node/image/compressed" to="/megabot22/camera_node/image/compressed"/>
         <node  if="$(arg local)" pkg="led_detection" type="led_detector_node.py"  name="led_detector_node" output="screen" clear_params="true" required="true">
             <!-- other -->
+            <remap from="camera_node/image/compressed" to="/megabot22/camera_node/image/compressed"/>
             <rosparam command="load" file="$(find duckietown)/config/baseline/led_interpreter/LED_protocol.yaml"/>
 		        <rosparam command="load" file="$(find duckietown)/config/baseline/led_detection/LED_detector_node/default.yaml"/>
 		        <param name="continuous" type="bool" value="$(arg continuous)" />

@@ -14,8 +14,8 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
-
-// Setleds for standard RGB
+ 
+// Setleds for standard RGB 
 void inline ws2812_setleds(struct cRGB *ledarray, uint16_t leds)
 {
    ws2812_setleds_pin(ledarray,leds, _BV(ws2812_pin));
@@ -95,14 +95,14 @@ void ws2812_sendarray(uint8_t *data,uint16_t datlen)
 */
 
 // Timing in ns
-#define w_zeropulse   350 // In theory 350, but diverges when measured
-#define w_onepulse    1360
-#define w_totalperiod 1710
+#define w_zeropulse   350
+#define w_onepulse    900
+#define w_totalperiod 1250
 
 // Fixed cycles used by the inner loop
 #define w_fixedlow    2
 #define w_fixedhigh   4
-#define w_fixedtotal  8
+#define w_fixedtotal  8   
 
 // Insert NOPs to match the timing, if possible
 #define w_zerocycles    (((F_CPU/1000)*w_zeropulse          )/1000000)
@@ -130,7 +130,7 @@ void ws2812_sendarray(uint8_t *data,uint16_t datlen)
 #elif w_lowtime>450
    #warning "Light_ws2812: The timing is critical and may only work on WS2812B, not on WS2812(S)."
    #warning "Please consider a higher clockspeed, if possible"
-#endif
+#endif   
 
 #if w2>0
 #define w2_nops w2
@@ -188,7 +188,7 @@ w_nop16
   w_nop8
 #endif
 #if (w2_nops&16)
-  w_nop16
+  w_nop16 
 #endif
     "       out   %2,%4 \n\t"    //  '1' [+1] '0' [+1] - fe-high
 #if (w3_nops&1)
