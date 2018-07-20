@@ -31,7 +31,7 @@
   <include file="$(find auto_localization)/launch/pub2server.launch">
     <arg name="veh" value="$(arg veh)"/>
     <arg name="config" value="$(arg config)"/>
-    <arg name="param_file_name" value="$(arg param_file_name)"/>
+    <arg name="param_file_name" value="autolocal_calibration"/> <!--Use autolocal in localization, use autolocal_calibration in sys-calibration -->
   </include>
 
 </launch>
