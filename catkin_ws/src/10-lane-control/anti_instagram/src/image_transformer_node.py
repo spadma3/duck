@@ -118,7 +118,7 @@ class ImageTransformerNode():
         width=int(cv_image.shape[1]*scale_percent / 100)
         height=int(cv_image.shape[0]*scale_percent / 100)
         dim = (width, height)
-        cv_image=cv2.resize(cv_image,dim,interpolation=cv2.INTER_LINEAR)
+        cv_image=cv2.resize(cv_image,dim,interpolation=cv2.INTER_NEAREST)
         tk = TimeKeeper(image_msg)
         #
         # end0=rospy.Time.now()
