@@ -44,6 +44,9 @@ class lane_controller(object):
         veh_name = os.environ['VEHICLE_NAME']
         self.sub_fsm_mode = rospy.Subscriber("/" + str(veh_name) + "/fsm_node/mode", FSMState, self.cbMode, queue_size=1)
 
+        self.v_bar=0.23
+        rospy.set_param("~v_bar", self.v_bar)
+
         # Set up variable which measures how long it took since last command
         self.last_ms = None
 
@@ -55,6 +58,7 @@ class lane_controller(object):
 
         # Timer for abrupt stopVeh
         self.stopTimer = None
+
 
         # Setup array for time delay
         if int(self.exercise[0]) == 1 and int(self.exercise[1]) == 5:
@@ -71,6 +75,10 @@ class lane_controller(object):
         if int(self.exercise[0]) == 3 and str(self.exercise[1]) != "reference":
             self.sub_veh_pos = rospy.Subscriber("~veh_pos", VehiclePose, self.cbVehPose, queue_size=1)
 
+        rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+
+    def updateParams(self, event):
+       self.v_bar = rospy.get_param("~v_bar")
 
 
     def stopVeh(self, nth):
@@ -159,7 +167,10 @@ class lane_controller(object):
         phi_est = lane_pose_msg.phi
         d_ref = 0
         phi_ref = 0
-        v_ref = 0.22
+        v_bar_fallback = 0.25
+
+        v_ref=self.v_bar
+        
 
 
 
