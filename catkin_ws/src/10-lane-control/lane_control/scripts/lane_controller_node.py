@@ -387,7 +387,7 @@ class lane_controller(object):
         self.phi = os.environ["PHI"]
         pose = pose_msg
         file = open("/home/bings/Documents/Lane_Pose/"+str(self.file)+".csv",'a')
-        if self.counter in range (0, 50):
+        if self.counter in range (0, 150):
             file.write(str(self.d)+","+str(self.phi)+","+str(pose.d)+","+str(pose.phi)+"\n")
             self.counter +=1
         else:
