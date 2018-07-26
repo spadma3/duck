@@ -33,3 +33,4 @@ catkin_ws/src/10-lane-control/line_detector2/include/line_detector2_tests/frame0
 roster.html
 background.png
 hardware/camera_tower/software/test_img
+catkin_ws/src/30-localization-and-planning/auto_localization/config/*.csv

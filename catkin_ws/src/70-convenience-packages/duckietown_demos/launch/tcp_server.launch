@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
+	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
 	<include file="$(find tcp_communication)/launch/tcp_communication_server.launch">
-	
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
 
 </launch>
