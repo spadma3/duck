@@ -24,7 +24,7 @@ class ObstDetectNode(object):
         self.show_bird_perspective = (rospy.get_param("~show_bird_perspective",""))
         self.use_ai = (rospy.get_param("~use_ai", ""))
 
-        self.active = False #initialize our node as active!! < -- How about no
+        self.active = True #initialize our node as active!! < -- How about no
         self.r = rospy.Rate(3) # Rate in Hz
         self.thread_lock = threading.Lock()
 
@@ -128,8 +128,8 @@ class ObstDetectNode(object):
                 obst_image.format = "jpeg"
                 obst_image.data = self.visualizer.visualize_image(rectify(rgb_from_ros(image),self.intrinsics),obst_list)
                 #here i want to display cropped image
-                image=rgb_from_ros(obst_image.data)
-                obst_image.data = d8_compressed_image_from_cv_image(image[self.detector.crop:,:,::-1])
+                rgb_image=rgb_from_ros(obst_image.data)
+                obst_image.data = d8_compressed_image_from_cv_image(rgb_image[self.detector.crop:,:,::-1])
                 #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
                 #the visualizer.py modular!!!
                 self.publisher_img.publish(obst_image.data)
@@ -140,8 +140,8 @@ class ObstDetectNode(object):
             bird_perspective_image.format = "jpeg"
             bird_perspective_image.data = self.visualizer.visualize_bird_perspective(rectify(rgb_from_ros(image),self.intrinsics),obst_list)
             #here i want to display cropped image
-            image=rgb_from_ros(obst_image.data)
-            obst_image.data = d8_compressed_image_from_cv_image(image[self.detector.crop:,:,::-1])
+            rgb_image=rgb_from_ros(obst_image.data)
+            obst_image.data = d8_compressed_image_from_cv_image(rgb_image)
             #THIS part only to visualize the cropped version -> somehow a little inefficient but keeps
             #the visualizer.py modular!!!
             self.publisher_img_bird_perspective.publish(obst_image.data)
