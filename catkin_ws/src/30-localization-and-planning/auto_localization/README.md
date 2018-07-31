@@ -1,71 +1,80 @@
 # Package `auto_localization` {#auto_localization}
 
-
-
-
 The function of this package is to localize all the Duckiebots in a Duckietown in an autolab.
 
 ## How to use this package
 
 Note: The package is still under development. The usage might change day-by-day.
 
-### On server computer
+### Map Setup
 
-First, we need to launch tcp-server on the server computer.
+#### Reference tag setup
 
-On one terminal, set up the Duckietown environment and set ros master to the server computer itself. then
+There should be at least one reference tag in the field of views of each watchtowers. The reference tags could be traffic sign tags or we could put tags there. The only thing to aware is that don't out a tag in the city twice.
 
-    roslaunch duckietown_demos tcp_server.launch
+#### Map file setup
 
-Next, on the server computer, launch the node that get messages.
+You need to create your own map file to make the system work! Create a map file on your server computer.
 
-    make auto_localization_server
+    laptop $ cd ~/duckietown/catkin_ws/src/30-localization-and-planning/auto_localization/config
+    laptop $ cp testcircle_origin(dontoverwrite).yaml ![your map].yaml
 
-Congrats! You are done with server sides.
+The `your map`.yaml is the map file for your robotarium, name it whatever you want. Edit `your map`, modify the id of `origin` to your origin tag id, and add all your watchtowers' hostnames to `watchtowers`.
 
-### On watchtowers
+The default map is testcircle.yaml
 
-Start the local-localization function on local watchtower. They will then launch apriltags2 detection, local-postprocessing, publish to server through tcp communication.
+### Watchtowers setup
 
-    make auto_localization_watchtower
+Make sure all watchtowers are connected with power cables and ethernet cables. Checkout the newest branch (at the moment: devel-auto-localization-system-calibration). Do catkin_make on all watchtowers.
 
-Congrats! Easy peasy huh?
+    watchtower $ git checkout devel-auto-localization-system-calibration
+    watchtower $ catkin_make -C catkin_ws
 
-## System Calibration
+### System Calibration
 
 The auto-localization relies on the local reference Apriltags. The system will first calculate the pose of an Duckiebot w.r.t the reference tag and later on do transfer the pose from the local frame to the global frame. Therefore, to have a precise localization, we need to know the transformation between local frame and the global frame. Of course one could enter the pose of each tag hand-by-hand, but that will be pretty annoying and inefficient. Here we introduce a tool that could calibrate the whole system, provide the transformation of each tag and save them to and yaml file for future usage.
 
-### Before Calibration
+#### Before Calibration
 
 The system calibration require the reference tags to be linked to the origin tag. Thus, we might need to put some "linked" tag to make the graph complete. The linked tags are suggested to be put in the overlap region of watchtowers so that they really achieve their function.
 
 The only constraint of putting the linked tag is that don't use the tags that have been used in the town. Always make sure you don't use the same tag twice.
 
-### On server computer
+#### Calibration
 
-First, we still need to launch tcp-server on the server computer.
+After placing the tags, execute these commands on your server computer to start central server for TCP/IP. ![IP_address] should be the IP address of computer you wanna set it as server. ![your map] is the map file of your map.
 
-On one terminal, set up the Duckietown environment and set ros master to the server computer itself. then
+    laptop $ make auto_localization_calibration_server IP:=![IP_address]
 
-    roslaunch duckietown_demos tcp_server.launch
+Open another terminal, start calibration procedure on your server computer side.
 
-Next, on the server computer, launch the node that calculate tag transformations.
+    laptop $ make auto_localization_calibration_laptop IP:=![IP_address] map=![your map]
 
-    make auto_localization_calibration_server
+Open another terminal and open ssh connections to all watchtowers through [xpanes](#xpanes) and [tmux](#tmux). Execute the command on watchtowers
 
-Server side, done.
+    duckiebot $ make auto_localization_calibration_watchtower IP:=![IP_address]
 
-### On watchtowers
-
-Start the local-localization function on local watchtower. They will then launch apriltags2 detection, local-postprocessing, publish to server through tcp communication.
-
-    make auto_localization_calibration_watchtower
-
-Done.
-
-### Some more talk about System Calibration
+#### Some more explanation about System Calibration
 
 The system calibration require the reference tags to be linked to the origin tag.
+
+### System Localization
+
+First on your server computer, execute following commands. ![IP_address] should be the IP address of computer you wanna set it as server. ![your map] is the map file of your map.
+
+    laptop $ make auto_localization_server IP:=![IP_address]
+
+Open another terminal, start localization procedures on your server computer side
+
+    laptop $ make auto_localization_laptop IP:=![IP_address] map=![your map]
+
+Open another terminal and open ssh connections to all watchtowers through [xpanes](#xpanes) and [tmux](#tmux). Execute the command on watchtowers
+
+    duckiebot $ make auto_localization_watchtower IP:=![IP_address]
+
+The system starts working. On server computer, the `~bot_global_poses` topic publishes Duckiebots' poses, reference tags it take reference to, and the camera that detect the Duckiebot.
+
+The system also records all records under `config` folder with .csv file. You could checkout the performances of each Duckiebot in the file.
 
 ## System Architecture
 
