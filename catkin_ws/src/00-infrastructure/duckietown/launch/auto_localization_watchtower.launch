@@ -6,6 +6,7 @@
  	<arg name="camera" default="true" doc="camera set to false means only apriltags no camera nodes are launched"/>
   <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
   <arg name="rect_full_ratio" default="true" doc="use full ration rectified image for apriltags detections " />
+  <arg name="bot_detection" default="true" doc="Do Duckiebot detections before AprilTags detections"/>
 
   <!-- Apriltags2 -->
   <include file="$(find duckietown)/launch/apriltags2.launch">
@@ -16,7 +17,17 @@
     <arg name="camera" value="$(arg camera)"/>
     <arg name="live" value="$(arg live)"/>
 		<arg name="rect_full_ratio" value="$(arg rect_full_ratio)" />
+    <arg name="bot_detection" value="$(arg bot_detection)"/>
  	</include>
+
+  <!-- bot_detection node -->
+  <group if="$(arg bot_detection)">
+    <remap from="image" to="camera_node/image/rect" />
+    <remap from="camera_info" to="camera_node/rect_camera_info" />
+    <include file="$(find auto_localization)/launch/bot_detector_node.launch">
+      <arg name="veh" value="$(arg veh)"/>
+    </include>
+  </group>
 
   <!-- Local Localization Postprocessing node -->
   <remap from="apriltags_in" to="tag_detections" />

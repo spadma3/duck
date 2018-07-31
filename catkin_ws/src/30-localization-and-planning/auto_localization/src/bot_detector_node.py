@@ -5,7 +5,7 @@ import cv2
 from cv_bridge import CvBridge
 import numpy as np
 import rospy
-from sensor_msgs.msg import CompressedImage, Image
+from sensor_msgs.msg import CompressedImage, Image, CameraInfo
 from duckietown_msgs.msg import BoolStamped
 import rospkg
 
@@ -26,14 +26,17 @@ class BotDetectorNode(object):
 
 		#Publisher
 		self.pub_result = rospy.Publisher("~image_mask", Image, queue_size=1)
+		self.pub_cam_info = rospy.Publisher("~rect_camera_info",CameraInfo,queue_size=1)
 
 		#Subscriber
 		self.sub_image = rospy.Subscriber("image", Image, self.cbImage, queue_size=1)
-		self.subswitch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
+		self.sub_cam_info = rospy.Subscriber("camera_info",CameraInfo,self.cbCamInfo,queue_size=1)
 
+	def cbCamInfo(self,caminfo_msg):
+		if not self.active:
+			return
 
-	def cbSwitch(self, switch_msg):
-		self.active = switch_msg.data
+		self.cam_info = caminfo_msg
 
 	def cbImage(self, image_msg):
 
@@ -51,6 +54,7 @@ class BotDetectorNode(object):
 		img_pub.header.frame_id = image_msg.header.frame_id
 
 		self.pub_result.publish(img_pub)
+		self.pub_cam_info.publish(self.cam_info)
 
 	def on_Shutdown(self):
 		self.loginfo("Shutdown.")

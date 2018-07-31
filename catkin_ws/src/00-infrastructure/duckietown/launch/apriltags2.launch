@@ -7,8 +7,9 @@
   <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
   <arg name="rect_full_ratio" default="false" doc="use full ration rectified image for apriltags detections " />
   <arg name="localization" default="false" doc="set to true to start Dcukietown localization function"/>
+  <arg name="bot_detection" default="false" doc="Do Duckiebot detections before AprilTags detections"/>
 
-    <!-- Camera -->
+  <!-- Camera -->
  	<include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">
  		<arg name="veh" value="$(arg veh)"/>
  		<arg name="local" value="$(arg local)"/>
@@ -23,12 +24,23 @@
 
  	<!-- AprilTags Detections -->
  	<group if="$(arg rect_full_ratio)">
-	    <remap from="image_rect" to="camera_node/image/rect" />
-	    <remap from="camera_node/image/camera_info" to="camera_node/rect_camera_info" />
-	    <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
-	        <arg name="veh" value="$(arg veh)"/>
-	    </include>
+    <!--If we wanna activate Duckiebot detection node -->
+    <group if="$(arg bot_detection)">
+      <remap from="image_rect" to="bot_detector/image_mask" />
+      <remap from="camera_node/image/camera_info" to="bot_detector_node/rect_camera_info" />
+      <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
+          <arg name="veh" value="$(arg veh)"/>
+      </include>
+    </group>
+    <group unless="$(arg bot_detection)">
+      <remap from="image_rect" to="camera_node/image/rect" />
+      <remap from="camera_node/image/camera_info" to="camera_node/rect_camera_info" />
+      <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
+          <arg name="veh" value="$(arg veh)"/>
+      </include>
+    </group>
 	</group>
+
 	<group unless="$(arg rect_full_ratio)">
 	    <remap from="image_rect" to="camera_node/image/rect" />
 	    <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
