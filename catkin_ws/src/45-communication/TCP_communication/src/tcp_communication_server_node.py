@@ -20,6 +20,13 @@ class TCPCommunicationServerNode(object):
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
+        IP = rospy.get_param("~IP_set")
+        if IP != "0":
+            self.IP = IP
+            rospy.set_param("~IP",self.IP)
+            rospy.loginfo("[%s] %s = %s " %(self.node_name,"~IP",self.IP))
+
+
         # Prepare socket
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_socket.bind((self.IP, self.PORT))
@@ -37,7 +44,7 @@ class TCPCommunicationServerNode(object):
         # Wait for and accept connection
         tcp_connection, addr = self.tcp_socket.accept()
         data_raw = tcp_connection.recv(self.BUFFER_SIZE)
-        
+
         # Decode JSON format
         data = json.loads(data_raw)
 
@@ -47,7 +54,7 @@ class TCPCommunicationServerNode(object):
             response = True
             rospy.loginfo(str(data[0]) +  " sets " + str(data[2]) + " to " + str(data[3]))
         if data[1] == "GET":
-            if rospy.has_param("~" + data[2]): 
+            if rospy.has_param("~" + data[2]):
                 response = rospy.get_param("~" + data[2])
             else:
                 response = None

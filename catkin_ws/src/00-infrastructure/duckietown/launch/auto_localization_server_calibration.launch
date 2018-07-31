@@ -6,10 +6,13 @@
     <arg name="map" default="testcircle" doc="Specify the map you wants"/>
     <arg name="output" default="testcircle" doc="Specify the output name of the new map"/>
 
+    <arg name="IP" default="0" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
+
     <include file="$(find auto_localization)/launch/subfserver.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="config" value="$(arg config)"/>
       <arg name="param_file_name" value="$(arg param_file_name)"/>
+      <arg name="IP" value="$(arg IP)"/>
     </include>
 
     <remap from="local_poses" to="subfserver_easy/local_poses" />

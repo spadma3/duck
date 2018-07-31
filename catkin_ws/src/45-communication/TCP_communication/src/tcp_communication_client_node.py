@@ -18,7 +18,7 @@ class TCPCommunicationClientNode(object):
         import socket
         #self.veh_name = robot_name.get_current_robot_name()
         self.veh_name = socket.gethostname()
-        
+
         ## setup Parameters
         self.setupParams()
 
@@ -26,6 +26,11 @@ class TCPCommunicationClientNode(object):
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
+        IP = rospy.get_param("~IP_set")
+        if IP != "0":
+            self.IP = IP
+            rospy.set_param("~IP",self.IP)
+            rospy.loginfo("[%s] %s = %s " %(self.node_name,"~IP",self.IP))
 
         # Setting up rosservices
         self.service_getVariable = rospy.Service("~get_variable", GetVariable, self.getVariable)

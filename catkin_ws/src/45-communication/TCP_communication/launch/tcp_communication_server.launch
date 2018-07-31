@@ -6,10 +6,13 @@
     <arg name="pkg_name" value="tcp_communication"/>
     <arg name="node_name" default="tcp_communication_server_node"/>
 
+    <arg name="IP" default="0" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
+
     <group ns="tcp_server">
         <!-- run local -->
         <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
             <rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
+            <param name="~IP_set" value="$(arg IP)" type="str"/>
         </node>
 
     </group>
