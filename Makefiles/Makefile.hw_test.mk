@@ -36,3 +36,7 @@ hw-test-turn-left: check-environment
 hw-test-turn-forward: check-environment
 	@echo "Calibrating forward turn"
 	bash -c "rostest indefinite_navigation calibrate_turn.test veh:=$(vehicle_name) type:=forward"
+
+hw-test-testbench: check-environment
+	@echo "Starting testbench"
+	bash -c "source environment.sh; rosrun rgb_led blink test_all_1"
