@@ -11,6 +11,7 @@
       <arg name="config" value="$(arg config)"/>
       <arg name="param_file_name" value="$(arg param_file_name)"/>
       <arg name="IP" value="$(arg IP)"/>
+      <arg name="map" value="$(arg map)"/>
     </include>
 
     <remap from="local_poses" to="subfserver_easy/local_poses" />
