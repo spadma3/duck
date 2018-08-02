@@ -45,11 +45,9 @@ class KinematicsTestNode(unittest.TestCase):
         while((rospy.Time.now() - starting_time) < rospy.Duration(forward_for_time)):
             wheels_cmd_msg = Twist2DStamped()
             wheels_cmd_msg.header.stamp = rospy.Time.now()
-            wheels_cmd_msg.v = 0.5
+            wheels_cmd_msg.v = 0.2
             wheels_cmd_msg.omega = 0.0
             self.pub_wheels_cmd.publish(wheels_cmd_msg)
-            #rospy.loginfo("Moving?.")
-            rospy.sleep(0.1)
 
 
 
