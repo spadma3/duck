@@ -93,7 +93,14 @@ class global_localization(object):
 
             # time of global pose should be same as relative pose
             g_pose.header.stamp = locpos_msg.posestamped.header.stamp
-            g_pose.pose.x, g_pose.pose.y, g_pose.pose.theta = self.transform_bot_position(locpos_msg)
+
+            # check if reference tag is in the map
+            key = "Tag"+str(locpos_msg.frame_id)
+            if key in self.fixed_tags.keys():
+                g_pose.pose.x, g_pose.pose.y, g_pose.pose.theta = self.transform_bot_position(locpos_msg)
+            else:
+                print key, " is not in the data base, skip converting to global pose"
+                continue
 
             # Which watchtowers have seen the duckiebot. take last to charakters of
             # string such that "watchtower02" turns to 02
