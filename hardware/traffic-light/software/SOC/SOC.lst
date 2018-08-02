@@ -1,0 +1,861 @@
+   1               		.file	"SOC.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 127               	.global	init_SOC
+ 129               	init_SOC:
+ 130               		.stabd	46,0,0
+   1:SOC/SOC.c     **** /*
+   2:SOC/SOC.c     ****  * SOC.c
+   3:SOC/SOC.c     ****  *
+   4:SOC/SOC.c     ****  * Created: 18/07/2018 07:52:10
+   5:SOC/SOC.c     ****  *  Author: Marcus
+   6:SOC/SOC.c     ****  */ 
+   7:SOC/SOC.c     **** #include <util/delay.h>
+   8:SOC/SOC.c     **** #include <avr/io.h>
+   9:SOC/SOC.c     **** #include <avr/interrupt.h>
+  10:SOC/SOC.c     **** #include <avr/pgmspace.h>
+  11:SOC/SOC.c     **** 
+  12:SOC/SOC.c     **** #include<stdio.h>
+  13:SOC/SOC.c     **** #include<stdlib.h>
+  14:SOC/SOC.c     **** #include "SOC.h"
+  15:SOC/SOC.c     **** 
+  16:SOC/SOC.c     **** // extern global variables
+  17:SOC/SOC.c     **** uint8_t needToCharge;
+  18:SOC/SOC.c     **** uint16_t fuelGauge;
+  19:SOC/SOC.c     **** uint16_t minChargeLimit;
+  20:SOC/SOC.c     **** uint16_t maxCharge;
+  21:SOC/SOC.c     **** uint16_t maxPiCurrent;
+  22:SOC/SOC.c     **** uint16_t maxMotorCurrent;
+  23:SOC/SOC.c     **** uint16_t maxChargeCurrent;
+  24:SOC/SOC.c     **** uint8_t piCurrPosLimit;		
+  25:SOC/SOC.c     **** uint8_t motorCurrPosLimit;	
+  26:SOC/SOC.c     **** uint8_t chargeCurrPosLimit;
+  27:SOC/SOC.c     **** 
+  28:SOC/SOC.c     **** POS_STATE positionState;
+  29:SOC/SOC.c     **** uint8_t soc_diag;
+  30:SOC/SOC.c     **** uint16_t fullChargeMAXTime;
+  31:SOC/SOC.c     **** 
+  32:SOC/SOC.c     **** // local global variables
+  33:SOC/SOC.c     **** uint16_t lastCountValue; 
+  34:SOC/SOC.c     **** // Accumulators
+  35:SOC/SOC.c     **** int32_t secAccumulators;	// count mA in a second
+  36:SOC/SOC.c     **** int32_t mSecAccumulators;	// count mA in a 100ms intervals
+  37:SOC/SOC.c     **** uint16_t updateFreq;		// at what frequency shall we sample the ADC
+  38:SOC/SOC.c     **** uint16_t freqCounter;
+  39:SOC/SOC.c     **** uint8_t freqSampleCounter;	// count to 10
+  40:SOC/SOC.c     **** uint8_t	freqSampleSec;		// count to 60
+  41:SOC/SOC.c     **** // Time for how much longer we shall charge after we reach 10 000mA
+  42:SOC/SOC.c     **** uint16_t fullChargeTimer;
+  43:SOC/SOC.c     **** 
+  44:SOC/SOC.c     **** void sample_current( void );	
+  45:SOC/SOC.c     **** 
+  46:SOC/SOC.c     **** void init_SOC( void ) 
+  47:SOC/SOC.c     **** {
+ 132               	.LM0:
+ 133               	.LFBB1:
+ 134               	/* prologue: function */
+ 135               	/* frame size = 0 */
+ 136               	/* stack size = 0 */
+ 137               	.L__stack_usage = 0
+  48:SOC/SOC.c     **** 	needToCharge = 0;
+ 139               	.LM1:
+ 140 0000 1092 0000 		sts needToCharge,__zero_reg__
+  49:SOC/SOC.c     **** 	maxCharge = 10000;
+ 142               	.LM2:
+ 143 0004 80E1      		ldi r24,lo8(16)
+ 144 0006 97E2      		ldi r25,lo8(39)
+ 145 0008 9093 0000 		sts maxCharge+1,r25
+ 146 000c 8093 0000 		sts maxCharge,r24
+  50:SOC/SOC.c     **** 	fuelGauge = maxCharge; 
+ 148               	.LM3:
+ 149 0010 9093 0000 		sts fuelGauge+1,r25
+ 150 0014 8093 0000 		sts fuelGauge,r24
+  51:SOC/SOC.c     **** 	minChargeLimit = 2000;	// 20%
+ 152               	.LM4:
+ 153 0018 80ED      		ldi r24,lo8(-48)
+ 154 001a 97E0      		ldi r25,lo8(7)
+ 155 001c 9093 0000 		sts minChargeLimit+1,r25
+ 156 0020 8093 0000 		sts minChargeLimit,r24
+  52:SOC/SOC.c     **** 	lastCountValue = 0;
+ 158               	.LM5:
+ 159 0024 1092 0000 		sts lastCountValue+1,__zero_reg__
+ 160 0028 1092 0000 		sts lastCountValue,__zero_reg__
+  53:SOC/SOC.c     **** 	updateFreq = 3125;		// Sys clk = 8MHz, prescale = 256 => timer0 = 31.25kHz => we want 10 saples/se
+ 162               	.LM6:
+ 163 002c 85E3      		ldi r24,lo8(53)
+ 164 002e 9CE0      		ldi r25,lo8(12)
+ 165 0030 9093 0000 		sts updateFreq+1,r25
+ 166 0034 8093 0000 		sts updateFreq,r24
+  54:SOC/SOC.c     **** 	freqCounter = 0;
+ 168               	.LM7:
+ 169 0038 1092 0000 		sts freqCounter+1,__zero_reg__
+ 170 003c 1092 0000 		sts freqCounter,__zero_reg__
+  55:SOC/SOC.c     **** 	freqSampleCounter = 0;
+ 172               	.LM8:
+ 173 0040 1092 0000 		sts freqSampleCounter,__zero_reg__
+  56:SOC/SOC.c     **** 	freqSampleSec = 0;
+ 175               	.LM9:
+ 176 0044 1092 0000 		sts freqSampleSec,__zero_reg__
+  57:SOC/SOC.c     **** 	
+  58:SOC/SOC.c     **** 	maxPiCurrent = 2200;		// Based on load test
+ 178               	.LM10:
+ 179 0048 88E9      		ldi r24,lo8(-104)
+ 180 004a 98E0      		ldi r25,lo8(8)
+ 181 004c 9093 0000 		sts maxPiCurrent+1,r25
+ 182 0050 8093 0000 		sts maxPiCurrent,r24
+  59:SOC/SOC.c     **** 	maxMotorCurrent  = 2700;	// Based on load test
+ 184               	.LM11:
+ 185 0054 8CE8      		ldi r24,lo8(-116)
+ 186 0056 9AE0      		ldi r25,lo8(10)
+ 187 0058 9093 0000 		sts maxMotorCurrent+1,r25
+ 188 005c 8093 0000 		sts maxMotorCurrent,r24
+  60:SOC/SOC.c     **** 	maxChargeCurrent = 2500;
+ 190               	.LM12:
+ 191 0060 84EC      		ldi r24,lo8(-60)
+ 192 0062 99E0      		ldi r25,lo8(9)
+ 193 0064 9093 0000 		sts maxChargeCurrent+1,r25
+ 194 0068 8093 0000 		sts maxChargeCurrent,r24
+  61:SOC/SOC.c     **** 	
+  62:SOC/SOC.c     **** 	piCurrPosLimit = 100;		// 
+ 196               	.LM13:
+ 197 006c 84E6      		ldi r24,lo8(100)
+ 198 006e 8093 0000 		sts piCurrPosLimit,r24
+  63:SOC/SOC.c     **** 	motorCurrPosLimit  = 100;	//
+ 200               	.LM14:
+ 201 0072 8093 0000 		sts motorCurrPosLimit,r24
+  64:SOC/SOC.c     **** 	chargeCurrPosLimit = 50;	// 
+ 203               	.LM15:
+ 204 0076 82E3      		ldi r24,lo8(50)
+ 205 0078 8093 0000 		sts chargeCurrPosLimit,r24
+  65:SOC/SOC.c     **** 	
+  66:SOC/SOC.c     **** 	fullChargeMAXTime = 1200;	// 20 min
+ 207               	.LM16:
+ 208 007c 80EB      		ldi r24,lo8(-80)
+ 209 007e 94E0      		ldi r25,lo8(4)
+ 210 0080 9093 0000 		sts fullChargeMAXTime+1,r25
+ 211 0084 8093 0000 		sts fullChargeMAXTime,r24
+  67:SOC/SOC.c     **** 	
+  68:SOC/SOC.c     **** 	soc_diag = 0; 
+ 213               	.LM17:
+ 214 0088 1092 0000 		sts soc_diag,__zero_reg__
+  69:SOC/SOC.c     **** 	positionState = UNKNOWN_STATE;
+ 216               	.LM18:
+ 217 008c 85E0      		ldi r24,lo8(5)
+ 218 008e 8093 0000 		sts positionState,r24
+ 219 0092 0895      		ret
+ 221               	.Lscope1:
+ 223               		.stabd	78,0,0
+ 225               	.global	update_SOC_limits
+ 227               	update_SOC_limits:
+ 228               		.stabd	46,0,0
+  70:SOC/SOC.c     **** 	
+  71:SOC/SOC.c     **** }
+  72:SOC/SOC.c     **** 
+  73:SOC/SOC.c     **** // State machine for updating the fuel gauge
+  74:SOC/SOC.c     **** // TODO make the sampling dependent of the selected updateFreq
+  75:SOC/SOC.c     **** void update_SOC( uint16_t counter )
+  76:SOC/SOC.c     **** {
+  77:SOC/SOC.c     **** 	freqCounter += abs(counter - lastCountValue);
+  78:SOC/SOC.c     **** 	lastCountValue = counter;
+  79:SOC/SOC.c     **** 	
+  80:SOC/SOC.c     **** 	if(freqCounter>= updateFreq) // sample rate at 100ms
+  81:SOC/SOC.c     **** 	{
+  82:SOC/SOC.c     **** 		update_SOC_limits(); // limit the update freq slightly 
+  83:SOC/SOC.c     **** 		freqCounter = 0;
+  84:SOC/SOC.c     **** 		freqSampleCounter++;
+  85:SOC/SOC.c     **** 		sample_current();	
+  86:SOC/SOC.c     **** 	}
+  87:SOC/SOC.c     **** 	
+  88:SOC/SOC.c     **** 	if(freqSampleCounter >= FREQSAMPLEMAX) // sample rate at sec
+  89:SOC/SOC.c     **** 	{
+  90:SOC/SOC.c     **** 		freqSampleCounter = 0;
+  91:SOC/SOC.c     **** 		accumulator(&freqSampleSec, &secAccumulators, &mSecAccumulators);
+  92:SOC/SOC.c     **** 		update_full_charge_timer();
+  93:SOC/SOC.c     **** 	}
+  94:SOC/SOC.c     **** 	
+  95:SOC/SOC.c     **** 	if (freqSampleSec >= SECSAMPLEMAX) // sample every min 
+  96:SOC/SOC.c     **** 	{
+  97:SOC/SOC.c     **** 		freqSampleSec = 0;
+  98:SOC/SOC.c     **** 		update_fuel_gauge(&secAccumulators);
+  99:SOC/SOC.c     **** 	}
+ 100:SOC/SOC.c     **** }
+ 101:SOC/SOC.c     **** 
+ 102:SOC/SOC.c     **** void update_SOC_limits ( void )
+ 103:SOC/SOC.c     **** {
+ 230               	.LM19:
+ 231               	.LFBB2:
+ 232               	/* prologue: function */
+ 233               	/* frame size = 0 */
+ 234               	/* stack size = 0 */
+ 235               	.L__stack_usage = 0
+ 236 0094 0895      		ret
+ 238               	.Lscope2:
+ 240               		.stabd	78,0,0
+ 245               	.global	accumulator
+ 247               	accumulator:
+ 248               		.stabd	46,0,0
+ 104:SOC/SOC.c     **** 	//TODO: check if Pi has send new limits. i.e maximum charge of battery or minimum charge limit 
+ 105:SOC/SOC.c     **** 	/*
+ 106:SOC/SOC.c     **** 	maxPiCurrent = ;
+ 107:SOC/SOC.c     **** 	maxMotorCurrent  = ;
+ 108:SOC/SOC.c     **** 	maxChargeCurrent = ;
+ 109:SOC/SOC.c     **** 	
+ 110:SOC/SOC.c     **** 	minChargeLimit = ;
+ 111:SOC/SOC.c     **** 	maxCharge = ;
+ 112:SOC/SOC.c     **** 	
+ 113:SOC/SOC.c     **** 	piCurrPosLimit = ;
+ 114:SOC/SOC.c     **** 	motorCurrPosLimit = ;
+ 115:SOC/SOC.c     **** 	chargeCurrPosLimit = ;
+ 116:SOC/SOC.c     **** 	
+ 117:SOC/SOC.c     **** 	fullChargeMAXTime = ;
+ 118:SOC/SOC.c     **** 	
+ 119:SOC/SOC.c     **** 	// Clear faults
+ 120:SOC/SOC.c     **** 	soc_diag = ;
+ 121:SOC/SOC.c     **** 	*/
+ 122:SOC/SOC.c     **** }
+ 123:SOC/SOC.c     **** 
+ 124:SOC/SOC.c     **** void sample_current( void )
+ 125:SOC/SOC.c     **** {
+ 126:SOC/SOC.c     **** 	uint16_t piUSB = read_current(PIUSB);
+ 127:SOC/SOC.c     **** 	uint16_t motorUSB = read_current(MOTORUSB);
+ 128:SOC/SOC.c     **** 	uint16_t chargeUSB = read_current(CHARGEUSB);
+ 129:SOC/SOC.c     **** 	
+ 130:SOC/SOC.c     **** 	update_diag(piUSB, motorUSB, chargeUSB);
+ 131:SOC/SOC.c     **** 	update_position(piUSB, motorUSB, chargeUSB);
+ 132:SOC/SOC.c     **** 	mSecAccumulators = mSecAccumulators - piUSB - motorUSB + chargeUSB;
+ 133:SOC/SOC.c     **** }
+ 134:SOC/SOC.c     **** void accumulator(uint8_t *counter, int32_t *accum , int32_t *sample )
+ 135:SOC/SOC.c     **** {
+ 250               	.LM20:
+ 251               	.LFBB3:
+ 253               	.LM21:
+ 254 0096 0F93      		push r16
+ 255 0098 1F93      		push r17
+ 256               	/* prologue: function */
+ 257               	/* frame size = 0 */
+ 258               	/* stack size = 2 */
+ 259               	.L__stack_usage = 2
+ 260 009a FC01      		movw r30,r24
+ 136:SOC/SOC.c     **** 	(*counter)++;
+ 262               	.LM22:
+ 263 009c 9081      		ld r25,Z
+ 264 009e 9F5F      		subi r25,lo8(-(1))
+ 265 00a0 9083      		st Z,r25
+ 137:SOC/SOC.c     **** 	(*accum) += (*sample);
+ 267               	.LM23:
+ 268 00a2 FB01      		movw r30,r22
+ 269 00a4 0081      		ld r16,Z
+ 270 00a6 1181      		ldd r17,Z+1
+ 271 00a8 2281      		ldd r18,Z+2
+ 272 00aa 3381      		ldd r19,Z+3
+ 273 00ac FA01      		movw r30,r20
+ 274 00ae 8081      		ld r24,Z
+ 275 00b0 9181      		ldd r25,Z+1
+ 276 00b2 A281      		ldd r26,Z+2
+ 277 00b4 B381      		ldd r27,Z+3
+ 278 00b6 800F      		add r24,r16
+ 279 00b8 911F      		adc r25,r17
+ 280 00ba A21F      		adc r26,r18
+ 281 00bc B31F      		adc r27,r19
+ 282 00be FB01      		movw r30,r22
+ 283 00c0 8083      		st Z,r24
+ 284 00c2 9183      		std Z+1,r25
+ 285 00c4 A283      		std Z+2,r26
+ 286 00c6 B383      		std Z+3,r27
+ 138:SOC/SOC.c     **** 	(*sample) = 0;
+ 288               	.LM24:
+ 289 00c8 FA01      		movw r30,r20
+ 290 00ca 1082      		st Z,__zero_reg__
+ 291 00cc 1182      		std Z+1,__zero_reg__
+ 292 00ce 1282      		std Z+2,__zero_reg__
+ 293 00d0 1382      		std Z+3,__zero_reg__
+ 294               	/* epilogue start */
+ 139:SOC/SOC.c     **** }
+ 296               	.LM25:
+ 297 00d2 1F91      		pop r17
+ 298 00d4 0F91      		pop r16
+ 299 00d6 0895      		ret
+ 301               	.Lscope3:
+ 303               		.stabd	78,0,0
+ 306               	.global	update_fuel_gauge
+ 308               	update_fuel_gauge:
+ 309               		.stabd	46,0,0
+ 140:SOC/SOC.c     **** 
+ 141:SOC/SOC.c     **** void update_fuel_gauge ( int32_t *sample )
+ 142:SOC/SOC.c     **** {
+ 311               	.LM26:
+ 312               	.LFBB4:
+ 313 00d8 CF92      		push r12
+ 314 00da DF92      		push r13
+ 315 00dc EF92      		push r14
+ 316 00de FF92      		push r15
+ 317 00e0 CF93      		push r28
+ 318 00e2 DF93      		push r29
+ 319               	/* prologue: function */
+ 320               	/* frame size = 0 */
+ 321               	/* stack size = 6 */
+ 322               	.L__stack_usage = 6
+ 323 00e4 EC01      		movw r28,r24
+ 143:SOC/SOC.c     **** 	(*sample) = (*sample)/60;					// change from mA/sec to mA/min
+ 325               	.LM27:
+ 326 00e6 6881      		ld r22,Y
+ 327 00e8 7981      		ldd r23,Y+1
+ 328 00ea 8A81      		ldd r24,Y+2
+ 329 00ec 9B81      		ldd r25,Y+3
+ 330 00ee 2CE3      		ldi r18,lo8(60)
+ 331 00f0 C22E      		mov r12,r18
+ 332 00f2 D12C      		mov r13,__zero_reg__
+ 333 00f4 E12C      		mov r14,__zero_reg__
+ 334 00f6 F12C      		mov r15,__zero_reg__
+ 335 00f8 A701      		movw r20,r14
+ 336 00fa 9601      		movw r18,r12
+ 337 00fc 00D0      		rcall __divmodsi4
+ 144:SOC/SOC.c     **** 	(*sample) = (*sample)/60;					// change from mA/min to mA/h
+ 339               	.LM28:
+ 340 00fe CA01      		movw r24,r20
+ 341 0100 B901      		movw r22,r18
+ 342 0102 A701      		movw r20,r14
+ 343 0104 9601      		movw r18,r12
+ 344 0106 00D0      		rcall __divmodsi4
+ 145:SOC/SOC.c     **** 	
+ 146:SOC/SOC.c     **** 	int16_t accCharge  = (int16_t)(*sample);   // cast to int16 
+ 147:SOC/SOC.c     **** 	(*sample) = 0;
+ 346               	.LM29:
+ 347 0108 1882      		st Y,__zero_reg__
+ 348 010a 1982      		std Y+1,__zero_reg__
+ 349 010c 1A82      		std Y+2,__zero_reg__
+ 350 010e 1B82      		std Y+3,__zero_reg__
+ 148:SOC/SOC.c     **** 	
+ 149:SOC/SOC.c     **** 	fuelGauge += accCharge;  // note that is could be  + (-accCharge)
+ 352               	.LM30:
+ 353 0110 8091 0000 		lds r24,fuelGauge
+ 354 0114 9091 0000 		lds r25,fuelGauge+1
+ 355 0118 280F      		add r18,r24
+ 356 011a 391F      		adc r19,r25
+ 357 011c 3093 0000 		sts fuelGauge+1,r19
+ 358 0120 2093 0000 		sts fuelGauge,r18
+ 150:SOC/SOC.c     **** 
+ 151:SOC/SOC.c     **** 	if (fuelGauge >= maxCharge)
+ 360               	.LM31:
+ 361 0124 8091 0000 		lds r24,maxCharge
+ 362 0128 9091 0000 		lds r25,maxCharge+1
+ 363 012c 2817      		cp r18,r24
+ 364 012e 3907      		cpc r19,r25
+ 365 0130 00F0      		brlo .L6
+ 152:SOC/SOC.c     **** 	{
+ 153:SOC/SOC.c     **** 		fuelGauge = maxCharge;
+ 367               	.LM32:
+ 368 0132 9093 0000 		sts fuelGauge+1,r25
+ 369 0136 8093 0000 		sts fuelGauge,r24
+ 154:SOC/SOC.c     **** 		
+ 155:SOC/SOC.c     **** 		if (fullChargeTimer >= fullChargeMAXTime)
+ 371               	.LM33:
+ 372 013a 2091 0000 		lds r18,fullChargeTimer
+ 373 013e 3091 0000 		lds r19,fullChargeTimer+1
+ 374 0142 8091 0000 		lds r24,fullChargeMAXTime
+ 375 0146 9091 0000 		lds r25,fullChargeMAXTime+1
+ 376 014a 2817      		cp r18,r24
+ 377 014c 3907      		cpc r19,r25
+ 378 014e 00F0      		brlo .L6
+ 156:SOC/SOC.c     **** 		{
+ 157:SOC/SOC.c     **** 			needToCharge = 0;
+ 380               	.LM34:
+ 381 0150 1092 0000 		sts needToCharge,__zero_reg__
+ 158:SOC/SOC.c     **** 			fullChargeTimer = 0;
+ 383               	.LM35:
+ 384 0154 1092 0000 		sts fullChargeTimer+1,__zero_reg__
+ 385 0158 1092 0000 		sts fullChargeTimer,__zero_reg__
+ 386               	.L6:
+ 159:SOC/SOC.c     **** 		}	
+ 160:SOC/SOC.c     **** 	}
+ 161:SOC/SOC.c     **** 	
+ 162:SOC/SOC.c     **** 	if (fuelGauge <= minChargeLimit)
+ 388               	.LM36:
+ 389 015c 2091 0000 		lds r18,fuelGauge
+ 390 0160 3091 0000 		lds r19,fuelGauge+1
+ 391 0164 8091 0000 		lds r24,minChargeLimit
+ 392 0168 9091 0000 		lds r25,minChargeLimit+1
+ 393 016c 8217      		cp r24,r18
+ 394 016e 9307      		cpc r25,r19
+ 395 0170 00F0      		brlo .L4
+ 163:SOC/SOC.c     **** 	{
+ 164:SOC/SOC.c     **** 		needToCharge = 1;
+ 397               	.LM37:
+ 398 0172 81E0      		ldi r24,lo8(1)
+ 399 0174 8093 0000 		sts needToCharge,r24
+ 400               	.L4:
+ 401               	/* epilogue start */
+ 165:SOC/SOC.c     **** 	}
+ 166:SOC/SOC.c     **** } 
+ 403               	.LM38:
+ 404 0178 DF91      		pop r29
+ 405 017a CF91      		pop r28
+ 406 017c FF90      		pop r15
+ 407 017e EF90      		pop r14
+ 408 0180 DF90      		pop r13
+ 409 0182 CF90      		pop r12
+ 410 0184 0895      		ret
+ 412               	.Lscope4:
+ 414               		.stabd	78,0,0
+ 419               	.global	update_position
+ 421               	update_position:
+ 422               		.stabd	46,0,0
+ 167:SOC/SOC.c     **** 
+ 168:SOC/SOC.c     **** void update_position(uint16_t piCurrent, uint16_t motorCurrent, uint16_t chargeCurrent)
+ 169:SOC/SOC.c     **** {
+ 424               	.LM39:
+ 425               	.LFBB5:
+ 426               	/* prologue: function */
+ 427               	/* frame size = 0 */
+ 428               	/* stack size = 0 */
+ 429               	.L__stack_usage = 0
+ 170:SOC/SOC.c     **** 	
+ 171:SOC/SOC.c     **** 	uint8_t state = 0;
+ 172:SOC/SOC.c     **** 	
+ 173:SOC/SOC.c     **** 	if (piCurrent > piCurrPosLimit) // the Pi is ON
+ 431               	.LM40:
+ 432 0186 E091 0000 		lds r30,piCurrPosLimit
+ 433 018a F0E0      		ldi r31,0
+ 434 018c 21E0      		ldi r18,lo8(1)
+ 435 018e E817      		cp r30,r24
+ 436 0190 F907      		cpc r31,r25
+ 437 0192 00F0      		brlo .L11
+ 438 0194 20E0      		ldi r18,0
+ 439               	.L11:
+ 174:SOC/SOC.c     **** 	{	
+ 175:SOC/SOC.c     **** 		state |= 1<<0;
+ 176:SOC/SOC.c     **** 	}
+ 177:SOC/SOC.c     **** 	if (motorCurrent > motorCurrPosLimit) // the motor is ON
+ 441               	.LM41:
+ 442 0196 8091 0000 		lds r24,motorCurrPosLimit
+ 443 019a 90E0      		ldi r25,0
+ 444 019c 8617      		cp r24,r22
+ 445 019e 9707      		cpc r25,r23
+ 446 01a0 00F4      		brsh .L12
+ 178:SOC/SOC.c     **** 	{
+ 179:SOC/SOC.c     **** 		state |= 1<<1;
+ 448               	.LM42:
+ 449 01a2 2260      		ori r18,lo8(2)
+ 450               	.L12:
+ 180:SOC/SOC.c     **** 	}
+ 181:SOC/SOC.c     **** 	if (chargeCurrent > chargeCurrPosLimit) // charging is ON
+ 452               	.LM43:
+ 453 01a4 8091 0000 		lds r24,chargeCurrPosLimit
+ 454 01a8 90E0      		ldi r25,0
+ 455 01aa 8417      		cp r24,r20
+ 456 01ac 9507      		cpc r25,r21
+ 457 01ae 00F4      		brsh .L13
+ 182:SOC/SOC.c     **** 	{
+ 183:SOC/SOC.c     **** 		state |= 1<<2;
+ 459               	.LM44:
+ 460 01b0 2460      		ori r18,lo8(4)
+ 461               	.L13:
+ 184:SOC/SOC.c     **** 	}
+ 185:SOC/SOC.c     **** 	
+ 186:SOC/SOC.c     **** 	switch (state) 
+ 463               	.LM45:
+ 464 01b2 2630      		cpi r18,lo8(6)
+ 465 01b4 00F4      		brsh .L15
+ 466 01b6 2430      		cpi r18,lo8(4)
+ 467 01b8 00F4      		brsh .L16
+ 468 01ba 2130      		cpi r18,lo8(1)
+ 469 01bc 01F0      		breq .L17
+ 470 01be 2330      		cpi r18,lo8(3)
+ 471 01c0 01F4      		brne .L14
+ 187:SOC/SOC.c     **** 	{
+ 188:SOC/SOC.c     **** 		case 1:
+ 189:SOC/SOC.c     **** 			positionState = STANDING_STILL;
+ 190:SOC/SOC.c     **** 		break;
+ 191:SOC/SOC.c     **** 		
+ 192:SOC/SOC.c     **** 		case 3:
+ 193:SOC/SOC.c     **** 			positionState = MOVING;
+ 473               	.LM46:
+ 474 01c2 82E0      		ldi r24,lo8(2)
+ 475 01c4 00C0      		rjmp .L21
+ 476               	.L15:
+ 186:SOC/SOC.c     **** 	{
+ 478               	.LM47:
+ 479 01c6 2730      		cpi r18,lo8(7)
+ 480 01c8 01F4      		brne .L14
+ 194:SOC/SOC.c     **** 		break;
+ 195:SOC/SOC.c     **** 		
+ 196:SOC/SOC.c     **** 		case 4: // charging when the Pi is off? should work
+ 197:SOC/SOC.c     **** 		case 5:
+ 198:SOC/SOC.c     **** 			positionState = STANDING_STILL_AND_CHARGING;
+ 199:SOC/SOC.c     **** 		break;
+ 200:SOC/SOC.c     **** 		
+ 201:SOC/SOC.c     **** 		case 7:
+ 202:SOC/SOC.c     **** 			positionState = MOVING_AND_CHARGING;
+ 482               	.LM48:
+ 483 01ca 83E0      		ldi r24,lo8(3)
+ 484 01cc 00C0      		rjmp .L21
+ 485               	.L17:
+ 189:SOC/SOC.c     **** 		break;
+ 487               	.LM49:
+ 488 01ce 2093 0000 		sts positionState,r18
+ 190:SOC/SOC.c     **** 		
+ 490               	.LM50:
+ 491 01d2 0895      		ret
+ 492               	.L16:
+ 198:SOC/SOC.c     **** 		break;
+ 494               	.LM51:
+ 495 01d4 84E0      		ldi r24,lo8(4)
+ 496 01d6 00C0      		rjmp .L21
+ 497               	.L14:
+ 203:SOC/SOC.c     **** 		break;
+ 204:SOC/SOC.c     **** 		
+ 205:SOC/SOC.c     **** 		default: // can not be moving ( and charging)  without the pi case 2 and 6 
+ 206:SOC/SOC.c     **** 			positionState = UNKNOWN_STATE;
+ 499               	.LM52:
+ 500 01d8 85E0      		ldi r24,lo8(5)
+ 501               	.L21:
+ 502 01da 8093 0000 		sts positionState,r24
+ 503 01de 0895      		ret
+ 508               	.Lscope5:
+ 510               		.stabd	78,0,0
+ 515               	.global	update_diag
+ 517               	update_diag:
+ 518               		.stabd	46,0,0
+ 207:SOC/SOC.c     **** 	}
+ 208:SOC/SOC.c     **** 	
+ 209:SOC/SOC.c     **** }
+ 210:SOC/SOC.c     **** 
+ 211:SOC/SOC.c     **** void update_diag(uint16_t piCurrent, uint16_t motorCurrent, uint16_t chargeCurrent)
+ 212:SOC/SOC.c     **** {
+ 520               	.LM53:
+ 521               	.LFBB6:
+ 522               	/* prologue: function */
+ 523               	/* frame size = 0 */
+ 524               	/* stack size = 0 */
+ 525               	.L__stack_usage = 0
+ 213:SOC/SOC.c     **** 	if (piCurrent > maxPiCurrent) 
+ 527               	.LM54:
+ 528 01e0 2091 0000 		lds r18,maxPiCurrent
+ 529 01e4 3091 0000 		lds r19,maxPiCurrent+1
+ 530 01e8 2817      		cp r18,r24
+ 531 01ea 3907      		cpc r19,r25
+ 532 01ec 00F4      		brsh .L23
+ 214:SOC/SOC.c     **** 	{
+ 215:SOC/SOC.c     **** 		soc_diag |= 1<<PI_USB_OC;
+ 534               	.LM55:
+ 535 01ee 8091 0000 		lds r24,soc_diag
+ 536 01f2 8160      		ori r24,lo8(1)
+ 537 01f4 8093 0000 		sts soc_diag,r24
+ 538               	.L23:
+ 216:SOC/SOC.c     **** 	}
+ 217:SOC/SOC.c     **** 	if (motorCurrent > maxMotorCurrent) 
+ 540               	.LM56:
+ 541 01f8 8091 0000 		lds r24,maxMotorCurrent
+ 542 01fc 9091 0000 		lds r25,maxMotorCurrent+1
+ 543 0200 8617      		cp r24,r22
+ 544 0202 9707      		cpc r25,r23
+ 545 0204 00F4      		brsh .L24
+ 218:SOC/SOC.c     **** 	{
+ 219:SOC/SOC.c     **** 		soc_diag |= 1<<MOTOR_USB_OC;
+ 547               	.LM57:
+ 548 0206 8091 0000 		lds r24,soc_diag
+ 549 020a 8260      		ori r24,lo8(2)
+ 550 020c 8093 0000 		sts soc_diag,r24
+ 551               	.L24:
+ 220:SOC/SOC.c     **** 	}
+ 221:SOC/SOC.c     **** 	if (chargeCurrent > maxChargeCurrent)
+ 553               	.LM58:
+ 554 0210 8091 0000 		lds r24,maxChargeCurrent
+ 555 0214 9091 0000 		lds r25,maxChargeCurrent+1
+ 556 0218 8417      		cp r24,r20
+ 557 021a 9507      		cpc r25,r21
+ 558 021c 00F4      		brsh .L22
+ 559               	.LBB6:
+ 560               	.LBB7:
+ 222:SOC/SOC.c     **** 	{
+ 223:SOC/SOC.c     **** 		soc_diag |= 1<<CHARGE_USB_OC;
+ 562               	.LM59:
+ 563 021e 8091 0000 		lds r24,soc_diag
+ 564 0222 8460      		ori r24,lo8(4)
+ 565 0224 8093 0000 		sts soc_diag,r24
+ 566               	.L22:
+ 567 0228 0895      		ret
+ 568               	.LBE7:
+ 569               	.LBE6:
+ 571               	.Lscope6:
+ 573               		.stabd	78,0,0
+ 575               	.global	sample_current
+ 577               	sample_current:
+ 578               		.stabd	46,0,0
+ 125:SOC/SOC.c     **** 	uint16_t piUSB = read_current(PIUSB);
+ 580               	.LM60:
+ 581               	.LFBB7:
+ 582 022a EF92      		push r14
+ 583 022c FF92      		push r15
+ 584 022e 0F93      		push r16
+ 585 0230 1F93      		push r17
+ 586 0232 CF93      		push r28
+ 587 0234 DF93      		push r29
+ 588               	/* prologue: function */
+ 589               	/* frame size = 0 */
+ 590               	/* stack size = 6 */
+ 591               	.L__stack_usage = 6
+ 126:SOC/SOC.c     **** 	uint16_t motorUSB = read_current(MOTORUSB);
+ 593               	.LM61:
+ 594 0236 84E0      		ldi r24,lo8(4)
+ 595 0238 00D0      		rcall read_current
+ 596 023a 7C01      		movw r14,r24
+ 127:SOC/SOC.c     **** 	uint16_t chargeUSB = read_current(CHARGEUSB);
+ 598               	.LM62:
+ 599 023c 85E0      		ldi r24,lo8(5)
+ 600 023e 00D0      		rcall read_current
+ 601 0240 8C01      		movw r16,r24
+ 128:SOC/SOC.c     **** 	
+ 603               	.LM63:
+ 604 0242 86E0      		ldi r24,lo8(6)
+ 605 0244 00D0      		rcall read_current
+ 606 0246 EC01      		movw r28,r24
+ 130:SOC/SOC.c     **** 	update_position(piUSB, motorUSB, chargeUSB);
+ 608               	.LM64:
+ 609 0248 AC01      		movw r20,r24
+ 610 024a B801      		movw r22,r16
+ 611 024c C701      		movw r24,r14
+ 612 024e 00D0      		rcall update_diag
+ 131:SOC/SOC.c     **** 	mSecAccumulators = mSecAccumulators - piUSB - motorUSB + chargeUSB;
+ 614               	.LM65:
+ 615 0250 AE01      		movw r20,r28
+ 616 0252 B801      		movw r22,r16
+ 617 0254 C701      		movw r24,r14
+ 618 0256 00D0      		rcall update_position
+ 132:SOC/SOC.c     **** }
+ 620               	.LM66:
+ 621 0258 8091 0000 		lds r24,mSecAccumulators
+ 622 025c 9091 0000 		lds r25,mSecAccumulators+1
+ 623 0260 A091 0000 		lds r26,mSecAccumulators+2
+ 624 0264 B091 0000 		lds r27,mSecAccumulators+3
+ 625 0268 8E19      		sub r24,r14
+ 626 026a 9F09      		sbc r25,r15
+ 627 026c A109      		sbc r26,__zero_reg__
+ 628 026e B109      		sbc r27,__zero_reg__
+ 629 0270 801B      		sub r24,r16
+ 630 0272 910B      		sbc r25,r17
+ 631 0274 A109      		sbc r26,__zero_reg__
+ 632 0276 B109      		sbc r27,__zero_reg__
+ 633 0278 8C0F      		add r24,r28
+ 634 027a 9D1F      		adc r25,r29
+ 635 027c A11D      		adc r26,__zero_reg__
+ 636 027e B11D      		adc r27,__zero_reg__
+ 637 0280 8093 0000 		sts mSecAccumulators,r24
+ 638 0284 9093 0000 		sts mSecAccumulators+1,r25
+ 639 0288 A093 0000 		sts mSecAccumulators+2,r26
+ 640 028c B093 0000 		sts mSecAccumulators+3,r27
+ 641               	/* epilogue start */
+ 133:SOC/SOC.c     **** void accumulator(uint8_t *counter, int32_t *accum , int32_t *sample )
+ 643               	.LM67:
+ 644 0290 DF91      		pop r29
+ 645 0292 CF91      		pop r28
+ 646 0294 1F91      		pop r17
+ 647 0296 0F91      		pop r16
+ 648 0298 FF90      		pop r15
+ 649 029a EF90      		pop r14
+ 650 029c 0895      		ret
+ 657               	.Lscope7:
+ 659               		.stabd	78,0,0
+ 661               	.global	update_full_charge_timer
+ 663               	update_full_charge_timer:
+ 664               		.stabd	46,0,0
+ 224:SOC/SOC.c     **** 	}
+ 225:SOC/SOC.c     **** }
+ 226:SOC/SOC.c     **** 
+ 227:SOC/SOC.c     **** void update_full_charge_timer( void ) // calls with sec interval 
+ 228:SOC/SOC.c     **** {
+ 666               	.LM68:
+ 667               	.LFBB8:
+ 668               	/* prologue: function */
+ 669               	/* frame size = 0 */
+ 670               	/* stack size = 0 */
+ 671               	.L__stack_usage = 0
+ 229:SOC/SOC.c     **** 	if ( (fuelGauge >= maxCharge) && (positionState == STANDING_STILL_AND_CHARGING) )
+ 673               	.LM69:
+ 674 029e 2091 0000 		lds r18,fuelGauge
+ 675 02a2 3091 0000 		lds r19,fuelGauge+1
+ 676 02a6 8091 0000 		lds r24,maxCharge
+ 677 02aa 9091 0000 		lds r25,maxCharge+1
+ 678 02ae 2817      		cp r18,r24
+ 679 02b0 3907      		cpc r19,r25
+ 680 02b2 00F0      		brlo .L27
+ 682               	.LM70:
+ 683 02b4 8091 0000 		lds r24,positionState
+ 684 02b8 8430      		cpi r24,lo8(4)
+ 685 02ba 01F4      		brne .L27
+ 686               	.LBB10:
+ 230:SOC/SOC.c     **** 	{
+ 231:SOC/SOC.c     **** 		fullChargeTimer++;
+ 688               	.LM71:
+ 689 02bc 8091 0000 		lds r24,fullChargeTimer
+ 690 02c0 9091 0000 		lds r25,fullChargeTimer+1
+ 691 02c4 0196      		adiw r24,1
+ 692 02c6 9093 0000 		sts fullChargeTimer+1,r25
+ 693 02ca 8093 0000 		sts fullChargeTimer,r24
+ 694               	.L27:
+ 695 02ce 0895      		ret
+ 696               	.LBE10:
+ 698               	.Lscope8:
+ 700               		.stabd	78,0,0
+ 703               	.global	update_SOC
+ 705               	update_SOC:
+ 706               		.stabd	46,0,0
+  76:SOC/SOC.c     **** 	freqCounter += abs(counter - lastCountValue);
+ 708               	.LM72:
+ 709               	.LFBB9:
+ 710               	/* prologue: function */
+ 711               	/* frame size = 0 */
+ 712               	/* stack size = 0 */
+ 713               	.L__stack_usage = 0
+  77:SOC/SOC.c     **** 	lastCountValue = counter;
+ 715               	.LM73:
+ 716 02d0 2091 0000 		lds r18,lastCountValue
+ 717 02d4 3091 0000 		lds r19,lastCountValue+1
+ 718 02d8 AC01      		movw r20,r24
+ 719 02da 421B      		sub r20,r18
+ 720 02dc 530B      		sbc r21,r19
+ 721 02de 57FF      		sbrs r21,7
+ 722 02e0 00C0      		rjmp .L30
+ 723 02e2 5195      		neg r21
+ 724 02e4 4195      		neg r20
+ 725 02e6 5109      		sbc r21,__zero_reg__
+ 726               	.L30:
+ 727 02e8 2091 0000 		lds r18,freqCounter
+ 728 02ec 3091 0000 		lds r19,freqCounter+1
+ 729 02f0 240F      		add r18,r20
+ 730 02f2 351F      		adc r19,r21
+ 731 02f4 3093 0000 		sts freqCounter+1,r19
+ 732 02f8 2093 0000 		sts freqCounter,r18
+  78:SOC/SOC.c     **** 	
+ 734               	.LM74:
+ 735 02fc 9093 0000 		sts lastCountValue+1,r25
+ 736 0300 8093 0000 		sts lastCountValue,r24
+  80:SOC/SOC.c     **** 	{
+ 738               	.LM75:
+ 739 0304 8091 0000 		lds r24,updateFreq
+ 740 0308 9091 0000 		lds r25,updateFreq+1
+ 741 030c 2817      		cp r18,r24
+ 742 030e 3907      		cpc r19,r25
+ 743 0310 00F0      		brlo .L31
+  83:SOC/SOC.c     **** 		freqSampleCounter++;
+ 745               	.LM76:
+ 746 0312 1092 0000 		sts freqCounter+1,__zero_reg__
+ 747 0316 1092 0000 		sts freqCounter,__zero_reg__
+  84:SOC/SOC.c     **** 		sample_current();	
+ 749               	.LM77:
+ 750 031a 8091 0000 		lds r24,freqSampleCounter
+ 751 031e 8F5F      		subi r24,lo8(-(1))
+ 752 0320 8093 0000 		sts freqSampleCounter,r24
+  85:SOC/SOC.c     **** 	}
+ 754               	.LM78:
+ 755 0324 00D0      		rcall sample_current
+ 756               	.L31:
+  88:SOC/SOC.c     **** 	{
+ 758               	.LM79:
+ 759 0326 8091 0000 		lds r24,freqSampleCounter
+ 760 032a 8A30      		cpi r24,lo8(10)
+ 761 032c 00F0      		brlo .L32
+  90:SOC/SOC.c     **** 		accumulator(&freqSampleSec, &secAccumulators, &mSecAccumulators);
+ 763               	.LM80:
+ 764 032e 1092 0000 		sts freqSampleCounter,__zero_reg__
+  91:SOC/SOC.c     **** 		update_full_charge_timer();
+ 766               	.LM81:
+ 767 0332 40E0      		ldi r20,lo8(mSecAccumulators)
+ 768 0334 50E0      		ldi r21,hi8(mSecAccumulators)
+ 769 0336 60E0      		ldi r22,lo8(secAccumulators)
+ 770 0338 70E0      		ldi r23,hi8(secAccumulators)
+ 771 033a 80E0      		ldi r24,lo8(freqSampleSec)
+ 772 033c 90E0      		ldi r25,hi8(freqSampleSec)
+ 773 033e 00D0      		rcall accumulator
+  92:SOC/SOC.c     **** 	}
+ 775               	.LM82:
+ 776 0340 00D0      		rcall update_full_charge_timer
+ 777               	.L32:
+  95:SOC/SOC.c     **** 	{
+ 779               	.LM83:
+ 780 0342 8091 0000 		lds r24,freqSampleSec
+ 781 0346 8C33      		cpi r24,lo8(60)
+ 782 0348 00F0      		brlo .L29
+  97:SOC/SOC.c     **** 		update_fuel_gauge(&secAccumulators);
+ 784               	.LM84:
+ 785 034a 1092 0000 		sts freqSampleSec,__zero_reg__
+  98:SOC/SOC.c     **** 	}
+ 787               	.LM85:
+ 788 034e 80E0      		ldi r24,lo8(secAccumulators)
+ 789 0350 90E0      		ldi r25,hi8(secAccumulators)
+ 790 0352 00C0      		rjmp update_fuel_gauge
+ 791               	.L29:
+ 792 0354 0895      		ret
+ 794               	.Lscope9:
+ 796               		.stabd	78,0,0
+ 797               		.comm	fullChargeTimer,2,1
+ 798               		.comm	freqSampleSec,1,1
+ 799               		.comm	freqSampleCounter,1,1
+ 800               		.comm	freqCounter,2,1
+ 801               		.comm	updateFreq,2,1
+ 802               		.comm	mSecAccumulators,4,1
+ 803               		.comm	secAccumulators,4,1
+ 804               		.comm	lastCountValue,2,1
+ 805               		.comm	fullChargeMAXTime,2,1
+ 806               		.comm	soc_diag,1,1
+ 807               		.comm	positionState,1,1
+ 808               		.comm	chargeCurrPosLimit,1,1
+ 809               		.comm	motorCurrPosLimit,1,1
+ 810               		.comm	piCurrPosLimit,1,1
+ 811               		.comm	maxChargeCurrent,2,1
+ 812               		.comm	maxMotorCurrent,2,1
+ 813               		.comm	maxPiCurrent,2,1
+ 814               		.comm	maxCharge,2,1
+ 815               		.comm	minChargeLimit,2,1
+ 816               		.comm	fuelGauge,2,1
+ 817               		.comm	needToCharge,1,1
+ 840               	.Letext0:
+ 841               		.ident	"GCC: (GNU) 4.9.2"
+ 842               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:00000000 SOC.c
+     /tmp/ccQoURgz.s:2      *ABS*:0000003e __SP_H__
+     /tmp/ccQoURgz.s:3      *ABS*:0000003d __SP_L__
+     /tmp/ccQoURgz.s:4      *ABS*:0000003f __SREG__
+     /tmp/ccQoURgz.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/ccQoURgz.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/ccQoURgz.s:129    .text:00000000 init_SOC
+                            *COM*:00000001 needToCharge
+                            *COM*:00000002 maxCharge
+                            *COM*:00000002 fuelGauge
+                            *COM*:00000002 minChargeLimit
+                            *COM*:00000002 lastCountValue
+                            *COM*:00000002 updateFreq
+                            *COM*:00000002 freqCounter
+                            *COM*:00000001 freqSampleCounter
+                            *COM*:00000001 freqSampleSec
+                            *COM*:00000002 maxPiCurrent
+                            *COM*:00000002 maxMotorCurrent
+                            *COM*:00000002 maxChargeCurrent
+                            *COM*:00000001 piCurrPosLimit
+                            *COM*:00000001 motorCurrPosLimit
+                            *COM*:00000001 chargeCurrPosLimit
+                            *COM*:00000002 fullChargeMAXTime
+                            *COM*:00000001 soc_diag
+                            *COM*:00000001 positionState
+     /tmp/ccQoURgz.s:227    .text:00000094 update_SOC_limits
+     /tmp/ccQoURgz.s:247    .text:00000096 accumulator
+     /tmp/ccQoURgz.s:308    .text:000000d8 update_fuel_gauge
+                            *COM*:00000002 fullChargeTimer
+     /tmp/ccQoURgz.s:421    .text:00000186 update_position
+     /tmp/ccQoURgz.s:517    .text:000001e0 update_diag
+     /tmp/ccQoURgz.s:577    .text:0000022a sample_current
+                            *COM*:00000004 mSecAccumulators
+     /tmp/ccQoURgz.s:663    .text:0000029e update_full_charge_timer
+     /tmp/ccQoURgz.s:705    .text:000002d0 update_SOC
+                            *COM*:00000004 secAccumulators
+
+UNDEFINED SYMBOLS
+__divmodsi4
+read_current
+__do_clear_bss

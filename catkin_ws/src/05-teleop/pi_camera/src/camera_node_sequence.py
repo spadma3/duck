@@ -102,7 +102,7 @@ class CameraNode(object):
             stream.truncate()
 
             if not self.has_published:
-                rospy.loginfo("[%s] Published the first image." % (self.node_name))
+                rospy.loginfo("[%s] Published the first DAAAAAAAAAAAAAAAAAAAAAAAAAAAAMMMMMMMMMMMMMMNNNNNNNNNNNNNNNNimage." % (self.node_name))
                 self.has_published = True
 
             rospy.sleep(rospy.Duration.from_sec(0.001))

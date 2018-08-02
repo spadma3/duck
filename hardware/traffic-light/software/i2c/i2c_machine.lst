@@ -1,0 +1,1034 @@
+   1               		.file	"i2c_machine.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 104               	.global	I2CAddressToArrayIndex
+ 106               	I2CAddressToArrayIndex:
+ 107               		.stabd	46,0,0
+   1:i2c/i2c_machine.c **** /*
+   2:i2c/i2c_machine.c ****  * Copyright Brian Starkey 2014 <stark3y@gmail.com>
+   3:i2c/i2c_machine.c ****  *
+   4:i2c/i2c_machine.c ****  * This program is free software: you can redistribute it and/or modify
+   5:i2c/i2c_machine.c ****  * it under the terms of version 2 of the GNU General Public License as
+   6:i2c/i2c_machine.c ****  * published by the Free Software Foundation.
+   7:i2c/i2c_machine.c ****  *
+   8:i2c/i2c_machine.c ****  * This program is distributed in the hope that it will be useful,
+   9:i2c/i2c_machine.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  10:i2c/i2c_machine.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  11:i2c/i2c_machine.c ****  * GNU General Public License for more details.
+  12:i2c/i2c_machine.c ****  *
+  13:i2c/i2c_machine.c ****  * You should have received a copy of the GNU General Public License
+  14:i2c/i2c_machine.c ****  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  15:i2c/i2c_machine.c ****  *
+  16:i2c/i2c_machine.c ****  */
+  17:i2c/i2c_machine.c **** 
+  18:i2c/i2c_machine.c **** //#define DEBUG
+  19:i2c/i2c_machine.c **** 
+  20:i2c/i2c_machine.c **** #include <avr/io.h>
+  21:i2c/i2c_machine.c **** #include <avr/interrupt.h>
+  22:i2c/i2c_machine.c **** #include <stdint.h>
+  23:i2c/i2c_machine.c **** #include "i2c_slave_defs.h"
+  24:i2c/i2c_machine.c **** #include "i2c_machine.h"
+  25:i2c/i2c_machine.c **** 
+  26:i2c/i2c_machine.c **** #define I2C_SDA_DIR_OUT 1
+  27:i2c/i2c_machine.c **** #define I2C_SDA_DIR_IN 0
+  28:i2c/i2c_machine.c **** 
+  29:i2c/i2c_machine.c **** #define NAK() USIDR = 0x80
+  30:i2c/i2c_machine.c **** #define ACK() USIDR = 0x00
+  31:i2c/i2c_machine.c **** 
+  32:i2c/i2c_machine.c **** #define I2C_STATE_ADDR_MATCH   0
+  33:i2c/i2c_machine.c **** #define I2C_STATE_REG_ADDR     1
+  34:i2c/i2c_machine.c **** #define I2C_STATE_MASTER_READ  2
+  35:i2c/i2c_machine.c **** #define I2C_STATE_MASTER_WRITE 3
+  36:i2c/i2c_machine.c **** #define I2C_STATE_IDLE         4
+  37:i2c/i2c_machine.c **** 
+  38:i2c/i2c_machine.c **** uint8_t volatile i2c_reg[I2C_N_SLAVES][I2C_N_REG];
+  39:i2c/i2c_machine.c **** volatile uint8_t I2C_SLAVE_ADDR[I2C_N_SLAVES]={0x40,0x60};
+  40:i2c/i2c_machine.c **** 
+  41:i2c/i2c_machine.c **** // #ifdef DEBUG
+  42:i2c/i2c_machine.c **** // #define LED_ON() PORTB |= 0x2
+  43:i2c/i2c_machine.c **** // #define LED_OFF() PORTB &= ~0x2
+  44:i2c/i2c_machine.c **** // #define LED_FLICKER() LED_OFF(); LED_ON()
+  45:i2c/i2c_machine.c **** // #else
+  46:i2c/i2c_machine.c **** // #define LED_ON()
+  47:i2c/i2c_machine.c **** // #define LED_OFF()
+  48:i2c/i2c_machine.c **** // #define LED_FLICKER()
+  49:i2c/i2c_machine.c **** // #endif
+  50:i2c/i2c_machine.c **** 
+  51:i2c/i2c_machine.c **** volatile uint8_t i2c_update[I2C_N_SLAVES] = {0}; //byte count written in the last i2c write command
+  52:i2c/i2c_machine.c **** volatile uint8_t i2c_current_Slave=0; //current slave index, which is communicating at the moment, 
+  53:i2c/i2c_machine.c ****  
+  54:i2c/i2c_machine.c ****  
+  55:i2c/i2c_machine.c **** //these variables are just there once and are used all emulated slaves.
+  56:i2c/i2c_machine.c **** //because there is just one state machine and the i2c master can just
+  57:i2c/i2c_machine.c **** //talk to one slave at a time.
+  58:i2c/i2c_machine.c **** volatile uint8_t i2c_state = 0;  //state of the i2c state machine, see below  
+  59:i2c/i2c_machine.c **** volatile uint8_t i2c_offset = 0; //read or write array index of the current operation
+  60:i2c/i2c_machine.c **** 
+  61:i2c/i2c_machine.c **** 
+  62:i2c/i2c_machine.c **** 
+  63:i2c/i2c_machine.c **** //this function translates an I2C register index to an array index (e.g. to save memory because the
+  64:i2c/i2c_machine.c **** //PCA9685 has registers 0-69dez and 250-255dez. To Save memory, the registers 250-255dez are mapped
+  65:i2c/i2c_machine.c **** uint16_t I2CAddressToArrayIndex(uint8_t I2CAddress) //Error= 0xFFFF
+  66:i2c/i2c_machine.c **** {
+ 109               	.LM0:
+ 110               	.LFBB1:
+ 111               	/* prologue: function */
+ 112               	/* frame size = 0 */
+ 113               	/* stack size = 0 */
+ 114               	.L__stack_usage = 0
+  67:i2c/i2c_machine.c **** 	if (I2CAddress <= 0x45)//i2c 0-69dez --> Index 0-69dez
+ 116               	.LM1:
+ 117 0000 8634      		cpi r24,lo8(70)
+ 118 0002 00F4      		brsh .L2
+  68:i2c/i2c_machine.c **** 	{
+  69:i2c/i2c_machine.c **** 		return I2CAddress;
+ 120               	.LM2:
+ 121 0004 90E0      		ldi r25,0
+ 122 0006 0895      		ret
+ 123               	.L2:
+  70:i2c/i2c_machine.c **** 	}
+  71:i2c/i2c_machine.c **** 	else if (I2CAddress >= 0xFA && I2CAddress <= 0XFF)// i2c 250-255dez --> Index 70-25dez
+ 125               	.LM3:
+ 126 0008 8A3F      		cpi r24,lo8(-6)
+ 127 000a 00F0      		brlo .L4
+  72:i2c/i2c_machine.c **** 	{
+  73:i2c/i2c_machine.c **** 		return I2CAddress - 0xFA+0x46;// the address 0xFA (250dez) should give 0x46 (70dez)
+ 129               	.LM4:
+ 130 000c 90E0      		ldi r25,0
+ 131 000e 845B      		subi r24,-76
+ 132 0010 9109      		sbc r25,__zero_reg__
+ 133 0012 0895      		ret
+ 134               	.L4:
+  74:i2c/i2c_machine.c **** 	}
+  75:i2c/i2c_machine.c **** 	else
+  76:i2c/i2c_machine.c **** 	{
+  77:i2c/i2c_machine.c **** 		return 0xFFFF;//Error
+ 136               	.LM5:
+ 137 0014 8FEF      		ldi r24,lo8(-1)
+ 138 0016 9FEF      		ldi r25,lo8(-1)
+  78:i2c/i2c_machine.c **** 	}
+  79:i2c/i2c_machine.c **** }
+ 140               	.LM6:
+ 141 0018 0895      		ret
+ 143               	.Lscope1:
+ 145               		.stabd	78,0,0
+ 147               	.global	__vector_7
+ 149               	__vector_7:
+ 150               		.stabd	46,0,0
+  80:i2c/i2c_machine.c **** 
+  81:i2c/i2c_machine.c **** 
+  82:i2c/i2c_machine.c **** 
+  83:i2c/i2c_machine.c **** 
+  84:i2c/i2c_machine.c **** 
+  85:i2c/i2c_machine.c **** /* USI i2c Slave State Machine
+  86:i2c/i2c_machine.c ****  * ===========================
+  87:i2c/i2c_machine.c ****  *
+  88:i2c/i2c_machine.c ****  * 5 States:
+  89:i2c/i2c_machine.c ****  *     0 I2C_STATE_ADDR_MATCH
+  90:i2c/i2c_machine.c ****  *       Waiting for address (start)
+  91:i2c/i2c_machine.c ****  *
+  92:i2c/i2c_machine.c ****  *     1 I2C_STATE_REG_ADDR
+  93:i2c/i2c_machine.c ****  *       Receive register address*
+  94:i2c/i2c_machine.c ****  *
+  95:i2c/i2c_machine.c ****  *     2 I2C_STATE_MASTER_READ
+  96:i2c/i2c_machine.c ****  *       Transmit data to master
+  97:i2c/i2c_machine.c ****  *
+  98:i2c/i2c_machine.c ****  *     3 I2C_STATE_MASTER_WRITE
+  99:i2c/i2c_machine.c ****  *       Receive data from master
+ 100:i2c/i2c_machine.c ****  *
+ 101:i2c/i2c_machine.c ****  *     4 I2C_STATE_IDLE
+ 102:i2c/i2c_machine.c ****  *       Bus idle/address not matched
+ 103:i2c/i2c_machine.c ****  *
+ 104:i2c/i2c_machine.c ****  * Valid state transitions:
+ 105:i2c/i2c_machine.c ****  *      __To__________
+ 106:i2c/i2c_machine.c ****  *      0  1  2  3  4
+ 107:i2c/i2c_machine.c ****  * F 0|    a  b     h
+ 108:i2c/i2c_machine.c ****  * r 1|          d  ci
+ 109:i2c/i2c_machine.c ****  * o 2|       f     e
+ 110:i2c/i2c_machine.c ****  * m 3|          g  c
+ 111:i2c/i2c_machine.c ****  *   4| j
+ 112:i2c/i2c_machine.c ****  *
+ 113:i2c/i2c_machine.c ****  * Transition j - Start of transaction
+ 114:i2c/i2c_machine.c ****  *  I2C_STATE_IDLE -> I2C_STATE_ADDR_MATCH
+ 115:i2c/i2c_machine.c ****  *  Cond:   Start condition interrupt
+ 116:i2c/i2c_machine.c ****  *  Action: None.
+ 117:i2c/i2c_machine.c ****  *
+ 118:i2c/i2c_machine.c ****  * Transition h - Address not matched.
+ 119:i2c/i2c_machine.c ****  *  I2C_STATE_ADDR_MATCH -> I2C_STATE_IDLE
+ 120:i2c/i2c_machine.c ****  *  Cond:   Pre-ack. Address doesn't match
+ 121:i2c/i2c_machine.c ****  *  Action: NAK.
+ 122:i2c/i2c_machine.c ****  *
+ 123:i2c/i2c_machine.c ****  * Transition a - Address matched, write mode
+ 124:i2c/i2c_machine.c ****  *  I2C_STATE_ADDR_MATCH -> I2C_STATE_REG_ADDR
+ 125:i2c/i2c_machine.c ****  *  Cond:   Pre-ack. Address matches, bit0 == 0
+ 126:i2c/i2c_machine.c ****  *  Action: ACK, Reset reg pointer.
+ 127:i2c/i2c_machine.c ****  *
+ 128:i2c/i2c_machine.c ****  * Transition b - Address matched, read mode
+ 129:i2c/i2c_machine.c ****  *  I2C_STATE_ADDR_MATCH -> I2C_STATE_MASTER_READ
+ 130:i2c/i2c_machine.c ****  *  Cond:   Pre-ack. Address matches, bit0 == 1
+ 131:i2c/i2c_machine.c ****  *  Action: ACK.
+ 132:i2c/i2c_machine.c ****  *
+ 133:i2c/i2c_machine.c ****  * Transition c - Write finished
+ 134:i2c/i2c_machine.c ****  *  I2C_STATE_XXX -> I2C_STATE_IDLE
+ 135:i2c/i2c_machine.c ****  *  Cond:   Stop flag is set.
+ 136:i2c/i2c_machine.c ****  *  Action: None.
+ 137:i2c/i2c_machine.c ****  *
+ 138:i2c/i2c_machine.c ****  * Transition d - Initialise write
+ 139:i2c/i2c_machine.c ****  *  I2C_STATE_REG_ADDR -> I2C_STATE_MASTER_WRITE
+ 140:i2c/i2c_machine.c ****  *  Cond:   Pre-ack.
+ 141:i2c/i2c_machine.c ****  *  Action: ACK, reg_ptr = USIDR.
+ 142:i2c/i2c_machine.c ****  *
+ 143:i2c/i2c_machine.c ****  * Transition i - Invalid reg addr
+ 144:i2c/i2c_machine.c ****  *  I2C_STATE_REG_ADDR -> I2C_STATE_IDLE
+ 145:i2c/i2c_machine.c ****  *  Cond:   Pre-ack, USIDR > N_REG - 1
+ 146:i2c/i2c_machine.c ****  *  Action: NAK.
+ 147:i2c/i2c_machine.c ****  *
+ 148:i2c/i2c_machine.c ****  * Transition e - Read finished
+ 149:i2c/i2c_machine.c ****  *  I2C_STATE_MASTER_READ -> I2C_STATE_IDLE
+ 150:i2c/i2c_machine.c ****  *  Cond:   Post-ack. Master NAK'd.
+ 151:i2c/i2c_machine.c ****  *  Action: None.
+ 152:i2c/i2c_machine.c ****  *
+ 153:i2c/i2c_machine.c ****  * Transition f - Read continues
+ 154:i2c/i2c_machine.c ****  *  I2C_STATE_MASTER_READ -> I2C_STATE_MASTER_READ
+ 155:i2c/i2c_machine.c ****  *  Cond:   Post-ack. Master ACK'd.
+ 156:i2c/i2c_machine.c ****  *  Action: USIDR = *reg_ptr++
+ 157:i2c/i2c_machine.c ****  *
+ 158:i2c/i2c_machine.c ****  * Transition g - Write continues
+ 159:i2c/i2c_machine.c ****  *  I2C_STATE_MASTER_WRITE -> I2C_STATE_MASTER_WRITE
+ 160:i2c/i2c_machine.c ****  *  Cond:   Pre-ack.
+ 161:i2c/i2c_machine.c ****  *  Action: ACK, *reg_ptr++ = USIDR
+ 162:i2c/i2c_machine.c ****  *
+ 163:i2c/i2c_machine.c ****  */
+ 164:i2c/i2c_machine.c **** 
+ 165:i2c/i2c_machine.c ****  /*
+ 166:i2c/i2c_machine.c ****   * For some reason, avr-libc uses different vector names for the USI
+ 167:i2c/i2c_machine.c ****   * on different chips! We have to workaround that here
+ 168:i2c/i2c_machine.c ****   */
+ 169:i2c/i2c_machine.c **** 
+ 170:i2c/i2c_machine.c **** 
+ 171:i2c/i2c_machine.c **** 
+ 172:i2c/i2c_machine.c **** 
+ 173:i2c/i2c_machine.c **** 
+ 174:i2c/i2c_machine.c **** //I2C Start Interrupt
+ 175:i2c/i2c_machine.c **** #if defined(USI_START_vect)
+ 176:i2c/i2c_machine.c **** ISR(USI_START_vect)
+ 177:i2c/i2c_machine.c **** #elif defined(USI_STRT_vect)
+ 178:i2c/i2c_machine.c **** ISR(USI_STRT_vect)
+ 179:i2c/i2c_machine.c **** #else
+ 180:i2c/i2c_machine.c **** #error "Couldn't figure out what i2c start interrupt to use!"
+ 181:i2c/i2c_machine.c **** #endif
+ 182:i2c/i2c_machine.c **** {
+ 152               	.LM7:
+ 153               	.LFBB2:
+ 154 001a 1F92      		push r1
+ 155 001c 0F92      		push r0
+ 156 001e 0FB6      		in r0,__SREG__
+ 157 0020 0F92      		push r0
+ 158 0022 1124      		clr __zero_reg__
+ 159 0024 8F93      		push r24
+ 160               	/* prologue: Signal */
+ 161               	/* frame size = 0 */
+ 162               	/* stack size = 4 */
+ 163               	.L__stack_usage = 4
+ 183:i2c/i2c_machine.c **** 	i2c_state = 0;
+ 165               	.LM8:
+ 166 0026 1092 0000 		sts i2c_state,__zero_reg__
+ 167               	.L7:
+ 184:i2c/i2c_machine.c **** 	while (USI_PIN & (1 << I2C_SCL));
+ 169               	.LM9:
+ 170 002a CA99      		sbic 0x19,2
+ 171 002c 00C0      		rjmp .L7
+ 185:i2c/i2c_machine.c **** 	USISR = 0xF0;
+ 173               	.LM10:
+ 174 002e 80EF      		ldi r24,lo8(-16)
+ 175 0030 8EB9      		out 0xe,r24
+ 176               	/* epilogue start */
+ 186:i2c/i2c_machine.c **** }
+ 178               	.LM11:
+ 179 0032 8F91      		pop r24
+ 180 0034 0F90      		pop r0
+ 181 0036 0FBE      		out __SREG__,r0
+ 182 0038 0F90      		pop r0
+ 183 003a 1F90      		pop r1
+ 184 003c 1895      		reti
+ 186               	.Lscope2:
+ 188               		.stabd	78,0,0
+ 190               	.global	__vector_8
+ 192               	__vector_8:
+ 193               		.stabd	46,0,0
+ 187:i2c/i2c_machine.c **** 
+ 188:i2c/i2c_machine.c **** 
+ 189:i2c/i2c_machine.c **** //I2C Overflow Interrupt
+ 190:i2c/i2c_machine.c **** #if defined(USI_OVERFLOW_vect)
+ 191:i2c/i2c_machine.c **** ISR(USI_OVERFLOW_vect)
+ 192:i2c/i2c_machine.c **** #elif defined(USI_OVF_vect)
+ 193:i2c/i2c_machine.c **** ISR(USI_OVF_vect)
+ 194:i2c/i2c_machine.c **** #else
+ 195:i2c/i2c_machine.c **** #error "Couldn't figure out what i2c overflow interrupt to use!"
+ 196:i2c/i2c_machine.c **** #endif
+ 197:i2c/i2c_machine.c **** {
+ 195               	.LM12:
+ 196               	.LFBB3:
+ 197 003e 1F92      		push r1
+ 198 0040 0F92      		push r0
+ 199 0042 0FB6      		in r0,__SREG__
+ 200 0044 0F92      		push r0
+ 201 0046 1124      		clr __zero_reg__
+ 202 0048 2F93      		push r18
+ 203 004a 3F93      		push r19
+ 204 004c 4F93      		push r20
+ 205 004e 5F93      		push r21
+ 206 0050 6F93      		push r22
+ 207 0052 7F93      		push r23
+ 208 0054 8F93      		push r24
+ 209 0056 9F93      		push r25
+ 210 0058 AF93      		push r26
+ 211 005a BF93      		push r27
+ 212 005c EF93      		push r30
+ 213 005e FF93      		push r31
+ 214               	/* prologue: Signal */
+ 215               	/* frame size = 0 */
+ 216               	/* stack size = 15 */
+ 217               	.L__stack_usage = 15
+ 198:i2c/i2c_machine.c **** 	static uint8_t post_ack = 0;
+ 199:i2c/i2c_machine.c **** 	/* Writing USISR directly has side effects! */
+ 200:i2c/i2c_machine.c **** 	uint8_t usisr_tmp = 0xD0;
+ 201:i2c/i2c_machine.c **** 	uint8_t sda_direction;
+ 202:i2c/i2c_machine.c **** 	uint8_t tmp;
+ 203:i2c/i2c_machine.c **** 
+ 204:i2c/i2c_machine.c **** 	if (!post_ack) {
+ 219               	.LM13:
+ 220 0060 8091 0000 		lds r24,post_ack.1515
+ 221 0064 8111      		cpse r24,__zero_reg__
+ 222 0066 00C0      		rjmp .L10
+ 205:i2c/i2c_machine.c **** 		/* Work that needs to be done before the ACK cycle */
+ 206:i2c/i2c_machine.c **** 		sda_direction = I2C_SDA_DIR_OUT;
+ 207:i2c/i2c_machine.c **** 
+ 208:i2c/i2c_machine.c **** 		switch (i2c_state) {
+ 224               	.LM14:
+ 225 0068 8091 0000 		lds r24,i2c_state
+ 226 006c 8130      		cpi r24,lo8(1)
+ 227 006e 01F4      		brne .+2
+ 228 0070 00C0      		rjmp .L12
+ 229 0072 00F0      		brlo .L13
+ 230 0074 8230      		cpi r24,lo8(2)
+ 231 0076 01F4      		brne .+2
+ 232 0078 00C0      		rjmp .L14
+ 233 007a 8330      		cpi r24,lo8(3)
+ 234 007c 01F0      		breq .+2
+ 235 007e 00C0      		rjmp .L37
+ 209:i2c/i2c_machine.c **** 		case I2C_STATE_ADDR_MATCH:
+ 210:i2c/i2c_machine.c **** 			tmp = USIDR >> 1;//tmp=slave address
+ 211:i2c/i2c_machine.c **** 			
+ 212:i2c/i2c_machine.c **** 			i2c_current_Slave=0xFF;//set slave address invalid
+ 213:i2c/i2c_machine.c **** 			
+ 214:i2c/i2c_machine.c **** 			
+ 215:i2c/i2c_machine.c **** 			//check if the actual slave is in the slave address array
+ 216:i2c/i2c_machine.c **** 			for(uint8_t i=0;i<I2C_N_SLAVES;i++)
+ 217:i2c/i2c_machine.c **** 			{
+ 218:i2c/i2c_machine.c **** 				if (I2C_SLAVE_ADDR[i]==tmp)
+ 219:i2c/i2c_machine.c **** 				{
+ 220:i2c/i2c_machine.c **** 					//if slave address is found, stop searching and save index
+ 221:i2c/i2c_machine.c **** 					i2c_current_Slave=i;
+ 222:i2c/i2c_machine.c **** 					break;
+ 223:i2c/i2c_machine.c **** 				}
+ 224:i2c/i2c_machine.c **** 			}
+ 225:i2c/i2c_machine.c **** 			
+ 226:i2c/i2c_machine.c **** 			//Slave is found if current address is not initial value and temp is not 0			
+ 227:i2c/i2c_machine.c **** 			if (tmp==0 || i2c_current_Slave==0xFF) {
+ 228:i2c/i2c_machine.c **** 				/* Transition h: Address not matched */
+ 229:i2c/i2c_machine.c **** 				i2c_state = I2C_STATE_IDLE;
+ 230:i2c/i2c_machine.c **** 				NAK();
+ 231:i2c/i2c_machine.c **** 			} else {
+ 232:i2c/i2c_machine.c **** 				if (USIDR & 1) {
+ 233:i2c/i2c_machine.c **** 					/* Transition b: Address matched, read mode */
+ 234:i2c/i2c_machine.c **** 					i2c_state = I2C_STATE_MASTER_READ;
+ 235:i2c/i2c_machine.c **** 				} else {
+ 236:i2c/i2c_machine.c **** 					/* Transition a: Address matched, write mode */
+ 237:i2c/i2c_machine.c **** 					i2c_offset = 0;
+ 238:i2c/i2c_machine.c **** 					i2c_state = I2C_STATE_REG_ADDR;
+ 239:i2c/i2c_machine.c **** 					i2c_update[i2c_current_Slave] = 1;
+ 240:i2c/i2c_machine.c **** 				}
+ 241:i2c/i2c_machine.c **** 				ACK();
+ 242:i2c/i2c_machine.c **** 			}
+ 243:i2c/i2c_machine.c **** 			break;
+ 244:i2c/i2c_machine.c **** 		case I2C_STATE_REG_ADDR:
+ 245:i2c/i2c_machine.c **** 			if (I2CAddressToArrayIndex(USIDR)==0xFFFF) {
+ 246:i2c/i2c_machine.c **** 				/* Transition i:  Invalid reg addr*/
+ 247:i2c/i2c_machine.c **** 				i2c_state = I2C_STATE_IDLE;
+ 248:i2c/i2c_machine.c **** 				NAK();
+ 249:i2c/i2c_machine.c **** 			} else {
+ 250:i2c/i2c_machine.c **** 				/* Transition d:  Initialise write*/
+ 251:i2c/i2c_machine.c **** 				i2c_offset = I2CAddressToArrayIndex(USIDR);
+ 252:i2c/i2c_machine.c **** 				i2c_state = I2C_STATE_MASTER_WRITE;
+ 253:i2c/i2c_machine.c **** 				ACK();
+ 254:i2c/i2c_machine.c **** 			}
+ 255:i2c/i2c_machine.c **** 			break;
+ 256:i2c/i2c_machine.c **** 		case I2C_STATE_MASTER_READ:
+ 257:i2c/i2c_machine.c **** 			USIDR = 0;
+ 258:i2c/i2c_machine.c **** 			/* Listen for master NAK */
+ 259:i2c/i2c_machine.c **** 			sda_direction = I2C_SDA_DIR_IN;
+ 260:i2c/i2c_machine.c **** 			break;
+ 261:i2c/i2c_machine.c **** 		case I2C_STATE_MASTER_WRITE:
+ 262:i2c/i2c_machine.c **** #if defined(I2C_GLOBAL_WRITE_MASK)
+ 263:i2c/i2c_machine.c **** 			tmp = I2C_GLOBAL_WRITE_MASK;
+ 264:i2c/i2c_machine.c **** #else
+ 265:i2c/i2c_machine.c **** 			tmp = i2c_w_mask[i2c_offset];
+ 266:i2c/i2c_machine.c **** #endif
+ 267:i2c/i2c_machine.c **** 			if (tmp) {
+ 268:i2c/i2c_machine.c **** 				/* Only heed writeable bits */
+ 269:i2c/i2c_machine.c **** 				i2c_reg[i2c_current_Slave][i2c_offset] &= ~tmp;
+ 237               	.LM15:
+ 238 0080 8091 0000 		lds r24,i2c_current_Slave
+ 239 0084 2091 0000 		lds r18,i2c_offset
+ 240 0088 90E0      		ldi r25,0
+ 241 008a 6CE4      		ldi r22,lo8(76)
+ 242 008c 70E0      		ldi r23,0
+ 243 008e 00D0      		rcall __mulhi3
+ 244 0090 820F      		add r24,r18
+ 245 0092 911D      		adc r25,__zero_reg__
+ 246 0094 FC01      		movw r30,r24
+ 247 0096 E050      		subi r30,lo8(-(i2c_reg))
+ 248 0098 F040      		sbci r31,hi8(-(i2c_reg))
+ 249 009a 8081      		ld r24,Z
+ 250 009c 1082      		st Z,__zero_reg__
+ 270:i2c/i2c_machine.c **** 				i2c_reg[i2c_current_Slave][i2c_offset] |= USIDR & tmp;
+ 252               	.LM16:
+ 253 009e 2FB1      		in r18,0xf
+ 254 00a0 8091 0000 		lds r24,i2c_current_Slave
+ 255 00a4 3091 0000 		lds r19,i2c_offset
+ 256 00a8 90E0      		ldi r25,0
+ 257 00aa 6CE4      		ldi r22,lo8(76)
+ 258 00ac 70E0      		ldi r23,0
+ 259 00ae 00D0      		rcall __mulhi3
+ 260 00b0 830F      		add r24,r19
+ 261 00b2 911D      		adc r25,__zero_reg__
+ 262 00b4 FC01      		movw r30,r24
+ 263 00b6 E050      		subi r30,lo8(-(i2c_reg))
+ 264 00b8 F040      		sbci r31,hi8(-(i2c_reg))
+ 265 00ba 8081      		ld r24,Z
+ 266 00bc 282B      		or r18,r24
+ 267 00be 2083      		st Z,r18
+ 271:i2c/i2c_machine.c **** 			}
+ 272:i2c/i2c_machine.c **** 			i2c_update[i2c_current_Slave]++;
+ 269               	.LM17:
+ 270 00c0 E091 0000 		lds r30,i2c_current_Slave
+ 271 00c4 F0E0      		ldi r31,0
+ 272 00c6 E050      		subi r30,lo8(-(i2c_update))
+ 273 00c8 F040      		sbci r31,hi8(-(i2c_update))
+ 274 00ca 8081      		ld r24,Z
+ 275 00cc 8F5F      		subi r24,lo8(-(1))
+ 276 00ce 8083      		st Z,r24
+ 273:i2c/i2c_machine.c **** 			i2c_offset++;
+ 278               	.LM18:
+ 279 00d0 8091 0000 		lds r24,i2c_offset
+ 280 00d4 8F5F      		subi r24,lo8(-(1))
+ 281 00d6 8093 0000 		sts i2c_offset,r24
+ 282 00da 00C0      		rjmp .L41
+ 283               	.L13:
+ 210:i2c/i2c_machine.c **** 			
+ 285               	.LM19:
+ 286 00dc 8FB1      		in r24,0xf
+ 287 00de 8695      		lsr r24
+ 212:i2c/i2c_machine.c **** 			
+ 289               	.LM20:
+ 290 00e0 9FEF      		ldi r25,lo8(-1)
+ 291 00e2 9093 0000 		sts i2c_current_Slave,r25
+ 292               	.LBB2:
+ 218:i2c/i2c_machine.c **** 				{
+ 294               	.LM21:
+ 295 00e6 9091 0000 		lds r25,I2C_SLAVE_ADDR
+ 296 00ea 9817      		cp r25,r24
+ 297 00ec 01F0      		breq .L31
+ 298 00ee 9091 0000 		lds r25,I2C_SLAVE_ADDR+1
+ 299 00f2 9817      		cp r25,r24
+ 300 00f4 01F0      		breq .L32
+ 301 00f6 9091 0000 		lds r25,I2C_SLAVE_ADDR+2
+ 302 00fa 9813      		cpse r25,r24
+ 303 00fc 00C0      		rjmp .L17
+ 216:i2c/i2c_machine.c **** 			{
+ 305               	.LM22:
+ 306 00fe 92E0      		ldi r25,lo8(2)
+ 307 0100 00C0      		rjmp .L16
+ 308               	.L31:
+ 309 0102 90E0      		ldi r25,0
+ 310 0104 00C0      		rjmp .L16
+ 311               	.L32:
+ 312 0106 91E0      		ldi r25,lo8(1)
+ 313               	.L16:
+ 221:i2c/i2c_machine.c **** 					break;
+ 315               	.LM23:
+ 316 0108 9093 0000 		sts i2c_current_Slave,r25
+ 317               	.L17:
+ 318               	.LBE2:
+ 227:i2c/i2c_machine.c **** 				/* Transition h: Address not matched */
+ 320               	.LM24:
+ 321 010c 8823      		tst r24
+ 322 010e 01F0      		breq .L40
+ 227:i2c/i2c_machine.c **** 				/* Transition h: Address not matched */
+ 324               	.LM25:
+ 325 0110 8091 0000 		lds r24,i2c_current_Slave
+ 326 0114 8F3F      		cpi r24,lo8(-1)
+ 327 0116 01F0      		breq .L40
+ 232:i2c/i2c_machine.c **** 					/* Transition b: Address matched, read mode */
+ 329               	.LM26:
+ 330 0118 789B      		sbis 0xf,0
+ 331 011a 00C0      		rjmp .L21
+ 234:i2c/i2c_machine.c **** 				} else {
+ 333               	.LM27:
+ 334 011c 82E0      		ldi r24,lo8(2)
+ 335 011e 00C0      		rjmp .L42
+ 336               	.L21:
+ 237:i2c/i2c_machine.c **** 					i2c_state = I2C_STATE_REG_ADDR;
+ 338               	.LM28:
+ 339 0120 1092 0000 		sts i2c_offset,__zero_reg__
+ 238:i2c/i2c_machine.c **** 					i2c_update[i2c_current_Slave] = 1;
+ 341               	.LM29:
+ 342 0124 81E0      		ldi r24,lo8(1)
+ 343 0126 8093 0000 		sts i2c_state,r24
+ 239:i2c/i2c_machine.c **** 				}
+ 345               	.LM30:
+ 346 012a E091 0000 		lds r30,i2c_current_Slave
+ 347 012e F0E0      		ldi r31,0
+ 348 0130 E050      		subi r30,lo8(-(i2c_update))
+ 349 0132 F040      		sbci r31,hi8(-(i2c_update))
+ 350 0134 8083      		st Z,r24
+ 351 0136 00C0      		rjmp .L41
+ 352               	.L12:
+ 245:i2c/i2c_machine.c **** 				/* Transition i:  Invalid reg addr*/
+ 354               	.LM31:
+ 355 0138 8FB1      		in r24,0xf
+ 356 013a 00D0      		rcall I2CAddressToArrayIndex
+ 357 013c 0196      		adiw r24,1
+ 358 013e 01F4      		brne .L23
+ 359               	.L40:
+ 247:i2c/i2c_machine.c **** 				NAK();
+ 361               	.LM32:
+ 362 0140 84E0      		ldi r24,lo8(4)
+ 363 0142 8093 0000 		sts i2c_state,r24
+ 364 0146 00C0      		rjmp .L37
+ 365               	.L23:
+ 251:i2c/i2c_machine.c **** 				i2c_state = I2C_STATE_MASTER_WRITE;
+ 367               	.LM33:
+ 368 0148 8FB1      		in r24,0xf
+ 369 014a 00D0      		rcall I2CAddressToArrayIndex
+ 370 014c 8093 0000 		sts i2c_offset,r24
+ 252:i2c/i2c_machine.c **** 				ACK();
+ 372               	.LM34:
+ 373 0150 83E0      		ldi r24,lo8(3)
+ 374               	.L42:
+ 375 0152 8093 0000 		sts i2c_state,r24
+ 376 0156 00C0      		rjmp .L41
+ 377               	.L14:
+ 257:i2c/i2c_machine.c **** 			/* Listen for master NAK */
+ 379               	.LM35:
+ 380 0158 1FB8      		out 0xf,__zero_reg__
+ 259:i2c/i2c_machine.c **** 			break;
+ 382               	.LM36:
+ 383 015a 80E0      		ldi r24,0
+ 260:i2c/i2c_machine.c **** 		case I2C_STATE_MASTER_WRITE:
+ 385               	.LM37:
+ 386 015c 00C0      		rjmp .L20
+ 387               	.L41:
+ 274:i2c/i2c_machine.c **** 			ACK();
+ 389               	.LM38:
+ 390 015e 1FB8      		out 0xf,__zero_reg__
+ 391 0160 00C0      		rjmp .L39
+ 392               	.L37:
+ 275:i2c/i2c_machine.c **** 			break;
+ 276:i2c/i2c_machine.c **** 		default:
+ 277:i2c/i2c_machine.c **** 			NAK();
+ 394               	.LM39:
+ 395 0162 80E8      		ldi r24,lo8(-128)
+ 396 0164 8FB9      		out 0xf,r24
+ 397               	.L39:
+ 206:i2c/i2c_machine.c **** 
+ 399               	.LM40:
+ 400 0166 81E0      		ldi r24,lo8(1)
+ 401               	.L20:
+ 278:i2c/i2c_machine.c **** 		}
+ 279:i2c/i2c_machine.c **** 		/* Counter will overflow again after ACK cycle */
+ 280:i2c/i2c_machine.c **** 		usisr_tmp |= 14 << USICNT0;
+ 281:i2c/i2c_machine.c **** 		post_ack = 1;
+ 403               	.LM41:
+ 404 0168 91E0      		ldi r25,lo8(1)
+ 405 016a 9093 0000 		sts post_ack.1515,r25
+ 280:i2c/i2c_machine.c **** 		post_ack = 1;
+ 407               	.LM42:
+ 408 016e 9EED      		ldi r25,lo8(-34)
+ 409 0170 00C0      		rjmp .L24
+ 410               	.L10:
+ 282:i2c/i2c_machine.c **** 	} else {
+ 283:i2c/i2c_machine.c **** 		/* Work that needs to be done after the ACK cycle */
+ 284:i2c/i2c_machine.c **** 		sda_direction = I2C_SDA_DIR_IN;
+ 285:i2c/i2c_machine.c **** 		switch (i2c_state) {
+ 412               	.LM43:
+ 413 0172 8091 0000 		lds r24,i2c_state
+ 414 0176 8230      		cpi r24,lo8(2)
+ 415 0178 01F4      		brne .L38
+ 286:i2c/i2c_machine.c **** 		case I2C_STATE_MASTER_READ:
+ 287:i2c/i2c_machine.c **** 			if (USIDR) {
+ 417               	.LM44:
+ 418 017a 8FB1      		in r24,0xf
+ 419 017c 8823      		tst r24
+ 420 017e 01F0      		breq .L27
+ 288:i2c/i2c_machine.c **** 				/* Transition e: Read finished */
+ 289:i2c/i2c_machine.c **** 				i2c_offset = 0;
+ 422               	.LM45:
+ 423 0180 1092 0000 		sts i2c_offset,__zero_reg__
+ 290:i2c/i2c_machine.c **** 				i2c_state = I2C_STATE_IDLE;
+ 425               	.LM46:
+ 426 0184 84E0      		ldi r24,lo8(4)
+ 427 0186 8093 0000 		sts i2c_state,r24
+ 428 018a 00C0      		rjmp .L38
+ 429               	.L27:
+ 291:i2c/i2c_machine.c **** 			} else {
+ 292:i2c/i2c_machine.c **** 				/* Transition f: Read continues */
+ 293:i2c/i2c_machine.c **** 				sda_direction = I2C_SDA_DIR_OUT;
+ 294:i2c/i2c_machine.c **** 				USIDR = i2c_reg[i2c_current_Slave][i2c_offset++];
+ 431               	.LM47:
+ 432 018c 8091 0000 		lds r24,i2c_current_Slave
+ 433 0190 2091 0000 		lds r18,i2c_offset
+ 434 0194 91E0      		ldi r25,lo8(1)
+ 435 0196 920F      		add r25,r18
+ 436 0198 9093 0000 		sts i2c_offset,r25
+ 437 019c 90E0      		ldi r25,0
+ 438 019e 6CE4      		ldi r22,lo8(76)
+ 439 01a0 70E0      		ldi r23,0
+ 440 01a2 00D0      		rcall __mulhi3
+ 441 01a4 820F      		add r24,r18
+ 442 01a6 911D      		adc r25,__zero_reg__
+ 443 01a8 FC01      		movw r30,r24
+ 444 01aa E050      		subi r30,lo8(-(i2c_reg))
+ 445 01ac F040      		sbci r31,hi8(-(i2c_reg))
+ 446 01ae 8081      		ld r24,Z
+ 447 01b0 8FB9      		out 0xf,r24
+ 293:i2c/i2c_machine.c **** 				USIDR = i2c_reg[i2c_current_Slave][i2c_offset++];
+ 449               	.LM48:
+ 450 01b2 81E0      		ldi r24,lo8(1)
+ 451 01b4 00C0      		rjmp .L25
+ 452               	.L38:
+ 284:i2c/i2c_machine.c **** 		switch (i2c_state) {
+ 454               	.LM49:
+ 455 01b6 80E0      		ldi r24,0
+ 456               	.L25:
+ 295:i2c/i2c_machine.c **** 			}
+ 296:i2c/i2c_machine.c **** 			break;
+ 297:i2c/i2c_machine.c **** 		}
+ 298:i2c/i2c_machine.c **** 		post_ack = 0;
+ 458               	.LM50:
+ 459 01b8 1092 0000 		sts post_ack.1515,__zero_reg__
+ 200:i2c/i2c_machine.c **** 	uint8_t sda_direction;
+ 461               	.LM51:
+ 462 01bc 90ED      		ldi r25,lo8(-48)
+ 463               	.L24:
+ 299:i2c/i2c_machine.c **** 	}
+ 300:i2c/i2c_machine.c **** 
+ 301:i2c/i2c_machine.c **** 	if (i2c_offset > (I2C_N_REG - 1))
+ 465               	.LM52:
+ 466 01be 2091 0000 		lds r18,i2c_offset
+ 467 01c2 2C34      		cpi r18,lo8(76)
+ 468 01c4 00F0      		brlo .L28
+ 302:i2c/i2c_machine.c **** 		i2c_offset = 0;
+ 470               	.LM53:
+ 471 01c6 1092 0000 		sts i2c_offset,__zero_reg__
+ 472               	.L28:
+ 303:i2c/i2c_machine.c **** 
+ 304:i2c/i2c_machine.c **** 	/* Set up SDA direction for next operation */
+ 305:i2c/i2c_machine.c **** 	if (sda_direction == I2C_SDA_DIR_OUT) {
+ 474               	.LM54:
+ 475 01ca 8130      		cpi r24,lo8(1)
+ 476 01cc 01F4      		brne .L29
+ 306:i2c/i2c_machine.c **** 		USI_DDR |= (1 << I2C_SDA);
+ 478               	.LM55:
+ 479 01ce D09A      		sbi 0x1a,0
+ 480 01d0 00C0      		rjmp .L30
+ 481               	.L29:
+ 307:i2c/i2c_machine.c **** 	} else {
+ 308:i2c/i2c_machine.c **** 		USI_DDR &= ~(1 << I2C_SDA);
+ 483               	.LM56:
+ 484 01d2 D098      		cbi 0x1a,0
+ 485               	.L30:
+ 309:i2c/i2c_machine.c **** 	}
+ 310:i2c/i2c_machine.c **** 
+ 311:i2c/i2c_machine.c **** 	/* Clear flags and set counter */
+ 312:i2c/i2c_machine.c **** 	USISR = usisr_tmp;
+ 487               	.LM57:
+ 488 01d4 9EB9      		out 0xe,r25
+ 489               	/* epilogue start */
+ 313:i2c/i2c_machine.c **** }
+ 491               	.LM58:
+ 492 01d6 FF91      		pop r31
+ 493 01d8 EF91      		pop r30
+ 494 01da BF91      		pop r27
+ 495 01dc AF91      		pop r26
+ 496 01de 9F91      		pop r25
+ 497 01e0 8F91      		pop r24
+ 498 01e2 7F91      		pop r23
+ 499 01e4 6F91      		pop r22
+ 500 01e6 5F91      		pop r21
+ 501 01e8 4F91      		pop r20
+ 502 01ea 3F91      		pop r19
+ 503 01ec 2F91      		pop r18
+ 504 01ee 0F90      		pop r0
+ 505 01f0 0FBE      		out __SREG__,r0
+ 506 01f2 0F90      		pop r0
+ 507 01f4 1F90      		pop r1
+ 508 01f6 1895      		reti
+ 519               	.Lscope3:
+ 521               		.stabd	78,0,0
+ 523               	.global	i2c_init
+ 525               	i2c_init:
+ 526               		.stabd	46,0,0
+ 314:i2c/i2c_machine.c **** 
+ 315:i2c/i2c_machine.c **** 
+ 316:i2c/i2c_machine.c **** /* Initialise the USI and I2C state machine */
+ 317:i2c/i2c_machine.c **** void i2c_init( void )
+ 318:i2c/i2c_machine.c **** {
+ 528               	.LM59:
+ 529               	.LFBB4:
+ 530               	/* prologue: function */
+ 531               	/* frame size = 0 */
+ 532               	/* stack size = 0 */
+ 533               	.L__stack_usage = 0
+ 319:i2c/i2c_machine.c **** 	i2c_state = 0;
+ 535               	.LM60:
+ 536 01f8 1092 0000 		sts i2c_state,__zero_reg__
+ 320:i2c/i2c_machine.c **** 	USICR = (1 << USISIE) | (1 << USIOIE) | (3 << USIWM0) | (1 << USICS1);
+ 538               	.LM61:
+ 539 01fc 88EF      		ldi r24,lo8(-8)
+ 540 01fe 8DB9      		out 0xd,r24
+ 321:i2c/i2c_machine.c **** 	USI_DDR |= (1 << I2C_SCL);
+ 542               	.LM62:
+ 543 0200 D29A      		sbi 0x1a,2
+ 322:i2c/i2c_machine.c **** 	USI_DDR &= ~(1 << I2C_SDA);
+ 545               	.LM63:
+ 546 0202 D098      		cbi 0x1a,0
+ 323:i2c/i2c_machine.c **** 	USI_PORT |= (1 << I2C_SDA) | (1 << I2C_SCL);
+ 548               	.LM64:
+ 549 0204 8BB3      		in r24,0x1b
+ 550 0206 8560      		ori r24,lo8(5)
+ 551 0208 8BBB      		out 0x1b,r24
+ 324:i2c/i2c_machine.c **** 	USISR = 0xF0;
+ 553               	.LM65:
+ 554 020a 80EF      		ldi r24,lo8(-16)
+ 555 020c 8EB9      		out 0xe,r24
+ 556 020e 0895      		ret
+ 558               	.Lscope4:
+ 560               		.stabd	78,0,0
+ 562               	.global	i2c_transaction_ongoing
+ 564               	i2c_transaction_ongoing:
+ 565               		.stabd	46,0,0
+ 325:i2c/i2c_machine.c **** }
+ 326:i2c/i2c_machine.c **** 
+ 327:i2c/i2c_machine.c **** 
+ 328:i2c/i2c_machine.c **** /*
+ 329:i2c/i2c_machine.c ****  * Return non-zero if a transaction is ongoing
+ 330:i2c/i2c_machine.c ****  * A transaction is considered ongoing if the slave address has
+ 331:i2c/i2c_machine.c ****  * been matched, but a stop has not been received yet.
+ 332:i2c/i2c_machine.c ****  */
+ 333:i2c/i2c_machine.c **** uint8_t i2c_transaction_ongoing( void )
+ 334:i2c/i2c_machine.c **** {
+ 567               	.LM66:
+ 568               	.LFBB5:
+ 569               	/* prologue: function */
+ 570               	/* frame size = 0 */
+ 571               	/* stack size = 0 */
+ 572               	.L__stack_usage = 0
+ 335:i2c/i2c_machine.c **** 	if ((i2c_state != I2C_STATE_IDLE) &&
+ 574               	.LM67:
+ 575 0210 8091 0000 		lds r24,i2c_state
+ 576 0214 8430      		cpi r24,lo8(4)
+ 577 0216 01F0      		breq .L47
+ 336:i2c/i2c_machine.c **** 		(i2c_state != I2C_STATE_ADDR_MATCH)) {
+ 579               	.LM68:
+ 580 0218 9091 0000 		lds r25,i2c_state
+ 335:i2c/i2c_machine.c **** 	if ((i2c_state != I2C_STATE_IDLE) &&
+ 582               	.LM69:
+ 583 021c 81E0      		ldi r24,lo8(1)
+ 584 021e 9111      		cpse r25,__zero_reg__
+ 585 0220 00C0      		rjmp .L45
+ 586               	.L47:
+ 337:i2c/i2c_machine.c **** 		return 1;
+ 338:i2c/i2c_machine.c **** 	} else {
+ 339:i2c/i2c_machine.c **** 		return 0;
+ 588               	.LM70:
+ 589 0222 80E0      		ldi r24,0
+ 590               	.L45:
+ 340:i2c/i2c_machine.c **** 	}
+ 341:i2c/i2c_machine.c **** }
+ 592               	.LM71:
+ 593 0224 0895      		ret
+ 595               	.Lscope5:
+ 597               		.stabd	78,0,0
+ 600               	.global	i2c_check_stop
+ 602               	i2c_check_stop:
+ 603               		.stabd	46,0,0
+ 342:i2c/i2c_machine.c **** 
+ 343:i2c/i2c_machine.c **** /*
+ 344:i2c/i2c_machine.c ****  * Check for and handle a stop condition.
+ 345:i2c/i2c_machine.c ****  * Returns non-zero if any registers have been changed
+ 346:i2c/i2c_machine.c ****  */
+ 347:i2c/i2c_machine.c **** uint8_t i2c_check_stop(int8_t SlaveIndex)
+ 348:i2c/i2c_machine.c **** {
+ 605               	.LM72:
+ 606               	.LFBB6:
+ 607               	/* prologue: function */
+ 608               	/* frame size = 0 */
+ 609               	/* stack size = 0 */
+ 610               	.L__stack_usage = 0
+ 349:i2c/i2c_machine.c **** 	uint8_t ret = 0;
+ 350:i2c/i2c_machine.c **** 
+ 351:i2c/i2c_machine.c **** 	if ((i2c_state == I2C_STATE_MASTER_WRITE) && i2c_update[SlaveIndex]) {
+ 612               	.LM73:
+ 613 0226 9091 0000 		lds r25,i2c_state
+ 614 022a 9330      		cpi r25,lo8(3)
+ 615 022c 01F4      		brne .L52
+ 617               	.LM74:
+ 618 022e E82F      		mov r30,r24
+ 619 0230 880F      		lsl r24
+ 620 0232 FF0B      		sbc r31,r31
+ 621 0234 E050      		subi r30,lo8(-(i2c_update))
+ 622 0236 F040      		sbci r31,hi8(-(i2c_update))
+ 623 0238 8081      		ld r24,Z
+ 624 023a 8823      		tst r24
+ 625 023c 01F0      		breq .L52
+ 626               	.LBB3:
+ 352:i2c/i2c_machine.c **** 		cli();
+ 628               	.LM75:
+ 629               	/* #APP */
+ 630               	 ;  352 "i2c/i2c_machine.c" 1
+ 631 023e F894      		cli
+ 632               	 ;  0 "" 2
+ 353:i2c/i2c_machine.c **** 		uint8_t tmp = USISR;
+ 354:i2c/i2c_machine.c **** 		if (tmp & (1 << USIPF)) {
+ 634               	.LM76:
+ 635               	/* #NOAPP */
+ 636 0240 759B      		sbis 0xe,5
+ 637 0242 00C0      		rjmp .L53
+ 355:i2c/i2c_machine.c **** 			i2c_state = I2C_STATE_IDLE;
+ 639               	.LM77:
+ 640 0244 84E0      		ldi r24,lo8(4)
+ 641 0246 8093 0000 		sts i2c_state,r24
+ 356:i2c/i2c_machine.c **** 			ret = i2c_update[SlaveIndex];
+ 643               	.LM78:
+ 644 024a 8081      		ld r24,Z
+ 357:i2c/i2c_machine.c **** 			i2c_update[SlaveIndex] = 0;
+ 646               	.LM79:
+ 647 024c 1082      		st Z,__zero_reg__
+ 648 024e 00C0      		rjmp .L50
+ 649               	.L53:
+ 650               	.LBE3:
+ 349:i2c/i2c_machine.c **** 
+ 652               	.LM80:
+ 653 0250 80E0      		ldi r24,0
+ 654               	.L50:
+ 655               	.LBB4:
+ 358:i2c/i2c_machine.c **** 		}
+ 359:i2c/i2c_machine.c **** 		sei();
+ 657               	.LM81:
+ 658               	/* #APP */
+ 659               	 ;  359 "i2c/i2c_machine.c" 1
+ 660 0252 7894      		sei
+ 661               	 ;  0 "" 2
+ 662               	/* #NOAPP */
+ 663 0254 0895      		ret
+ 664               	.L52:
+ 665               	.LBE4:
+ 349:i2c/i2c_machine.c **** 
+ 667               	.LM82:
+ 668 0256 80E0      		ldi r24,0
+ 360:i2c/i2c_machine.c **** 	}
+ 361:i2c/i2c_machine.c **** 	return ret;
+ 362:i2c/i2c_machine.c **** }
+ 670               	.LM83:
+ 671 0258 0895      		ret
+ 676               	.Lscope6:
+ 678               		.stabd	78,0,0
+ 682               	.global	getI2CPWMValue
+ 684               	getI2CPWMValue:
+ 685               		.stabd	46,0,0
+ 363:i2c/i2c_machine.c **** 
+ 364:i2c/i2c_machine.c **** 
+ 365:i2c/i2c_machine.c **** //calculates the PWM Value (0-255) from a PWM Channel of the PCA9685 emlulated slave
+ 366:i2c/i2c_machine.c **** uint8_t getI2CPWMValue(uint8_t Slave, uint8_t PWMChannel)//from 0 to 15
+ 367:i2c/i2c_machine.c **** {
+ 687               	.LM84:
+ 688               	.LFBB7:
+ 689               	/* prologue: function */
+ 690               	/* frame size = 0 */
+ 691               	/* stack size = 0 */
+ 692               	.L__stack_usage = 0
+ 368:i2c/i2c_machine.c **** 	if (PWMChannel>=0 && PWMChannel<=15)
+ 694               	.LM85:
+ 695 025a 6031      		cpi r22,lo8(16)
+ 696 025c 00F0      		brlo .+2
+ 697 025e 00C0      		rjmp .L59
+ 698               	.LBB5:
+ 369:i2c/i2c_machine.c **** 	{
+ 370:i2c/i2c_machine.c **** 		int RegisterStartAddress=PWMChannel*BytesPerLedPwmChannel+FirstRegisterAddress;//LEDx_ON_L is in 
+ 700               	.LM86:
+ 701 0260 262F      		mov r18,r22
+ 702 0262 30E0      		ldi r19,0
+ 703 0264 220F      		lsl r18
+ 704 0266 331F      		rol r19
+ 705 0268 220F      		lsl r18
+ 706 026a 331F      		rol r19
+ 371:i2c/i2c_machine.c **** 		int16_t iOn=(i2c_reg[Slave][RegisterStartAddress+1]<<8) + i2c_reg[Slave][RegisterStartAddress];
+ 708               	.LM87:
+ 709 026c 90E0      		ldi r25,0
+ 710 026e 6CE4      		ldi r22,lo8(76)
+ 711 0270 70E0      		ldi r23,0
+ 712 0272 00D0      		rcall __mulhi3
+ 713 0274 BC01      		movw r22,r24
+ 714 0276 F901      		movw r30,r18
+ 715 0278 E80F      		add r30,r24
+ 716 027a F91F      		adc r31,r25
+ 717 027c E050      		subi r30,lo8(-(i2c_reg+7))
+ 718 027e F040      		sbci r31,hi8(-(i2c_reg+7))
+ 719 0280 4081      		ld r20,Z
+ 720 0282 F901      		movw r30,r18
+ 721 0284 E80F      		add r30,r24
+ 722 0286 F91F      		adc r31,r25
+ 723 0288 E050      		subi r30,lo8(-(i2c_reg+6))
+ 724 028a F040      		sbci r31,hi8(-(i2c_reg+6))
+ 725 028c 5081      		ld r21,Z
+ 372:i2c/i2c_machine.c **** 		int16_t iOff=(i2c_reg[Slave][RegisterStartAddress+3]<<8) + i2c_reg[Slave][RegisterStartAddress+2]
+ 727               	.LM88:
+ 728 028e F901      		movw r30,r18
+ 729 0290 E80F      		add r30,r24
+ 730 0292 F91F      		adc r31,r25
+ 731 0294 E050      		subi r30,lo8(-(i2c_reg+9))
+ 732 0296 F040      		sbci r31,hi8(-(i2c_reg+9))
+ 733 0298 9081      		ld r25,Z
+ 734 029a 260F      		add r18,r22
+ 735 029c 371F      		adc r19,r23
+ 736 029e F901      		movw r30,r18
+ 737 02a0 E050      		subi r30,lo8(-(i2c_reg+8))
+ 738 02a2 F040      		sbci r31,hi8(-(i2c_reg+8))
+ 739 02a4 2081      		ld r18,Z
+ 740 02a6 892F      		mov r24,r25
+ 741 02a8 90E0      		ldi r25,0
+ 742 02aa 982F      		mov r25,r24
+ 743 02ac 8827      		clr r24
+ 744 02ae 820F      		add r24,r18
+ 745 02b0 911D      		adc r25,__zero_reg__
+ 371:i2c/i2c_machine.c **** 		int16_t iOn=(i2c_reg[Slave][RegisterStartAddress+1]<<8) + i2c_reg[Slave][RegisterStartAddress];
+ 747               	.LM89:
+ 748 02b2 242F      		mov r18,r20
+ 749 02b4 30E0      		ldi r19,0
+ 750 02b6 322F      		mov r19,r18
+ 751 02b8 2227      		clr r18
+ 752 02ba 250F      		add r18,r21
+ 753 02bc 311D      		adc r19,__zero_reg__
+ 373:i2c/i2c_machine.c **** 		int16_t iOnTime=iOff-iOn;//can be from -4095 to +4095
+ 755               	.LM90:
+ 756 02be 821B      		sub r24,r18
+ 757 02c0 930B      		sbc r25,r19
+ 374:i2c/i2c_machine.c **** 		if (iOnTime<0)
+ 759               	.LM91:
+ 760 02c2 97FF      		sbrs r25,7
+ 761 02c4 00C0      		rjmp .L56
+ 375:i2c/i2c_machine.c **** 		{
+ 376:i2c/i2c_machine.c **** 			iOnTime=iOnTime+4096; //is now from 0 to +4095
+ 763               	.LM92:
+ 764 02c6 905F      		subi r25,-16
+ 765 02c8 00C0      		rjmp .L58
+ 766               	.L56:
+ 377:i2c/i2c_machine.c **** 		}
+ 378:i2c/i2c_machine.c **** 		if (iOnTime>4095)
+ 768               	.LM93:
+ 769 02ca 8115      		cp r24,__zero_reg__
+ 770 02cc 20E1      		ldi r18,16
+ 771 02ce 9207      		cpc r25,r18
+ 772 02d0 04F0      		brlt .L58
+ 379:i2c/i2c_machine.c **** 		{
+ 380:i2c/i2c_machine.c **** 			iOnTime=4095;
+ 774               	.LM94:
+ 775 02d2 8FEF      		ldi r24,lo8(-1)
+ 776 02d4 9FE0      		ldi r25,lo8(15)
+ 777               	.L58:
+ 381:i2c/i2c_machine.c **** 		}
+ 382:i2c/i2c_machine.c **** 		uint8_t ret = (iOnTime>>4); //is now from 0 to 255
+ 779               	.LM95:
+ 780 02d6 24E0      		ldi r18,4
+ 781               		1:
+ 782 02d8 9595      		asr r25
+ 783 02da 8795      		ror r24
+ 784 02dc 2A95      		dec r18
+ 785 02de 01F4      		brne 1b
+ 383:i2c/i2c_machine.c **** 		return  ret;
+ 787               	.LM96:
+ 788 02e0 0895      		ret
+ 789               	.L59:
+ 790               	.LBE5:
+ 384:i2c/i2c_machine.c **** 	}
+ 385:i2c/i2c_machine.c **** 	else
+ 386:i2c/i2c_machine.c **** 	{
+ 387:i2c/i2c_machine.c **** 		return 0;
+ 792               	.LM97:
+ 793 02e2 80E0      		ldi r24,0
+ 388:i2c/i2c_machine.c **** 	}
+ 389:i2c/i2c_machine.c **** }
+ 795               	.LM98:
+ 796 02e4 0895      		ret
+ 801               	.Lscope7:
+ 803               		.stabd	78,0,0
+ 804               		.local	post_ack.1515
+ 805               		.comm	post_ack.1515,1,1
+ 806               	.global	i2c_offset
+ 807               		.section .bss
+ 810               	i2c_offset:
+ 811 0000 00        		.zero	1
+ 812               	.global	i2c_state
+ 815               	i2c_state:
+ 816 0001 00        		.zero	1
+ 817               	.global	i2c_current_Slave
+ 820               	i2c_current_Slave:
+ 821 0002 00        		.zero	1
+ 822               	.global	i2c_update
+ 825               	i2c_update:
+ 826 0003 0000 00   		.zero	3
+ 827               	.global	I2C_SLAVE_ADDR
+ 828               		.data
+ 831               	I2C_SLAVE_ADDR:
+ 832 0000 40        		.byte	64
+ 833 0001 60        		.byte	96
+ 834 0002 00        		.zero	1
+ 835               		.comm	i2c_reg,228,1
+ 842               		.text
+ 844               	.Letext0:
+ 845               		.ident	"GCC: (GNU) 4.9.2"
+ 846               	.global __do_copy_data
+ 847               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:00000000 i2c_machine.c
+     /tmp/ccvdOQTV.s:2      *ABS*:0000003e __SP_H__
+     /tmp/ccvdOQTV.s:3      *ABS*:0000003d __SP_L__
+     /tmp/ccvdOQTV.s:4      *ABS*:0000003f __SREG__
+     /tmp/ccvdOQTV.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/ccvdOQTV.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/ccvdOQTV.s:106    .text:00000000 I2CAddressToArrayIndex
+     /tmp/ccvdOQTV.s:149    .text:0000001a __vector_7
+     /tmp/ccvdOQTV.s:815    .bss:00000001 i2c_state
+     /tmp/ccvdOQTV.s:192    .text:0000003e __vector_8
+                             .bss:00000006 post_ack.1515
+     /tmp/ccvdOQTV.s:820    .bss:00000002 i2c_current_Slave
+     /tmp/ccvdOQTV.s:810    .bss:00000000 i2c_offset
+                            *COM*:000000e4 i2c_reg
+     /tmp/ccvdOQTV.s:825    .bss:00000003 i2c_update
+     /tmp/ccvdOQTV.s:831    .data:00000000 I2C_SLAVE_ADDR
+     /tmp/ccvdOQTV.s:525    .text:000001f8 i2c_init
+     /tmp/ccvdOQTV.s:564    .text:00000210 i2c_transaction_ongoing
+     /tmp/ccvdOQTV.s:602    .text:00000226 i2c_check_stop
+     /tmp/ccvdOQTV.s:684    .text:0000025a getI2CPWMValue
+
+UNDEFINED SYMBOLS
+__mulhi3
+__do_copy_data
+__do_clear_bss

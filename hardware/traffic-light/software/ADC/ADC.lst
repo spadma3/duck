@@ -1,0 +1,254 @@
+   1               		.file	"ADC.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 123               	.global	init_ADC
+ 125               	init_ADC:
+ 126               		.stabd	46,0,0
+   1:ADC/ADC.c     **** /*
+   2:ADC/ADC.c     ****  * ADC.c
+   3:ADC/ADC.c     ****  *
+   4:ADC/ADC.c     ****  * Created: 17/07/2018 
+   5:ADC/ADC.c     ****  *  Author: Marcus
+   6:ADC/ADC.c     ****  *	Description: Boilerplate code for setting up the ADC and a function for calculating the current 
+   7:ADC/ADC.c     ****  */ 
+   8:ADC/ADC.c     **** #include <util/delay.h>
+   9:ADC/ADC.c     **** #include <avr/io.h>
+  10:ADC/ADC.c     **** #include <avr/interrupt.h>
+  11:ADC/ADC.c     **** #include <avr/pgmspace.h>
+  12:ADC/ADC.c     **** 
+  13:ADC/ADC.c     **** #include<stdio.h>
+  14:ADC/ADC.c     **** #include<stdlib.h>
+  15:ADC/ADC.c     **** #include "ADC.h"
+  16:ADC/ADC.c     ****  
+  17:ADC/ADC.c     **** uint16_t adc_diag;
+  18:ADC/ADC.c     **** 
+  19:ADC/ADC.c     **** // initialization function for ADC 
+  20:ADC/ADC.c     **** void init_ADC( void )
+  21:ADC/ADC.c     **** {
+ 128               	.LM0:
+ 129               	.LFBB1:
+ 130               	/* prologue: function */
+ 131               	/* frame size = 0 */
+ 132               	/* stack size = 0 */
+ 133               	.L__stack_usage = 0
+  22:ADC/ADC.c     **** 	// init ADC set pins as input
+  23:ADC/ADC.c     **** 	DDRA &= ~(1<<DDA5); // PA5 Charging current ADC
+ 135               	.LM1:
+ 136 0000 D598      		cbi 0x1a,5
+  24:ADC/ADC.c     **** 	DDRA &= ~(1<<DDA6); // PA6 Motor current ADC
+ 138               	.LM2:
+ 139 0002 D698      		cbi 0x1a,6
+  25:ADC/ADC.c     **** 	DDRA &= ~(1<<DDA7); // PA7 RasPi current ADC
+ 141               	.LM3:
+ 142 0004 D798      		cbi 0x1a,7
+  26:ADC/ADC.c     **** 	
+  27:ADC/ADC.c     **** 	// Section 15.13.1
+  28:ADC/ADC.c     **** 	// Set voltage reference to Vcc, right adjust the results and Single-Ended Input 
+  29:ADC/ADC.c     **** 	//NB: "The internal voltage reference options may not be used if an external voltage is being appl
+  30:ADC/ADC.c     **** 	
+  31:ADC/ADC.c     **** 	ADMUX &= ~( (1<<REFS1) | (1<< REFS0) | (1<<ADLAR) );
+ 144               	.LM4:
+ 145 0006 87B1      		in r24,0x7
+ 146 0008 8F71      		andi r24,lo8(31)
+ 147 000a 87B9      		out 0x7,r24
+  32:ADC/ADC.c     **** 	
+  33:ADC/ADC.c     **** 	// Table 15-4
+  34:ADC/ADC.c     **** 	ADMUX |=  (PA5ADC) ;
+ 149               	.LM5:
+ 150 000c 3A9A      		sbi 0x7,2
+  35:ADC/ADC.c     **** 	
+  36:ADC/ADC.c     **** 	// Section 15.13.4
+  37:ADC/ADC.c     **** 	// Gain selected to 1, 	Free Running mode,
+  38:ADC/ADC.c     **** 	ADCSRB	&=  ~( (1<<BIN) | (1<<GSEL) | (1<<REFS2) | (1<<MUX5) | (1<<ADTS2) | (1<<ADTS1) | (1<<ADTS0)
+ 152               	.LM6:
+ 153 000e 83B1      		in r24,0x3
+ 154 0010 8072      		andi r24,lo8(32)
+ 155 0012 83B9      		out 0x3,r24
+  39:ADC/ADC.c     **** 	
+  40:ADC/ADC.c     **** 	// Section 15.13.5
+  41:ADC/ADC.c     **** 	// Turn of digital input on ADC6-ADC4 to reduce power consumption
+  42:ADC/ADC.c     **** 	DIDR0 |= ( (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) );
+ 157               	.LM7:
+ 158 0014 81B1      		in r24,0x1
+ 159 0016 806E      		ori r24,lo8(-32)
+ 160 0018 81B9      		out 0x1,r24
+  43:ADC/ADC.c     **** 	
+  44:ADC/ADC.c     **** 	// Section 15.13.2
+  45:ADC/ADC.c     **** 	// Enable the ADC , free-running mode, interrupt with /64 prescaler i.e 125k
+  46:ADC/ADC.c     **** 	ADCSRA = ( (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1)) ;//| (1<<ADIE) | (1<<ADATE) );
+ 162               	.LM8:
+ 163 001a 86E8      		ldi r24,lo8(-122)
+ 164 001c 86B9      		out 0x6,r24
+  47:ADC/ADC.c     **** 	
+  48:ADC/ADC.c     **** 	adc_diag = 0;
+ 166               	.LM9:
+ 167 001e 1092 0000 		sts adc_diag+1,__zero_reg__
+ 168 0022 1092 0000 		sts adc_diag,__zero_reg__
+ 169 0026 0895      		ret
+ 171               	.Lscope1:
+ 173               		.stabd	78,0,0
+ 176               	.global	read_ADC
+ 178               	read_ADC:
+ 179               		.stabd	46,0,0
+  49:ADC/ADC.c     **** 		
+  50:ADC/ADC.c     **** }
+  51:ADC/ADC.c     **** // Get ADC reading from 0 - 1024 of a specific channel 
+  52:ADC/ADC.c     **** uint16_t read_ADC(uint8_t channel)
+  53:ADC/ADC.c     **** {
+ 181               	.LM10:
+ 182               	.LFBB2:
+ 183               	/* prologue: function */
+ 184               	/* frame size = 0 */
+ 185               	/* stack size = 0 */
+ 186               	.L__stack_usage = 0
+  54:ADC/ADC.c     **** 	uint16_t res = 0;
+  55:ADC/ADC.c     **** 	if ( (channel == PA5ADC) || (channel == PA6ADC) || (channel == PA7ADC) )// just make sure we read 
+ 188               	.LM11:
+ 189 0028 9CEF      		ldi r25,lo8(-4)
+ 190 002a 980F      		add r25,r24
+ 191 002c 9330      		cpi r25,lo8(3)
+ 192 002e 00F4      		brsh .L3
+ 193               	.LBB6:
+ 194               	.LBB7:
+ 195               	.LBB8:
+  56:ADC/ADC.c     **** 	{
+  57:ADC/ADC.c     **** 		ADMUX = channel; // set voltage reference to Vcc, right adjust the results and Single-Ended Input
+ 197               	.LM12:
+ 198 0030 87B9      		out 0x7,r24
+  58:ADC/ADC.c     **** 		ADCSRA = (1<<ADEN) | (1<<ADSC);
+ 200               	.LM13:
+ 201 0032 80EC      		ldi r24,lo8(-64)
+ 202 0034 86B9      		out 0x6,r24
+  59:ADC/ADC.c     **** 		asm volatile ("NOP" ::);
+ 204               	.LM14:
+ 205               	/* #APP */
+ 206               	 ;  59 "ADC/ADC.c" 1
+ 207 0036 0000      		NOP
+ 208               	 ;  0 "" 2
+  60:ADC/ADC.c     **** 		asm volatile ("NOP" ::);
+ 210               	.LM15:
+ 211               	 ;  60 "ADC/ADC.c" 1
+ 212 0038 0000      		NOP
+ 213               	 ;  0 "" 2
+ 214               	/* #NOAPP */
+ 215               	.L4:
+  61:ADC/ADC.c     **** 		while ( ADCSRA & ( 1 << ADSC ) );
+ 217               	.LM16:
+ 218 003a 3699      		sbic 0x6,6
+ 219 003c 00C0      		rjmp .L4
+  62:ADC/ADC.c     **** 		//NB: need to store result in intermediate variable!
+  63:ADC/ADC.c     **** 		uint8_t result_l = ADCL;
+ 221               	.LM17:
+ 222 003e 84B1      		in r24,0x4
+  64:ADC/ADC.c     **** 		uint8_t result_h = ADCH;
+ 224               	.LM18:
+ 225 0040 25B1      		in r18,0x5
+  65:ADC/ADC.c     **** 		res = (result_h << 8) | result_l;
+ 227               	.LM19:
+ 228 0042 90E0      		ldi r25,0
+ 229 0044 922B      		or r25,r18
+ 230 0046 0895      		ret
+ 231               	.L3:
+ 232               	.LBE8:
+ 233               	.LBE7:
+ 234               	.LBE6:
+  66:ADC/ADC.c     **** 	}
+  67:ADC/ADC.c     **** 	else
+  68:ADC/ADC.c     **** 	{
+  69:ADC/ADC.c     **** 		adc_diag |= (1<<DIAG_UNDEF_CHANNEL);
+ 236               	.LM20:
+ 237 0048 8091 0000 		lds r24,adc_diag
+ 238 004c 9091 0000 		lds r25,adc_diag+1
+ 239 0050 8160      		ori r24,1
+ 240 0052 9093 0000 		sts adc_diag+1,r25
+ 241 0056 8093 0000 		sts adc_diag,r24
+  54:ADC/ADC.c     **** 	if ( (channel == PA5ADC) || (channel == PA6ADC) || (channel == PA7ADC) )// just make sure we read 
+ 243               	.LM21:
+ 244 005a 80E0      		ldi r24,0
+ 245 005c 90E0      		ldi r25,0
+  70:ADC/ADC.c     **** 	}
+  71:ADC/ADC.c     **** 	return res; 
+  72:ADC/ADC.c     **** 
+  73:ADC/ADC.c     **** }
+ 247               	.LM22:
+ 248 005e 0895      		ret
+ 257               	.Lscope2:
+ 259               		.stabd	78,0,0
+ 262               	.global	read_current
+ 264               	read_current:
+ 265               		.stabd	46,0,0
+  74:ADC/ADC.c     **** // Get current trough a specific shunt with result in mA
+  75:ADC/ADC.c     **** uint16_t read_current(uint8_t channel )
+  76:ADC/ADC.c     **** {
+ 267               	.LM23:
+ 268               	.LFBB3:
+ 269               	/* prologue: function */
+ 270               	/* frame size = 0 */
+ 271               	/* stack size = 0 */
+ 272               	.L__stack_usage = 0
+  77:ADC/ADC.c     **** 	
+  78:ADC/ADC.c     **** 	uint32_t  steps = read_ADC(channel);
+ 274               	.LM24:
+ 275 0060 00D0      		rcall read_ADC
+ 276 0062 BC01      		movw r22,r24
+ 277 0064 80E0      		ldi r24,0
+ 278 0066 90E0      		ldi r25,0
+  79:ADC/ADC.c     **** 	
+  80:ADC/ADC.c     **** 	uint32_t pinVolatge = (steps * STEP_VOLTAGE); // voltage at pin
+ 280               	.LM25:
+ 281 0068 26E9      		ldi r18,lo8(-106)
+ 282 006a 3CE0      		ldi r19,lo8(12)
+ 283 006c 40E0      		ldi r20,0
+ 284 006e 50E0      		ldi r21,0
+ 285 0070 00D0      		rcall __umulsidi3
+  81:ADC/ADC.c     **** 	
+  82:ADC/ADC.c     **** 	uint32_t shuntVoltage = pinVolatge / AMP_GAIN; // voltage over shunt
+ 287               	.LM26:
+ 288 0072 B901      		movw r22,r18
+ 289 0074 CA01      		movw r24,r20
+ 290 0076 28EC      		ldi r18,lo8(-56)
+ 291 0078 30E0      		ldi r19,0
+ 292 007a 40E0      		ldi r20,0
+ 293 007c 50E0      		ldi r21,0
+ 294 007e 00D0      		rcall __udivmodsi4
+  83:ADC/ADC.c     **** 	
+  84:ADC/ADC.c     **** 	uint16_t shuntcurrent = (uint16_t) ( (shuntVoltage) / SHUNT_RES); //  A = V/R current through shun
+ 296               	.LM27:
+ 297 0080 DA01      		movw r26,r20
+ 298 0082 C901      		movw r24,r18
+ 299 0084 B695      		lsr r27
+ 300 0086 A795      		ror r26
+ 301 0088 9795      		ror r25
+ 302 008a 8795      		ror r24
+  85:ADC/ADC.c     **** 	
+  86:ADC/ADC.c     **** 	return shuntcurrent;	
+  87:ADC/ADC.c     **** }
+ 304               	.LM28:
+ 305 008c 0895      		ret
+ 307               	.Lscope3:
+ 309               		.stabd	78,0,0
+ 310               		.comm	adc_diag,2,1
+ 313               	.Letext0:
+ 314               		.ident	"GCC: (GNU) 4.9.2"
+ 315               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:00000000 ADC.c
+     /tmp/ccApspte.s:2      *ABS*:0000003e __SP_H__
+     /tmp/ccApspte.s:3      *ABS*:0000003d __SP_L__
+     /tmp/ccApspte.s:4      *ABS*:0000003f __SREG__
+     /tmp/ccApspte.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/ccApspte.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/ccApspte.s:125    .text:00000000 init_ADC
+                            *COM*:00000002 adc_diag
+     /tmp/ccApspte.s:178    .text:00000028 read_ADC
+     /tmp/ccApspte.s:264    .text:00000060 read_current
+
+UNDEFINED SYMBOLS
+__umulsidi3
+__udivmodsi4
+__do_clear_bss

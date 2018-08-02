@@ -1,0 +1,233 @@
+   1               		.file	"main.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 130               		.section	.text.startup,"ax",@progbits
+ 132               	.global	main
+ 134               	main:
+ 135               		.stabd	46,0,0
+   1:main.c        **** /*
+   2:main.c        **** * Neopixel I2C Slave application
+   3:main.c        **** *
+   4:main.c        **** * At boot, scrolls a bright spot (init_color) along the array
+   5:main.c        **** * Will stop as soon as an i2c transaction is received
+   6:main.c        **** */
+   7:main.c        **** 
+   8:main.c        **** #include <util/delay.h>
+   9:main.c        **** #include <avr/io.h>
+  10:main.c        **** #include <avr/interrupt.h>
+  11:main.c        **** #include <avr/pgmspace.h>
+  12:main.c        **** 
+  13:main.c        **** #include<stdio.h>
+  14:main.c        **** #include<stdlib.h>
+  15:main.c        **** 
+  16:main.c        **** #include "i2c/i2c_slave_defs.h"
+  17:main.c        **** #include "i2c/i2c_machine.h"
+  18:main.c        **** #include "ws2812/light_ws2812.h"
+  19:main.c        **** #include "ADC/ADC.h"
+  20:main.c        **** #include "SOC/SOC.h"
+  21:main.c        **** #include "LED/LED.h"
+  22:main.c        **** #include "Motor/Motor.h"
+  23:main.c        **** #include "Timer/Timer0.h"
+  24:main.c        **** 
+  25:main.c        **** 
+  26:main.c        **** int main(void)
+  27:main.c        **** {
+ 137               	.LM0:
+ 138               	.LFBB1:
+ 139               	/* prologue: function */
+ 140               	/* frame size = 0 */
+ 141               	/* stack size = 0 */
+ 142               	.L__stack_usage = 0
+  28:main.c        **** 	//if PERIODIC_LED_UPDATE is defined, the values of the leds are sent periodically. If new values a
+  29:main.c        **** 	//if you like to update the LED each time, one single value is changed over i2c and only then, com
+  30:main.c        **** 	//Warning: This could cause problems because much CPU time is used to update the led's and this co
+  31:main.c        **** 	#define PERIODIC_LED_UPDATE
+  32:main.c        **** 
+  33:main.c        **** 	const uint16_t MinCyclesBetweenLEDUpdate=31;//min is 50us!, good is 1000us-->1kHz --> 6 Cykles
+  34:main.c        **** 	const uint16_t MaxCyclesBetweenLEDUpdate=15625;//Min. Updaterate = 2Hz -->15625 Cykles
+  35:main.c        **** 
+  36:main.c        **** 	static uint8_t LedDataSendRequest=0;	//1= new data can be transfered, 0=no new data
+  37:main.c        **** 	static uint16_t LedDataLastSend=0;		//Counter value of last data transfer end
+  38:main.c        **** 	static uint16_t ActualDelay;			//Cycles since last update
+  39:main.c        **** 	static uint16_t counterTIM0 = 0;
+  40:main.c        **** 
+  41:main.c        **** 
+  42:main.c        **** 	//enable second USI Port (PA0:2)
+  43:main.c        **** 	USIPP=0x01;
+ 144               	.LM1:
+ 145 0000 81E0      		ldi r24,lo8(1)
+ 146 0002 81BB      		out 0x11,r24
+  44:main.c        **** 	i2c_init();
+ 148               	.LM2:
+ 149 0004 00D0      		rcall i2c_init
+  45:main.c        **** 
+  46:main.c        **** 	//init motor outputs
+  47:main.c        **** 	init_motor_outputs();
+ 151               	.LM3:
+ 152 0006 00D0      		rcall init_motor_outputs
+  48:main.c        **** 
+  49:main.c        **** 	//init Timer0
+  50:main.c        **** 	TIM0_Init();
+ 154               	.LM4:
+ 155 0008 00D0      		rcall TIM0_Init
+  51:main.c        **** 
+  52:main.c        **** 	//init ADC
+  53:main.c        **** 	init_ADC();
+ 157               	.LM5:
+ 158 000a 00D0      		rcall init_ADC
+  54:main.c        **** 
+  55:main.c        **** 	// init State of Charge moduel
+  56:main.c        **** 	init_SOC();
+ 160               	.LM6:
+ 161 000c 00D0      		rcall init_SOC
+  57:main.c        **** 
+  58:main.c        **** 	//enable interrupts
+  59:main.c        **** 	sei();
+ 163               	.LM7:
+ 164               	/* #APP */
+ 165               	 ;  59 "main.c" 1
+ 166 000e 7894      		sei
+ 167               	 ;  0 "" 2
+  60:main.c        **** 
+  61:main.c        **** 	while(1)
+  62:main.c        **** 	{
+  63:main.c        **** 
+  64:main.c        **** 		//check if master has written new LED data, if yes, update leds
+  65:main.c        **** 		if (i2c_check_stop(I2C_SLAVE_LED))
+  66:main.c        **** 		{
+  67:main.c        **** 			#ifdef PERIODIC_LED_UPDATE
+  68:main.c        **** 				LedDataSendRequest=1;
+ 169               	.LM8:
+ 170               	/* #NOAPP */
+ 171 0010 C1E0      		ldi r28,lo8(1)
+ 172               	.L6:
+  65:main.c        **** 		{
+ 174               	.LM9:
+ 175 0012 80E0      		ldi r24,0
+ 176 0014 00D0      		rcall i2c_check_stop
+ 177 0016 8111      		cpse r24,__zero_reg__
+ 179               	.LM10:
+ 180 0018 C093 0000 		sts LedDataSendRequest.2183,r28
+ 181               	.L2:
+  69:main.c        **** 			#else
+  70:main.c        **** 				update_led_values();
+  71:main.c        **** 			#endif
+  72:main.c        **** 		}
+  73:main.c        **** 		//check if master has written new Motor data, if yes, update motor valued
+  74:main.c        **** 		if (i2c_check_stop(I2C_SLAVE_MOTOR))
+ 183               	.LM11:
+ 184 001c 81E0      		ldi r24,lo8(1)
+ 185 001e 00D0      		rcall i2c_check_stop
+ 186 0020 8111      		cpse r24,__zero_reg__
+  75:main.c        **** 		{
+  76:main.c        **** 			update_motor_values();
+ 188               	.LM12:
+ 189 0022 00D0      		rcall update_motor_values
+ 190               	.L3:
+  77:main.c        **** 		}
+  78:main.c        **** 
+  79:main.c        **** 		//Calculate Cycles since last sending
+  80:main.c        **** 		counterTIM0 = TIM0_ReadTCNT0();
+ 192               	.LM13:
+ 193 0024 00D0      		rcall TIM0_ReadTCNT0
+ 194 0026 9093 0000 		sts counterTIM0.2186+1,r25
+ 195 002a 8093 0000 		sts counterTIM0.2186,r24
+  81:main.c        **** 		ActualDelay = counterTIM0 - LedDataLastSend;
+ 197               	.LM14:
+ 198 002e 2091 0000 		lds r18,LedDataLastSend.2184
+ 199 0032 3091 0000 		lds r19,LedDataLastSend.2184+1
+ 200 0036 821B      		sub r24,r18
+ 201 0038 930B      		sbc r25,r19
+ 202 003a 9093 0000 		sts ActualDelay.2185+1,r25
+ 203 003e 8093 0000 		sts ActualDelay.2185,r24
+  82:main.c        **** 
+  83:main.c        **** 		#ifdef PERIODIC_LED_UPDATE
+  84:main.c        **** 			//update if minimal time reached and update request or if maximal time reached
+  85:main.c        **** 			//minimal time reached and
+  86:main.c        **** 			if((ActualDelay>MinCyclesBetweenLEDUpdate && LedDataSendRequest==1) || (ActualDelay>MaxCyclesBet
+ 205               	.LM15:
+ 206 0042 8032      		cpi r24,32
+ 207 0044 9105      		cpc r25,__zero_reg__
+ 208 0046 00F0      		brlo .L4
+ 210               	.LM16:
+ 211 0048 2091 0000 		lds r18,LedDataSendRequest.2183
+ 212 004c 2130      		cpi r18,lo8(1)
+ 213 004e 01F0      		breq .L5
+ 215               	.LM17:
+ 216 0050 8A30      		cpi r24,10
+ 217 0052 9D43      		sbci r25,61
+ 218 0054 00F0      		brlo .L4
+ 219               	.L5:
+  87:main.c        **** 			{
+  88:main.c        **** 				//clear send request
+  89:main.c        **** 				LedDataSendRequest=0;
+ 221               	.LM18:
+ 222 0056 1092 0000 		sts LedDataSendRequest.2183,__zero_reg__
+  90:main.c        **** 
+  91:main.c        **** 				//update led
+  92:main.c        **** 				update_led_values();
+ 224               	.LM19:
+ 225 005a 00D0      		rcall update_led_values
+  93:main.c        **** 
+  94:main.c        **** 				//save current time
+  95:main.c        **** 				LedDataLastSend=TIM0_ReadTCNT0();
+ 227               	.LM20:
+ 228 005c 00D0      		rcall TIM0_ReadTCNT0
+ 229 005e 9093 0000 		sts LedDataLastSend.2184+1,r25
+ 230 0062 8093 0000 		sts LedDataLastSend.2184,r24
+ 231               	.L4:
+  96:main.c        **** 			}
+  97:main.c        **** 		#endif
+  98:main.c        **** 
+  99:main.c        **** 		update_SOC(counterTIM0);
+ 233               	.LM21:
+ 234 0066 8091 0000 		lds r24,counterTIM0.2186
+ 235 006a 9091 0000 		lds r25,counterTIM0.2186+1
+ 236 006e 00D0      		rcall update_SOC
+ 100:main.c        **** 	}
+ 238               	.LM22:
+ 239 0070 00C0      		rjmp .L6
+ 247               	.Lscope1:
+ 249               		.stabd	78,0,0
+ 250               		.local	ActualDelay.2185
+ 251               		.comm	ActualDelay.2185,2,1
+ 252               		.local	LedDataLastSend.2184
+ 253               		.comm	LedDataLastSend.2184,2,1
+ 254               		.local	counterTIM0.2186
+ 255               		.comm	counterTIM0.2186,2,1
+ 256               		.local	LedDataSendRequest.2183
+ 257               		.comm	LedDataSendRequest.2183,1,1
+ 258               		.text
+ 260               	.Letext0:
+ 261               		.ident	"GCC: (GNU) 4.9.2"
+ 262               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+     /tmp/ccyZbZJN.s:2      *ABS*:0000003e __SP_H__
+     /tmp/ccyZbZJN.s:3      *ABS*:0000003d __SP_L__
+     /tmp/ccyZbZJN.s:4      *ABS*:0000003f __SREG__
+     /tmp/ccyZbZJN.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/ccyZbZJN.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/ccyZbZJN.s:134    .text.startup:00000000 main
+     /tmp/ccyZbZJN.s:255    .bss:00000006 LedDataSendRequest.2183
+     /tmp/ccyZbZJN.s:253    .bss:00000004 counterTIM0.2186
+     /tmp/ccyZbZJN.s:251    .bss:00000002 LedDataLastSend.2184
+                             .bss:00000000 ActualDelay.2185
+
+UNDEFINED SYMBOLS
+i2c_init
+init_motor_outputs
+TIM0_Init
+init_ADC
+init_SOC
+i2c_check_stop
+update_motor_values
+TIM0_ReadTCNT0
+update_led_values
+update_SOC
+__do_clear_bss
