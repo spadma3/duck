@@ -30,7 +30,7 @@ class DuckietownLights():
 	car_all_lights = [TOP, BACK_LEFT, BACK_RIGHT, FRONT_LEFT, FRONT_RIGHT]
 
 def add_pattern(name, pattern):
-	DuckietownLights.sequences[name] = pattern 
+	DuckietownLights.sequences[name] = pattern
 
 def create_patterns():
 
@@ -50,23 +50,23 @@ def create_patterns():
 	WHITE2 = [s, s, s]
 
 	add_pattern('blinking1', [
-		(0.5, {TOP: GREEN2, BACK_LEFT:RED, BACK_RIGHT:RED, FRONT_LEFT:WHITE2,FRONT_RIGHT:WHITE2}),	
-		(0.5, {TOP: OFF, BACK_LEFT:OFF, BACK_RIGHT:OFF, FRONT_LEFT:WHITE2,FRONT_RIGHT:WHITE2}),
+		(0.5, {TOP: GREEN2, BACK_LEFT:GREEN2, BACK_RIGHT:GREEN2, FRONT_LEFT:GREEN2,FRONT_RIGHT:GREEN2})	
+
 	])
 
 	add_pattern('blinking2',[
-		(0.25, {TOP: GREEN2, BACK_LEFT:RED, BACK_RIGHT:RED, FRONT_LEFT:WHITE2,FRONT_RIGHT:WHITE2}),	
+		(0.25, {TOP: GREEN2, BACK_LEFT:RED, BACK_RIGHT:RED, FRONT_LEFT:WHITE2,FRONT_RIGHT:WHITE2}),
 		(0.25, {TOP: OFF, BACK_LEFT:OFF, BACK_RIGHT:OFF, FRONT_LEFT:WHITE2,FRONT_RIGHT:WHITE2}),
 	])
 
 	add_pattern('blinking3',[
-		(0.25, {TOP: GREEN, BACK_LEFT:GREEN2, BACK_RIGHT:[0,1,1], FRONT_LEFT:YELLOW,FRONT_RIGHT:WHITE}),	
+		(0.25, {TOP: GREEN, BACK_LEFT:GREEN2, BACK_RIGHT:[0,1,1], FRONT_LEFT:YELLOW,FRONT_RIGHT:WHITE}),
 		(0.25, {TOP: RED, BACK_LEFT:GREEN2, BACK_RIGHT:RED, FRONT_LEFT:RED,FRONT_RIGHT:RED}),
 	])
-	
+
 	add_pattern('mar12special',[
-		(0.50, {TOP: BLUE, BACK_LEFT: WHITE, BACK_RIGHT:WHITE, FRONT_LEFT:WHITE,FRONT_RIGHT:WHITE}),	
-		(0.50, {TOP: OFF, BACK_LEFT: WHITE, BACK_RIGHT:WHITE, FRONT_LEFT:WHITE,FRONT_RIGHT:WHITE}),	
+		(0.50, {TOP: BLUE, BACK_LEFT: WHITE, BACK_RIGHT:WHITE, FRONT_LEFT:WHITE,FRONT_RIGHT:WHITE}),
+		(0.50, {TOP: OFF, BACK_LEFT: WHITE, BACK_RIGHT:WHITE, FRONT_LEFT:WHITE,FRONT_RIGHT:WHITE}),
 	])
 
 	add_pattern('trafficlight4way',
@@ -79,21 +79,21 @@ def create_patterns():
 	)
 
 	conf_all_off = {
-		TOP: OFF, 
-		BACK_LEFT:OFF, 
-		BACK_RIGHT:OFF, 
+		TOP: OFF,
+		BACK_LEFT:OFF,
+		BACK_RIGHT:OFF,
 		FRONT_LEFT:OFF,
 		FRONT_RIGHT:OFF,
 	}
 
 	conf_static_car = {
-		TOP: OFF, 
-		BACK_LEFT:RED, 
-		BACK_RIGHT:RED, 
+		TOP: OFF,
+		BACK_LEFT:RED,
+		BACK_RIGHT:RED,
 		FRONT_LEFT:WHITE,
 		FRONT_RIGHT:WHITE,
 	}
-	
+
 	def conf_all_on(color):
 		x = dict(**conf_all_off)
 		for k in x:
@@ -107,13 +107,13 @@ def create_patterns():
 			(period/2, others),
 			(period/2, r),
 		]
-	
+
 	def blink_all(color, period):
 		return [
 			(period/2, conf_all_off),
 			(period/2, conf_all_on(color)),
 		]
-	
+
 	def cat(*patterns):
 		p = []
 		for ps in patterns:
@@ -131,12 +131,12 @@ def create_patterns():
 		'yellow': [1,1,0],
 		'orange': [1,0.4,0],
 	}
-		
-	frequencies = [1, 1.1, 1.2, 1.3, 1.4, 1.5, 
+
+	frequencies = [1, 1.1, 1.2, 1.3, 1.4, 1.5,
 					1.6, 1.7, 1.8, 1.9, 2, 2.1,2.2,2.3,2.4,
 					 2.5, 3, 3.5, 4.5, 5, 6, 7, 8, 9,
 					10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-	
+
 	for name in DuckietownLights.car_all_lights:
 		for color, rgb in colors.items():
 			for freq in frequencies:
@@ -176,7 +176,7 @@ def cycle_LEDs_named(sequence_name):
 		N = 20
 		if len(avail) > N:
 			avail = avail[:N]
-			
+
 		msg += ' ' + ", ".join(avail) + '.'
 		raise ValueError(msg)
 	sequence = DuckietownLights.sequences[sequence_name]
@@ -190,7 +190,7 @@ def get_current_step(t, t0, sequence):
 	while tau - period > 0:
 		tau -= period
 	i = 0
-	while True: 
+	while True:
 		current = sequence[i][0]
 		if tau < current:
 			break
@@ -209,9 +209,9 @@ def cycle_LEDs(sequence):
 	t0 = time.time()
 	# last = all_off
 	last = {
-		TOP: None, 
-		BACK_LEFT:None, 
-		BACK_RIGHT:None, 
+		TOP: None,
+		BACK_LEFT:None,
+		BACK_RIGHT:None,
 		FRONT_LEFT:None,
 		FRONT_RIGHT:None,
 	}
@@ -221,12 +221,10 @@ def cycle_LEDs(sequence):
 
 		for name, col in config.items():
 			k = DuckietownLights.name2port[name]
-			
+
 			if last[name] != col:
 				led.setRGB(k, col)
 				print(name, k, col)
 				last[name] = col
 
 		sleep(0.01)
-
-
