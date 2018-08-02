@@ -22,7 +22,6 @@ class IndefNavigationTurnNode(unittest.TestCase):
 
         rospy.loginfo("[%s] Initialzing." %(self.node_name))
         veh_name= self.setupParam("~veh", "")
-        self.type = self.setupParam("~type", 'right')
         wheels_cmd = "/" + veh_name + "/wheels_driver_node/car_cmd"
 
         self.publish_mode = rospy.Publisher(mode_topic, FSMState, queue_size=1)
