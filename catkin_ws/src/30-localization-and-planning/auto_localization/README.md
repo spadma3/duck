@@ -19,7 +19,7 @@ You need to create your own map file to make the system work! Create a map file 
     laptop $ cd ~/duckietown/catkin_ws/src/30-localization-and-planning/auto_localization/config
     laptop $ cp testcircle_origin(dontoverwrite).yaml ![your map].yaml
 
-The `your map`.yaml is the map file for your robotarium, name it whatever you want. Edit `your map`, modify the id of `origin` to your origin tag id, and add all your watchtowers' hostnames to `watchtowers`.
+The `your map`.yaml is the map file for your robotarium, name it whatever you want. Edit `your map`, modify the id of `origin` to your origin tag id, and add **ALL** your watchtowers' hostnames to `watchtowers`, in the system calibration the server computer will wait until all watchtower send tag informations. You don't need to modify anything under "fixed_tags", which store the transformation matrix of each reference tags to the origin tag. The system calibration step will do that for you!.
 
 The default map is testcircle.yaml
 
