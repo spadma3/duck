@@ -4,13 +4,13 @@
 from rgb_led import *
 import sys
 
-# if len(sys.argv) <= 1:
-# 	pattern = 'blinking1'
-# else:
-# 	pattern = sys.argv[1]
+if len(sys.argv) <= 1:
+	pattern = 'blinking1'
+else:
+	pattern = sys.argv[1]
 
 try:
-	conf_all_on(GREEN)
+	cycle_LEDs_named(pattern)
 except ValueError as e:
 	print(e)
 	sys.exit(1)

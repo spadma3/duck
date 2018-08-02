@@ -39,4 +39,4 @@ hw-test-turn-forward: check-environment
 
 hw-test-testbench: check-environment
 	@echo "Starting testbench"
-	bash -c "source environment.sh; rosrun rgb_led blink test_all_1"
+	bash -c "source environment.sh; rosrun rgb_led blink blinking1"
