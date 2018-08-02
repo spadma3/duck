@@ -3,7 +3,8 @@ import rospy, unittest, rostest
 from duckietown_msgs.msg import LanePose, StopLineReading
 #from duckietown_msgs.msg import messages to command the wheels
 from duckietown_msgs.msg import Twist2DStamped
-from rgb_led import *
+#from rgb_led import *
+from rgb_led import RGB_LED
 import time
 import sys
 
@@ -16,23 +17,25 @@ class KinematicsTestNode(unittest.TestCase):
 
     def setup(self):
 
-        if len(sys.argv) <= 1:
-        	pattern = 'blinking1'
-        else:
-        	pattern = sys.argv[1]
-
-        try:
-        	cycle_LEDs_named(pattern)
-        except ValueError as e:
-        	print(e)
-        	sys.exit(1)
+        # if len(sys.argv) <= 1:
+        # 	pattern = 'blinking1'
+        # else:
+        # 	pattern = sys.argv[1]
+        #
+        # try:
+        # 	cycle_LEDs_named(pattern)
+        # except ValueError as e:
+        # 	print(e)
+        # 	sys.exit(1)
+        self.led = RGB_LED()
+        for i in range(5):
+            self.led.setRGB(i,[0,0.3,0])
 
         rospy.init_node('kinematics_test_node', anonymous=False)
 
 
         veh_name= rospy.get_param("~veh","")
         wheel_topic = "/" + veh_name + "/joy_mapper_node/car_cmd"
-
 
         rospy.loginfo("wheel topic = %s", wheel_topic)
 

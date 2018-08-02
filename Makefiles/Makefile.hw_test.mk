@@ -19,7 +19,7 @@ hw-test-camera:
 
 hw-test-led: check-environment
 	@echo "Calibration blinking pattern"
-	bash -c "source environment.sh; rosrun rgb_led blink test_all_1"
+	bash -c "source environment.sh; rosrun rgb_led blink"
 
 hw-test-kinematics: check-environment
 	@echo "Testing Kinematics Calibration"
@@ -39,5 +39,5 @@ hw-test-turn-forward: check-environment
 
 hw-test-testbench: check-environment
 	@echo "Starting testbench"
-	bash -c "source environment.sh; rosrun rgb_led blink blinking1"
-	bash -c "rostest indefinite_navigation calibrate_kinematics.test veh:=$(vehicle_name)"
+	# bash -c "source environment.sh; rosrun rgb_led blink blinking1"
+	bash -c "source environment.sh; rosrun rgb_led blink"

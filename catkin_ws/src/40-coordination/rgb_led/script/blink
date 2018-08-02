@@ -3,14 +3,20 @@
 
 from rgb_led import *
 import sys
+from dagu_car.dagu_wheels_driver import DaguWheelsDriver
 
-if len(sys.argv) <= 1:
-	pattern = 'blinking1'
-else:
-	pattern = sys.argv[1]
 
-try:
-	cycle_LEDs_named(pattern)
-except ValueError as e:
-	print(e)
-	sys.exit(1)
+driver = DaguWheelsDriver()
+
+driver.setWheelsSpeed(left=0.2,right=0.2)
+
+# if len(sys.argv) <= 1:
+# 	pattern = 'blinking1'
+# else:
+# 	pattern = sys.argv[1]
+#
+# try:
+cycle_LEDs_named('blinking1')
+# except ValueError as e:
+# 	print(e)
+# 	sys.exit(1)

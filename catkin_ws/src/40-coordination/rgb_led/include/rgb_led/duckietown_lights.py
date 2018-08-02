@@ -50,7 +50,7 @@ def create_patterns():
 	WHITE2 = [s, s, s]
 
 	add_pattern('blinking1', [
-		(0.5, {TOP: GREEN2, BACK_LEFT:GREEN2, BACK_RIGHT:GREEN2, FRONT_LEFT:GREEN2,FRONT_RIGHT:GREEN2})	
+		(0.5, {TOP: GREEN2, BACK_LEFT:GREEN2, BACK_RIGHT:GREEN2, FRONT_LEFT:GREEN2,FRONT_RIGHT:GREEN2})
 
 	])
 
@@ -197,6 +197,8 @@ def get_current_step(t, t0, sequence):
 		else:
 			i += 1
 			tau -= current
+
+
 
 	return i, sequence[i]
 

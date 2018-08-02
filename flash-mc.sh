@@ -5,3 +5,4 @@ cd ~/duckietown/hardware/traffic-light/software
 make fuses
 
 make
+
