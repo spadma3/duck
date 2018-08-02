@@ -99,7 +99,8 @@ class AprilLocalLocalization(object):
 
             # fixed tags will be added to the database,
             # StreetSigns, TrafficSigns are considered to be fixed tags
-            if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN):
+            # if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN):
+            if not new_info.tag_type == self.info.VEHICLE: # We assume any tag doesn't belone to vehicle is reference tags
                  # add fixed tag to the database, overwrite old information
                  self.fixed_tags_dict[new_info.id] = [new_info.tag_type, detection.pose]
                  # for fixed_frame in self.fixed_tags_dict:
@@ -125,7 +126,7 @@ class AprilLocalLocalization(object):
                         # Determines that most recent time for which Transformer can compute the transform between
                         # 'Tag'+str(fixed_frame) and 'Tag'+str(new_info.id)
                         t = self.sub_tf.getLatestCommonTime('Tag'+str(fixed_frame), 'Tag'+str(new_info.id))
-                        
+
                         # Switch the position of look up transform
                         # Set parent frame to Duckiebot frame, child frame to fixed frame (tag)
                         # Since we want the transform from Duckiebot to fixed frame (tag)
