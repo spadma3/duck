@@ -1,5 +1,8 @@
 Header header
 int32 bot_id
 geometry_msgs/Pose2D pose
+float64 delta_x
+float64 delta_y
+float64 delta_theta
 int32[] cam_id
 int32[] reference_tag_id
