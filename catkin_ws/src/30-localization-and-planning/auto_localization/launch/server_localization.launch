@@ -6,6 +6,8 @@
     <arg name="map" default="testcircle" doc="Specify the map you wants"/>
     <arg name="IP" default="0" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
 
+    <arg name="GUI" default="false" doc="Show GUI or not"/>
+
     <include file="$(find auto_localization)/launch/subfserver.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="config" value="$(arg config)"/>
@@ -15,6 +17,12 @@
 
     <remap from="local_poses" to="subfserver_easy/local_poses" />
     <include file="$(find auto_localization)/launch/absolute_from_relative_position.launch">
+      <arg name="veh" value="$(arg veh)"/>
+      <arg name="map" value="$(arg map)"/>
+    </include>
+
+    <remap from="bot_poses" to="bot_poses" />
+    <include if="$(arg GUI)" file="$(find auto_localization)/launch/map_description.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="map" value="$(arg map)"/>
     </include>

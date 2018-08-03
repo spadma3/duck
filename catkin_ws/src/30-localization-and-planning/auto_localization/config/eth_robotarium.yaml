@@ -141,7 +141,7 @@ tiles:
   - grass
   - grass
 
-Watchtowers:
+watchtowers:
 - Watchtower01
 - Watchtower02
 - Watchtower03
