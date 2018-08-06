@@ -15,7 +15,6 @@ import numpy as np
 from datetime import datetime
 import tf
 import tf.transformations as tr
-import numpy as np
 
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
 
@@ -25,7 +24,7 @@ class system_calibration(object):
 
         self.node_name = 'system_calibration'
 
-        # load the map file, notice that it will overwrite the file
+        # load the map file, notice that the file will be overwritten after calibration
         self.map_filename = rospy.get_param("~map") + ".yaml"
         self.output_map_filename = rospy.get_param("~output_file") + ".yaml"
         self.map_data = self.load_map_info(self.map_filename)
