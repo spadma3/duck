@@ -14,14 +14,16 @@ LED_protocol:
     f1: &f1 7.8
     f2: &f2 4
     f3: &f3 5.7
+    f4: &f4 2.5
+
 
   signals:
     CAR_SIGNAL_PRIORITY:
-      frequency: *f1
+      frequency: *f3
       color: "blue"
 
     CAR_SIGNAL_SACRIFICE_FOR_PRIORITY:
-      frequency: *f3
+      frequency: *f4
       color: "purple"
 
     CAR_SIGNAL_A:
