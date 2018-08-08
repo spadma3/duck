@@ -11,9 +11,9 @@ LED_protocol:
     black: [0,0,0]
 
   frequencies:
-    f1: &f1 7.8
+    f1: &f1 8
     f2: &f2 4
-    f3: &f3 5.7
+    f3: &f3 6
     f4: &f4 3
 
 
@@ -23,7 +23,7 @@ LED_protocol:
       color: "purple"
 
     CAR_SIGNAL_SACRIFICE_FOR_PRIORITY:
-      frequency: *f4
+      frequency: *f1
       color: "purple"
 
     CAR_SIGNAL_A:
