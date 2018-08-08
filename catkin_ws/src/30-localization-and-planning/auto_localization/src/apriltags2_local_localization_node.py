@@ -94,14 +94,20 @@ class AprilLocalLocalization(object):
 
 
             # Check yaml file to fill in ID-specific information
+            # IF statement checks if Tag is actually in the database
+            if not id_info['tag_type']:
+                new_info.tag_type = 'Unknown'
+                print "Detected unknown Tag with ID: " + str(new_info.id)
 
-            new_info.tag_type = self.sign_types[id_info['tag_type']]
+            else:
+                new_info.tag_type = self.sign_types[id_info['tag_type']]
 
             # fixed tags will be added to the database,
             # StreetSigns, TrafficSigns are considered to be fixed tags
             # if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN):
-            if not new_info.tag_type == self.info.VEHICLE: # We assume any tag doesn't belone to vehicle is reference tags
+            if not new_info.tag_type == self.info.VEHICLE : # We assume any tag doesn't belone to vehicle is reference tags
                  # add fixed tag to the database, overwrite old information
+
                  self.fixed_tags_dict[new_info.id] = [new_info.tag_type, detection.pose]
                  # for fixed_frame in self.fixed_tags_dict:
                  #    rospy.loginfo("FixedFrame: %s",fixed_frame)
@@ -111,6 +117,7 @@ class AprilLocalLocalization(object):
             # perform coordinate transform for moving tags
             #    in reference to the fixed tags
             elif new_info.tag_type == self.info.VEHICLE:
+
                 new_info.vehicle_name = id_info['vehicle_name']
                 #rospy.loginfo("Detected %s with Tag ID %s", new_info.vehicle_name, new_info.id)
                 # cantrans = tf.canTransform('quacky/color_optical_frame', 'Tag15', now)
