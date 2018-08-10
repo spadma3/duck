@@ -43,8 +43,11 @@ class TCPCommunicationServerNode(object):
     def mainLoop(self):
         # Wait for and accept connection
         tcp_connection, addr = self.tcp_socket.accept()
-        data_raw = tcp_connection.recv(self.BUFFER_SIZE)
-
+        try:
+            data_raw = tcp_connection.recv(self.BUFFER_SIZE)
+        except:
+            rospy.loginfo("Couldn't receive data")
+            tcp_connection.close()
         # Decode JSON format
         data = json.loads(data_raw)
 
@@ -57,6 +60,7 @@ class TCPCommunicationServerNode(object):
             if rospy.has_param("~" + data[2]):
                 response = rospy.get_param("~" + data[2])
             else:
+                rospy.logdebug("could not get paramter")
                 response = None
 
         # Send response (either variable or confirmation)
@@ -65,7 +69,7 @@ class TCPCommunicationServerNode(object):
 
 
     def setupParams(self):
-        self.IP = self.setupParam("~IP", "192.168.1.222")
+        self.IP = self.setupParam("~IP", "192.168.1.182") #whats this IP?
         self.PORT = self.setupParam("~PORT", 5678)
         self.BUFFER_SIZE = self.setupParam("~BUFFER_SIZE", 1024)
 
