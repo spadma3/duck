@@ -94,14 +94,20 @@ class AprilLocalLocalization(object):
 
 
             # Check yaml file to fill in ID-specific information
+            # IF statement checks if Tag is actually in the database
+            if not id_info['tag_type']:
+                new_info.tag_type = 'Unknown'
+                print "Detected unknown Tag with ID: " + str(new_info.id)
 
-            new_info.tag_type = self.sign_types[id_info['tag_type']]
+            else:
+                new_info.tag_type = self.sign_types[id_info['tag_type']]
 
             # fixed tags will be added to the database,
             # StreetSigns, TrafficSigns are considered to be fixed tags
             # if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN):
-            if not new_info.tag_type == self.info.VEHICLE: # We assume any tag doesn't belone to vehicle is reference tags
+            if not new_info.tag_type == self.info.VEHICLE : # We assume any tag doesn't belone to vehicle is reference tags
                  # add fixed tag to the database, overwrite old information
+
                  self.fixed_tags_dict[new_info.id] = [new_info.tag_type, detection.pose]
                  # for fixed_frame in self.fixed_tags_dict:
                  #    rospy.loginfo("FixedFrame: %s",fixed_frame)
@@ -111,13 +117,22 @@ class AprilLocalLocalization(object):
             # perform coordinate transform for moving tags
             #    in reference to the fixed tags
             elif new_info.tag_type == self.info.VEHICLE:
+
                 new_info.vehicle_name = id_info['vehicle_name']
                 #rospy.loginfo("Detected %s with Tag ID %s", new_info.vehicle_name, new_info.id)
                 # cantrans = tf.canTransform('quacky/color_optical_frame', 'Tag15', now)
 
+                # The TCP layer can only send 3 poses at once: send out data every 3 poses:
+
 
                 # Coordinates transform for each fixed frame
                 for fixed_frame in self.fixed_tags_dict:
+                    # print "RemapPoseArray size: " + str(len(remap_poses_array.poses))
+                    if len(remap_poses_array.poses) == 3:
+                        self.pub_postPros.publish(remap_poses_array)
+                        remap_poses_array = RemapPoseArray()
+
+
                     remap_pose = RemapPose()
 
                     #  in terminal it would be rosrun tf tf_echo fixed_frame bot_frame
@@ -158,6 +173,7 @@ class AprilLocalLocalization(object):
                     #Add this remap pose to the array
                     remap_poses_array.poses.append(remap_pose)
 
+
                     # Debugging Output (comment that to optimiza the code)
                     '''
                     rot_euler = tf.transformations.euler_from_quaternion(rot)
@@ -168,7 +184,7 @@ class AprilLocalLocalization(object):
                                    new_info.vehicle_name, fixed_frame, trans_rnd, rot_rnd)
                     '''
 
-        self.pub_postPros.publish(remap_poses_array)
+        self.pub_postPros.publish(remap_poses_array) # the array can only contain three poses because packet size is limited to 1024 byte
 
 
         #     tag_infos.append(new_info)
