@@ -127,7 +127,7 @@ class AprilLocalLocalization(object):
 
                 # Coordinates transform for each fixed frame
                 for fixed_frame in self.fixed_tags_dict:
-                    print "RemapPoseArray size: " + str(len(remap_poses_array.poses))
+                    # print "RemapPoseArray size: " + str(len(remap_poses_array.poses))
                     if len(remap_poses_array.poses) == 3:
                         self.pub_postPros.publish(remap_poses_array)
                         remap_poses_array = RemapPoseArray()
