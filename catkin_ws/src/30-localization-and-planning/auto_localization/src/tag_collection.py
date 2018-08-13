@@ -105,8 +105,8 @@ class Tag_collection(object):
                     parent_frame_name = 'Tag'+str(parent_frame_tags_id)
                     if self.sub_tf.frameExists(child_frame_name) and self.sub_tf.frameExists(parent_frame_name):
                         t = self.sub_tf.getLatestCommonTime(child_frame_name, parent_frame_name)
-                        (trans,rot) = self.sub_tf.lookupTransform(child_frame_name, parent_frame_name, t)
-
+                        #(trans,rot) = self.sub_tf.lookupTransform(child_frame_name, parent_frame_name, t)
+                        (trans,rot) = self.sub_tf.lookupTransform(child_frame_name, parent_frame_name, rospy.Time.now())
                         remap_pose = RemapPose()
                         remap_pose.host = socket.gethostname()
                         remap_pose.frame_id = child_frame_tags_id
