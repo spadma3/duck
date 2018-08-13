@@ -96,6 +96,11 @@ class Tag_collection(object):
                     # We don't need to know the tf of same tags
                     continue
                 else:
+                    ## Limit packet size to three poses
+                    if len(remap_poses_array.poses) == 3:
+                        self.pub_postPros.publish(remap_poses_array)
+                        remap_poses_array = RemapPoseArray()
+
                     child_frame_name = 'Tag'+str(child_frame_tags_id)
                     parent_frame_name = 'Tag'+str(parent_frame_tags_id)
                     if self.sub_tf.frameExists(child_frame_name) and self.sub_tf.frameExists(parent_frame_name):
