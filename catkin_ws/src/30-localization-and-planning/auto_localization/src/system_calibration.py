@@ -58,11 +58,11 @@ class system_calibration(object):
             not_ready = ""
             for wt in self.watchtowers:
                 if self.watchtowers[wt] == False:
-                    not_ready += wt + ", "
+                    not_ready += wt[-2:] + ", "
             if not_ready == "":
                 rospy.loginfo("Get all tags. Start Counting Down")
             else:
-                rospy.loginfo("Still waiting for: " + not_ready)
+                rospy.loginfo("Still waiting for watchtower: " + not_ready)
                 return
 
         self.wait_for_message -= 1
