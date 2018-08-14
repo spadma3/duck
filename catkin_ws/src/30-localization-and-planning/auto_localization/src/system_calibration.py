@@ -27,7 +27,8 @@ class system_calibration(object):
 
         # load the map file, notice that it will overwrite the file
         self.map_filename = rospy.get_param("~map") + ".yaml"
-        self.output_map_filename = rospy.get_param("~output_file") + ".yaml"
+        time = "{:%Y%m%d-%H%M}".format(datetime.now())
+        self.output_map_filename = rospy.get_param("~output_file") + time + ".yaml"
         self.map_data = self.load_map_info(self.map_filename)
 
         # Subscribe all tfs from subfserver node
