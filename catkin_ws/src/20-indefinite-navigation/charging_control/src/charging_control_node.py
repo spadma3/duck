@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos, TurnIDandType, MaintenanceState
+from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState, AprilTagsWithInfos, TurnIDandType, MaintenanceState, Twist2DStamped
 from std_msgs.msg import Float32, Int16, Bool
 from geometry_msgs.msg import Point
 import time
 import math
 from duckietown_utils import tcp_communication, robot_name
+import commands
 
 class ChargingControlNode(object):
     def __init__(self):
@@ -21,8 +22,15 @@ class ChargingControlNode(object):
 
         # Class variables
         self.ready2go = False # Whether the bot is fully charged or not
+        self.notChargingCounter = 0
+        self.T_check_charging = 4
+        self.time_until_wiggle = 24
+        self.i2c_addr = 0x42
+        self.state_reg = 1
+
         self.maintenance_state = "NONE"
         self.state = "JOYSTICK_CONTROL"
+
 
         ## Subscribers
         self.sub_fsm_state = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
@@ -34,9 +42,15 @@ class ChargingControlNode(object):
         self.ready_at_exit = rospy.Publisher("~ready_at_exit", BoolStamped, queue_size=1)
         self.pub_go_mt_charging = rospy.Publisher("~go_mt_charging", Bool, queue_size=1)
         self.pub_go_mt_full = rospy.Publisher("~go_mt_full", Bool, queue_size=1)
+        self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
 
+        # State to int mappings
+        self.positionStates = {'UNKNOWN_STATE': [0,2,6], 'STANDING_STILL': [1], 'MOVING': [3], 'STANDING_STILL_AND_CHARGING': [4,5], 'MOVING_AND_CHARGING': [7]}
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+
+        ## wiggle-operation to obtain good conact if not charging
+        self.wiggle_timer = rospy.Timer(rospy.Duration.from_sec(self.T_check_charging), self.checkIfCharging)
 
         # Assume the Duckiebot is full at startup, let him drive to charger after drive_time minutes
         self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
@@ -71,6 +85,44 @@ class ChargingControlNode(object):
     ##### END callback functions #####
 
     ##### BEGIN internal functions #####
+
+    # If we were supposed to charge but not charging for too long, do a small wiggle to get contact again
+    def checkIfCharging(self,event):
+        if self.state != "IN_CHARGING_AREA":
+            self.notChargingCounter = 0
+            return
+
+        state_output = commands.getstatusoutput("i2cget -y 1 " + str(self.i2c_addr) + " " + str(self.state_reg))
+        if state_output[0] != 0: return
+
+        positionState = int(state_output[1], 0)
+
+        rospy.loginfo("State " + str(positionState))
+
+        if positionState not in (self.positionStates['STANDING_STILL_AND_CHARGING']+self.positionStates['MOVING_AND_CHARGING']):
+            self.notChargingCounter += 1
+            if self.notChargingCounter*self.T_check_charging >= self.time_until_wiggle:
+                rospy.loginfo("[Charging Control Node]: We were not charging for too long, wiggling now.")
+                self.doWiggle()
+                self.notChargingCounter = 0
+        else:
+            self.notChargingCounter = 0
+
+
+    def doWiggle(self):
+        carmsg = Twist2DStamped()
+        carmsg.v = -0.3
+        carmsg.omega = 0
+        self.pub_car_cmd.publish(carmsg)
+        rospy.sleep(0.1)
+        carmsg.v = 0.2
+        carmsg.omega = 0
+        self.pub_car_cmd.publish(carmsg)
+        rospy.sleep(0.1)
+        carmsg.v = 0.0
+        carmsg.omega = 0
+        self.pub_car_cmd.publish(carmsg)
+
 
     def pubReady(self, ready):
         ready_at_exit_msg = BoolStamped()
