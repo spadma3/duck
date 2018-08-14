@@ -15,7 +15,7 @@ LED_protocol:
     f2: &f2 4
     f3: &f3 5.7
     f4: &f4 1.9
-    f5: &f5 2.6
+    f5: &f5 10.6
 
 
   signals:
