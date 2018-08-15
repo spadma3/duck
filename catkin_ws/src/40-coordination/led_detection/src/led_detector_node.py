@@ -381,7 +381,7 @@ class LEDDetectorNode(object):
         # Final time
         processing_time = time.time()-tic
         total_time      = time.time()-self.tinit
-
+        rospy.loginfo('LED: %s' %total_time)
         # Publish results
         self.publish(imPublishRight,imPublishFront,imPublishTL,result)
 
