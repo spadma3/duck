@@ -89,7 +89,7 @@ class LaneFilterNode(object):
     def processSegments(self,segment_list_msg):
         # Get actual timestamp for latency measurement
         timestamp_now = rospy.Time.now()
-
+        begin=rospy.Time.now()
 
         if not self.active:
             return
@@ -157,6 +157,9 @@ class LaneFilterNode(object):
         in_lane_msg.header.stamp = segment_list_msg.header.stamp
         in_lane_msg.data = True #TODO change with in_lane
         self.pub_in_lane.publish(in_lane_msg)
+        end=rospy.Time.now()
+        duration=end-begin
+        rospy.loginfo('lane_filter: %s' % duration)        
 
     def cbMode(self, msg):
         return #TODO adjust self.active

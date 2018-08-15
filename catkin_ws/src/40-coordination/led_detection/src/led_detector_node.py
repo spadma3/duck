@@ -200,6 +200,7 @@ class LEDDetectorNode(object):
         return imageCropped
 
     def process_and_publish(self):
+        begin=rospy.Time.now()
         # Initial time
         tic = time.time()
 
@@ -384,7 +385,10 @@ class LEDDetectorNode(object):
 
         # Publish results
         self.publish(imPublishRight,imPublishFront,imPublishTL,result)
-
+        self.pub_trafo.publish(self.transform)
+        end=rospy.Time.now()
+        duration=end-begin
+        rospy.loginfo('LED detection: %s' % duration)
         # Print performance
         #rospy.loginfo('[%s] Detection completed. Processing time: %.2f s. Total time:  %.2f s' %(self.node_name,processing_time,total_time))
 

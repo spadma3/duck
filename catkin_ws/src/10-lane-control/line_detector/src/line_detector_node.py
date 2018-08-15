@@ -162,7 +162,7 @@ class LineDetectorNode(object):
     def processImage_(self, image_msg):
 
         self.stats.processed()
-
+        begin=rospy.Time.now()
         if self.intermittent_log_now():
             self.intermittent_log(self.stats.info())
             self.stats.reset()
@@ -265,7 +265,9 @@ class LineDetectorNode(object):
 
             tk.completed('pub_edge/pub_segment')
 
-
+        end=rospy.Time.now()
+        duration=end-begin
+        rospy.loginfo('line_detector: %s' % duration)
         self.intermittent_log(tk.getall())
 
 

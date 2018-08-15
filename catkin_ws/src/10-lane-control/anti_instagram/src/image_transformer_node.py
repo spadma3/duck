@@ -43,7 +43,7 @@ class ImageTransformerNode():
 
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
         # Read parameters
-        
+
         self.trafo_mode = self.setupParameter("~trafo_mode", 'both')
         if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
             rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
@@ -97,7 +97,7 @@ class ImageTransformerNode():
 
         # memorize image
         self.image_msg = image_msg
-
+        begin=rospy.Time.now()
         tk = TimeKeeper(image_msg)
         try:
             cv_image = bgr_from_jpg(image_msg.data)
@@ -151,6 +151,9 @@ class ImageTransformerNode():
         # publish image
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
+        end=rospy.Time.now()
+        duration=end-begin
+        rospy.loginfo('image_transformer_node: %s' % duration)
         # end3=rospy.Time.now()
         # duration3=end3-begin3
         # rospy.loginfo('Publishing time: %s' % duration3)

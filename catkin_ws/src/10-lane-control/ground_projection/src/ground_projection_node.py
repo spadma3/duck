@@ -60,6 +60,7 @@ class GroundProjectionNode(object):
         return self.gpg.rectify(cv_image)
 
     def lineseglist_cb(self, seglist_msg):
+        begin=rospy.Time.now()
         seglist_out = SegmentList()
         seglist_out.header = seglist_msg.header
         for received_segment in seglist_msg.segments:
@@ -70,6 +71,9 @@ class GroundProjectionNode(object):
             # TODO what about normal and points
             seglist_out.segments.append(new_segment)
         self.pub_lineseglist_.publish(seglist_out)
+        end=rospy.Time.now()
+        duration=end-begin
+        rospy.loginfo('cont_anti_instagram: %s' % duration)
 
     def get_ground_coordinate_cb(self, req):
         return GetGroundCoordResponse(self.gpg.pixel2ground(req.normalized_uv))

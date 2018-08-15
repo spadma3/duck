@@ -379,6 +379,7 @@ class lane_controller(object):
         self.pub_car_cmd.publish(car_cmd_msg)
 
     def cbPose(self, pose_msg):
+        begin=rospy.Time.now()
         self.lane_reading = pose_msg
 
         # Calculating the delay image processing took
@@ -479,6 +480,9 @@ class lane_controller(object):
         car_control_msg.omega = omega
         self.publishCmd(car_control_msg)
         self.last_ms = currentMillis
+        end=rospy.Time.now()
+        duration=end-begin
+        rospy.loginfo('lane_controller: %s' % duration)
 
 
 

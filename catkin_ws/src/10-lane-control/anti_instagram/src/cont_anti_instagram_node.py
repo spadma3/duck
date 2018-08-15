@@ -112,6 +112,7 @@ class ContAntiInstagramNode():
         self.image_msg = image_msg
 
     def processImage(self, event):
+        begin=rospy.Time.now()
         # processes image with either color balance, linear trafo or both
 
         # if we have seen an image:
@@ -219,6 +220,9 @@ class ContAntiInstagramNode():
 
                         # publish color trafo
                         self.pub_trafo.publish(self.transform)
+                        end=rospy.Time.now()
+                        duration=end-begin
+                        rospy.loginfo('cont_anti_instagram: %s' % duration)
                     else:
                         rospy.loginfo('ai: average error too large. transform NOT updated.')
 
