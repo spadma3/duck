@@ -11,10 +11,10 @@ LED_protocol:
     black: [0,0,0]
 
   frequencies:
-    f1: &f1 7.8
+    f1: &f1 1.9
     f2: &f2 4
     f3: &f3 5.7
-    f4: &f4 1.9
+    f4: &f4 7.8
     f5: &f5 10.6
 
 
@@ -25,7 +25,7 @@ LED_protocol:
 
     CAR_SIGNAL_SACRIFICE_FOR_PRIORITY:
       frequency: *f1
-      color: "purple"
+      color: "white"
 
     CAR_SIGNAL_A:
       frequency: *f2
@@ -52,7 +52,7 @@ LED_protocol:
       color: "black"
 
     traffic_light_go:
-      frequency: *f1
+      frequency: *f4
       color: "green"
 
     traffic_light_stop:
