@@ -60,7 +60,7 @@ class ActionsDispatcherNode:
     def cbMaintenanceState(self, msg):
         if msg.state == "WAY_TO_MAINTENANCE":
             self.active = True
-            print 'ActionsDispatcherNode is active'
+            rospy.loginfo('[%s] ActionsDispatcherNode is active!' %(self.node_name))
 
         else:
             self.active = False
@@ -83,12 +83,13 @@ class ActionsDispatcherNode:
                 self.pub_action.publish(msg)
 
         if self.current_node == self.target_node:
-            print 'Destination reached' #TODO change state?
+            rospy.loginfo('[%s] Destination reached!' %(self.node_name))
+
             self.actions = []
             #self.active = False
 
     def graph_search(self, source_node, target_node):
-        print 'Requesting map for src: ', source_node, ' and target: ', target_node
+        rospy.loginfo('[%s] Requesting map for src: %d  and target: %d' %(self.node_name,source_node,target_node))
         rospy.wait_for_service('graph_search')
         try:
             graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
@@ -103,11 +104,10 @@ class ActionsDispatcherNode:
                 self.check_for_path_change(self.actions,temp_actions)
                 self.actions = temp_actions
                 info_msg = '\n \n ************ \n {} at node {} \n \n Actions to be executed: {}'.format(self.duckiebot_name, source_node, self.actions)
-                print info_msg
-                rospy.loginfo("%s", info_msg)
+                rospy.loginfo('[%s] %s' %(self.node_name,info_msg))
                 self.graphSearchSuccessful = True
             else:
-                print 'No actions to be executed'
+                rospy.loginfo('[%s] No actions to be executed' %(self.node_name))
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
@@ -143,7 +143,8 @@ class ActionsDispatcherNode:
                 action_name = 'WAIT'
                 msg.turn_type = -1
                 self.pub_action.publish(msg)
-            print 'Action: go {}!\n\n ************\n'.format(action_name)
+            info_msg = 'Action: go {}!\n\n ************\n'.format(action_name)
+            rospy.loginfo('[%s] %s' %(self.node_name,info_msg))
 
     def update_current_node(self):
         #TODO: map ID tags to node names
@@ -155,7 +156,8 @@ class ActionsDispatcherNode:
                                                                    rospy.Time(0))
             rot = tf.transformations.euler_from_quaternion(rot)[2]
             self.current_node = self.location_to_node_mapper.get_node_name(trans[:2], np.degrees(rot))
-            print 'Current node:      ' + repr(self.current_node)
+            info_msg = 'Current node:      ' + repr(self.current_node)
+            rospy.loginfo('[%s] %s' %(self.node_name,info_msg))
 
         except tf2_ros.LookupException:
             rospy.logwarn('Duckiebot: {} location transform not found. Trying again.'.format(self.duckiebot_name))
