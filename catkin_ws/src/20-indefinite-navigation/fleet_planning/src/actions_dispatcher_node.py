@@ -89,7 +89,7 @@ class ActionsDispatcherNode:
             #self.active = False
 
     def graph_search(self, source_node, target_node):
-        rospy.loginfo('[%s] Requesting map for src: %d  and target: %d' %(self.node_name,source_node,target_node))
+        rospy.loginfo('[%s] Requesting map for src: %s  and target: %s' %(self.node_name,repr(source_node),repr(target_node)))
         rospy.wait_for_service('graph_search')
         try:
             graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
