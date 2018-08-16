@@ -24,7 +24,7 @@ class ObstDetectNode(object):
         self.show_bird_perspective = (rospy.get_param("~show_bird_perspective",""))
         self.use_ai = (rospy.get_param("~use_ai", ""))
 
-        self.active = True #initialize our node as active!! < -- How about no
+        self.active = False #initialize our node as active!! < -- How about no
         self.r = rospy.Rate(3) # Rate in Hz
         self.thread_lock = threading.Lock()
 
