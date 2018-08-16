@@ -51,8 +51,6 @@ class graph_search_server():
 if __name__ == "__main__":
     rospy.init_node('graph_search_server_node')
     gss = graph_search_server()
-    rospy.loginfo('[%s] Starting...' %(self.node_name))
-
 
     s = rospy.Service('graph_search', GraphSearch, gss.handle_graph_search)
     rospy.spin()
