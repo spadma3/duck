@@ -34,8 +34,8 @@ class graph_search_server():
         # Checking if nodes exists
         source_node = self.apriltags_mapping.get(req.source_node)
         target_node = self.apriltags_mapping.get(req.target_node)
-        rospy.loginfo('[%s] Tag ID source node: %d  ---> Graph source node: %d' %(self.node_name,repr(req.source_node),repr(source_node)))
-        rospy.loginfo('[%s] Tag ID source node: %d  ---> Graph source node: %d' %(self.node_name,repr(req.target_node),repr(target_node)))
+        rospy.loginfo('[%s] Tag ID source node: %s  ---> Graph source node: %s' %(self.node_name,repr(req.source_node),repr(source_node)))
+        rospy.loginfo('[%s] Tag ID source node: %s  ---> Graph source node: %s' %(self.node_name,repr(req.target_node),repr(target_node)))
         if source_node == None or target_node == None:
             rospy.loginfo('[%s] Source or target node do not exist.' %(self.node_name))
             return GraphSearchResponse([])
