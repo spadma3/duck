@@ -31,7 +31,7 @@ class system_calibration(object):
         self.map_data = self.load_map_info(self.map_filename)
 
         # Subscribe all tfs from subfserver node
-        self.sub_tfs = rospy.Subscriber("local_poses", RemapPoseArray, self.callback, queue_size=1)
+        self.sub_tfs = rospy.Subscriber("local_poses_", RemapPoseArray, self.callback, queue_size=1)
 
         # Start Calibration
 
