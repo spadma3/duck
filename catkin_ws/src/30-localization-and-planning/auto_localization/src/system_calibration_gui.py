@@ -70,6 +70,9 @@ class status_gui(object):
         self.TDA_origin_y = self.frame_size + self.TDA_level_title
         ##
 
+        # Progress Bar
+        
+
         ## Example Image
         self.ex_img = pg.image.load(rospkg.RosPack().get_path('auto_localization')+"/map_image/duckiebot.png").convert()
         self.ex_img_length = self.screen_length - self.TDA_length - 2*self.frame_size - self.block_space
@@ -81,7 +84,7 @@ class status_gui(object):
 
         ## WDA = (not in tree) Watchtowers Drawing Area
         self.WDA_length = self.ex_img_length
-        self.WDA_height = self.screen_height - 2*self.frame_size - self.block_space - self.ex_img_height - self.TDA_level_title - self.TDA_completion_title
+        self.WDA_height = self.screen_height - 2*self.frame_size - self.block_space - self.ex_img_height - self.TDA_level_title
         self.WDA_origin_x = self.ex_img_origin_x
         self.WDA_origin_y = self.ex_img_origin_y + self.ex_img_height + self.block_space
         ##
@@ -108,6 +111,11 @@ class status_gui(object):
 
     def draw_status(self, level, tags_tree, left_watchtowers):
 
+        ## Clear old output
+        self.screen_TDA.fill(WHITE)
+        self.screen_WDA.fill(WHITE)
+        ##
+
         length = 0
         linked_watchtowers = {}
         for tree_level in tags_tree:
@@ -124,83 +132,98 @@ class status_gui(object):
     def draw_TDA(self, tree_level, origin_x):
 
         i = 0
-        j = 0
+        position_x = origin_x
+        position_y = 0
+        dictPosition = 1
+        dictItemCount = len(tree_level['watchtowers'])
         for watchtower in tree_level['watchtowers']:
-            x = origin_x + i*self.WT_block
-            y = j * self.WT_block
-            self.draw_watchtower(self.screen_TDA, watchtower[-2:], tree_level['watchtowers'][watchtower], self.WT_block, x, y)
-            j+=1
-            if j*WT_block+WT_block > self.TDA_height:
+            height_WT_image = self.draw_watchtower(self.screen_TDA, watchtower[-2:], tree_level['watchtowers'][watchtower], self.WT_block, position_x, position_y)
+            ## Determines the x, y of next watchtower image
+            position_y += height_WT_image
+
+            if position_y + self.WT_block > self.TDA_height and dictPosition != dictItemCount:
                 i+=1
-                j=0
+                position_y=0
+                position_x = i*self.WT_block
+            ##
+            dictPosition += 1
 
         length = 0
-        x = origin_x + (i+1)*self.WT_block
+        x = position_x + self.WT_block
         y = 0
         j = 0
         for tag in tree_level['tags']:
             tag_text = str(tag)
             if font_tags.size(tag_text)[0] > length:
                 length = font_tags.size(tag_text)[0]
-            self.screen_TDA(font_tags.render(tag_text, True, BLACK), [x, y])
+            self.screen_TDA.blit(font_tags.render(tag_text, True, BLACK), [x, y])
             y += font_tags.size(tag_text)[1]
 
         return length + x
 
-
     def draw_WDA(self, linked_watchtowers, left_watchtowers):
 
         i = 0
-        j = 0
         indence = 5
+        position_x = 0
+        position_y = indence
         for watchtower in self.watchtowers:
             if watchtower in list(linked_watchtowers):
                 continue
 
-            x = i*self.WT_block
-            y = j*self.WT_block + indence ## y is the hard coded with a side blanck
             if watchtower in list(left_watchtowers):
-                self.draw_watchtower(self.screen_WDA, watchtower[-2:], left_watchtowers[watchtower], self.WT_block, x, y)
-                j+=1
+                height_WT_image = self.draw_watchtower(self.screen_WDA, watchtower[-2:], left_watchtowers[watchtower], self.WT_block, position_x, position_y)
             else:
-                self.draw_watchtower(self.screen_WDA, watchtower[-2:], [], self.WT_block, x, y)
+                height_WT_image = self.draw_watchtower(self.screen_WDA, watchtower[-2:], [], self.WT_block, position_x, position_y)
 
-            j+=1
-            if j*self.WT_block + indence + self.WT_block > self.WDA_height:
+            ## Determines the x, y of next watchtower image
+            position_y += height_WT_image
+
+            if position_y + self.WT_block > self.WDA_height:
                 i+=1
-                j=0
+                position_y=indence
+                position_x = i*self.WT_block
+            ##
+
+    def draw_progress_bar(self):
+        pass
 
     def draw_watchtower(self, screen_master, watchtower, tags, size, origin_x, origin_y):
 
-        screen_WT = pg.Surface((int(size), int(size)))
+        font_tag_size = size / 3
+        font_tag = pg.font.SysFont(None, int(font_tag_size))
+        font_tag_height = font_tag.size(str(000))[1]
+
+        length = size
+        number_of_words = 4
+        if font_tag_height * len(tags) > size:
+            height = font_tag_height * len(tags)
+        else:
+            height = size
+        screen_WT = pg.Surface((int(length), int(height)))
         screen_WT.fill(GRAY)
 
+        # Write the tags that this watchtower has seen
+        i = 0
+        for tag in tags:
+            screen_WT.blit(font_tag.render(str(tag), True, BLACK), [int(length / 2)+5, font_tag_height*i])
+            i+=1
+        ##
+
         # Drawing a ellipse represent the watchtower
-        ellipse_length = int(size / 2)
-        ellipse_height = size
+        ellipse_length = int(length / 2)
+        ellipse_height = height
         pg.draw.ellipse(screen_WT, BLUE, pg.Rect(0, 0, ellipse_length, ellipse_height))
 
-        font_wt = pg.font.SysFont(None, ellipse_height / 3)
+        font_wt = pg.font.SysFont(None, size / 3)
         font_wt_origin_x = 2
         font_wt_origin_y = ellipse_height / 2 - (ellipse_height/5) / 2
         screen_WT.blit(font_wt.render("W" + str(watchtower), True, BLACK), [int(font_wt_origin_x), int(font_wt_origin_y)])
         ##
 
-        # Write the tags that this watchtower has seen
-        if len(tags) <= 5:
-            font_tag_size = ellipse_height / 5
-        else:
-            font_tag_size =  len(tags)
-
-        pg.font.SysFont(None, font_tag_size)
-
-        i = 0
-        for tag in tags:
-            screen_WT.blit(font_wt.render(str(tag), True, BLACK), [ellipse_length + 5, font_tag_size*i])
-            i+=1
-        ##
-
         screen_master.blit(screen_WT, [origin_x, origin_y])
+
+        return height
 
 
 class system_calibration_gui(object):
@@ -252,10 +275,11 @@ class system_calibration_gui(object):
         # Update the status of watchtower, see if it's connected in the link tree
         # Return True if all watchtowers are connected
         self.poses.extend(msg_poses.poses)
+        self.tags_tree = []
         ready = self.update_watchtower_status(self.poses)
 
         if ready:
-            self.pub_tfs(msg_poses)
+            self.pub_tfs.publish(msg_poses)
 
     def update_watchtower_status(self, poses):
 
@@ -276,7 +300,7 @@ class system_calibration_gui(object):
         keep_build = False
 
         # From the origin tag
-        for watchtower in all_watchtowers:
+        for watchtower in all_watchtowers.copy(): ## Can't change dictionary size while iterating. So use dict.copy().
             if self.map_origins['id'] in all_watchtowers[watchtower]:
                 self.add_watchtower_to_tree(0, watchtower, all_watchtowers[watchtower])
                 del all_watchtowers[watchtower]
@@ -287,9 +311,9 @@ class system_calibration_gui(object):
         while keep_build:
             level += 1
 
-            all_watchtowers_original = all_watchtowers
-            for watchtower in all_watchtowers:
-                if self.connected_to_tree(all_watchtowers[watchtower]):
+            all_watchtowers_original = all_watchtowers.copy() # To compare after iteration. Also can't change dictionary size while iterating. So create a clone for iteration.
+            for watchtower in all_watchtowers.copy():
+                if self.connected_to_tree(level, all_watchtowers[watchtower]):
                     self.add_watchtower_to_tree(level, watchtower, all_watchtowers[watchtower])
                     del all_watchtowers[watchtower]
 
@@ -303,6 +327,8 @@ class system_calibration_gui(object):
         # all_watchtowers = Originally all_watchtowers has all watchtowers datas. However during the process of building the tree,
         # the data in all_watchtowers will be deleted if the watchtower was in the tree. The left watchtowers in all_watchtowers are watchtowers
         # that did not link to the tree
+        print "tags_tree", self.tags_tree
+        print "rest_watchtowers", all_watchtowers
         self.gui.draw_status(level, self.tags_tree, all_watchtowers)
 
         watchtower_list = []
@@ -316,8 +342,11 @@ class system_calibration_gui(object):
 
     def add_watchtower_to_tree(self, level, watchtower, tags):
 
+        tree_level = {}
+        tree_level['watchtowers'] = {}
+        tree_level['tags'] = []
         if level == len(self.tags_tree):
-            self.tags_tree.append(self.tree_level)
+            self.tags_tree.append(tree_level)
         elif level > len(self.tags_tree):
             rospy.loginfo("There are something wrong here!!!")
             pass
@@ -327,9 +356,9 @@ class system_calibration_gui(object):
             if not tag in self.tags_tree[level]['tags']:
                 self.tags_tree[level]['tags'].append(tag)
 
-    def connected_to_tree(self, tags):
+    def connected_to_tree(self, level, tags):
 
-        if set(self.tags_tree[level]['tags']).intersection(set(tags)):
+        if set(self.tags_tree[level-1]['tags']).intersection(set(tags)):
             return True
         else:
             return False
