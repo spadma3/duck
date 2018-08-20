@@ -99,7 +99,7 @@ class Tag_collection(object):
                     ## Limit packet size to three poses
                     if len(remap_poses_array.poses) == 3:
                         print "tag_collection: Send to Server:"
-                        for pp remap_poses_array.poses:
+                        for pp in remap_poses_array.poses:
                             print pp.frame_id, pp.bot_id
                         self.pub_postPros.publish(remap_poses_array)
                         remap_poses_array = RemapPoseArray()
@@ -125,7 +125,7 @@ class Tag_collection(object):
 
                         remap_poses_array.poses.append(remap_pose)
         print "tag_collection: Send to Server:"
-        for pp remap_poses_array.poses:
+        for pp in remap_poses_array.poses:
             print pp.frame_id, pp.bot_id
         self.pub_postPros.publish(remap_poses_array)
 
