@@ -69,7 +69,7 @@ class map_description(object):
         self.tile_image_file = rospkg.RosPack().get_path('duckietown_description')+"/urdf/meshes/tiles/"
         ################################
 
-        ###### Parameters set up ########################################################
+        ###### Varaible set up ########################################################
 
         ### The 2D pose of origin tag reference to the map
         self.origin_tag_pos = Pose2D()

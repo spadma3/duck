@@ -15,9 +15,13 @@ import numpy as np
 from datetime import datetime
 import tf
 import tf.transformations as tr
+<<<<<<< HEAD
 import numpy as np
 import time
 import global_pose_functions as gposf
+=======
+
+>>>>>>> devel-auto-localization-system-calibration-GUI
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
 
 class system_calibration(object):
@@ -26,14 +30,14 @@ class system_calibration(object):
 
         self.node_name = 'system_calibration'
 
-        # load the map file, notice that it will overwrite the file
+        # load the map file, notice that the file will be overwritten after calibration
         self.map_filename = rospy.get_param("~map") + ".yaml"
         timestr = "{:%Y%m%d-%H%M}".format(datetime.now())
         self.output_map_filename = rospy.get_param("~output_file") + timestr + ".yaml"
         self.map_data = self.load_map_info(self.map_filename)
 
         # Subscribe all tfs from subfserver node
-        self.sub_tfs = rospy.Subscriber("local_poses", RemapPoseArray, self.callback, queue_size=1)
+        self.sub_tfs = rospy.Subscriber("local_poses_", RemapPoseArray, self.callback, queue_size=1)
 
         # Start Calibration
 
