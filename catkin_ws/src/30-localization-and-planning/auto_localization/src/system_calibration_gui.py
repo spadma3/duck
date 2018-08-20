@@ -64,7 +64,7 @@ class status_gui(object):
         self.TDA_completion_title = 60
 
         # TDA Screen
-        self.TDA_height = self.screen_height - 2*self.frame_size - self.TDA_level_title - self.TDA_completion_title
+        self.TDA_height = self.screen_height - 2*self.frame_size - self.TDA_level_title - self.TDA_completion_title - self.block_space
         self.TDA_length = 900
         self.TDA_origin_x = self.frame_size
         self.TDA_origin_y = self.frame_size + self.TDA_level_title

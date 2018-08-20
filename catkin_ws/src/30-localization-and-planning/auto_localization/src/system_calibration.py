@@ -16,6 +16,8 @@ from datetime import datetime
 import tf
 import tf.transformations as tr
 
+import numpy as np
+import time
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
 
 class system_calibration(object):
@@ -26,18 +28,20 @@ class system_calibration(object):
 
         # load the map file, notice that the file will be overwritten after calibration
         self.map_filename = rospy.get_param("~map") + ".yaml"
-        time = "{:%Y%m%d-%H%M}".format(datetime.now())
-        self.output_map_filename = rospy.get_param("~output_file") + time + ".yaml"
+        timestr = "{:%Y%m%d-%H%M}".format(datetime.now())
+        self.output_map_filename = rospy.get_param("~output_file") + timestr + ".yaml"
         self.map_data = self.load_map_info(self.map_filename)
 
         # Subscribe all tfs from subfserver node
-        self.sub_tfs = rospy.Subscriber("local_poses_", RemapPoseArray, self.callback, queue_size=1)
+        self.sub_tfs = rospy.Subscriber("complete_local_poses", RemapPoseArray, self.callback, queue_size=1)
 
         # Start Calibration
 
         #Parameters
         self.start_calibrate = False
-        self.wait_for_message = 15 # At least wait 3 secs (15/5hz from subfserver_easy node) for tags collection after all watchtower have publish things.
+        self.wait_for_message = 15 # At least wait 3 secs for tags collection after all watchtower have publish things.
+        self.deadline = time.time() + 100000 # set deadline really high at start, will be set to actual value later
+        self.ready = False
 
         #Watchtowers, to make sure they all send datas
         self.watchtowers = {}
@@ -52,23 +56,28 @@ class system_calibration(object):
             return
 
         # Make sure that we get meesage from all watchtowers
-        if self.wait_for_message == 15:
-            for tf in msg_tfs.poses:
-                self.watchtowers[tf.host] = True
-            not_ready = ""
-            for wt in self.watchtowers:
-                if self.watchtowers[wt] == False:
-                    not_ready += wt[-2:] + ", "
-            if not_ready == "":
-                rospy.loginfo("Get all tags. Start Counting Down")
-            else:
-                rospy.loginfo("Still waiting for watchtower: " + not_ready)
-                return
+        if time.time() < self.deadline:
+            if not self.ready:
+                for tf in msg_tfs.poses:
+                    self.watchtowers[tf.host] = True
+                not_ready = ""
+                for wt in self.watchtowers:
+                    if self.watchtowers[wt] == False:
+                        not_ready += wt[-2:] + ", "
+                if not_ready == "":
+                    # set a timer to continue collecting more information for x seconds before calibrating
+                    self.deadline = time.time() + self.wait_for_message
+                    self.ready = True
+                    rospy.loginfo("Get all tags. Start Counting Down")
+                else:
+                    rospy.loginfo("Still waiting for watchtower: " + not_ready)
+                    return
 
-        self.wait_for_message -= 1
-        rospy.loginfo("Start Calibration in %d secs", self.wait_for_message/5)
 
-        if self.wait_for_message == 0:
+        # self.wait_for_message -= 1
+        rospy.loginfo("Start Calibration in %d secs", (self.deadline - time.time()))
+
+        if not time.time() < self.deadline:
             self.start_calibrate = True
             self.sys_calib(msg_tfs.poses)
 
