@@ -164,8 +164,14 @@ class system_calibration(object):
             # tag_transformation[child_frame][parent_frame]
             trans = tag_transformation[path[0]][path[1]][0]
             rot = tag_transformation[path[0]][path[1]][1]
+            print trans, rot
+            if len(trans) == 1:
+                trans = trans[0]
+                rot = rot[0]
+
             # Compose transformation matrix with translation and angle (in euler)
-            transformation_mat = tr.compose_matrix(angles=tr.euler_from_quaternion(rot), translate=trans)
+            transformation_mat = gposf.create_tf_matrix(trans, rot)
+            print transformation_mat
             if len(path) == 2:
                 return transformation_mat
             else:
