@@ -13,6 +13,7 @@ import sys
 import yaml
 import numpy as np
 import pygame as pg
+import time
 
 from duckietown_msgs.msg import RemapPoseArray, RemapPose
 
@@ -46,6 +47,8 @@ class status_gui(object):
         ####### Initial pygame and display ##########################################
         pg.init()
         pg.display.set_caption("Duckietown System Calibration")
+
+
 
         ### Parameters of drawing
         self.screen_height = 900
@@ -239,6 +242,12 @@ class system_calibration_gui(object):
 
     def __init__(self):
 
+        # set parameters to wait a few moments after finishing befor calibrating
+        self.wait_for_message = 60 # At least wait 3 secs for tags collection after all watchtower have publish things.
+        self.deadline = time.time() + 100000 # set deadline really high at start, will be set to actual value later
+        self.ready = False
+
+
         self.node_name = 'system_calibration_gui'
 
         # load the map file
@@ -291,11 +300,16 @@ class system_calibration_gui(object):
         # Return True if all watchtowers are connected
         self.poses.extend(msg_poses.poses)
         self.tags_tree = []
-        ready = self.update_watchtower_status(self.poses)
+        if self.ready == False:
+            self.ready = self.update_watchtower_status(self.poses)
+            if self.ready == True:
+                self.deadline = time.time() + self.wait_for_message
 
-        if ready:
+        elif time.time() > self.deadline:
             self.pub_tfs.publish(self.poses)
             self.finish_calibration = True
+        else:
+            rospy.loginfo("Start Calibration in %d secs", (self.deadline - time.time()))
 
     def update_watchtower_status(self, poses):
 
