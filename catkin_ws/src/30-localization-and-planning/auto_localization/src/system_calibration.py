@@ -39,7 +39,7 @@ class system_calibration(object):
 
         #Parameters
         self.start_calibrate = False
-        self.wait_for_message = 15 # At least wait 3 secs for tags collection after all watchtower have publish things.
+        self.wait_for_message = 2 # At least wait 3 secs for tags collection after all watchtower have publish things.
         self.deadline = time.time() + 100000 # set deadline really high at start, will be set to actual value later
         self.ready = False
 
@@ -115,6 +115,7 @@ class system_calibration(object):
         tag_graph = dict() # Save tag node connection graph with a 1D dictionary
         tag_transformation = dict() # Save tag transformation with a 2D dictionary
         for tf_node in tfs:
+            trans,rot = gposf.get_trans_rot_from_pose(tf_node.posestamped.pose)
             if not tag_graph.has_key(tf_node.frame_id):
                 tag_graph[tf_node.frame_id] = []
                 tag_transformation[tf_node.frame_id] = dict()
@@ -122,9 +123,23 @@ class system_calibration(object):
             # For convenient, we reuse RemapPose message data type here
             # frame_id = child frame, bot_id = parent frame
             # tag_transformation[child_frame][parent_frame]
-            trans,rot = gposf.get_trans_rot_from_pose(tf_node.posestamped.pose)
-            tag_graph[tf_node.frame_id].append(tf_node.bot_id)
-            tag_transformation[tf_node.frame_id][tf_node.bot_id] = [trans,rot]
+            if not tf_node.bot_id in tag_graph[tf_node.frame_id]:
+                tag_graph[tf_node.frame_id].append(tf_node.bot_id)
+                tag_transformation[tf_node.frame_id][tf_node.bot_id] = [[trans],[rot]]
+            else:
+                tag_transformation[tf_node.frame_id][tf_node.bot_id][0].append(trans)
+                tag_transformation[tf_node.frame_id][tf_node.bot_id][1].append(rot)
+
+
+        # Take mean for redundant information
+        for frame1 in tag_graph:
+            for frame2 in tag_graph[frame1]:
+                if len(tag_transformation[frame1][frame2][0]) > 1:
+                    trans = np.mean(tag_transformation[frame1][frame2][0],axis=0)
+                    rot   = np.mean(tag_transformation[frame1][frame2][1],axis=0)
+                    tag_transformation[frame1][frame2] =[trans.tolist(),rot.tolist()]
+                    print "Transformation of tags:",frame1,frame2
+                    print tag_transformation[frame1][frame2]
 
         # Define a find shortest path function here
         def find_shortest_path(graph, start, end, path=[]):
