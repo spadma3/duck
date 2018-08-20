@@ -275,11 +275,17 @@ class system_calibration_gui(object):
         self.sub_tfs = rospy.Subscriber("local_poses", RemapPoseArray, self.callback, queue_size=1)
 
         # Publish result to system calibration node
-        self.pub_tfs = rospy.Publisher("complete_local_poses", RemapPoseArray, queue_size=1)
+        self.pub_tfs = rospy.Publisher("~complete_local_poses", RemapPoseArray, queue_size=1)
 
         self.poses = []
 
+        self.finish_calibration = False
+
     def callback(self, msg_poses):
+
+        ## After all watchtowers are in the tree, only publish the poses once.
+        if self.finish_calibration:
+            return
 
         # Update the status of watchtower, see if it's connected in the link tree
         # Return True if all watchtowers are connected
@@ -289,6 +295,7 @@ class system_calibration_gui(object):
 
         if ready:
             self.pub_tfs.publish(msg_poses)
+            self.finish_calibration = True
 
     def update_watchtower_status(self, poses):
 
