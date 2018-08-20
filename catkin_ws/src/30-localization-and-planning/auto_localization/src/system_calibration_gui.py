@@ -294,7 +294,7 @@ class system_calibration_gui(object):
         ready = self.update_watchtower_status(self.poses)
 
         if ready:
-            self.pub_tfs.publish(msg_poses)
+            self.pub_tfs.publish(self.poses)
             self.finish_calibration = True
 
     def update_watchtower_status(self, poses):
