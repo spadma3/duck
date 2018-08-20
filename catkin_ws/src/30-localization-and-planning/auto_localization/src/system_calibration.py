@@ -15,13 +15,9 @@ import numpy as np
 from datetime import datetime
 import tf
 import tf.transformations as tr
-<<<<<<< HEAD
 import numpy as np
 import time
 import global_pose_functions as gposf
-=======
-
->>>>>>> devel-auto-localization-system-calibration-GUI
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
 
 class system_calibration(object):
