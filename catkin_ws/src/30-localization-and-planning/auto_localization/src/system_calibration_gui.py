@@ -64,14 +64,11 @@ class status_gui(object):
         self.TDA_completion_title = 60
 
         # TDA Screen
-        self.TDA_height = self.screen_height - 2*self.frame_size - self.TDA_level_title - self.TDA_completion_title
+        self.TDA_height = self.screen_height - 2*self.frame_size - self.TDA_level_title - self.TDA_completion_title - self.block_space
         self.TDA_length = 900
         self.TDA_origin_x = self.frame_size
         self.TDA_origin_y = self.frame_size + self.TDA_level_title
         ##
-
-        # Progress Bar
-        
 
         ## Example Image
         self.ex_img = pg.image.load(rospkg.RosPack().get_path('auto_localization')+"/map_image/duckiebot.png").convert()
@@ -89,6 +86,12 @@ class status_gui(object):
         self.WDA_origin_y = self.ex_img_origin_y + self.ex_img_height + self.block_space
         ##
 
+        ## React Area
+        self.React_length = self.TDA_length
+        self.React_height = self.TDA_completion_title
+        self.React_origin_x = self.TDA_origin_x
+        self.React_origin_y = self.TDA_origin_y + self.TDA_height + self.block_space
+
         ## Set screen (pygame surface)
         self.screen_TDA = pg.Surface((self.TDA_length, self.TDA_height))
         self.screen_TDA.fill(WHITE)
@@ -97,6 +100,9 @@ class status_gui(object):
 
         self.screen_WDA = pg.Surface((self.WDA_length, self.WDA_height))
         self.screen_WDA.fill(WHITE)
+
+        self.screen_React = pg.Surface((self.React_length, self.React_height))
+        self.screen_React.fill(WHITE)
         ##
 
         ## Draw all Watchtowers in WDA
@@ -107,6 +113,7 @@ class status_gui(object):
 
         self.screen.blit(self.screen_TDA, [self.TDA_origin_x, self.TDA_origin_y])
         self.screen.blit(self.screen_WDA, [self.WDA_origin_x, self.WDA_origin_y])
+        self.screen.blit(self.screen_React, [self.React_origin_x, self.React_origin_y])
         pg.display.flip()
 
     def draw_status(self, level, tags_tree, left_watchtowers):
@@ -185,8 +192,10 @@ class status_gui(object):
                 position_x = i*self.WT_block
             ##
 
-    def draw_progress_bar(self):
-        pass
+    def draw_React(self):
+        self.screen_React.fill(WHITE)
+
+
 
     def draw_watchtower(self, screen_master, watchtower, tags, size, origin_x, origin_y):
 

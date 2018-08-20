@@ -15,6 +15,10 @@ import numpy as np
 from datetime import datetime
 import tf
 import tf.transformations as tr
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1e5e86b71daf11e3c4c3390e6086f7e31820f888
 import numpy as np
 import time
 import global_pose_functions as gposf
@@ -33,7 +37,7 @@ class system_calibration(object):
         self.map_data = self.load_map_info(self.map_filename)
 
         # Subscribe all tfs from subfserver node
-        self.sub_tfs = rospy.Subscriber("local_poses_", RemapPoseArray, self.callback, queue_size=1)
+        self.sub_tfs = rospy.Subscriber("complete_local_poses", RemapPoseArray, self.callback, queue_size=1)
 
         # Start Calibration
 

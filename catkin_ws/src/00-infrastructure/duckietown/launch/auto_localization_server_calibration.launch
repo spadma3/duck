@@ -17,6 +17,12 @@
     </include>
 
     <remap from="local_poses" to="subfserver_easy/local_poses" />
+    <include file="$(find auto_localization)/launch/system_calibration_gui.launch">
+      <arg name="veh" value="$(arg veh)"/>
+      <arg name="map" value="$(arg map)"/>
+    </include>
+
+    <remap from="complete_local_poses" to="system_calibration_gui/complete_local_poses" />
     <include file="$(find auto_localization)/launch/system_calibration.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="map" value="$(arg map)"/>
