@@ -133,12 +133,14 @@ class system_calibration(object):
 
 
         # Take mean for redundant information
+        print "This is the information to work with:"
         for frame1 in tag_graph:
             for frame2 in tag_graph[frame1]:
                 if len(tag_transformation[frame1][frame2][0]) > 1:
                     trans_mean = np.mean(tag_transformation[frame1][frame2][0],axis=0)
                     rot_mean   = np.mean(tag_transformation[frame1][frame2][1],axis=0)
                     tag_transformation[frame1][frame2] =[trans_mean.tolist(),rot_mean.tolist()]
+                    print frame1, frame2
 
         # Define a find shortest path function here
         def find_shortest_path(graph, start, end, path=[]):
