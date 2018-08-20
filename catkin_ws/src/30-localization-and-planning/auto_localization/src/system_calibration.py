@@ -18,6 +18,7 @@ import tf.transformations as tr
 
 import numpy as np
 import time
+import global_pose_functions as gposf
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
 
 class system_calibration(object):
@@ -122,9 +123,9 @@ class system_calibration(object):
             # For convenient, we reuse RemapPose message data type here
             # frame_id = child frame, bot_id = parent frame
             # tag_transformation[child_frame][parent_frame]
+            trans,rot = gposf.get_trans_rot_from_pose(tf_node.posestamped.pose)
             tag_graph[tf_node.frame_id].append(tf_node.bot_id)
-            tag_transformation[tf_node.frame_id][tf_node.bot_id] = [  [tf_node.posestamped.pose.position.x, tf_node.posestamped.pose.position.y, tf_node.posestamped.pose.position.z],
-                                                            [tf_node.posestamped.pose.orientation.x, tf_node.posestamped.pose.orientation.y, tf_node.posestamped.pose.orientation.z, tf_node.posestamped.pose.orientation.w]]
+            tag_transformation[tf_node.frame_id][tf_node.bot_id] = [trans,rot]
 
         # Define a find shortest path function here
         def find_shortest_path(graph, start, end, path=[]):
