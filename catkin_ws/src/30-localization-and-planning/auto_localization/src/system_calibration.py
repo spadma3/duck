@@ -15,10 +15,6 @@ import numpy as np
 from datetime import datetime
 import tf
 import tf.transformations as tr
-<<<<<<< HEAD
-=======
-
->>>>>>> 1e5e86b71daf11e3c4c3390e6086f7e31820f888
 import numpy as np
 import time
 import global_pose_functions as gposf
@@ -52,42 +48,43 @@ class system_calibration(object):
         for wt in self.map_watchtowers:
             self.watchtowers[wt] = False
 
-    # callback make sure that all watchtowers have sent messages.
-    def callback(self, msg_tfs):
+    # # callback make sure that all watchtowers have sent messages.
+    # def callback(self, msg_tfs):
+    #
+    #     # Return callback if calibration has already started
+    #     if self.start_calibrate == True:
+    #         return
+    #
+    #     # Make sure that we get meesage from all watchtowers
+    #     if time.time() < self.deadline:
+    #         if not self.ready:
+    #             for tf in msg_tfs.poses:
+    #                 self.watchtowers[tf.host] = True
+    #             not_ready = ""
+    #             for wt in self.watchtowers:
+    #                 if self.watchtowers[wt] == False:
+    #                     not_ready += wt[-2:] + ", "
+    #             if not_ready == "":
+    #                 # set a timer to continue collecting more information for x seconds before calibrating
+    #                 self.deadline = time.time() + self.wait_for_message
+    #                 self.ready = True
+    #                 rospy.loginfo("Get all tags. Start Counting Down")
+    #             else:
+    #                 rospy.loginfo("Still waiting for watchtower: " + not_ready)
+    #                 return
+    #
+    #
+    #     # self.wait_for_message -= 1
+    #     rospy.loginfo("Start Calibration in %d secs", (self.deadline - time.time()))
+    #
+    #     if not time.time() < self.deadline:
+    #         self.start_calibrate = True
+    #         self.sys_calib(msg_tfs.poses)
 
-        # Return callback if calibration has already started
-        if self.start_calibrate == True:
-            return
 
-        # Make sure that we get meesage from all watchtowers
-        if time.time() < self.deadline:
-            if not self.ready:
-                for tf in msg_tfs.poses:
-                    self.watchtowers[tf.host] = True
-                not_ready = ""
-                for wt in self.watchtowers:
-                    if self.watchtowers[wt] == False:
-                        not_ready += wt[-2:] + ", "
-                if not_ready == "":
-                    # set a timer to continue collecting more information for x seconds before calibrating
-                    self.deadline = time.time() + self.wait_for_message
-                    self.ready = True
-                    rospy.loginfo("Get all tags. Start Counting Down")
-                else:
-                    rospy.loginfo("Still waiting for watchtower: " + not_ready)
-                    return
-
-
-        # self.wait_for_message -= 1
-        rospy.loginfo("Start Calibration in %d secs", (self.deadline - time.time()))
-
-        if not time.time() < self.deadline:
-            self.start_calibrate = True
-            self.sys_calib(msg_tfs.poses)
-
-
-    def sys_calib(self, msg_tfs):
-
+    #  def sys_calib(self, msg_tfs):
+    def callback(self,msg):
+        msg_tfs = msg.poses
         self.tag_relationship = self.find_tag_relationship(msg_tfs)
 
         fixed_tags_data = []
@@ -126,7 +123,7 @@ class system_calibration(object):
             # Here we create transformation link with python dictionary between tag and tag
             # For convenient, we reuse RemapPose message data type here
             # frame_id = child frame, bot_id = parent frame
-            # tag_transformation[child_frame][parent_frame]
+            # tag_transformation[child_frame][parent_frame] = [[trans1,trans2],[rot1,rot2]]
             if not tf_node.bot_id in tag_graph[tf_node.frame_id]:
                 tag_graph[tf_node.frame_id].append(tf_node.bot_id)
                 tag_transformation[tf_node.frame_id][tf_node.bot_id] = [[trans],[rot]]
@@ -139,11 +136,9 @@ class system_calibration(object):
         for frame1 in tag_graph:
             for frame2 in tag_graph[frame1]:
                 if len(tag_transformation[frame1][frame2][0]) > 1:
-                    trans = np.mean(tag_transformation[frame1][frame2][0],axis=0)
-                    rot   = np.mean(tag_transformation[frame1][frame2][1],axis=0)
-                    tag_transformation[frame1][frame2] =[trans.tolist(),rot.tolist()]
-                    print "Transformation of tags:",frame1,frame2
-                    print tag_transformation[frame1][frame2]
+                    trans_mean = np.mean(tag_transformation[frame1][frame2][0],axis=0)
+                    rot_mean   = np.mean(tag_transformation[frame1][frame2][1],axis=0)
+                    tag_transformation[frame1][frame2] =[trans_mean.tolist(),rot_mean.tolist()]
 
         # Define a find shortest path function here
         def find_shortest_path(graph, start, end, path=[]):
