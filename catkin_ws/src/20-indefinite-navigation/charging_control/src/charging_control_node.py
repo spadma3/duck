@@ -51,6 +51,11 @@ class ChargingControlNode(object):
 
     # Callback maintenance state
     def cbMaintenanceState(self, msg):
+        
+        if self.maintenance_state == "NONE" and msg.state == "WAY_TO_MAINTENANCE":
+            # Reserving a charging spot
+            self.reserveChargerSpot()
+
         # Start timer which calls Duckiebot back to charger after charge_time mins
         if self.maintenance_state == "CHARGING" and msg.state != self.maintenance_state:
             self.drive_timer = rospy.Timer(rospy.Duration.from_sec(60*self.drive_time), self.goToCharger, oneshot=True)
@@ -81,7 +86,8 @@ class ChargingControlNode(object):
     # Set the status to: ready to leave charging area (battery full)
     def setReady2Go(self, event):
         self.ready2go = True
-        rospy.loginfo("[Charing Control Node] Requesting the Duckiebot to leave the charger")
+        rospy.lo# Reserving a charging spot
+        self.reserveChargerSpot()ginfo("[Charing Control Node] Requesting the Duckiebot to leave the charger")
 
     # Request that Duckiebot should drive to maintenance area for charging
     def goToCharger(self, event):
@@ -94,8 +100,7 @@ class ChargingControlNode(object):
             self.pub_go_mt_charging.publish(go_to_charger)
             rospy.loginfo("[Charing Control Node] Requesting the Duckiebot to go charging.")
 
-        # Reserving a charging spot
-        self.reserveChargerSpot()
+
 
     def reserveChargerSpot(self):
         charging_stations = tcp_communication.getVariable("charging_stations")
