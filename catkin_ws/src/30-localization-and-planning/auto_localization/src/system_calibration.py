@@ -177,7 +177,7 @@ class system_calibration(object):
 
         # A little recursive function to find the transformation from origin to end_tag
         def from_origin_to_end(path):
-            print path
+            # print path
             # If there's no path connect to the tag, saves null.
             if path == None:
                 return None
@@ -195,11 +195,11 @@ class system_calibration(object):
 
             if len(path) == 2:
                 return transformation_mat
-                print transformation_mat
+                # print transformation_mat
             else:
                 next_transformation = from_origin_to_end(path[1:])
-                print next_transformation
-                print np.dot(transformation_mat, next_transformation)
+                # print next_transformation
+                # print np.dot(transformation_mat, next_transformation)
                 return np.dot(transformation_mat, next_transformation)
 
         tag_relationship = dict()
@@ -220,8 +220,9 @@ class system_calibration(object):
                 #path_node= path_node[1:]
                 print "path_node: ", path_node
                 tag_relationship[tag_node] = from_origin_to_end(path_node)
+            print tag_relationship[tag_node]
 
-        print tag_relationship
+        # print tag_relationship
         return tag_relationship
 
     ## Load Map Data
