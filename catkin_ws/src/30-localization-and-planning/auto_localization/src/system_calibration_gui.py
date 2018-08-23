@@ -243,7 +243,7 @@ class system_calibration_gui(object):
     def __init__(self):
 
         # set parameters to wait a few moments after finishing befor calibrating
-        self.wait_for_message = 60 # At least wait 3 secs for tags collection after all watchtower have publish things.
+        self.wait_for_message = 15 # At least wait 3 secs for tags collection after all watchtower have publish things.
         self.deadline = time.time() + 100000 # set deadline really high at start, will be set to actual value later
         self.ready = False
 
@@ -309,7 +309,9 @@ class system_calibration_gui(object):
             self.pub_tfs.publish(self.poses)
             self.finish_calibration = True
         else:
-            rospy.loginfo("Start Calibration in %d secs", (self.deadline - time.time()))
+            sys.stdout.write('\rStart Calibration in %s secs'  % (self.deadline - time.time()))
+            sys.stdout.flush()
+            #rospy.loginfo("Start Calibration in %d secs", (self.deadline - time.time()))
 
     def update_watchtower_status(self, poses):
 
