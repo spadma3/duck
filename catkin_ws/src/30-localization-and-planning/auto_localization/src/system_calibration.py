@@ -211,7 +211,7 @@ class system_calibration(object):
                 # path_node = find_shortest_path(tag_dict, origin, tag_node)
                 # print tag_graph.nodes
                 # print tag_graph.edges.keys()
-                path_node = gposf.dijkstra2(tag_graph.nodes, tag_graph.edges2, origin, tag_node)
+                path_node = gposf.dijkstra(tag_graph.nodes, tag_graph.edges2, origin, tag_node)
                 #print path_node
                 #path_node = path_node[0]
                 #print path_node
