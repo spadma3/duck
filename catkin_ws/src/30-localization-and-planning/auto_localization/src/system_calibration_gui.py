@@ -13,6 +13,7 @@ import sys
 import yaml
 import numpy as np
 import pygame as pg
+import time
 
 from duckietown_msgs.msg import RemapPoseArray, RemapPose
 
@@ -46,6 +47,8 @@ class status_gui(object):
         ####### Initial pygame and display ##########################################
         pg.init()
         pg.display.set_caption("Duckietown System Calibration")
+
+
 
         ### Parameters of drawing
         self.screen_height = 900
@@ -107,7 +110,7 @@ class status_gui(object):
 
         ## Draw all Watchtowers in WDA
         self.WT_block = self.WDA_length / 5
-        self.draw_WDA({}, {})
+        self.draw_WDA({}, {}, [])
         ##
         ################################################################################
 
@@ -116,7 +119,7 @@ class status_gui(object):
         self.screen.blit(self.screen_React, [self.React_origin_x, self.React_origin_y])
         pg.display.flip()
 
-    def draw_status(self, level, tags_tree, left_watchtowers):
+    def draw_status(self, level, tags_tree, left_watchtowers, left_tags):
 
         ## Clear old output
         self.screen_TDA.fill(WHITE)
@@ -126,17 +129,17 @@ class status_gui(object):
         length = 0
         linked_watchtowers = {}
         for tree_level in tags_tree:
-            length = self.draw_TDA(tree_level, length) # the function return how much length it used for drawing next level
+            length = self.draw_TDA(tree_level, length, left_tags) # the function return how much length it used for drawing next level
             linked_watchtowers.update(tree_level['watchtowers'])
 
-        self.draw_WDA(linked_watchtowers, left_watchtowers)
+        self.draw_WDA(linked_watchtowers, left_watchtowers, left_tags)
 
         self.screen.blit(self.screen_TDA, [self.TDA_origin_x, self.TDA_origin_y])
         self.screen.blit(self.screen_WDA, [self.WDA_origin_x, self.WDA_origin_y])
 
         pg.display.flip()
 
-    def draw_TDA(self, tree_level, origin_x):
+    def draw_TDA(self, tree_level, origin_x, left_tags):
 
         i = 0
         position_x = origin_x
@@ -144,7 +147,7 @@ class status_gui(object):
         dictPosition = 1
         dictItemCount = len(tree_level['watchtowers'])
         for watchtower in tree_level['watchtowers']:
-            height_WT_image = self.draw_watchtower(self.screen_TDA, watchtower[-2:], tree_level['watchtowers'][watchtower], self.WT_block, position_x, position_y)
+            height_WT_image = self.draw_watchtower(self.screen_TDA, watchtower[-2:], tree_level['watchtowers'][watchtower], self.WT_block, position_x, position_y, left_tags)
             ## Determines the x, y of next watchtower image
             position_y += height_WT_image
 
@@ -168,7 +171,7 @@ class status_gui(object):
 
         return length + x
 
-    def draw_WDA(self, linked_watchtowers, left_watchtowers):
+    def draw_WDA(self, linked_watchtowers, left_watchtowers, left_tags):
 
         i = 0
         indence = 5
@@ -179,9 +182,9 @@ class status_gui(object):
                 continue
 
             if watchtower in list(left_watchtowers):
-                height_WT_image = self.draw_watchtower(self.screen_WDA, watchtower[-2:], left_watchtowers[watchtower], self.WT_block, position_x, position_y)
+                height_WT_image = self.draw_watchtower(self.screen_WDA, watchtower[-2:], left_watchtowers[watchtower], self.WT_block, position_x, position_y, left_tags)
             else:
-                height_WT_image = self.draw_watchtower(self.screen_WDA, watchtower[-2:], [], self.WT_block, position_x, position_y)
+                height_WT_image = self.draw_watchtower(self.screen_WDA, watchtower[-2:], [], self.WT_block, position_x, position_y, left_tags)
 
             ## Determines the x, y of next watchtower image
             position_y += height_WT_image
@@ -197,7 +200,7 @@ class status_gui(object):
 
 
 
-    def draw_watchtower(self, screen_master, watchtower, tags, size, origin_x, origin_y):
+    def draw_watchtower(self, screen_master, watchtower, tags, size, origin_x, origin_y, left_tags):
 
         font_tag_size = size / 3
         font_tag = pg.font.SysFont(None, int(font_tag_size))
@@ -215,7 +218,10 @@ class status_gui(object):
         # Write the tags that this watchtower has seen
         i = 0
         for tag in tags:
-            screen_WT.blit(font_tag.render(str(tag), True, BLACK), [int(length / 2)+5, font_tag_height*i])
+            if tag in left_tags:
+                screen_WT.blit(font_tag.render(str(tag), True, RED), [int(length / 2)+5, font_tag_height*i])
+            else:
+                screen_WT.blit(font_tag.render(str(tag), True, BLACK), [int(length / 2)+5, font_tag_height*i])
             i+=1
         ##
 
@@ -238,6 +244,12 @@ class status_gui(object):
 class system_calibration_gui(object):
 
     def __init__(self):
+
+        # set parameters to wait a few moments after finishing befor calibrating
+        self.wait_for_message = 15 # At least wait 3 secs for tags collection after all watchtower have publish things.
+        self.deadline = time.time() + 100000 # set deadline really high at start, will be set to actual value later
+        self.ready = False
+
 
         self.node_name = 'system_calibration_gui'
 
@@ -291,11 +303,18 @@ class system_calibration_gui(object):
         # Return True if all watchtowers are connected
         self.poses.extend(msg_poses.poses)
         self.tags_tree = []
-        ready = self.update_watchtower_status(self.poses)
+        if self.ready == False:
+            self.ready = self.update_watchtower_status(self.poses)
+            if self.ready == True:
+                self.deadline = time.time() + self.wait_for_message
 
-        if ready:
+        elif time.time() > self.deadline:
             self.pub_tfs.publish(self.poses)
             self.finish_calibration = True
+        else:
+            sys.stdout.write('\rStart Calibration in %s secs'  % (self.deadline - time.time()))
+            sys.stdout.flush()
+            #rospy.loginfo("Start Calibration in %d secs", (self.deadline - time.time()))
 
     def update_watchtower_status(self, poses):
 
@@ -306,11 +325,25 @@ class system_calibration_gui(object):
         # all_watchtowers = a dictionary with watchtower name as index.
         # For the specific index, it has a list which includes tags that the watchtower has seen.
         all_watchtowers = {}
+        all_watchtowers_bot_tag = {}
+        left_tags = [] # Tags that are frame_id but never a bot_id, which will then not be linked.
         for pose in poses:
             if not pose.host in all_watchtowers:
                 all_watchtowers[pose.host] = []
+                all_watchtowers_bot_tag[pose.host] = []
+            if not pose.bot_id in all_watchtowers_bot_tag[pose.host]:
+                all_watchtowers_bot_tag[pose.host].append(pose.bot_id)
+            if pose.bot_id in left_tags:
+                left_tags.remove(pose.bot_id)
             if not pose.frame_id in all_watchtowers[pose.host]:
                 all_watchtowers[pose.host].append(pose.frame_id)
+
+            # To make sure the tag is at least link with one other tag seen by the same watchtower
+            # Otherwise the tag is seen as not being seen
+            if not pose.frame_id in all_watchtowers_bot_tag[pose.host]:
+                if not pose.frame_id in left_tags:
+                    left_tags.append(pose.frame_id)
+
 
         ############# Start building the tree ####################
         keep_build = False
@@ -345,13 +378,14 @@ class system_calibration_gui(object):
         # that did not link to the tree
         print "tags_tree", self.tags_tree
         print "rest_watchtowers", all_watchtowers
-        self.gui.draw_status(level, self.tags_tree, all_watchtowers)
+        self.gui.draw_status(level, self.tags_tree, all_watchtowers, left_tags)
 
         watchtower_list = []
         for l in self.tags_tree:
             watchtower_list.extend(list(l['watchtowers'].keys()))
 
-        if all_watchtowers == {} and set(self.map_watchtowers) == set(watchtower_list):
+        print "Left Tags", left_tags
+        if all_watchtowers == {} and set(self.map_watchtowers) == set(watchtower_list) and left_tags == []:
             return True
         else:
             return False

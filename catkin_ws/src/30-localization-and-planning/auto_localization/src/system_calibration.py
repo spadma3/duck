@@ -113,19 +113,23 @@ class system_calibration(object):
         # make all pose to pose relationship into a graph
         # so that we could compute shortest path
         # and get the tag to origin transformation later
-        tag_graph = dict() # Save tag node connection graph with a 1D dictionary
+        tag_dict = dict() # Save tag node connection graph with a 1D dictionary
+        tag_graph = gposf.Graph() # # Save tag node connection graph with own class
+        origin = self.map_origins[0]['id'] # a.t.m. we only consider one origin
+        tag_graph.add_node(origin)
+
         tag_transformation = dict() # Save tag transformation with a 2D dictionary
         for tf_node in tfs:
             trans,rot = gposf.get_trans_rot_from_pose(tf_node.posestamped.pose)
-            if not tag_graph.has_key(tf_node.frame_id):
-                tag_graph[tf_node.frame_id] = []
+            if not tag_dict.has_key(tf_node.frame_id):
+                tag_dict[tf_node.frame_id] = []
                 tag_transformation[tf_node.frame_id] = dict()
             # Here we create transformation link with python dictionary between tag and tag
             # For convenient, we reuse RemapPose message data type here
             # frame_id = child frame, bot_id = parent frame
             # tag_transformation[child_frame][parent_frame] = [[trans1,trans2],[rot1,rot2]]
-            if not tf_node.bot_id in tag_graph[tf_node.frame_id]:
-                tag_graph[tf_node.frame_id].append(tf_node.bot_id)
+            if not tf_node.bot_id in tag_dict[tf_node.frame_id]:
+                tag_dict[tf_node.frame_id].append(tf_node.bot_id)
                 tag_transformation[tf_node.frame_id][tf_node.bot_id] = [[trans],[rot]]
             else:
                 tag_transformation[tf_node.frame_id][tf_node.bot_id][0].append(trans)
@@ -133,12 +137,27 @@ class system_calibration(object):
 
 
         # Take mean for redundant information
-        for frame1 in tag_graph:
-            for frame2 in tag_graph[frame1]:
+
+        print "This is the information to work with:"
+
+
+        for frame1 in tag_dict:
+            tag_graph.add_node(frame1)
+            #print tag_graph.nodes
+            sys.stdout.write('\r%s' % (tag_graph.nodes))
+            sys.stdout.flush()
+            for frame2 in tag_dict[frame1]:
+                tag_graph.add_node(frame2)
+                sys.stdout.write('\r%s' % (tag_graph.nodes))
+                sys.stdout.flush()
                 if len(tag_transformation[frame1][frame2][0]) > 1:
                     trans_mean = np.mean(tag_transformation[frame1][frame2][0],axis=0)
                     rot_mean   = np.mean(tag_transformation[frame1][frame2][1],axis=0)
                     tag_transformation[frame1][frame2] =[trans_mean.tolist(),rot_mean.tolist()]
+                # print frame1, frame2
+                tag_graph.add_edge(frame1,frame2)
+        #print tag_graph.nodes
+        print tag_graph.edges
 
         # Define a find shortest path function here
         def find_shortest_path(graph, start, end, path=[]):
@@ -158,40 +177,52 @@ class system_calibration(object):
 
         # A little recursive function to find the transformation from origin to end_tag
         def from_origin_to_end(path):
+            # print path
             # If there's no path connect to the tag, saves null.
             if path == None:
                 return None
             # tag_transformation[child_frame][parent_frame]
             trans = tag_transformation[path[0]][path[1]][0]
             rot = tag_transformation[path[0]][path[1]][1]
-            print trans, rot
+            # print trans, rot
             if len(trans) == 1:
                 trans = trans[0]
                 rot = rot[0]
 
             # Compose transformation matrix with translation and angle (in euler)
             transformation_mat = gposf.create_tf_matrix(trans, rot)
-            print transformation_mat
+            #print len(path)
+
             if len(path) == 2:
                 return transformation_mat
+                # print transformation_mat
             else:
                 next_transformation = from_origin_to_end(path[1:])
-                print next_transformation
-                print np.dot(transformation_mat, next_transformation)
+                # print next_transformation
+                # print np.dot(transformation_mat, next_transformation)
                 return np.dot(transformation_mat, next_transformation)
 
         tag_relationship = dict()
-        origin = self.map_origins[0]['id'] # a.t.m. we only consider one origin
-        for tag_node in tag_graph:
+        for tag_node in tag_graph.nodes:
             print "tag_node: ", tag_node
             if tag_node == origin:
                 tag_relationship[tag_node] = np.identity(4)
             else:
-                path_node = find_shortest_path(tag_graph, origin, tag_node)
+                # path_node = find_shortest_path(tag_dict, origin, tag_node)
+                # print tag_graph.nodes
+                # print tag_graph.edges.keys()
+                path_node = gposf.dijkstra(tag_graph.nodes, tag_graph.edges2, origin, tag_node)
+                #print path_node
+                #path_node = path_node[0]
+                #print path_node
+                #path_node = path_node[::-1]
+                #print "path_node: ", path_node
+                #path_node= path_node[1:]
                 print "path_node: ", path_node
                 tag_relationship[tag_node] = from_origin_to_end(path_node)
+            print tag_relationship[tag_node]
 
-        print tag_relationship
+        # print tag_relationship
         return tag_relationship
 
     ## Load Map Data
