@@ -6,7 +6,7 @@
     <arg name="map" default="testcircle" doc="Specify the map you wants"/>
     <arg name="IP" default="0" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
 
-    <arg name="GUI" default="false" doc="Show GUI or not"/>
+    <arg name="GUI" default="true" doc="Show GUI or not"/>
 
     <include file="$(find auto_localization)/launch/server_localization.launch">
       <arg name="veh" value="$(arg veh)"/>
