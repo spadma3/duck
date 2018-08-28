@@ -29,9 +29,9 @@ import rospy
 import yaml
 import numpy as np
 from datetime import datetime
-import tf
-import tf.transformations as tr
+import math
 import global_pose_functions as gposf
+import copy
 
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
 
@@ -48,19 +48,21 @@ class BotOptimizedPose(object):
         self.reference_tag_id = [] # The reference tags that used to localizae the Duckiebot
         self.current_time_stamp = 0 # Current time stamp
         # The variable for output
-        self.optmizd_pose = GlobalPose()
+        self.optimized_pose = GlobalPose()
 
         self.time_stamp_width = 20000000 # unit: ns. The width of time that seen as the same time stamp. Ex: current_time_stamp == current_time_stamp-time_stamp_width
 
     def add_pose(self, pose):
         # pose is a GlobalPose
 
-        pose_time = int(bot.header.stamp.secs) * 1e9 + int(bot.header.stamp.nsecs) # Unit: ns
+        pose_time = int(pose.header.stamp.secs) * 1e9 + int(pose.header.stamp.nsecs) # Unit: ns
+        print "The pose time: ", pose_time
+        print "Current time: ", self.current_time_stamp
 
-        if pose_time < current_time_stamp - self.time_stamp_width:
+        if pose_time < self.current_time_stamp - self.time_stamp_width:
             # We don't use the time stamp which is too far away from current time
             return
-        elif pose_time < current_time_stamp:
+        elif pose_time < self.current_time_stamp:
             pass
         else: # if pose_time > current_time_stamp:
             self.current_time_stamp = pose_time
@@ -72,7 +74,10 @@ class BotOptimizedPose(object):
 
         # Delete time stamps which are out of date
         for time_stamp in self.poses:
-            if self.current_time_stamp - self.time_stamp_width > int(time_stamp):
+            print "time stamp: ", time_stamp
+            print "current: ", self.current_time_stamp
+            if self.current_time_stamp - self.time_stamp_width > time_stamp:
+                print "Delete time stamp"
                 del self.poses[time_stamp]
 
     def get_optimized_pose(self):
@@ -81,12 +86,58 @@ class BotOptimizedPose(object):
         poses_y = []
         poses_theta = []
 
+        self.camera_id = []
+        self.reference_tag_id = []
+
         for time_stamp in self.poses:
             for a_pose in self.poses[time_stamp]:
                 poses_x.append(a_pose.pose.x)
                 poses_y.append(a_pose.pose.y)
                 poses_theta.append(a_pose.pose.theta)
+                # camera id's which saw this Duckiebot
+                if not a_pose.cam_id[0] in self.camera_id:
+                    self.camera_id.append(a_pose.cam_id[0])
+                # Reference tags which used by this detection
+                if not a_pose.reference_tag_id[0] in self.reference_tag_id:
+                    self.reference_tag_id.append(a_pose.reference_tag_id[0])
 
+        self.optimized_pose.pose.x = np.mean(poses_x)
+        self.optimized_pose.delta_x = np.sqrt(np.mean(poses_x - self.optimized_pose.pose.x)**2) # Take RMSE of pose_x for delta_x
+        self.optimized_pose.pose.y = np.mean(poses_y)
+        self.optimized_pose.delta_y = np.sqrt(np.mean(poses_y - self.optimized_pose.pose.y)**2) # Take RMSE of pose_y for delta_y
+        # Need some special way to calculate mean for angles
+        # The range of input angle is +- pi
+        self.optimized_pose.pose.theta = self.average_angle(poses_theta)
+        self.optimized_pose.delta_theta = self.rms_angle(poses_theta, self.optimized_pose.pose.theta)
+
+        self.optimized_pose.cam_id = self.camera_id
+        self.optimized_pose.reference_tag_id = self.reference_tag_id
+
+        self.optimized_pose.header.stamp = rospy.Time(int(self.current_time_stamp/1e9), self.current_time_stamp%1e9)
+
+        return copy.deepcopy(self.optimized_pose) # python always di reference. Thus we don't wanna self.optimized_pose to be modified.
+
+    def average_angle(self, thetas):
+
+        #Ref
+        # https://en.wikipedia.org/wiki/Mean_of_circular_quantities
+        # https://greek0.net/blog/2016/06/14/working_with_angles/
+
+        x = 0
+        y = 0
+        for theta in thetas:
+            x += math.cos(theta)
+            y += math.sin(theta)
+
+        if x == 0:
+            return math.copysign(math.pi/2, y)
+
+        return math.atan2(y, x)
+
+    def rms_angle(self, thetas, mean):
+
+        # TODO Need a good idea on how to get the rms of angles.
+        return 0
 
 class pose_optimization(object):
     """"""
@@ -94,7 +145,7 @@ class pose_optimization(object):
         self.node_name = 'pose_optimization'
 
         # Open Output .csv file
-        self.output_file_name = rospy.get_param("~output_file") + "_optimize"
+        self.output_file_name = rospy.get_param("~output_file", "testing") + "_optimize"
         self.output_file = self.init_output_file(self.output_file_name)
 
         #Add Subscriber
@@ -103,8 +154,27 @@ class pose_optimization(object):
         #Add Publisher
         self.pub_opt_pos = rospy.Publisher("~bot_global_poses_optimized", GlobalPoseArray, queue_size=1)
 
-    def poses_callback(self):
-        pass
+        ### Variable
+        # Store Duckiebots
+        self.bots = dict()
+
+    def poses_callback(self, poses):
+
+        output_poses = GlobalPoseArray()
+
+        for bot_pose in poses.poses:
+            if not str(bot_pose.bot_id) in self.bots:
+                self.bots[str(bot_pose.bot_id)] = BotOptimizedPose(bot_pose.bot_id)
+            self.bots[str(bot_pose.bot_id)].add_pose(bot_pose)
+
+        for bot in self.bots:
+            new_output = self.bots[bot].get_optimized_pose()
+            output_poses.poses.append(new_output)
+
+            new_data = [new_output.header.stamp, new_output.bot_id,  new_output.pose.x, new_output.pose.y, new_output.pose.theta, new_output.delta_x, new_output.delta_y, new_output.delta_theta, new_output.cam_id, new_output.reference_tag_id]
+            self.write_data_to_output_file(new_data)
+
+        self.pub_opt_pos.publish(output_poses)
 
 ### ------------------ INITIALIZATION FUNCTIONS -------------------------#####
 
@@ -119,6 +189,13 @@ class pose_optimization(object):
         output_file = open(output_file_name, 'w+')
         output_file.write('time, bot_ID, x, y, theta, camera_id, reference_tag_id\n')
         return output_file
+
+### --------------------- USER OUTPUT FUNCTIONS --------------------#####
+    # writes new data to the output file
+    def write_data_to_output_file(self,new_data):
+        for idx in xrange( 0, (len(new_data)-1) ):
+            self.output_file.write(str(new_data[idx]) + ', ')
+        self.output_file.write(str(new_data[len(new_data)-1]) + '\n')
 
 
 

@@ -78,7 +78,7 @@ class map_description(object):
         self.origin_tag_pos.theta = 0 # in degrees
 
         ### Subscriber
-        self.sub_bot = rospy.Subscriber("bot_poses", GlobalPoseArray, self.update_data_callback, queue_size=1)
+        self.sub_bot = rospy.Subscriber("/pose_optimization/bot_global_poses_optimized", GlobalPoseArray, self.update_data_callback, queue_size=1)
 
         ### Varaible for storing Duckiebot data
         # Data of Duckiebots
@@ -348,9 +348,6 @@ class map_description(object):
             draw_y = mid_y - int(self.bot_img.get_width()/2)
             pg.draw.circle(self.screen_Map, DUCKIEBOT_COLOR, [int(mid_x), int(mid_y)], int(duckiebot_size*self.m2p)) # Use a circle to represent Duckiebot
             # self.screen_Map.blit(self.bot_img, [draw_x, draw_y]) # Use a image to represent Duckiebot
-            print "size, ", int(duckiebot_size*self.m2p)
-            print "draw_x, ", int(mid_x)
-            print "draw_y, ", int(mid_y)
 
             # Draw delta_x, delta_y
             draw_delta_x = int(pose_delta_x * self.m2p)
