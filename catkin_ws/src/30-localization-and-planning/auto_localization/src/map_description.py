@@ -78,7 +78,7 @@ class map_description(object):
         self.origin_tag_pos.theta = 0 # in degrees
 
         ### Subscriber
-        self.sub_bot = rospy.Subscriber("/pose_optimization/bot_global_poses_optimized", GlobalPoseArray, self.update_data_callback, queue_size=1)
+        self.sub_bot = rospy.Subscriber("bot_global_poses_optimized", GlobalPoseArray, self.update_data_callback, queue_size=1)
 
         ### Varaible for storing Duckiebot data
         # Data of Duckiebots
@@ -162,7 +162,7 @@ class map_description(object):
             key_index = str(bot.bot_id)
             if not str(bot.bot_id) in self.all_duckiebots:
                 self.all_duckiebots[key_index] = {}
-            self.all_duckiebots[key_index]['bot_t'] = bot.header.stamp.secs + float(bot.header.stamp.nsecs)/1e9
+            self.all_duckiebots[key_index]['bot_t'] = bot.header.stamp.to_sec()
             self.all_duckiebots[key_index]['x'] = bot.pose.x
             self.all_duckiebots[key_index]['delta_x'] = bot.delta_x
             self.all_duckiebots[key_index]['y'] = -1*bot.pose.y
@@ -237,7 +237,7 @@ class map_description(object):
         self.GDA_data['bot_num'] = len(self.all_duckiebots)
         self.GDA_data['tow_num'] = len(self.map_watchtowers)
         now_time = rospy.get_rostime()
-        self.GDA_data['time'] = now_time.secs + float(now_time.nsecs)/1e9
+        self.GDA_data['time'] = now_time.to_sec()
 
         self.draw_general_data()
         ###################

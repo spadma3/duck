@@ -28,14 +28,14 @@ def pubPoses():
 
     while True:
 
-        with open(rospkg.RosPack().get_path('auto_localization') + "/config/" + 'test20180824-182704.csv', 'rb') as botfile:
+        with open(rospkg.RosPack().get_path('auto_localization') + "/config/" + 'test20180824-1827040.csv', 'rb') as botfile:
             datas = csv.reader(botfile, delimiter=',')
             for row in datas:
                 if row[0] == 'time':
                     continue
                 gpa = GlobalPoseArray()
                 gp = GlobalPose()
-                gp.header.stamp = rospy.Time(int(int(row[0])/1e9), int(row[0])%1e9)
+                gp.header.stamp = rospy.Time.from_sec(float(row[0])/1e9)
                 gp.bot_id = int(row[1])
                 gp.pose.x = float(row[2])
                 gp.pose.y = float(row[3])
@@ -45,6 +45,7 @@ def pubPoses():
                 gpa.poses.append(gp)
                 pub_poses.publish(gpa)
                 rate.sleep()
+            break
 
 
 if __name__ == '__main__':

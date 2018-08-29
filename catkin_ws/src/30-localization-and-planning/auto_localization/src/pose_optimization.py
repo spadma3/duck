@@ -50,14 +50,12 @@ class BotOptimizedPose(object):
         # The variable for output
         self.optimized_pose = GlobalPose()
 
-        self.time_stamp_width = 20000000 # unit: ns. The width of time that seen as the same time stamp. Ex: current_time_stamp == current_time_stamp-time_stamp_width
+        self.time_stamp_width = 0.02 # unit: s. The width of time that seen as the same time stamp. Ex: current_time_stamp == current_time_stamp-time_stamp_width
 
     def add_pose(self, pose):
         # pose is a GlobalPose
 
-        pose_time = int(pose.header.stamp.secs) * 1e9 + int(pose.header.stamp.nsecs) # Unit: ns
-        print "The pose time: ", pose_time
-        print "Current time: ", self.current_time_stamp
+        pose_time = pose.header.stamp.to_sec() # Unit: s
 
         if pose_time < self.current_time_stamp - self.time_stamp_width:
             # We don't use the time stamp which is too far away from current time
@@ -73,10 +71,8 @@ class BotOptimizedPose(object):
         self.poses[str(pose_time)].append(pose)
 
         # Delete time stamps which are out of date
-        for time_stamp in self.poses:
-            print "time stamp: ", time_stamp
-            print "current: ", self.current_time_stamp
-            if self.current_time_stamp - self.time_stamp_width > time_stamp:
+        for time_stamp in self.poses.copy(): ## Can't change dictionary size while iterating. So use dict.copy().
+            if self.current_time_stamp - self.time_stamp_width > float(time_stamp):
                 print "Delete time stamp"
                 del self.poses[time_stamp]
 
@@ -88,6 +84,8 @@ class BotOptimizedPose(object):
 
         self.camera_id = []
         self.reference_tag_id = []
+
+
 
         for time_stamp in self.poses:
             for a_pose in self.poses[time_stamp]:
@@ -136,8 +134,17 @@ class BotOptimizedPose(object):
 
     def rms_angle(self, thetas, mean):
 
-        # TODO Need a good idea on how to get the rms of angles.
-        return 0
+        # It's the RMSE of angles
+        # sqrt(sum d(angle_i, mean)^2)
+        # d(angle1, angle2) = acos(cos(angle1-angle2))
+
+        d_sq = []
+
+        for theta in thetas:
+            d = math.acos(math.cos(theta - mean))
+            d_sq.append(d**2)
+
+        return np.sqrt(np.mean(d_sq))
 
 class pose_optimization(object):
     """"""

@@ -350,11 +350,18 @@ origin:
 tiles:
 - - curve_left/W
   - straight/W
+  - straight/W
   - curve_left/N
 - - straight/S
   - grass
+  - grass
+  - straight/N
+- - straight/S
+  - grass
+  - grass
   - straight/N
 - - curve_left/S
+  - straight/E
   - straight/E
   - curve_left/E
 watchtowers:

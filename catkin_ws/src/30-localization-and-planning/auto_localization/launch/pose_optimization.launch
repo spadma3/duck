@@ -1,0 +1,15 @@
+<launch>
+    <arg name="pkg_name" value="auto_localization"/>
+    <arg name="node_name" default="pose_optimization"/>
+
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+    <arg name="output" default="test" doc="Specify the output name of the statistics file"/>
+
+    <group ns="$(arg veh)">
+        <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py"
+              output="screen">
+              <param name="~output_file" value="$(arg output)" type="str"/>
+        </node>
+    </group>
+
+</launch>
