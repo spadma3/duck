@@ -7,3 +7,4 @@ float64 delta_theta
 string tiletype
 int32[] cam_id
 int32[] reference_tag_id
+string current_tile
