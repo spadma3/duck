@@ -8,10 +8,11 @@
 
 
 ## coordinates: Origin in top left corner, theta counterclockwise from x-axis
+#  y
+#  ^
+#  |
+#  |
 #  O -----> x
-#  |
-#  |
-#  v  y
 
 ## Input:
 #   - Global poses compute by absolute_from_relative_position node
@@ -73,7 +74,6 @@ class BotOptimizedPose(object):
         # Delete time stamps which are out of date
         for time_stamp in self.poses.copy(): ## Can't change dictionary size while iterating. So use dict.copy().
             if self.current_time_stamp - self.time_stamp_width > float(time_stamp):
-                print "Delete time stamp"
                 del self.poses[time_stamp]
 
     def get_optimized_pose(self):
