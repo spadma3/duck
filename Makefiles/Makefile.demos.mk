@@ -53,10 +53,16 @@ demo-line_detector-quiet-%: check-environment
 traffic-light: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; roslaunch traffic_light traffic_light_node.launch veh:=$(vehicle_name)"
 
+
 # auto_localization demo
 # watchtower side
 auto_localization_watchtower: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown auto_localization_watchtower.launch veh:=$(vehicle_name) param_file_name:=autolocal IP:=$(IP)"
+
+auto_localization_watchtower_trafficlight: check-environment
+	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown auto_localization_watchtower_trafficlight.launch veh:=$(vehicle_name) param_file_name:=autolocal IP:=$(IP)"
+
+
 # Server side
 auto_localization_laptop: check-environment
 	bash -c "source environment.sh; source set_ros_master.sh; source set_vehicle_name.sh; roslaunch duckietown auto_localization_server.launch veh:=$(vehicle_name) param_file_name:=autolocal IP:=$(IP) map:=$(map)"
