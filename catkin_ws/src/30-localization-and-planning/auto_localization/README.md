@@ -76,6 +76,12 @@ The system starts working. On server computer, the `~bot_global_poses` topic pub
 
 The system also records all records under `config` folder with .csv file. You could checkout the performances of each Duckiebot in the file.
 
+For watchtowers that are also trafficlights:
+ssh to all trafficlights
+    duckiebot $ git checkout devel-auto-localization-trafficlight
+    duckiebot $ make auto_localization_watchtower_trafficlight
+
+
 ## System Architecture
 
 ###  Nodes
