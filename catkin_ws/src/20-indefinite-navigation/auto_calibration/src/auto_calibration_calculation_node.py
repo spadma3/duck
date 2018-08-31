@@ -112,7 +112,7 @@ class AutoCalibrationCalculationNode(object):
     def cbDutyCycle(self,msg):
         if self.data_gathering:
             secs = self.toSeconds(msg.header.stamp.secs,msg.header.stamp.nsecs)
-            self.wheel_motion = np.append(self.wheel_motion,([[secs,msg.vel_left*self.K,msg.vel_right*self.K]]),axis=0)
+            self.wheel_motion = np.append(self.wheel_motion,([[secs,msg.vel_left,msg.vel_right]]),axis=0)
 
     #In calibration calculation mode, the bot shouldn't move
     def publishControl(self):
