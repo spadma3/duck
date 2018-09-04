@@ -19,6 +19,7 @@ import numpy as np
 import time
 import global_pose_functions as gposf
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
+import matplotlib.pyplot as plt
 
 class system_calibration(object):
 
@@ -48,39 +49,34 @@ class system_calibration(object):
         for wt in self.map_watchtowers:
             self.watchtowers[wt] = False
 
-    # # callback make sure that all watchtowers have sent messages.
-    # def callback(self, msg_tfs):
-    #
-    #     # Return callback if calibration has already started
-    #     if self.start_calibrate == True:
-    #         return
-    #
-    #     # Make sure that we get meesage from all watchtowers
-    #     if time.time() < self.deadline:
-    #         if not self.ready:
-    #             for tf in msg_tfs.poses:
-    #                 self.watchtowers[tf.host] = True
-    #             not_ready = ""
-    #             for wt in self.watchtowers:
-    #                 if self.watchtowers[wt] == False:
-    #                     not_ready += wt[-2:] + ", "
-    #             if not_ready == "":
-    #                 # set a timer to continue collecting more information for x seconds before calibrating
-    #                 self.deadline = time.time() + self.wait_for_message
-    #                 self.ready = True
-    #                 rospy.loginfo("Get all tags. Start Counting Down")
-    #             else:
-    #                 rospy.loginfo("Still waiting for watchtower: " + not_ready)
-    #                 return
-    #
-    #
-    #     # self.wait_for_message -= 1
-    #     rospy.loginfo("Start Calibration in %d secs", (self.deadline - time.time()))
-    #
-    #     if not time.time() < self.deadline:
-    #         self.start_calibrate = True
-    #         self.sys_calib(msg_tfs.poses)
 
+    # A little recursive function to find the transformation from origin to end_tag
+    def from_origin_to_end(self, path):
+        # print path
+        # If there's no path connect to the tag, saves null.
+        if path == None:
+            return None
+        # self.tag_transformation[child_frame][parent_frame]
+        trans = self.tag_transformation[path[0]][path[1]][0]
+        rot = self.tag_transformation[path[0]][path[1]][1]
+        # print trans, rot
+        if len(trans) == 1:
+            trans = trans[0]
+            rot = rot[0]
+
+        # Compose transformation matrix with translation and angle (in euler)
+        transformation_mat = gposf.create_tf_matrix(trans, rot)
+        #print len(path)
+
+        if len(path) == 2:
+            return transformation_mat
+            # print transformation_mat
+        else:
+            # print "Next transformation", path[1:]
+            next_transformation = self.from_origin_to_end(path[1:])
+
+            # print np.dot(transformation_mat, next_transformation)
+            return np.dot(transformation_mat, next_transformation)
 
     #  def sys_calib(self, msg_tfs):
     def callback(self,msg):
@@ -118,95 +114,79 @@ class system_calibration(object):
         origin = self.map_origins[0]['id'] # a.t.m. we only consider one origin
         tag_graph.add_node(origin)
 
-        tag_transformation = dict() # Save tag transformation with a 2D dictionary
+        self.tag_transformation = dict() # Save tag transformation with a 2D dictionary
         for tf_node in tfs:
             trans,rot = gposf.get_trans_rot_from_pose(tf_node.posestamped.pose)
             if not tag_dict.has_key(tf_node.frame_id):
                 tag_dict[tf_node.frame_id] = []
-                tag_transformation[tf_node.frame_id] = dict()
+                self.tag_transformation[tf_node.frame_id] = dict()
             # Here we create transformation link with python dictionary between tag and tag
             # For convenient, we reuse RemapPose message data type here
             # frame_id = child frame, bot_id = parent frame
-            # tag_transformation[child_frame][parent_frame] = [[trans1,trans2],[rot1,rot2]]
+            # self.tag_transformation[child_frame][parent_frame] = [[trans1,trans2],[rot1,rot2]]
             if not tf_node.bot_id in tag_dict[tf_node.frame_id]:
                 tag_dict[tf_node.frame_id].append(tf_node.bot_id)
-                tag_transformation[tf_node.frame_id][tf_node.bot_id] = [[trans],[rot]]
+                self.tag_transformation[tf_node.frame_id][tf_node.bot_id] = [[trans],[rot]]
             else:
-                tag_transformation[tf_node.frame_id][tf_node.bot_id][0].append(trans)
-                tag_transformation[tf_node.frame_id][tf_node.bot_id][1].append(rot)
+                self.tag_transformation[tf_node.frame_id][tf_node.bot_id][0].append(trans)
+                self.tag_transformation[tf_node.frame_id][tf_node.bot_id][1].append(rot)
 
 
         # Take mean for redundant information
 
-        print "This is the information to work with:"
+        # print "This is the information to work with:"
 
 
         for frame1 in tag_dict:
             tag_graph.add_node(frame1)
             #print tag_graph.nodes
-            sys.stdout.write('\r%s' % (tag_graph.nodes))
-            sys.stdout.flush()
+            # sys.stdout.write('\r%s' % (tag_graph.nodes))
+            # sys.stdout.flush()
             for frame2 in tag_dict[frame1]:
                 tag_graph.add_node(frame2)
-                sys.stdout.write('\r%s' % (tag_graph.nodes))
-                sys.stdout.flush()
-                if len(tag_transformation[frame1][frame2][0]) > 1:
-                    trans_mean = np.mean(tag_transformation[frame1][frame2][0],axis=0)
-                    rot_mean   = np.mean(tag_transformation[frame1][frame2][1],axis=0)
-                    tag_transformation[frame1][frame2] =[trans_mean.tolist(),rot_mean.tolist()]
+                # sys.stdout.write('\r%s' % (tag_graph.nodes))
+                # sys.stdout.flush()
+                if len(self.tag_transformation[frame1][frame2][0]) > 1:
+                    trans_mean  =   np.mean(self.tag_transformation[frame1][frame2][0],axis=0)
+                    trans_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][0],axis=0))
+                    rot_mean    =   np.mean(self.tag_transformation[frame1][frame2][1],axis=0)
+                    rot_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][1],axis=0))
+
+                    if trans_err > 0.05  or rot_err > 0.6:
+                        print "High error in between ", frame1, frame2, "Errors: ", trans_err, rot_err, np.std(self.tag_transformation[frame1][frame2][0],axis=0), np.std(self.tag_transformation[frame1][frame2][1],axis=0)
+                    else:
+                        self.tag_transformation[frame1][frame2] =[trans_mean.tolist(),rot_mean.tolist()]
+                        tag_graph.add_edge(frame1,frame2)
                 # print frame1, frame2
-                tag_graph.add_edge(frame1,frame2)
+
         #print tag_graph.nodes
-        print tag_graph.edges
+        # print tag_graph.edges
+        #
+        # # Define a find shortest path function here
+        # def find_shortest_path(graph, start, end, path=[]):
+        #     path = path + [start]
+        #     if start == end:
+        #         return path
+        #     if not graph.has_key(start):
+        #         return None
+        #     shortest = None
+        #     for node in graph[start]:
+        #         if node not in path:
+        #             newpath = find_shortest_path(graph, node, end, path)
+        #             if newpath:
+        #                 if not shortest or len(newpath) < len(shortest):
+        #                     shortest = newpath
+        #     return shortest
 
-        # Define a find shortest path function here
-        def find_shortest_path(graph, start, end, path=[]):
-            path = path + [start]
-            if start == end:
-                return path
-            if not graph.has_key(start):
-                return None
-            shortest = None
-            for node in graph[start]:
-                if node not in path:
-                    newpath = find_shortest_path(graph, node, end, path)
-                    if newpath:
-                        if not shortest or len(newpath) < len(shortest):
-                            shortest = newpath
-            return shortest
 
-        # A little recursive function to find the transformation from origin to end_tag
-        def from_origin_to_end(path):
-            # print path
-            # If there's no path connect to the tag, saves null.
-            if path == None:
-                return None
-            # tag_transformation[child_frame][parent_frame]
-            trans = tag_transformation[path[0]][path[1]][0]
-            rot = tag_transformation[path[0]][path[1]][1]
-            # print trans, rot
-            if len(trans) == 1:
-                trans = trans[0]
-                rot = rot[0]
-
-            # Compose transformation matrix with translation and angle (in euler)
-            transformation_mat = gposf.create_tf_matrix(trans, rot)
-            #print len(path)
-
-            if len(path) == 2:
-                return transformation_mat
-                # print transformation_mat
-            else:
-                next_transformation = from_origin_to_end(path[1:])
-                # print next_transformation
-                # print np.dot(transformation_mat, next_transformation)
-                return np.dot(transformation_mat, next_transformation)
 
         tag_relationship = dict()
+        path_length = {}
         for tag_node in tag_graph.nodes:
             print "tag_node: ", tag_node
             if tag_node == origin:
                 tag_relationship[tag_node] = np.identity(4)
+                path_length[tag_node] = 1
             else:
                 # path_node = find_shortest_path(tag_dict, origin, tag_node)
                 # print tag_graph.nodes
@@ -215,13 +195,29 @@ class system_calibration(object):
                 #print path_node
                 #path_node = path_node[0]
                 #print path_node
-                #path_node = path_node[::-1]
-                #print "path_node: ", path_node
+                # path_node = path_node[::-1]
+                # print "path_node: ", path_node
                 #path_node= path_node[1:]
                 print "path_node: ", path_node
-                tag_relationship[tag_node] = from_origin_to_end(path_node)
-            print tag_relationship[tag_node]
+                if not path_node==None:
+                    path_length[tag_node] = len(path_node)
+                else:
+                    path_length[tag_node]=0
+                tag_relationship[tag_node] = self.from_origin_to_end(path_node)
+            # print tag_relationship[tag_node]
+            # print repr(tag_relationship[tag_node]
+        fig, ax = plt.subplots()
+        for key,value in tag_relationship.iteritems():
 
+            try:
+                x = value[0][3]
+                y = value[1][3]
+                # ax.text(x, y, str(path_length[key]), ha='center', size=20)
+                ax.text(x, y, str(key), ha='center', size=12)
+            except:
+                print "Value for Tag ", key, "is None"
+
+        plt.show()
         # print tag_relationship
         return tag_relationship
 
