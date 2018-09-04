@@ -1,6 +1,7 @@
 <launch>
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
 	<arg name="target_node" default="240" doc="int - value of AprilTag_ID at the target node"/>
+	<arg name="use_priority_protocol" default= "true"/>
 
 	<!-- start basic args -->
 	<include file="$(find duckietown_demos)/launch/master.launch">
@@ -30,6 +31,7 @@
 		<arg name="/LED/detector" value="true"/>
 		<arg name="/LED/emitter" value="true"/>
 		<arg name="intersectionType" value="trafficLight"/>
+		<arg name="use_priority_protocol" value= "$(arg use_priority_protocol)"/>
 		<!-- Charging control enabled for Megacity -->
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
