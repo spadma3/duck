@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <arg name="taxi_central" default="true" />
+    <arg name="map_draw_node" default="true" />
+    <arg name="virtual" default="false"/>
+    <arg name="graph_search_server_node" value="$(arg virtual)"/> <!-- true if virtual is true -->
+    <arg name="fleet_communication" default="true" />
+
+    <arg name="messaging_iface" default="true" />
+    <arg name="messaging_config" default="true" />
+
+
+    <group if="$(arg virtual)">
+            <!-- Virtual duckiebot node -->
+        <include file="$(find fleet_planning)/launch/virtual_duckiebot_node.launch"/>
+    </group>
+     <group if="$(arg graph_search_server_node)">
+            <!-- Graph Search Server Node -->
+
+        <include file="$(find fleet_planning)/launch/graph_search_server_node.launch">
+            <arg name="veh" value="laptop"/>
+            <arg name="local" value="true"/>
+            <arg name="map_name" default="tiles_lab"/>
+        </include>
+    </group>
+    <group if="$(arg taxi_central)">
+            <!-- Taxi Central -->
+        <include file="$(find fleet_planning)/launch/taxi_central_node.launch"/>
+    </group>
+
+    <group if="$(arg map_draw_node)">
+            <!-- Map Draw Node -->
+        <include file="$(find fleet_planning)/launch/map_draw_node.launch"/>
+    </group>
+
+    <!-- Start fleet communication -->  
+    <group if="$(arg fleet_communication)">
+	<include file="$(find fleet_messaging)/launch/fleet_messaging.launch">
+		<arg name="iface" value="$(arg messaging_iface)"/>
+		<arg name="config" value="$(arg messaging_config)"/>
+	</include>
+    </group>
+    <!-- End fleet communication -->
+
+</launch>

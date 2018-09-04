@@ -3,7 +3,7 @@ from __future__ import print_function
 from random import random
 import rospy
 from duckietown_msgs.msg import CoordinationClearance, FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
-from duckietown_msgs.msg import SignalsDetection, CoordinationSignal
+from duckietown_msgs.msg import SignalsDetection, CoordinationSignal, MaintenanceState
 from std_msgs.msg import String
 from time import time
 
@@ -19,6 +19,8 @@ class State:
     KEEP_CALM = 'KEEP_CALM'
     TL_SENSING = 'TL_SENSING'
     INTERSECTION_CONTROL = 'INTERSECTION_CONTROL'
+    AT_STOP_CLEARING_AND_PRIORITY = 'AT_STOP_CLEARING_AND_PRIORITY'
+    SACRIFICE_FOR_PRIORITY = 'SACRIFICE_FOR_PRIORITY'
 
 class VehicleCoordinator():
     """The Vehicle Coordination Module for Duckiebot"""
@@ -41,6 +43,7 @@ class VehicleCoordinator():
         self.state = State.INTERSECTION_PLANNING
         self.last_state_transition = time()
         self.random_delay = 0
+        self.priority = False
 
         # Node name
         self.node_name = rospy.get_name()
@@ -71,6 +74,7 @@ class VehicleCoordinator():
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
         rospy.Subscriber('~apriltags_out', AprilTagsWithInfos, self.set_traffic_light)
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection)
+        rospy.Subscriber("~maintenance_state", MaintenanceState, self.cbMaintenanceState)
 
         # Initialize clearance to go
         self.clearance_to_go = CoordinationClearance.NA
@@ -93,7 +97,12 @@ class VehicleCoordinator():
             self.loop()
             rospy.sleep(0.1)
 
-
+    def cbMaintenanceState(self, msg):
+        if msg.state == "WAY_TO_MAINTENANCE":
+            self.priority = True
+            rospy.loginfo('[%s] Granted priority rights on intersections!' %(self.node_name))
+        else:
+            self.priority = False
 
     def set_traffic_light(self,msg):
         # Save old traffic light
@@ -129,17 +138,22 @@ class VehicleCoordinator():
         # Set roof light
         if self.state == State.AT_STOP_CLEARING:
             # self.reset_signals_detection()
-
-
-
-
             self.roof_light = CoordinationSignal.SIGNAL_A
-
-
+        elif self.state == State.AT_STOP_CLEARING_AND_PRIORITY:
+            self.roof_light = CoordinationSignal.SIGNAL_PRIORITY
+            # Publish LEDs - priority interrupt
+            # self.roof_light_pub.publish(self.roof_light)
+        elif self.state == State.SACRIFICE_FOR_PRIORITY:
+            self.roof_light = CoordinationSignal.SIGNAL_SACRIFICE_FOR_PRIORITY
+            # Publish LEDs - priority interrupt
+            # self.roof_light_pub.publish(self.roof_light)
         elif self.state == State.SACRIFICE:
             self.roof_light = CoordinationSignal.OFF
         elif self.state == State.KEEP_CALM:
-            self.roof_light = CoordinationSignal.SIGNAL_A
+            if self.priority:
+                self.roof_light = CoordinationSignal.SIGNAL_PRIORITY
+            else:
+                self.roof_light = CoordinationSignal.SIGNAL_A
         elif self.state == State.GO and not self.traffic_light_intersection:
             self.roof_light = CoordinationSignal.SIGNAL_GREEN
         elif self.state == State.INTERSECTION_PLANNING or self.state == State.TL_SENSING:
@@ -227,13 +241,40 @@ class VehicleCoordinator():
                     self.begin_tl = time()
 
                 else:
-                    self.set_state(State.AT_STOP_CLEARING)
+                    if self.priority:
+                        self.set_state(State.AT_STOP_CLEARING_AND_PRIORITY)
+                    else:
+                        self.set_state(State.AT_STOP_CLEARING)
+
+        elif self.state == State.AT_STOP_CLEARING_AND_PRIORITY:
+            # First measurement not seen yet
+            if self.right_veh == UNKNOWN or self.opposite_veh == UNKNOWN:
+                self.random_delay = 1 + random()*self.T_UNKNOWN
+                self.set_state(State.SOLVING_UNKNOWN)
+            # Other cars with priority detected
+            elif self.right_veh == SignalsDetection.SIGNAL_PRIORITY or self.opposite_veh == SignalsDetection.SIGNAL_PRIORITY:
+                self.random_delay = self.T_MIN_RANDOM + random()*(self.T_MAX_RANDOM-self.T_MIN_RANDOM)
+                self.set_state(State.SACRIFICE_FOR_PRIORITY)
+                rospy.loginfo("[%s] Other vehicle are waiting as well. Will wait for %.2f s" %(self.node_name,self.random_delay))
+            # No cars detected
+            else:
+                self.set_state(State.KEEP_CALM)
 
         elif self.state == State.AT_STOP_CLEARING:
             # First measurement not seen yet
             if self.right_veh == UNKNOWN or self.opposite_veh == UNKNOWN:
                 self.random_delay = 1 + random()*self.T_UNKNOWN
                 self.set_state(State.SOLVING_UNKNOWN)
+            # Other cars with priority detected
+            elif self.right_veh == SignalsDetection.SIGNAL_PRIORITY or self.opposite_veh == SignalsDetection.SIGNAL_PRIORITY:
+                self.random_delay = self.T_MIN_RANDOM + random()*(self.T_MAX_RANDOM-self.T_MIN_RANDOM)
+                self.set_state(State.SACRIFICE_FOR_PRIORITY)
+                rospy.loginfo("[%s] Other vehicle are waiting as well. Will wait for %.2f s" %(self.node_name,self.random_delay))
+            # Other cars with priority detected
+            elif self.right_veh == SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY or self.opposite_veh == SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY:
+                self.random_delay = self.T_MIN_RANDOM + random()*(self.T_MAX_RANDOM-self.T_MIN_RANDOM)
+                self.set_state(State.SACRIFICE_FOR_PRIORITY)
+                rospy.loginfo("[%s] Other vehicle are waiting as well. Will wait for %.2f s" %(self.node_name,self.random_delay))
             # Other cars  detected
             elif self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
                 self.random_delay = self.T_MIN_RANDOM + random()*(self.T_MAX_RANDOM-self.T_MIN_RANDOM)
@@ -249,23 +290,46 @@ class VehicleCoordinator():
                 self.set_state(State.INTERSECTION_PLANNING)
 
 
+        elif self.state == State.SACRIFICE_FOR_PRIORITY:
+            # Wait a random delay
+            if self.time_at_current_state() > self.random_delay:
+                if self.priority:
+                    self.set_state(State.AT_STOP_CLEARING_AND_PRIORITY)
+                else:
+                    self.set_state(State.AT_STOP_CLEARING)
+
         elif self.state == State.SACRIFICE:
             # Wait a random delay
             if self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.KEEP_CALM:
-            # Other cars  detected
-            if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
-                self.set_state(State.SACRIFICE)
-            # No cars  detected
+            if self.priority:
+                # Other cars with priority detected
+                if self.right_veh == SignalsDetection.SIGNAL_PRIORITY or self.opposite_veh == SignalsDetection.SIGNAL_PRIORITY:
+                    self.set_state(State.SACRIFICE_FOR_PRIORITY)
+                # other cars not acknowledging my priority (just arrived)
+                elif self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
+                    self.set_state(State.KEEP_CALM)#TODO: otherwise will go to else
+                # No cars with priority detected
+                else:
+                    if self.time_at_current_state() > self.T_KEEP_CALM:
+                        self.set_state(State.GO)
             else:
-                if self.time_at_current_state() > self.T_KEEP_CALM:
-                    self.set_state(State.GO)
+                # Other cars  detected
+                if self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
+                    self.set_state(State.SACRIFICE)
+                    # No cars  detected
+                else:
+                    if self.time_at_current_state() > self.T_KEEP_CALM:
+                        self.set_state(State.GO)
 
         elif self.state == State.SOLVING_UNKNOWN:
             if self.time_at_current_state() > self.random_delay:
-                self.set_state(State.AT_STOP_CLEARING)
+                if self.priority:
+                    self.set_state(State.AT_STOP_CLEARING_AND_PRIORITY)
+                else:
+                    self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.TL_SENSING:
             rospy.loginfo("I have been waiting for: "+str(time()-self.begin_tl))
@@ -274,7 +338,10 @@ class VehicleCoordinator():
 
             #If a tl intersection april tag is present but tl is switched off, wait until tl_timeout then use led coordination
             elif time()-self.begin_tl > self.tl_timeout:
-                self.set_state(State.AT_STOP_CLEARING)
+                if self.priority:
+                    self.set_state(State.AT_STOP_CLEARING_AND_PRIORITY)
+                else:
+                    self.set_state(State.AT_STOP_CLEARING)
 
 
         # If not GO, pusblish wait
