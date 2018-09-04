@@ -40,14 +40,9 @@ class system_calibration(object):
 
         #Parameters
         self.start_calibrate = False
-        self.wait_for_message = 2 # At least wait 3 secs for tags collection after all watchtower have publish things.
+        self.wait_for_message = 15 # At least wait 3 secs for tags collection after all watchtower have publish things.
         self.deadline = time.time() + 100000 # set deadline really high at start, will be set to actual value later
         self.ready = False
-
-        #Watchtowers, to make sure they all send datas
-        self.watchtowers = {}
-        for wt in self.map_watchtowers:
-            self.watchtowers[wt] = False
 
 
     # A little recursive function to find the transformation from origin to end_tag
