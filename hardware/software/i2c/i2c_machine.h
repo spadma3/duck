@@ -20,6 +20,9 @@
 
 #include <stdint.h>
 #include "i2c_slave_defs.h"
+#define FirstRegisterAddress 0x06 //The LED0_ON_L Register on the PCA9685 is at 0x06
+#define BytesPerLedPwmChannel 0x04 //For each LED, 4 Byte of date are used in the PCA9685
+
 
 /* Initialise the USI and I2C state machine */
 void i2c_init(void);
@@ -28,7 +31,7 @@ void i2c_init(void);
  * Check for and handle a stop condition.
  * Returns non-zero if any registers have been changed
  */
-uint8_t i2c_check_stop(void);
+uint8_t i2c_check_stop(int8_t SlaveIndex);
 
 /*
  * Return non-zero if a transaction is ongoing
@@ -37,11 +40,16 @@ uint8_t i2c_check_stop(void);
  */
 uint8_t i2c_transaction_ongoing(void);
 
+extern uint8_t getI2CPWMValue(uint8_t , uint8_t );
+
 /*
  * These need to be instantiated somewhere in your application.
  * I2C_N_REG should be defined in i2c_slave_defs.h
  */
-extern volatile uint8_t i2c_reg[I2C_N_REG];
+extern volatile uint8_t i2c_reg[I2C_N_SLAVES][I2C_N_REG];
+
+
+
 #if !defined(I2C_GLOBAL_WRITE_MASK)
 /* See i2c_slave-defs.h */
 extern const uint8_t i2c_w_mask[I2C_N_REG];

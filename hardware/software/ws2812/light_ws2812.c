@@ -94,43 +94,18 @@ void ws2812_sendarray(uint8_t *data,uint16_t datlen)
   using the fast 800kHz clockless WS2811/2812 protocol.
 */
 
-// Timing in ns
-#define w_zeropulse   350
-#define w_onepulse    900
-#define w_totalperiod 1250
-
-// Fixed cycles used by the inner loop
-#define w_fixedlow    2
-#define w_fixedhigh   4
-#define w_fixedtotal  8   
-
-// Insert NOPs to match the timing, if possible
-#define w_zerocycles    (((F_CPU/1000)*w_zeropulse          )/1000000)
-#define w_onecycles     (((F_CPU/1000)*w_onepulse    +500000)/1000000)
-#define w_totalcycles   (((F_CPU/1000)*w_totalperiod +500000)/1000000)
-
 // w1 - nops between rising edge and falling edge - low
-#define w1 (w_zerocycles-w_fixedlow)
+#define w1 1
 // w2   nops between fe low and fe high
-#define w2 (w_onecycles-w_fixedhigh-w1)
+#define w2 5 
 // w3   nops to complete loop
-#define w3 (w_totalcycles-w_fixedtotal-w1-w2)
+#define w3 0
 
 #if w1>0
   #define w1_nops w1
 #else
   #define w1_nops  0
 #endif
-
-// The only critical timing parameter is the minimum pulse length of the "0"
-// Warn or throw error if this timing can not be met with current F_CPU settings.
-#define w_lowtime ((w1_nops+w_fixedlow)*1000000)/(F_CPU/1000)
-#if w_lowtime>550
-   #error "Light_ws2812: Sorry, the clock speed is too low. Did you set F_CPU correctly?"
-#elif w_lowtime>450
-   #warning "Light_ws2812: The timing is critical and may only work on WS2812B, not on WS2812(S)."
-   #warning "Please consider a higher clockspeed, if possible"
-#endif   
 
 #if w2>0
 #define w2_nops w2
@@ -155,8 +130,8 @@ static void inline ws2812_send_byte(uint8_t curbyte, uint8_t maskhi, uint8_t mas
     uint8_t ctr;
     asm volatile(
     "       ldi   %0,8  \n\t"
-    "loop%=:            \n\t"
-    "       out   %2,%3 \n\t"    //  '1' [01] '0' [01] - re
+    "loop%=:            \n\t"	 // loop 
+    "       out   %2,%3 \n\t"    // PORT = hi '1' [01] '0' [01] - re
 #if (w1_nops&1)
 w_nop1
 #endif
@@ -172,9 +147,9 @@ w_nop8
 #if (w1_nops&16)
 w_nop16
 #endif
-    "       sbrs  %1,7  \n\t"    //  '1' [03] '0' [02]
-    "       out   %2,%4 \n\t"    //  '1' [--] '0' [03] - fe-low
-    "       lsl   %1    \n\t"    //  '1' [04] '0' [04]
+    "       sbrs  %1,7  \n\t"    // if(x & x)	'1' [03] '0' [02]
+    "       out   %2,%4 \n\t"    //				'1' [--] '0' [03] - fe-low
+    "       lsl   %1    \n\t"    //				'1' [04] '0' [04]
 #if (w2_nops&1)
   w_nop1
 #endif
