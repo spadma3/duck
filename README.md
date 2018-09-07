@@ -28,7 +28,7 @@ Master is now a protected branch. [See docs here](https://github.com/blog/2051-p
 </thead>
 <tbody>
     <tr>
-        <td> <code>master</code> </td>
+        <td> <code>master18</code> </td>
         <td>
             <a href="https://circleci.com/gh/duckietown/Software/tree/master18">
                 <img src='https://circleci.com/gh/duckietown/Software/tree/master18.svg?style=shield'/></a>
