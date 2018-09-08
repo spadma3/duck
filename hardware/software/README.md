@@ -32,7 +32,7 @@ This enshures, that the modification time of all files is set to the current tim
 
 This removes all temporary files, so every thing has to be compiled freshly.
 
-if the output of "$make fuses" is at the end like
+if the output of `$ make fuses` is at the end like
  
     avrdude: verifying ...
     avrdude: 1 bytes of efuse verified
@@ -88,7 +88,7 @@ the output should look like
     avrdude done.  Thank you.
 
 
-With that, the MC should work. To change the MC programm, just edit the files, e.g with vim. With "$ make" you can complie and download the programm to the MC again.
+With that, the MC should work. To change the MC programm, just edit the files, e.g with vim. With `$ make` you can complie and download the programm to the MC again.
 
 
 Hint: in vim with the key [i] one can start editing mode, with [ESC], [:],[w],[q],[enter] one can leave edit mode and save the current file and close vim
