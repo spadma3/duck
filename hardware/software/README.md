@@ -6,27 +6,27 @@ on the rasberry pi, do the following commands (Note, the $ indicates a command, 
 
 
 install avrdude and gcc
-$ sudo apt-get install bison autoconf flex
-$ sudo apt-get install gcc-avr binutils-avr gdb-avr avr-libc avrdude
+    $ sudo apt-get install bison autoconf flex
+    $ sudo apt-get install gcc-avr binutils-avr gdb-avr avr-libc avrdude
 
 Copy the avrdude config file
-$ cd ~/duckietown/hardware/traffic-light/software/_avrdudeconfig/
-$ sudo cp avrdude.conf /etc/avrdude.conf
+    $ cd ~/duckietown/hardware/software/_avrdudeconfig/
+    $ sudo cp avrdude.conf /etc/avrdude.conf
 
 Test avrdude and set fuses
-$ cd ~/duckietown/hardware/traffic-light/software
+    $ cd ~/duckietown/hardware/traffic-light/software
 
-$ make fuses
+    $ make fuses
 
 if there is the message "make: warning:  Clock skew detected.  Your build may be incomplete." or the make process is not stopping and many debugging messages are showed, try the following
 
 Press Ctrl+C to stop the current commant.
 
-$find -exec touch \{\} \;
+    $find -exec touch \{\} \;
 
 This enshures, that the modification time of all files is set to the current time. Make decides, which files have to be compiled by comparing the source file time with the executable file time. If the executable file time lies in the future regarding the current system time, not all modified files are compiled. This could happen, when the clock of the rasberry pi is not set correctly and the file timestamps of e.g. a github pull are used.
 
-$make clean
+    $make clean
 
 This removes all temporary files, so every thing has to be compiled freshly.
 
@@ -44,7 +44,7 @@ the connection to the MC works and the fuses could be written. The fuses are som
 
 Compile the programm and download it to the MC
 
-$ make
+    $ make
 
 the output should look like
 
