@@ -16,7 +16,7 @@ This is the main software repository for [the Duckietown project][main]. It cont
 * `master19`: will start in 2019
 
 #### Continuous integration
- 
+
 See [the continuous integration console](https://circleci.com/gh/duckietown/Software/).
 
 Master is now a protected branch. [See docs here](https://github.com/blog/2051-protected-branches-and-required-status-checks).

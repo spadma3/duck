@@ -1,0 +1,10 @@
+<launch>
+	<arg name="filter" />
+	<node name="dt_live_instagram_duckbrown_node" pkg="dt_live_instagram_duckbrown" type="live-instagram.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~pub_timestep" value="0.5"/>
+                <param name="~topic" value="/duckbrown/camera_node/image/"/>
+		<!-- Remapping topics -->
+		<!-- <remap from="~topic_b" to="talker/topic_a"/> -->
+	</node>
+</launch>
