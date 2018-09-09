@@ -1,6 +1,6 @@
-# Package Fleet Planning {#package-fleet-planning}
+# Package Fleet Planning {#fleet_planning}
 
-The fleet planning package provides functionality for the high level control a large number of Duckiebots, the visualization of their locations and status on a map of the Duckietown and an interactive taxi service. 
+The fleet planning package provides functionality for the high level control a large number of Duckiebots, the visualization of their locations and status on a map of the Duckietown and an interactive taxi service.
 It will provide you with a GUI running on a laptop that can be used to generate transportation requests. The Duckiebots will pick up the customer at their location and bring him/her to their desired final destination.
 
 First, we describe what is needed, which includes:
@@ -26,17 +26,17 @@ The Duckiebot needs to be at least a DB17-jwd or, better, a DB17-jwdl.
 
 The Duckietown needs to have at least one apriltag visible at every intersection to allow localization. Make sure to have a description of your map available as a .csv file. For more infos on this see the localization package, or this [document](https://docs.google.com/document/d/1VE2v2Yn8d4wzA8DnPuA429gYzFeV_zTX8rDFCZCKIE0/edit). Also don't forget to transform the csv files to the xacro format using the corresponding script from the Duckietown_description package. Please note that the demo will NOT work if the Duckietown description is not correct.
 
-If you use this demo, you will have to install the fleet communication dependencies. This might take up to 40 minutes. For more, see below. 
+If you use this demo, you will have to install the fleet communication dependencies. This might take up to 40 minutes. For more, see below.
 
 ## Duckiebot setup notes {#package-Duckiebot-setup}
 
-Duckiebots need to have all the dependencies installed. Use the fleet level communication setup developed by the fleet-communications team and follow their instructions to install the necessary software that enables communication between mutiple ROS master nodes. Now identify the name of wifi interface on by running: `ifconfig`. It is probably named `wlan0` on the Duckiebot. The next step is to run the install script as follows: 
+Duckiebots need to have all the dependencies installed. Use the fleet level communication setup developed by the fleet-communications team and follow their instructions to install the necessary software that enables communication between mutiple ROS master nodes. Now identify the name of wifi interface on by running: `ifconfig`. It is probably named `wlan0` on the Duckiebot. The next step is to run the install script as follows:
 
-    ./install_fleet_messaging <wlan_interface> <ip_address> 
+    ./install_fleet_messaging <wlan_interface> <ip_address>
 
 Where `<wlan_interface>` is the name of the wlan interface as found with `ifconfig` and `<ip_address>` is a randomly chosen IP address of the form 192.168.x.x/24. The exact IP address is not important for fleet planning with a central node and only becomes relevant if one wanted to run communications without a central node. Make sure that you run this install script with different IP addresses for each Duckiebot that should be used in fleet planning.
 
-As a last step, ensure that all the Duckiebots are connected to the same wifi network. 
+As a last step, ensure that all the Duckiebots are connected to the same wifi network.
 
 ## Master Laptop setup notes {#package-fleet-planning-master-laptop-setup}
 
@@ -56,7 +56,7 @@ Check: You got popcorn and refreshments for the taxi customers
 
 
 ### Step 1:
-Pick a Duckiebot, log in via ssh. 
+Pick a Duckiebot, log in via ssh.
 
 ### Step 2: checkout correct branch
 Ensure you are using a branch that includes the fleet planning package.
@@ -83,7 +83,7 @@ Where `wlan_interface` is the interface you use to connect to the common network
 
 Wait until all nodes have successfully been initialized. Then proceed with step 6.
 
-Option: Set `joystick_demo:=true`to switch off to take the autonomous control of the Duckiebot out of the loop. This way you can manually steer the Duckiebot through Duckietown and see how the fleet planning software works, with as little dependency on other packages as possible. Pay attention to the terminal output of your Duckiebot to see which exit to take at an intersection. Give the Duckiebot time to localize at intersections. 
+Option: Set `joystick_demo:=true`to switch off to take the autonomous control of the Duckiebot out of the loop. This way you can manually steer the Duckiebot through Duckietown and see how the fleet planning software works, with as little dependency on other packages as possible. Pay attention to the terminal output of your Duckiebot to see which exit to take at an intersection. Give the Duckiebot time to localize at intersections.
 
 ### Step 6: Environment laptop
 On the laptop, checkout a branch including fleet planning as well, rebuild the catkin folder and in the Duckietown root folder run:
@@ -104,19 +104,19 @@ Where `wlan_interface` is the interface you use to connect to the common network
 
     rqt --force-discover
 
-If you don't see nothing meaningful, start the fleet planning plugin via the drop-down menu Plugins->Fleet Planning. 
+If you don't see nothing meaningful, start the fleet planning plugin via the drop-down menu Plugins->Fleet Planning.
 Note that the GUI was developed and tested on computers with relatively high resolutions (i.e. > 1920x1080); on smaller screens the map may not be shown entirely. The size of the map tiles can be changed in the code, if necessary, but with smaller tiles the readability of the map may suffer.
 
 ### Step 9: Have fun!
 Place your Duckiebot at an intersection and it will localize and appear on the map in rqt. The taxi central will automatically assign a mission to the Duckiebot at random to keep it moving and not blocking the streets. If you run the fleet planning in the standard mode, hit R1 on the joystick to go into auto pilot mode. The Duckiebot will now follow the instructions from the taxi central. If the joystick_demo is active, use the joystick to control the Duckiebot and follow the instructions from the Duckiebot's terminal output.
 
-Create a new customer request by clicking on the start node and then on the target node of your journey. Click 'Find Plan'. The taxi central will assign the customer to the closest Duckiebot and recalculate its path once it localizes again. The new path will be displayed on the map. You will see how the customer moves with its taxi once he was picked up. 
+Create a new customer request by clicking on the start node and then on the target node of your journey. Click 'Find Plan'. The taxi central will assign the customer to the closest Duckiebot and recalculate its path once it localizes again. The new path will be displayed on the map. You will see how the customer moves with its taxi once he was picked up.
 
-If a Duckiebot does not localize within a certain time window it will be removed from the map. 
+If a Duckiebot does not localize within a certain time window it will be removed from the map.
 
-### Step 10: More Duckiebots! 
-Once you get bored with only one Duckiebot on the map, or want to expand your business, add a another Duckiebot to your fleet by repeating steps 1-5. You may add a few more Duckiebots like this.  
+### Step 10: More Duckiebots!
+Once you get bored with only one Duckiebot on the map, or want to expand your business, add a another Duckiebot to your fleet by repeating steps 1-5. You may add a few more Duckiebots like this.
 
 ## Troubleshooting {#package-template-troubleshooting}
 
-The fleet planning package depends on many other packages to work well. You may take the lane following and intersection control packages out of the loop by activating the joystick demo. More details at step 5. 
+The fleet planning package depends on many other packages to work well. You may take the lane following and intersection control packages out of the loop by activating the joystick demo. More details at step 5.
