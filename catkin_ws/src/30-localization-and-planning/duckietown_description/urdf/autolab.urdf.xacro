@@ -238,38 +238,38 @@
         <xacro:tile visible="false" x="10" y="17"/>
         <xacro:tile visible="false" x="10" y="18"/>
         <!--Describe the tags-->
-        <xacro:tag id="62" pos="${pos_4}" rotation="90" x="0" y="3"/>
-        <xacro:tag id="144" pos="${pos_2}" rotation="0" x="0" y="4"/>
-        <xacro:tag id="61" pos="${pos_4}" rotation="90" x="0" y="7"/>
-        <xacro:tag id="66" pos="${pos_2}" rotation="0" x="0" y="8"/>
-        <xacro:tag id="58" pos="${pos_0}" rotation="270" x="1" y="4"/>
-        <xacro:tag id="241" pos="${pos_0}" rotation="270" x="1" y="8"/>
-        <xacro:tag id="233" pos="${pos_4}" rotation="90" x="2" y="11"/>
-        <xacro:tag id="156" pos="${pos_2}" rotation="0" x="2" y="12"/>
-        <xacro:tag id="132" pos="${pos_6}" rotation="180" x="3" y="11"/>
-        <xacro:tag id="150" pos="${pos_0}" rotation="270" x="3" y="12"/>
-        <xacro:tag id="143" pos="${pos_4}" rotation="90" x="3" y="0"/>
-        <xacro:tag id="60" pos="${pos_2}" rotation="0" x="3" y="1"/>
-        <xacro:tag id="155" pos="${pos_6}" rotation="180" x="4" y="0"/>
-        <xacro:tag id="63" pos="${pos_2}" rotation="0" x="3" y="4"/>
-        <xacro:tag id="135" pos="${pos_6}" rotation="180" x="4" y="3"/>
-        <xacro:tag id="142" pos="${pos_0}" rotation="270" x="4" y="4"/>
-        <xacro:tag id="234" pos="${pos_4}" rotation="90" x="4" y="7"/>
-        <xacro:tag id="232" pos="${pos_2}" rotation="0" x="4" y="8"/>
-        <xacro:tag id="197" pos="${pos_6}" rotation="180" x="5" y="7"/>
-        <xacro:tag id="45" pos="${pos_0}" rotation="270" x="5" y="8"/>
-        <xacro:tag id="198" pos="${pos_4}" rotation="90" x="6" y="3"/>
         <xacro:tag id="14" pos="${pos_2}" rotation="0" x="6" y="4"/>
+        <xacro:tag id="15" pos="${pos_4}" rotation="90" x="6" y="3"/>
         <xacro:tag id="16" pos="${pos_6}" rotation="180" x="7" y="3"/>
-        <xacro:tag id="263" pos="${pos_0}" rotation="270" x="7" y="4"/>
-        <xacro:tag id="146" pos="${pos_4}" rotation="90" x="6" y="0"/>
-        <xacro:tag id="55" pos="${pos_2}" rotation="0" x="6" y="1"/>
-        <xacro:tag id="152" pos="${pos_6}" rotation="180" x="7" y="0"/>
-        <xacro:tag id="133" pos="${pos_4}" rotation="90" x="9" y="3"/>
-        <xacro:tag id="68" pos="${pos_6}" rotation="180" x="10" y="3"/>
-        <xacro:tag id="157" pos="${pos_0}" rotation="270" x="10" y="4"/>
+        <xacro:tag id="45" pos="${pos_0}" rotation="270" x="5" y="8"/>
         <xacro:tag id="57" pos="${pos_4}" rotation="90" x="9" y="6"/>
-        <xacro:tag id="65" pos="${pos_6}" rotation="180" x="10" y="6"/>
+        <xacro:tag id="58" pos="${pos_0}" rotation="270" x="1" y="4"/>
+        <xacro:tag id="60" pos="${pos_2}" rotation="0" x="3" y="1"/>
+        <xacro:tag id="61" pos="${pos_4}" rotation="90" x="0" y="7"/>
+        <xacro:tag id="62" pos="${pos_4}" rotation="90" x="0" y="3"/>
+        <xacro:tag id="63" pos="${pos_2}" rotation="0" x="3" y="4"/>
         <xacro:tag id="64" pos="${pos_0}" rotation="270" x="10" y="7"/>
+        <xacro:tag id="65" pos="${pos_6}" rotation="180" x="10" y="6"/>
+        <xacro:tag id="66" pos="${pos_2}" rotation="0" x="0" y="8"/>
+        <xacro:tag id="68" pos="${pos_6}" rotation="180" x="10" y="3"/>
+        <xacro:tag id="132" pos="${pos_6}" rotation="180" x="3" y="11"/>
+        <xacro:tag id="133" pos="${pos_4}" rotation="90" x="9" y="3"/>
+        <xacro:tag id="135" pos="${pos_6}" rotation="180" x="4" y="3"/>
+        <xacro:tag id="136" pos="${pos_2}" rotation="0" x="6" y="1"/>
+        <xacro:tag id="142" pos="${pos_0}" rotation="270" x="4" y="4"/>
+        <xacro:tag id="143" pos="${pos_4}" rotation="90" x="3" y="0"/>
+        <xacro:tag id="144" pos="${pos_2}" rotation="0" x="0" y="4"/>
+        <xacro:tag id="146" pos="${pos_4}" rotation="90" x="6" y="0"/>
+        <xacro:tag id="150" pos="${pos_0}" rotation="270" x="3" y="12"/>
+        <xacro:tag id="152" pos="${pos_6}" rotation="180" x="7" y="0"/>
+        <xacro:tag id="155" pos="${pos_6}" rotation="180" x="4" y="0"/>
+        <xacro:tag id="156" pos="${pos_2}" rotation="0" x="2" y="12"/>
+        <xacro:tag id="157" pos="${pos_0}" rotation="270" x="10" y="4"/>
+        <xacro:tag id="197" pos="${pos_6}" rotation="180" x="5" y="7"/>
+        <xacro:tag id="232" pos="${pos_2}" rotation="0" x="4" y="8"/>
+        <xacro:tag id="233" pos="${pos_4}" rotation="90" x="2" y="11"/>
+        <xacro:tag id="241" pos="${pos_0}" rotation="270" x="1" y="8"/>
         <xacro:tag id="261" pos="${pos_0}" rotation="270" x="3" y="15"/>
+        <xacro:tag id="263" pos="${pos_0}" rotation="270" x="7" y="4"/>
+        <xacro:tag id="264" pos="${pos_4}" rotation="90" x="4" y="7"/>
     </robot>
