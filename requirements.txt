@@ -12,6 +12,7 @@ comptests==1.4.22
 DecentLogs==1.1.2
 QuickApp==1.3.12
 conftools==1.9.1
+picamera==1.12
 
 procgraph==1.10.10
 ros_node_utils==1.1.1

@@ -126,7 +126,7 @@ class system_calibration(object):
                 self.tag_transformation[tf_node.frame_id][tf_node.bot_id][0].append(trans)
                 self.tag_transformation[tf_node.frame_id][tf_node.bot_id][1].append(rot)
 
-
+        # print "Tag dict:", tag_dict
         # Take mean for redundant information
 
         # print "This is the information to work with:"
@@ -134,27 +134,28 @@ class system_calibration(object):
 
         for frame1 in tag_dict:
             tag_graph.add_node(frame1)
-            #print tag_graph.nodes
+            # print tag_graph.nodes
             # sys.stdout.write('\r%s' % (tag_graph.nodes))
             # sys.stdout.flush()
             for frame2 in tag_dict[frame1]:
                 tag_graph.add_node(frame2)
                 # sys.stdout.write('\r%s' % (tag_graph.nodes))
                 # sys.stdout.flush()
-                if len(self.tag_transformation[frame1][frame2][0]) > 1:
-                    trans_mean  =   np.mean(self.tag_transformation[frame1][frame2][0],axis=0)
-                    trans_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][0],axis=0))
-                    rot_mean    =   np.mean(self.tag_transformation[frame1][frame2][1],axis=0)
-                    rot_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][1],axis=0))
+                # if len(self.tag_transformation[frame1][frame2][0]) > 1:
+                trans_mean  =   np.mean(self.tag_transformation[frame1][frame2][0],axis=0)
+                trans_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][0],axis=0))
+                rot_mean    =   np.mean(self.tag_transformation[frame1][frame2][1],axis=0)
+                rot_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][1],axis=0))
 
-                    if trans_err > 0.05  or rot_err > 0.6:
-                        print "High error in between ", frame1, frame2, "Errors: ", trans_err, rot_err, np.std(self.tag_transformation[frame1][frame2][0],axis=0), np.std(self.tag_transformation[frame1][frame2][1],axis=0)
-                    else:
-                        self.tag_transformation[frame1][frame2] =[trans_mean.tolist(),rot_mean.tolist()]
-                        tag_graph.add_edge(frame1,frame2)
+                if trans_err > 0.05  or rot_err > 0.6:
+                    print "High error in between ", frame1, frame2, "Errors: ", trans_err, rot_err, np.std(self.tag_transformation[frame1][frame2][0],axis=0), np.std(self.tag_transformation[frame1][frame2][1],axis=0)
+                else:
+                    self.tag_transformation[frame1][frame2] =[trans_mean.tolist(),rot_mean.tolist()]
+                    tag_graph.add_edge(frame1,frame2)
                 # print frame1, frame2
 
-        #print tag_graph.nodes
+
+        # print tag_graph.nodes
         # print tag_graph.edges
         #
         # # Define a find shortest path function here
@@ -193,28 +194,28 @@ class system_calibration(object):
                 # path_node = path_node[::-1]
                 # print "path_node: ", path_node
                 #path_node= path_node[1:]
-                print "path_node: ", path_node
+                print "Path: ", path_node
                 if not path_node==None:
                     path_length[tag_node] = len(path_node)
                 else:
                     path_length[tag_node]=0
                 tag_relationship[tag_node] = self.from_origin_to_end(path_node)
-            # print tag_relationship[tag_node]
+            print tag_relationship[tag_node]
             # print repr(tag_relationship[tag_node]
-        fig, ax = plt.subplots()
-        for key,value in tag_relationship.iteritems():
-
-            try:
-                x = value[0][3]
-                y = value[1][3]
-                # ax.text(x, y, str(path_length[key]), ha='center', size=20)
-                ax.text(x, y, str(key), ha='center', size=12)
-            except:
-                print "Value for Tag ", key, "is None"
-
-        plt.show()
-        # print tag_relationship
-        return tag_relationship
+        # fig, ax = plt.subplots()
+        # for key,value in tag_relationship.iteritems():
+        #
+        #     try:
+        #         x = value[0][3]
+        #         y = value[1][3]
+        #         # ax.text(x, y, str(path_length[key]), ha='center', size=20)
+        #         ax.text(x, y, str(key), ha='center', size=12)
+        #     except:
+        #         print "Value for Tag ", key, "is None"
+        #
+        # plt.show()
+        # # print tag_relationship
+        # return tag_relationship
 
     ## Load Map Data
     def load_map_info(self, filename):
