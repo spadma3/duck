@@ -20,6 +20,7 @@ import time
 import global_pose_functions as gposf
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
 import matplotlib.pyplot as plt
+import averageQuaternions as avq
 
 class system_calibration(object):
 
@@ -144,7 +145,10 @@ class system_calibration(object):
                 # if len(self.tag_transformation[frame1][frame2][0]) > 1:
                 trans_mean  =   np.mean(self.tag_transformation[frame1][frame2][0],axis=0)
                 trans_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][0],axis=0))
-                rot_mean    =   np.mean(self.tag_transformation[frame1][frame2][1],axis=0)
+                # print size(self.tag_transformation[frame1][frame2][1])
+                Q = np.asarray(self.tag_transformation[frame1][frame2][1])
+                rot_mean    =   avq.averageQuaternions(Q)
+                # rot_mean    =   np.mean(self.tag_transformation[frame1][frame2][1],axis=0)
                 rot_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][1],axis=0))
 
                 if trans_err > 0.05  or rot_err > 0.6:
