@@ -5,7 +5,7 @@ parameters:
         desc: |
             Whether to compute and publish the corrected image.
         type: bool
-        default: false
+        default: true
 
 
 subscriptions:
