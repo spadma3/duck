@@ -50,6 +50,7 @@ class LaneFilterNode(object):
 
     def processSegments(self, segment_list_msg):
         if not self.active:
+            print('not active')
             return
 
         # Step 1: predict
