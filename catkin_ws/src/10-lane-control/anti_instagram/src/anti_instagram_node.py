@@ -16,7 +16,7 @@ class AntiInstagramNode(object):
         self.active = True
         self.locked = False
 
-        self.image_pub_switch = rospy.get_param("~publish_corrected_image",False)
+        self.image_pub_switch = rospy.get_param("~publish_corrected_image", True)
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher("~corrected_image", Image, queue_size=1)
