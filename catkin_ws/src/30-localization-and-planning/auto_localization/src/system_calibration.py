@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-## AIDO localization Sysem Calibration
-# Author: Chen-Lung (Eric) Lu , ETHZ NCTU, eric565648.eed03@g2.nctu.edu.tw
+## AIDO localization System Calibration
+# Author:  Chen-Lung (Eric) Lu , ETHZ NCTU, eric565648.eed03@g2.nctu.edu.tw
+#          Josefine Quack, ETHZ, jquack@ethz.ch 
 
 ## This script records the positions of all reference Apriltags
 # and save them into map file
@@ -77,8 +78,8 @@ class system_calibration(object):
     #  def sys_calib(self, msg_tfs):
     def callback(self,msg):
         msg_tfs = msg.poses
+        print msg_tfs
         self.tag_relationship = self.find_tag_relationship(msg_tfs)
-
         fixed_tags_data = []
         for tag in self.tag_relationship:
             # Every matrix is the transformation matrix between the tag and origin tag
@@ -151,11 +152,13 @@ class system_calibration(object):
                 # rot_mean    =   np.mean(self.tag_transformation[frame1][frame2][1],axis=0)
                 rot_err   =   np.linalg.norm(np.std(self.tag_transformation[frame1][frame2][1],axis=0))
 
+                # print np.linalg.norm(trans_mean)
+
                 if trans_err > 0.05  or rot_err > 0.6:
-                    print "High error in between ", frame1, frame2, "Errors: ", trans_err, rot_err, np.std(self.tag_transformation[frame1][frame2][0],axis=0), np.std(self.tag_transformation[frame1][frame2][1],axis=0)
+                    print "High STD in data of relative pose of: ", frame1, frame2, "\nErrors: ", trans_err, rot_err, np.std(self.tag_transformation[frame1][frame2][0],axis=0), np.std(self.tag_transformation[frame1][frame2][1],axis=0)
                 else:
                     self.tag_transformation[frame1][frame2] =[trans_mean.tolist(),rot_mean.tolist()]
-                    tag_graph.add_edge(frame1,frame2)
+                    tag_graph.add_edge(frame1,frame2,np.linalg.norm(trans_mean))
                 # print frame1, frame2
 
 
@@ -182,6 +185,7 @@ class system_calibration(object):
 
         tag_relationship = dict()
         path_length = {}
+        paths = {}
         for tag_node in tag_graph.nodes:
             print "tag_node: ", tag_node
             if tag_node == origin:
@@ -200,26 +204,40 @@ class system_calibration(object):
                 #path_node= path_node[1:]
                 print "Path: ", path_node
                 if not path_node==None:
+                    paths[tag_node]       = path_node
                     path_length[tag_node] = len(path_node)
                 else:
                     path_length[tag_node]=0
                 tag_relationship[tag_node] = self.from_origin_to_end(path_node)
             print tag_relationship[tag_node]
             # print repr(tag_relationship[tag_node]
-        # fig, ax = plt.subplots()
-        # for key,value in tag_relationship.iteritems():
-        #
-        #     try:
-        #         x = value[0][3]
-        #         y = value[1][3]
-        #         # ax.text(x, y, str(path_length[key]), ha='center', size=20)
-        #         ax.text(x, y, str(key), ha='center', size=12)
-        #     except:
-        #         print "Value for Tag ", key, "is None"
-        #
-        # plt.show()
-        # # print tag_relationship
-        # return tag_relationship
+
+        # create a plot from the results
+        fig, ax = plt.subplots()
+        for key,value in tag_relationship.iteritems():
+
+            try:
+                x = value[0][3]
+                y = value[1][3]
+                # ax.text(x, y, str(path_length[key]), ha='center', size=20)
+                ax.text(x, y, str(key), ha='center', size=12)
+            except:
+                print "Value for Tag ", key, "is None"
+
+        plt.show()
+        save_res = open("/home/duckietown/duckietown/catkin_ws/src/30-localization-and-planning/auto_localization/results/line_test/test_results", 'a+')
+        save_res.write("{:%Y%m%d-%H%M}".format(datetime.now()))
+        save_res.write("\n"+repr(paths))
+        save_res.write("\n"+repr(tag_relationship))
+
+
+
+
+
+        print tag_relationship
+
+
+        return tag_relationship
 
     ## Load Map Data
     def load_map_info(self, filename):

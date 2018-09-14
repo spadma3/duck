@@ -28,7 +28,7 @@ class system_calibration_unit_test(object):
         # create a grid of apriltags
         for i in xrange(1,1000):
             for row in xrange(1,20):
-                msg.poses.append(gposf.pose_msg_from_trans_rot(row,row+1, trans+0.1*np.random.rand(3,), rot+0*np.random.rand(4,), host))
+                msg.poses.append(gposf.pose_msg_from_trans_rot(row,row+1, trans+0*np.random.rand(3,), rot+0.001*np.random.rand(4,), host))
                     # msg.poses.append(gposf.pose_msg_from_trans_rot(column,row, trans, rot, host))
                 # for row in xrange(1,20):
 
