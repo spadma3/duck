@@ -70,11 +70,11 @@ class JoyMapper(object):
         if self.bicycle_kinematics:
             # Implements Bicycle Kinematics - Nonholonomic Kinematics
             # see https://inst.eecs.berkeley.edu/~ee192/sp13/pdf/steer-control.pdf
-            steering_angle = self.joy.axes[0] * self.steer_angle_gain
+            steering_angle = -self.joy.axes[0] * self.steer_angle_gain
             car_cmd_msg.omega = car_cmd_msg.v / self.simulated_vehicle_length * math.tan(steering_angle)
         else:
             # Holonomic Kinematics for Normal Driving
-            car_cmd_msg.omega = self.joy.axes[0] * self.omega_gain
+            car_cmd_msg.omega = -self.joy.axes[0] * self.omega_gain
         self.pub_car_cmd.publish(car_cmd_msg)
 
 # Button List index of joy.buttons array:
