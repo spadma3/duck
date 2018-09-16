@@ -1,0 +1,16 @@
+<launch>
+	<arg name="config" default="baseline"/>
+	<!-- <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/> -->
+	<arg name="local" default="false" doc="true to launch locally on laptop. false to launch of vehicle"/>
+	<arg name="pkg_name" default="fleet_planning" doc="name of the package"/>
+	<arg name="node_name" default="map_draw_node" doc="name of the node"/>
+	<arg name="map_name" default="autolab_tiles_map"/>
+	<arg name="map_dir" default="$(find fleet_planning)/src/maps/"/>
+	<arg name="gui_img_dir" default = "$(find fleet_planning)/include/gui_images/"/>
+	<param name="map_name" value="$(arg map_name)"/>
+	<param name="map_dir" value="$(arg map_dir)"/>
+	<param name="gui_img_dir" value="$(arg gui_img_dir)"/>
+	    <!-- Local -->
+	    <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="log" clear_params="true" required="true"></node>
+
+</launch>

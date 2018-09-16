@@ -1,0 +1,7 @@
+# Deep Learning Object Detector Parameter
+multivehicle_tracker:
+  detection_info: {id: 1, label: bot}
+  nearest_neighbor_threshold: 0.25
+  predection_interval: 0.1
+
+
