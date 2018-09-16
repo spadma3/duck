@@ -155,6 +155,7 @@ nodes:
 
   central_fleet_planning_node: "central_fleet_planning_node/switch"
   coordinator_node: "coordinator_node/switch"  #NOTE explicit coordination
+  unicorn_intersection_node: "unicorn_intersection_node/switch" #NOTE a.k.a. semi closed loop intersection navigation
   obstacle_avoidance_node: "obstacle_avoidance_node/switch"
   obstacle_detection_node: "obstacle_detection_node/switch"
   implicit_coordination_node: "implicit_coordination_node/switch"
@@ -260,6 +261,7 @@ states:
       - led_detector_node
     #  - implicit_coordination_node NOTE use the explicit when possible
       - coordinator_node
+      - unicorn_intersection_node
     lights: ["coordination"]
     current_status: "in_progress"
   INTERSECTION_CONTROL:
@@ -280,6 +282,7 @@ states:
       - intersection_navigation_node
       - intersection_localization_node
       - lane_controller_node
+      - unicorn_intersection_node
     current_status: "in_progress"
 
   IN_CHARGING_AREA:
