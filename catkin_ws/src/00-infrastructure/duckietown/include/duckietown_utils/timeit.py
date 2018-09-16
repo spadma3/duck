@@ -1,9 +1,7 @@
 from contextlib import contextmanager
-import sys
 import time
 
 from .constants import DuckietownConstants
-from .logging_logger import logger
 
 __all__ = [
     'rospy_timeit_clock',
@@ -47,13 +45,13 @@ def timeit_generic(desc, minimum, time_function):
     if minimum is not None:
         if delta < minimum:
             return
-    if DuckietownConstants.show_timeit_benchmarks or minimum is not None:
+    if DuckietownConstants.show_timeit_benchmarks or (minimum is not None):
         pre = '   ' * len(Stack.stack)
         msg = 'timeit_clock: %s %6.2f ms  for %s' % (pre, delta * 1000, desc)
-        t0 = time_function()
+#        t0 = time_function()
         print(msg)
-        t1 = time_function()
-        delta = t1 - t0
+#        t1 = time_function()
+#        delta = t1 - t0
 
 
 @contextmanager

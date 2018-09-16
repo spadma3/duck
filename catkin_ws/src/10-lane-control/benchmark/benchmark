@@ -1,0 +1,422 @@
+#!/usr/bin/python
+import sys
+import time
+import rosbag
+import argparse
+import cv2
+import os
+import numpy as np
+import matplotlib.ticker as ticker
+import duckietown_utils as dtu
+
+from anti_instagram.AntiInstagram import AntiInstagram
+from ground_projection.GroundProjection import GroundProjection
+from lane_filter.lane_filter import *
+from matplotlib import pyplot as plt
+from os.path import (isfile, dirname, basename)
+from os import (makedirs, environ, path)
+from sensor_msgs.msg import CameraInfo
+from easy_algo.algo_db import get_easy_algo_db
+from duckietown_msgs.msg import (Segment, SegmentList)
+from line_detector.visual_state_fancy_display import vs_fancy_display
+from line_detector2.run_programmatically import FakeContext
+
+import warnings
+warnings.filterwarnings("ignore")
+
+
+class Benchmark():
+    def __init__(self):
+        self.path = None
+        self.robot = None
+        self.save_images = False
+        self.preparer = 'prep_200_70'
+        self.fast = True
+        self.detector = 'baseline'
+        self.context = FakeContext()
+
+        # Set topics we want to read out
+        self.topics_needed = []
+        self.topics_needed.append('line_detector_node/segment_list')
+        self.topics_needed.append('lane_filter_node/lane_pose')
+        self.topics_needed.append('lane_filter_node/belief_img')
+        self.topics_needed.append('image/compressed')
+        self.topics_needed.append('lane_controller_node/car_cmd')
+
+    def run(self):
+        pathArray = []
+
+        # Perform file check
+        if not os.path.isfile(self.path):
+            if os.path.isdir(self.path):
+                for file in os.listdir(self.path):
+                    if file.endswith(".bag"):
+                        pathArray.append(os.path.join(self.path, file))
+                print('Input rosbags:')
+                for file in (pathArray):
+                    print(file)
+            elif not os.path.isdir(self.path):
+                print('The file "%s" does not exist' % self.path)
+                exit(2)
+        else:
+            pathArray.append(self.path)
+
+        for i in range(len(pathArray)):
+            print('\n[ %d / %d ] Now Processing: %s' % (i + 1, len(pathArray), pathArray[i]))
+            self.rosbagPath = pathArray[i]
+            self.rosbagIN = basename(self.rosbagPath)
+            self.output = ('%s/%s/%s' % (dirname(self.rosbagPath), args.output, self.rosbagIN[:-4]))
+
+            # Check if rosbag has already been processed
+            if not os.path.isdir(self.output):
+                # Create missing folders
+                try:
+                    makedirs(self.output)
+                except:
+                    pass
+
+                self.processBag()
+                print('[ %d / %d ] Successfully processed: %s\n' % (i + 1, len(pathArray), pathArray[i]))
+            else:
+                print('[ %d / %d ] Rosbag %s is already existing' % (i + 1, len(pathArray), self.rosbagIN[:-4]))
+                continue
+            #     answer = input('Overwrite? [y/n]')
+            #     if answer or answer[0].lower() == 'y':
+            #         self.processBag()
+
+    def load_filter_config(self, filename=''):
+        # Load lane_filter config
+        if not isfile(filename):
+            filename = dtu.path_utils.get_ros_package_path('duckietown') + '/config/baseline/lane_filter/lane_filter_node/default.yaml'
+        filter_config = dtu.yaml_wrap.yaml_load_file(filename)
+        configuration = []
+        configuration.append(filter_config['filter'][0])
+        configuration.append(filter_config['filter'][1])
+        dtu.logger.info("Loaded lane_filter configuration")
+        return configuration
+
+    def load_camera_info(self):
+        # Load camera information
+        filename = (environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + self.robot + ".yaml")
+        if not isfile(filename):
+            dtu.logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot))
+            filename = (environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
+            if not isfile(filename):
+                logger.error("can't find default either, something's wrong")
+        calib_data = dtu.yaml_wrap.yaml_load_file(filename)
+        cam_info = CameraInfo()
+        cam_info.width = calib_data['image_width']
+        cam_info.height = calib_data['image_height']
+        cam_info.K = calib_data['camera_matrix']['data']
+        cam_info.D = calib_data['distortion_coefficients']['data']
+        cam_info.R = calib_data['rectification_matrix']['data']
+        cam_info.P = calib_data['projection_matrix']['data']
+        cam_info.distortion_model = calib_data['distortion_model']
+        dtu.logger.info("Loaded camera calibration parameters for {} from {}".format(self.robot, path.basename(filename)))
+        return cam_info
+
+    def init_image_pipeline(self):
+        # Initialize variables
+            algo_db = get_easy_algo_db()
+            self.line_detector = algo_db.create_instance('line_detector', self.detector)
+            self.image_preparer = algo_db.create_instance('image_prep', self.preparer)
+
+            # Instantiate needed classes
+            self.ai = AntiInstagram()
+            dtu.logger.info('Initialized instance of AntiInstagram')
+
+            self.gp = GroundProjection(self.robot)
+            dtu.logger.info('Initialized instance of GroundProjection')
+            self.ci = CameraInfo()
+            self.ci = self.load_camera_info()
+            self.gp.initialize_pinhole_camera_model(self.ci)
+
+            lf_config = self.load_filter_config()
+            assert isinstance(lf_config, list) and len(lf_config) == 2, lf_config
+            self.lf = None
+            self.lf = dtu.instantiate_utils.instantiate(lf_config[0], lf_config[1])
+            dtu.logger.info('Initialized instance of %s' % str(lf_config[0]))
+            dtu.logger.info("Running image pipeline with %s line_detector and %s" % (self.detector, self.preparer))
+
+    def process_image(self, imgArray, i, dComputedArray, phiComputedArray):
+        img = dtu.rgb_from_ros(imgArray[0])
+        input = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        # Transform image
+        if (i == 0):
+            self.ai.calculateTransform(input)
+        input_transformed = self.ai.applyTransform(input)
+        input_transformed = np.clip(input_transformed, 0, 255).astype(np.uint8)
+
+        # Undistort image
+        input_rectified = self.gp.rectify(input_transformed)
+
+        # Get SegmentList from rectified image
+        segmentList = SegmentList()
+        segmentList_transformed = SegmentList()
+        segmentList = self.image_preparer.process(self.context, input_rectified, self.line_detector, transform=None)
+        segmentList_transformed.header = segmentList.header
+
+        # Get ground truth of segmentList
+        for received_segment in segmentList.segments:
+            new_segment = Segment()
+            new_segment.points[0] = self.gp.vector2ground(received_segment.pixels_normalized[0])
+            new_segment.points[1] = self.gp.vector2ground(received_segment.pixels_normalized[1])
+            new_segment.color = received_segment.color
+            # TODO what about normal and points
+            segmentList_transformed.segments.append(new_segment)
+
+        # Get Estimation
+        self.lf.update(segmentList_transformed.segments)
+
+        result = vs_fancy_display(input_rectified, segmentList)
+        [d_max, phi_max] = self.lf.getEstimate()
+        max_val = self.lf.getMax()
+        in_lane = max_val > self.lf.min_max
+
+        result = self.add_Pose_text(result, d_max, phi_max)
+
+        dComputedArray.append([d_max, imgArray[1]])
+        phiComputedArray.append([phi_max, imgArray[1]])
+        return result
+
+    def add_Pose_text(self, img, d_max, phi_max):
+        from PIL import Image
+        from PIL import ImageFont
+        from PIL import ImageDraw
+
+        img_h, img_w = img.shape[:2]
+        img = Image.fromarray(img)
+        draw = ImageDraw.Draw(img)
+        fontsize = 24
+        pad = 8
+        font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf", fontsize)
+        text_d = '  d_err: %s' % d_max
+        text_phi = 'phi_err: %s' % phi_max
+        w_d, h_d = font.getsize(text_d)
+        w_phi, h = font.getsize(text_phi)
+        w = max(w_d, w_phi)
+        x_pos, y_pos = (img_w / 2 - (w/2), img_h - (2*h) - pad)
+        draw.rectangle((x_pos - pad, y_pos - pad, x_pos + w + pad, y_pos + (2*h) + pad), fill='black')
+        draw.text((x_pos, y_pos), text_d, fill=(255, 255, 255), font=font)
+        draw.text((x_pos, y_pos + h), text_phi, fill=(255, 255, 255), font=font)
+        return np.array(img)
+
+    def create_Plots(self, dArray, phiArray, dComputedArray, phiComputedArray, segmentArray, vArray, omegaArray):
+        plt.rcParams.update({'font.size': 10})
+        if segmentArray.any():
+            fig, ax = plt.subplots(4, sharex=True)
+            box_posH = 0.16
+        else:
+            fig, ax = plt.subplots(2, sharex=True)
+            box_posH = 0.13
+        ax[0].plot(dArray[:, 1] - self.startTime, dArray[:, 0] * 100, color="blue", label=r'$d_{est}$')
+        ax[1].plot(phiArray[:, 1] - self.startTime, phiArray[:, 0], color="red", label=r'$phi_{est}$')
+        if dComputedArray.any():
+            ax[0].plot(dComputedArray[:, 1] - self.startTime, dComputedArray[:, 0] * 100, linestyle=':', color="blue", label=r'$d_{comp}$')
+            ax[1].plot(phiComputedArray[:, 1] - self.startTime, phiComputedArray[:, 0], linestyle=':', color="red", label=r'$phi_{comp}$')
+        ax[0].set_title('Performance evaluation of %s' % self.rosbagIN[:-4])
+        ax[0].set_ylim(-25, 25)
+        ax[0].yaxis.set_major_locator(ticker.MaxNLocator(10))
+        ax[0].set_ylabel('distance [cm]')
+        ax[0].set_xlim(left=0)
+        ax[0].xaxis.set_major_locator(ticker.MaxNLocator(10))
+        ax[0].xaxis.set_minor_locator(ticker.MaxNLocator(50))
+        ax[0].legend(loc='upper right')
+        ax[0].grid(color='grey', linestyle=':', linewidth=1)
+        ax[0].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
+        ax[0].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(np.mean(dArray[:, 0]), 3), round(np.median(dArray[:, 0]), 3)), ha="right",
+                   va="center", transform=ax[0].transAxes, bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
+        
+        ax[1].set_ylim(-2.5, 2.5)
+        ax[1].set_ylabel('tracking angle [deg]')
+        ax[1].yaxis.set_major_locator(ticker.MaxNLocator(10))
+        ax[1].legend(loc='upper right')
+        ax[1].grid(color='grey', linestyle=':', linewidth=1)
+        ax[1].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
+        ax[1].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(np.mean(phiArray[:, 0]), 3), round(np.mean(phiArray[:, 0]), 3)), ha="right",
+                   va="center", transform=ax[1].transAxes, bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
+
+        if segmentArray.any():
+            ax[2].plot(vArray[:, 1] - self.startTime, vArray[:, 0], color="grey", label=r'$v$')
+            ax[2].plot(omegaArray[:, 1] - self.startTime, omegaArray[:, 0], color="black", label=r'$omega$')
+            ax[2].set_ylim(-5, 5)
+            ax[2].set_ylabel('car_cmd values ' + r'$[m/s]$' + ' ' + r'$[rad/s]$')
+            ax[2].set_xlabel('time [sec]')
+            ax[2].yaxis.set_major_locator(ticker.MaxNLocator(10))
+            ax[2].legend(loc='upper right')
+            ax[2].grid(color='grey', linestyle=':', linewidth=1)
+            ax[2].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
+            
+            ax[3].plot(segmentArray[:, 1] - self.startTime, segmentArray[:, 0], color="orange", label=r'$n_{segment}$')
+            ax[3].set_ylim(10, 110)
+            ax[3].set_ylabel('amount of segments')
+            ax[3].set_xlabel('time [sec]')
+            ax[3].yaxis.set_major_locator(ticker.MaxNLocator(10))
+            ax[3].legend(loc='upper right')
+            ax[3].grid(color='grey', linestyle=':', linewidth=1)
+            ax[3].grid(which='minor', color='grey', linestyle=':', alpha=0.5, linewidth=1)
+            ax[3].text(0.99, box_posH, "mean: %s\nmedian: %s" % (round(np.mean(segmentArray[:, 0]), 3), round(np.median(segmentArray[:, 0]), 3)), ha="right",
+                       va="center", transform=ax[3].transAxes, bbox={'boxstyle': 'square', 'fc': 'white', 'ec': 'black'})
+        
+        # Save the plot
+        fig.set_size_inches(20, 10)
+        fig.savefig('%s/%s.png' % (self.output, self.rosbagIN[:-4]), dpi=300, bbox_inches='tight')
+
+    def write_Logs(self, dArray, phiArray, lanePoseProcessTime, segmentArray, SegmentProcessTime, vArray, omegaArray):
+        # Write performance summary
+        logFile = open(('%s/%s.txt' % (self.output, self.rosbagIN[:-4])), 'w')
+        logFile.write('Benchmark results for %s\n' % self.rosbagIN[:-4])
+        logFile.write('\tdist min:\t%s\n' % round(np.min(dArray[:, 0]), 3))
+        logFile.write('\tdist max:\t%s\n' % round(np.max(dArray[:, 0]), 3))
+        logFile.write('\tdist mean:\t%s\n' % round(np.mean(dArray[:, 0]), 3))
+        logFile.write('\tdist med:\t%s\n' % round(np.median(dArray[:, 0]), 3))
+        logFile.write('\tdist var:\t%s\n' % round(np.var(dArray[:, 0]), 4))
+        logFile.write('\tdist std:\t%s\n\n' % round(np.std(dArray[:, 0]), 4))
+
+        logFile.write('\tphi min:\t%s\n' % round(np.min(phiArray[:, 0]), 3))
+        logFile.write('\tphi max:\t%s\n' % round(np.max(phiArray[:, 0]), 3))
+        logFile.write('\tphi mean:\t%s\n' % round(np.mean(phiArray[:, 0]), 3))
+        logFile.write('\tphi med:\t%s\n' % round(np.median(phiArray[:, 0]), 3))
+        logFile.write('\tphi var:\t%s\n' % round(np.var(phiArray[:, 0]), 4))
+        logFile.write('\tphi std:\t%s\n' % round(np.std(phiArray[:, 0]), 4))
+
+        if segmentArray.any():
+            logFile.write('\nImage segments statistics:')
+            logFile.write('\tAverage amount of segments:\t%s\n' % round(np.mean(segmentArray[:, 0]), 3))
+            logFile.write('\tMedian amount of segments:\t%s\n' % round(np.median(segmentArray[:, 0]), 3))
+            logFile.write('\tAverage processing time for line detector (on duckiebot):\t%s\n' % round(SegmentProcessTime, 3))
+            logFile.write('\tAverage processing time for lane filter (on duckiebot):\t%s\n' % round(lanePoseProcessTime, 3))
+
+        logFile.write('\nRosbag processing time: %f\n' % (self.toc - self.tic))
+        logFile.write('\tAverage processing time per frame: %f\n' % ((self.toc - self.tic) / len(dArray)))
+        logFile.write('\tImage preparer used on computer: %s\n' % self.preparer)
+
+        # Write csv file with all the data
+        logFile = open(('%s/%s.csv' % (self.output, self.rosbagIN[:-4])), 'w')
+        logFile.write('Timestamp; Distance; Angle; Speed, Omega, Segments:\n')
+        if segmentArray.any():
+            for time, d, phi, v, omega, seg in zip(dArray[:, 1] - self.startTime, dArray[:, 0], phiArray[:, 0], vArray[:, 0], omegaArray[:, 0], segmentArray[:, 0]):
+                logFile.write('%s; %s; %s; %s; %s; %s\n' % (time, d, phi, v, omega, seg))
+        else:
+            for d, phi, in zip(dArray, phiArray):
+                logFile.write('%s; %s\n' % (d, phi))
+
+    def getMessages(self):
+        MessageArray = [[]]*len(self.topics_needed)
+
+        # Instantiate rosbag Object
+        bag = rosbag.Bag(self.rosbagPath)
+        self.robot = dtu.bag_info.which_robot(bag)
+        topics = bag.get_type_and_topic_info().topics
+        print('Reading data from: "%s"' % self.rosbagIN)
+        print('Robot name: %s' % self.robot)
+        
+        for topic in topics:
+            for index in range(len(self.topics_needed)):
+                if self.topics_needed[index] in topic:
+                    messages = list(bag.read_messages(topic))
+                    print('Reading %d\t messages of: %s' % (len(messages), topic))
+                    tmp = []
+                    for i in range(len(messages)):
+                        tmp.append([messages[i][1], messages[i][2].to_sec()])
+                    MessageArray[index] = np.asarray(tmp)
+
+        bag.close()
+        return MessageArray
+
+    def processBag(self):
+        self.tic = time.time()
+
+        # Initialize variables
+        dArray = []
+        phiArray = []
+        dComputedArray = []
+        phiComputedArray = []
+        vArray = []
+        omegaArray = []
+        segmentArray = []
+        SegmentProcessTime = 0
+        lanePoseProcessTime = 0
+        MessageArray = self.getMessages()
+
+        self.startTime = MessageArray[3][0, 1]
+
+        MessageArray[0] = np.asarray(MessageArray[0])
+
+        if MessageArray[0].any():
+            nSegmentLists = len(MessageArray[0])
+            nlanePoses = len(MessageArray[1])
+            SegmentProcessTime = (MessageArray[0][-1][1] - MessageArray[0][0][1]) / nSegmentLists
+            lanePoseProcessTime = (MessageArray[1][-1][1] - MessageArray[1][0][1]) / nlanePoses
+            for i in range(len(MessageArray[0])):
+                segmentArray.append([len(MessageArray[0][i, 0].segments), MessageArray[0][i, 1]])
+            for i in range(len(MessageArray[1])):
+                dArray.append([MessageArray[1][i][0].d, MessageArray[1][i][1]])
+                phiArray.append([MessageArray[1][i][0].phi, MessageArray[1][i][1]])
+            for i in range(len(MessageArray[4])):
+                vArray.append([MessageArray[4][i][0].v, MessageArray[4][i][1]])
+                omegaArray.append([MessageArray[4][i][0].omega, MessageArray[4][i][1]])
+        else:
+            self.fast = 'False'
+
+        dArray = np.asarray(dArray)
+        phiArray = np.asarray(phiArray)
+        vArray = np.asarray(vArray)
+        omegaArray = np.asarray(omegaArray)
+
+        if not dArray.any():
+            self.fast = 'False'
+
+        if self.fast == 'False':
+            self.init_image_pipeline()
+
+            for i in range(len(MessageArray[3])):
+                progress = float(i) / len(MessageArray[3]) * 100
+                sys.stdout.write('\r[ %i%% ] Processing frames... ' % int(progress))
+                sys.stdout.flush()
+                result = self.process_image(MessageArray[3][i], i, dComputedArray, phiComputedArray)
+                if self.save_images:
+                    dtu.write_image_as_jpg(result, '%s/%05d.jpg' % (self.output, i))
+            
+            dComputedArray = np.asarray(dComputedArray)
+            phiComputedArray = np.asarray(phiComputedArray)
+
+        segmentArray = np.asarray(segmentArray)
+        dComputedArray = np.asarray(dComputedArray)
+        phiComputedArray = np.asarray(phiComputedArray)
+
+        if not MessageArray[0].any() or not dArray.any():
+            dArray = dComputedArray
+            phiArray = phiComputedArray
+
+        print('\nDone')
+        self.toc = time.time()
+        print('Time Elapsed: %f' % (self.toc - self.tic))
+
+        self.create_Plots(dArray, phiArray, dComputedArray, phiComputedArray, segmentArray, vArray, omegaArray)
+        self.write_Logs(dArray, phiArray, lanePoseProcessTime, segmentArray, SegmentProcessTime, vArray, omegaArray)
+
+
+if __name__ == '__main__':
+    # Create new Benchmark Instance
+    bm = Benchmark()
+
+    # Parse input arguments
+    parser = argparse.ArgumentParser(description='Read images from a given bag \
+        and parse them through the image processing pipeline \
+        to determine performance of the pose_estimator and lane_controller')
+    parser.add_argument('rosbag', type=str, help='Input rosbag file')
+    parser.add_argument('--output', type=str, help='Output folder where logs are being stored', default="output", required=False)
+    parser.add_argument('--save_images', help='If to save the processed images from the rosbag', default=False, required=False)
+    parser.add_argument('--preparer', help='Lane filter configuration to use', default='prep_200_70', required=False)
+    parser.add_argument('--fast', help='Only readout rosbag data without computing image segments', default=True, required=False)
+
+    args = parser.parse_args()
+    bm.path = args.rosbag
+    bm.save_images = args.save_images
+    bm.preparer = args.preparer
+    bm.fast = args.fast
+
+    bm.run()

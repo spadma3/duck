@@ -4,7 +4,6 @@ import shutil
 import yaml
 
 import duckietown_utils as dtu
-from duckietown_utils.logging_logger import logger
 import numpy as np
 
 
@@ -29,6 +28,7 @@ homography: [-5.828719e-05, -0.0001358896, -0.2350442, 0.001113641, -2.290353e-0
 
 @dtu.contract(robot_name=str, returns='array[3x3]')
 def get_homography_for_robot(robot_name):
+    dtu.check_isinstance(robot_name, str)
     # find the file
     if robot_name == dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS:
         data = dtu.yaml_load(homography_default)
@@ -59,6 +59,7 @@ def homography_from_yaml(data):
 
 
 def get_homography_info_config_file(robot_name):
+    strict = False
     roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
              os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
 
@@ -68,7 +69,7 @@ def get_homography_info_config_file(robot_name):
         fn = os.path.join(df, 'camera_extrinsic', robot_name + '.yaml')
         if os.path.exists(fn):
             found.append(fn)
-            logger.info("Using filename %s" % fn)
+            dtu.logger.info("Using filename %s" % fn)
 
     if len(found) == 0:
         msg = 'Cannot find homography file for robot %r;\n%s' % (robot_name, roots)
@@ -78,7 +79,11 @@ def get_homography_info_config_file(robot_name):
     else:
         msg = 'Found more than one configuration file: \n%s' % "\n".join(found)
         msg += "\n Please delete one of those."
-        raise Exception(msg)
+        if strict:
+            raise Exception(msg)
+        else:
+            dtu.logger.error(msg)
+            return found[0]
 
 
 def get_extrinsics_filename(robot_name):

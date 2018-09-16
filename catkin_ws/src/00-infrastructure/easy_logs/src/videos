@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # @create-shortcut-for-this
-from duckietown_utils.cli import d8app_run
+from easy_logs.cli import main_videos
 
-from easy_logs.cli.videos import MakeVideos
-
-
-if __name__ == '__main__':
-    d8app_run(MakeVideos)
+main_videos()

@@ -5,8 +5,8 @@ import random
 from bs4.element import Tag
 
 import duckietown_utils as dtu
-from duckietown_utils.download import get_dropbox_urls
 from easy_logs.app_with_logs import D8AppWithLogs
+from easy_logs.resource_desc import DTR
 
 from .easy_logs_summary_imp import format_logs
 
@@ -15,21 +15,29 @@ __all__ = [
 ]
 
 
+def show_url(x):
+    return x.startswith('http')
+
+
 class Gallery(D8AppWithLogs):
     """
         Creates the gallery for the logs.
 
     """
 
-    cmd = 'rosrun easy_logs gallery'
+    cmd = 'dt-logs-gallery'
+
+    deploy_ipfs = False
 
     def define_options(self, params):
         params.add_string('destination', help='Destination directory')
+        params.add_flag('ipfs', help='Deploy on IPFS')
         params.accept_extra()
 
     def go(self):
-
         extra = self.options.get_extra()
+
+        Gallery.deploy_ipfs = self.options.ipfs
 
         if not extra:
             query = '*'
@@ -56,56 +64,65 @@ class Gallery(D8AppWithLogs):
         s = format_logs(logs)
         self.info(s)
 
+        res = get_report(logs)
+
         out = self.options.destination
         fn_html = os.path.join(out, 'index.html')
 
-        length = 0
-        vehicles = set()
-        for log_name, log in logs.items():
-            length += log.length
-            vehicles.add(log.vehicle)
+        dtu.write_data_to_file(res, fn_html)
 
-        html = Tag(name='html')
-        body = Tag(name='body')
 
-        head = Tag(name='head')
-        link = Tag(name='link')
-        link.attrs['type'] = 'text/css'
-        link.attrs['rel'] = 'stylesheet'
-        link.attrs['href'] = 'style.css'
-        title = Tag(name='title')
-        title.append('Duckietown Logs Database')
-        head.append(link)
-        html.append(head)
-        html.append(body)
+def get_report(logs, url_to_resource, initial_screens=True):
+    length = 0
+    vehicles = set()
+    for _, log in logs.items():
+        length += log.length
+        vehicles.add(log.vehicle)
 
-        h = Tag(name='h1')
-        h.append('Duckietown Logs Database')
-        body.append(h)
+    html = Tag(name='html')
+    body = Tag(name='body')
 
-        c = 'Showing %d logs from %d different Duckiebots, for a total length of %.1f hours.' % (len(logs), len(vehicles), length / 3600.0)
-#        c += '\nExcluded %d logs marked invalid totaling %.1f hours.' % (ninvalid, length_invalid / 3600.0)
-        p = Tag(name='p')
-        p.append(c)
-        body.append(p)
+    head = Tag(name='head')
+    link = Tag(name='link')
+    link.attrs['type'] = 'text/css'
+    link.attrs['rel'] = 'stylesheet'
+    link.attrs['href'] = 'style.css'
+    title = Tag(name='title')
+    title.append('Duckietown Logs Database')
+    head.append(link)
+    html.append(head)
+    html.append(body)
 
-        t = summary_table(logs, out)
+    h = Tag(name='h1')
+    h.append('Duckietown Logs Database')
+    body.append(h)
+
+    c = 'Showing %d logs from %d different Duckiebots, for a total length of %.1f hours.' % (len(logs), len(vehicles), length / 3600.0)
+
+    p = Tag(name='p')
+    p.append(c)
+    body.append(p)
+
+    if initial_screens:
+        t = summary_table(logs, url_to_resource)
         body.append(t)
 
-        body.append(html_table_from_table(logs, out))
+    body.append(html_table_from_table(logs, url_to_resource))
 
-        make_sections(body, logs, out)
+    make_sections(body, logs, url_to_resource)
 
-        dtu.write_data_to_file(str(html), fn_html)
+    s = unicode(html).encode()
+    return s
 
 
-def summary_table(logs, out):
+def summary_table(logs, url_to_resource):
     d = Tag(name='div')
     d.attrs['id'] = 'panvision'
     seq = list(logs)
     random.shuffle(seq)
     for id_log in seq:
-        rel = get_small_video(out, id_log)
+        log = logs[id_log]
+        rel = get_small_video2(log, url_to_resource)
         if rel:
             video = video_for_source(rel)
             a = Tag(name='a')
@@ -117,36 +134,31 @@ def summary_table(logs, out):
     return d
 
 
-def html_table_from_table(logs, destination):
-
+def html_table_from_table(logs, url_to_resource):
     res = Tag(name='table')
     tbody = Tag(name='tbody')
     thead = Tag(name='thead')
     res.append(thead)
     res.append(tbody)
-    for i, (id_log, log) in enumerate(logs.items()):
-        trh, tr = get_row(i, id_log, log, destination)
+    for i, (_, log) in enumerate(logs.items()):
+        trh, tr = get_row(i, log, url_to_resource)
         tbody.append(tr)
         tbody.append('\n')
     thead.append(trh)
     return res
 
 
-def make_sections(body, logs, destination):
+def make_sections(body, logs, url_to_resource):
 
     for i, (id_log, log) in enumerate(logs.items()):
-        section = make_section(i, id_log, log, destination)
+        section = make_section(i, id_log, log, url_to_resource)
 
         body.append(section)
 
 
-def get_download_url(log_name):
-    urls = get_dropbox_urls()
-    url = urls.get(log_name + '.bag', None)
-    return url
+def make_section(_i, id_log, log, url_to_resource):
 
-
-def make_section(i, id_log, log, destination):
+#    id_log = id_log.decode('utf-8', 'ignore')
 
     d = Tag(name='div')
     classes = ['log-details']
@@ -156,7 +168,7 @@ def make_section(i, id_log, log, destination):
     d.append(h)
     d.attrs['id'] = id_log
 
-    rel = get_small_video(destination, id_log)
+    rel = get_small_video2(log, url_to_resource)
     if rel:
         video = video_for_source(rel)
         d.append((video))
@@ -173,9 +185,8 @@ def make_section(i, id_log, log, destination):
     c.append("\n".join(s))
     d.append(c)
 
-    rel = 'videos/%s.mp4' % id_log
-    fn = os.path.join(destination, rel)
-    if os.path.exists(fn):
+    rel = get_large_video2(log, url_to_resource)
+    if rel:
         a = Tag(name='a')
         a.attrs['href'] = rel
         a.append('Watch video')
@@ -189,21 +200,18 @@ def make_section(i, id_log, log, destination):
         p.append(msg)
         d.append(p)
 
-    url = get_download_url(log.log_name)
-    if url is not None:
-        a = Tag(name='a')
-        a.attrs['href'] = url
-        a.append('Download log')
-        p = Tag(name='p')
-        p.append(a)
-        d.append(p)
-    else:
+    p = Tag(name='p')
+
+    n = append_urls(id_log, log, p, url_to_resource)
+
+    if n == 0:
         msg = ('No URL found for this log.')
         p = Tag(name='p')
         p.append(msg)
-        d.append(p)
 
-    rel = get_thumbnail_for_video(id_log, destination)
+    d.append(p)
+
+    rel = get_thumbnails(log, url_to_resource)
     if rel:
         img = Tag(name='img')
         img.attrs['class'] = 'thumbnail'
@@ -225,16 +233,7 @@ def make_section(i, id_log, log, destination):
     return d
 
 
-def get_thumbnail_for_video(id_log, destination):
-    rel = 'thumbnails/%s.jpg' % id_log
-    fn = os.path.join(destination, rel)
-    if os.path.exists(fn):
-        return rel
-    else:
-        return None
-
-
-def get_row(i, id_log, log, destination):
+def get_row(i, log, url_to_resource):
     trh = Tag(name='tr')
     tr = Tag(name='tr')
 
@@ -249,7 +248,7 @@ def get_row(i, id_log, log, destination):
     tr.append(td(str(i)))
 
     trh.append(td(''))
-    rel = get_small_video(destination, id_log)
+    rel = get_small_video2(log, url_to_resource)
     if rel:
         video = video_for_source(rel)
         tr.append(td(video))
@@ -262,7 +261,7 @@ def get_row(i, id_log, log, destination):
 
     f = Tag(name='td')
 
-    rel = get_large_video(id_log, destination)
+    rel = get_large_video2(log, url_to_resource)
     if rel:
         a = Tag(name='a')
         a.attrs['href'] = rel
@@ -270,7 +269,7 @@ def get_row(i, id_log, log, destination):
 
         f.append(a)
 
-    rel = get_thumbnail_for_video(id_log, destination)
+    rel = get_thumbnails2(log, url_to_resource)
     if rel:
 #        f.append(Tag(name='br'))
         f.append(' ')
@@ -280,15 +279,15 @@ def get_row(i, id_log, log, destination):
         a.append('thumbnails')
         f.append(a)
 
-    url = get_download_url(log.log_name)
-    if url is not None:
-#        f.append(Tag(name='br2'))
-        f.append(' ')
+#    n = append_urls(log, f)
 
-        a = Tag(name='a')
-        a.attrs['href'] = url
-        a.append('bag')
-        f.append(a)
+#    urls = [x for x in log.resources['bag']['urls'] if show_url(x)]
+#    for url in urls:
+#        f.append(' ')
+#        a = Tag(name='a')
+#        a.attrs['href'] = url
+#        a.append('bag')
+#        f.append(a)
 
     trh.append(td('misc'))
     tr.append(f)
@@ -357,26 +356,115 @@ def video_for_source(rel):
     return video
 
 
-def get_small_video(destination, id_log):
-#    rel = 'small/%s.mp4' % id_log
-    rel = 'small-gifs/%s.gif' % id_log
-#    rel = 'small-webm/%s.webm' % id_log
+def choose_url(urls):
+    for url in urls:
+        if url.startswith('http'):
+            return url
+    return None
 
-    fn = os.path.join(destination, rel)
-    if os.path.exists(fn):
-        return rel
+
+def get_resource_url(log, rname):
+
+    if rname in log.resources:
+        if Gallery.deploy_ipfs:
+            ipfs = log.resources[rname]['hash']['ipfs']
+            return '/ipfs/%s' % ipfs
+        else:
+            url = choose_url(log.resources[rname]['urls'])
+            return url
     else:
         return None
 
 
-def get_large_video(id_log, destination):
-    rel = 'videos/%s.mp4' % id_log
-    fn = os.path.join(destination, rel)
-    if os.path.exists(fn):
-        return rel
-    else:
-        return None
+def get_small_video2(log, url_to_resource):
+    return url_to_resource(log, 'video_small.gif')
+
+
+def get_thumbnails(log, url_to_resource):
+    return url_to_resource(log, 'thumbnails.jpg')
+
+
+def get_large_video2(log, url_to_resource):
+    return url_to_resource(log, 'video.mp4')
+
+
+def get_thumbnails2(log, url_to_resource):
+    return url_to_resource(log, 'thumbnails.jpg')
 
 
 GalleryEntry = namedtuple('GalleryEntry', 'log_name thumbnail video url')
 
+
+def append_urls(id_log, log, where, url_to_resource):
+    n = 0
+    for rname in log.resources:
+
+        dtr = DTR.from_yaml(log.resources[rname])
+        size_mb = '%.1f MB' % (dtr.size / (1000 * 1000.0))
+        s = '%s (%s) ' % (rname, size_mb)
+        where.append(s)
+
+        urls = [url_to_resource(log, rname)]
+#        if Gallery.deploy_ipfs:
+#            ipfs = log.resources[rname]['hash']['ipfs']
+#            urls = ['/ipfs/%s' % ipfs]
+#        else:
+#            urls = [x for x in dtr.urls if show_url(x)]
+
+        for i, url in enumerate(urls):
+            where.append(' ')
+            a = Tag(name='a')
+            a.attrs['download'] = "%s.%s" % (id_log, rname)
+            a.attrs['href'] = url
+            a.append('link %s' % i)
+            where.append(a)
+            n += 1
+        where.append(Tag(name='br'))
+    return n
+
+
+def get_gallery_style():
+    return """
+@import url('https://fonts.googleapis.com/css?family=VT323');
+
+* {
+    font-family: 'VT323', monospace;
+}
+body {
+    background-color: rgb(255, 204, 0);
+}
+
+tr.invalid {
+    background-color: #fdd;
+}
+
+img.gif {
+    width: 50px;
+}
+div.log-details.invalid {
+    background-color: #fdd;
+}
+
+td { padding-left: 1em;
+
+    vertical-align:top;
+}
+
+tr.nth-child(3) { color: white; }
+img.thumbnail {
+    width: 100%;
+    max-width: 80em;
+}
+
+#panvision {
+    margin-bottom: 50px;
+    white-space-collapse: discard;
+    font-size: 0;
+}
+
+a.smallicon {
+    border: 0;
+}
+
+
+"""

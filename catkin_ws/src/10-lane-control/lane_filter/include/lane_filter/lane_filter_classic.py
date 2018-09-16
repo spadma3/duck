@@ -18,7 +18,10 @@ __all__ = [
 
 
 class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
-    """ """
+    '''
+
+
+    '''
 
     def __init__(self, configuration):
         param_names = [
@@ -66,6 +69,10 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         self.last_segments_used = None
 
         self.initialize()
+
+
+    def getStatus(self):
+        return LaneFilterInterface.GOOD
 
     def initialize(self):
         pos = np.empty(self.d.shape + (2,))

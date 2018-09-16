@@ -1,3 +1,1 @@
-from . import summary
-from . import slicing
-from . import thumbnails_tests
+from . import summary, slicing, thumbnails_tests

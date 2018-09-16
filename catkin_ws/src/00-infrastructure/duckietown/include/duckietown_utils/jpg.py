@@ -3,8 +3,10 @@
 """
 
 import os
-
 import cv2
+import time
+# cannot be reliably installed with pip on Linux x86
+#import picamera
 
 from duckietown_utils.disk_hierarchy import tmpfile
 from duckietown_utils.mkdirs import d8n_make_sure_dir_exists
@@ -88,18 +90,24 @@ def write_bgr_to_file_as_jpg(image_cv, fn):
 
 
 def bgr_from_raspistill(frame=None):
+    import picamera
     with tmpfile(".jpg") as filename:
 
         if frame is not None:
             filename = frame
         d8n_make_sure_dir_exists(filename)
-        cmd = ['raspistill', '-o', filename,
-            '--awb', 'auto',
-#              '--exposure', 'off',
-              ]
-        logger.debug('Capturing using command:\n   %s' % " ".join(cmd))
-        cwd = '.'
-        _ = system_cmd_result(cwd, cmd, raise_on_error=True)
+        #cmd = ['raspistill', '-o', filename,
+        #    '--awb', 'auto',
+#       #       '--exposure', 'off',
+        #      ]
+        #logger.debug('Capturing using command:\n   %s' % " ".join(cmd))
+        #cwd = '.'
+        #_ = system_cmd_result(cwd, cmd, raise_on_error=True)
+        with picamera.PiCamera() as camera:
+            #camera.resolution = (1280, 720)   # 720p
+            time.sleep(2)
+            camera.capture(filename)
+
         res = bgr_from_jpg_fn(filename)
         return res
 
@@ -167,4 +175,3 @@ def image_clip_255(image_float):
 # with libjpeg-turbo
 # Convert from uncompressed image message
 # image_cv = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
-

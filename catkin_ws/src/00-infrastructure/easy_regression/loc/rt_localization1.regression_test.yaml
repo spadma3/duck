@@ -7,26 +7,24 @@ parameters:
     processors:
     - processor:
         baseline:
-            description: Try to run the localization pipeline on the log
             constructor: easy_regression.LocalizationPipelineProcessor
             parameters:
                 line_detector: baseline
                 image_prep: baseline
                 lane_filter: baseline
                 anti_instagram: baseline
-      prefix_in: ''
+
       prefix_out: /baseline
     - processor:
         classic:
-            description: Try to run the localization pipeline on the log
             constructor: easy_regression.LocalizationPipelineProcessor
             parameters:
                 line_detector: baseline
                 image_prep: baseline
-                lane_filter: classic
+                lane_filter: controllers17
                 anti_instagram: baseline
-      prefix_out: /classic
-      prefix_in: ''
+      prefix_out: /controllers17
+
 
     analyzers: []
 
