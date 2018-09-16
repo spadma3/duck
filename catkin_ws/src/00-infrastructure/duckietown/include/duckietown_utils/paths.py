@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 import os
-
-from duckietown_utils.disk_hierarchy import get_dt_tmp_dir
 
 from .constants import DuckietownConstants
 from .contracts_ import contract
+from .disk_hierarchy import get_dt_tmp_dir
 from .exceptions import DTConfigException
 from .locate_files_impl import locate_files
 from .logging_logger import logger
@@ -90,16 +90,16 @@ def get_duckietown_data_dirs():
 
 @contract(returns='str')
 def get_duckietown_cache_dir():
-    dirname = os.path.join(get_duckietown_root(), 'caches')
+    temp_dir = get_dt_tmp_dir()
+    dirname = os.path.join(temp_dir, 'caches')
     return dirname
 
 
 @contract(returns='str')
 def get_duckietown_local_log_downloads():
     """ Returns the directory to use for local downloads of logs"""
-    td = get_dt_tmp_dir()
-    d = os.path.join(td, 'downloads')
-#    d = DuckietownConstants.default_download_dir
+    temp_dir = get_dt_tmp_dir()
+    d = os.path.join(temp_dir, 'downloads')
     if not os.path.exists(d):
         os.makedirs(d)
     return d
@@ -107,7 +107,7 @@ def get_duckietown_local_log_downloads():
 
 @contract(returns='str')
 def get_machines_files_path():
-    ''' Gets the path to the machines file. It might not exist. '''
+    """ Gets the path to the machines file. It might not exist. """
     duckietown_root = get_duckietown_root()
     machines = os.path.join(duckietown_root, DuckietownConstants.machines_path_rel_to_root)
     return machines
@@ -115,7 +115,7 @@ def get_machines_files_path():
 
 @contract(returns='str')
 def get_catkin_ws_src():
-    ''' Returns the path to the src/ dir in catkin_ws '''
+    """ Returns the path to the src/ dir in catkin_ws """
     duckietown_root = get_duckietown_root()
     machines = os.path.join(duckietown_root, 'catkin_ws/src')
     return machines
@@ -138,7 +138,7 @@ def get_list_of_packages_in_catkin_ws():
         if not is_ignored_by_catkin(dn):
             results[entry] = dn
         else:
-            #logger.debug('Not considering %s' % dn)
+            # logger.debug('Not considering %s' % dn)
             pass
     # We expect at least these two packages
     if not 'duckietown' in results:

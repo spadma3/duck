@@ -14,12 +14,13 @@ __all__ = ['d8n_make_video_from_bag']
 
 @contract(returns='tuple(int, int)')
 def count_messages_in_slice(bag_filename, topic, t0, t1, stop_at=None):
-    '''
+    """
         Counts the number of messages in a slice of time.
         Stops at stop_at, if given.
 
         Returns (count, total, stopped_early), where total is the total number in the log.
-    '''
+    """
+
     bag0 = rosbag.Bag(bag_filename)
     count = bag0.get_message_count(topic_filters=[topic])
 

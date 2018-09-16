@@ -1,0 +1,4 @@
+<launch>
+    <arg name="env_script_path" default="/home/software/environment.sh"/>
+    <machine name="$(env HOSTNAME)" address="localhost" user="root" env-loader="$(arg env_script_path)"/>
+</launch>

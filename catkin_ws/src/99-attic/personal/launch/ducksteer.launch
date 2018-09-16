@@ -1,0 +1,16 @@
+<launch>
+
+
+
+	<arg name="config" default="baseline"/>
+	<arg name="veh" default="default" doc="Specify a param file. ex:megaman"/>
+	<arg name="pkg_name" default="julien_test" doc="name of the package"/>
+	<arg name="node_name" default="ducksteer" doc="name of the node"/>
+	<group ns="$(arg veh)">
+
+	    <!-- Remote -->
+		<include file="$(find duckietown)/machines"/>
+	    <node machine="$(arg veh)" pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true">
+	    </node>
+	</group>
+</launch>

@@ -7,12 +7,12 @@
 #ifdef PLATFORM_APERIOS
 //missing/broken isnan
 namespace std {
-	static bool isnan(float x) {
-		const int EXP  = 0x7f800000;
-		const int FRAC = 0x007fffff;
-		const int y = *((int*)(&x));
-		return ((y&EXP)==EXP && (y&FRAC)!=0);
-	}
+  static bool isnan(float x) {
+    const int EXP  = 0x7f800000;
+    const int FRAC = 0x007fffff;
+    const int y = *((int*)(&x));
+    return ((y&EXP)==EXP && (y&FRAC)!=0);
+  }
 }
 #endif
 

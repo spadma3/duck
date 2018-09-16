@@ -2,8 +2,9 @@ import json
 import os
 
 import duckietown_utils as dtu
-#from duckietown_utils.caching import get_cached
-#from duckietown_utils.system_cmd_imp import system_cmd_result
+
+# from duckietown_utils.caching import get_cached
+# from duckietown_utils.system_cmd_imp import system_cmd_result
 
 base = ['ipfs', '--api', '/ip4/127.0.0.1/tcp/5001']
 
@@ -37,7 +38,7 @@ class MakeIPFS(object):
         cmd = base + ['object', 'put']
         cwd = '.'
         res = dtu.system_cmd_result(cwd, cmd, raise_on_error=True,
-                                write_stdin=dag_json)
+                                    write_stdin=dag_json)
         hashed = res.stdout.split()[1]
         assert 'Qm' in hashed, hashed
         print('Directory of %d links: %s' % (len(self.links), hashed))
@@ -45,12 +46,14 @@ class MakeIPFS(object):
 
 
 def get_hash_for_bytes(s):
-    cmd = base + [ 'add']
+    cmd = base + ['add']
     cwd = '.'
     res = dtu.system_cmd_result(cwd, cmd, raise_on_error=True,
-                            write_stdin=s)
+                                write_stdin=s)
     hashed = res.stdout.split()[1]
-    assert 'Qm' in hashed, hashed
+    if not 'Qm' in hashed:
+        msg = 'Invalid response, no Qm:\n%s' % indent(res.stdout, '  ')
+        raise Exception(msg)
     return hashed
 
 
@@ -59,16 +62,15 @@ def detect_ipfs():
     cwd = '.'
     try:
         _res = dtu.system_cmd_result(cwd, cmd,
-                                display_stdout=False,
-                                  display_stderr=False,
-                                  raise_on_error=True)
+                                     display_stdout=False,
+                                     display_stderr=False,
+                                     raise_on_error=True)
     except:
         return False
     return True
 
 
 def get_ipfs_hash_cached(filename):
-
     def f():
         return get_ipfs_hash(filename)
 
@@ -79,17 +81,17 @@ def get_ipfs_hash_cached(filename):
 
 def get_ipfs_hash(filename):
     # ipfs add --only-hash LICENSE
-    #added QmcgpsyWgH8Y8ajJz1Cu72KnS5uo2Aa2LpzU7kinSupNKC LICENSE
+    # added QmcgpsyWgH8Y8ajJz1Cu72KnS5uo2Aa2LpzU7kinSupNKC LICENSE
     dtu.logger.debug('Computing IPFS hash for %s' % filename)
     cmd = base + ['add', '--only-hash', filename]
     cwd = '.'
     res = dtu.system_cmd_result(cwd, cmd,
-                            display_stdout=False,
-                              display_stderr=False,
-                              raise_on_error=True)
+                                display_stdout=False,
+                                display_stderr=False,
+                                raise_on_error=True)
 
     out = res.stdout.strip().split(' ')
-#    print out
+    #    print out
     if (len(out) < 3 or out[0] != 'added' or not out[1].startswith('Qm')):
         msg = 'Invalid output for ipds:\n%s' % dtu.indent(res.stdout, ' > ')
         raise Exception(msg)

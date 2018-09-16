@@ -2,14 +2,15 @@
 import rospkg
 import rospy
 import yaml
-from duckietown_msgs.msg import AprilTagsWithInfos, TagInfo, AprilTagDetectionArray, BoolStamped
+from duckietown_msgs.msg import AprilTagsWithInfos, TagInfo, BoolStamped, AprilTagDetection
+from apriltags2_ros.msg import AprilTagDetectionArray
 import numpy as np
 import tf.transformations as tr
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Pose
 
 class AprilPostPros(object):
     """ """
-    def __init__(self):    
+    def __init__(self):
         """ """
         self.node_name = "apriltags_postprocessing_node"
 
@@ -32,20 +33,20 @@ class AprilPostPros(object):
         self.tags_dict = yaml.load(tags_file)
         tags_file.close()
         self.info = TagInfo()
- 
+
         self.sign_types = {"StreetName": self.info.S_NAME,
             "TrafficSign": self.info.SIGN,
             "Light": self.info.LIGHT,
             "Localization": self.info.LOCALIZE,
             "Vehicle": self.info.VEHICLE}
-        self.traffic_sign_types = {"stop": self.info.STOP, 
-            "yield": self.info.YIELD, 
-            "no-right-turn": self.info.NO_RIGHT_TURN, 
-            "no-left-turn": self.info.NO_LEFT_TURN, 
-            "oneway-right": self.info.ONEWAY_RIGHT, 
-            "oneway-left": self.info.ONEWAY_LEFT, 
-            "4-way-intersect": self.info.FOUR_WAY, 
-            "right-T-intersect": self.info.RIGHT_T_INTERSECT, 
+        self.traffic_sign_types = {"stop": self.info.STOP,
+            "yield": self.info.YIELD,
+            "no-right-turn": self.info.NO_RIGHT_TURN,
+            "no-left-turn": self.info.NO_LEFT_TURN,
+            "oneway-right": self.info.ONEWAY_RIGHT,
+            "oneway-left": self.info.ONEWAY_LEFT,
+            "4-way-intersect": self.info.FOUR_WAY,
+            "right-T-intersect": self.info.RIGHT_T_INTERSECT,
             "left-T-intersect": self.info.LEFT_T_INTERSECT,
             "T-intersection": self.info.T_INTERSECTION,
             "do-not-enter": self.info.DO_NOT_ENTER,
@@ -53,9 +54,9 @@ class AprilPostPros(object):
             "t-light-ahead": self.info.T_LIGHT_AHEAD,
             "duck-crossing": self.info.DUCK_CROSSING,
             "parking": self.info.PARKING}
-        
 
-# ---- end tag info stuff 
+
+# ---- end tag info stuff
 
 
 
@@ -72,12 +73,14 @@ class AprilPostPros(object):
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
+    #    rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
 
     def callback(self, msg):
 
         tag_infos = []
+
+        new_tag_data = AprilTagsWithInfos()
 
         # Load tag detections message
         for detection in msg.detections:
@@ -85,9 +88,10 @@ class AprilPostPros(object):
             # ------ start tag info processing
 
             new_info = TagInfo()
-            new_info.id = int(detection.id)
+            #Can use id 1 as long as no bundles are used
+            new_info.id = int(detection.id[0])
             id_info = self.tags_dict[new_info.id]
-            
+
             # Check yaml file to fill in ID-specific information
             new_info.tag_type = self.sign_types[id_info['tag_type']]
             if new_info.tag_type == self.info.S_NAME:
@@ -116,7 +120,7 @@ class AprilPostPros(object):
 
             elif new_info.tag_type == self.info.VEHICLE:
                 new_info.vehicle_name = id_info['vehicle_name']
-            
+
             # TODO: Implement location more than just a float like it is now.
             # location is now 0.0 if no location is set which is probably not that smart
             if self.loc == 226:
@@ -127,7 +131,7 @@ class AprilPostPros(object):
                 l = (id_info['location_316'])
                 if l is not None:
                     new_info.location = l
-            
+
             tag_infos.append(new_info)
             # --- end tag info processing
 
@@ -143,8 +147,9 @@ class AprilPostPros(object):
             tagzout_T_tagxout = tr.euler_matrix(-np.pi/2, 0, np.pi/2, 'rxyz')
 
             #Load translation
-            trans = detection.pose.pose.position
-            rot = detection.pose.pose.orientation
+            trans = detection.pose.pose.pose.position
+            rot = detection.pose.pose.pose.orientation
+            header = detection.pose.header
 
             camzout_t_tagzout = tr.translation_matrix((trans.x*self.scale_x, trans.y*self.scale_y, trans.z*self.scale_z))
             camzout_R_tagzout = tr.quaternion_matrix((rot.x, rot.y, rot.z, rot.w))
@@ -156,16 +161,13 @@ class AprilPostPros(object):
             (trans.x, trans.y, trans.z) = tr.translation_from_matrix(veh_T_tagxout)
             (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_matrix(veh_T_tagxout)
 
-            detection.pose.pose.position = trans
-            detection.pose.pose.orientation = rot
+            new_tag_data.detections.append(AprilTagDetection(int(detection.id[0]),float(detection.size[0]),PoseStamped(header,Pose(trans,rot))))
 
-        new_tag_data = AprilTagsWithInfos()
-        new_tag_data.detections = msg.detections
         new_tag_data.infos = tag_infos
         # Publish Message
         self.pub_postPros.publish(new_tag_data)
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     rospy.init_node('AprilPostPros',anonymous=False)
     node = AprilPostPros()
     rospy.spin()

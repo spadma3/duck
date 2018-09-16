@@ -18,9 +18,9 @@ def run(which, expect):
                '-o', '.',
                '-c', 'rmake']
         dtu.system_cmd_result(cwd, cmd,
-              display_stdout=v,
-              display_stderr=v,
-              raise_on_error=True)
+                              display_stdout=v,
+                              display_stderr=v,
+                              raise_on_error=True)
     finally:
         if False:
             shutil.rmtree(cwd)
@@ -69,6 +69,11 @@ def run_fail1():
 @dtu.unit_test
 def run_rt_small_video():
     run('rt_small_video', RTCheck.OK)
+
+
+@dtu.unit_test
+def run_rt_small_video_lane_dets():
+    run('rt_small_video_lane_dets', RTCheck.OK)
 
 
 if __name__ == '__main__':
