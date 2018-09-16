@@ -21,7 +21,7 @@ MCU = attiny861
 TARGET = main
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c i2c/i2c_machine.c ws2812/light_ws2812.c
+SRC = $(TARGET).c i2c/i2c_machine.c ws2812/light_ws2812.c ADC/ADC.c LED/LED.c Motor/Motor.c SOC/SOC.c Timer/Timer0.c
 
 # Programming hardware: type avrdude -c ?
 # to get a full listing.
