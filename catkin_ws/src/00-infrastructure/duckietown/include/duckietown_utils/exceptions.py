@@ -1,9 +1,7 @@
 import sys
 import traceback
 
-# from decent_params.utils.script_utils import UserError
-
-from duckietown_utils import logger
+from .logging_logger import logger
 
 
 class DTException(Exception):
@@ -11,27 +9,27 @@ class DTException(Exception):
 
 
 class DTUserError(DTException):
-    """ 
+    """
         Exceptions that will not be printed with full traceback,
         because they contain a simple message for the user, to be printed in red.
     """
+
 
 class DTConfigException(DTUserError):
     """
         The configuration (either environment variables or YAML files)
         is invalid.
-    """ 
+    """
+
 
 class DTBadData(DTException):
     """
         A log is invalid.
     """
-    
+
+
 class DTNoMatches(DTUserError):
     """ Could not find any matches for the user selector """
-    
-
-
 
 
 def wrap_script_entry_point(function,
@@ -39,10 +37,10 @@ def wrap_script_entry_point(function,
     """
         Wraps the main() of a script.
         For Exception: we exit with value 2.
-        
-        :param exceptions_no_traceback: tuple of exceptions for which we 
+
+        :param exceptions_no_traceback: tuple of exceptions for which we
          just print the error, and exit with value 1.
-        
+
     """
     try:
         ret = function()

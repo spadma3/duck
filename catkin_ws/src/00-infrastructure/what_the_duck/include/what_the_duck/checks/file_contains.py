@@ -1,7 +1,9 @@
 import os
-from duckietown_utils.instantiate_utils import indent
+import duckietown_utils as dtu
+
 from what_the_duck.check import Check, CheckFailed, CheckError
-from duckietown_utils import expand_all
+
+__all__ = ['FileContains']
 
 class FileContains(Check):
     
@@ -12,7 +14,7 @@ class FileContains(Check):
         self.string = string
     
     def check(self):
-        fn = expand_all(self.filename)
+        fn = dtu.expand_all(self.filename)
         
         if not os.path.exists(fn):
             msg = 'File does not exist: %s' % fn
@@ -20,7 +22,7 @@ class FileContains(Check):
         
         contents = open(fn).read()
                 
-        l = 'Entire contents of %s:\n' % fn + indent(contents, '  > ')
+        l = 'Entire contents of %s:\n' % fn + dtu.indent(contents, '  > ')
         
         if not self.string in contents:
             msg = 'String %r not contained in %s' % (self.string, fn)

@@ -552,12 +552,11 @@ Here's an example use, from [`line_detector2`](#line_detector2-line_detector_nod
         self.info(stats)
 
 The idea is to enclose the different phases of the computation
-using the [context manager](#python-context-manager) `phase(![name])`.
+using the [context manager](+software_devel#python-context-manager) `phase(![name])`.
 
 A summary of the statistics can be accessed by using `context.get_stats()`.
 
 For example, this will print:
-
 
     Last 24.4 s: received 734 (30.0 fps) processed 301 (12.3 fps) skipped 433 (17.7 fps) (59 %)
                 decoding | total latency  25.5 ms | delta wall   20.7 ms | delta clock  20.7 ms

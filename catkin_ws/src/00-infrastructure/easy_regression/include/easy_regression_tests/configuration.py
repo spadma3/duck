@@ -1,6 +1,4 @@
-from comptests.registrar import comptest, run_module_tests
-from duckietown_utils.yaml_pretty import yaml_load
-from duckietown_utils.instantiate_utils import instantiate
+import duckietown_utils as dtu
 from easy_regression.conditions.interface import RTParseError
 
 s = """
@@ -22,7 +20,6 @@ parameters:
         v:count_messages/all/num_messages == 5330
 """
 
-
 s_fail = """
 description: |
     A simple regression test.
@@ -42,22 +39,23 @@ parameters:
         v:count_messages/all/num_messages = 5330
 """
 
-@comptest
+
+@dtu.unit_test
 def parse_reg_test():
-    x = yaml_load(s)
+    x = dtu.yaml_load(s)
     if isinstance(x['description'], unicode):
         msg = 'I do not expect Unicode'
         msg += '\n' + x.__repr__()
         raise ValueError(msg)
-    _ = instantiate(x['constructor'], x['parameters'])
+    _ = dtu.instantiate(x['constructor'], x['parameters'])
 
 
-@comptest
+@dtu.unit_test
 def parse_reg_fail():
-    x = yaml_load(s_fail)
+    x = dtu.yaml_load(s_fail)
     print x.__repr__()
     try:
-        _ = instantiate(x['constructor'], x['parameters'])
+        _ = dtu.instantiate(x['constructor'], x['parameters'])
     except RTParseError:
         pass
     else:
@@ -65,4 +63,4 @@ def parse_reg_fail():
 
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

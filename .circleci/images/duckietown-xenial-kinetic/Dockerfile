@@ -73,13 +73,24 @@ RUN apt-get install -y \
     python-tk \
     python-scipy \
     python-frozendict \
+    python-tables \
+    python-sklearn \
+    python-termcolor \
+    python-setproctitle \
+    python-psutil\
+    byobu \
+    atop \
+    htop \
     imagemagick \
     graphviz \
     ghostscript \
     git-lfs \
-    python-termcolor \
-    python-setproctitle \
-    python-psutil
+    ntpdate  \
+    libatlas-base-dev \
+    vim\
+    apt-file\
+    iftop\
+    node-less
 
 # Python deps
 
@@ -87,7 +98,6 @@ RUN pip install -U \
     empy\
     catkin_pkg\
     pint \
-    pyparsing \
     networkx \
     watchdog \
     pyramid \
@@ -102,15 +112,9 @@ RUN pip install -U \
     lxml \
     bcrypt \
     waitress \
-    ruamel.yaml \
     gitpython \
     webtest \
     chardet
-
-# @PyContracts \
-# decentlogs \
-
-# RUN pip install comptests
 
 
 
@@ -128,16 +132,10 @@ RUN apt-get install -y  mplayer mencoder ffmpeg
 
 # Other stuff for Duckiebot / duckietop
 
-RUN apt-get install -y \
-    python-ruamel.yaml \
-    byobu \
-    atop \
-    htop \
-    python-tables \
-    python-sklearn \
-    ntpdate  \
-    libatlas-base-dev \
-    vim\
-    apt-file\
-    iftop\
-    node-less
+
+RUN apt-get install -y clang
+
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash
+RUN apt-get update
+RUN apt-get install -y nodejs
+RUN npm install MathJax-node jsdom@9.3 less

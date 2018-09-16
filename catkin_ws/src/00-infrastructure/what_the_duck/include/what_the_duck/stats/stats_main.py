@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
 from what_the_duck.mongo_suppor import get_upload_collection
 from collections import defaultdict
-from duckietown_utils import logger, write_data_to_file
+import duckietown_utils as dtu
+
 from what_the_duck.stats.output import create_summary
 import sys
-from duckietown_utils.safe_pickling import safe_pickle_dump
 
 def get_valid_data(collection):
-    
-    res = list(collection.find())
+    dtu.logger.info('downloading database')
+    res = []
+    for i, x in  enumerate(collection.find()):
+        if i != 100 == 0:
+            dtu.logger.debug('Downloaded %s' % i)
+        res.append(x)
+#     res = list(collection.find())
+    dtu.logger.info('downloaded %s' % len(res))
     out = []
     for r in res:
         if 'what_the_duck_version' in r:
             v = r['what_the_duck_version']
-            if v in ['1.1', '1.2', '1.3']:
+            if v in ['1.1', '1.2', '1.3', '1.4']:
                 del r['_id']
                 
                 if v in ['1.1']:
@@ -21,7 +27,7 @@ def get_valid_data(collection):
     
                 out.append(r)
                 
-    logger.info('Found %d database entries; %d are compatible.' % 
+    dtu.logger.info('Found %d database entries; %d are compatible.' % 
                 (len(res), len(out)))
     return out
     
@@ -37,13 +43,12 @@ def what_the_duck_stats():
     
     res = list(get_valid_data(collection))
 
-
 #     logger.debug('dumping last YAML')
 #     import yaml
 #     data = yaml.dump(res)
 #     write_data_to_file(data, 'last_download.yaml')
-    logger.debug('dumping Pickle')
-    safe_pickle_dump(res, 'last_download.pickle')
+    dtu.logger.debug('dumping Pickle')
+    dtu.safe_pickle_dump(res, 'last_download.pickle')
         
     hostnames = defaultdict(lambda:0)
     
@@ -54,9 +59,9 @@ def what_the_duck_stats():
     for h, n in hostnames.items():
         s += '\n- %s: %d tests' % (h, n)
     
-    logger.info(s)
+    dtu.logger.info(s)
     
     html = create_summary(res)
-    write_data_to_file(html, output)
+    dtu.write_data_to_file(html, output)
     
     

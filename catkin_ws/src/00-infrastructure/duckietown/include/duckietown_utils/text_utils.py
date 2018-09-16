@@ -1,3 +1,4 @@
+import re
 
 from .contracts_ import contract
 
@@ -10,12 +11,12 @@ def indent(s, prefix, first=None):
     if not lines: return ''
 
     if first is None:
-        first= prefix
+        first = prefix
 
     m = max(len(prefix), len(first))
 
-    prefix = ' ' * (m-len(prefix)) + prefix
-    first = ' ' * (m-len(first)) +first
+    prefix = ' ' * (m - len(prefix)) + prefix
+    first = ' ' * (m - len(first)) + first
 
     # differnet first prefix
     res = ['%s%s' % (prefix, line.rstrip()) for line in lines]
@@ -27,22 +28,25 @@ def seconds_as_ms(s):
     """ Returns a value in seconds as "XXX ms". """
     if s is None:
         return 'n/a'
-    return "%.1f ms" % (s*1000)
+    return "%.1f ms" % (s * 1000)
+
 
 def truncate_string_right(s, N, suff=' [..]'):
     if len(s) > N:
-        s = s[:N-len(suff)] + suff
+        s = s[:N - len(suff)] + suff
     return s
+
 
 def truncate_string_left(s, N, suff='[..] '):
     if len(s) > N:
         extra = len(s) - N
-        s = suff + s[extra+len(suff):]
+        s = suff + s[extra + len(suff):]
     return s
 
-import re
 
 escape = re.compile('\x1b\[..?m')
+
+
 def remove_escapes(s):
     return escape.sub("", s)
 
@@ -62,9 +66,11 @@ def remove_table_field(table, f):
     for row in table:
         row.pop(i)
 
+
 def make_red(s):
     from termcolor import colored
     return  colored(s, 'red')
+
 
 def make_row_red(row):
     return [ make_red(_) for _ in row]
@@ -92,7 +98,7 @@ def format_table_plus(rows, colspacing=1, paginate=25):
     for col_index in range(len(rows[0])):
         sizes.append(max(width_cell(row[col_index]) for row in rows))
 
-    divider = ['-'*_ for _ in sizes]
+    divider = ['-' * _ for _ in sizes]
     rows.insert(1, divider)
 
     rows = make_pagination(rows, paginate)
@@ -113,10 +119,12 @@ def format_table_plus(rows, colspacing=1, paginate=25):
             s += '\n'
     return s
 
+
 def colored_ljust(string, size):
     a = get_length_on_screen(string)
     remain = size - a
     return string + ' ' * remain
+
 
 def make_pagination(rows, paginate):
     if len(rows) < paginate:
@@ -151,6 +159,7 @@ def wrap_line_length(x, N):
             res.append(first)
     return "\n".join(res)
 
+
 def num_lines(s):
     return len(s.split('\n'))
 
@@ -172,9 +181,8 @@ def remove_prefix(s, prefix):
     if s.startswith(prefix):
         return s[len(prefix):]
     else:
-        msg = 'Expected prefix %r in %r' %(prefix, s)
+        msg = 'Expected prefix %r in %r' % (prefix, s)
         raise ValueError(msg)
-
 
 
 def remove_suffix(s, suffix):
@@ -185,13 +193,15 @@ def remove_suffix(s, suffix):
     if s.endswith(suffix):
         return s[:-len(suffix)]
     else:
-        msg = 'Expected suffix %r in %r' %( suffix, s)
+        msg = 'Expected suffix %r in %r' % (suffix, s)
         raise ValueError(msg)
+
 
 def remove_prefix_suffix(s, prefix, suffix):
     s = remove_prefix(s, prefix)
     s = remove_suffix(s, suffix)
     return s
+
 
 def string_split(s, sub):
     """ Assuming s == a + sub + b, returns a,b """
@@ -199,4 +209,4 @@ def string_split(s, sub):
         msg = 'Substring %r not found in %r.' % (sub, s)
         raise ValueError(msg)
     i = s.index(sub)
-    return s[:i], s[i+1:]
+    return s[:i], s[i + 1:]

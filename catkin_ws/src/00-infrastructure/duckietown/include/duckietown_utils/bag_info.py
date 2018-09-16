@@ -1,33 +1,49 @@
 import os
+import re
 import subprocess
 
+import rosbag
+
 from .caching import get_cached
-from .yaml_pretty import yaml_load
+from .logging_logger import logger
+from .yaml_pretty import yaml_load_plain
 
+__all__ = [
+    'rosbag_info',
+    'rosbag_info_cached',
+    'd8n_get_all_images_topic_bag',
+    'd8n_get_all_images_topic',
+    'which_robot',
+    'get_image_topic',
+]
 
-__all__ = ['rosbag_info', 'rosbag_info_cached']
 
 def rosbag_info_cached(filename):
+
     def f():
         return rosbag_info(filename)
+
     basename = os.path.basename(filename)
     cache_name = 'rosbag_info/' + basename
     return get_cached(cache_name, f, quiet=True)
 
-def rosbag_info(bag): 
+
+def rosbag_info(bag):
+    msg = 'rosbag_info %s' % bag
+    logger.debug(msg)
     stdout = subprocess.Popen(['rosbag', 'info', '--yaml', bag],
                               stdout=subprocess.PIPE).communicate()[0]
 #     try:
-    info_dict = yaml_load(stdout)
+    info_dict = yaml_load_plain(stdout)
 #     except:
 #         logger.error('Could not parse yaml:\n%s' % indent(stdout, '| '))
 #         raise
     return info_dict
 
+
 def which_robot(bag):
-    import re
-    pattern  = r'/(\w+)/camera_node/image/compressed'
-    
+    pattern = r'/(\w+)/camera_node/image/compressed'
+
     topics = list(bag.get_type_and_topic_info()[1].keys())
 
     for topic in topics:
@@ -38,6 +54,7 @@ def which_robot(bag):
     msg = 'Could not find a topic matching %s' % pattern
     raise ValueError(msg)
 
+
 def get_image_topic(bag):
     """ Returns the name of the topic for the main camera """
     topics = bag.get_type_and_topic_info()[1].keys()
@@ -47,17 +64,20 @@ def get_image_topic(bag):
     msg = 'Cannot find the topic: %s' % topics
     raise ValueError(msg)
 
+
 def d8n_get_all_images_topic(bag_filename):
-    """ 
-        Returns the (name, type) of all topics that look like images. 
     """
-    import rosbag  # @UnresolvedImport
+        Returns the (name, type) of all topics that look like images.
+    """
+
     bag = rosbag.Bag(bag_filename)
     return d8n_get_all_images_topic_bag(bag)
 
-def d8n_get_all_images_topic_bag(bag):
-    """ 
-        Returns the (name, type) of all topics that look like images. 
+
+def d8n_get_all_images_topic_bag(bag, min_messages=0):
+    """
+        Returns the (name, type) of all topics that look like images
+        and that have nonzero message count.
     """
     tat = bag.get_type_and_topic_info()
     consider_images = [
@@ -67,10 +87,10 @@ def d8n_get_all_images_topic_bag(bag):
     all_types = set()
     found = []
     topics = tat.topics
-    for t,v in topics.items():
+    for t, v in topics.items():
         msg_type = v.msg_type
         all_types.add(msg_type)
-        _message_count = v.message_count
+        message_count = v.message_count
         if msg_type in consider_images:
 
             # quick fix: ignore image_raw if we have image_compressed version
@@ -79,6 +99,11 @@ def d8n_get_all_images_topic_bag(bag):
 
                 if other in topics:
                     continue
-            found.append((t,msg_type))
+
+            if  message_count < min_messages:
+                # print('ignoring topic %r because message_count = 0' % t)
+                continue
+
+            found.append((t, msg_type))
     return found
 

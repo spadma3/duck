@@ -28,3 +28,5 @@ include Makefiles/Makefile.hw_test.mk
 include Makefiles/Makefile.maintenance.mk
 include Makefiles/Makefile.openhouse.mk
 include Makefiles/Makefile.log.mk
+include Makefiles/Makefile.demos2017.mk
+include Makefiles/Makefile.megacity.mk

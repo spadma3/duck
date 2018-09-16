@@ -1,7 +1,10 @@
-from duckietown_utils.instantiate_utils import indent
-from duckietown_utils.system_cmd_imp import system_cmd_result, CmdException
+import duckietown_utils as dtu
 from what_the_duck.check import Check, CheckError, CheckFailed
 
+__all__ = [
+    'WifiNameConfigured',
+    'GoodKernel',
+]
 
 class WifiNameConfigured(Check):
 
@@ -11,15 +14,15 @@ class WifiNameConfigured(Check):
         cmd = 'iwconfig'
 
         try:
-            res = system_cmd_result('.', cmd,
+            res = dtu.system_cmd_result('.', cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True,
                       capture_keyboard_interrupt=False,
                       env=None)
-        except CmdException as e:
+        except dtu.CmdException as e:
             msg = 'The command failed\n'
-            msg += '\n'+ indent(e, ' >')
+            msg += '\n'+ dtu.indent(e, ' >')
             raise CheckError(msg)
 
         if initial in res.stdout:
@@ -28,7 +31,7 @@ class WifiNameConfigured(Check):
             l += '\nThis means that you have failed to properly configure the robot.'
             l += '\nIt is likely the people around you are trying to connect to your robot.'
 
-            l += '\n\nEntire output of iwconfig:\n\n' + indent(res.stdout, '  > ')
+            l += '\n\nEntire output of iwconfig:\n\n' + dtu.indent(res.stdout, '  > ')
             raise CheckFailed(msg, l)
 
 class GoodKernel(Check):
@@ -38,15 +41,15 @@ class GoodKernel(Check):
         cmd = ['uname','-r']
 
         try:
-            res = system_cmd_result('.', cmd,
+            res = dtu.system_cmd_result('.', cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True,
                       capture_keyboard_interrupt=False,
                       env=None)
-        except CmdException as e:
+        except dtu.CmdException as e:
             msg = 'The command failed\n'
-            msg += '\n'+ indent(e, ' >')
+            msg += '\n'+ dtu.indent(e, ' >')
             raise CheckError(msg)
 
         found = res.stdout.strip()

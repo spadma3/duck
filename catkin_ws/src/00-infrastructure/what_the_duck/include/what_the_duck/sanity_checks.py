@@ -6,15 +6,15 @@ import traceback
 
 from termcolor import colored
 
-from duckietown_utils import indent, logger, write_data_to_file
+import duckietown_utils as dtu
 
 from .check import CheckError, CheckFailed
 from .constant import ChecksConstants, Result
 from .list_of_checks import get_checks
-from .statistics import display_results, display_summary, Statistics
-from .visualize import escaped_from_html
-from .statistics import display_short_statistics
 from .mongo_suppor import upload_results
+from .statistics import display_results, display_summary, Statistics
+from .statistics import display_short_statistics
+from .visualize import escaped_from_html
 
 
 def do_all_checks():
@@ -25,7 +25,7 @@ def do_all_checks():
     entries = get_checks()
     
 #     logger.info("%s checks many things about the Duckiebot configuration" % WTD)
-    logger.info('%s will run %s tests.' % (WTD, len(entries))) 
+    dtu.logger.info('%s will run %s tests.' % (WTD, len(entries))) 
     results = run_checks(entries)
      
     o_complete = ""
@@ -38,7 +38,7 @@ def do_all_checks():
     
     print(escaped_from_html(o_user))
     
-    write_data_to_file(o_user, filename)
+    dtu.write_data_to_file(o_user, filename)
 #     print('\nNow send the file "%s" to the TA/instructors.' % filename)
     
     upload_results(results)
@@ -70,8 +70,8 @@ def run_checks(entries):
             if e == r.entry:
                 return r.status
             
-        logger.error('Could not find %s' % e)
-        logger.error(results)
+        dtu.logger.error('Could not find %s' % e)
+        dtu.logger.error(results)
         raise NotRun()
     
     for entry in entries:
@@ -126,7 +126,7 @@ def run_checks(entries):
             msg = 'Invalid test: it raised the exception %s.' % type(e).__name__
             l = 'I expect the tests to only raise CheckError or CheckFailed.'
             l += '\n\nEntire exception:\n\n'
-            l += indent(traceback.format_exc(e), '  ')
+            l += dtu.indent(traceback.format_exc(e), '  ')
             r = Result(entry=entry, status=ChecksConstants.ERROR, 
                        out_short=msg,
                        out_long=l)
