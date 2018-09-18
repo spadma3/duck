@@ -26,6 +26,8 @@ class evaluation_node(object):
         self.tag_transformation = dict()
         self.map_filename = "line_test.yaml"
 
+        self.load_map_info(self.map_filename)
+
         # Start Calibration
 
         #Parameters
