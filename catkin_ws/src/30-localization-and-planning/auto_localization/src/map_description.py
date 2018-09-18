@@ -4,20 +4,20 @@
 ######### Coordination #############
 
 # The Coordination here is
-#
+# y
+# ^
+# |
+# |
+# |
+# |
+# |
+# |
+# |
+# |
 # ----------------> x
-# |
-# |
-# |
-# |
-# |
-# |
-# |
-# |
-# v
-# z
 #
 # Every Duckiebot pose which sent here should be preprossed before it was sent here.
+# NOTE, in draw_duckiebot function, we change the Coordination again JUST FOR DRAWING (matching pygame Coordination)
 
 #######################################
 
@@ -78,7 +78,7 @@ class map_description(object):
         self.origin_tag_pos.theta = 0 # in degrees
 
         ### Subscriber
-        self.sub_bot = rospy.Subscriber("bot_poses", GlobalPoseArray, self.update_data_callback, queue_size=1)
+        self.sub_bot = rospy.Subscriber("bot_global_poses_optimized", GlobalPoseArray, self.update_data_callback, queue_size=1)
 
         ### Varaible for storing Duckiebot data
         # Data of Duckiebots
@@ -158,14 +158,16 @@ class map_description(object):
 
     def update_data_callback(self, bot_poses):
 
+        # NOTE: We do a transformation odf 2D pose here
+
         for bot in bot_poses.poses:
             key_index = str(bot.bot_id)
             if not str(bot.bot_id) in self.all_duckiebots:
                 self.all_duckiebots[key_index] = {}
-            self.all_duckiebots[key_index]['bot_t'] = bot.header.stamp.secs + float(bot.header.stamp.nsecs)/1e9
+            self.all_duckiebots[key_index]['bot_t'] = bot.header.stamp.to_sec()
             self.all_duckiebots[key_index]['x'] = bot.pose.x
             self.all_duckiebots[key_index]['delta_x'] = bot.delta_x
-            self.all_duckiebots[key_index]['y'] = -1*bot.pose.y
+            self.all_duckiebots[key_index]['y'] = bot.pose.y
             self.all_duckiebots[key_index]['delta_y'] = bot.delta_y
             self.all_duckiebots[key_index]['theta'] = bot.pose.theta
             self.all_duckiebots[key_index]['delta_theta'] = bot.delta_theta
@@ -211,7 +213,7 @@ class map_description(object):
 
         for id_key in self.all_duckiebots:
             pixel_x = self.all_duckiebots[id_key]['x'] * self.m2p
-            pixel_y = self.all_duckiebots[id_key]['y'] * self.m2p
+            pixel_y = self.all_duckiebots[id_key]['y'] * self.m2p * -1 # To match the coordination of pygame
             range_accept = 25
             if (pixel_x-range_accept <= mouse_x <= pixel_x+range_accept) and (pixel_y-range_accept <= mouse_y <= pixel_y+range_accept):
                 self.RDA_data['bot_id'] = id_key
@@ -237,7 +239,7 @@ class map_description(object):
         self.GDA_data['bot_num'] = len(self.all_duckiebots)
         self.GDA_data['tow_num'] = len(self.map_watchtowers)
         now_time = rospy.get_rostime()
-        self.GDA_data['time'] = now_time.secs + float(now_time.nsecs)/1e9
+        self.GDA_data['time'] = now_time.to_sec()
 
         self.draw_general_data()
         ###################
@@ -248,6 +250,7 @@ class map_description(object):
         else:
             bot_id_choose = self.RDA_data['bot_id']
             # Showing difference of time between bot time and current time
+            print self.GDA_data['time'] - self.all_duckiebots[bot_id_choose]['bot_t']
             self.RDA_data['bot_t'] = round(self.GDA_data['time'] - self.all_duckiebots[bot_id_choose]['bot_t'], 3)
             self.RDA_data['x'] = round(self.all_duckiebots[bot_id_choose]['x'], 3)
             self.RDA_data['delta_x'] = round(self.all_duckiebots[bot_id_choose]['delta_x'], 3)
@@ -333,12 +336,14 @@ class map_description(object):
 
     def draw_duckiebot(self):
 
+        # NOTE We do a transformation for drawing here!!!!!!!!!!!
+
         for id_key in self.all_duckiebots:
             pose_x = self.all_duckiebots[id_key]['x']
             pose_delta_x = self.all_duckiebots[id_key]['delta_x']
-            pose_y = self.all_duckiebots[id_key]['y']
+            pose_y = self.all_duckiebots[id_key]['y'] * -1
             pose_delta_y = self.all_duckiebots[id_key]['delta_y']
-            pose_theta = self.all_duckiebots[id_key]['theta']
+            pose_theta = self.all_duckiebots[id_key]['theta'] + math.pi/2
             pose_delta_theta = self.all_duckiebots[id_key]['delta_theta']
 
             # Draw Duckiebot on the map
@@ -348,9 +353,6 @@ class map_description(object):
             draw_y = mid_y - int(self.bot_img.get_width()/2)
             pg.draw.circle(self.screen_Map, DUCKIEBOT_COLOR, [int(mid_x), int(mid_y)], int(duckiebot_size*self.m2p)) # Use a circle to represent Duckiebot
             # self.screen_Map.blit(self.bot_img, [draw_x, draw_y]) # Use a image to represent Duckiebot
-            print "size, ", int(duckiebot_size*self.m2p)
-            print "draw_x, ", int(mid_x)
-            print "draw_y, ", int(mid_y)
 
             # Draw delta_x, delta_y
             draw_delta_x = int(pose_delta_x * self.m2p)

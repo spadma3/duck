@@ -20,9 +20,16 @@
     <include file="$(find auto_localization)/launch/absolute_from_relative_position.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="map" value="$(arg map)"/>
+      <arg name="output" value="$(arg map)"/>
     </include>
 
-    <remap from="bot_poses" to="absolute_from_relative_position/bot_global_poses" />
+    <remap from="bot_global_poses" to="absolute_from_relative_position/bot_global_poses" />
+    <include file="$(find auto_localization)/launch/pose_optimization.launch">
+      <arg name="veh" value="$(arg veh)"/>
+      <arg name="output" value="$(arg map)"/>
+    </include>
+
+    <remap from="bot_global_poses_optimized" to="pose_optimization/bot_global_poses_optimized" />
     <include if="$(arg GUI)" file="$(find auto_localization)/launch/map_description.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="map" value="$(arg map)"/>

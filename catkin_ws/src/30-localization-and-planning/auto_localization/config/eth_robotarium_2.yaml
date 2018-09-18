@@ -1,11 +1,23 @@
-- - curve_left/w
-  - straight/w
-  - straight/w
-  - 3way_left/w
-  - straight/w
-  - straight/w
-  - 3way_left/w
-  - straight/w
+origin:
+- id: 343
+  orientation:
+  - 0
+  - 0
+  - 0
+  - 1
+  translation:
+  - 0
+  - 0
+  - 0
+tiles:
+- - curve_left/W
+  - straight/W
+  - straight/W
+  - 3way_left/W
+  - straight/W
+  - straight/W
+  - 3way_left/W
+  - straight/W
   - curve_left/N
   - grass
 - - straight/S
@@ -20,7 +32,7 @@
   - curve_left/N
 - - straight/S
   - grass
-  - grcurve_left/wass
+  - grass
   - straight/S
   - grass
   - grass
@@ -29,14 +41,14 @@
   - grass
   - straight/S
 - - 3way_left/S
-  - straight/w
-  - straight/w
+  - straight/W
+  - straight/W
   - 4way
-  - straight/w
-  - straight/w
+  - straight/W
+  - straight/W
   - 3way_left/E
-  - straight/w
-  - straight/w
+  - straight/W
+  - straight/W
   - 3way_left/N
 - - straight/S
   - grass
@@ -52,14 +64,14 @@
   - grass
   - grass
   - curve_left/S
-  - straight/w
+  - straight/W
   - curve_left/N
   - grass
   - grass
   - grass
-  - straight/w
+  - straight/S
 - - 3way_left/S
-  - straight/w
+  - straight/W
   - curve_left/N
   - grass
   - grass
@@ -71,12 +83,12 @@
 - - straight/S
   - grass
   - curve_left/S
-  - straight/w
-  - straight/w
+  - straight/W
+  - straight/W
   - 4way
-  - straight/w
-  - straight/w
-  - straight/w
+  - straight/W
+  - straight/W
+  - straight/W
   - 3way_left/N
 - - curve_left/S
   - curve_left/N
@@ -94,7 +106,7 @@
   - grass
   - grass
   - curve_left/S
-  - straight/w
+  - straight/W
   - curve_left/N
   - grass
   - straight/S
@@ -113,18 +125,23 @@
   - grass
   - straight/S
   - grass
-  - curve_left/w
-  - straight/w
+  - curve_left/W
+  - straight/W
   - 4way
-  - straight/w
+  - straight/W
   - curve_left/E
 - - grass
   - grass
   - grass
   - curve_left/S
-  - straight/w
+  - straight/W
   - curve_left/E
   - grass
   - straight/S
   - grass
   - grass
+
+watchtowers:
+- watchtower13
+- watchtower07
+fixed_tags:
