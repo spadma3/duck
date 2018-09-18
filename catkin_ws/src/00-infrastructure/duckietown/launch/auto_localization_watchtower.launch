@@ -7,7 +7,7 @@
   <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
   <arg name="rect_full_ratio" default="true" doc="use full ration rectified image for apriltags detections " />
 
-  <arg name="IP" default="0" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
+  <arg name="IP" default="192.168.1.17" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
 
   <!-- Apriltags2 -->
   <include file="$(find duckietown)/launch/apriltags2.launch">

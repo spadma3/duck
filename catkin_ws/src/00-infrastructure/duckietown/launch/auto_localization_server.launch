@@ -3,8 +3,8 @@
     <arg name="config" default="baseline" doc="Specify a config."/>
     <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
 
-    <arg name="map" default="testcircle" doc="Specify the map you wants"/>
-    <arg name="IP" default="0" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
+    <arg name="map" doc="Specify the map you wants, must be specified but user"/>
+    <arg name="IP" default="192.168.1.17" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
 
     <arg name="GUI" default="true" doc="Show GUI or not"/>
 
