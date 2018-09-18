@@ -46,14 +46,26 @@ class TCPCommunicationClientNode(object):
         if len(MESSAGE) > self.BUFFER_SIZE:
             string = String()
             string.data = json.dumps("ERROR")
+            rospy.loginfo("[TCP Communication Client Node] ERROR: Message length exceeds buffer size (49)!")
             return string
 
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((self.IP, self.PORT))
-            s.send(json.dumps(MESSAGE))
-            response = s.recv(self.BUFFER_SIZE)
-            s.close()
+            try:
+                s.send(json.dumps(MESSAGE))
+                try:
+                    response = s.recv(self.BUFFER_SIZE)
+                    try:
+                        s.close()
+                    except:
+                        rospy.loginfo("[TCP Communication Client Node] Could not close socket")
+                except:
+                    rospy.loginfo("[TCP Communication Client Node] No response from server after connection!")
+                    s.close()
+            except:
+                rospy.loginfo("[TCP Communication Client Node] Could not send message!")
+
         except:
             rospy.loginfo("[TCP Communication Client Node] Could not connect!")
             response = json.dumps("ERROR")
@@ -73,14 +85,39 @@ class TCPCommunicationClientNode(object):
         if len(MESSAGE) > self.BUFFER_SIZE:
             string = String()
             string.data = json.dumps("ERROR")
+            rospy.loginfo("[TCP Communication Client Node] ERROR: Message length exceeds buffer size! (88)")
+
             return string
 
+        # try:
+        #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #     s.connect((self.IP, self.PORT))
+        #     s.send(json.dumps(MESSAGE))
+        #     response = s.recv(self.BUFFER_SIZE)
+        #     s.close()
+        # except:
+        #     rospy.loginfo("[TCP Communication Client Node] Could not connect!")
+        #     response = json.dumps("ERROR")
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((self.IP, self.PORT))
-            s.send(json.dumps(MESSAGE))
-            response = s.recv(self.BUFFER_SIZE)
-            s.close()
+            try:
+                s.send(json.dumps(MESSAGE))
+                try:
+                    response = s.recv(self.BUFFER_SIZE)
+                    try:
+                        s.close()
+                    except:
+                        rospy.loginfo("[TCP Communication Client Node] Could not close socket")
+                except:
+                    rospy.loginfo("[TCP Communication Client Node] No response from server after connection!")
+                    response = json.dumps("ERROR")
+                    s.close()
+            except:
+                rospy.loginfo("[TCP Communication Client Node] Could not send message!")
+                response = json.dumps("ERROR")
+                s.close()
+
         except:
             rospy.loginfo("[TCP Communication Client Node] Could not connect!")
             response = json.dumps("ERROR")

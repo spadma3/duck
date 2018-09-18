@@ -96,11 +96,19 @@ class Tag_collection(object):
                     # We don't need to know the tf of same tags
                     continue
                 else:
+                    ## Limit packet size to three poses
+                    if len(remap_poses_array.poses) == 3:
+                        self.pub_postPros.publish(remap_poses_array)
+                        remap_poses_array = RemapPoseArray()
+
                     child_frame_name = 'Tag'+str(child_frame_tags_id)
                     parent_frame_name = 'Tag'+str(parent_frame_tags_id)
                     if self.sub_tf.frameExists(child_frame_name) and self.sub_tf.frameExists(parent_frame_name):
-                        t = self.sub_tf.getLatestCommonTime(child_frame_name, parent_frame_name)
-                        (trans,rot) = self.sub_tf.lookupTransform(child_frame_name, parent_frame_name, t)
+                        try:
+                            t = self.sub_tf.getLatestCommonTime(child_frame_name, parent_frame_name)
+                            (trans,rot) = self.sub_tf.lookupTransform(child_frame_name, parent_frame_name, t)
+                        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                            continue
 
                         remap_pose = RemapPose()
                         remap_pose.host = socket.gethostname()

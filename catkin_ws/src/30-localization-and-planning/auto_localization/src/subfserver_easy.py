@@ -29,9 +29,7 @@ def poselist2pose(poselist):
 def pubPoses(watchtowers):
 
     pub_poses = rospy.Publisher('~local_poses', RemapPoseArray, queue_size=1)
-    rate = rospy.Rate(5) # 5hz
-
-    rospy.sleep(10.) # Wait to insure that the client TCP/IP node has launched
+    rate = rospy.Rate(20) # 5hz
 
     while not rospy.is_shutdown():
         local_poses_pub = RemapPoseArray()

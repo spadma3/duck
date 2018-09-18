@@ -1,5 +1,5 @@
 origin:
-- id: 142
+- id: 300
   orientation:
   - 0
   - 0
@@ -142,10 +142,40 @@ tiles:
   - grass
 
 watchtowers:
-- Watchtower01
-- Watchtower02
-- Watchtower03
-- Watchtower04
-- Watchtower05
-- Watchtower15
+- watchtower01
+- watchtower02
+- watchtower03
+- watchtower04
+- watchtower05
+- watchtower06
+- watchtower07
+- watchtower08
+- watchtower09
+- watchtower10
+- watchtower11
+- watchtower12
+- watchtower13
+- watchtower14
+- watchtower15
+- watchtower16
+- watchtower17
+- watchtower18
+- watchtower19
+- watchtower20
+- watchtower21
+- watchtower22
+- watchtower23
+- watchtower24
+- watchtower25
+- watchtower26
+- watchtower27
+- watchtower28
+- watchtower29
+- watchtower31
+- watchtower32
+- watchtower33
+- watchtower34
+- watchtower35
+- watchtower36
+
 fixed_tags:

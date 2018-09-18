@@ -165,7 +165,7 @@ class map_description(object):
             self.all_duckiebots[key_index]['bot_t'] = bot.header.stamp.secs + float(bot.header.stamp.nsecs)/1e9
             self.all_duckiebots[key_index]['x'] = bot.pose.x
             self.all_duckiebots[key_index]['delta_x'] = bot.delta_x
-            self.all_duckiebots[key_index]['y'] = bot.pose.y
+            self.all_duckiebots[key_index]['y'] = -1*bot.pose.y
             self.all_duckiebots[key_index]['delta_y'] = bot.delta_y
             self.all_duckiebots[key_index]['theta'] = bot.pose.theta
             self.all_duckiebots[key_index]['delta_theta'] = bot.delta_theta
@@ -348,6 +348,9 @@ class map_description(object):
             draw_y = mid_y - int(self.bot_img.get_width()/2)
             pg.draw.circle(self.screen_Map, DUCKIEBOT_COLOR, [int(mid_x), int(mid_y)], int(duckiebot_size*self.m2p)) # Use a circle to represent Duckiebot
             # self.screen_Map.blit(self.bot_img, [draw_x, draw_y]) # Use a image to represent Duckiebot
+            print "size, ", int(duckiebot_size*self.m2p)
+            print "draw_x, ", int(mid_x)
+            print "draw_y, ", int(mid_y)
 
             # Draw delta_x, delta_y
             draw_delta_x = int(pose_delta_x * self.m2p)

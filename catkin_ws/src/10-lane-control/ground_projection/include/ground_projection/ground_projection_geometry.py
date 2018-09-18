@@ -152,7 +152,7 @@ class GroundProjectionGeometry(object):
         new_camera_matrix = self.pcm.K.copy()
         new_camera_matrix[0, 2] = W / 2
         new_camera_matrix[1, 2] = H / 2
-        print('new_camera_matrix: %s' % new_camera_matrix)
+        print('Init new_camera_matrix: %s' % new_camera_matrix)
 
 
         mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
@@ -164,6 +164,7 @@ class GroundProjectionGeometry(object):
         self.mapy = mapy
         self.new_camera_matrix = new_camera_matrix
         self._rectify_inited = True
+        self.ratio = None
 
     def rectify(self, cv_image_raw, interpolation=cv2.INTER_NEAREST):
         ''' Undistort an image.
@@ -200,40 +201,47 @@ class GroundProjectionGeometry(object):
 
             Returns the new camera matrix as well.
         '''
-        #start_time = time.time()
+
+        W = int(self.pcm.width * ratio)
+        H = int(self.pcm.height * ratio)
         if not self._rectify_inited:
+            print "Go into the rectify initialize"
+            self._init_rectify_maps_for_rectfullratio(W, H)
+
+        if self.ratio != ratio:
+            self.ratio = ratio
             W = int(self.pcm.width * ratio)
             H = int(self.pcm.height * ratio)
-            self._init_rectify_maps_for_rectfullratio(W, H)
-#        mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
-#        mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
-        #print('K: %s' % self.pcm.K)
-        #print('P: %s' % self.pcm.P)
 
-#        alpha = 1
-#        new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H, W), alpha)
-#        print('validPixROI: %s' % str(validPixROI))
+            # mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
+            # mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
+            # print('K: %s' % self.pcm.K)
+            # print('P: %s' % self.pcm.P)
+            #
+            # alpha = 1
+            # new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H, W), alpha)
+            # print('validPixROI: %s' % str(validPixROI))
 
-        # Use the same camera matrix
-        #start_map_time = time.time()
-        '''
-        new_camera_matrix = self.pcm.K.copy()
-        new_camera_matrix[0, 2] = W / 2
-        new_camera_matrix[1, 2] = H / 2
-        print('new_camera_matrix: %s' % new_camera_matrix)
-        mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
-                                                 new_camera_matrix, (W, H),
-                                                 cv2.CV_32FC1)
-        '''
-        #map_time = time.time()
+            # Use the same camera matrix
+
+            self.new_camera_matrix = self.pcm.K.copy()
+            self.new_camera_matrix[0, 2] = W / 2
+            self.new_camera_matrix[1, 2] = H / 2
+            print('new_camera_matrix: %s' % self.new_camera_matrix)
+            self.mapx, self.mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
+                                                     self.new_camera_matrix, (W, H),
+                                                     cv2.CV_32FC1)
+
+
         cv_image_rectified = np.empty_like(cv_image_raw)
         res = cv2.remap(cv_image_raw, self.mapx, self.mapy, interpolation,
                         cv_image_rectified)
-        #end_time = time.time()
-        #print "map time = ", (map_time - start_map_time)
-        #print "rectify time = ", (end_time - map_time)
-        #print "total time = ", (end_time - start_time)
-        return self.new_camera_matrix, res
+
+        # So that the code won't effect self.new_camera_matrix each time
+        # See https://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list
+        matrix_return = self.new_camera_matrix.copy()
+
+        return matrix_return, res
 
 
 def invert_map(mapx, mapy):
