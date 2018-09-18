@@ -15,6 +15,8 @@ import global_pose_functions as gposf
 from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, GlobalPose
 import matplotlib.pyplot as plt
 import averageQuaternions as avq
+from pylab import *
+
 
 class evaluation_node(object):
     """docstring for ."""
@@ -376,6 +378,74 @@ class evaluation_node(object):
                 print "Value for Tag ", key, "is None"
 
         plt.show()
+
+#******************************************
+#******************************************
+#******************************************
+#******************************************
+        # create a plot from the results
+        fig, ax = plt.subplots()
+        plt.subplots_adjust(left=0.05, bottom=0.1, right=0.95, top=0.95,
+                wspace=0.2, hspace=0.2)
+        title("Absolute Errors of Fixed AprilTag Poses from System Calibration")
+        x = np.array([0,1,2,3,4])
+        xtics = ['0','1','2', '3','4','5','6','7','8']
+        plt.xticks(x, xtics)
+
+        # plt.xlabel("Calibration Path Length [m]", color='b', size=16)
+        # plt.set_title("Absolute Error of System Calibration")
+        # plt.ylabel("Absolute Error in Translation [m]", color='b', size=16)
+        # ax.tick_params('y', colors='b')
+        ax.margins(0.1)
+
+        sub1 = plt.subplot(2,3,1)
+        title("Error in Translation", size=20)
+        plt.ylabel("Error in X [m]", size=14)
+        plt.xticks(x, xtics)
+
+        sub2 = plt.subplot(2,3,2)
+        plt.ylabel("Error in Y [m]", size=14)
+        plt.xticks(x, xtics)
+
+        sub3 = plt.subplot(2,3,3)
+        plt.ylabel("Error in Z [m]", size=14)
+        plt.xticks(x, xtics)
+
+        sub4 = plt.subplot(2,3,4)
+        title("Error in Rotation (Euler XYZ Angles)",size=20)
+        plt.ylabel("Error in X [$^\circ$]", size=14)
+        plt.xticks(x, xtics)
+        plt.xlabel("Number of Tags in Path from Origin", size=14)
+
+        sub5 = plt.subplot(2,3,5)
+        plt.ylabel("Error in Y [$^\circ$]", size=14)
+        plt.xticks(x, xtics)
+
+        sub6 = plt.subplot(2,3,6)
+        plt.ylabel("Error in Z [$^\circ$]", size=14)
+        plt.xticks(x, xtics)
+
+
+
+
+
+        for key in path_length:
+            trans, rot =         gposf.rot_trans_from_matrix(tag_relationship[key])
+            rot =                tr.euler_from_quaternion(rot)
+            realtrans, realrot = gposf.rot_trans_from_matrix(self.ground_truth[key])
+            realrot =            tr.euler_from_quaternion(realrot)
+
+            err_trans = np.asarray(trans)   -   np.asarray(realtrans)
+            err_rot =   np.asarray(rot)     -   np.asarray(realrot)
+
+
+            sub1.text(path_length[key]-1, err_trans[0], str(key), ha='center', color = 'b', size=14)
+            sub2.text(path_length[key]-1, err_trans[1], str(key), ha='center', color = 'b', size=14)
+            sub3.text(path_length[key]-1, err_trans[2], str(key), ha='center', color = 'b', size=14)
+            sub4.text(path_length[key]-1, err_rot[0], str(key), ha='center', color = 'b', size=14)
+            sub5.text(path_length[key]-1, err_rot[2], str(key), ha='center', color = 'b', size=14)
+            sub6.text(path_length[key]-1, err_rot[1], str(key), ha='center', color = 'b', size=14)
+
         # save_res = open("/home/duckietown/duckietown/catkin_ws/src/30-localization-and-planning/auto_localization/results/line_test/test_results", 'a+')
         # save_res.write("{:%Y%m%d-%H%M}".format(datetime.now()))
         # save_res.write("\n"+repr(paths))
@@ -383,7 +453,7 @@ class evaluation_node(object):
 
 
 
-
+        plt.show()
 
         print tag_relationship
 
