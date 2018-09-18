@@ -112,5 +112,13 @@ python-module-stats:
 		Pillow\
 		qtfaststart
 
-rudolf-make-urls:
-	rosrun easy_logs dropbox-links /home/andrea/Dropbox/ "*.bag" ./catkin_ws/src/00-infrastructure/easy_logs/dropbox2.urls.yaml
+
+
+build-pyc-clean:
+	find $(catkin_ws)/src/ -name '*pyc' -delete
+
+
+#rudolf-make-urls:
+#	rosrun easy_logs dropbox-links /home/andrea/Dropbox/ "*.bag" ./catkin_ws/src/00-infrastructure/easy_logs/dropbox2.urls.yaml
+
+
