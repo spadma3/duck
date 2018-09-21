@@ -2,7 +2,7 @@
 
 ## AIDO localization System Calibration
 # Author:  Chen-Lung (Eric) Lu , ETHZ NCTU, eric565648.eed03@g2.nctu.edu.tw
-#          Josefine Quack, ETHZ, jquack@ethz.ch 
+#          Josefine Quack, ETHZ, jquack@ethz.ch
 
 ## This script records the positions of all reference Apriltags
 # and save them into map file
@@ -214,13 +214,22 @@ class system_calibration(object):
 
         # create a plot from the results
         fig, ax = plt.subplots()
+        plt.subplots_adjust(left=0.15, bottom=0.1, right=0.85, top=0.95,
+                wspace=None, hspace=None)
+        # plt.xticks(x, xtics)
+        plt.xlabel("x [m]", color='b', size=16)
+        ax.set_title("Result of System Calibration: Global Positions of Mapped Tags ")
+        plt.ylabel("y [m]", color='b', size=16)
+        # ax.tick_params('y', colors='b')
+        ax.margins(0.1)
+
         for key,value in tag_relationship.iteritems():
 
             try:
                 x = value[0][3]
                 y = value[1][3]
                 # ax.text(x, y, str(path_length[key]), ha='center', size=20)
-                ax.text(x, y, str(key), ha='center', size=12)
+                ax.text(x, y, str(key), ha='center', size=14)
             except:
                 print "Value for Tag ", key, "is None"
 
