@@ -59,12 +59,11 @@ class ImgRectFullRatio(object):
         if self.gpg is None:
             return
 
-        start_time = time.time()
         cv_image = self.bridge.imgmsg_to_cv2(msg, "mono8")
 
         # undistort the image
         # Oriin ratio = 1.65, change to lower ratio to increase the speed of apriltags detection
-        new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.5)
+        new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.65)
 
         # resulting image has a different size
         # bring back the image to the old size, also crop a little from the outside
@@ -74,15 +73,15 @@ class ImgRectFullRatio(object):
         #crop
         # code is from here: https://stackoverflow.com/questions/15589517/how-to-crop-an-image-in-opencv-using-python
         # crop the height from pixel 120 to increase the speed of apriltags detection
-        cut_height = 120
-        result_img = result_img[cut_height:result_img.shape[0], 0:result_img.shape[1]]
-        new_matrix[0, 2] = new_matrix[0, 2]
-        new_matrix[1, 2] = new_matrix[1, 2] - cut_height
+        # cut_height = 120
+        # result_img = result_img[cut_height:result_img.shape[0], 0:result_img.shape[1]]
+        # new_matrix[0, 2] = new_matrix[0, 2]
+        # new_matrix[1, 2] = new_matrix[1, 2] - cut_height
 
-        #resize
-        #result_img = cv2.resize(result_img,(cv_image.shape[1], cv_image.shape[0]), interpolation = cv2.INTER_AREA)
-        ratio = 1
-        #result_img = cv2.resize(result_img,(int(result_img.shape[1]*ratio), int(result_img.shape[0]*ratio)), interpolation = cv2.INTER_AREA)
+        # resize
+        # result_img = cv2.resize(result_img,(cv_image.shape[1], cv_image.shape[0]), interpolation = cv2.INTER_AREA)
+        # ratio = 1
+        # result_img = cv2.resize(result_img,(int(result_img.shape[1]*ratio), int(result_img.shape[0]*ratio)), interpolation = cv2.INTER_AREA)
 
         img_msg = self.bridge.cv2_to_imgmsg(result_img, "mono8")
         #print "Old Image h,w =", cv_image.shape
@@ -102,9 +101,6 @@ class ImgRectFullRatio(object):
         rect_cam_info.K = new_K
 
         #print "Image h, w = ", rect_cam_info.height, rect_cam_info.width
-
-        end_time = time.time()
-        #print "Rect cbImg time = ", (end_time - start_time)
         self.pub_rect.publish(img_msg)
         self.pub_cam_info.publish(rect_cam_info)
 
