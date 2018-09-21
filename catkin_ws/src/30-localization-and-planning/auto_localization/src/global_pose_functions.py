@@ -27,6 +27,9 @@ def create_tf_matrix(trans, rot):
     transformation_matrix = tr.compose_matrix(angles = tr.euler_from_quaternion(rot), translate = trans)
     return transformation_matrix
 
+def inverse_matrix(mat):
+
+    return tr.inverse_matrix(mat)
 
 # #euler and translation to Homography
 # #para is x,y,z,roll,pitch,yaw

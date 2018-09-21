@@ -205,13 +205,15 @@ class GroundProjectionGeometry(object):
         W = int(self.pcm.width * ratio)
         H = int(self.pcm.height * ratio)
         if not self._rectify_inited:
-            print "Go into the rectify initialize"
+            print "Go to the rectify initialize"
             self._init_rectify_maps_for_rectfullratio(W, H)
 
         if self.ratio != ratio:
             self.ratio = ratio
             W = int(self.pcm.width * ratio)
             H = int(self.pcm.height * ratio)
+            # W = int(self.pcm.width)
+            # H = int(self.pcm.height)
 
             # mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
             # mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
@@ -219,11 +221,12 @@ class GroundProjectionGeometry(object):
             # print('P: %s' % self.pcm.P)
             #
             # alpha = 1
-            # new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H, W), alpha)
+            # self.new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (W, H), alpha)
             # print('validPixROI: %s' % str(validPixROI))
 
             # Use the same camera matrix
 
+            ####### Method 1, from andrea-better-calib ######
             self.new_camera_matrix = self.pcm.K.copy()
             self.new_camera_matrix[0, 2] = W / 2
             self.new_camera_matrix[1, 2] = H / 2
@@ -231,11 +234,26 @@ class GroundProjectionGeometry(object):
             self.mapx, self.mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
                                                      self.new_camera_matrix, (W, H),
                                                      cv2.CV_32FC1)
+            #################################################
+
+            ###### Method 2, from openCV ####################
+            # https://medium.com/@kennethjiang/calibrate-fisheye-lens-using-opencv-part-2-13990f1b157f
+            # print 'D_matrix: ', self.pcm.D
+            # D = self.pcm.D.copy()
+            # D = D[:-1]
+            # print 'After D_matrix: ', D
+            # # self.new_camera_matrix = cv2.fisheye.estimateNewCameraMatrixForUndistortRectify(self.pcm.K.copy(), D, (W, H), np.eye(3), balance=1)
+            # self.new_camera_matrix = self.pcm.K.copy()
+            # self.new_camera_matrix[0, 2] = W / 2
+            # self.new_camera_matrix[1, 2] = H / 2
+            # print('new_camera_matrix: %s' % self.new_camera_matrix)
+            # self.mapx, self.mapy = cv2.fisheye.initUndistortRectifyMap(self.pcm.K.copy(), D, self.pcm.R, self.new_camera_matrix, (W, H), cv2.CV_32FC1)
+            #################################################
 
 
         cv_image_rectified = np.empty_like(cv_image_raw)
         res = cv2.remap(cv_image_raw, self.mapx, self.mapy, interpolation,
-                        cv_image_rectified)
+                        cv_image_rectified, borderMode=cv2.BORDER_CONSTANT)
 
         # So that the code won't effect self.new_camera_matrix each time
         # See https://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list

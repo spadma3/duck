@@ -108,7 +108,7 @@ class AprilLocalLocalization(object):
             if not new_info.tag_type == self.info.VEHICLE : # We assume any tag doesn't belone to vehicle is reference tags
                  # add fixed tag to the database, overwrite old information
 
-                 self.fixed_tags_dict[new_info.id] = [new_info.tag_type, detection.pose]
+                 self.fixed_tags_dict[new_info.id] = [new_info.tag_type, gposf.get_matrix_from_pose(detection.pose.pose.pose)]
                  # for fixed_frame in self.fixed_tags_dict:
                  #    rospy.loginfo("FixedFrame: %s",fixed_frame)
 
@@ -122,7 +122,7 @@ class AprilLocalLocalization(object):
                 #rospy.loginfo("Detected %s with Tag ID %s", new_info.vehicle_name, new_info.id)
                 # cantrans = tf.canTransform('quacky/color_optical_frame', 'Tag15', now)
                 pose = detection.pose.pose.pose
-                mat_bot_cam = gposf.get_matrix_from_pose(detection.pose.pose.pose)
+                mat_bot_cam = gposf.get_matrix_from_pose(pose)
                 # print "translation bot camera", trans_bot_cam
 
 
@@ -133,6 +133,7 @@ class AprilLocalLocalization(object):
                 # Coordinates transform for each fixed frame
                 for fixed_frame in self.fixed_tags_dict:
                     # print "RemapPoseArray size: " + str(len(remap_poses_array.poses))
+                    fixed_tag = self.fixed_tags_dict[fixed_frame]
                     if len(remap_poses_array.poses) == 3:
                         self.pub_postPros.publish(remap_poses_array)
                         remap_poses_array = RemapPoseArray()
@@ -140,21 +141,23 @@ class AprilLocalLocalization(object):
 
                     remap_pose = RemapPose()
 
-                    mat_bot_tag = gposf.absolute_from_relative_position(mat_bot_cam, fixed_tag_pose[1])
-                    trans, rot = gposf.rot_trans_from_matrix(mat_bot_tag)
-                    rot_euler = tf.transformations.euler_from_quaternion(rot)
-                    rot_euler = [elem * 360 / (2 *3.14159) for elem in rot_euler]
-                    rot_rnd   = ['%.1f' % elem for elem in rot_euler]
-                    trans_rnd = ['%.3f' % elem for elem in trans]
+                    ########## Method 1 Use the pre-defined function gposf ##################
 
-                    print "Translation: ", trans_rnd
-                    print "Rotation: ", rot_rnd
+                    # This method is wrong,
+                    # mat_bot_tag = gposf.absolute_from_relative_position(mat_bot_cam, fixed_tag[1])
+                    # trans, rot = gposf.rot_trans_from_matrix(mat_bot_tag)
+                    # rot_euler = tf.transformations.euler_from_quaternion(rot)
+                    # rot_euler = [elem * 360 / (2 *3.14159) for elem in rot_euler]
+                    # rot_rnd   = ['%.1f' % elem for elem in rot_euler]
+                    # trans_rnd = ['%.3f' % elem for elem in trans]
+                    #
+                    # print "Translation: ", trans_rnd
+                    # print "Rotation: ", rot_rnd
 
                     # get pose of moving tag in reference to the fixed tags
+                    ##########################################################################
 
-
-
-
+                    ########## Method 2 Use tf directly ###########################
                     #  in terminal it would be rosrun tf tf_echo fixed_frame bot_frame
                     # how about the time?? rospy.time(0) probably induces an artificial delay
                     try:
@@ -166,17 +169,16 @@ class AprilLocalLocalization(object):
                         # Set parent frame to Duckiebot frame, child frame to fixed frame (tag)
                         # Since we want the transform from Duckiebot to fixed frame (tag)
                         (trans,rot) = self.sub_tf.lookupTransform('Tag'+str(fixed_frame), 'Tag'+str(new_info.id), t)
-                        #trans = [0, 0, 0]
-                        # rot = [0, 0, 0, 1]
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                         continue
 
                     # Publish this as a tf message
                     # self.pub_tf.sendTransform(trans,rot, rospy.Time.now(), new_info.vehicle_name,'Tag'+str(fixed_frame))
+                    ###########################################################################
 
                     #Add data to remap pose message
                     remap_pose.host = socket.gethostname()
-                    remap_pose.frame_id = fixed_tag_id
+                    remap_pose.frame_id = fixed_frame
                     remap_pose.bot_id = new_info.id
                     remap_pose.posestamped.header.stamp = detection.pose.header.stamp
                     remap_pose.posestamped.pose.position.x = trans[0]
@@ -192,12 +194,12 @@ class AprilLocalLocalization(object):
 
                     # Debugging Output (comment that to optimiza the code)
                     #'''
-                    rot_euler = tf.transformations.euler_from_quaternion(rot)
-                    rot_euler = [elem * 360 / (2 *3.14159) for elem in rot_euler]
-                    trans_rnd = ['%.3f' % elem for elem in trans]
-                    rot_rnd   = ['%.1f' % elem for elem in rot_euler]
-                    rospy.loginfo("%s In reference to Tag%s: \nTranslation: %s \nOrientation: %s \n",
-                                   new_info.vehicle_name, fixed_tag_id, trans_rnd, rot_rnd)
+                    # rot_euler = tf.transformations.euler_from_quaternion(rot)
+                    # rot_euler = [elem * 360 / (2 *3.14159) for elem in rot_euler]
+                    # trans_rnd = ['%.3f' % elem for elem in trans]
+                    # rot_rnd   = ['%.1f' % elem for elem in rot_euler]
+                    # rospy.loginfo("%s In reference to Tag%s: \nTranslation: %s \nOrientation: %s \n",
+                    #                new_info.vehicle_name, fixed_tag_id, trans_rnd, rot_rnd)
                     #'''
 
         self.pub_postPros.publish(remap_poses_array) # the array can only contain three poses because packet size is limited to 1024 byte
