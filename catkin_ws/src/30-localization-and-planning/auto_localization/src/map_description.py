@@ -250,7 +250,6 @@ class map_description(object):
         else:
             bot_id_choose = self.RDA_data['bot_id']
             # Showing difference of time between bot time and current time
-            print self.GDA_data['time'] - self.all_duckiebots[bot_id_choose]['bot_t']
             self.RDA_data['bot_t'] = round(self.GDA_data['time'] - self.all_duckiebots[bot_id_choose]['bot_t'], 3)
             self.RDA_data['x'] = round(self.all_duckiebots[bot_id_choose]['x'], 3)
             self.RDA_data['delta_x'] = round(self.all_duckiebots[bot_id_choose]['delta_x'], 3)

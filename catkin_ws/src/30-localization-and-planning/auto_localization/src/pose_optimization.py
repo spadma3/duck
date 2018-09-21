@@ -111,7 +111,7 @@ class BotOptimizedPose(object):
         self.optimized_pose.cam_id = self.camera_id
         self.optimized_pose.reference_tag_id = self.reference_tag_id
 
-        self.optimized_pose.header.stamp = rospy.Time(int(self.current_time_stamp/1e9), self.current_time_stamp%1e9)
+        self.optimized_pose.header.stamp = rospy.Time(int(self.current_time_stamp), self.current_time_stamp - int(self.current_time_stamp))
 
         return copy.deepcopy(self.optimized_pose) # python always di reference. Thus we don't wanna self.optimized_pose to be modified.
 
