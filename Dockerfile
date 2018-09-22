@@ -4,6 +4,8 @@ MAINTAINER Breandan Considine breandan.considine@umontreal.ca
 
 RUN [ "cross-build-start" ]
 
+RUN pip install --upgrade pip
+
 RUN pip install --upgrade matplotlib
 
 RUN mkdir /home/software
