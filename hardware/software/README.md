@@ -1,7 +1,7 @@
 MicroController Toolchain initialisation on Rasberry Pi
 Connect through ssh to you RasberryPi and perform the following steps:
 
-Make shure you pulled the latest software version form the duckietown software master branch!
+Make sure you pulled the latest software version form the duckietown software master branch!
 on the rasberry pi, do the following commands (Note, the $ indicates a command, which has to be executed, but the $ must not be typed):
 
 
@@ -17,7 +17,7 @@ Copy the avrdude config file
 
 Test avrdude and set fuses
 
-    $ cd ~/duckietown/hardware/traffic-light/software
+    $ cd ~/duckietown/hardware/software
     $ make fuses
 
 if there is the message "make: warning:  Clock skew detected.  Your build may be incomplete." or the make process is not stopping and many debugging messages are showed, try the following
