@@ -1,9 +1,10 @@
 MicroController Toolchain initialisation on Rasberry Pi
+
 Connect through ssh to you RasberryPi and perform the following steps:
 
-Make shure you pulled the latest software version form the duckietown software master branch!
-on the rasberry pi, do the following commands (Note, the $ indicates a command, which has to be executed, but the $ must not be typed):
+Make sure you pulled the latest software version form the duckietown software master branch!
 
+On the Rasberry Pi, execute the following commands (Note, the $ indicates a command, which has to be executed, but the $ must not be typed):
 
 install avrdude and gcc
 
@@ -20,13 +21,13 @@ Test avrdude and set fuses
     $ cd ~/duckietown/hardware/traffic-light/software
     $ make fuses
 
-if there is the message "make: warning:  Clock skew detected.  Your build may be incomplete." or the make process is not stopping and many debugging messages are showed, try the following
+if there is the message "make: warning:  Clock skew detected.  Your build may be incomplete." or the make process is not stopping and many debugging messages are showed, try the following:
 
 Press Ctrl+C to stop the current commant.
 
     $ find -exec touch \{\} \;
 
-This enshures, that the modification time of all files is set to the current time. Make decides, which files have to be compiled by comparing the source file time with the executable file time. If the executable file time lies in the future regarding the current system time, not all modified files are compiled. This could happen, when the clock of the rasberry pi is not set correctly and the file timestamps of e.g. a github pull are used.
+This ensures that the modification time of all files is set to the current time. Make decides, which files have to be compiled by comparing the source file time with the executable file time. If the executable file time lies in the future regarding the current system time, not all modified files are compiled. This could happen when the clock of the Rasberry Pi is not set correctly and the file timestamps of, e.g., a github pull are used.
 
     $ make clean
 
@@ -43,12 +44,11 @@ if the output of `$ make fuses` is at the end like
 
 the connection to the MC works and the fuses could be written. The fuses are some low lowlevel settings, which just have to be set once for each microcontroller.
 
-
 Compile the programm and download it to the MC
 
     $ make
 
-the output should look like
+the output should look like:
 
     ...
 
@@ -88,7 +88,7 @@ the output should look like
     avrdude done.  Thank you.
 
 
-With that, the MC should work. To change the MC programm, just edit the files, e.g with vim. With `$ make` you can complie and download the programm to the MC again.
+With that, the MC should work. To change the MC programm, just edit the files, e.g with vim. With `$ make` you can compile and download the programm to the MC again.
 
 
 Hint: in vim with the key [i] one can start editing mode, with [ESC], [:],[w],[q],[enter] one can leave edit mode and save the current file and close vim
