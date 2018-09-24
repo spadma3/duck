@@ -16,6 +16,8 @@ fi
 
 echo "Setting ROS_MASTER_URI to $ROS_MASTER_URI"
 
+echo "$IP $ROS_MASTER.local" >> /etc/hosts
+
 source /home/software/environment.sh
 export DUCKIEFLEET_ROOT=/data/config
 export VEHICLE_NAME=$HOSTNAME
