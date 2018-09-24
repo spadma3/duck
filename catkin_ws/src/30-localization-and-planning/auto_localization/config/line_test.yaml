@@ -10,13 +10,10 @@
 # The orientations are North, South, East, West. This is the direction in
 # which the agent is expected to drive when going onto this tile.
 tiles:
-- [grass         , straight/N, grass       ]
-- [grass         , straight/N, grass       ]
-- [grass         , straight/N, grass       ]
-- [grass         , straight/N, grass       ]
-- [grass         , straight/N, grass       ]
-- [grass         , straight/N, grass       ]
-- [grass         , straight/N, grass       ]
+- [grass         , grass         ,grass         ,grass         ,grass         ,grass         ,grass         , grass       ]
+- [straight/W, straight/W, straight/W,straight/W,straight/W,straight/W, straight/W      ]
+- [grass         , grass         ,grass         ,grass         ,grass         ,grass         ,grass         , grass       ]
+
 
 
 
