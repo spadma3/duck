@@ -5,7 +5,7 @@ export ROS_IP=${MY_IP}
 echo "Setting ROS_IP to host IP, which is $ROS_IP"
 
 if [ -z "$ROS_MASTER" ]; then
-    ROS_MASTER_IP=${IP}
+    ROS_MASTER_IP=${MY_IP}
     echo "No \$ROS_MASTER was passed, defaulting to localhost/$(hostname)/$IP"
     export ROS_MASTER_URI=${ROS_MASTER_URI:-"http://$IP:11311/"}
 elif ping -c 1 $ROS_MASTER; then
