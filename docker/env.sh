@@ -1,10 +1,12 @@
 #!/bin/bash
 
+IP=$(hostname -I | cut -d " " -f 1)
+export ROS_IP=${IP}
+
+
 if [ -z "$ROS_MASTER" ]; then
-    IP=$(hostname -I | cut -d " " -f 1)
     echo "No \$ROS_MASTER was passed, defaulting to localhost/$(hostname)/$IP"
     export ROS_MASTER_URI=${ROS_MASTER_URI:-"http://$IP:11311/"}
-    export ROS_IP=${IP}
 elif ping -c 1 $ROS_MASTER; then
     export ROS_MASTER_URI="http://$ROS_MASTER:11311/"
 elif ping -c 1 "$ROS_MASTER.local"; then
