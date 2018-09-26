@@ -4,7 +4,7 @@ MY_IP=$(hostname -I | cut -d " " -f 1)
 export ROS_IP=${MY_IP}
 echo "Setting ROS_IP to host IP, which is $ROS_IP"
 
-if [ -z "$DUCKIEBOT_NAME" ] && [ -z "$DUCKIEBOT_IP" ]; then # We are running on the Desktop
+if [ -v "$DUCKIEBOT_NAME" ] && [ -v "$DUCKIEBOT_IP" ]; then # We are running on the Desktop
     duckiebot_binding="$DUCKIEBOT_IP $DUCKIEBOT_NAME $DUCKIEBOT_NAME.local"
     echo "Writing \"$duckiebot_binding\" into /etc/hosts"
     echo $duckiebot_binding >> /etc/hosts
