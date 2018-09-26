@@ -21,7 +21,15 @@ fi
 
 echo "Setting ROS_MASTER_URI to $ROS_MASTER_URI, ROS_MASTER_IP is $ROS_MASTER_IP"
 
-echo "$ROS_MASTER_IP $ROS_MASTER $ROS_MASTER.local" >> /etc/hosts
+ros_master_binding="$IP $ROS_MASTER $ROS_MASTER.local"
+echo "Writing \"$ros_master_binding\" into /etc/hosts"
+echo $ros_master_binding >> /etc/hosts
+
+if [ -z "$DUCKIEBOT_NAME" ] && [ -z "$DUCKIEBOT_IP" ]; then
+    duckiebot_binding="$DUCKIEBOT_IP $DUCKIEBOT_NAME $DUCKIEBOT_NAME.local"
+    echo "Writing \"$duckiebot_binding\" into /etc/hosts"
+    echo $duckiebot_binding >> /etc/hosts
+fi
 
 source /home/software/environment.sh
 export DUCKIEFLEET_ROOT=/data/config
