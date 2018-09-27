@@ -75,6 +75,13 @@ Open ssh connections to all watchtowers through [xpanes](#xpanes) and [tmux](#tm
 
     watchtowers $ make auto_localization_calibration_watchtower IP:=![IP_address]
 
+<figure>
+    <p align="center">
+      <img style="width:30em" src="README/calibration_gui.png"/>
+      <figcaption>This is the GUI of calibration. Each little square shows the number of watchtower and the tags that seen by the watchtower. Different column in the left panel imply the different level in the link. The numbers behind each level are the tags that seen by the level. The lower right panel shows watchtowers that have not been in the link. If the number of tag is shown in red, it means that the other way of transformatino has not been received yet. (i.e. The system gets the transformation from A to B but has no transformation from B to A).</figcaption>
+    </p>
+</figure>
+
 #### Result of System Calibration
 
   You can find a file called `map_name_date_and_time.yaml` in folder auto_localization/config. This is the map you should use while performing localization which included the transformation matrix of tags.
@@ -100,6 +107,13 @@ Open a terminal on your laptop, start localization procedures on your laptop
 Open ssh connections to all watchtowers through [xpanes](#xpanes) and [tmux](#tmux). Execute the command on watchtowers
 
     watchtower $ make auto_localization_watchtower IP:=![IP_address]
+
+<figure>
+    <p align="center">
+      <img style="width:30em" src="README/localization_gui.png"/>
+      <figcaption>This is the GUI of auto-localization. The configuration of the map can be modify in map.yaml file. Here we use a test circle as an example. The general data area shows the general data of the system status. The robot data area shows the data of a specific Duckiebot. (One can click on the bot in the map to choose which bot data to show). The blue things in the map is a Duckiebot. The size of the circle implies the deviation of the position. The diretion of the arc implies the direction of the Duckiebot. The angle of the arc implies the deviation of the orientation.</figcaption>
+    </p>
+</figure>
 
 #### System Localization Output
 
