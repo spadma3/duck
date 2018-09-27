@@ -12,8 +12,6 @@ if [[ ! -d ${DATADIR}/calibrations ]]; then
 
     cp ${DUCKIESRC}/docker/camera_intrinsic_default.yaml ${DATADIR}/calibrations/camera_intrinsic/default.yaml
     sed -i "s/duckiebot/$HOSTNAME/g" ${DATADIR}/calibrations/camera_intrinsic/default.yaml
-    cp ${DATADIR}/calibrations/camera_intrinsic/default.yaml ${DATADIR}/calibrations/camera_intrinsic/$HOSTNAME.yaml
 
     cp ${DUCKIESRC}/docker/camera_extrinsic_default.yaml ${DATADIR}/calibrations/camera_extrinsic/default.yaml
-    cp ${DUCKIESRC}/docker/camera_extrinsic_default.yaml ${DATADIR}/calibrations/camera_extrinsic/$HOSTNAME.yaml
 fi
