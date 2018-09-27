@@ -24,7 +24,8 @@ class CameraNode(object):
         self.framerate_low = self.setupParam("~framerate_low",15.0)
         self.res_w = self.setupParam("~res_w",640)
         self.res_h = self.setupParam("~res_h",480)
-	self.expo_time = self.setupParam("~expo_time", 8000)
+
+        self.expo_time = self.setupParam("~expo_time", 0)
 
         self.image_msg = CompressedImage()
 
@@ -34,9 +35,10 @@ class CameraNode(object):
         self.framerate = self.framerate_high  # default to high
         self.camera.framerate = self.framerate
         self.camera.resolution = (self.res_w,self.res_h)
-        #self.camera.exposure_mode = 'verylong'
-        self.camera.shutter_speed = self.expo_time
-	#print("Camera exposure speed = ",self.camera.exposure_speed")
+
+        if self.expo_time != 0:
+            self.camera.shutter_speed = self.expo_time
+
 
         # For intrinsic calibration
         self.cali_file_folder = get_duckiefleet_root() + "/calibrations/camera_intrinsic/"

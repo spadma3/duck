@@ -3,5 +3,6 @@ framerate_high: 30
 framerate_low:  15
 res_w: 640
 res_h: 480
+expo_tim: 8000
 #decompress: false
 #publish_info: false
