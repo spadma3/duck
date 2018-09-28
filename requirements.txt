@@ -25,3 +25,5 @@ graphviz==0.9
 picamera==1.3
 
 # SystemCmd
+jpeg4py
+networkx

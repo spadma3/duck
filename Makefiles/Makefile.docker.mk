@@ -14,10 +14,10 @@ docker_image_name=andreacensi/duckietown-xenial-kinetic
 tag=20
 
 docker-build:
-	sudo docker build -t $(docker_image_name):$(tag) $(docker_dir)
+	docker build -t $(docker_image_name):$(tag) $(docker_dir)
 
 docker-upload:
-	sudo docker push $(docker_image_name):$(tag)
+	docker push $(docker_image_name):$(tag)
 
 docker-clean:
 	# Kill all running containers:
