@@ -30,3 +30,16 @@ include Makefiles/Makefile.openhouse.mk
 include Makefiles/Makefile.log.mk
 include Makefiles/Makefile.demos2017.mk
 include Makefiles/Makefile.megacity.mk
+
+
+# For Docker  
+
+branch=$(shell git rev-parse --abbrev-ref HEAD)
+
+name=duckietown/rpi-duckiebot-base:$(branch)
+
+main-docker-build:
+	docker build -t $(name) .
+
+main-docker-push:
+	docker push $(name)
