@@ -98,7 +98,6 @@ def jobs_videos(context, log, name, outd, only_camera):
     topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag, min_messages=min_messages)]
     bag.close()
 
-    #only_camera_fn = outd + '.video.mp4'
 
     only_camera_fn = outd + '-video.mp4'
 
