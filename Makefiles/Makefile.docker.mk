@@ -13,21 +13,22 @@ docker_dir=.circleci/images/duckietown-xenial-kinetic/
 docker_image_name=andreacensi/duckietown-xenial-kinetic
 tag=20
 
-docker-build:
+docker-build-unittests:
 	docker build -t $(docker_image_name):$(tag) $(docker_dir)
 
-docker-upload:
+docker-upload-unittests:
 	docker push $(docker_image_name):$(tag)
 
-docker-clean:
-	# Kill all running containers:
-	-sudo docker kill $(shell sudo docker ps -q)
 
-	# Delete all stopped containers (including data-only containers):
-	-sudo docker rm $(shell sudo docker ps -a -q)
+branch=$(shell git rev-parse --abbrev-ref HEAD)
 
-	# Delete all exited containers
-	-sudo docker rm $(shell sudo docker ps -q -f status=exited)
+image_rpi_gui_tools_name=duckietown/rpi-gui-tools:$(branch)
+image_rpi_gui_tools_file=Dockerfile.rpi-gui-tools
 
-	# Delete all images
-	-sudo docker rmi $(shell sudo docker images -q)
+docker-build-rpi-gui-tools:
+	docker build -t $(image_rpi_gui_tools_name) -f $(image_rpi_gui_tools_file) .
+
+docker-build-rpi-gui-tools-no-cache:
+	docker build -t $(image_rpi_gui_tools_name) -f $(image_rpi_gui_tools_file) --no-cache .
+
+
