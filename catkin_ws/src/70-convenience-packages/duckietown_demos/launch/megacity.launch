@@ -17,7 +17,7 @@
 		<arg name="line_detector_param_file_name" value="default" />
 		<arg name="anti_instagram" value="true" />
 
-		<arg name="obstacle_avoidance_and_detection" value="false"/> <!-- WAY TOO SLOW NOW SIMON :( -->
+		<arg name="obstacle_avoidance_and_detection" value="true"/> <!-- WAY TOO SLOW NOW SIMON :( -->
 
 
 
@@ -28,7 +28,7 @@
 		<arg name="/LED/detector" value="true"/>
 		<arg name="/LED/emitter" value="true"/>
 		<arg name="intersectionType" value="trafficLight"/>
-		<arg name="use_priority_protocol" value= "true"/> 
+		<arg name="use_priority_protocol" value= "true"/>
 		<!-- Charging control enabled for Megacity -->
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
