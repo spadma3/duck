@@ -62,7 +62,7 @@ class map_description(object):
 
         ###### Load Map from yaml ######
         self.map_filename = rospy.get_param("~map", "eth_robotarium") + ".yaml"
-        self.map_tiles = self.load_map()
+        self.map_tiles, self.origin = self.load_map()
         self.map_tiles_img = [] # 2D array store images of tiles
         self.map_shape = [len(self.map_tiles), len(self.map_tiles[0])]
 
@@ -73,8 +73,10 @@ class map_description(object):
 
         ### The 2D pose of origin tag reference to the map
         self.origin_tag_pos = Pose2D()
-        self.origin_tag_pos.x = 0
-        self.origin_tag_pos.y = 0
+        # print("ORIGIN:", self.origin)
+        self.origin_tag_pos.x = self.origin[0]['translation'][0]
+
+        self.origin_tag_pos.y = self.origin[0]['translation'][1]
         self.origin_tag_pos.theta = 0 # in degrees
 
         ### Subscriber
@@ -420,8 +422,9 @@ class map_description(object):
         # Load tiles, it's a 2D array containing map in form of different kinds of tiles
         self.map_tiles = map_data['tiles']
         self.map_watchtowers = map_data['watchtowers']
+        self.origin = map_data['origin']
 
-        return self.map_tiles
+        return self.map_tiles, self.origin
 
     def quit_program(self):
 

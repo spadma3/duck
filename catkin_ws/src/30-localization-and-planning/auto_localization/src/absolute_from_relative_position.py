@@ -166,7 +166,7 @@ class global_localization(object):
             self.fixed_tags['Tag'+str(tag_id)] = tag_tf_mat
 
             #print "Fixed Tag", tag_id, " at Position: ", trans_tag_abs, " and Rotation: ", rot_tag_abs
-            print "Fixed Tag", tag_id, " transformation: ", tag_tf_mat
+            print("Fixed Tag", tag_id, " transformation: ", tag_tf_mat)
 
 
 
@@ -191,8 +191,8 @@ class global_localization(object):
     def transform_bot_position(self, local_pose):
 
         trans_bot_tag, rot_bot_tag = gposf.get_trans_rot_from_pose(local_pose.posestamped.pose)
-
-        # TODO: robostify in case fixed Tag is detected which is not in the database
+        #TODO: JZ - the transformation matrices from local to global should be based on fixed AprilTag positions
+        # TODO: make more robust in case fixed Tag is detected which is not in the database
         #       raise exception or error
 
         # mat_tag_abs = self.fixed_tags["Tag"+str(local_pose.frame_id)]
