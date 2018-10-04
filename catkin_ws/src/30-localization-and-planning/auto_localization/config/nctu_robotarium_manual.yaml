@@ -1,0 +1,341 @@
+origin:
+- id: 300
+  orientation:
+  - 0
+  - 0
+  - 0
+  - 1
+  translation:
+  - 0
+  - 0
+  - 0
+tiles:
+- - grass
+  - grass
+  - straight/S
+  - grass
+  - curve_left/W
+  - straight/W
+  - curve_left/N
+  - grass
+  - curve_left/W
+  - curve_left/E
+- - curve_left/W
+  - straight/W
+  - 4way
+  - straight/W
+  - curve_left/E
+  - grass
+  - straight/N
+  - grass
+  - straight/S
+  - grass
+- - straight/S
+  - grass
+  - straight/S
+  - grass
+  - grass
+  - grass
+  - curve_left/S
+  - curve_left/N
+  - curve_left/S
+  - straight/E
+- - straight/S
+  - grass
+  - curve_left/S
+  - straight/W
+  - curve_left/N
+  - grass
+  - grass
+  - curve_left/S
+  - curve_left/N
+  - grass
+- - straight/S
+  - grass
+  - grass
+  - grass
+  - straight/S
+  - grass
+  - grass
+  - grass
+  - curve_left/S
+  - curve_left/N
+- - 3way_left/S
+  - straight/W
+  - straight/W
+  - straight/W
+  - 4way
+  - straight/W
+  - straight/W
+  - curve_left/N
+  - grass
+  - straight/N
+- - straight/S
+  - grass
+  - grass
+  - grass
+  - straight/N
+  - grass
+  - grass
+  - curve_left/S
+  - straight/W
+  - 3way_left/N
+- - straight/S
+  - grass
+  - grass
+  - grass
+  - curve_left/S
+  - straight/W
+  - curve_left/N
+  - grass
+  - grass
+  - straight/N
+- - straight/S
+  - grass
+  - grass
+  - grass
+  - grass
+  - grass
+  - straight/N
+  - grass
+  - grass
+  - straight/N
+- - 3way_left/S
+  - straight/W
+  - straight/W
+  - 3way_left/W
+  - straight/W
+  - straight/W
+  - 4way
+  - straight/W
+  - straight/W
+  - 3way_left/N
+- - straight/S
+  - grass
+  - grass
+  - straight/S
+  - grass
+  - grass
+  - straight/N
+  - grass
+  - grass
+  - straight/N
+- - curve_left/S
+  - curve_left/N
+  - grass
+  - straight/S
+  - grass
+  - grass
+  - straight/N
+  - grass
+  - grass
+  - straight/N
+- - grass
+  - curve_left/S
+  - straight/W
+  - 3way_left/E
+  - straight/E
+  - straight/E
+  - 3way_left/E
+  - straight/E
+  - straight/E
+  - curve_left/E
+
+watchtowers:
+- watchtower10
+- watchtower11
+- watchtower12
+- watchtower24
+- watchtower27
+- watchtower28
+- watchtower29
+- watchtower30
+- watchtower32
+- watchtower33
+- watchtower35
+- watchtower36
+- watchtower37
+- watchtower38
+- watchtower39
+- watchtower40
+- watchtower41
+- watchtower42
+
+fixed_tags:
+- id: 394
+  orientation: 0
+  translation: [24, 0]
+  tile: [8, 0]
+- id: 316
+  orientation: 0
+  translation: [ 60, 0]
+  tile: [8, 0]
+- id: 337
+  orientation: 0
+  translation: [ 4, 45]
+  tile: [9, 1]
+- id: 322
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [9, 2]
+- id: 328
+  orientation: 0
+  translation: [ 24, 0]
+  tile: [8, 3]
+- id: 334
+  orientation: 0
+  translation: [ 24, 0]
+  tile: [8, 4]
+- id: 340
+  orientation: 0
+  translation: [ 24, 0]
+  tile: [7, 3]
+- id: 345
+  orientation: 0
+  translation: [ 8, 0]
+  tile: [7, 3]
+- id: 384
+  orientation: 0
+  translation: [ 60, 0]
+  tile: [7, 3]
+- id: 331
+  orientation: 0
+  translation: [ 60, 24]
+  tile: [7, 3]
+- id: 365
+  orientation: 0
+  translation: [ 60, 0]
+  tile: [9, 6]
+- id: 371
+  orientation: 0
+  translation: [ 60, 24]
+  tile: [9, 6]
+- id: 321
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [8, 8]
+- id: 383
+  orientation: 0
+  translation: [ 24, 0]
+  tile: [8, 8]
+- id: 313
+  orientation: 0
+  translation: [ 0, 24]
+  tile: [7, 6]
+- id: 307
+  orientation: 0
+  translation: [ 0, 24]
+  tile: [7, 5]
+- id: 377
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [5, 9]
+- id: 389
+  orientation: 0
+  translation: [ 24, 0]
+  tile: [5, 9]
+- id: 353
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [4, 6]
+- id: 359
+  orientation: 0
+  translation: [ 24, 0]
+  tile: [4, 6]
+
+- id: 327
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [2, 7]
+- id: 333
+  orientation: 0
+  translation: [ 36, 0]
+  tile: [2, 7]
+- id: 309
+  orientation: 0
+  translation: [ 31, 0]
+  tile: [3, 7]
+- id: 315
+  orientation: 0
+  translation: [ 31, 62]
+  tile: [3, 7]
+- id: 395
+  orientation: 0
+  translation: [ 0, 62]
+  tile: [0, 6]
+- id: 303
+  orientation: 0
+  translation: [ 62, 31]
+  tile: [0, 6]
+- id: 391
+  orientation: 0
+  translation: [ 0, 62]
+  tile: [0, 4]
+- id: 347
+  orientation: 0
+  translation: [ 0, 31]
+  tile: [0, 4]
+- id: 373
+  orientation: 0
+  translation: [ 31, 0]
+  tile: [1, 3]
+- id: 367
+  orientation: 0
+  translation: [ 31, 0]
+  tile: [1, 4]
+- id: 355
+  orientation: 0
+  translation: [ 31, 62]
+  tile: [4, 3]
+- id: 361
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [4, 3]
+- id: 349
+  orientation: 0
+  translation: [ 31, 62]
+  tile: [5, 3]
+- id: 343
+  orientation: 0
+  translation: [ 31, 0]
+  tile: [5, 3]
+- id: 341
+  orientation: 0
+  translation: [ 62, 31]
+  tile: [3, 2]
+- id: 388
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [3, 2]
+- id: 379
+  orientation: 0
+  translation: [ 0, 62]
+  tile: [1, 1]
+- id: 385
+  orientation: 0
+  translation: [ 31, 62]
+  tile: [1, 1]
+- id: 329
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [2, 0]
+- id: 335
+  orientation: 0
+  translation: [ 62, 62]
+  tile: [2, 0]
+- id: 323
+  orientation: 0
+  translation: [ 0, 62]
+  tile: [4, 0]
+- id: 317
+  orientation: 0
+  translation: [ 3, 3]
+  tile: [4, 0]
+- id: 305
+  orientation: 0
+  translation: [ 0, 0]
+  tile: [7, 0]
+- id: 311
+  orientation: 0
+  translation: [ 0, 31]
+  tile: [7, 0]

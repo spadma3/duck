@@ -47,8 +47,9 @@ font_data = pg.font.SysFont(None, 25)
 font_title = pg.font.SysFont(None, 40)
 
 # Statistics of Realism in meters
-tiles_length = 0.585
-tiles_border = 0.0125
+tiles_length = 0.624
+tiles_border = 0.021
+tiles_length = tiles_length - tiles_border
 tiles_white_length = 0.044
 duckiebot_size = 0.03
 
@@ -213,7 +214,7 @@ class map_description(object):
 
         for id_key in self.all_duckiebots:
             pixel_x = self.all_duckiebots[id_key]['x'] * self.m2p
-            pixel_y = self.all_duckiebots[id_key]['y'] * self.m2p * -1 # To match the coordination of pygame
+            pixel_y = self.all_duckiebots[id_key]['y'] * self.m2p * -1 + len(self.map_tiles_img)*self.block_size # To match the coordination of pygame
             range_accept = 25
             if (pixel_x-range_accept <= mouse_x <= pixel_x+range_accept) and (pixel_y-range_accept <= mouse_y <= pixel_y+range_accept):
                 self.RDA_data['bot_id'] = id_key
@@ -347,7 +348,7 @@ class map_description(object):
 
             # Draw Duckiebot on the map
             mid_x = pose_x * self.m2p
-            mid_y = pose_y * self.m2p
+            mid_y = pose_y * self.m2p + len(self.map_tiles_img)*self.block_size
             draw_x = mid_x - int(self.bot_img.get_width()/2)
             draw_y = mid_y - int(self.bot_img.get_width()/2)
             pg.draw.circle(self.screen_Map, DUCKIEBOT_COLOR, [int(mid_x), int(mid_y)], int(duckiebot_size*self.m2p)) # Use a circle to represent Duckiebot
