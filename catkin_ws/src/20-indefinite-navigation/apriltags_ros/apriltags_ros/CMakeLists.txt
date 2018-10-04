@@ -60,6 +60,9 @@ target_link_libraries(apriltag_detector_nodelet
   apriltag_detector
 )
 
+
+
+
 add_executable(apriltag_detector_node src/apriltag_detector_node.cpp)
 target_link_libraries(apriltag_detector_node
   ${catkin_LIBRARIES}

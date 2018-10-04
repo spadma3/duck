@@ -9,11 +9,8 @@ from sensor_msgs.msg import CompressedImage, Image, CameraInfo
 from duckietown_msgs.msg import BoolStamped
 import rospkg
 
-
 BG_SAMPLE = 150
-########################################################WTF#############
-#firstframe = None
-########################################################################
+
 class BotDetectorNode(object):
 	"""docstring for BotDetectorNode"""
 	def __init__(self):
@@ -21,23 +18,24 @@ class BotDetectorNode(object):
 
 		#Constructor of bot detector
 		self.bridge = CvBridge()
-		self.firstframe = None
+
+		self.active  = True
+
 		self.MAXAREA = 50000
 		self.MINAREA = 3000
-		self.cam_info = rospy.wait_for_message("camera_info", CameraInfo, timeout=None)
+		self.cam_info = rospy.wait_for_message("/mocap02/camera_node/raw_camera_info", CameraInfo, timeout=None)
 
-		self.active = rospy.get_param('~bot_detection', 'false')
 
 		# initailize opencv background subtraction tool
-		self.background_subtraction = cv2.createBackgroundSubtractorMOG()
+		self.background_subtraction = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=50, detectShadows=False)
 
 		#Publisher
-		self.pub_result = rospy.Publisher("~image/rect", Image, queue_size=1)
-		self.pub_cam_info = rospy.Publisher("~rect_camera_info",CameraInfo,queue_size=1)
+		self.pub_result = rospy.Publisher("~image_mask", Image, queue_size=1)
+		self.pub_cam_info = rospy.Publisher("~camera_info",CameraInfo,queue_size=1)
 
 		#Subscriber
-		self.sub_image = rospy.Subscriber("image_rect", Image, self.cbImage, queue_size=10)
-
+		self.sub_image = rospy.Subscriber("/mocap02/camera_node/image/rect", Image, self.cbImage, queue_size=10)
+		
 
 	# def cbCamInfo(self,caminfo_msg):
 	# 	if not self.active:
@@ -47,52 +45,45 @@ class BotDetectorNode(object):
 
 	def cbImage(self, image_msg):
 
-		if not self.active:
-			self.cam_info.header = image_msg.header
-			self.pub_result.publish(image_msg)
-			self.pub_cam_info.publish(self.cam_info)
-			return
-
 		cv_image = self.bridge.imgmsg_to_cv2(image_msg, 'mono8')
-
-		tStart = time.time()
 
 		img_mask = self.background_subtraction.apply(cv_image)
 		#img_with_mask = cv2.bitwise_and(cv_image, img_mask)
-		tEndback = time.time()
-
 
 		kernel = np.ones((3,3),np.uint8)
 		img_mask = cv2.dilate(img_mask,kernel,iterations = 1)
 		img_mask = cv2.morphologyEx(img_mask, cv2.MORPH_CLOSE, kernel)
 
-		'''
-		gray=cv2.GaussianBlur(cv_image,(21,21),0)
-		if self.firstframe is None:
-		    self.firstframe = gray
-
-		frameDelta = cv2.absdiff(self.firstframe,gray)
-		thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
-		thresh = cv2.dilate(thresh, None, iterations=2)
-
-		'''
-		x,y,w,h=cv2.boundingRect(img_mask)
+		thresh = cv2.threshold(img_mask, 60, 255, cv2.THRESH_BINARY)[1]
+		cnts = cv2.findContours(thresh.copy(), cv2.RETR_CCOMP  ,cv2.CHAIN_APPROX_SIMPLE)
+		cnts = cnts[1]
 
 		img_process = np.full_like(cv_image,255)
+		for c in cnts:		
+			area = cv2.contourArea(c) 					
+			if self.MAXAREA >= area >= self.MINAREA:	
+				rect = cv2.minAreaRect(c)
+				box = cv2.boxPoints(rect) 
+				box = np.int0(box)
+				#cv2.drawContours(cv_image,[box], 0, (255, 0, 0), 2)
+				Xs = [i[0] for i in box]
+				Ys = [i[1] for i in box]
+				x1 = min(Xs)
+				x2 = max(Xs)
+				y1 = min(Ys)
+				y2 = max(Ys)
+				for i in range(640):
+				 	for j in range(480):
+				 		if  x1 <= i <= x2 and y1 <= j <= y2:
+				 			img_process[j,i] = cv_image[j,i]
 
-		img_process[y:y+h,x:x+w] = cv_image[y:y+h,x:x+w]
-
-		tEndtotal = time.time()
-
-		print "Background subtraction = ", tEndback - tStart
-		print "Total = ", tEndtotal - tStart
 		img_pub = self.bridge.cv2_to_imgmsg(img_process, 'mono8')
+
+
 
 		img_pub.header.stamp = image_msg.header.stamp
 		img_pub.header.frame_id = image_msg.header.frame_id
-		print self.cam_info
 		self.cam_info.header = image_msg.header
-		print self.cam_info
 		self.pub_result.publish(img_pub)
 		self.pub_cam_info.publish(self.cam_info)
 

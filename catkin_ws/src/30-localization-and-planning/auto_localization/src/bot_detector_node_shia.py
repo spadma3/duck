@@ -21,23 +21,24 @@ class BotDetectorNode(object):
 
 		#Constructor of bot detector
 		self.bridge = CvBridge()
-		self.firstframe = None
+                self.firstframe = None
+		self.active  = True
+
 		self.MAXAREA = 50000
 		self.MINAREA = 3000
-		self.cam_info = rospy.wait_for_message("camera_info", CameraInfo, timeout=None)
+		self.cam_info = rospy.wait_for_message("/mocap01/camera_node/raw_camera_info", CameraInfo, timeout=None)
 
-		self.active = rospy.get_param('~bot_detection', 'false')
 
 		# initailize opencv background subtraction tool
-		self.background_subtraction = cv2.createBackgroundSubtractorMOG()
+		self.background_subtraction = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=50, detectShadows=False)
 
 		#Publisher
-		self.pub_result = rospy.Publisher("~image/rect", Image, queue_size=1)
-		self.pub_cam_info = rospy.Publisher("~rect_camera_info",CameraInfo,queue_size=1)
+		self.pub_result = rospy.Publisher("~image_mask", Image, queue_size=1)
+		self.pub_cam_info = rospy.Publisher("~camera_info",CameraInfo,queue_size=1)
 
 		#Subscriber
-		self.sub_image = rospy.Subscriber("image_rect", Image, self.cbImage, queue_size=10)
-
+		self.sub_image = rospy.Subscriber("/mocap01/camera_node/image/rect", Image, self.cbImage, queue_size=10)
+		
 
 	# def cbCamInfo(self,caminfo_msg):
 	# 	if not self.active:
@@ -47,14 +48,8 @@ class BotDetectorNode(object):
 
 	def cbImage(self, image_msg):
 
-		if not self.active:
-			self.cam_info.header = image_msg.header
-			self.pub_result.publish(image_msg)
-			self.pub_cam_info.publish(self.cam_info)
-			return
-
 		cv_image = self.bridge.imgmsg_to_cv2(image_msg, 'mono8')
-
+        
 		tStart = time.time()
 
 		img_mask = self.background_subtraction.apply(cv_image)
@@ -65,23 +60,23 @@ class BotDetectorNode(object):
 		kernel = np.ones((3,3),np.uint8)
 		img_mask = cv2.dilate(img_mask,kernel,iterations = 1)
 		img_mask = cv2.morphologyEx(img_mask, cv2.MORPH_CLOSE, kernel)
-
+		
 		'''
 		gray=cv2.GaussianBlur(cv_image,(21,21),0)
 		if self.firstframe is None:
 		    self.firstframe = gray
-
+				
 		frameDelta = cv2.absdiff(self.firstframe,gray)
 		thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
 		thresh = cv2.dilate(thresh, None, iterations=2)
-
+		
 		'''
 		x,y,w,h=cv2.boundingRect(img_mask)
 
 		img_process = np.full_like(cv_image,255)
-
+		
 		img_process[y:y+h,x:x+w] = cv_image[y:y+h,x:x+w]
-
+		
 		tEndtotal = time.time()
 
 		print "Background subtraction = ", tEndback - tStart
