@@ -3,14 +3,12 @@
 	<arg name="pkg_name" value="auto_localization"/>
     <arg name="node_name" default="bot_detector_node"/>
 
-    <arg name="bot" default="true" doc="true for finding robot, false for getting background"/>
-    <arg name="det_th" default="1000000" doc="setting threshold from Duckiebot detection"/>
+    <arg name="bot_detection" default="true" doc="use bot detection to increase the speed of apriltag detection" />
 
     <remap from="image" to="camera_node/image/rect"/>
     <group ns="$(arg veh)">
     	<node name="bot_detector_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
-    	<param name="bot" value="$(arg bot)"/>
-        <param name="det_th" value="$(arg det_th)"/>
+    	<param name="bot_detection" value="$(arg bot_detection)"/>
     	</node>
 	</group>
 

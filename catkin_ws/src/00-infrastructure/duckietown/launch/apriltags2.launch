@@ -6,7 +6,6 @@
  	<arg name="camera" default="true" doc="camera set to false means only apriltags no camera nodes are launched"/>
   <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
   <arg name="rect_full_ratio" default="false" doc="use full ration rectified image for apriltags detections " />
-  <arg name="localization" default="false" doc="set to true to start Dcukietown localization function"/>
 
     <!-- Camera -->
  	<include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">

@@ -6,19 +6,47 @@
  	<arg name="camera" default="true" doc="camera set to false means only apriltags no camera nodes are launched"/>
   <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
   <arg name="rect_full_ratio" default="true" doc="use full ration rectified image for apriltags detections " />
+  <arg name="bot_detection" default="true" doc="use bot detection to increase the speed of apriltag detection" />
 
   <arg name="IP" default="192.168.1.17" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
 
-  <!-- Apriltags2 -->
-  <include file="$(find duckietown)/launch/apriltags2.launch">
+  <!-- Camera -->
+  <include if="$(arg camera)" file="$(find duckietown)/launch/camera.launch">
     <arg name="veh" value="$(arg veh)"/>
- 		<arg name="local" value="$(arg local)"/>
- 		<arg name="config" value="$(arg config)"/>
- 		<arg name="param_file_name" value="$(arg param_file_name)"/>
-    <arg name="camera" value="$(arg camera)"/>
+    <arg name="local" value="$(arg local)"/>
+    <arg name="config" value="$(arg config)"/>
+    <arg name="param_file_name" value="$(arg param_file_name)"/>
+    <arg name="raw" value="true"/>
+    <arg name="cam_info" value="true"/>
     <arg name="live" value="$(arg live)"/>
-		<arg name="rect_full_ratio" value="$(arg rect_full_ratio)" />
- 	</include>
+    <arg name="rect" value="true" />
+    <arg name="rect_full_ratio" value="$(arg rect_full_ratio)" />
+  </include>
+
+  <!-- Duckiebot Detections -->
+ 	<group if="$(arg rect_full_ratio)">
+	    <remap from="image_rect" to="camera_node/image/rect" />
+	    <remap from="camera_info" to="camera_node/rect_camera_info" />
+	    <include file="$(find auto_localization)/launch/bot_detector_node.launch">
+	        <arg name="veh" value="$(arg veh)"/>
+          <arg name="bot_detection" value="$(arg bot_detection)"/>
+	    </include>
+	</group>
+	<group unless="$(arg rect_full_ratio)">
+	    <remap from="image_rect" to="camera_node/image/rect" />
+	    <remap from="camera_info" to="camera_node/raw_camera_info" />
+      <include file="$(find auto_localization)/launch/bot_detector_node.launch">
+	        <arg name="veh" value="$(arg veh)"/>
+          <arg name="bot_detection" value="$(arg bot_detection)"/>
+	    </include>
+	</group>
+
+  <!-- AprilTags Detections -->
+  <remap from="image_rect" to="bot_detector_node/image/rect" />
+  <remap from="camera_node/image/camera_info" to="bot_detector_node/rect_camera_info" />
+  <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
+      <arg name="veh" value="$(arg veh)"/>
+  </include>
 
   <!-- Local Localization Postprocessing node -->
   <remap from="apriltags_in" to="tag_detections" />
