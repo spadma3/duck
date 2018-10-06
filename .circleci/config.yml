@@ -21,7 +21,7 @@ jobs:
                 #
                 # . venv/bin/activate
 
-                pip install --upgrade -r requirements.txt
+                READTHEDOCS=True pip install --upgrade -r requirements.txt
 
                 make python-module-stats
 
