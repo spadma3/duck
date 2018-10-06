@@ -39,6 +39,8 @@ class Avoider():
 		self.d_current = d_current
 		self.theta = theta
 		emergency_stop = 0
+		right_lane_occupied = 0
+		takeover_possible = 0
 		if len(obstacle_poses_on_track.poses) == 1:
 			# self.d_robot = self.d_current
 			# self.theta = self.theta_current
@@ -60,15 +62,20 @@ class Avoider():
 			# print('d_current= ',self.d_current)
 			# Stop if there is no space
 			if (abs(y_global) + self.lWidthLane/2 - abs(r_obstacle)) < (self.lWidthRobot + self.yAvoidanceMargin):
-				print('Emergency Stop')
+				print('Emergency Stop - in right lane')
 				emergency_stop = 1
+				right_lane_occupied = 1
 			# React if possible
 			self.d_target = (y_global - (np.sign(y_global) * (self.lWidthRobot / 2 + self.yAvoidanceMargin + abs(r_obstacle))))/1000  # convert to m
-			# print('d_target = ', self.d_target)
+			if right_lane_occupied == 1:
+				self.d_target = 0.250 #test
+				takeover_possible = 1
+
+			print('d_target = ', self.d_target)
 		elif len(obstacle_poses_on_track.poses) > 1:
 			print('Number of obstacles reaching avoid function too high')
 			emergency_stop = 1
-		targets = [self.d_target, emergency_stop]
+		targets = [self.d_target, emergency_stop, takeover_possible]
 		return targets
 
 	def coordinatetransform(self, x_obstacle, y_obstacle, theta, d_current):

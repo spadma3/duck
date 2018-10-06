@@ -50,7 +50,7 @@ class ObstAvoidNode(object):
 
     def obstacleCallback(self, obstacle_poses):
         amount_obstacles = len(obstacle_poses.poses)
-        rospy.loginfo('Number of obstacles: %d', len(obstacle_poses.poses))
+        #rospy.loginfo('Number of obstacles: %d', len(obstacle_poses.poses))
         amount_obstacles_on_track = 0
         obstacle_poses_on_track = PoseArray()
         obstacle_poses_on_track.header = obstacle_poses.header
@@ -85,11 +85,13 @@ class ObstAvoidNode(object):
             v = 0
         elif amount_obstacles_on_track == 1:
             #ToDo: check if self.d_current can be accessed through forwarding of self
-            # targets = self.avoider.avoid(obstacle_poses_on_track, self.d_current, self.theta_current)
-            # target.d_ref = targets[0]
-            target.v_ref = 0  # due to inaccuracies in theta, stop in any case
-            # if targets[1]:  # emergency stop
-            #    target.v_ref = 0
+            targets = self.avoider.avoid(obstacle_poses_on_track, self.d_current, self.theta_current)
+            target.d_ref = targets[0]
+            #target.v_ref = 0  # due to inaccuracies in theta, stop in any case
+            if targets[1]:  # emergency stop
+                target.v_ref = 0
+            if targets[2]:
+                target.v_ref = 5
             # self.theta_target_pub.publish(targets[2]) # theta not calculated in current version
             # rospy.loginfo('1 obstacles on track')
             # rospy.loginfo('d_target= %f', targets[0])
@@ -103,8 +105,8 @@ class ObstAvoidNode(object):
             # rospy.loginfo('emergency_stop = 1')
         self.obstavoidpose_topic.publish(target)
         self.avoid_pub.publish(avoidance_active)
-        rospy.loginfo('Reference velocity set: %s',target.v_ref)
-        rospy.loginfo('Avoidance flag set: %s', avoidance_active.data)
+        #rospy.loginfo('Reference velocity set: %s',target.v_ref)
+        #rospy.loginfo('Avoidance flag set: %s', avoidance_active.data)
         return
 
     def LanePoseCallback(self, LanePose):

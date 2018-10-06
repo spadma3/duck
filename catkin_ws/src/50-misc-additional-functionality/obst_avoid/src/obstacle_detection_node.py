@@ -22,7 +22,7 @@ class ObstDetectNode(object):
         self.show_marker = (rospy.get_param("~show_marker", ""))
         self.show_image = (rospy.get_param("~show_image", ""))
         self.show_bird_perspective = (rospy.get_param("~show_bird_perspective",""))
-        self.use_ai = False #(rospy.get_param("~use_ai", ""))
+        self.use_ai = False #(rospy.get_param("~use_ai", "")) <-- otherwise doesn't work
 
         self.active = True #initialize our node as active!! < -- How about no
         self.r = rospy.Rate(3) # Rate in Hz
