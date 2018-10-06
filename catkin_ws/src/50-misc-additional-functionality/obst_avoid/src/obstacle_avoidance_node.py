@@ -32,7 +32,7 @@ class ObstAvoidNode(object):
         self.avoid_pub = rospy.Publisher(self.pub_topic, BoolStamped, queue_size=1)
 
         # Target d. Only read when Obstacle is detected
-        self.pub_topic = '/{}/obst_avoid/obstacle_avoidance_pose'.format(robot_name)
+        self.pub_topic = '~obstacle_avoidance_pose'
         self.obstavoidpose_topic = rospy.Publisher(self.pub_topic, LanePose, queue_size=1)
 
         ########################
@@ -41,7 +41,7 @@ class ObstAvoidNode(object):
         self.subscriber = rospy.Subscriber(self.sub_topic, PoseArray, self.obstacleCallback)
 
         # ToDo: d_current, theta_current
-        self.sub_topic = '/{}/lane_filter_node/lane_pose/'.format(robot_name)
+        self.sub_topic = '~lane_pose'
         self.subscriber = rospy.Subscriber(self.sub_topic, LanePose, self.LanePoseCallback)
 
         # ToDo: intersection
@@ -50,7 +50,7 @@ class ObstAvoidNode(object):
 
     def obstacleCallback(self, obstacle_poses):
         amount_obstacles = len(obstacle_poses.poses)
-        # rospy.loginfo('Number of obstacles: %d', len(obstacle_poses.poses))
+        rospy.loginfo('Number of obstacles: %d', len(obstacle_poses.poses))
         amount_obstacles_on_track = 0
         obstacle_poses_on_track = PoseArray()
         obstacle_poses_on_track.header = obstacle_poses.header
@@ -103,7 +103,8 @@ class ObstAvoidNode(object):
             # rospy.loginfo('emergency_stop = 1')
         self.obstavoidpose_topic.publish(target)
         self.avoid_pub.publish(avoidance_active)
-        # rospy.loginfo('Avoidance flag set: %s', avoidance_active.data)
+        rospy.loginfo('Reference velocity set: %s',target.v_ref)
+        rospy.loginfo('Avoidance flag set: %s', avoidance_active.data)
         return
 
     def LanePoseCallback(self, LanePose):

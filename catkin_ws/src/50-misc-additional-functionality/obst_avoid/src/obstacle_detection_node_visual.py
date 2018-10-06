@@ -36,17 +36,17 @@ class ObstDetectNodeVisual(object):
 
         # Create Publishers
         if (self.show_marker):
-            self.pub_topic_marker = '/{}/obst_detect_visual/visualize_obstacles'.format(robot_name)
+            self.pub_topic_marker = '~visualize_obstacles'
             self.publisher_marker = rospy.Publisher(self.pub_topic_marker, MarkerArray, queue_size=1)
             print "YEAH I GIVE YOU THE MARKER"
 
         if (self.show_image):
-            self.pub_topic_img = '/{}/obst_detect_visual/image/compressed'.format(robot_name)
+            self.pub_topic_img = '~out/image/compressed'
             self.publisher_img = rospy.Publisher(self.pub_topic_img, CompressedImage, queue_size=1)
             print "YEAH I GIVE YOU THE IMAGE"
 
         # if (self.show_bb):
-        self.pub_topic_bb_linelist = '/{}/obst_detect_visual/bb_linelist'.format(robot_name)
+        self.pub_topic_bb_linelist = '~bb_linelist'
         self.publisher_bblinelist = rospy.Publisher(self.pub_topic_bb_linelist, Marker, queue_size=1)
         print "YEAH I GIVE YOU THE BOUNDINGBOXMARKERLIST"
 
@@ -84,11 +84,11 @@ class ObstDetectNodeVisual(object):
         # for i in range(1,10000):
         #    self.publisher_bblinelist.publish(self.bbmarker)
 
-        self.sub_topic_arr = '/{}/obst_detect/posearray'.format(robot_name)
+        self.sub_topic_arr = '~posearray'
         self.subscriber_arr = message_filters.Subscriber(self.sub_topic_arr, PoseArray)
         # we MUST subscribe to the array for sure!!
         if (self.show_image):
-            self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
+            self.sub_topic = '~image/compressed'
             self.subscriber = message_filters.Subscriber(self.sub_topic, CompressedImage)
 
         if (self.show_marker and not (self.show_image)):
@@ -124,7 +124,7 @@ class ObstDetectNodeVisual(object):
 # MEINER MEINUNG NACH HIER DANN WARSCH 2.NODE AUCH NOCH REIN WO DANN DIE OBST AVOIDANCE GEMACHT WIRD ODER SO
 
 if __name__ == '__main__':
-    rospy.init_node('obst_detection_node_visual', anonymous=False)
+    rospy.init_node('obstacle_detection_node_visual', anonymous=False)
     obst_detection_node = ObstDetectNodeVisual()
     rospy.on_shutdown(obst_detection_node.onShutdown)
     rospy.spin()

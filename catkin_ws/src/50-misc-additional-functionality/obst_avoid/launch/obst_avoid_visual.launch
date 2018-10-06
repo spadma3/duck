@@ -13,9 +13,10 @@
     <param name="~bb_wid" value="$(arg bb_wid)" type="double"/>
     <param name="~show_bb" value="$(arg show_bb)" type="bool"/>
 
-
-    <node name="obstacle_detection_node_visual" pkg="obst_avoid" type="obstacle_detection_node_visual.py" output="screen">
-    </node>
+    <group ns="$(arg veh)">
+      <node name="obstacle_detection_node_visual" pkg="obst_avoid" type="obstacle_detection_node_visual.py" output="screen">
+      </node>
+    </group>
 
 
 </launch>

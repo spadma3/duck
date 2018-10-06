@@ -22,7 +22,7 @@ class ObstDetectNode(object):
         self.show_marker = (rospy.get_param("~show_marker", ""))
         self.show_image = (rospy.get_param("~show_image", ""))
         self.show_bird_perspective = (rospy.get_param("~show_bird_perspective",""))
-        self.use_ai = (rospy.get_param("~use_ai", ""))
+        self.use_ai = False #(rospy.get_param("~use_ai", ""))
 
         self.active = True #initialize our node as active!! < -- How about no
         self.r = rospy.Rate(3) # Rate in Hz
@@ -41,40 +41,40 @@ class ObstDetectNode(object):
                 self.visualizer = Visualizer(robot_name=robot_name)
 
         if (self.show_marker):
-                self.pub_topic_marker = '/{}/obst_detect/visualize_obstacles'.format(robot_name)
+                self.pub_topic_marker = "~visualize_obstacles"
                 self.publisher_marker = rospy.Publisher(self.pub_topic_marker, MarkerArray, queue_size=1)
-                print "show_marker is active: marker will be published as /veh/obst_detect/visualize_obstacles"
+                print "show_marker is active: marker will be published as /veh/obst_detection_node/visualize_obstacles"
 
         if (self.show_image):
-                self.pub_topic_img = '/{}/obst_detect/image_cropped/compressed'.format(robot_name)
+                self.pub_topic_img = "~image_cropped/compressed"
                 self.publisher_img = rospy.Publisher(self.pub_topic_img, CompressedImage, queue_size=1)
-                print "show_image is active: image will be published as /veh/obst_detect/image_cropped/compressed"
+                print "show_image is active: image will be published as /veh/obst_detection_node/image_cropped/compressed"
 
         if (self.show_bird_perspective):
-                self.pub_topic_img_bird_perspective = '/{}/obst_detect/image_bird_perspective/compressed'.format(robot_name)
+                self.pub_topic_img_bird_perspective = "~image_bird_perspective/compressed"
                 self.publisher_img_bird_perspective = rospy.Publisher(self.pub_topic_img_bird_perspective, CompressedImage, queue_size=1)
-                print "show_image is active: image will be published as /veh/obst_detect/image_bird_perspective/compressed"
+                print "show_image is active: image will be published as /veh/obst_detection_node/image_bird_perspective/compressed"
 
         # Create a Subscriber
         if (self.use_ai):
             #self.sub_topic = '/{}/image_transformer_node/corrected_image'.format(robot_name)
             #self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback_img,queue_size=1, buff_size=2**24)
-            self.sub_topic = rospy.Subscriber('/{}/image_transformer_node/corrected_image/compressed'.format(robot_name), CompressedImage,self.callback_img , queue_size=1,buff_size=2**24)
+            self.sub_topic = rospy.Subscriber('~corrected_image/compressed', CompressedImage,self.callback_img , queue_size=1,buff_size=2**24)
             #buff size to approximately close to 2^24 such that always most recent pic is taken
             #essentail
         else:
-            self.sub_topic = '/{}/camera_node/image/compressed'.format(robot_name)
+            self.sub_topic = '~image/compressed'
             self.subscriber = rospy.Subscriber(self.sub_topic, CompressedImage, self.callback_img,queue_size=1, buff_size=2**24)
 
 
         # FSM
-        self.sub_switch = rospy.Subscriber('/{}/obstacle_avoidance_node/switch'.format(robot_name), BoolStamped, self.cbSwitch,  queue_size=1)     # for this topic, no remapping is required, since it is directly defined in the namespace lane_controller_node by the fsm_node (via it's default.yaml file)
-        self.sub_fsm_mode = rospy.Subscriber('/{}/fsm_node/mode'.format(robot_name), FSMState, self.cbMode, queue_size=1)
+        self.sub_switch = rospy.Subscriber('~switch', BoolStamped, self.cbSwitch,  queue_size=1)     # for this topic, no remapping is required, since it is directly defined in the namespace lane_controller_node by the fsm_node (via it's default.yaml file)
+        self.sub_fsm_mode = rospy.Subscriber("~mode", FSMState, self.cbMode, queue_size=1)
 
 
     # FSM
     def cbSwitch(self,fsm_switch_msg):
-        self.active = fsm_switch_msg.data # True or False
+        #self.active = fsm_switch_msg.data # True or False
         rospy.loginfo("IS OBSTACLE_AVOIDANCE_NODE ACTIVE: " + str(self.active))
 
     # FSM
@@ -159,7 +159,7 @@ class ObstDetectNode(object):
 # MEINER MEINUNG NACH HIER DANN WARSCH 2.NODE AUCH NOCH REIN WO DANN DIE OBST AVOIDANCE GEMACHT WIRD ODER SO
 
 if __name__ == '__main__':
-    rospy.init_node('obst_detection_node', anonymous=False)
+    rospy.init_node('obstacle_detection_node', anonymous=False)
     obst_detection_node = ObstDetectNode()
     rospy.on_shutdown(obst_detection_node.onShutdown)
     rospy.spin()
