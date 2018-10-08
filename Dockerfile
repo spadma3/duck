@@ -19,12 +19,13 @@ ENV ROS_LANG_DISABLE=gennodejs:geneus:genlisp
 RUN /bin/bash -c "cd /home/software/ && source /opt/ros/kinetic/setup.bash && catkin_make -j -C catkin_ws/"
 
 RUN echo "source /home/software/docker/env.sh" >> ~/.bashrc
+RUN bash -c "source /home/software/docker/env.sh && python -c 'import duckietown_utils'"
 
 RUN [ "cross-build-end" ]
 
 # We make sure that all dependencies are installed
 # by trying to import the duckietown_utils package
-RUN bash -c "source /home/software/docker/env.sh && python -c 'import duckietown_utils'"
+
 
 # Most of these will fail, but might be useful to debug some issues.
 # Leave it here to run it manually.
@@ -36,4 +37,4 @@ WORKDIR /home/software
 CMD [ "/bin/bash" ]
 
 
-LABEL maintainer="Breandan Considine breandan.considine@umontreal.ca"
+LABEL maintainer="Selcuk Ercan ercans@ethz.ch"

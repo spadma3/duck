@@ -22,13 +22,13 @@ import math
 import matplotlib.pyplot as plt
 import scipy.interpolate as interp
 from scipy.optimize import curve_fit
+from scipy.optimize import minimize
 from mpl_toolkits.mplot3d import Axes3D
 import yaml
 
 
 class calib():
     def __init__(self):
-
 	# Initialize the node with rospy
         rospy.init_node('command', anonymous=True)
 
@@ -168,7 +168,7 @@ class calib():
         chh=self.board_['height']
         patternSize = (chw, chh)
         chSeize=self.board_['square_size']
-       
+
         # Set the termination criteria for the corner sub-pixel algorithm
         # if resolution is low keep iteration to minimum otherwise it messes up the code
         # the process of corner refinement stops either after critera.max.count iteration or when the corner moves by less than criteria.epsilon on some iteration
@@ -183,7 +183,7 @@ class calib():
 
         # Create the axis points
         axisPoints = np.float32([[3*chSeize, 0, 0], [0, 3*chSeize, 0], [0, 0, -3*chSeize]]).reshape(-1, 3)
-        
+
         #define the inputbag and topicname
         inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
         topicname = "/" + self.robot_name + "/camera_node/image/compressed"
@@ -199,8 +199,8 @@ class calib():
         startIndex = [i for i, j in enumerate(self.wheels_cmd_['vel_r']) if j != 0]
         startTime=[self.wheels_cmd_['timestamp'][i] for i in startIndex]
         counter=0
-        
-     
+
+
         # Loop over the image files contained in rosbag
         for topic, msg, t in rosbag.Bag(inputbag).read_messages(topics=topicname):
             indexcounter+=1
@@ -220,10 +220,10 @@ class calib():
                 if ret == True:
                     counter=0 # reset counter
                     print "checkerboard in frame %d found" %indexcounter
-                    
+                    #rospy.loginfo("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx")
                     # Refine the corner position
                     corners2 = cv2.cornerSubPix(gray, corners, (5,5), (-1, -1), criteria)
-                    
+
                     # only reverse order if first point is at bottom right corner
                     if corners2[0][0][0]>corners2[34][0][0]:
                         #print "Reversing order of points."
@@ -432,11 +432,9 @@ class calib():
         arr_compress = arr_interp(np.linspace(0, arr.size - 1, ref_size))
         return arr_compress
 
-
-        
-    def modelfun(self, X, c, cl, tr, x_0, y_0, yaw_0, d):
+    def simulation_model(self, X, c, cl, tr, x_0, y_0, yaw_0, d):
         Ts=1.0/30 # Sampling Time of Euler Integration step
-        
+
         d = 0.06  # Distance of camera from Baseline is fixed and not part of the optimization for now
         #X=X.reshape((int(X.size/2),2),order='F')
         #cmd_right = X[:,0];
@@ -445,7 +443,7 @@ class calib():
         cmd_right = X[0:cmd_size]
         cmd_left  = X[cmd_size:cmd_size*2]
         timepoints= X[cmd_size*2:-1].astype(int)
-    
+
         # Model based on parameters predicts velocities and turn rates
         # c is the "forward speed gain"
         # cl is the "turning rate gain"
@@ -455,25 +453,36 @@ class calib():
         vx_pred      = c * (cmd_right+cmd_left)*0.5# + tr * (cmd_right-cmd_left)*0.5;
         omega_pred   = cl * (cmd_right-cmd_left)*0.5 + tr * (cmd_right+cmd_left)*0.5;
         vy_pred      = omega_pred*d;  # The model currently also estimates the offset of the camera position
-        
+
         # Forward Euler Integration (improve to RK4?) to get Position Estimates
         yaw_pred = np.cumsum(omega_pred)*Ts + yaw_0;
         x_pred   = np.cumsum(np.cos(yaw_pred)*vx_pred+np.sin(yaw_pred)*vy_pred)*Ts + x_0;
         y_pred   = np.cumsum(np.sin(yaw_pred)*vx_pred+np.cos(yaw_pred)*vy_pred)*Ts + y_0;
         # The _0 Parameters are just the integration constants and also need to be fitted
         # but we don't care about them later
-        
+
         # Match and pick the prediction steps with the closest available position
         # Based on looking at the data we assume the images were taken at a perfect
         # 30 FPS rate. Therefore, we match to the fixed (perfect) sampling rate
         # and do not interpolate. The pred vectors are thus evaluated at the timepoints
-        
+
         # Output has to be a 1D Vector for curve_fit to work
         Y = np.concatenate((x_pred[timepoints], y_pred[timepoints], yaw_pred[timepoints]), axis=0)
         return Y
 
+    @staticmethod
+    def identifySystem(simulation_model, X, Y, p0, obj_fn):
+
+        if obj_fn == "LS":
+
+            res = minimize(simulation_model, p0, method='nelder-mead',options={'xtol': 1e-8, 'disp': True})
+            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            print res
+            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        else:
+            print "OBJECTIVE FN IS NOT IDENTIFIED"
     def nonlinear_model_fit(self):
-        
+
         x_ramp_meas    = self.veh_pose_['straight']['x_veh']
         x_ramp_meas    = np.reshape(x_ramp_meas,np.size(x_ramp_meas))  # fixing some totally fucked up dimensions
         y_ramp_meas    = self.veh_pose_['straight']['y_veh']
@@ -481,7 +490,7 @@ class calib():
         yaw_ramp_meas  = self.veh_pose_['straight']['yaw_veh']
         yaw_ramp_meas  = ( np.array(yaw_ramp_meas) + np.pi*0.5 + np.pi) % (2 * np.pi ) - np.pi # shift by pi/2 and wrap to +-pi
         time_ramp_meas = self.veh_pose_['straight']['timestamp']
-        
+
         for i in range(0,np.size(time_ramp_meas)):  # convert to float
             time_ramp_meas[i] = time_ramp_meas[i].to_sec()
         time_ramp_meas = np.array(time_ramp_meas)
@@ -489,7 +498,7 @@ class calib():
         cmd_ramp_right = np.concatenate([[0],self.wheels_cmd_['vel_r']])  # add a 0 cmd at the beginning
         cmd_ramp_left  = np.concatenate([[0],self.wheels_cmd_['vel_l']])  # as interpolation boundary
         time_ramp_cmd  = self.wheels_cmd_['timestamp']
-        
+
         for i in range(0,np.size(time_ramp_cmd)):  # convert time to float
             time_ramp_cmd[i] = time_ramp_cmd[i].to_sec()
         time_ramp_cmd = np.array(time_ramp_cmd)
@@ -501,7 +510,7 @@ class calib():
         yaw_sine_meas  = self.veh_pose_['curve']['yaw_veh']
         yaw_sine_meas  = ( np.array(yaw_sine_meas) + np.pi*0.5 + np.pi) % (2 * np.pi ) - np.pi # shift by pi/2 and wrap to +-pi
         time_sine_meas = self.veh_pose_['curve']['timestamp']
-        
+
         for i in range(0,np.size(time_sine_meas)):  # convert time to float
             time_sine_meas[i] = time_sine_meas[i].to_sec()
         time_sine_meas = np.array(time_sine_meas)
@@ -509,13 +518,13 @@ class calib():
         cmd_sine_right = np.concatenate([[0],self.wheels_cmd_['vel_r']])  # add a 0 cmd at the beginning
         cmd_sine_left  = np.concatenate([[0],self.wheels_cmd_['vel_l']])  # as interpolation boundary
         time_sine_cmd  = self.wheels_cmd_['timestamp']
-        
+
         # NOT NECESSARY AGAIN BECAUSE PYTHON ALLOCATING IS NOT COPYING
         # -> BASICALLY ALL THESE VARIABLES ARE STILL LINKED
         #for i in range(0,np.size(time_sine_cmd)):  # convert to float
         #    time_sine_cmd[i] = time_sine_cmd[i].to_sec()
         #time_sine_cmd = np.array(time_sine_cmd)
-        
+
         # Sampling Time of the Identification
         Ts = 1.0/30
         # generate an equally spaced time vector over the full length of position measurement times
@@ -544,39 +553,43 @@ class calib():
         X = np.concatenate((cmd_ramp_right[start:stop], cmd_ramp_left[start:stop], timepoints_ramp[start:stop], [np.size(cmd_ramp_right[start:stop])]), axis=0)
         Y = np.concatenate((x_ramp_meas[start:stop], y_ramp_meas[start:stop], yaw_ramp_meas[start:stop]), axis=0)
         beta0 = np.array([0.6, 6, 0, x_ramp_meas[start], y_ramp_meas[start], yaw_ramp_meas[start], 0.06])
-        
+
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
-        popt_ramp, pcov = curve_fit(self.modelfun, X, Y, p0=beta0)
+        #popt_ramp, pcov = self.identifySystem(self.simulation_model, X, Y, beta0, "LS")
+        # changing abit to use mininze directly
+
+        popt_ramp = self.identifySystem(self.simulation_model, X, Y, beta0, "LS")
+        """
         print('Optimization Result for Ramp Manouver:',popt_ramp)
-        
         # Make a prediction based on the fitted parameters
-        y_pred_ramp = self.modelfun(X, *popt_ramp) # Predict to calculate Error
+        y_pred_ramp = self.simulation_model(X, *popt_ramp) # Predict to calculate Error
         MSE_ramp = np.sum((Y-y_pred_ramp)**2)/y_pred_ramp.size # Calculate the Mean Squared Error
         X = np.concatenate((cmd_ramp_right[start:stop], cmd_ramp_left[start:stop], np.arange(0,np.size(time_ramp[start:stop]),1), [np.size(cmd_ramp_right[start:stop])]), axis=0)
-        y_pred_ramp = self.modelfun(X, *popt_ramp) # Predict for Plotting
+        y_pred_ramp = self.simulation_model(X, *popt_ramp) # Predict for Plotting
         y_pred_ramp = y_pred_ramp.reshape((int(y_pred_ramp.size/3),3),order='F')
-        
-        
+
+
+
         ### IDENTIFICATION FOR SINE MANOUVER ###
         # Setup Measurements Vectors
         X = np.concatenate((cmd_sine_right[start:stop], cmd_sine_left[start:stop], timepoints_sine[start:stop], [np.size(cmd_sine_right[start:stop])]), axis=0)
         Y = np.concatenate((x_sine_meas[start:stop], y_sine_meas[start:stop], yaw_sine_meas[start:stop]), axis=0)
         beta0 = np.array([0.6, 6, 0, x_sine_meas[start], y_sine_meas[start], yaw_sine_meas[start], 0.06])
-        
+
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
-        popt_sine, pcov = curve_fit(self.modelfun, X, Y, p0=beta0)
+        popt_sine, pcov = curve_fit(self.simulation_model, X, Y, p0=beta0)
         print('Optimization Result for Sine Manouver:',popt_sine)
-        
+
         # Make a prediction based on the fitted parameters
-        y_pred_sine = self.modelfun(X, *popt_sine) # Predict to calculate Error
+        y_pred_sine = self.simulation_model(X, *popt_sine) # Predict to calculate Error
         MSE_sine = np.sum((Y-y_pred_sine)**2)/y_pred_sine.size # Calculate the Mean Squared Error
         X = np.concatenate((cmd_sine_right[start:stop], cmd_sine_left[start:stop], np.arange(0,np.size(time_sine[start:stop]),1), [np.size(cmd_sine_right[start:stop])]), axis=0)
-        y_pred_sine = self.modelfun(X, *popt_sine) # Predict for Plotting
+        y_pred_sine = self.simulation_model(X, *popt_sine) # Predict for Plotting
         y_pred_sine = y_pred_sine.reshape((int(y_pred_sine.size/3),3),order='F')
-        
-        
+
+
         # PLOTTING
         plt.figure(1)
         plt.plot(time_ramp[timepoints_ramp[start:stop]],x_ramp_meas[start:stop],'x',color=(0.5,0.5,1))
@@ -590,7 +603,7 @@ class calib():
         plt.xlabel('time [s]')
         plt.ylabel('position [m] / heading [rad]')
         plt.show(block=False)
-        
+
         plt.figure(2)
         plt.plot(time_sine[timepoints_sine[start:stop]],x_sine_meas[start:stop],'x',color=(0.5,0.5,1))
         plt.plot(time_sine[timepoints_sine[start:stop]],y_sine_meas[start:stop],'x',color=(0.5,1,0.5))
@@ -603,21 +616,24 @@ class calib():
         plt.xlabel('time [s]')
         plt.ylabel('position [m] / heading [rad]')
         plt.show(block=False)
-        
+
         print("\nThe Estimated Model Parameters are:")
         print("c  = {}".format(popt_ramp[0]))  # using ramp estimation
         print("cl = {}".format(popt_sine[1]))  # using sine estimation
         print("tr = {}".format(+popt_ramp[2]))  # using ramp estimation
         print("The Mean Squared Error of the Ramp Manouver is {}".format(MSE_ramp))
         print("The Mean Squared Error of the Sine Manouver is {}".format(MSE_sine))
-        
+
         fit ={'c':popt_ramp[0],'cl':popt_sine[1],'tr':popt_ramp[2]}
 
+        """
+        print "\n\n XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        print('Optimization Result for Ramp Manouver:',popt_ramp)
+        print('Optimization Result for Sine Manouver:',popt_sine)
+        print "\n\n XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+
         return fit
-
-
-
-
 
     def write_calibration(self):
         '''Load kinematic calibration file'''
@@ -633,7 +649,7 @@ class calib():
             rospy.loginfo("Loading some kinematic calibration parameters of " + self.robot_name)
             data = yaml_load_file(filename)
         logger.info("Loaded homography for {}".format(os.path.basename(filename)))
-        
+
         # Load some of the parameters that will not be changed
         param_k        = data['k']
         param_limit    = data['limit']
@@ -643,14 +659,14 @@ class calib():
         c  = self.fit_['c']
         cl = self.fit_['cl']
         tr = self.fit_['tr']
-        
+
         # Calculation of Kinematic Calibration parameters from our model parameters
         # Due to the redundancy of the k and radius parameter, the read parameters are taken into account
         # We chose to overwrite the gain parameter, but instead the motor constant could be changed
         gain = param_radius * param_k / c
         trim = - tr * param_radius * param_k * param_radius * param_k / (cl * c)
         baseline = 2 * c / cl * 0.9  # The 0.9 is a biasing factor because the sine steer is finite
-        
+
         # Write to yaml
         #datasave = {  # This is similar to the inverse_kinematics_node, but it did not work...
         #    "calibration_time": time.strftime("%Y-%m-%d-%H-%M-%S"),
@@ -683,10 +699,9 @@ class calib():
             #outfile.write(yaml.dump(datasave, default_flow_style=False))  # This did not work and gave very weird results
 
         print("Saved Parameters to " + self.robot_name + ".yaml" )
-        
+
         print("\nPlease check the plots and judge if the parameters are reasonable.")
         print("Once done inspecting the plot, close them to terminate the program.")
-
 
     def visualize(self):  # For Debugging only
         Ts = 1.0 / 30
