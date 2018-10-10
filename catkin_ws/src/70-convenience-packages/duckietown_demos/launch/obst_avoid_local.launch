@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+	<!-- start basic args -->
+	<arg name="veh" default="$(env VEHICLE_NAME)"/>
+	<arg name="config" default="baseline" />
+	<arg name="show_bird_perspective" default="true"/>
+	<arg name="show_obst_image" default="true"/>
+	<arg name="show_marker" default="true"/>
+
+<!-- Start Obstacle Detection and Avoidance -->
+
+	<remap from="obstacle_detection_node/corrected_image/compressed" to="image_transformer_node/corrected_image/compressed"/>
+	<remap from="obstacle_detection_node/image/compressed" to="camera_node/image/compressed"/>
+	<remap from="obstacle_detection_node/switch" to="obstacle_avoidance_node/switch"/>
+	<remap from="obstacle_detection_node/mode" to="fsm_node/mode"/>
+	<remap from="obstacle_avoidance_node/posearray" to="obstacle_detection_node/posearray"/>
+	<remap from="obstacle_avoidance_node/lane_pose" to="lane_filter_node/lane_pose"/>
+	<remap from="lane_controller_node/obstacle_avoidance_pose" to="obstacle_avoidance_node/obstacle_avoidance_pose" />
+	<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_node/obstacle_avoidance_active_flag" />
+
+	<include file="$(find obst_avoid)/launch/obst_avoid_lane_follow_light.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="show_bird_perspective" value="$(arg show_bird_perspective)"/>
+		<arg name="show_image" value="$(arg show_obst_image)"/>
+	</include>
+
+	<remap from="obstacle_detection_node_visual/posearray" to="obstacle_detection_node/posearray"/>
+	<remap from="obstacle_detection_node_visual/image/compressed" to="camera_node/image/compressed"/>
+	<include file="$(find obst_avoid)/launch/obst_avoid_visual.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="show_marker" value="$(arg show_marker)"/>
+		<arg name="show_image" value="$(arg show_obst_image)"/>
+	</include>
+
+
+</launch>
