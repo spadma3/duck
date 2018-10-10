@@ -41,6 +41,7 @@ class Avoider():
 		emergency_stop = 0
 		right_lane_occupied = 0
 		takeover_possible = 0
+		left_lane_occupied = 0
 		if len(obstacle_poses_on_track.poses) == 1:
 			# self.d_robot = self.d_current
 			# self.theta = self.theta_current
@@ -65,9 +66,11 @@ class Avoider():
 				print('Emergency Stop - in right lane')
 				emergency_stop = 1
 				right_lane_occupied = 1
+
+			#TODO: test if the left lane is occupied
 			# React if possible
 			self.d_target = (y_global - (np.sign(y_global) * (self.lWidthRobot / 2 + self.yAvoidanceMargin + abs(r_obstacle))))/1000  # convert to m
-			if right_lane_occupied == 1:
+			if right_lane_occupied == 1 and left_lane_occupied == 0:
 				self.d_target = 0.250 #test
 				takeover_possible = 1
 
