@@ -27,31 +27,35 @@ from mpl_toolkits.mplot3d import Axes3D
 import yaml
 import pickle
 
+PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION = False
+
 class experimentData():
     pass
 class calib():
     def __init__(self):
-	# Initialize the node with rospy
+	    # Initialize the node with rospy
         rospy.init_node('command', anonymous=True)
 
         # defaults overwritten by param
         self.robot_name = rospy.get_param("~veh")
-        # Load homography
-        self.H = self.load_homography()
-        # define PinholeCameraModel
-        self.pcm_ = PinholeCameraModel()
-        # load camera info
-        self.cam = self.load_camera_info()
-        # load information about duckietown chessboard
-        self.board_ = self.load_board_info()
 
-        # load joystick commands
-        # self.joy_cmd_=self.get_joy_command()
+        if PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION:
+            # Load homography
+            self.H = self.load_homography()
+            # define PinholeCameraModel
+            self.pcm_ = PinholeCameraModel()
+            # load camera info
+            self.cam = self.load_camera_info()
+            # load information about duckietown chessboard
+            self.board_ = self.load_board_info()
 
-        # load wheel commands
-        self.wheels_cmd_=self.get_wheels_command()
-        # load veh pose
-        self.veh_pose_ = self.load_camera_pose_estimation()
+            # load joystick commands
+            # self.joy_cmd_=self.get_joy_command()
+
+            # load wheel commands
+            self.wheels_cmd_=self.get_wheels_command()
+            # load veh pose
+            self.veh_pose_ = self.load_camera_pose_estimation()
 
         # uncomment to try nonlinear_model
         self.fit_=self.nonlinear_model_fit()
@@ -62,7 +66,6 @@ class calib():
         # make plots & visualizations
         #self.plot=self.visualize()
         plt.show()
-
 
     # wait until we have recieved the camera info message through ROS and then initialize
     def initialize_pinhole_camera_model(self, camera_info):
@@ -607,51 +610,67 @@ class calib():
 
         timepoints_ramp, time_ramp, cmd_ramp_right, cmd_ramp_left, timepoints_sine, time_sine, cmd_sine_right, cmd_sine_left = self.resampling(time_ramp_meas, time_ramp_cmd, cmd_ramp_right, cmd_ramp_left, time_sine_meas, time_sine_cmd, cmd_sine_right, cmd_sine_left)
 
-        experimentData.x_ramp_meas = x_ramp_meas
-        experimentData.y_ramp_meas = y_ramp_meas
-        experimentData.yaw_ramp_meas = yaw_ramp_meas
+        experimentDataObj = experimentData()
+        experimentDataObj.x_ramp_meas = x_ramp_meas
+        experimentDataObj.y_ramp_meas = y_ramp_meas
+        experimentDataObj.yaw_ramp_meas = yaw_ramp_meas
 
-        experimentData.x_sine_meas = x_sine_meas
-        experimentData.y_sine_meas = y_sine_meas
-        experimentData.yaw_sine_meas = yaw_sine_meas
+        experimentDataObj.x_sine_meas = x_sine_meas
+        experimentDataObj.y_sine_meas = y_sine_meas
+        experimentDataObj.yaw_sine_meas = yaw_sine_meas
 
-        experimentData.timepoints_ramp = timepoints_ramp
-        experimentData.time_ramp = time_ramp
+        experimentDataObj.timepoints_ramp = timepoints_ramp
+        experimentDataObj.time_ramp = time_ramp
 
-        experimentData.cmd_ramp_right = cmd_ramp_right
-        experimentData.cmd_ramp_left = cmd_ramp_left
+        experimentDataObj.cmd_ramp_right = cmd_ramp_right
+        experimentDataObj.cmd_ramp_left = cmd_ramp_left
 
-        experimentData.timepoints_sine = timepoints_sine
-        experimentData.time_sine = time_sine
+        experimentDataObj.timepoints_sine = timepoints_sine
+        experimentDataObj.time_sine = time_sine
 
-        experimentData.cmd_sine_right = cmd_sine_right
-        experimentData.cmd_sine_left = cmd_sine_left
+        experimentDataObj.cmd_sine_right = cmd_sine_right
+        experimentDataObj.cmd_sine_left = cmd_sine_left
 
+        #print 'XXXXXXXXXXXXXXXXXXXXXXXXX'
+        #print experimentDataObj
 
         f = open('store.pckl', 'wb')
-        pickle.dump(experimentData, f)
+        pickle.dump(experimentDataObj, f)
         f.close()
-
-        return x_ramp_meas,y_ramp_meas, yaw_ramp_meas, x_sine_meas,y_sine_meas,yaw_sine_meas, timepoints_ramp, time_ramp ,cmd_ramp_right, cmd_ramp_left, timepoints_sine, time_sine, cmd_sine_right, cmd_sine_left
 
     @staticmethod
     def unpackExperimentData():
         f = open('store.pckl', 'rb')
-        data = pickle.load(f)
+        experimentDataObj = pickle.load(f)
         f.close()
-        x_ramp_meas
-        y_ramp_meas
-        yaw_ramp_meas
 
-        x_sine_meas
-        y_sine_meas
-        yaw_sine_meas
+        x_ramp_meas = experimentDataObj.x_ramp_meas
+        y_ramp_meas = experimentDataObj.y_ramp_meas
+        yaw_ramp_meas = experimentDataObj.yaw_ramp_meas
 
-        timepoints_ramp
-        time_ramp
+        x_sine_meas = experimentDataObj.x_sine_meas
+        y_sine_meas = experimentDataObj.y_sine_meas
+        yaw_sine_meas = experimentDataObj.yaw_sine_meas
 
-        cmd_ramp_right
-        cmd_ramp_left
+        timepoints_ramp = experimentDataObj.timepoints_ramp
+        time_ramp = experimentDataObj.time_ramp
+
+        cmd_ramp_right = experimentDataObj.cmd_ramp_right
+        cmd_ramp_left = experimentDataObj.cmd_ramp_left
+
+        timepoints_sine = experimentDataObj.timepoints_sine
+        time_sine = experimentDataObj.time_sine
+
+        cmd_sine_right = experimentDataObj.cmd_sine_right
+        cmd_sine_left = experimentDataObj.cmd_sine_left
+
+        return (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
+                x_sine_meas,y_sine_meas,yaw_sine_meas,
+                timepoints_ramp, time_ramp ,
+                cmd_ramp_right, cmd_ramp_left,
+                timepoints_sine, time_sine,
+                cmd_sine_right, cmd_sine_left)
+
     @staticmethod
     def resampling(time_ramp_meas, time_ramp_cmd, cmd_ramp_right, cmd_ramp_left, time_sine_meas, time_sine_cmd, cmd_sine_right, cmd_sine_left):
         # Sampling Time of the Identification
@@ -677,17 +696,16 @@ class calib():
         return timepoints_ramp, time_ramp, cmd_ramp_right, cmd_ramp_left, timepoints_sine, time_sine, cmd_sine_right, cmd_sine_left
 
     def nonlinear_model_fit(self):
-        """
-        (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
-        x_sine_meas,y_sine_meas,yaw_sine_meas, timepoints_ramp,
-        time_ramp ,cmd_ramp_right, cmd_ramp_left, timepoints_sine,
-        time_sine, cmd_sine_right, cmd_sine_left) = self.prepareData()
-        """
+
+        if PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION:
+            self.prepareData()
 
         (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
-        x_sine_meas,y_sine_meas,yaw_sine_meas, timepoints_ramp,
-        time_ramp ,cmd_ramp_right, cmd_ramp_left, timepoints_sine,
-        time_sine, cmd_sine_right, cmd_sine_left) = self.unpackExperimentData()
+        x_sine_meas,y_sine_meas,yaw_sine_meas,
+        timepoints_ramp,time_ramp ,
+        cmd_ramp_right, cmd_ramp_left,
+        timepoints_sine,time_sine,
+        cmd_sine_right, cmd_sine_left) = self.unpackExperimentData()
 
         ### Define if part of the measurement should be cut off
         start = 0
