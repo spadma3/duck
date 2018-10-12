@@ -91,6 +91,10 @@ def loop():
         if keys[pygame.K_i]:
             msg.buttons[3] = 1
 
+        # execute takeover
+        if keys[pygame.K_t]:
+            msg.buttons[9] = 1
+
         ## key/action for quitting the program
 
         # check if top left [x] was hit
@@ -154,6 +158,7 @@ def print_hint():
     print("         [a]:    Start lane-following a.k.a. autopilot")
     print("         [s]:    Stop lane-following")
     print("         [i]:    Toggle anti-instagram")
+    print("         [t]:    Execute takeover")
     print("\n")
     print("Questions? Contact Julien Kindle: jkindle@ethz.ch")
 

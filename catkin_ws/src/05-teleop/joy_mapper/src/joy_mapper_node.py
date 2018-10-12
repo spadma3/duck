@@ -78,15 +78,15 @@ class JoyMapper(object):
         self.pub_car_cmd.publish(car_cmd_msg)
 
 # Button List index of joy.buttons array:
-# 0: A 
-# 1: B 
-# 2: X 
-# 3: Y 
-# 4: Left Back 
+# 0: A
+# 1: B
+# 2: X
+# 3: Y
+# 4: Left Back
 # 5: Right Back
 # 6: Back
 # 7: Start
-# 8: Logitek 
+# 8: Logitek
 # 9: Left joystick
 # 10: Right joystick
 
@@ -99,7 +99,7 @@ class JoyMapper(object):
             rospy.loginfo('start deep learning lane following')
             deep_lane_following_msg.header.stamp = self.joy.header.stamp
             deep_lane_following_msg.data = self.deep_learning
-            self.pub_deep_lane_following.publish(deep_lane_following_msg) 
+            self.pub_deep_lane_following.publish(deep_lane_following_msg)
 
         # Y button
         elif (joy_msg.buttons[3] == 1):
@@ -131,7 +131,7 @@ class JoyMapper(object):
             override_msg.data = True
             rospy.loginfo('override_msg = True')
             self.pub_joy_override.publish(override_msg)
-            
+
         # Start button
         elif (joy_msg.buttons[7] == 1):
             override_msg = BoolStamped()
@@ -154,7 +154,15 @@ class JoyMapper(object):
             rospy.loginfo('start lane following with avoidance mode')
             avoidance_msg.header.stamp = self.joy.header.stamp
             avoidance_msg.data = True
-            self.pub_avoidance.publish(avoidance_msg) 
+            self.pub_avoidance.publish(avoidance_msg)
+
+        # # Unknown joystick button
+        # elif (joy_msg.buttons[10] == 1):
+        #     avoidance_msg = BoolStamped()
+        #     rospy.loginfo('executing takeover')
+        #     avoidance_msg.header.stamp = self.joy.header.stamp
+        #     avoidance_msg.data = True
+        #     self.pub_avoidance.publish(avoidance_msg)
 
         else:
             some_active = sum(joy_msg.buttons) > 0
