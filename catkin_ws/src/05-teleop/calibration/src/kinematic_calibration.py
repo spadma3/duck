@@ -68,7 +68,7 @@ class calib():
         self.y_opt_predict_sine = None
 
         self.fit_=self.nonlinear_model_fit()
-        self.plots()
+        #self.plots()
         # write to the kinematic calibration file
         #self.write_calibration()
 
@@ -575,6 +575,31 @@ class calib():
 
         return [x_dot_rob, omega_rob, y_dot_rob]
 
+
+    def forwardEuler(self,s_cur, Ts, cmd_right, cmd_left,p):
+        d = 0.06
+        c, cl, tr = p
+        print s_cur
+        x_0 = s_cur[0]
+        yaw_0 = s_cur[1]
+        y_0 = s_cur[2]
+
+        vx_pred = c * (cmd_right+cmd_left)* 0.5 # + tr * (cmd_right-cmd_left)*0.5
+        omega_pred = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
+        vy_pred = omega_pred*d
+
+        # Forward Euler Integration (improve to RK4?) to get Position Estimates
+        yaw_pred = np.cumsum(omega_pred)*Ts + yaw_0
+        x_pred = np.cumsum(np.cos(yaw_pred)*vx_pred + np.sin(yaw_pred)*vy_pred)*Ts + x_0
+        y_pred = np.cumsum(np.sin(yaw_pred)*vx_pred + np.cos(yaw_pred)*vy_pred)*Ts + y_0
+
+        """
+        a = np.array([x_pred, yaw_pred, y_pred]).reshape(3)
+        print("Shape of input a: {}".format(a.shape))
+        print("Type of input a: {}".format(type(a)))
+        """
+        return np.array([x_pred, yaw_pred, y_pred]).reshape(3)
+
     def simulate(self,p, cmd_right, cmd_left, s_init,time):
         # States
         ## Note that values take checkerboard as the origin.
@@ -587,17 +612,22 @@ class calib():
         Ts = 1 / 30.0
         s_cur = s[0]
 
-        #print("Shape of input time: {}".format(time.shape))
-        #print("Type of input time: {}".format(type(time)))
+        #print("Shape of input s_cur: {}".format(s_cur.shape))
+        #print("Type of input s_cur: {}".format(type(s_cur)))
         #print("Content time: {}".format(time))
 
         for i in range(len(time)-1):
             #ts = [time[i] * Ts, time[i+1]* Ts]
+            """
             s_next = odeint(self.kinematic_model, s_cur, Ts, args=(cmd_right[i],cmd_left[i],p))
+            s_cur = s_next[-1] # variable assignment
+            """
+            s_next = self.forwardEuler(s_cur, Ts, cmd_right[i],cmd_left[i],p)
+            s_cur = np.copy(s_next)
             #print("Shape of input s_next: {}".format(s_next.shape))
             #print("Type of input s_next: {}".format(type(s_next)))
             #print("Content s_next: {}".format(s_next))
-            s_cur = s_next[-1] # variable assignment
+
             #print("Shape of input s_cur: {}".format(s_cur.shape))
             #print("Type of input s_cur: {}".format(type(s_cur)))
             #print("Content s_next: {}".format(s_cur))
@@ -825,11 +855,65 @@ class calib():
         s_init_ramp = [x_ramp_meas[start], y_ramp_meas[start], yaw_ramp_meas[start]]
         #initial guesses for the parameters: c, cl, tr
         #p0 = [0.6, 6, 0]
-        p0 = [10, 10, 0]
+        p0 = [0.6, 6.0, 0.0]
+
+        y_pred_ramp_default_params = self.simulate(p0, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp)
+        self.y_pred_ramp_default_params = y_pred_ramp_default_params
+
+        print time_ramp
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
+        result_ramp = minimize(self.objective, p0, args=(cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas,  y_ramp_meas, yaw_ramp_meas, timepoints_ramp))
+        popt_ramp = result_ramp.x
 
 
+        # Make a prediction based on the fitted parameters
+        y_opt_predict_ramp = self.simulate(popt_ramp, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp) # Predict to calculate Error
+        self.y_opt_predict_ramp = y_opt_predict_ramp
+        Y = np.stack((x_ramp_meas, yaw_ramp_meas, y_ramp_meas), axis=1)
+        MSE_ramp = np.sum((Y-y_opt_predict_ramp)**2)/y_opt_predict_ramp.size # Calculate the Mean Squared Error
+
+        # PLOTTING
+        fig2, ax1 = plt.subplots()
+
+        x_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],x_ramp_meas,'x',color=(0.5,0.5,1), label = 'x measured')
+        y_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],y_ramp_meas,'x',color=(0.5,1,0.5), label = 'y measured')
+        yaw_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],yaw_ramp_meas,'x',color=(1,0.5,0.5), label = 'yaw measured')
+        # Model predictions with default parameters
+        x_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,0],'bo', label = 'x predict def')
+        y_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,1],'go', label = 'y predict def')
+        yaw_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,2],'ro', label = 'yaw predict def')
+
+        """
+        # Model predictions with optimal parametes
+        x_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,0],'b', label = 'x predict opt')
+        y_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,1],'g', label = 'y predict opt')
+        yaw_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,2],'r', label = 'yaw predict opt')
+
+
+        ax1.set_xlabel('time [s]')
+        ax1.set_ylabel('position [m] / heading [rad]')
+
+        ax2 = ax1.twinx()
+        cmd_ramp_right_handle, = ax2.plot(time_ramp[timepoints_ramp],cmd_ramp_right,'bx', label = 'right motor')
+        cmd_ramp_left_handle, =ax2.plot(time_ramp[timepoints_ramp],cmd_ramp_left, 'r+', label = 'left motor')
+        ax2.set_ylabel('PWM [%]')
+        """
+
+        handles = [x_ramp_meas_handle,y_ramp_meas_handle,yaw_ramp_meas_handle,
+                   x_ramp_pred_default_handle, y_ramp_pred_default_handle, yaw_ramp_pred_default_handle]
+        """
+        handles = [x_ramp_meas_handle,y_ramp_meas_handle,yaw_ramp_meas_handle,
+                   x_ramp_pred_handle,y_ramp_pred_handle,yaw_ramp_pred_handle,
+                   x_ramp_pred_default_handle, y_ramp_pred_default_handle, yaw_ramp_pred_default_handle,
+                   cmd_ramp_right_handle,cmd_ramp_left_handle]
+        """
+        labels = [h.get_label() for h in handles]
+
+        fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
+        fig2.suptitle('Measurements and Prediction with Default/Optimal Parameter Values - Ramp Manouver', fontsize=16)
+        plt.show(block=True)
+        """
         print("Size of input cmd_ramp_right: {}".format(cmd_ramp_right.shape))
         print("Size of input cmd_ramp_left: {}".format(cmd_ramp_left.shape))
         print("Size of input x_ramp_meas: {}".format(x_ramp_meas.shape))
@@ -840,32 +924,27 @@ class calib():
         #print("Content yaw_ramp_meas: {}".format(yaw_ramp_meas))
         print("Size of input timepoints_ramp: {}".format(timepoints_ramp.shape))
         print("Size of input time_ramp: {}".format(time_ramp.shape))
-
-        result_ramp = minimize(self.objective, p0, args=(cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas,  y_ramp_meas, yaw_ramp_meas, timepoints_ramp))
-        popt_ramp = result_ramp.x
         """
-        print('[BEGIN] Optimization Result for Ramp Manouver\n')
+        """
+        print('Optimization Result for Ramp Manouver\n')
         print(result_ramp)
-        print('[END] Optimization Result for Ramp Manouver\n')
-        """
+        print('Optimization Result for Ramp Manouver\n')
 
-        # Make a prediction based on the fitted parameters
-        y_opt_predict_ramp = self.simulate(popt_ramp, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp) # Predict to calculate Error
-        self.y_opt_predict_ramp = y_opt_predict_ramp
 
         print("Shape of input y_opt_predict_ramp: {}".format(y_opt_predict_ramp.shape))
         #print("Type of input y_opt_predict_ramp: {}".format(type(y_opt_predict_ramp)))
         #print("Content y_opt_predict_ramp: {}".format(y_opt_predict_ramp))
+        """
 
-        Y = np.stack((x_ramp_meas, yaw_ramp_meas, y_ramp_meas), axis=1)
         """
         print("Shape of input x_ramp_meas: {}".format(x_ramp_meas.shape))
         print("Shape of input y_ramp_meas: {}".format(y_ramp_meas.shape))
         print("Shape of input yaw_ramp_meas: {}".format(yaw_ramp_meas.shape))
         print("Shape of input Y : {}".format(Y.shape))
         """
-        MSE_ramp = np.sum((Y-y_opt_predict_ramp)**2)/y_opt_predict_ramp.size # Calculate the Mean Squared Error
 
+
+        """
         ### START: PLOT MOTOR INPUT SEQUENCE vs TIME
         plt.figure(1)
         plt.plot(time_ramp,cmd_ramp_right, 'bx')
@@ -877,12 +956,11 @@ class calib():
         plt.ylabel('PWM [%]')
         plt.show(block=False)
         #### END: PLOT MOTOR INPUT SEQUENCE vs TIME
+        """
 
-        y_pred_ramp_default_params = self.simulate(p0, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp)
-        self.y_pred_ramp_default_params = y_pred_ramp_default_params
-        #y_pred_ramp_default_params = y_pred_ramp_default_params.reshape((int(y_pred_ramp_default_params.size/3),3),order='F')
         print ("\nEND: EXPERIMENT_RAMP FN")
-        return popt_ramp
+        #return popt_ramp
+
     def experiment_sine(self):
         print ("\nBEG: EXPERIMENT_SINE FN")
         # select portion of data to use
@@ -902,10 +980,10 @@ class calib():
         s_init_sine = [x_sine_meas[start], y_sine_meas[start], yaw_sine_meas[start]]
         #initial guesses for the parameters: c, cl, tr
         #p0 = [0.6, 6, 0]
-        p0 = [10, 10, 0]
+        p0 = [0.6, 6, 0]
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
-
+        """
         print("Size of input cmd_sine_right: {}".format(cmd_sine_right.shape))
         print("Size of input cmd_sine_left: {}".format(cmd_sine_left.shape))
         print("Size of input x_sine_meas: {}".format(x_sine_meas.shape))
@@ -916,20 +994,19 @@ class calib():
         #print("Content yaw_sine_meas: {}".format(yaw_sine_meas))
         print("Size of input timepoints_sine: {}".format(timepoints_sine.shape))
         print("Size of input time_sine: {}".format(time_sine.shape))
-
+        """
         result_sine = minimize(self.objective, p0, args=(cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas,  y_sine_meas, yaw_sine_meas, timepoints_sine))
         popt_sine = result_sine.x
 
-        """
+
         print('[BEGIN] Optimization Result for sine Manouver\n')
         print(result_sine)
         print('[END] Optimization Result for sine Manouver\n')
-        """
+
 
         # Make a prediction based on the fitted parameters
         y_opt_predict_sine = self.simulate(popt_sine, cmd_sine_right, cmd_sine_left, s_init_sine , timepoints_sine) # Predict to calculate Error
         self.y_opt_predict_sine = y_opt_predict_sine
-
 
         #print("Type of input y_opt_predict_sine: {}".format(type(y_opt_predict_sine)))
         #print("Content y_opt_predict_sine: {}".format(y_opt_predict_sine))
@@ -949,17 +1026,15 @@ class calib():
         print("Shape of input y_opt_predict_sine: {}".format(y_opt_predict_sine.shape))
         print("Shape of input y_pred_sine_default_params: {}".format(y_pred_sine_default_params.shape))
 
-
         print ("\nEND: EXPERIMENT_SINE FN")
         return popt_sine
 
     def nonlinear_model_fit(self):
         popt_ramp = self.experiment_ramp()
-        popt_sine = self.experiment_sine()
-
-        fit ={'c':popt_ramp[0],'cl':popt_sine[1],'tr':popt_ramp[2]}
-
-        return fit
+        #popt_sine = self.experiment_sine()
+        #fit ={'c':popt_ramp[0],'cl':popt_sine[1],'tr':popt_ramp[2]}
+        #fit ={'c':popt_ramp[0],'cl':popt_ramp[1],'tr':popt_ramp[2]}
+        #return fit
 
     def write_calibration(self):
         '''Load kinematic calibration file'''
@@ -1046,38 +1121,6 @@ class calib():
         cmd_ramp_right, cmd_ramp_left,
         timepoints_sine,time_sine,
         cmd_sine_right, cmd_sine_left) = self.processData(starting_ind = start, ending_ind = end)
-        # PLOTTING
-        fig2, ax1 = plt.subplots()
-
-        x_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],x_ramp_meas,'x',color=(0.5,0.5,1), label = 'x measured')
-        y_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],y_ramp_meas,'x',color=(0.5,1,0.5), label = 'y measured')
-        yaw_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],yaw_ramp_meas,'x',color=(1,0.5,0.5), label = 'yaw measured')
-        # Model predictions with optimal parametes
-        x_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,0],'b', label = 'x predict opt')
-        y_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,1],'g', label = 'y predict opt')
-        yaw_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,2],'r', label = 'yaw predict opt')
-        # Model predictions with default parameters
-        x_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,0],'bo', label = 'x predict def')
-        y_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,1],'go', label = 'y predict def')
-        yaw_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,2],'ro', label = 'yaw predict def')
-
-        ax1.set_xlabel('time [s]')
-        ax1.set_ylabel('position [m] / heading [rad]')
-
-        ax2 = ax1.twinx()
-        cmd_ramp_right_handle, = ax2.plot(time_ramp[timepoints_ramp],cmd_ramp_right,'bx', label = 'right motor')
-        cmd_ramp_left_handle, =ax2.plot(time_ramp[timepoints_ramp],cmd_ramp_left, 'r+', label = 'left motor')
-        ax2.set_ylabel('PWM [%]')
-
-        handles = [x_ramp_meas_handle,y_ramp_meas_handle,yaw_ramp_meas_handle,
-                   x_ramp_pred_handle,y_ramp_pred_handle,yaw_ramp_pred_handle,
-                   x_ramp_pred_default_handle, y_ramp_pred_default_handle, yaw_ramp_pred_default_handle,
-                   cmd_ramp_right_handle,cmd_ramp_left_handle]
-
-        labels = [h.get_label() for h in handles]
-
-        fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
-        fig2.suptitle('Measurements and Prediction with Default/Optimal Parameter Values - Ramp Manouver', fontsize=16)
 
         plt.figure(3)
         plt.plot(time_sine[timepoints_sine],x_sine_meas,'x',color=(0.5,0.5,1))
