@@ -29,7 +29,18 @@ import yaml
 import pickle
 
 PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION = False
+EXPERIMENT_NAME_FOR_PICKLE = "0910_4.pckl"
+"""
+TODO
 
+1) Current way: extract c from ramp, cl and tr from sine
+                simulate the system with the resulting params: how does changing the weights affect?
+2) add regularization
+3) switch to single optimization
+
+TO TRY
+1) different solver options for minimize
+"""
 class experimentData():
     pass
 class calib():
@@ -61,7 +72,6 @@ class calib():
             self.veh_pose_ = self.load_camera_pose_estimation()
             self.experiment_data_ = self.unpackData()
 
-        # uncomment to try nonlinear_model
         self.y_pred_ramp_default_params = None
         self.y_opt_predict_ramp = None
         self.y_pred_sine_default_params = None
@@ -521,150 +531,6 @@ class calib():
         arr_compress = arr_interp(np.linspace(0, arr.size - 1, ref_size))
         return arr_compress
 
-    def simulation_model(self, X, c, cl, tr, x_0, y_0, yaw_0, d):
-        Ts=1.0/30 # Sampling Time of Euler Integration step
-
-        d = 0.06  # Distance of camera from Baseline is fixed and not part of the optimization for now
-        #X=X.reshape((int(X.size/2),2),order='F')
-        #cmd_right = X[:,0]
-        #cmd_left  = X[:,1]
-        cmd_size  = np.int(X[-1])  # This is not so elegant but I had no better idea for now
-        cmd_right = X[0:cmd_size]
-        cmd_left  = X[cmd_size:cmd_size*2]
-        timepoints= X[cmd_size*2:-1].astype(int)
-
-        # Model based on parameters predicts velocities and turn rates
-        # c is the "forward speed gain"
-        # cl is the "turning rate gain"
-        # tr is the "undesired turning rate gain when commanding to go straight"
-        # This model deliberately neglects the influence of the tr on the forward speed
-        # d is the offset of the camera to center of the wheels
-        vx_pred = c * (cmd_right+cmd_left)* 0.5 # + tr * (cmd_right-cmd_left)*0.5
-        omega_pred = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
-        vy_pred = omega_pred*d  # The model currently also estimates the offset of the camera position
-
-        # Forward Euler Integration (improve to RK4?) to get Position Estimates
-        yaw_pred = np.cumsum(omega_pred)*Ts + yaw_0
-        x_pred = np.cumsum(np.cos(yaw_pred)*vx_pred + np.sin(yaw_pred)*vy_pred)*Ts + x_0
-        y_pred = np.cumsum(np.sin(yaw_pred)*vx_pred + np.cos(yaw_pred)*vy_pred)*Ts + y_0
-
-        # The _0 Parameters are just the integration constants and also need to be fitted
-        # but we don't care about them later
-
-        # Match and pick the prediction steps with the closest available position
-        # Based on looking at the data we assume the images were taken at a perfect
-        # 30 FPS rate. Therefore, we match to the fixed (perfect) sampling rate
-        # and do not interpolate. The pred vectors are thus evaluated at the timepoints
-
-        # Output has to be a 1D Vector for curve_fit to work
-        Y = np.concatenate((x_pred[timepoints], y_pred[timepoints], yaw_pred[timepoints]), axis=0)
-        return Y
-
-    @staticmethod
-    def kinematic_model(s, t,cmd_right,cmd_left, p):
-        d = 0.06  # Distance of camera from Baseline is fixed and not part of the optimization for now
-        # optimized parameters
-        c, cl, tr = p
-
-        # Simple Kinematic model
-        # Assumptions: Rigid body, No lateral slip
-
-        x_dot_rob = c * (cmd_right+cmd_left)* 0.5 # + tr * (cmd_right-cmd_left)*0.5
-        omega_rob = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
-        y_dot_rob = omega_rob * d  # The model currently also estimates the offset of the camera position
-
-        return [x_dot_rob, omega_rob, y_dot_rob]
-
-
-    def forwardEuler(self,s_cur, Ts, cmd_right, cmd_left,p):
-        d = 0.06
-        c, cl, tr = p
-
-        x_0 = s_cur[0]
-        yaw_0 = s_cur[1]
-        y_0 = s_cur[2]
-
-        vx_pred = c * (cmd_right+cmd_left)* 0.5 # + tr * (cmd_right-cmd_left)*0.5
-        omega_pred = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
-        vy_pred = omega_pred*d
-
-        # Forward Euler Integration (improve to RK4?) to get Position Estimates
-        yaw_pred = np.cumsum(omega_pred)*Ts + yaw_0
-        x_pred = np.cumsum(np.cos(yaw_pred)*vx_pred + np.sin(yaw_pred)*vy_pred)*Ts + x_0
-        y_pred = np.cumsum(np.sin(yaw_pred)*vx_pred + np.cos(yaw_pred)*vy_pred)*Ts + y_0
-
-        """
-        a = np.array([x_pred, yaw_pred, y_pred]).reshape(3)
-        print("Shape of input a: {}".format(a.shape))
-        print("Type of input a: {}".format(type(a)))
-        """
-        return np.array([x_pred, yaw_pred, y_pred]).reshape(3)
-
-    def simulate(self,p, cmd_right, cmd_left, s_init,time):
-        # States
-        ## Note that values take checkerboard as the origin.
-        s = np.zeros((len(time),3))
-
-        s[0,0] = s_init[0] # x
-        s[0,1] = s_init[2] # y
-        s[0,2] = s_init[1] # yaw
-
-        Ts = 1 / 30.0
-        s_cur = s[0]
-
-        #print("Shape of input s_cur: {}".format(s_cur.shape))
-        #print("Type of input s_cur: {}".format(type(s_cur)))
-        #print("Content time: {}".format(time))
-
-        for i in range(len(time)-1):
-            #ts = [time[i] * Ts, time[i+1]* Ts]
-            """
-            s_next = odeint(self.kinematic_model, s_cur, Ts, args=(cmd_right[i],cmd_left[i],p))
-            s_cur = s_next[-1] # variable assignment
-            """
-            s_next = self.forwardEuler(s_cur, Ts, cmd_right[i],cmd_left[i],p)
-            s_cur = np.copy(s_next)
-            #print("Shape of input s_next: {}".format(s_next.shape))
-            #print("Type of input s_next: {}".format(type(s_next)))
-            #print("Content s_next: {}".format(s_next))
-
-            #print("Shape of input s_cur: {}".format(s_cur.shape))
-            #print("Type of input s_cur: {}".format(type(s_cur)))
-            #print("Content s_next: {}".format(s_cur))
-            s[i+1] = s_cur
-
-        return s
-
-    def objective(self,p, cmd_right, cmd_left, s_init, x_meas, y_meas, yaw_meas, time):
-        self.OBJECTIVE_FN_COUNTER += 1
-        #print "OBJECTIVE FN CALL NUMBER: {}".format(self.OBJECTIVE_FN_COUNTER)
-
-        #simulate the model
-        #states for particular p set
-        s_p = self.simulate(p, cmd_right, cmd_left, s_init, time)
-
-        obj_cost = 0.0
-
-        for i in range(len(time)):
-            obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2 +
-                         ((s_p[i,2] - y_meas[i])/ y_meas[i]) ** 2 +
-                         ((s_p[i,1] - yaw_meas[i])/ yaw_meas[i]) ** 2
-                       )
-            #print "iter: {} obj value: {} ".format(i, obj_cost)
-        # calculate the objective cost
-        return obj_cost
-
-    @staticmethod
-    def identifySystem(simulation_model, X, Y, p0, obj_fn):
-        if obj_fn == "LS":
-
-            res = minimize(simulation_model, p0, method='nelder-mead',options={'xtol': 1e-8, 'disp': True})
-            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-            print res
-            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-        else:
-            print "OBJECTIVE FN IS NOT IDENTIFIED"
-
     def unpackData(self):
         ### RAMP UP COMMAND EXPERIMENT
         ## Measuremet States
@@ -738,15 +604,69 @@ class calib():
         #print 'XXXXXXXXXXXXXXXXXXXXXXXXX'
         #print experimentDataObj
 
-        f = open('store.pckl', 'wb')
+        f = open(EXPERIMENT_NAME_FOR_PICKLE, 'wb')
         pickle.dump(experimentDataObj, f)
         f.close()
 
         return experimentDataObj
 
+    def simulation_model(self, X, c, cl, tr, x_0, y_0, yaw_0, d):
+        Ts=1.0/30 # Sampling Time of Euler Integration step
+
+        d = 0.06  # Distance of camera from Baseline is fixed and not part of the optimization for now
+        #X=X.reshape((int(X.size/2),2),order='F')
+        #cmd_right = X[:,0]
+        #cmd_left  = X[:,1]
+        cmd_size  = np.int(X[-1])  # This is not so elegant but I had no better idea for now
+        cmd_right = X[0:cmd_size]
+        cmd_left  = X[cmd_size:cmd_size*2]
+        timepoints= X[cmd_size*2:-1].astype(int)
+
+        # Model based on parameters predicts velocities and turn rates
+        # c is the "forward speed gain"
+        # cl is the "turning rate gain"
+        # tr is the "undesired turning rate gain when commanding to go straight"
+        # This model deliberately neglects the influence of the tr on the forward speed
+        # d is the offset of the camera to center of the wheels
+        vx_pred = c * (cmd_right+cmd_left)* 0.5 # + tr * (cmd_right-cmd_left)*0.5
+        omega_pred = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
+        vy_pred = omega_pred*d  # The model currently also estimates the offset of the camera position
+
+        # Forward Euler Integration (improve to RK4?) to get Position Estimates
+        yaw_pred = np.cumsum(omega_pred)*Ts + yaw_0
+        x_pred = np.cumsum(np.cos(yaw_pred)*vx_pred + np.sin(yaw_pred)*vy_pred)*Ts + x_0
+        y_pred = np.cumsum(np.sin(yaw_pred)*vx_pred + np.cos(yaw_pred)*vy_pred)*Ts + y_0
+
+        # The _0 Parameters are just the integration constants and also need to be fitted
+        # but we don't care about them later
+
+        # Match and pick the prediction steps with the closest available position
+        # Based on looking at the data we assume the images were taken at a perfect
+        # 30 FPS rate. Therefore, we match to the fixed (perfect) sampling rate
+        # and do not interpolate. The pred vectors are thus evaluated at the timepoints
+
+        # Output has to be a 1D Vector for curve_fit to work
+        Y = np.concatenate((x_pred[timepoints], y_pred[timepoints], yaw_pred[timepoints]), axis=0)
+        return Y
+
+    @staticmethod
+    def kinematic_model(s, t,cmd_right,cmd_left, p):
+        d = 0.06  # Distance of camera from Baseline is fixed and not part of the optimization for now
+        # optimized parameters
+        c, cl, tr = p
+
+        # Simple Kinematic model
+        # Assumptions: Rigid body, No lateral slip
+
+        x_dot_rob = c * (cmd_right+cmd_left)* 0.5 # + tr * (cmd_right-cmd_left)*0.5
+        omega_rob = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
+        y_dot_rob = omega_rob * d  # The model currently also estimates the offset of the camera position
+
+        return [x_dot_rob,  y_dot_rob, omega_rob]
+
     @staticmethod
     def loadExperimentData():
-        f = open('store.pckl', 'rb')
+        f = open(EXPERIMENT_NAME_FOR_PICKLE, 'rb')
         experimentDataObj = pickle.load(f)
         f.close()
 
@@ -836,6 +756,105 @@ class calib():
                 timepoints_sine, time_sine,
                 cmd_sine_right, cmd_sine_left)
 
+    def forwardEuler(self,s_cur, Ts, cmd_right, cmd_left,p):
+        c, cl, tr = p
+
+        x_0 = s_cur[0]
+        y_0 = s_cur[1]
+        yaw_0 = s_cur[2]
+
+        vx_pred = c * (cmd_right+cmd_left)* 0.5 + tr * (cmd_right-cmd_left)*0.5
+        omega_pred = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
+
+        # np.cumsum looks unnecessary since we resampled
+        yaw_pred = (omega_pred) * Ts + yaw_0
+        x_pred = (np.cos(yaw_pred) * vx_pred) * Ts + x_0
+        y_pred = (np.sin(yaw_pred) * vx_pred) * Ts + y_0
+
+        """
+        a = np.array([x_pred, yaw_pred, y_pred]).reshape(3)
+        print("Shape of input a: {}".format(a.shape))
+        print("Type of input a: {}".format(type(a)))
+        """
+        return np.array([x_pred, y_pred, yaw_pred]).reshape(3)
+
+    def simulate(self,p, cmd_right, cmd_left, s_init,time):
+        # States
+        ## Note that values take checkerboard as the origin.
+        s = np.zeros((len(time),3))
+
+        s[0,0] = s_init[0] # x
+        s[0,1] = s_init[1] # y
+        s[0,2] = s_init[2] # yaw
+
+        Ts = 1 / 30.0
+        s_cur = s[0]
+
+        #print("Shape of input s_cur: {}".format(s_cur.shape))
+        #print("Type of input s_cur: {}".format(type(s_cur)))
+        #print("Content time: {}".format(time))
+
+        for i in range(len(time)-1):
+            #ts = [time[i] * Ts, time[i+1]* Ts]
+            """
+            s_next = odeint(self.kinematic_model, s_cur, Ts, args=(cmd_right[i],cmd_left[i],p))
+            s_cur = s_next[-1] # variable assignment
+            """
+            s_next = self.forwardEuler(s_cur, Ts, cmd_right[i],cmd_left[i],p)
+            s_cur = np.copy(s_next)
+            #print("Shape of input s_next: {}".format(s_next.shape))
+            #print("Type of input s_next: {}".format(type(s_next)))
+            #print("Content s_next: {}".format(s_next))
+
+            #print("Shape of input s_cur: {}".format(s_cur.shape))
+            #print("Type of input s_cur: {}".format(type(s_cur)))
+            #print("Content s_next: {}".format(s_cur))
+            s[i+1] = s_cur
+
+        return s
+
+    def objective_ramp(self,p, cmd_right, cmd_left, s_init, x_meas, y_meas, yaw_meas, time):
+        self.OBJECTIVE_FN_COUNTER += 1
+        #print "OBJECTIVE FN CALL NUMBER: {}".format(self.OBJECTIVE_FN_COUNTER)
+
+        #simulate the model
+        #states for particular p set
+        s_p = self.simulate(p, cmd_right, cmd_left, s_init, time)
+
+        obj_cost = 0.0
+
+        for i in range(len(time)):
+            """
+            obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2 +
+                         ((s_p[i,1] - y_meas[i])/ y_meas[i]) ** 2 +
+                         ((s_p[i,2] - yaw_meas[i])/ yaw_meas[i]) ** 2
+                       )
+            """
+            obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2)
+            #print "iter: {} obj value: {} ".format(i, obj_cost)
+        # calculate the objective cost
+        return obj_cost
+    def objective_sine(self,p, cmd_right, cmd_left, s_init, x_meas, y_meas, yaw_meas, time):
+        self.OBJECTIVE_FN_COUNTER += 1
+        #print "OBJECTIVE FN CALL NUMBER: {}".format(self.OBJECTIVE_FN_COUNTER)
+
+        #simulate the model
+        #states for particular p set
+        s_p = self.simulate(p, cmd_right, cmd_left, s_init, time)
+
+        obj_cost = 0.0
+
+        for i in range(len(time)):
+
+            obj_cost+= ( 10 * ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2 +
+                         ((s_p[i,1] - y_meas[i])/ y_meas[i]) ** 2 +
+                         ((s_p[i,2] - yaw_meas[i])/ yaw_meas[i]) ** 2
+                       )
+
+            #obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2)
+            #print "iter: {} obj value: {} ".format(i, obj_cost)
+        # calculate the objective cost
+        return obj_cost
     def experiment_ramp(self):
         print ("\nBEG: EXPERIMENT_RAMP FN")
         # select portion of data to use
@@ -862,13 +881,15 @@ class calib():
 
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
-        result_ramp = minimize(self.objective, p0, args=(cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas,  y_ramp_meas, yaw_ramp_meas, timepoints_ramp))
+        result_ramp = minimize(self.objective_ramp, p0, args=(cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas,  y_ramp_meas, yaw_ramp_meas, timepoints_ramp))
         popt_ramp = result_ramp.x
+
+        print result_ramp
 
         # Make a prediction based on the fitted parameters
         y_opt_predict_ramp = self.simulate(popt_ramp, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp) # Predict to calculate Error
         self.y_opt_predict_ramp = y_opt_predict_ramp
-        Y = np.stack((x_ramp_meas, yaw_ramp_meas, y_ramp_meas), axis=1)
+        Y = np.stack((x_ramp_meas, y_ramp_meas,yaw_ramp_meas), axis=1)
         MSE_ramp = np.sum((Y-y_opt_predict_ramp)**2)/y_opt_predict_ramp.size # Calculate the Mean Squared Error
 
         # PLOTTING
@@ -888,14 +909,16 @@ class calib():
         y_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,1],'g', label = 'y predict opt')
         yaw_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,2],'r', label = 'yaw predict opt')
 
-
         ax1.set_xlabel('time [s]')
         ax1.set_ylabel('position [m] / heading [rad]')
 
+        """
         ax2 = ax1.twinx()
         cmd_ramp_right_handle, = ax2.plot(time_ramp[timepoints_ramp],cmd_ramp_right,'bx', label = 'right motor')
         cmd_ramp_left_handle, =ax2.plot(time_ramp[timepoints_ramp],cmd_ramp_left, 'r+', label = 'left motor')
         ax2.set_ylabel('PWM [%]')
+
+        """
 
         """
         handles = [x_ramp_meas_handle,y_ramp_meas_handle,yaw_ramp_meas_handle,
@@ -903,8 +926,8 @@ class calib():
         """
         handles = [x_ramp_meas_handle,y_ramp_meas_handle,yaw_ramp_meas_handle,
                    x_ramp_pred_handle,y_ramp_pred_handle,yaw_ramp_pred_handle,
-                   x_ramp_pred_default_handle, y_ramp_pred_default_handle, yaw_ramp_pred_default_handle,
-                   cmd_ramp_right_handle,cmd_ramp_left_handle]
+                   x_ramp_pred_default_handle, y_ramp_pred_default_handle, yaw_ramp_pred_default_handle]
+        #,cmd_ramp_right_handle,cmd_ramp_left_handle
 
         labels = [h.get_label() for h in handles]
 
@@ -958,7 +981,6 @@ class calib():
 
         print ("\nEND: EXPERIMENT_RAMP FN")
         #return popt_ramp
-
     def experiment_sine(self):
         print ("\nBEG: EXPERIMENT_SINE FN")
         # select portion of data to use
@@ -981,26 +1003,8 @@ class calib():
         p0 = [0.6, 6, 0]
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
-        """
-        print("Size of input cmd_sine_right: {}".format(cmd_sine_right.shape))
-        print("Size of input cmd_sine_left: {}".format(cmd_sine_left.shape))
-        print("Size of input x_sine_meas: {}".format(x_sine_meas.shape))
-        #print("Content x_sine_meas: {}".format(x_sine_meas))
-        print("Size of input y_sine_meas: {}".format(y_sine_meas.shape))
-        #print("Content y_sine_meas: {}".format(y_sine_meas))
-        print("Size of input yaw_sine_meas: {}".format(yaw_sine_meas.shape))
-        #print("Content yaw_sine_meas: {}".format(yaw_sine_meas))
-        print("Size of input timepoints_sine: {}".format(timepoints_sine.shape))
-        print("Size of input time_sine: {}".format(time_sine.shape))
-        """
-        result_sine = minimize(self.objective, p0, args=(cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas,  y_sine_meas, yaw_sine_meas, timepoints_sine))
+        result_sine = minimize(self.objective_sine, p0, args=(cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas,  y_sine_meas, yaw_sine_meas, timepoints_sine))
         popt_sine = result_sine.x
-
-
-        print('[BEGIN] Optimization Result for sine Manouver\n')
-        print(result_sine)
-        print('[END] Optimization Result for sine Manouver\n')
-
 
         # Make a prediction based on the fitted parameters
         y_opt_predict_sine = self.simulate(popt_sine, cmd_sine_right, cmd_sine_left, s_init_sine , timepoints_sine) # Predict to calculate Error
@@ -1009,11 +1013,7 @@ class calib():
         #print("Type of input y_opt_predict_sine: {}".format(type(y_opt_predict_sine)))
         #print("Content y_opt_predict_sine: {}".format(y_opt_predict_sine))
 
-        Y = np.stack((x_sine_meas, yaw_sine_meas, y_sine_meas), axis=1)
-
-        """
-        print("Shape of input Y : {}".format(Y.shape))
-        """
+        Y = np.stack((x_sine_meas, y_sine_meas, yaw_sine_meas), axis=1)
 
         MSE_sine = np.sum((Y-y_opt_predict_sine)**2)/y_opt_predict_sine.size # Calculate the Mean Squared Error
 
@@ -1021,15 +1021,74 @@ class calib():
         self.y_pred_sine_default_params = y_pred_sine_default_params
         y_pred_sine_default_params = y_pred_sine_default_params.reshape((int(y_pred_sine_default_params.size/3),3),order='F')
 
+        # PLOTTING
+        fig2, ax1 = plt.subplots()
+
+        x_sine_meas_handle, = ax1.plot(time_sine[timepoints_sine],x_sine_meas,'x',color=(0.5,0.5,1), label = 'x measured')
+        y_sine_meas_handle, = ax1.plot(time_sine[timepoints_sine],y_sine_meas,'x',color=(0.5,1,0.5), label = 'y measured')
+        yaw_sine_meas_handle, = ax1.plot(time_sine[timepoints_sine],yaw_sine_meas,'x',color=(1,0.5,0.5), label = 'yaw measured')
+        # Model predictions with default parameters
+        x_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,0],'bo', label = 'x predict def')
+        y_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,2],'go', label = 'y predict def')
+        yaw_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,1],'ro', label = 'yaw predict def')
+
+
+        # Model predictions with optimal parametes
+        x_sine_pred_handle, = ax1.plot(time_sine[timepoints_sine],y_opt_predict_sine[:,0],'b', label = 'x predict opt')
+        y_sine_pred_handle, = ax1.plot(time_sine[timepoints_sine],y_opt_predict_sine[:,1],'g', label = 'y predict opt')
+        yaw_sine_pred_handle, = ax1.plot(time_sine[timepoints_sine],y_opt_predict_sine[:,2],'r', label = 'yaw predict opt')
+
+        ax1.set_xlabel('time [s]')
+        ax1.set_ylabel('position [m] / heading [rad]')
+
+        """
+        ax2 = ax1.twinx()
+        cmd_sine_right_handle, = ax2.plot(time_sine[timepoints_sine],cmd_sine_right,'bx', label = 'right motor')
+        cmd_sine_left_handle, =ax2.plot(time_sine[timepoints_sine],cmd_sine_left, 'r+', label = 'left motor')
+        ax2.set_ylabel('PWM [%]')
+        """
+
+        """
+        handles = [x_sine_meas_handle,y_sine_meas_handle,yaw_sine_meas_handle,
+                   x_sine_pred_default_handle, y_sine_pred_default_handle, yaw_sine_pred_default_handle]
+        """
+        handles = [x_sine_meas_handle,y_sine_meas_handle,yaw_sine_meas_handle,
+                   x_sine_pred_handle,y_sine_pred_handle,yaw_sine_pred_handle,
+                   x_sine_pred_default_handle, y_sine_pred_default_handle, yaw_sine_pred_default_handle]
+        #,cmd_sine_right_handle,cmd_sine_left_handle
+
+        labels = [h.get_label() for h in handles]
+
+        fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
+        fig2.suptitle('Measurements and Prediction with Default/Optimal Parameter Values - Sine Manouver', fontsize=16)
+        plt.show(block=True)
+
+        """
+        print("Shape of input cmd_sine_right: {}".format(cmd_sine_right.shape))
+        print("Shape of input cmd_sine_left: {}".format(cmd_sine_left.shape))
+        print("Shape of input x_sine_meas: {}".format(x_sine_meas.shape))
+        #print("Content x_sine_meas: {}".format(x_sine_meas))
+        print("Shape of input y_sine_meas: {}".format(y_sine_meas.shape))
+        #print("Content y_sine_meas: {}".format(y_sine_meas))
+        print("Shape of input yaw_sine_meas: {}".format(yaw_sine_meas.shape))
+        #print("Content yaw_sine_meas: {}".format(yaw_sine_meas))
+        print("Shape of input timepoints_sine: {}".format(timepoints_sine.shape))
+        print("Shape of input time_sine: {}".format(time_sine.shape))
         print("Shape of input y_opt_predict_sine: {}".format(y_opt_predict_sine.shape))
         print("Shape of input y_pred_sine_default_params: {}".format(y_pred_sine_default_params.shape))
+        """
+
+        print('[BEGIN] Optimization Result for sine Manouver\n')
+        print(result_sine)
+        print('[END] Optimization Result for sine Manouver\n')
+
 
         print ("\nEND: EXPERIMENT_SINE FN")
         return popt_sine
 
     def nonlinear_model_fit(self):
         popt_ramp = self.experiment_ramp()
-        #popt_sine = self.experiment_sine()
+        popt_sine = self.experiment_sine()
         #fit ={'c':popt_ramp[0],'cl':popt_sine[1],'tr':popt_ramp[2]}
         #fit ={'c':popt_ramp[0],'cl':popt_ramp[1],'tr':popt_ramp[2]}
         #return fit
