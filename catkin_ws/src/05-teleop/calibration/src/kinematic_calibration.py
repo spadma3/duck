@@ -579,7 +579,7 @@ class calib():
     def forwardEuler(self,s_cur, Ts, cmd_right, cmd_left,p):
         d = 0.06
         c, cl, tr = p
-        print s_cur
+
         x_0 = s_cur[0]
         yaw_0 = s_cur[1]
         y_0 = s_cur[2]
@@ -860,12 +860,10 @@ class calib():
         y_pred_ramp_default_params = self.simulate(p0, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp)
         self.y_pred_ramp_default_params = y_pred_ramp_default_params
 
-        print time_ramp
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
         result_ramp = minimize(self.objective, p0, args=(cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas,  y_ramp_meas, yaw_ramp_meas, timepoints_ramp))
         popt_ramp = result_ramp.x
-
 
         # Make a prediction based on the fitted parameters
         y_opt_predict_ramp = self.simulate(popt_ramp, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp) # Predict to calculate Error
@@ -881,10 +879,10 @@ class calib():
         yaw_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],yaw_ramp_meas,'x',color=(1,0.5,0.5), label = 'yaw measured')
         # Model predictions with default parameters
         x_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,0],'bo', label = 'x predict def')
-        y_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,1],'go', label = 'y predict def')
-        yaw_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,2],'ro', label = 'yaw predict def')
+        y_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,2],'go', label = 'y predict def')
+        yaw_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,1],'ro', label = 'yaw predict def')
 
-        """
+
         # Model predictions with optimal parametes
         x_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,0],'b', label = 'x predict opt')
         y_ramp_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_ramp[:,1],'g', label = 'y predict opt')
@@ -898,8 +896,8 @@ class calib():
         cmd_ramp_right_handle, = ax2.plot(time_ramp[timepoints_ramp],cmd_ramp_right,'bx', label = 'right motor')
         cmd_ramp_left_handle, =ax2.plot(time_ramp[timepoints_ramp],cmd_ramp_left, 'r+', label = 'left motor')
         ax2.set_ylabel('PWM [%]')
-        """
 
+        """
         handles = [x_ramp_meas_handle,y_ramp_meas_handle,yaw_ramp_meas_handle,
                    x_ramp_pred_default_handle, y_ramp_pred_default_handle, yaw_ramp_pred_default_handle]
         """
@@ -907,7 +905,7 @@ class calib():
                    x_ramp_pred_handle,y_ramp_pred_handle,yaw_ramp_pred_handle,
                    x_ramp_pred_default_handle, y_ramp_pred_default_handle, yaw_ramp_pred_default_handle,
                    cmd_ramp_right_handle,cmd_ramp_left_handle]
-        """
+
         labels = [h.get_label() for h in handles]
 
         fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
