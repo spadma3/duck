@@ -884,6 +884,11 @@ class calib():
         result_ramp = minimize(self.objective_ramp, p0, args=(cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas,  y_ramp_meas, yaw_ramp_meas, timepoints_ramp))
         popt_ramp = result_ramp.x
 
+        print "XXXXXXXXXXXXXXXXXXXXXXXXXX"
+        print(type(popt_ramp))
+        print popt_ramp
+        print "XXXXXXXXXXXXXXXXXXXXXXXXXX"
+
         print result_ramp
 
         # Make a prediction based on the fitted parameters
@@ -980,7 +985,8 @@ class calib():
         """
 
         print ("\nEND: EXPERIMENT_RAMP FN")
-        #return popt_ramp
+        return popt_ramp
+
     def experiment_sine(self):
         print ("\nBEG: EXPERIMENT_SINE FN")
         # select portion of data to use
@@ -1090,8 +1096,64 @@ class calib():
         popt_ramp = self.experiment_ramp()
         popt_sine = self.experiment_sine()
         #fit ={'c':popt_ramp[0],'cl':popt_sine[1],'tr':popt_ramp[2]}
-        #fit ={'c':popt_ramp[0],'cl':popt_ramp[1],'tr':popt_ramp[2]}
-        #return fit
+
+        popt_mixed = np.array([popt_ramp[0], popt_sine[1], popt_ramp[2]]).reshape(3)
+
+        # select portion of data to use
+        start = 0
+        end = -10
+
+        (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
+        x_sine_meas,y_sine_meas,yaw_sine_meas,
+        timepoints_ramp,time_ramp ,
+        cmd_ramp_right, cmd_ramp_left,
+        timepoints_sine,time_sine,
+        cmd_sine_right, cmd_sine_left) = self.processData(starting_ind = start, ending_ind = end)
+
+        s_init_ramp = [x_ramp_meas[start], y_ramp_meas[start], yaw_ramp_meas[start]]
+        #initial guesses for the parameters: c, cl, tr
+        #p0 = [0.6, 6, 0]
+        p0 = [0.6, 6.0, 0.0]
+
+        # Make a prediction based on the fitted parameters
+        y_opt_predict_mixed = self.simulate(popt_mixed, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp) # Predict to calculate Error
+
+        Y = np.stack((x_ramp_meas, y_ramp_meas,yaw_ramp_meas), axis=1)
+        MSE_ramp = np.sum((Y-y_opt_predict_mixed)**2)/y_opt_predict_mixed.size # Calculate the Mean Squared Error
+
+        y_pred_ramp_default_params = self.y_pred_ramp_default_params
+        # PLOTTING
+        fig2, ax1 = plt.subplots()
+
+        x_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],x_ramp_meas,'x',color=(0.5,0.5,1), label = 'x measured')
+        y_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],y_ramp_meas,'x',color=(0.5,1,0.5), label = 'y measured')
+        yaw_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],yaw_ramp_meas,'x',color=(1,0.5,0.5), label = 'yaw measured')
+        # Model predictions with default parameters
+        x_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,0],'bo', label = 'x predict def')
+        y_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,2],'go', label = 'y predict def')
+        yaw_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,1],'ro', label = 'yaw predict def')
+
+
+        # Model predictions with optimal parametes
+        x_mixed_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_mixed[:,0],'b', label = 'x predict opt')
+        y_mixed_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_mixed[:,1],'g', label = 'y predict opt')
+        yaw_mixed_pred_handle, = ax1.plot(time_ramp[timepoints_ramp],y_opt_predict_mixed[:,2],'r', label = 'yaw predict opt')
+
+        ax1.set_xlabel('time [s]')
+        ax1.set_ylabel('position [m] / heading [rad]')
+
+        handles = [x_ramp_meas_handle,y_ramp_meas_handle,yaw_ramp_meas_handle,
+                   x_mixed_pred_handle,y_mixed_pred_handle,yaw_mixed_pred_handle,
+                   x_ramp_pred_default_handle, y_ramp_pred_default_handle, yaw_ramp_pred_default_handle]
+        #,cmd_ramp_right_handle,cmd_ramp_left_handle
+
+        labels = [h.get_label() for h in handles]
+
+        fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
+        fig2.suptitle('Measurements and Prediction with Default/Combined-Optimal Parameter Values - Ramp Manouver', fontsize=16)
+        plt.show(block=True)
+
+        return fit
 
     def write_calibration(self):
         '''Load kinematic calibration file'''
