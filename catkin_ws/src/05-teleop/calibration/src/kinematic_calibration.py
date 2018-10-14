@@ -660,7 +660,7 @@ class calib():
         # Simple Kinematic model
         # Assumptions: Rigid body, No lateral slip
 
-        x_dot_rob = c * (cmd_right+cmd_left)* 0.5 # + tr * (cmd_right-cmd_left)*0.5
+        x_dot_rob = c * (cmd_right+cmd_left) * 0.5 # + tr * (cmd_right-cmd_left)*0.5
         omega_rob = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
         y_dot_rob = omega_rob * d  # The model currently also estimates the offset of the camera position
 
@@ -887,8 +887,8 @@ class calib():
                        )
 
         for i in range(len(time_sine)):
-            obj_cost+= (((s_p_sine[i,1] - y_meas_sine[i])) ** 2 +
-                        ((s_p_sine[i,2] - yaw_meas_sine[i])) ** 2 +
+            obj_cost+= (((s_p_sine[i,0] - x_meas_sine[i])) ** 2 +
+                        ((s_p_sine[i,1] - y_meas_sine[i])) ** 2 +
                         ((s_p_sine[i,2] - yaw_meas_sine[i])) ** 2
                        )
 
