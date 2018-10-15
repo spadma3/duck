@@ -78,21 +78,22 @@ class BotDetectorNode(object):
 		'''
 		x,y,w,h=cv2.boundingRect(img_mask)
 
-		img_process = np.full_like(cv_image,255)
+		img_process = np.full_like(cv_image,0)
 
+		x,y,w,h = 50, 50, 300, 300
 		img_process[y:y+h,x:x+w] = cv_image[y:y+h,x:x+w]
 
 		tEndtotal = time.time()
 
-		print "Background subtraction = ", tEndback - tStart
-		print "Total = ", tEndtotal - tStart
+		#print "Background subtraction = ", tEndback - tStart
+		#print "Total = ", tEndtotal - tStart
 		img_pub = self.bridge.cv2_to_imgmsg(img_process, 'mono8')
 
 		img_pub.header.stamp = image_msg.header.stamp
 		img_pub.header.frame_id = image_msg.header.frame_id
-		print self.cam_info
-		self.cam_info.header = image_msg.header
-		print self.cam_info
+		#print self.cam_info
+		self.cam_info.header = img_pub.header
+		#print self.cam_info
 		self.pub_result.publish(img_pub)
 		self.pub_cam_info.publish(self.cam_info)
 
