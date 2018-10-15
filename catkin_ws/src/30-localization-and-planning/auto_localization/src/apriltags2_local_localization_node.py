@@ -204,7 +204,8 @@ class AprilLocalLocalization(object):
                     #                new_info.vehicle_name, fixed_tag_id, trans_rnd, rot_rnd)
                     #'''
 
-        self.pub_postPros.publish(remap_poses_array) # the array can only contain three poses because packet size is limited to 1024 byte
+        if remap_poses_array is not []:
+            self.pub_postPros.publish(remap_poses_array) # the array can only contain three poses because packet size is limited to 1024 byte
 
 
         #     tag_infos.append(new_info)
