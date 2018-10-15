@@ -146,7 +146,7 @@ class global_localization(object):
 
     # reads data from the map file
     def load_map_info(self):
-        map_data = yaml.load(file(rospkg.RosPack().get_path('auto_localization')+"/config/"+self.map_filename,'r')) # Need RosPack get_path to find the file path
+        map_data = yaml.load(file(rospkg.RosPack().get_path('auto_localization')+"/config/csv"+self.map_filename,'r')) # Need RosPack get_path to find the file path
         print "Loaded map from file", self.map_filename, "\nLoading Fixed Tags.."
 
         self.fixed_tags = {}

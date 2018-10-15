@@ -142,14 +142,34 @@ tiles:
   - curve_left/E
 
 watchtowers:
+- watchtower03
+- watchtower04
+- watchtower05
+- watchtower06
+- watchtower07
+- watchtower08
+- watchtower09
 - watchtower10
 - watchtower11
 - watchtower12
+- watchtower13
+- watchtower15
+- watchtower16
+- watchtower17
+- watchtower18
+- watchtower19
+- watchtower20
+- watchtower21
+- watchtower22
+- watchtower23
 - watchtower24
+- watchtower25
+- watchtower26
 - watchtower27
 - watchtower28
 - watchtower29
 - watchtower30
+- watchtower31
 - watchtower32
 - watchtower33
 - watchtower35
@@ -160,6 +180,7 @@ watchtowers:
 - watchtower40
 - watchtower41
 - watchtower42
+- watchtower47
 
 fixed_tags:
 - id: 394
@@ -338,7 +359,7 @@ fixed_tags:
 - id: 311
   orientation: 0
   translation: [ 0, 31]
-  tile: [7, 0] 
+  tile: [7, 0]
 - id: 304
   orientation: 0
   translation: [0, 0]

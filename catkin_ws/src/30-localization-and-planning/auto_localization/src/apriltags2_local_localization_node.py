@@ -105,7 +105,9 @@ class AprilLocalLocalization(object):
             # fixed tags will be added to the database,
             # StreetSigns, TrafficSigns are considered to be fixed tags
             # if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN):
-            if not new_info.tag_type == self.info.VEHICLE : # We assume any tag doesn't belone to vehicle is reference tags
+
+            # if not new_info.tag_type == self.info.VEHICLE : # We assume any tag doesn't belone to vehicle is reference tags
+            if new_info.tag_type == self.info.LOCALIZE: # We only use localization tag as reference tag
                  # add fixed tag to the database, overwrite old information
 
                  self.fixed_tags_dict[new_info.id] = [new_info.tag_type, gposf.get_matrix_from_pose(detection.pose.pose.pose)]
