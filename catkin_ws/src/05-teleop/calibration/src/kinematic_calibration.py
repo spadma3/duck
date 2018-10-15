@@ -53,7 +53,7 @@ class calib():
         self.robot_name = rospy.get_param("~veh")
 
         self.OBJECTIVE_FN_COUNTER = 0
-
+        self.p0 = [0.9, 6.0, -0.05]
         if PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION:
             # Load homography
             self.H = self.load_homography()
@@ -72,13 +72,13 @@ class calib():
             # load veh pose
             self.veh_pose_ = self.load_camera_pose_estimation()
             self.experiment_data_ = self.unpackData()
-
+        """
         self.y_pred_ramp_default_params = None
         self.y_opt_predict_ramp = None
         self.y_pred_sine_default_params = None
         self.y_opt_predict_sine = None
         self.y_opt_predict_combine = None
-
+        """
         self.fit_=self.nonlinear_model_fit()
         #self.plots()
         # write to the kinematic calibration file
@@ -86,7 +86,7 @@ class calib():
 
         # make plots & visualizations
         #self.plot=self.visualize()
-        #plt.show()
+        plt.show()
 
     # wait until we have recieved the camera info message through ROS and then initialize
     def initialize_pinhole_camera_model(self, camera_info):
@@ -759,19 +759,28 @@ class calib():
                 cmd_sine_right, cmd_sine_left)
 
     def forwardEuler(self,s_cur, Ts, cmd_right, cmd_left,p):
+        d = 0.06
         c, cl, tr = p
 
         x_0 = s_cur[0]
         y_0 = s_cur[1]
         yaw_0 = s_cur[2]
 
-        vx_pred = c * (cmd_right+cmd_left) * 0.5 # + tr * (cmd_right-cmd_left)*0.5
+        vx_pred = c * (cmd_right+cmd_left) * 0.5 + tr * (cmd_right-cmd_left)*0.5
         omega_pred = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
+        #vy_pred = omega_pred * d  # The model currently also estimates the offset of the camera position
+
 
         # np.cumsum looks unnecessary since we resampled
         yaw_pred = (omega_pred) * Ts + yaw_0
         x_pred = (np.cos(yaw_0) * vx_pred) * Ts + x_0
         y_pred = (np.sin(yaw_0) * vx_pred) * Ts + y_0
+        """
+        # np.cumsum looks unnecessary since we resampled
+        yaw_pred = (omega_pred) * Ts + yaw_0
+        x_pred = (np.cos(yaw_0) * vx_pred - np.sin(yaw_0) * vy_pred) * Ts + x_0
+        y_pred = (np.sin(yaw_0) * vx_pred + np.cos(yaw_0) * vy_pred) * Ts + y_0
+        """
 
         """
         a = np.array([x_pred, yaw_pred, y_pred]).reshape(3)
@@ -826,13 +835,15 @@ class calib():
         obj_cost = 0.0
 
         for i in range(len(time)):
-            """
-            obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2 +
-                         ((s_p[i,1] - y_meas[i])/ y_meas[i]) ** 2 +
-                         ((s_p[i,2] - yaw_meas[i])/ yaw_meas[i]) ** 2
+
+            obj_cost+= ( ((s_p[i,0] - x_meas[i])) ** 2 +
+                         ((s_p[i,1] - y_meas[i])) ** 2 +
+                         ((s_p[i,2] - yaw_meas[i])) ** 2
                        )
+
             """
-            obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2)
+            obj_cost+= ( ((s_p[i,0] - x_meas[i])) ** 2)
+            """
             #print "iter: {} obj value: {} ".format(i, obj_cost)
         # calculate the objective cost
         return obj_cost
@@ -848,16 +859,16 @@ class calib():
 
         for i in range(len(time)):
 
-            obj_cost+= ( 10 * ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2 +
-                         ((s_p[i,1] - y_meas[i])/ y_meas[i]) ** 2 +
-                         ((s_p[i,2] - yaw_meas[i])/ yaw_meas[i]) ** 2
+            obj_cost+= ( ((s_p[i,0] - x_meas[i])) ** 2 +
+                         ((s_p[i,1] - y_meas[i])) ** 2 +
+                         ((s_p[i,2] - yaw_meas[i])) ** 2
                        )
 
             #obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2)
             #print "iter: {} obj value: {} ".format(i, obj_cost)
         # calculate the objective cost
         return obj_cost
-    def objective_combined(self,p, cmd_right_ramp, cmd_left_ramp, s_init_ramp, x_meas_ramp, y_meas_ramp, yaw_meas_ramp, time_ramp, cmd_right_sine, cmd_left_sine, s_init_sine, x_meas_sine, y_meas_sine, yaw_meas_sine, time_sine):
+    def objective_combined(self,p, p0, cmd_right_ramp, cmd_left_ramp, s_init_ramp, x_meas_ramp, y_meas_ramp, yaw_meas_ramp, time_ramp, cmd_right_sine, cmd_left_sine, s_init_sine, x_meas_sine, y_meas_sine, yaw_meas_sine, time_sine):
         #self.OBJECTIVE_FN_COUNTER += 1
         #print "OBJECTIVE FN CALL NUMBER: {}".format(self.OBJECTIVE_FN_COUNTER)
 
@@ -865,6 +876,11 @@ class calib():
         #states for a particular p set
         s_p_ramp = self.simulate(p, cmd_right_ramp, cmd_left_ramp, s_init_ramp, time_ramp)
         s_p_sine = self.simulate(p, cmd_right_sine, cmd_left_sine, s_init_sine, time_sine)
+
+        c_init, cl_init, tr_init = p0
+        c_cur, cl_cur, tr_cur = p
+
+        delta = 0.00
 
         obj_cost = 0.0
         """
@@ -882,8 +898,8 @@ class calib():
         """
         for i in range(len(time_ramp)):
             obj_cost+= (((s_p_ramp[i,0] - x_meas_ramp[i])) ** 2 +
-                        ((s_p_ramp[i,1] - y_meas_ramp[i])) ** 2 +
-                        ((s_p_ramp[i,2] - yaw_meas_ramp[i])) ** 2
+                         ((s_p_ramp[i,1] - y_meas_ramp[i])) ** 2 +
+                         ((s_p_ramp[i,2] - yaw_meas_ramp[i])) ** 2
                        )
 
         for i in range(len(time_sine)):
@@ -892,6 +908,7 @@ class calib():
                         ((s_p_sine[i,2] - yaw_meas_sine[i])) ** 2
                        )
 
+        obj_cost+= delta * ((c_cur - c_init) ** 2 + (cl_cur - cl_init) ** 2 + (tr_cur - tr_init) ** 2)
             #obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2)
             #print "iter: {} obj value: {} ".format(i, obj_cost)
         # calculate the objective cost
@@ -915,8 +932,7 @@ class calib():
         #initial conditions for the states
         s_init_ramp = [x_ramp_meas[start], y_ramp_meas[start], yaw_ramp_meas[start]]
         #initial guesses for the parameters: c, cl, tr
-        #p0 = [0.6, 6, 0]
-        p0 = [0.6, 6.0, 0.0]
+        p0 = self.p0
 
         y_pred_ramp_default_params = self.simulate(p0, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp)
         self.y_pred_ramp_default_params = y_pred_ramp_default_params
@@ -947,8 +963,8 @@ class calib():
         yaw_ramp_meas_handle, = ax1.plot(time_ramp[timepoints_ramp],yaw_ramp_meas,'x',color=(1,0.5,0.5), label = 'yaw measured')
         # Model predictions with default parameters
         x_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,0],'bo', label = 'x predict def')
-        y_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,2],'go', label = 'y predict def')
-        yaw_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,1],'ro', label = 'yaw predict def')
+        y_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,1],'go', label = 'y predict def')
+        yaw_ramp_pred_default_handle, = ax1.plot(time_ramp[timepoints_ramp],y_pred_ramp_default_params[:,2],'ro', label = 'yaw predict def')
 
 
         # Model predictions with optimal parametes
@@ -980,7 +996,7 @@ class calib():
 
         fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
         fig2.suptitle('Measurements and Prediction with Default/Optimal Parameter Values - Ramp Manouver', fontsize=16)
-        plt.show(block=True)
+        plt.show(block=False)
         """
         print("Size of input cmd_ramp_right: {}".format(cmd_ramp_right.shape))
         print("Size of input cmd_ramp_left: {}".format(cmd_ramp_left.shape))
@@ -1046,8 +1062,7 @@ class calib():
         #initial conditions for the states
         s_init_sine = [x_sine_meas[start], y_sine_meas[start], yaw_sine_meas[start]]
         #initial guesses for the parameters: c, cl, tr
-        #p0 = [0.6, 6, 0]
-        p0 = [0.6, 6, 0]
+        p0 = self.p0
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
         result_sine = minimize(self.objective_sine, p0, args=(cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas,  y_sine_meas, yaw_sine_meas, timepoints_sine))
@@ -1076,8 +1091,8 @@ class calib():
         yaw_sine_meas_handle, = ax1.plot(time_sine[timepoints_sine],yaw_sine_meas,'x',color=(1,0.5,0.5), label = 'yaw measured')
         # Model predictions with default parameters
         x_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,0],'bo', label = 'x predict def')
-        y_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,2],'go', label = 'y predict def')
-        yaw_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,1],'ro', label = 'yaw predict def')
+        y_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,1],'go', label = 'y predict def')
+        yaw_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,2],'ro', label = 'yaw predict def')
 
 
         # Model predictions with optimal parametes
@@ -1108,7 +1123,7 @@ class calib():
 
         fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
         fig2.suptitle('Measurements and Prediction with Default/Optimal Parameter Values - Sine Manouver', fontsize=16)
-        plt.show(block=True)
+        plt.show(block=False)
 
         """
         print("Shape of input cmd_sine_right: {}".format(cmd_sine_right.shape))
@@ -1133,7 +1148,7 @@ class calib():
         print ("\nEND: EXPERIMENT_SINE FN")
         return popt_sine
     def experiment_combined(self):
-        print ("\nBEG: EXPERIMENT_SINE FN")
+        print ("\nBEG: EXPERIMENT COMBINED COST FN")
         # select portion of data to use
         start = 0
         end = -10
@@ -1149,11 +1164,11 @@ class calib():
         s_init_sine = [x_sine_meas[start], y_sine_meas[start], yaw_sine_meas[start]]
         s_init_ramp = [x_ramp_meas[start], y_ramp_meas[start], yaw_ramp_meas[start]]
         #initial guesses for the parameters: c, cl, tr
-        #p0 = [0.6, 6, 0]
-        p0 = [0.6, 6, 0]
+        p0 = self.p0
+
         # Actual Parameter Optimization/Fitting
         # Minimize the least squares error between the model predition
-        result_combined = minimize(self.objective_combined, p0, args=(cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas, y_ramp_meas, yaw_ramp_meas, timepoints_ramp, cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas, y_sine_meas, yaw_sine_meas, timepoints_sine))
+        result_combined = minimize(self.objective_combined, p0, args=(p0, cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas, y_ramp_meas, yaw_ramp_meas, timepoints_ramp, cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas, y_sine_meas, yaw_sine_meas, timepoints_sine))
         popt_combined = result_combined.x
 
         # Make a prediction based on the fitted parameters
@@ -1167,9 +1182,11 @@ class calib():
 
         MSE_sine = np.sum((Y-y_opt_predict_combine)**2)/y_opt_predict_combine.size # Calculate the Mean Squared Error
 
+        print 'XXXXXXXXXXXXXXXXX'
+        print p0
+        print 'XXXXXXXXXXXXXXXXX'
         y_pred_sine_default_params = self.simulate(p0, cmd_sine_right, cmd_sine_left, s_init_sine , timepoints_sine)
-        self.y_pred_sine_default_params = y_pred_sine_default_params
-        y_pred_sine_default_params = y_pred_sine_default_params.reshape((int(y_pred_sine_default_params.size/3),3),order='F')
+        #self.y_pred_sine_default_params = y_pred_sine_default_params
 
         # PLOTTING
         fig2, ax1 = plt.subplots()
@@ -1177,11 +1194,11 @@ class calib():
         x_sine_meas_handle, = ax1.plot(time_sine[timepoints_sine],x_sine_meas,'x',color=(0.5,0.5,1), label = 'x measured')
         y_sine_meas_handle, = ax1.plot(time_sine[timepoints_sine],y_sine_meas,'x',color=(0.5,1,0.5), label = 'y measured')
         yaw_sine_meas_handle, = ax1.plot(time_sine[timepoints_sine],yaw_sine_meas,'x',color=(1,0.5,0.5), label = 'yaw measured')
+
         # Model predictions with default parameters
         x_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,0],'bo', label = 'x predict def')
-        y_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,2],'go', label = 'y predict def')
-        yaw_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,1],'ro', label = 'yaw predict def')
-
+        y_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,1],'go', label = 'y predict def')
+        yaw_sine_pred_default_handle, = ax1.plot(time_sine[timepoints_sine],y_pred_sine_default_params[:,2],'ro', label = 'yaw predict def')
 
         # Model predictions with optimal parametes
         x_sine_pred_handle, = ax1.plot(time_sine[timepoints_sine],y_opt_predict_combine[:,0],'b', label = 'x predict opt')
@@ -1203,22 +1220,22 @@ class calib():
                    x_sine_pred_default_handle, y_sine_pred_default_handle, yaw_sine_pred_default_handle]
         """
         handles = [x_sine_meas_handle,y_sine_meas_handle,yaw_sine_meas_handle,
-                   x_sine_pred_handle,y_sine_pred_handle,yaw_sine_pred_handle,
-                   x_sine_pred_default_handle, y_sine_pred_default_handle, yaw_sine_pred_default_handle]
+                   x_sine_pred_default_handle, y_sine_pred_default_handle, yaw_sine_pred_default_handle,
+                   x_sine_pred_handle,y_sine_pred_handle,yaw_sine_pred_handle]
         #,cmd_sine_right_handle,cmd_sine_left_handle
 
         labels = [h.get_label() for h in handles]
 
         fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
         fig2.suptitle('Measurements and Prediction with Default/Optimal(Combined CF) Parameter Values - Sine Manouver', fontsize=16)
-        plt.show(block=True)
+        plt.show(block=False)
 
         print('[BEGIN] Optimization Result for sine Manouver\n')
         print(result_combined)
         print('[END] Optimization Result for sine Manouver\n')
 
 
-        print ("\nEND: EXPERIMENT_SINE FN")
+        print ("\nEND: EXPERIMENT COMBINED COST FN")
         return popt_combined
 
     def nonlinear_model_fit(self):
@@ -1243,8 +1260,7 @@ class calib():
 
             s_init_ramp = [x_ramp_meas[start], y_ramp_meas[start], yaw_ramp_meas[start]]
             #initial guesses for the parameters: c, cl, tr
-            #p0 = [0.6, 6, 0]
-            p0 = [0.6, 6.0, 0.0]
+            p0 = self.p0
 
             # Make a prediction based on the fitted parameters
             y_opt_predict_mixed = self.simulate(popt_mixed, cmd_ramp_right, cmd_ramp_left, s_init_ramp , timepoints_ramp) # Predict to calculate Error
@@ -1283,7 +1299,7 @@ class calib():
 
             fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
             fig2.suptitle('Measurements and Prediction with Default/Combined-Optimal Parameter Values - Ramp Manouver', fontsize=16)
-            plt.show(block=True)
+            plt.show(block=False)
 
         elif CALIBRATION_FORMULATION_APPROACH == "combined":
             popt_combined = self.experiment_combined()
@@ -1398,7 +1414,7 @@ class calib():
         plt.title('Measurements and Prediction with Default/Optimal Parameter Values - Sine Manouver')
         plt.xlabel('time [s]')
         plt.ylabel('position [m] / heading [rad]')
-        plt.show(block=True)
+        plt.show(block=False)
 
         print ("END: PLOTS FN")
 
