@@ -89,7 +89,7 @@ class lane_controller(object):
 
     def setGains(self):
         self.v_bar_gain_ref = 0.5
-        v_bar_fallback = 0.25  # nominal speed, 0.25m/s
+        v_bar_fallback = 0.3 #0.25  # nominal speed, 0.25m/s
         self.v_max = 1
         k_theta_fallback = -2.0
         k_d_fallback = - (k_theta_fallback ** 2) / (4.0 * self.v_bar_gain_ref)
@@ -391,7 +391,7 @@ class lane_controller(object):
         prev_cross_track_err = self.cross_track_err
         prev_heading_err = self.heading_err
 
-        self.cross_track_err = pose_msg.d - self.d_offset - pose_msg.d_ref 
+        self.cross_track_err = pose_msg.d - self.d_offset - pose_msg.d_ref
         self.heading_err = pose_msg.phi
 
         car_control_msg = Twist2DStamped()

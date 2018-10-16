@@ -1,0 +1,29 @@
+<launch>
+    <arg name="veh" default="$(env VEHICLE_NAME)" doc="Name of robot_name. ex: megaman"/>
+    <arg name="show_marker" default="false" doc="Specify if you want to see the marker"/>
+    <arg name="show_image" default="false" doc="Specify if you want to see the image"/>
+    <arg name="use_ai" default="false" doc="Specify if you want to use the corrected image from anti instagram which means if this is yes, the topic: /{}/image_transformer_node/corrected_image MUST BE PUBLISHED, otherwise we simply subscribe to raw image"/>
+
+    <param name="~veh" value="$(arg veh)"/>
+    <param name="~show_marker" value="$(arg show_marker)" type="bool"/>
+    <param name="~show_image" value="$(arg show_image)" type="bool"/>
+    <param name="~use_ai" value="$(arg use_ai)" type="bool"/>
+
+    <remap from="obstacle_avoidance_manual_node/start_avoidance" to="joy_mapper_node/start_avoidance"/>
+    <remap from="obstacle_avoidance_manual_node/lane_pose" to="lane_filter_node/lane_pose"/>
+    <!-- this remapping is cheat
+    <remap from="obstacle_avoidance_node/obstacle_avoidance_pose" to="obstacle_avoidance_manual_node/obstacle_avoidance_pose" />
+    <remap from="obstacle_avoidance_node/obstacle_detected" to="obstacle_avoidance_manual_node/obstacle_avoidance_active_flag" />
+     -->
+    <remap from="lane_controller_node/obstacle_avoidance_pose" to="obstacle_avoidance_manual_node/obstacle_avoidance_pose" />
+    <remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_manual_node/obstacle_avoidance_active_flag" />
+
+    <group ns="$(arg veh)">
+      <node name="obstacle_avoidance_manual_node" pkg="obst_avoid" type="obstacle_avoidance_manual_node.py" output="screen">
+      </node>
+    </group>
+
+
+
+
+</launch>
