@@ -27,9 +27,10 @@ from scipy.integrate import odeint
 from mpl_toolkits.mplot3d import Axes3D
 import yaml
 import pickle
+from os.path import expanduser
 
 PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION = True
-#EXPERIMENT_NAME_FOR_PICKLE = "0910_4.pckl"
+EXPERIMENT_NAME_FOR_PICKLE = "my_data.pckl"
 
 class experimentData():
     pass
@@ -44,7 +45,7 @@ class calib():
         self.p0 = [0.9, 6.0, -0.05]
         self.Ts = 1 / 30.0
         self.DATA_BEG_INDEX = 0
-        self.DATA_END_INDEX = -20 # ignore last data points
+        self.DATA_END_INDEX = -30 # ignore last data points
         self.delta =  0.01
         if PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION:
             # Load homography
@@ -68,7 +69,7 @@ class calib():
         self.fit_=self.nonlinear_model_fit()
         #self.plots()
         # write to the kinematic calibration file
-        #self.write_calibration()
+        self.write_calibration()
 
         # make plots & visualizations
         #self.plot=self.visualize()
@@ -81,41 +82,44 @@ class calib():
         print("pinhole camera model initialized")
 
     def load_homography(self):
-        '''Load homography (extrinsic parameters)'''
-        filename = (get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml")
-        if not os.path.isfile(filename):
-            logger.warn("no extrinsic calibration parameters for {}, trying default".format(self.robot_name))
-            filename = (get_duckiefleet_root() + "/calibrations/camera_extrinsic/default.yaml")
-            if not os.path.isfile(filename):
-                logger.error("can't find default either, something's wrong")
-            else:
-                data = yaml_load_file(filename)
-        else:
-            rospy.loginfo("Using extrinsic calibration of " + self.robot_name)
-            data = yaml_load_file(filename)
-        logger.info("Loaded homography for {}".format(os.path.basename(filename)))
-        return np.array(data['homography']).reshape((3, 3))
+       '''Load homography (extrinsic parameters)'''
+       home = expanduser("~")
+       filename = ( home + "/duckietown_sysid/camera_extrinsic/" + self.robot_name + ".yaml")
+       if not os.path.isfile(filename):
+           logger.warn("no extrinsic calibration parameters for {}, trying default".format(self.robot_name))
+           filename = (home + "/duckietown_sysid/camera_extrinsic/default.yaml")
+           if not os.path.isfile(filename):
+               logger.error("can't find default either, something's wrong")
+           else:
+               data = yaml_load_file(filename)
+       else:
+           rospy.loginfo("Using extrinsic calibration of " + self.robot_name)
+           data = yaml_load_file(filename)
+           print data
+       logger.info("Loaded homography for {}".format(os.path.basename(filename)))
+       return np.array(data['homography']).reshape((3, 3))
 
     def load_camera_info(self):
-        '''Load camera intrinsics'''
-        filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + self.robot_name + ".yaml")
-        if not os.path.isfile(filename):
-            logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
-            filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
-            if not os.path.isfile(filename):
-                logger.error("can't find default either, something's wrong")
-        calib_data = yaml_load_file(filename)
+       '''Load camera intrinsics'''
+       home = expanduser("~")
+       filename = (home+"/duckietown_sysid/camera_intrinsic/" + self.robot_name + ".yaml")
+       if not os.path.isfile(filename):
+           logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
+           filename = (home+"~/duckietown_sysid/camera_intrinsic/default.yaml")
+           if not os.path.isfile(filename):
+               logger.error("can't find default either, something's wrong")
+       calib_data = yaml_load_file(filename)
 
-        cam_info = CameraInfo()
-        cam_info.width = calib_data['image_width']
-        cam_info.height = calib_data['image_height']
-        cam_info.K = np.array(calib_data['camera_matrix']['data']).reshape((3,3))
-        cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
-        cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
-        cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
-        cam_info.distortion_model = calib_data['distortion_model']
-        logger.info("Loaded camera calibration parameters for {} from {}".format(self.robot_name, os.path.basename(filename)))
-        return cam_info
+       cam_info = CameraInfo()
+       cam_info.width = calib_data['image_width']
+       cam_info.height = calib_data['image_height']
+       cam_info.K = np.array(calib_data['camera_matrix']['data']).reshape((3,3))
+       cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
+       cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
+       cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
+       cam_info.distortion_model = calib_data['distortion_model']
+       logger.info("Loaded camera calibration parameters for {} from {}".format(self.robot_name, os.path.basename(filename)))
+       return cam_info
 
     def load_board_info(self, filename=''):
         '''Load calibration checkerboard info'''
@@ -589,9 +593,6 @@ class calib():
         experimentDataObj.cmd_sine_right = cmd_sine_right
         experimentDataObj.cmd_sine_left = cmd_sine_left
 
-        #print 'XXXXXXXXXXXXXXXXXXXXXXXXX'
-        #print experimentDataObj
-
         f = open(EXPERIMENT_NAME_FOR_PICKLE, 'wb')
         pickle.dump(experimentDataObj, f)
         f.close()
@@ -642,8 +643,8 @@ class calib():
                 cmd_ramp_right, cmd_ramp_left,
                 timepoints_sine, time_sine,
                 cmd_sine_right, cmd_sine_left)
-    @staticmethod
-    def resampling(time_ramp_meas, time_ramp_cmd, cmd_ramp_right, cmd_ramp_left, time_sine_meas, time_sine_cmd, cmd_sine_right, cmd_sine_left):
+
+    def resampling(self,time_ramp_meas, time_ramp_cmd, cmd_ramp_right, cmd_ramp_left, time_sine_meas, time_sine_cmd, cmd_sine_right, cmd_sine_left):
         # Sampling Time of the Identification
         Ts = self.Ts
         # generate an equally spaced time vector over the full length of position measurement times
@@ -762,13 +763,10 @@ class calib():
                        )
 
         obj_cost+= delta * ((c_cur - c_init) ** 2 + (cl_cur - cl_init) ** 2 + (tr_cur - tr_init) ** 2)
-            #obj_cost+= ( ((s_p[i,0] - x_meas[i])/ x_meas[i]) ** 2)
-            #print "iter: {} obj value: {} ".format(i, obj_cost)
-        # calculate the objective cost
+
         return obj_cost
 
     def nonlinear_model_fit(self):
-        #print ("\nBEG: EXPERIMENT_COMBINED FN *************************************************")
         start = self.DATA_BEG_INDEX
 
         (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
@@ -803,7 +801,8 @@ class calib():
         self.sine_plots(p0, popt, y_opt_predict_sine, cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas, y_sine_meas, yaw_sine_meas, time_sine, timepoints_sine)
         self.ramp_plots(p0, popt, y_opt_predict_ramp, cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas, y_ramp_meas, yaw_ramp_meas, time_ramp, timepoints_ramp)
 
-        popt_dict = {}
+        popt_dict = {"gain": popt[0], "trim":popt[2]}
+
         return popt_dict
 
     def sine_plots(self,p0, popt, y_opt_predict_sine, cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas, y_sine_meas, yaw_sine_meas, time_sine, timepoints_sine):
@@ -883,73 +882,64 @@ class calib():
         fig1.suptitle('Measurements and Prediction with Default/Optimal Parameter Values - Ramp Manouver', fontsize=16)
 
     def write_calibration(self):
-        '''Load kinematic calibration file'''
-        filename = (get_duckiefleet_root() + "/calibrations/kinematics/" + self.robot_name + ".yaml")
-        if not os.path.isfile(filename):
-            logger.warn("no kinematic calibration parameters for {}, taking some from default".format(self.robot_name))
-            filename = (get_duckiefleet_root() + "/calibrations/kinematics/default.yaml")
-            if not os.path.isfile(filename):
-                logger.error("can't find default either, something's wrong, is the duckiefleet root correctly set?")
-            else:
-                data = yaml_load_file(filename)
-        else:
-            rospy.loginfo("Loading some kinematic calibration parameters of " + self.robot_name)
-            data = yaml_load_file(filename)
-        logger.info("Loaded homography for {}".format(os.path.basename(filename)))
+       '''Load kinematic calibration file'''
+       home = expanduser("~")
+       filename = (home + "/duckietown_sysid/kinematics/" + self.robot_name + ".yaml")
+       if not os.path.isfile(filename):
+           logger.warn("no kinematic calibration parameters for {}, taking some from default".format(self.robot_name))
+           filename = (home+"/duckietown_sysid/kinematics/default.yaml")
+           if not os.path.isfile(filename):
+               logger.error("can't find default either, something's wrong, is the duckiefleet root correctly set?")
+           else:
+               data = yaml_load_file(filename)
+       else:
+           rospy.loginfo("Loading some kinematic calibration parameters of " + self.robot_name)
+           data = yaml_load_file(filename)
+       logger.info("Loaded homography for {}".format(os.path.basename(filename)))
 
-        # Load some of the parameters that will not be changed
-        param_k        = data['k']
-        param_limit    = data['limit']
-        param_radius   = data['radius']
+       # Load some of the parameters that will not be changed
+       param_k        = data['k']
+       param_limit    = data['limit']
+       param_radius   = data['radius']
+       baseline   = data['baseline']
+       # simply to increase readability
 
-        # simply to increase readability
-        c  = self.fit_['c']
-        cl = self.fit_['cl']
-        tr = self.fit_['tr']
+       gain = self.fit_['gain']
+       trim = self.fit_['trim']
 
-        # Calculation of Kinematic Calibration parameters from our model parameters
-        # Due to the redundancy of the k and radius parameter, the read parameters are taken into account
-        # We chose to overwrite the gain parameter, but instead the motor constant could be changed
-        gain = param_radius * param_k / c
-        trim = - tr * param_radius * param_k * param_radius * param_k / (cl * c)
-        baseline = 2 * c / cl * 0.9  # The 0.9 is a biasing factor because the sine steer is finite
-
-        # Write to yaml
-        #datasave = {  # This is similar to the inverse_kinematics_node, but it did not work...
-        #    "calibration_time": time.strftime("%Y-%m-%d-%H-%M-%S"),
-        #    "gain": gain,
-        #    "trim": trim,
-        #    "baseline": baseline,
-        #    "radius": param_radius,
-        #    "k": param_k,
-        #    "limit": param_limit,
-        #}
-        datasave = \
-        "calibration_time: {}".format(time.strftime("%Y-%m-%d-%H-%M-%S")) + \
-        "\ngain: {}".format(gain) + \
-        "\ntrim: {}".format(trim) + \
-        "\nbaseline: {}".format(baseline) + \
-        "\nradius: {}".format(param_radius) + \
-        "\nk: {}".format(param_k) + \
-        "\nlimit: {}".format(param_limit)
+       # Write to yaml
+       #datasave = {  # This is similar to the inverse_kinematics_node, but it did not work...
+       #    "calibration_time": time.strftime("%Y-%m-%d-%H-%M-%S"),
+       #    "gain": gain,
+       #    "trim": trim,
+       #    "baseline": baseline,
+       #    "radius": param_radius,
+       #    "k": param_k,
+       #    "limit": param_limit,
+       #}
+       datasave = \
+       "calibration_time: {}".format(time.strftime("%Y-%m-%d-%H-%M-%S")) + \
+       "\ngain: {}".format(gain) + \
+       "\ntrim: {}".format(trim) + \
+       "\nbaseline: {}".format(baseline) + \
+       "\nradius: {}".format(param_radius) + \
+       "\nk: {}".format(param_k) + \
+       "\nlimit: {}".format(param_limit)
 
 
-        print("\nThe Estimated Kinematic Calibration is:")
-        print("gain     = {}".format(gain))
-        print("trim     = {}".format(trim))
-        print("baseline = {}".format(baseline))
+       print("\nThe Estimated Kinematic Calibration is:")
+       print("gain     = {}".format(gain))
+       print("trim     = {}".format(trim))
 
-        # Write to yaml file
-        filename = (get_duckiefleet_root() + "/calibrations/kinematics/" + self.robot_name + ".yaml")
-        with open(filename, 'w') as outfile:
-            outfile.write(datasave)
-            #outfile.write(yaml.dump(datasave, default_flow_style=False))  # This did not work and gave very weird results
+       # Write to yaml file
+       filename = ( home + "/duckietown_sysid/kinematics/" + self.robot_name + ".yaml")
+       with open(filename, 'w') as outfile:
+           outfile.write(datasave)
+           #outfile.write(yaml.dump(datasave, default_flow_style=False))  # This did not work and gave very weird results
 
-        print("Saved Parameters to " + self.robot_name + ".yaml" )
+       print("Saved Parameters to " + self.robot_name + ".yaml" )
 
-        print("\nPlease check the plots and judge if the parameters are reasonable.")
-        print("Once done inspecting the plot, close them to terminate the program.")
-
-
+       print("\nPlease check the plots and judge if the parameters are reasonable.")
+       print("Once done inspecting the plot, close them to terminate the program.")
 if __name__ == '__main__':
     calib=calib()
