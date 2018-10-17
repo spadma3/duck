@@ -105,7 +105,7 @@ class calib():
        filename = (home+"/duckietown_sysid/camera_intrinsic/" + self.robot_name + ".yaml")
        if not os.path.isfile(filename):
            logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
-           filename = (home+"~/duckietown_sysid/camera_intrinsic/default.yaml")
+           filename = (home+"/duckietown_sysid/camera_intrinsic/default.yaml")
            if not os.path.isfile(filename):
                logger.error("can't find default either, something's wrong")
        calib_data = yaml_load_file(filename)
