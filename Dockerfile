@@ -20,7 +20,6 @@ RUN /bin/bash -c "cd /home/software/ && source /opt/ros/kinetic/setup.bash && ca
 
 RUN echo "source /home/software/docker/env.sh" >> ~/.bashrc
 
-RUN [ "cross-build-end" ]
 
 # We make sure that all dependencies are installed
 # by trying to import the duckietown_utils package
@@ -31,9 +30,12 @@ RUN bash -c "source /home/software/docker/env.sh && python -c 'import duckietown
 # RUN bash -c "source /home/software/docker/env.sh && /home/software/what-the-duck"
 
 
+RUN [ "cross-build-end" ]
+
 WORKDIR /home/software
 
 CMD [ "/bin/bash" ]
 
+ENV DISABLE_CONTRACTS=1
 
 LABEL maintainer="Breandan Considine breandan.considine@umontreal.ca"
