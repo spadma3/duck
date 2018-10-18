@@ -42,11 +42,12 @@ class calib():
         # defaults overwritten by paramminimize(self.objective, p0)
         self.robot_name = rospy.get_param("~veh")
 
-        self.p0 = [0.9, 6.0, -0.05]
+        self.p0 = [0.9, 1, 0.0]
         self.Ts = 1 / 30.0
+        self.d = 0.6
         self.DATA_BEG_INDEX = 0
         self.DATA_END_INDEX = -30 # ignore last data points
-        self.delta =  0.01
+        self.delta =  0.00
         if PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION:
             # Load homography
             self.H = self.load_homography()
@@ -105,7 +106,7 @@ class calib():
        filename = (home+"/duckietown_sysid/camera_intrinsic/" + self.robot_name + ".yaml")
        if not os.path.isfile(filename):
            logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
-           filename = (home+"~/duckietown_sysid/camera_intrinsic/default.yaml")
+           filename = (home+"/duckietown_sysid/camera_intrinsic/default.yaml")
            if not os.path.isfile(filename):
                logger.error("can't find default either, something's wrong")
        calib_data = yaml_load_file(filename)
@@ -706,15 +707,17 @@ class calib():
         x_0 = s_cur[0]
         y_0 = s_cur[1]
         yaw_0 = s_cur[2]
+        d = self.d
 
         # velocity term predictions based on differential drive
-        vx_pred = c * (cmd_right+cmd_left) * 0.5 + tr * (cmd_right-cmd_left)*0.5
-        omega_pred = cl * (cmd_right-cmd_left) * 0.5 + tr * (cmd_right+cmd_left) * 0.5
+        vx_pred = c * (cmd_right+cmd_left) * 0.5 + c * tr * (cmd_right-cmd_left)*0.5
+        omega_pred = -1*cl * (cmd_right-cmd_left) * 0.5 + -1*cl * tr * (cmd_right+cmd_left) * 0.5
+        vy_pred = -1*omega_pred * d
 
         # forward euler integration
         yaw_pred = (omega_pred) * Ts + yaw_0
-        x_pred = (np.cos(yaw_0) * vx_pred) * Ts + x_0
-        y_pred = (np.sin(yaw_0) * vx_pred) * Ts + y_0
+        x_pred = (np.cos(yaw_pred) * vx_pred - vy_pred * np.sin(yaw_pred)) * Ts + x_0
+        y_pred = 5 * (np.sin(yaw_pred) * vx_pred + vy_pred * np.cos(yaw_pred)) * Ts + y_0
 
         return np.array([x_pred, y_pred, yaw_pred]).reshape(3)
 
@@ -753,7 +756,7 @@ class calib():
         for i in range(len(time_ramp)):
             obj_cost+= ( ((s_p_ramp[i,0] - x_meas_ramp[i])) ** 2 +
                          ((s_p_ramp[i,1] - y_meas_ramp[i])) ** 2 +
-                         ((s_p_ramp[i,2] - yaw_meas_ramp[i])) ** 2
+                        ((s_p_ramp[i,2] - yaw_meas_ramp[i])) ** 2
                        )
 
         for i in range(len(time_sine)):
@@ -802,7 +805,6 @@ class calib():
         self.ramp_plots(p0, popt, y_opt_predict_ramp, cmd_ramp_right, cmd_ramp_left, s_init_ramp, x_ramp_meas, y_ramp_meas, yaw_ramp_meas, time_ramp, timepoints_ramp)
 
         popt_dict = {"gain": popt[0], "trim":popt[2]}
-
         return popt_dict
 
     def sine_plots(self,p0, popt, y_opt_predict_sine, cmd_sine_right, cmd_sine_left, s_init_sine, x_sine_meas, y_sine_meas, yaw_sine_meas, time_sine, timepoints_sine):
@@ -828,17 +830,16 @@ class calib():
 
 
         # Model predictions with optimal parametes
+
         x_sine_pred_handle, = ax1.plot(time_sine[timepoints_sine],y_opt_predict_sine[:,0],'b', label = 'x predict opt')
         y_sine_pred_handle, = ax1.plot(time_sine[timepoints_sine],y_opt_predict_sine[:,1],'g', label = 'y predict opt')
         yaw_sine_pred_handle, = ax1.plot(time_sine[timepoints_sine],y_opt_predict_sine[:,2],'r', label = 'yaw predict opt')
-
         ax1.set_xlabel('time [s]')
         ax1.set_ylabel('position [m] / heading [rad]')
 
         handles = [x_sine_meas_handle,y_sine_meas_handle,yaw_sine_meas_handle,
                    x_sine_pred_handle,y_sine_pred_handle,yaw_sine_pred_handle,
                    x_sine_pred_default_handle, y_sine_pred_default_handle, yaw_sine_pred_default_handle]
-
         labels = [h.get_label() for h in handles]
 
         fig2.legend(handles=handles, labels=labels, prop={'size': 10}, loc=0)
