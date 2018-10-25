@@ -29,8 +29,9 @@ import yaml
 import pickle
 from os.path import expanduser
 
-PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION = True
+PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION = False
 EXPERIMENT_NAME_FOR_PICKLE = "my_data.pckl"
+USE_EXPERIMENT_DATA = False
 
 class experimentData():
     pass
@@ -40,14 +41,17 @@ class calib():
         rospy.init_node('command', anonymous=True)
 
         # defaults overwritten by paramminimize(self.objective, p0)
-        self.robot_name = rospy.get_param("~veh")
+        #self.robot_name = rospy.get_param("~veh")
+        self.robot_name = "ata"
 
         self.p0 = [0.9, 1, 0.0]
         self.Ts = 1 / 30.0
         self.d = 0.6
         self.DATA_BEG_INDEX = 0
         self.DATA_END_INDEX = -30 # ignore last data points
-        self.delta =  0.00
+        self.delta = 0.00
+        self.L = 0.105
+
         if PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION:
             # Load homography
             self.H = self.load_homography()
@@ -74,7 +78,7 @@ class calib():
 
         # make plots & visualizations
         #self.plot=self.visualize()
-        plt.show()
+        #plt.show()
 
     # wait until we have recieved the camera info message through ROS and then initialize
     def initialize_pinhole_camera_model(self, camera_info):
@@ -192,7 +196,8 @@ class calib():
         axisPoints = np.float32([[3*chSeize, 0, 0], [0, 3*chSeize, 0], [0, 0, -3*chSeize]]).reshape(-1, 3)
 
         #define the inputbag and topicname
-        inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
+        #inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
+        inputbag = "/home/selcuk/MT/devel-sysid/09.10_4/"+ self.robot_name + "_calibration.bag"
         topicname = "/" + self.robot_name + "/camera_node/image/compressed"
         indexcounter=1
 
@@ -421,8 +426,8 @@ class calib():
         omg=[]
         vel=[]
         timestamp=[]
-        inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
-
+        #inputbag=rospy.get_param("~path")+self.robot_name+"_calibration.bag"
+        inputbag = "/home/selcuk/MT/devel-sysid/09.10_4/" + self.robot_name + "_calibration.bag"
         topicname = "/" + self.robot_name + "/joy_mapper_node/car_cmd"
         for topic, msg, t in rosbag.Bag(inputbag).read_messages(topics=topicname):
             vel.append(msg.v)
@@ -441,7 +446,8 @@ class calib():
         vel_l = []
         vel_r = []
         timestamp = []
-        inputbag = rospy.get_param("~path")+self.robot_name+"_calibration.bag"
+        #inputbag = rospy.get_param("~path")+self.robot_name+"_calibration.bag"
+        inputbag = "/home/selcuk/MT/devel-sysid/09.10_4/" + self.robot_name + "_calibration.bag"
         topicname = "/" + self.robot_name + "/wheels_driver_node/wheels_cmd"
 
         for topic, msg, t in rosbag.Bag(inputbag).read_messages(topics=topicname):
@@ -533,7 +539,7 @@ class calib():
         y_ramp_meas    = self.veh_pose_['straight']['y_veh']
         y_ramp_meas    = np.reshape(y_ramp_meas,np.size(y_ramp_meas))
         yaw_ramp_meas  = self.veh_pose_['straight']['yaw_veh']
-        yaw_ramp_meas  = ( np.array(yaw_ramp_meas) + np.pi*0.5 + np.pi) % (2 * np.pi ) - np.pi # shift by pi/2 and wrap to +-pi
+        yaw_ramp_meas = [np.arctan2(np.sin(m), np.cos(m)) for m in yaw_ramp_meas]
 
         # unpack the the array containing time instances of the mentioned measurements
         time_ramp_meas = self.veh_pose_['straight']['timestamp']
@@ -559,7 +565,7 @@ class calib():
         y_sine_meas    = self.veh_pose_['curve']['y_veh']
         y_sine_meas    = np.reshape(y_sine_meas,np.size(y_sine_meas))  # fixing some totally fucked up dimensions
         yaw_sine_meas  = self.veh_pose_['curve']['yaw_veh']
-        yaw_sine_meas  = ( np.array(yaw_sine_meas) + np.pi*0.5 + np.pi) % (2 * np.pi ) - np.pi # shift by pi/2 and wrap to +-pi
+        yaw_sine_meas = [np.arctan2(np.sin(m), np.cos(m)) for m in yaw_sine_meas]
 
         # unpack the the array containing time instances of the mentioned measurements
         time_sine_meas = self.veh_pose_['curve']['timestamp']
@@ -667,6 +673,7 @@ class calib():
         timepoints_sine = ((time_sine_meas-time_sine_meas[0])*30+0.5).astype(int)
 
         return timepoints_ramp, time_ramp, cmd_ramp_right, cmd_ramp_left, timepoints_sine, time_sine, cmd_sine_right, cmd_sine_left
+
     def processData(self,starting_ind, ending_ind):
         (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
         x_sine_meas,y_sine_meas,yaw_sine_meas,
@@ -701,23 +708,38 @@ class calib():
                 cmd_ramp_right, cmd_ramp_left,
                 timepoints_sine, time_sine,
                 cmd_sine_right, cmd_sine_left)
-    def forwardEuler(self,s_cur, Ts, cmd_right, cmd_left,p):
+
+    def forwardEuler(self, s_cur, Ts, cmd_right, cmd_left,p):
         c, cl, tr = p
 
         x_0 = s_cur[0]
         y_0 = s_cur[1]
         yaw_0 = s_cur[2]
         d = self.d
+        L = self.L
+
 
         # velocity term predictions based on differential drive
         vx_pred = c * (cmd_right+cmd_left) * 0.5 + c * tr * (cmd_right-cmd_left)*0.5
-        omega_pred = -1*cl * (cmd_right-cmd_left) * 0.5 + -1*cl * tr * (cmd_right+cmd_left) * 0.5
-        vy_pred = -1*omega_pred * d
+        omega_pred = 1*cl * (cmd_right-cmd_left) * 0.5 + -1*cl * tr * (cmd_right+cmd_left) * 0.5
+        vy_pred = 1*omega_pred * d
+
+
+        """
+        vx_pred = (cr / (2 * (g + tr)))  * cmd_right + (cl / (2 * (g - tr)))  * cmd_left
+        omega_pred =  (cr / (2 * L * (g + tr)))  * cmd_right - (cl / (2 * L * (g - tr)))  * cmd_left
+        vy_pred = omega_pred * d
+        """
+        """
+        vx_pred = rho_1 * cmd_right + rho_2 * cmd_left
+        omega_pred =  (1/L) * rho_1 * cmd_right - (1/L) * rho_2 * cmd_left
+        vy_pred = omega_pred * d
+        """
 
         # forward euler integration
         yaw_pred = (omega_pred) * Ts + yaw_0
         x_pred = (np.cos(yaw_pred) * vx_pred - vy_pred * np.sin(yaw_pred)) * Ts + x_0
-        y_pred = 5 * (np.sin(yaw_pred) * vx_pred + vy_pred * np.cos(yaw_pred)) * Ts + y_0
+        y_pred = (np.sin(yaw_pred) * vx_pred + vy_pred * np.cos(yaw_pred)) * Ts + y_0
 
         return np.array([x_pred, y_pred, yaw_pred]).reshape(3)
 
@@ -769,15 +791,166 @@ class calib():
 
         return obj_cost
 
+    def cost_function_ramp(self,p, p0, cmd_right_ramp, cmd_left_ramp, s_init_ramp, x_meas_ramp, y_meas_ramp, yaw_meas_ramp, time_ramp):
+        #simulate the model
+        #states for a particular p set
+        s_p_ramp = self.simulate(p, cmd_right_ramp, cmd_left_ramp, s_init_ramp, time_ramp)
+
+        c_init, cl_init, tr_init = p0
+        c_cur, cl_cur, tr_cur = p
+
+        delta = self.delta
+
+        obj_cost = 0.0
+
+        for i in range(len(time_ramp)):
+            obj_cost+= ( ((s_p_ramp[i,0] - x_meas_ramp[i])) ** 2 +
+                         ((s_p_ramp[i,1] - y_meas_ramp[i])) ** 2 +
+                        ((s_p_ramp[i,2] - yaw_meas_ramp[i])) ** 2
+                       )
+
+        obj_cost+= delta * ((c_cur - c_init) ** 2 + (cl_cur - cl_init) ** 2 + (tr_cur - tr_init) ** 2)
+
+        return obj_cost
+
+    def forwardEulerAssumedActualModel(self, s_cur, Ts, cmd_right, cmd_left):
+        #c, cl, tr = p
+        x_0 = s_cur[0]
+        y_0 = s_cur[1]
+        yaw_0 = s_cur[2]
+
+        cr = 0.001
+        cl = 0.001
+        L = 0.10 / 2.0 # 10 cm baseline length
+        g = 1.0
+        tr = 0.0
+
+        # velocity term predictions based on differential drive
+        """
+        vx_pred = c * (cmd_right+cmd_left) * 0.5 + c * tr * (cmd_right-cmd_left)*0.5
+        omega_pred = 1*cl * (cmd_right-cmd_left) * 0.5 + -1*cl * tr * (cmd_right+cmd_left) * 0.5
+        vy_pred = 1*omega_pred * d
+        """
+
+        """
+        vx_pred = (cr / (2 * (g + tr)))  * cmd_right + (cl / (2 * (g - tr)))  * cmd_left
+        omega_pred =  (cr / (2 * L * (g + tr)))  * cmd_right - (cl / (2 * L * (g - tr)))  * cmd_left
+        vy_pred = omega_pred * d
+        """
+
+        """
+        vx_pred = rho_1 * cmd_right + rho_2 * cmd_left
+        omega_pred =  (1/L) * rho_1 * cmd_right - (1/L) * rho_2 * cmd_left
+        vy_pred = omega_pred * d
+        """
+
+        vx_pred = (cr / (2 * (g + tr)))  * cmd_right + (cl / (2 * (g - tr)))  * cmd_left
+        omega_pred = (cr / (2 * L * (g + tr)))  * cmd_right - (cl / (2 * L * (g - tr)))  * cmd_left
+
+        # forward euler integration
+
+        yaw_pred = (omega_pred) * Ts + yaw_0
+        x_pred = (np.cos(yaw_pred) * vx_pred) * Ts + x_0
+        y_pred = (np.sin(yaw_pred) * vx_pred) * Ts + y_0
+
+
+        return np.array([x_pred, y_pred, yaw_pred]).reshape(3)
+
+    def simulateFixModel(self, cmd_right, cmd_left, s_init,time):
+        # States
+        ## Note that values take checkerboard as the origin.
+        s = np.zeros((len(time),3))
+
+        s[0,0] = s_init[0] # x
+        s[0,1] = s_init[1] # y
+        s[0,2] = s_init[2] # yaw
+
+        Ts = self.Ts
+        s_cur = s[0]
+
+        for i in range(len(time)-1):
+            s_next = self.forwardEulerAssumedActualModel(s_cur, Ts, cmd_right[i],cmd_left[i])
+            s_cur = np.copy(s_next)
+            s[i+1] = s_cur
+
+        return s
+
+    def generateSyntheticData(self):
+        # general settings
+        Ts = 0.025 # 40 Hz
+
+        # ramp input config
+        v_max = 0.5 # max speed applied meter/seconds
+
+        numb_time_steps_ramp = 100
+        time_ramp = np.linspace(0, numb_time_steps_ramp) * Ts
+        timepoints_ramp = np.linspace(0, numb_time_steps_ramp)
+
+        # define ramp input sequence
+        vel_ramp_right, vel_ramp_left = np.linspace(0, v_max, numb_time_steps_ramp)
+
+        # sine input config
+        k1 = 0
+        k2 = 0.06
+        theta = 0.007
+
+        numb_time_steps_sine = 1000
+        timepoints_sine = np.linspace(0, numb_time_steps_sine)
+        time_sine = np.linspace(0, numb_time_steps_sine) * Ts
+
+        # sine input
+        (vel_sine_right, vel_sine_left) = (k1 + k2 * np.cos(theta * time_sine), k1 - k2 * np.cos(theta * time_sine))
+
+        # states X, Y and heading
+        # Vehicle coordinate frame aligns with the world coordinate frame at the beginning
+        s_ramp_init = [0, 0, 0]
+        s_sine_init = [0, 0, 0]
+
+
+        s_ramp_evolution = self.simulateFixModel(vel_ramp_right, vel_ramp_left, s_ramp_init, time_ramp)
+        x_ramp_meas = s_ramp_evolution[:, 0]
+        y_ramp_meas = s_ramp_evolution[:, 1]
+        yaw_ramp_meas = s_ramp_evolution[:, 2]
+
+        s_sine_evolution = self.simulateFixModel(vel_sine_right, vel_sine_left, s_sine_init, time_sine)
+
+        x_sine_meas = s_sine_evolution[:, 0]
+        y_sine_meas = s_sine_evolution[:, 1]
+        yaw_sine_meas = s_sine_evolution[:, 2]
+
+
+        return (x_ramp_meas, y_ramp_meas, yaw_ramp_meas,
+         x_sine_meas, y_sine_meas, yaw_sine_meas,
+         timepoints_ramp, time_ramp,
+         cmd_ramp_right, cmd_ramp_left,
+         timepoints_sine, time_sine,
+         cmd_sine_right, cmd_sine_left)
+
     def nonlinear_model_fit(self):
         start = self.DATA_BEG_INDEX
 
-        (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
-        x_sine_meas,y_sine_meas,yaw_sine_meas,
-        timepoints_ramp,time_ramp ,
-        cmd_ramp_right, cmd_ramp_left,
-        timepoints_sine,time_sine,
-        cmd_sine_right, cmd_sine_left) = self.processData(starting_ind = self.DATA_BEG_INDEX, ending_ind = self.DATA_END_INDEX)
+        if USE_EXPERIMENT_DATA:
+            (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
+            x_sine_meas,y_sine_meas,yaw_sine_meas,
+            timepoints_ramp,time_ramp ,
+            cmd_ramp_right, cmd_ramp_left,
+            timepoints_sine,time_sine,
+            cmd_sine_right, cmd_sine_left) = self.processData(starting_ind = self.DATA_BEG_INDEX, ending_ind = self.DATA_END_INDEX)
+            #print type(x_sine_meas)
+        else:
+            (_,_, _,
+            _,_,_,
+             _,_,
+            cmd_ramp_right, cmd_ramp_left,
+             _,_,
+            cmd_sine_right, cmd_sine_left) = self.processData(starting_ind = self.DATA_BEG_INDEX, ending_ind = self.DATA_END_INDEX)
+
+            (x_ramp_meas,y_ramp_meas, yaw_ramp_meas,
+            x_sine_meas,y_sine_meas,yaw_sine_meas,
+            timepoints_ramp,time_ramp ,
+            cmd_ramp_right, cmd_ramp_left,
+            timepoints_sine,time_sine,
+            cmd_sine_right, cmd_sine_left) = self.generateSyntheticData(cmd_ramp_right, cmd_ramp_left, cmd_sine_right, cmd_sine_left)
 
         #initial conditions for the states
         s_init_sine = [x_sine_meas[start],y_sine_meas[start], yaw_sine_meas[start]]

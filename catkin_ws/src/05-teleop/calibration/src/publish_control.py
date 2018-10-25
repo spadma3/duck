@@ -12,9 +12,9 @@ class calibration:
 		# Initialize the node with rospy
                 rospy.init_node('command', anonymous=True)
 
-                # Create publisher
-                publisher=rospy.get_param("~veh")+"/wheels_driver_node/wheels_cmd"
-                self.pub_wheels_cmd = rospy.Publisher(publisher,WheelsCmdStamped,queue_size=1)
+		# Create publisher
+		publisher=rospy.get_param("~veh")+"/wheels_driver_node/wheels_cmd"
+		self.pub_wheels_cmd = rospy.Publisher(publisher,WheelsCmdStamped,queue_size=1)
 
 		self.vFin = rospy.get_param("~vFin")
 		self.Nstep = rospy.get_param("~Nstep")
