@@ -12,8 +12,8 @@ from sensor_msgs.msg import CameraInfo
 from image_geometry import PinholeCameraModel
 import os.path
 from duckietown_utils.path_utils import get_ros_package_path
-from duckietown_utils.yaml_wrap import (yaml_load_file, yaml_write_to_file)
-from duckietown_utils import (logger, get_duckiefleet_root)
+from duckietown_utils.yaml_wrap import (yaml_load_file)
+from duckietown_utils import (logger)
 from duckietown_utils import rgb_from_ros
 
 import time
@@ -21,19 +21,15 @@ import os
 import math
 import matplotlib.pyplot as plt
 import scipy.interpolate as interp
-from scipy.optimize import curve_fit
 from scipy.optimize import minimize
-from scipy.integrate import odeint
-from mpl_toolkits.mplot3d import Axes3D
-import yaml
 import pickle
 from os.path import expanduser
 
-PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION = True
+from experiment_data import experimentData
+
+PREPARE_CALIBRATION_DATA_FOR_OPTIMIZATION = False
 EXPERIMENT_NAME_FOR_PICKLE = "my_data.pckl"
 
-class experimentData():
-    pass
 class calib():
     def __init__(self):
         # Initialize the node with rospy
