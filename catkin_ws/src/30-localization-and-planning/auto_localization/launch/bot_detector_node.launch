@@ -5,7 +5,6 @@
 
     <arg name="bot_detection" default="true" doc="use bot detection to increase the speed of apriltag detection" />
 
-    <remap from="image" to="camera_node/image/rect"/>
     <group ns="$(arg veh)">
     	<node name="bot_detector_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
     	<param name="bot_detection" value="$(arg bot_detection)"/>

@@ -17,10 +17,12 @@ class BotDetectorNode(object):
 
 		#Constructor of bot detector
 		self.bridge = CvBridge()
-		
+
 		self.cam_info = rospy.wait_for_message("camera_info", CameraInfo, timeout=None)
 
 		self.active = rospy.get_param('~bot_detection', 'false')
+
+		self.last_img = None
 
 		# initailize opencv background subtraction tool
 		self.background_subtraction = cv2.createBackgroundSubtractorMOG2(history=450, varThreshold=70, detectShadows=False)
@@ -43,21 +45,24 @@ class BotDetectorNode(object):
 
 		cv_image = self.bridge.imgmsg_to_cv2(image_msg, 'mono8')
 
+		if self.last_img == None:
+			self.last_img = np.full_like(cv_image, 0)
+
 		tStart = time.time()
 
 		img_mask = self.background_subtraction.apply(cv_image)
 		#img_with_mask = cv2.bitwise_and(cv_image, img_mask)
 
 		tEndback = time.time()
-		img_process = np.full_like(cv_image,255)
-		if(cv2.countNonZero(img_mask)>10):
+		img_process = np.full_like(cv_image,0)
+		if(cv2.countNonZero(img_mask)>30):
 			kernel = np.ones((3,3),np.uint8)
 			img_mask = cv2.dilate(img_mask,kernel,iterations = 1)
 			img_mask = cv2.morphologyEx(img_mask, cv2.MORPH_CLOSE, kernel)
 
 			x,y,w,h=cv2.boundingRect(img_mask)
 			img_process[y:y+h,x:x+w] = cv_image[y:y+h,x:x+w]
-		
+
 
 		tEndtotal = time.time()
 
