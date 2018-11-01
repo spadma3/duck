@@ -80,6 +80,7 @@ class AprilLocalLocalization(object):
     def callback(self, msg):
         tag_infos = []
         remap_poses_array = RemapPoseArray()
+        flag_send_msg = False
 
         # Load tag detections message
         for detection in msg.detections:
@@ -105,7 +106,9 @@ class AprilLocalLocalization(object):
             # fixed tags will be added to the database,
             # StreetSigns, TrafficSigns are considered to be fixed tags
             # if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN):
-            if not new_info.tag_type == self.info.VEHICLE : # We assume any tag doesn't belone to vehicle is reference tags
+
+            # if not new_info.tag_type == self.info.VEHICLE : # We assume any tag doesn't belone to vehicle is reference tags
+            if new_info.tag_type == self.info.LOCALIZE: # We only use localization tag as reference tag
                  # add fixed tag to the database, overwrite old information
 
                  self.fixed_tags_dict[new_info.id] = [new_info.tag_type, gposf.get_matrix_from_pose(detection.pose.pose.pose)]
@@ -190,6 +193,7 @@ class AprilLocalLocalization(object):
                     remap_pose.posestamped.pose.orientation.w = rot[3]
                     #Add this remap pose to the array
                     remap_poses_array.poses.append(remap_pose)
+                    flag_send_msg = True
 
 
                     # Debugging Output (comment that to optimiza the code)
@@ -202,7 +206,8 @@ class AprilLocalLocalization(object):
                     #                new_info.vehicle_name, fixed_tag_id, trans_rnd, rot_rnd)
                     #'''
 
-        self.pub_postPros.publish(remap_poses_array) # the array can only contain three poses because packet size is limited to 1024 byte
+        if flag_send_msg:
+            self.pub_postPros.publish(remap_poses_array) # the array can only contain three poses because packet size is limited to 1024 byte
 
 
         #     tag_infos.append(new_info)

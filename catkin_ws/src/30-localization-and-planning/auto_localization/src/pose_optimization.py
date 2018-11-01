@@ -50,6 +50,7 @@ class BotOptimizedPose(object):
         self.current_time_stamp = 0 # Current time stamp
         # The variable for output
         self.optimized_pose = GlobalPose()
+        self.optimized_pose.bot_id = bot_id
 
         self.time_stamp_width = 0.02 # unit: s. The width of time that seen as the same time stamp. Ex: current_time_stamp == current_time_stamp-time_stamp_width
 
@@ -84,8 +85,6 @@ class BotOptimizedPose(object):
 
         self.camera_id = []
         self.reference_tag_id = []
-
-
 
         for time_stamp in self.poses:
             for a_pose in self.poses[time_stamp]:
@@ -191,7 +190,7 @@ class pose_optimization(object):
     def init_output_file(self, filename):
         time = "{:%Y%m%d-%H%M%S}".format(datetime.now())
         filename_dates = filename +time + ".csv"
-        output_file_name = rospkg.RosPack().get_path('auto_localization') + "/config/" + filename_dates
+        output_file_name = rospkg.RosPack().get_path('auto_localization') + "/config/csv/" + filename_dates
         print output_file_name
         output_file = open(output_file_name, 'w+')
         output_file.write('time, bot_ID, x, y, theta, camera_id, reference_tag_id\n')

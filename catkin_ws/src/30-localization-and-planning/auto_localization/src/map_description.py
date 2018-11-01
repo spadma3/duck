@@ -37,6 +37,7 @@ GRAY = (153, 153, 153)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
+WPURPLE = (255, 51, 204)
 
 DUCKIEBOT_COLOR = (0, 0, 255)
 DELTA_XY_COLOR = (0, 0, 255) # will be transparant
@@ -51,7 +52,7 @@ tiles_length = 0.624
 tiles_border = 0.021
 tiles_length = tiles_length - tiles_border
 tiles_white_length = 0.044
-duckiebot_size = 0.03
+duckiebot_size = 0.065
 
 # FPS of screen flip
 fps = 30
@@ -70,7 +71,7 @@ class map_description(object):
         self.tile_image_file = rospkg.RosPack().get_path('duckietown_description')+"/urdf/meshes/tiles/"
         ################################
 
-        ###### Parameters set up ########################################################
+        ###### Variable set up ########################################################
 
         ### The 2D pose of origin tag reference to the map
         self.origin_tag_pos = Pose2D()
@@ -95,6 +96,9 @@ class map_description(object):
         # Initail with these keys and value = None
         RDA_data_keys = ('bot_id', 'bot_t', 'x', 'delta_x', 'y', 'delta_y', 'theta', 'delta_theta', 'watchtower', 'ref_tag')
         self.RDA_data = dict.fromkeys(RDA_data_keys, None)
+
+        # Draw the trajecory of a chosen Duckiebot
+        self.bot_trajecory = []
 
         #############################################################################
 
@@ -175,6 +179,14 @@ class map_description(object):
             self.all_duckiebots[key_index]['watchtower'] = bot.cam_id
             self.all_duckiebots[key_index]['ref_tag'] = bot.reference_tag_id
 
+            # record the trajectory if it's the chosen Duckiebot
+            if key_index == self.RDA_data['bot_id']:
+                pos = [int(bot.pose.x*self.m2p), int(-1*bot.pose.y*self.m2p + len(self.map_tiles_img)*self.block_size)]
+                if len(self.bot_trajecory) == 0:
+                    self.bot_trajecory.append(pos)
+                elif self.bot_trajecory[-1] != pos:
+                    self.bot_trajecory.append(pos)
+
     def update_map_loop(self):
 
         while True:
@@ -218,6 +230,7 @@ class map_description(object):
             range_accept = 25
             if (pixel_x-range_accept <= mouse_x <= pixel_x+range_accept) and (pixel_y-range_accept <= mouse_y <= pixel_y+range_accept):
                 self.RDA_data['bot_id'] = id_key
+                self.bot_trajecory = []
 
     def draw_map(self):
 
@@ -263,6 +276,15 @@ class map_description(object):
 
         self.draw_robot_data()
         ####################
+
+        ######## Draw trajectory of chosen Duckiebot #######
+        if self.bot_trajecory:
+            if len(self.bot_trajecory) == 1:
+                self.bot_trajecory.append(self.bot_trajecory[0])
+            pg.draw.lines(self.screen_Map, WPURPLE, False, self.bot_trajecory, 4)
+            for pos in self.bot_trajecory:
+                pg.draw.circle(self.screen_Map, WPURPLE, pos, int(duckiebot_size*self.m2p))
+        ####################################################
 
     def draw_general_data(self):
 
@@ -366,6 +388,8 @@ class map_description(object):
             draw_radius = self.block_size/3
             draw_theta = math.degrees(pose_theta)
             draw_delta_theta = math.degrees(pose_delta_theta)
+            if draw_delta_theta < 5:
+                draw_delta_theta = 5
             self.screen_Map.blit(self.draw_pie(draw_radius, 2*draw_delta_theta, direction=draw_theta, color=DELTA_THETA_COLOR), [mid_x-draw_radius, mid_y-draw_radius])
 
 
