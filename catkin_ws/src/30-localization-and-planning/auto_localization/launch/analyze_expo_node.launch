@@ -1,0 +1,13 @@
+<launch>
+	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
+	<arg name="pkg_name" value="auto_localization"/>
+    <arg name="node_name" default="analyze_expo_node"/>
+
+    <remap from="bot_detection" to="bot_detector_node/bot_detection"/>
+    <remap from="tag_detection" to="tag_detection"/>
+    <group ns="$(arg veh)">
+    	<node name="analyze_expo_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
+    	</node>
+	</group>
+
+</launch>
