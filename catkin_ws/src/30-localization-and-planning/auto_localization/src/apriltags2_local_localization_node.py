@@ -80,6 +80,7 @@ class AprilLocalLocalization(object):
     def callback(self, msg):
         tag_infos = []
         remap_poses_array = RemapPoseArray()
+        flag_send_msg = False
 
         # Load tag detections message
         for detection in msg.detections:
@@ -192,6 +193,7 @@ class AprilLocalLocalization(object):
                     remap_pose.posestamped.pose.orientation.w = rot[3]
                     #Add this remap pose to the array
                     remap_poses_array.poses.append(remap_pose)
+                    flag_send_msg = True
 
 
                     # Debugging Output (comment that to optimiza the code)
@@ -204,7 +206,7 @@ class AprilLocalLocalization(object):
                     #                new_info.vehicle_name, fixed_tag_id, trans_rnd, rot_rnd)
                     #'''
 
-        if remap_poses_array is not []:
+        if flag_send_msg:
             self.pub_postPros.publish(remap_poses_array) # the array can only contain three poses because packet size is limited to 1024 byte
 
 
