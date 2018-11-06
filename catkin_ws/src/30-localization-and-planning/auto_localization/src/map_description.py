@@ -38,6 +38,14 @@ BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 WPURPLE = (255, 51, 204)
+LBLUE = (137, 228, 255)
+LGBLUE = (137, 255, 209)
+LGREEN = (165, 255, 138)
+LORANGE = (255, 217, 138)
+LRED = (255, 138, 138)
+FPURPLE = (189, 138, 255)
+
+TRAJECTORY_COLOR = [WPURPLE, LBLUE, LGBLUE, LGREEN, LORANGE, LRED, FPURPLE]
 
 DUCKIEBOT_COLOR = (0, 0, 255)
 DELTA_XY_COLOR = (0, 0, 255) # will be transparant
@@ -97,12 +105,13 @@ class map_description(object):
         RDA_data_keys = ('bot_id', 'bot_t', 'x', 'delta_x', 'y', 'delta_y', 'theta', 'delta_theta', 'watchtower', 'ref_tag')
         self.RDA_data = dict.fromkeys(RDA_data_keys, None)
 
-        # Draw the trajecory of a chosen Duckiebot
-        self.bot_trajecory = []
+        # Draw the trajecory of all selected Duckiebots
+        # self.bot_trajecory{bot_id} = [number of been chosen, [trajectory]]
+        self.bot_trajecory = {}
 
         #############################################################################
 
-        ####### Initial pygame and display ##########################################
+        ####### Initial pygame and display ########################################
         pg.init()
         pg.display.set_caption("Duckietown Robotarium")
 
@@ -180,12 +189,12 @@ class map_description(object):
             self.all_duckiebots[key_index]['ref_tag'] = bot.reference_tag_id
 
             # record the trajectory if it's the chosen Duckiebot
-            if key_index == self.RDA_data['bot_id']:
+            if key_index in self.bot_trajecory:
                 pos = [int(bot.pose.x*self.m2p), int(-1*bot.pose.y*self.m2p + len(self.map_tiles_img)*self.block_size)]
-                if len(self.bot_trajecory) == 0:
-                    self.bot_trajecory.append(pos)
-                elif self.bot_trajecory[-1] != pos:
-                    self.bot_trajecory.append(pos)
+                if len(self.bot_trajecory[key_index][1]) == 0:
+                    self.bot_trajecory[key_index][1].append(pos)
+                elif self.bot_trajecory[key_index][1][-1] != pos:
+                    self.bot_trajecory[key_index][1].append(pos)
 
     def update_map_loop(self):
 
@@ -230,7 +239,12 @@ class map_description(object):
             range_accept = 25
             if (pixel_x-range_accept <= mouse_x <= pixel_x+range_accept) and (pixel_y-range_accept <= mouse_y <= pixel_y+range_accept):
                 self.RDA_data['bot_id'] = id_key
-                self.bot_trajecory = []
+                if id_key not in self.bot_trajecory:
+                    self.bot_trajecory[id_key] = []
+                    self.bot_trajecory[id_key].append(len(self.bot_trajecory))
+                    self.bot_trajecory[id_key].append([])
+            elif pg.Rect(self.clear_rect).collidepoint(mouse_pos):
+                self.bot_trajecory = {}
 
     def draw_map(self):
 
@@ -278,12 +292,19 @@ class map_description(object):
         ####################
 
         ######## Draw trajectory of chosen Duckiebot #######
-        if self.bot_trajecory:
-            if len(self.bot_trajecory) == 1:
-                self.bot_trajecory.append(self.bot_trajecory[0])
-            pg.draw.lines(self.screen_Map, WPURPLE, False, self.bot_trajecory, 4)
-            for pos in self.bot_trajecory:
-                pg.draw.circle(self.screen_Map, WPURPLE, pos, int(duckiebot_size*self.m2p))
+        for bot_id in self.bot_trajecory:
+            num = self.bot_trajecory[bot_id][0]
+            trajectory = self.bot_trajecory[bot_id][1]
+            if len(trajectory) == 1:
+                trajectory.append(trajectory[0])
+            if len(trajectory) > 1:
+                pg.draw.lines(self.screen_Map, TRAJECTORY_COLOR[len(TRAJECTORY_COLOR)%num], False, trajectory, 4)
+            for pos in trajectory:
+                pg.draw.circle(self.screen_Map, TRAJECTORY_COLOR[len(TRAJECTORY_COLOR)%num], pos, int(duckiebot_size*0.75*self.m2p))
+
+        ## Button for clear the trajecory
+        self.clear_rect = [self.frame_size, self.screen_height - self.frame_size -10 , 80, 30]
+        pg.draw.rect(self.screen, (255, 50, 50), self.clear_rect)
         ####################################################
 
     def draw_general_data(self):
