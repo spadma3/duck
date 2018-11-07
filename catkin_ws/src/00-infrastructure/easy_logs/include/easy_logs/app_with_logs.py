@@ -8,7 +8,7 @@ from .logs_db import get_all_resources, invalidate_log_cache_because_downloaded,
 from .logs_structure import PhysicalLog
 from .resource_desc import DTR, _create_file_uri
 
-__all__ = ['D8AppWithLogs']
+__all__ = ['D8AppWithLogs', 'download_if_necessary', 'get_log_if_not_exists']
 
 
 class D8AppWithLogs(D8App):
