@@ -16,3 +16,9 @@ log-full: check-environment
 	. ${DUCKIETOWN_ROOT}/set_ros_master.sh; \
         . ${DUCKIETOWN_ROOT}/set_vehicle_name.sh; \
 	rosbag record -a -o /media/logs/$(vehicle_name)_$$institution
+
+log-minimal-docker: check-environment
+	roslaunch duckietown make_log.launch veh:=$(vehicle_name)
+
+log-full-docker: check-environment
+	rosbag record -a -o /media/logs/$(vehicle_name)
