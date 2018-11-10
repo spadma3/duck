@@ -18,7 +18,7 @@ log-full: check-environment
 	rosbag record -a -o /media/logs/$(vehicle_name)_$$institution
 
 log-minimal-docker: check-environment
-	roslaunch duckietown make_log.launch veh:=$(vehicle_name)
+	roslaunch duckietown make_log_docker.launch veh:=$(vehicle_name)
 
 log-full-docker: check-environment
-	rosbag record -a -o /media/logs/$(vehicle_name)
+	rosbag record -a -o /logs/$(vehicle_name)
