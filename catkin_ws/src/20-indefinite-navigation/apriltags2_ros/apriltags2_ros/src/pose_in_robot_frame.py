@@ -112,14 +112,15 @@ class AprilTagPostProcesser(object):
     def callback(self, tag_detection_msg):
 
         # Define the transforms
-        veh_t_camxout = tr.translation_matrix((self.camera_x, self.camera_y, self.camera_z))
+        veh_t_camxout = np.array((self.camera_x, self.camera_y, self.camera_z))
         veh_R_camxout = tr.euler_matrix(0, self.camera_theta*np.pi/180, 0, 'rxyz')
-        veh_T_camxout = tr.concatenate_matrices(veh_t_camxout, veh_R_camxout)   # 4x4 Homogeneous Transform Matrix
+        veh_T_camxout = self.toHomegenousTransformation(veh_R_camxout, veh_t_camxout)  # 4x4 Homogeneous Transform Matrix
 
-        camxout_T_camzout = tr.euler_matrix(-np.pi/2,0,-np.pi/2,'rzyx')
-        veh_T_camzout = tr.concatenate_matrices(veh_T_camxout, camxout_T_camzout)
 
-        tagzout_T_tagxout = tr.euler_matrix(-np.pi/2, 0, np.pi/2, 'rxyz')
+        camxout_T_camzout = tr.euler_matrix(-np.pi/2,0,-np.pi/2,'rxyz')
+        veh_T_camzout = tr.concatenate_matrices(camxout_T_camzout, veh_T_camxout)
+
+        #tagzout_T_tagxout = tr.euler_matrix(-np.pi/2, 0, np.pi/2, 'rxyz')
 
         #Load translation
         detection = tag_detection_msg.detections[0]
@@ -128,21 +129,42 @@ class AprilTagPostProcesser(object):
         rot = detection.pose.pose.pose.orientation
         header = detection.pose.header
 
-        camzout_t_tagzout = tr.translation_matrix((trans.x*self.scale_x, trans.y*self.scale_y, trans.z*self.scale_z))
-        camzout_R_tagzout = tr.quaternion_matrix((rot.x, rot.y, rot.z, rot.w))
-        camzout_T_tagzout = tr.concatenate_matrices(camzout_t_tagzout, camzout_R_tagzout)
+        """
+        x: -0.00369811188967
+        y: 0.0011669218875
+        z: 0.181002888573
+      orientation:
+        x: 0.97931277696
+        y: -0.00501954642485
+        z: 0.200129473306
+        w: -0.029486996296
 
-        veh_T_tagxout = tr.concatenate_matrices(veh_T_camzout, camzout_T_tagzout, tagzout_T_tagxout)
+        """
+        """
+        #print "BEFORE TRANSFORM"
+        print "x: {} y: {} z: {} rot x: {} rot y: {} rot z: {}".format(trans.x,trans.y,trans.z, rot.x , rot.y , rot.z)
+        """
+
+        tagout_t_camzout = np.array((trans.x*self.scale_x, trans.y*self.scale_y, trans.z*self.scale_z))
+        tagout_R_camzout = tr.quaternion_matrix((rot.x, rot.y, rot.z, rot.w))
+        tagout_T_camzout = self.toHomegenousTransformation(tagout_R_camzout, tagout_t_camzout)
+        #camzout_T_tagout = tr.inverse_matrix(tagout_T_camzout)
+        camzout_T_tagout = tagout_T_camzout
+        veh_T_tagout = tr.concatenate_matrices(camzout_T_tagout, veh_T_camzout)
 
         # Overwrite transformed value
-        (trans.x, trans.y, trans.z) = tr.translation_from_matrix(veh_T_tagxout)
-        (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_matrix(veh_T_tagxout)
+        (trans.x, trans.y, trans.z) = tr.translation_from_matrix(veh_T_tagout)
+        (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_matrix(veh_T_tagout)
 
         rotx = tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[0] * 180 / np.pi
         roty = tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[1] * 180 / np.pi
         rotz = tr.euler_from_quaternion((rot.x, rot.y, rot.z, rot.w))[2] * 180 / np.pi
 
+
+        print "AFTER TRANSFORM"
         print "x: {} y: {} z: {} rot x: {} rot y: {} rot z: {}".format(trans.x,trans.y,trans.z, rotx , roty , rotz)
+
+
         """
         new_tag_data = RemapPose()
         new_tag_data.detections.append(AprilTagDetection(int(detection.id[0]),float(detection.size[0]),PoseStamped(header,Pose(trans,rot))))
@@ -150,6 +172,16 @@ class AprilTagPostProcesser(object):
         # Publish Message
         self.pub_postPros.publish(new_tag_data)
         """
+    def toHomegenousTransformation(self,M,t):
+        M = M[0:3,0:3]
+        t = np.transpose([t.copy()])
+
+        #print "M size: {}".format(M.shape)
+        #print "t size: {}".format(t.shape)
+        T_pre = np.concatenate((M, t), axis=1)
+        T = np.concatenate((T_pre,np.array([[0,0,0,1]]) ), axis=0)
+
+        return T
 
     #extract the camera motion from apriltags
     def cbTag(self, msg):
