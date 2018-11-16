@@ -80,6 +80,7 @@ def create_dtr_version_1(filename):
     url = dtu.create_hash_url(filename)
     urls.append(url)
 
+    # noinspection PyUnboundLocalVariable
     if 'ipfs' in hashes:
         url = 'file:///ipfs/%s' % Qm
         urls.append(url)
@@ -103,7 +104,7 @@ def create_dtr_version_1(filename):
     res['urls'] = urls
     res['desc'] = comments
 
-    dtu.logger.debug(dtu.yaml_dump(res))
+    # dtu.logger.debug(dtu.yaml_dump(res))
     return res
 
 
@@ -125,9 +126,28 @@ def _mime_for_filename(filename):
 
 
 def _create_file_uri(filename):
-    import socket
-    hostname = socket.gethostname()
     if not filename.startswith('/'):
         filename = os.path.join(os.getcwd(), filename)
-    uri = 'file://%s%s' % (hostname, filename)
+    uri_prefix = _file_uri_prefix()
+    uri = uri_prefix + filename
     return  uri
+
+def _file_uri_prefix():
+    import socket
+    hostname = socket.gethostname()
+    uri = 'file://%s' % (hostname)
+    return uri
+
+
+class NotLocalPath(Exception):
+    pass
+
+def get_local_filepath(uri):
+    ''' For a path file://hostPATH it returns PATH if it starts with this host name
+        otherwise raise ValueError()'''
+    uri_prefix = _file_uri_prefix()
+    if uri.startswith(uri_prefix):
+        return uri[len(uri_prefix):]
+    else:
+        raise NotLocalPath('Not current host: %s' % uri)
+

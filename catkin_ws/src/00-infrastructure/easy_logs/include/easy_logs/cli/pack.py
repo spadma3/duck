@@ -20,7 +20,7 @@ class Pack(D8AppWithLogs):
 
     """
 
-    cmd = 'rosrun easy_logs pack'
+    cmd = 'dt-logs-ipfs-pack'
 
     deploy_ipfs = False
 
@@ -103,7 +103,7 @@ def get_index():
 
 <p style='font-family:monospace'>
 @inproceedings{paull17duckietown,<br/>
-&nbsp; author = "Paull, Liam and Tani, Jacopo and Ahn, Heejin and Alonso-Mora, Javier and Carlone, Luca and Cap, Michal and Chen, Yu Fan and Choi, Changhyun and Dusek, Jeff and Hoehener, Daniel and Liu, Shih-Yuan and Novitzky, Michael and Okuyama, Igor Franzoni and Pazis, Jason and Rosman, Guy and Varricchio, Valerio and Wang, Hsueh-Cheng and Yershov, Dmitry and Zhao, Hang and Benjamin, Michael and Carr, Christopher and Zuber, Maria and Karaman, Sertac and Frazzoli, Emilio and Vecchio, Domitilla Del and Rus, Daniela and How, Jonathan and Leonard, John and Censi, Andrea",<bf/>
+&nbsp; author = "Paull, Liam and Tani, Jacopo and Ahn, Heejin and Alonso-Mora, Javier and Carlone, Luca and Cap, Michal and Chen, Yu Fan and Choi, Changhyun and Dusek, Jeff and Hoehener, Daniel and Liu, Shih-Yuan and Novitzky, Michael and Okuyama, Igor Franzoni and Pazis, Jason and Rosman, Guy and Varricchio, Valerio and Wang, Hsueh-Cheng and Yershov, Dmitry and Zhao, Hang and Benjamin, Michael and Carr, Christopher and Zuber, Maria and Karaman, Sertac and Frazzoli, Emilio and Vecchio, Domitilla Del and Rus, Daniela and How, Jonathan and Leonard, John and Censi, Andrea",<br/>
 &nbsp;     title = "Duckietown: an Open and Inexpensive and Flexible Platform for Autonomy Education and Research",<br/>
 &nbsp; url = "http://duckietown.mit.edu/",<br/>
 &nbsp; booktitle = "IEEE International Conference on Robotics and Automation (ICRA)",<br/>

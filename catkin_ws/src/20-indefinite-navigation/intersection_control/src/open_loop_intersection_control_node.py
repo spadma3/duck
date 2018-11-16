@@ -6,6 +6,15 @@ from std_msgs.msg import String, Int16 #Imports msg
 import copy
 
 class OpenLoopIntersectionNode(object):
+
+
+    def updateParams(self,event):
+        self.maneuvers[0] = self.getManeuver("turn_left")
+        self.maneuvers[1] = self.getManeuver("turn_forward")
+        self.maneuvers[2] = self.getManeuver("turn_right")
+
+
+
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
@@ -15,6 +24,9 @@ class OpenLoopIntersectionNode(object):
         self.lane_pose = LanePose()
         self.stop_line_reading = StopLineReading()
 
+
+
+    
         self.trajectory_reparam = rospy.get_param("~trajectory_reparam",1)
         self.pub_cmd = rospy.Publisher("~car_cmd",Twist2DStamped,queue_size=1)
         self.pub_done = rospy.Publisher("~intersection_done",BoolStamped,queue_size=1)
@@ -40,14 +52,17 @@ class OpenLoopIntersectionNode(object):
         self.sub_lane_pose = rospy.Subscriber("~lane_pose", LanePose, self.cbLanePose, queue_size=1)
         self.sub_stop_line = rospy.Subscriber("~stop_line_reading", StopLineReading, self.cbStopLine, queue_size=1)
 
+        self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+
+
     def cbSrvLeft(self,req):
         self.trigger(0)
         return EmptyResponse()
-    
+
     def cbSrvForward(self,req):
         self.trigger(1)
-        return EmptyResponse()        
-    
+        return EmptyResponse()
+
     def cbSrvRight(self,req):
         self.trigger(2)
         return EmptyResponse()
@@ -55,7 +70,7 @@ class OpenLoopIntersectionNode(object):
 
     def getManeuver(self,param_name):
         param_list = rospy.get_param("~%s"%(param_name))
-        # rospy.loginfo("PARAM_LIST:%s" %param_list)        
+        # rospy.loginfo("PARAM_LIST:%s" %param_list)
         maneuver = list()
         for param in param_list:
             maneuver.append((param[0],Twist2DStamped(v=param[1],omega=param[2])))
@@ -72,7 +87,7 @@ class OpenLoopIntersectionNode(object):
 
     def cbStopLine(self,msg):
         self.stop_line_reading = msg
-                
+
         # TODO remove in lane it is now handled by the logic_gate_node
     def cbInLane(self,msg):
         self.in_lane = msg.data
@@ -95,7 +110,7 @@ class OpenLoopIntersectionNode(object):
         msg.data = True
         self.pub_done.publish(msg)
         rospy.loginfo("[%s] interesction_done!" %(self.node_name))
-    
+
     def update_trajectory(self,turn_type):
         rospy.loginfo("updating trajectory: distance from stop_line=%s, lane_pose_phi = %s", self.stop_line_reading.stop_line_point.x,  self.lane_pose.phi)
         first_leg = (self.maneuvers[turn_type]).pop(0)
@@ -153,7 +168,7 @@ if __name__ == '__main__':
     # Create the NodeName object
     node = OpenLoopIntersectionNode()
 
-    # Setup proper shutdown behavior 
+    # Setup proper shutdown behavior
     rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
     rospy.spin()

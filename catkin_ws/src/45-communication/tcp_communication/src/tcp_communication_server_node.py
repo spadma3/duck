@@ -60,7 +60,6 @@ class TCPCommunicationServerNode(object):
             if rospy.has_param("~" + data[2]):
                 response = rospy.get_param("~" + data[2])
             else:
-                rospy.logdebug("could not get paramter")
                 response = None
 
         # Send response (either variable or confirmation)
@@ -69,7 +68,7 @@ class TCPCommunicationServerNode(object):
 
 
     def setupParams(self):
-        self.IP = self.setupParam("~IP", "192.168.1.182") #whats this IP?
+        self.IP = self.setupParam("~IP", "192.168.1.222")
         self.PORT = self.setupParam("~PORT", 5678)
         self.BUFFER_SIZE = self.setupParam("~BUFFER_SIZE", 1024)
 

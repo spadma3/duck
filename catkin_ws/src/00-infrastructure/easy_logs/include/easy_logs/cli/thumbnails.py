@@ -1,13 +1,15 @@
-from collections import OrderedDict
 import os
+from collections import OrderedDict
+
+import numpy as np
+
+from easy_logs.easy_logs_summary_imp import format_logs
+from quickapp import QuickApp
 
 import duckietown_utils as dtu
-from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
-import numpy as np
-from quickapp import QuickApp
 import rosbag
-
-from .easy_logs_summary_imp import format_logs
+from easy_logs import get_local_bag_file
+from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
 
 __all__ = ['MakeThumbnails']
 
@@ -17,7 +19,7 @@ class MakeThumbnails(D8AppWithLogs, QuickApp):
         Creates thumbnails for the image topics in a log.
     """
 
-    cmd = 'dt-easy_logs-thumbnails'
+    cmd = 'dt-logs-thumbnails'
 
     usage = """
 
@@ -29,16 +31,29 @@ Use like this:
 """
 
     def define_options(self, params):
-        params.add_int('max_images', default=20,
-                       help="Max images to extract")
-        params.add_flag('write_frames',
-                        help='Also write each frame in a separate file')
-        params.add_flag('all_topics',
-                        help='If set, plots all topics, in addition to the camera.')
-
+        params.add_int('max_images', default=20, help="Max images to extract")
+        params.add_flag('write_frames', help='Also write each frame in a separate file')
+        params.add_flag('all_topics', help='If set, plots all topics, in addition to the camera.')
+        params.add_string('outdir', help='Output directory', default=None)
         params.accept_extra()
 
+        params.add_flag('compmake', help='Activate compmake caching')
+
+    def go(self):
+        options = self.get_options()
+        if not options.compmake:
+            self.debug('Because --compmake not given, simulating --reset.')
+            options.reset = True
+
+        super(MakeThumbnails, self).go()
+
     def define_jobs_context(self, context):
+        outdir = self.options.outdir
+        if outdir is None:
+            outdir = '.'
+            msg = 'Option "--outdir" not passed. Will copy to current directory.'
+            self.warn(msg)
+
         max_images = self.options.max_images
         only_camera = not self.options.all_topics
         write_frames = self.options.write_frames
@@ -66,28 +81,24 @@ Use like this:
         self.info(s)
 
         od = self.options.output
-        # if all the logs are different use those as ids
-#        names = [_.log_name for _ in logs_valid.values()]
-#        use_names = len(set(names)) == len(names)
 
         for log_name, log in logs_valid.items():
-#            n = log.log_name if use_names else str(i)
             out = os.path.join(od, log_name)
 
-            log_downloaded = context.comp(download_if_necessary, log)
+            log_downloaded = download_if_necessary(log)
 
             context.comp(work, log_downloaded, out, max_images, only_camera=only_camera,
                          write_frames=write_frames, job_id=log_name)
 
 
 def work(log, outd, max_images, only_camera, write_frames):
-    filename = log.filename
-    dtu.logger.info(filename)
+    filename = get_local_bag_file(log)
     t0 = log.t0
     t1 = log.t1
 
     MIN_HEIGHT = 480
 
+    # noinspection PyUnboundLocalVariable
     bag = rosbag.Bag(filename)
 
     main = dtu.get_image_topic(bag)
@@ -149,4 +160,3 @@ def work(log, outd, max_images, only_camera, write_frames):
         if topic == main:
             fn = outd + '.thumbnails.jpg'
             dtu.write_rgb_as_jpg(grid, fn)
-

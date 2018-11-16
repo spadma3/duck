@@ -1,0 +1,4 @@
+  <launch>
+    <node pkg="fleet_planning" type="location_to_graph_mapping.py"
+          name="location_to_graph_mapping" output="screen" />
+  </launch>

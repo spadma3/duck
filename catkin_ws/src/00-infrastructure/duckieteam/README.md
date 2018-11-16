@@ -5,7 +5,7 @@
 
 ## `create-machines` {#duckieteam-create-machines}
 
-This program creates the machines file, using the data contained in [the scuderia database](#scuderia).
+This program creates the machines file, using the data contained in [the scuderia database](+software_devel#scuderia).
 
 Run as follows:
 
