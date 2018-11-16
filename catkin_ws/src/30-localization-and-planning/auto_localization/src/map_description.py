@@ -213,7 +213,7 @@ class map_description(object):
 
         for id_key in self.all_duckiebots:
             pixel_x = self.all_duckiebots[id_key]['x'] * self.m2p
-            pixel_y = self.all_duckiebots[id_key]['y'] * self.m2p * -1 # To match the coordination of pygame
+            pixel_y = self.all_duckiebots[id_key]['y'] * self.m2p * -1 + len(self.map_tiles_img)*self.block_size # To match the coordination of pygame
             range_accept = 25
             if (pixel_x-range_accept <= mouse_x <= pixel_x+range_accept) and (pixel_y-range_accept <= mouse_y <= pixel_y+range_accept):
                 self.RDA_data['bot_id'] = id_key
