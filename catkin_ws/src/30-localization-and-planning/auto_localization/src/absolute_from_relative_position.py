@@ -36,6 +36,7 @@ from datetime import datetime
 import tf
 import tf.transformations as tr
 import global_pose_functions as gposf
+import math
 
 ## package for list sorting
 ##from operator import itemgetter
@@ -47,7 +48,7 @@ from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, Glob
 # import message format of the fixed tags
 # import message format of the relative_positions
 
-
+TILE_SIZE = 0.624 - 0.021 # in meter
 
 class global_localization(object):
     """ """
@@ -58,6 +59,9 @@ class global_localization(object):
 
         # Load map file path sys.argv[1]
         # self.map_filename = sys.argv[1]
+
+        # A flag to decide if it's a manual calibration map or automatic calibration map
+        self.manual = None
 
         # Load map file path with ros param set in launch file
         self.map_filename = rospy.get_param("~map") + ".yaml"
@@ -160,13 +164,32 @@ class global_localization(object):
             # Save Transformation Matrix of each fixed Tag into a dictionary
             #tag_tf_mat = gposf.create_tf_matrix(trans_tag_abs, rot_tag_abs)
 
-            tag_tf_mat = fixed_tag['transformation']
-
+            # Here we check if the map is a manually generated map or an automatically generated map
+        if 'transformation' in fixed_tag:
+            if self.manual is None:
+                self.manual = False
+            elif self.manual is True:
+                # Some format are auto-generated format but some are manual-generated format.
+                rospy.loginfo('[%s] The map format is inconsistent and thus incorrect. Check out README or Duckiebook for more information' % (self.node_name))
+                rospy.signal_shutdown("The map format is inconsistent and thus incorrect. Check out README or Duckiebook for more information")
             # since now we save the transformation directily
-            self.fixed_tags['Tag'+str(tag_id)] = tag_tf_mat
+            self.fixed_tags['Tag'+str(tag_id)] = fixed_tag['transformation']
+        elif 'translation' in fixed_tag and 'orientation' in fixed_tag and 'tile' in fixed_tag:
+            if self.manual is None:
+                self.manual = True
+            elif self.manual is False:
+                # Some format are auto-generated format but some are manual-generated format.
+                rospy.loginfo('[%s] The map format is inconsistent and thus incorrect. Check out README or Duckiebook for more information' % (self.node_name))
+                rospy.signal_shutdown("The map format is inconsistent and thus incorrect. Check out README or Duckiebook for more information")
+            # since now we save the transformation directily
+            self.fixed_tags['Tag'+str(tag_id)] = [fixed_tag['translation'], fixed_tag['orientation'], fixed_tag['tile']]
+        else:
+            # The format of map is simply incorrect.
+            rospy.loginfo('[%s] The map format is incorrect. Check out README or Duckiebook for more information' % (self.node_name))
+            rospy.signal_shutdown("The map format is incorrect. Check out README or Duckiebook for more information")
 
-            #print "Fixed Tag", tag_id, " at Position: ", trans_tag_abs, " and Rotation: ", rot_tag_abs
-            print "Fixed Tag", tag_id, " transformation: ", tag_tf_mat
+        #print "Fixed Tag", tag_id, " at Position: ", trans_tag_abs, " and Rotation: ", rot_tag_abs
+        print "Fixed Tag", tag_id, " transformation: ", self.fixed_tags['Tag'+str(tag_id)]
 
 
 
@@ -229,7 +252,7 @@ class global_localization(object):
 
 ### ------------------- ------- MAIN -------------------------------#####
 if __name__ == '__main__':
-    rospy.init_node('global_localization',anonymous=False)
+    rospy.init_node('global_localization',anonymous=False, disable_signals=True)
     node = global_localization()
     rospy.spin()
 
