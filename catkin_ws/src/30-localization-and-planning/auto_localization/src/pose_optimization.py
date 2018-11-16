@@ -50,6 +50,7 @@ class BotOptimizedPose(object):
         self.current_time_stamp = 0 # Current time stamp
         # The variable for output
         self.optimized_pose = GlobalPose()
+        self.optimized_pose.bot_id = bot_id
 
         self.time_stamp_width = 0.02 # unit: s. The width of time that seen as the same time stamp. Ex: current_time_stamp == current_time_stamp-time_stamp_width
 
