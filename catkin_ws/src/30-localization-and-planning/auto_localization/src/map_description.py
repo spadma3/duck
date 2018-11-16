@@ -347,7 +347,7 @@ class map_description(object):
 
             # Draw Duckiebot on the map
             mid_x = pose_x * self.m2p
-            mid_y = pose_y * self.m2p
+            mid_y = pose_y * self.m2p + len(self.map_tiles_img)*self.block_size
             draw_x = mid_x - int(self.bot_img.get_width()/2)
             draw_y = mid_y - int(self.bot_img.get_width()/2)
             pg.draw.circle(self.screen_Map, DUCKIEBOT_COLOR, [int(mid_x), int(mid_y)], int(duckiebot_size*self.m2p)) # Use a circle to represent Duckiebot
