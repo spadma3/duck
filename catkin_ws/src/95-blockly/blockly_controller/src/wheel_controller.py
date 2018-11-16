@@ -30,7 +30,7 @@ class BlocklyWheelController(object):
         self.last_pub_cmd = None
         self.last_pub_time = rospy.Time.now().secs
         # create publisher || TODO: hard-coded topic
-        self.pub_car_cmd = rospy.Publisher("/duckiebot/joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
+        self.pub_car_cmd = rospy.Publisher("joy_mapper_node/car_cmd", Twist2DStamped, queue_size=1)
         # create subscriber
         self.sub_json = rospy.Subscriber(self.json_cmd_topic, String, self.json_msg_cb, queue_size=1)
 
