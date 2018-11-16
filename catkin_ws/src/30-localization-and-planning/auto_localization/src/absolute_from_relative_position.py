@@ -36,6 +36,7 @@ from datetime import datetime
 import tf
 import tf.transformations as tr
 import global_pose_functions as gposf
+import math
 
 ## package for list sorting
 ##from operator import itemgetter
@@ -47,7 +48,7 @@ from duckietown_msgs.msg import RemapPoseArray, RemapPose, GlobalPoseArray, Glob
 # import message format of the fixed tags
 # import message format of the relative_positions
 
-
+TILE_SIZE = 0.624 - 0.021 # in meter
 
 class global_localization(object):
     """ """
@@ -58,6 +59,9 @@ class global_localization(object):
 
         # Load map file path sys.argv[1]
         # self.map_filename = sys.argv[1]
+
+        # A flag to decide if it's a manual calibration map or automatic calibration map
+        self.manual = None
 
         # Load map file path with ros param set in launch file
         self.map_filename = rospy.get_param("~map") + ".yaml"
@@ -146,7 +150,7 @@ class global_localization(object):
 
     # reads data from the map file
     def load_map_info(self):
-        map_data = yaml.load(file(rospkg.RosPack().get_path('auto_localization')+"/config/csv"+self.map_filename,'r')) # Need RosPack get_path to find the file path
+        map_data = yaml.load(file(rospkg.RosPack().get_path('auto_localization')+"/config/"+self.map_filename,'r')) # Need RosPack get_path to find the file path
         print "Loaded map from file", self.map_filename, "\nLoading Fixed Tags.."
 
         self.fixed_tags = {}
@@ -160,13 +164,32 @@ class global_localization(object):
             # Save Transformation Matrix of each fixed Tag into a dictionary
             #tag_tf_mat = gposf.create_tf_matrix(trans_tag_abs, rot_tag_abs)
 
-            tag_tf_mat = fixed_tag['transformation']
-
-            # since now we save the transformation directily
-            self.fixed_tags['Tag'+str(tag_id)] = tag_tf_mat
+            # Here we check if the map is a manually generated map or an automatically generated map
+            if 'transformation' in fixed_tag:
+                if self.manual is None:
+                    self.manual = False
+                elif self.manual is True:
+                    # Some format are auto-generated format but some are manual-generated format.
+                    rospy.loginfo('[%s] The map format is inconsistent and thus incorrect. Check out README or Duckiebook for more information' % (self.node_name))
+                    rospy.signal_shutdown("The map format is inconsistent and thus incorrect. Check out README or Duckiebook for more information")
+                # since now we save the transformation directily
+                self.fixed_tags['Tag'+str(tag_id)] = fixed_tag['transformation']
+            elif 'translation' in fixed_tag and 'orientation' in fixed_tag and 'tile' in fixed_tag:
+                if self.manual is None:
+                    self.manual = True
+                elif self.manual is False:
+                    # Some format are auto-generated format but some are manual-generated format.
+                    rospy.loginfo('[%s] The map format is inconsistent and thus incorrect. Check out README or Duckiebook for more information' % (self.node_name))
+                    rospy.signal_shutdown("The map format is inconsistent and thus incorrect. Check out README or Duckiebook for more information")
+                # since now we save the transformation directily
+                self.fixed_tags['Tag'+str(tag_id)] = [fixed_tag['translation'], fixed_tag['orientation'], fixed_tag['tile']]
+            else:
+                # The format of map is simply incorrect.
+                rospy.loginfo('[%s] The map format is incorrect. Check out README or Duckiebook for more information' % (self.node_name))
+                rospy.signal_shutdown("The map format is incorrect. Check out README or Duckiebook for more information")
 
             #print "Fixed Tag", tag_id, " at Position: ", trans_tag_abs, " and Rotation: ", rot_tag_abs
-            print "Fixed Tag", tag_id, " transformation: ", tag_tf_mat
+            print "Fixed Tag", tag_id, " transformation: ", self.fixed_tags['Tag'+str(tag_id)]
 
 
 
@@ -190,29 +213,59 @@ class global_localization(object):
 
     def transform_bot_position(self, local_pose):
 
-        trans_bot_tag, rot_bot_tag = gposf.get_trans_rot_from_pose(local_pose.posestamped.pose)
+        if self.manual is False:
+            trans_bot_tag, rot_bot_tag = gposf.get_trans_rot_from_pose(local_pose.posestamped.pose)
 
-        # TODO: robostify in case fixed Tag is detected which is not in the database
-        #       raise exception or error
+            # TODO: robostify in case fixed Tag is detected which is not in the database
+            #       raise exception or error
 
-        # mat_tag_abs = self.fixed_tags["Tag"+str(local_pose.frame_id)]
-        # mat_bot_tag = gposf.create_tf_matrix(trans_bot_tag,rot_bot_tag)
-        #
-        # # absolute position of the bot
-        # mat_bot_abs = gposf.absolute_from_relative_position(mat_bot_tag, mat_tag_abs)
+            # mat_tag_abs = self.fixed_tags["Tag"+str(local_pose.frame_id)]
+            # mat_bot_tag = gposf.create_tf_matrix(trans_bot_tag,rot_bot_tag)
+            #
+            # # absolute position of the bot
+            # mat_bot_abs = gposf.absolute_from_relative_position(mat_bot_tag, mat_tag_abs)
 
-        # 0709 Eric move the order of matrix multiplication
-        mat_abs_tag = self.fixed_tags["Tag"+str(local_pose.frame_id)]
-        mat_tag_bot = gposf.create_tf_matrix(trans_bot_tag,rot_bot_tag)
+            # 0709 Eric move the order of matrix multiplication
+            mat_abs_tag = self.fixed_tags["Tag"+str(local_pose.frame_id)]
+            mat_tag_bot = gposf.create_tf_matrix(trans_bot_tag,rot_bot_tag)
 
-        # absolute position of the bot
-        mat_bot_abs = gposf.absolute_from_relative_position(mat_abs_tag, mat_tag_bot)
+            # absolute position of the bot
+            mat_bot_abs = gposf.absolute_from_relative_position(mat_abs_tag, mat_tag_bot)
 
-        # projected Position
-        x,y,theta = gposf.project_position_to_2D_plane(mat_bot_abs)
+            # projected Position
+            x,y,theta = gposf.project_position_to_2D_plane(mat_bot_abs)
 
 
-        return x, y, theta
+            return x, y, theta
+
+        elif self.manual is True:
+            # First step: Proect the pose to 2D surface (w.r.t the local pose)
+
+            bot_x = local_pose.posestamped.pose.position.x
+            bot_y = local_pose.posestamped.pose.position.y
+            o = local_pose.posestamped.pose.orientation
+            qua_mat = [o.x, o.y, o.z, o.w]
+            roll, pitch, yaw = tr.euler_from_quaternion(qua_mat)
+            bot_theta = yaw
+
+            # Second step: Transform from local pose to global pose
+
+            trans, rots, tile = self.fixed_tags['Tag'+str(local_pose.frame_id)]
+            rots = rots * math.pi
+            ## Doing 2D pose transformation (What you learn in hight school)
+            ## Do rotation first
+            bot_theta_after = bot_theta - rots
+            bot_x_after = bot_x*math.cos(-1*rots) + bot_y*math.sin(-1*rots)
+            bot_y_after = -1*bot_x*math.sin(-1*rots) + bot_y*math.cos(-1*rots)
+            ## Then do the transformation of point
+            # to local tile orgin + trans
+            # then to global origin TILE_SIZE*tile
+            bot_x_after = bot_x_after + trans[0]*0.01 + TILE_SIZE*tile[0]
+            bot_y_after = bot_y_after + trans[1]*0.01 + TILE_SIZE*tile[1]
+
+            return bot_x_after, bot_y_after, bot_theta_after
+        else:
+            rospy.signal_shutdown("self.manual is not set. There might be errors in your map format.")
 
 
 
@@ -229,7 +282,7 @@ class global_localization(object):
 
 ### ------------------- ------- MAIN -------------------------------#####
 if __name__ == '__main__':
-    rospy.init_node('global_localization',anonymous=False)
+    rospy.init_node('global_localization',anonymous=False, disable_signals=True)
     node = global_localization()
     rospy.spin()
 

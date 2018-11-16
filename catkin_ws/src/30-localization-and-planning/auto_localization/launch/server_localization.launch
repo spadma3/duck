@@ -8,8 +8,6 @@
 
     <arg name="GUI" default="true" doc="Show GUI or not"/>
 
-    <arg name="tile" default="true" doc="Use tile related way to do global localization"/>
-
     <include file="$(find auto_localization)/launch/subfserver.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="config" value="$(arg config)"/>
@@ -23,7 +21,6 @@
       <arg name="veh" value="$(arg veh)"/>
       <arg name="map" value="$(arg map)"/>
       <arg name="output" value="$(arg map)"/>
-      <arg name="tile" value="$(arg tile)"/>
     </include>
 
     <remap from="bot_global_poses" to="absolute_from_relative_position/bot_global_poses" />
