@@ -25,6 +25,11 @@ def loop():
     global last_ms, time_to_wait, last_ms_p
     veh_standing = True
 
+    ## Initial Joystick
+    pygame.joystick.init()
+    my_joy = pygame.joystick.Joystick(0)
+    my_joy.init()
+
     while True:
 
         ms_now = int(round(time.time() * 1000))
@@ -57,21 +62,36 @@ def loop():
             screen.blit(dpad_l, (0,0))
             msg.axes[3] += speed_norm
 
+        if my_joy.get_axis(3) < -0.1:
+            screen.blit(dpad_l, (0,0))
+            msg.axes[3] -= my_joy.get_axis(3)*speed_norm
+
         # drive right
         if keys[pygame.K_RIGHT]:
             screen.blit(dpad_r, (0,0))
             msg.axes[3] -= speed_norm
+
+        if my_joy.get_axis(3) > 0.1:
+            screen.blit(dpad_r, (0,0))
+            msg.axes[3] -= my_joy.get_axis(3)*speed_norm
 
         # drive forward
         if keys[pygame.K_UP]:
             screen.blit(dpad_f, (0,0))
             msg.axes[1] += speed_tang
 
+        if my_joy.get_axis(1) < -0.1:
+            screen.blit(dpad_f, (0,0))
+            msg.axes[1] -= my_joy.get_axis(1)*speed_tang
+
         # drive backwards
         if keys[pygame.K_DOWN]:
             screen.blit(dpad_b, (0,0))
             msg.axes[1] -= speed_tang
 
+        if my_joy.get_axis(1) > 0.1:
+            screen.blit(dpad_b, (0,0))
+            msg.axes[1] -= my_joy.get_axis(1)*speed_tang
 
 
         # activate line-following aka autopilot
