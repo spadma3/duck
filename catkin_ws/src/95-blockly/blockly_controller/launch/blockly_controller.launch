@@ -1,0 +1,24 @@
+<launch>
+	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
+	<arg name="local" default="false" doc="true for running on laptop. false for running on vehicle."/>
+
+	<arg name="pkg_name" value="blockly_controller"/>
+	<arg name="json_cmd_topic" value="/blockly_drive_json_cmd"/>
+
+	<arg name="config" default="baseline" doc="Specify a config."/>
+	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
+
+	<!-- Run on local (laptop) -->
+	<node if="$(arg local)" ns="$(arg veh)" pkg="$(arg pkg_name)" type="wheel_controller.py" name="blockly_wheel_controller" output="screen">
+		<param name="json_cmd_topic" value="$(arg json_cmd_topic)"/>
+		<rosparam command="load" file="$(find duckietown)/config/$(arg config)/joy_mapper/joy_mapper_node/$(arg param_file_name).yaml"/>
+	</node>
+
+	<!-- Run on remote (vehicle) -->
+	<include unless="$(arg local)" file="$(find duckietown)/machines"/>
+	<node unless="$(arg local)" ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="wheel_controller.py" name="blockly_wheel_controller" output="screen">
+		<param name="json_cmd_topic" value="$(arg json_cmd_topic)"/>
+		<rosparam command="load" file="$(find duckietown)/config/$(arg config)/joy_mapper/joy_mapper_node/$(arg param_file_name).yaml"/>
+	</node>
+
+</launch>
