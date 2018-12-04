@@ -1,6 +1,9 @@
 #!/bin/bash
 # New policy: DUCKIETOWN_ROOT is implicit in the choice of running this script
 
+sudo service dbus start
+sudo service avahi-daemon start
+
 [ -z "$HOSTNAME"        ] && { echo -e "\n\nThe variable HOSTNAME is not set. I need this info for setting up ROS. \n\n\n\n"; return 2;       }
 
 # Do not compile Lisp messages
