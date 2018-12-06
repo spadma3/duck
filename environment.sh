@@ -2,6 +2,9 @@
 #[ -z "$DUCKIETOWN_ROOT" ] && { echo "Need to set DUCKIETOWN_ROOT - configuration is invalid (!)";  }
 [ -z "$HOSTNAME"        ] && { echo "Need to set HOSTNAME.";        }
 
+sudo service dbus start
+sudo service avahi-daemon start
+
 # Do not compile Lisp messages
 # XXX: not sure if this is the place to put this.
 export ROS_LANG_DISABLE=gennodejs:geneus:genlisp
