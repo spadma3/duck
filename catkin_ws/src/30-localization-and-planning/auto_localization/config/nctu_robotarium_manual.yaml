@@ -317,8 +317,8 @@ fixed_tags:
   tile: [7,11]
 - id: 378
   orientation: 0
-  translation: [50,40]
-  tile: [7,10]
+  translation: [0,40]
+  tile: [7,9]
 - id: 376
   orientation: 0
   translation: [ 0, 0]
@@ -347,10 +347,6 @@ fixed_tags:
   orientation: 0
   translation: [0, 0]
   tile: [9, 9]
-- id: 302
-  orientation: 0
-  translation: [0, 25]
-  tile: [0,2]
 - id: 393
   orientation: 0
   translation: [0,0]
@@ -379,10 +375,10 @@ fixed_tags:
   orientation: 0
   translation: [ 40, 0]
   tile: [3, 8]
-- id: 395
+- id: 302
   orientation: 0
-  translation: [ 0, 45]
-  tile: [0, 6]
+  translation: [0, 25]
+  tile: [0,2]
 - id: 303
   orientation: 0
   translation: [ 0, 45]
@@ -427,14 +423,18 @@ fixed_tags:
   orientation: 0
   translation: [ 0, 0]
   tile: [3, 2]
-- id: 379
-  orientation: 0
-  translation: [ 0, 0]
-  tile: [1, 2]
 - id: 385
   orientation: 0
   translation: [ 0, 0]
   tile: [2, 1]
+- id: 395
+  orientation: 0
+  translation: [ 0, 40]
+  tile: [1, 0]
+- id: 379
+  orientation: 0
+  translation: [ 0, 40]
+  tile: [1, 2]
 - id: 329
   orientation: 0
   translation: [ 0, 0]
