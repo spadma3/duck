@@ -1,4 +1,5 @@
 from abc import abstractmethod
+
 import duckietown_utils as dtu
 from easy_logs.app_with_logs import D8AppWithLogs
 
@@ -25,5 +26,7 @@ class GenericLogDisplay(D8AppWithLogs):
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
+        # for k in logs.values():
+        #     print yaml.dump(k)
         self.info('Found %d logs.' % len(logs))
         self.show_info(logs)

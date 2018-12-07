@@ -131,3 +131,11 @@ RUN apt-get install -y  mplayer mencoder ffmpeg
 
 
 # Other stuff for Duckiebot / duckietop
+
+
+RUN apt-get install -y clang
+
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash
+RUN apt-get update
+RUN apt-get install -y nodejs
+RUN npm install MathJax-node jsdom@9.3 less

@@ -7,7 +7,7 @@ This package contains the necessary functions to communicate between different D
 
 ## How to use this package
 
-Start a TCP server on any computer / Duckiebot with ROS. We will use the standard IP 192.168.1.222 with the PORT 5678. You are able to change those settings in the coresponding yaml files. Do not forget to bind this IP to the computer on your router. 
+Start a TCP server on any computer / Duckiebot with ROS. We will use the standard IP 192.168.1.222 with the PORT 5678. You are able to change those settings in the coresponding yaml files. Do not forget to bind this IP to the computer on your router.
 
     make tcp-server
 
@@ -16,7 +16,7 @@ To use the client (the communication on every Duckiebot), you need to add the tc
 Your code needs to import tcp_communication from duckietown_utils
 
     from duckietown_utils import tcp_communication
-    
+
 tcp_communication contains the following functions:
 
 | purpose      | function definition                                 |
@@ -43,7 +43,7 @@ def someFunction():
       print("someVariable1 successfully set.")
   elif success == "ERROR":
       print("Value of someVariable1 is too long to fit insize BUFFER_SIZE.")
-      
+
   # Get value of someVariable2
   val = tcp_communication.getVariable("someVariable2")
 

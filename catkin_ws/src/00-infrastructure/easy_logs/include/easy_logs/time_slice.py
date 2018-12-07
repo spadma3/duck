@@ -1,4 +1,5 @@
 from collections import OrderedDict
+
 import duckietown_utils as dtu
 
 __all__ = [
@@ -31,13 +32,13 @@ class MakeTimeSlice(dtu.Spec):
         return matches
 
     def transform(self, id_log, log):
-#        if not log.valid:
-#            # Not sure this is the right thing to do
-#            print('log not valid')
-#            return id_log, log
+        #        if not log.valid:
+        #            # Not sure this is the right thing to do
+        #            print('log not valid')
+        #            return id_log, log
         u0 = log.t0
         u1 = log.t1
-        assert (u0 is not None) and  (u1 is not None), log
+        assert (u0 is not None) and (u1 is not None), log
         assert u0 <= u1
         if self.t0 is not None:
             new_start = u0 + self.t0
@@ -49,10 +50,10 @@ class MakeTimeSlice(dtu.Spec):
             new_end = u1
         length = new_end - new_start
 
-#         A = '%d'%self.t0*100 if self.t0 is not None else "START"
-#         B = '%d'%self.t1*100 if self.t1 is not None else "END"
-#
-#         id_log2 = id_log + '_from%sto%s' % (A,B)
+        #         A = '%d'%self.t0*100 if self.t0 is not None else "START"
+        #         B = '%d'%self.t1*100 if self.t1 is not None else "END"
+        #
+        #         id_log2 = id_log + '_from%sto%s' % (A,B)
         A = '%d' % (new_start * 100)
         B = '%d' % (new_end * 100)
 

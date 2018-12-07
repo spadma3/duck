@@ -11,8 +11,6 @@ class DuckietownConstants(object):
     DUCKIETOWN_DATA_variable = 'DUCKIETOWN_DATA'
     DUCKIETOWN_CONFIG_SEQUENCE_variable = 'DUCKIETOWN_CONFIG_SEQUENCE'
 
-#    default_download_dir = '/tmp/duckietown-download'
-
     # The name of a hypothetical robot used in the unit tests.
     ROBOT_NAME_FOR_TESTS = 'robbie'
 

@@ -18,17 +18,27 @@ add_message_files(
   FILES
   CarControl.msg
   CoordinationSignal.msg
+  CoordinationSignalETHZ17.msg
   DuckieSensor.msg
   LanePose.msg
+
+  IntersectionPose.msg
+  IntersectionPoseImg.msg
+  IntersectionPoseImgDebug.msg
+
+  TurnIDandType.msg
 #  LEDControl.msg
   LEDDetection.msg
+  MaintenanceState.msg
   LEDDetectionArray.msg
   LEDDetectionDebugInfo.msg
   WheelsCmd.msg
   WheelsCmdStamped.msg
   Pose2DStamped.msg
   SignalsDetection.msg
+  SignalsDetectionETHZ17.msg
   Twist2DStamped.msg
+  Twist2DStampedETHZ17.msg
   AprilTagDetection.msg
   AprilTagDetectionArray.msg
   AprilTagsWithInfos.msg
@@ -46,6 +56,7 @@ add_message_files(
   SceneSegments.msg
   SourceTargetNodes.msg
   CoordinationClearance.msg
+  CoordinationClearanceETHZ17.msg
 #  IntersectionDetection.msg
 #  CoordinationSignal.msg
 #  TrafficLightDetection.msg
@@ -54,10 +65,12 @@ add_message_files(
 #  VehicleDetection.msg
   FSMState.msg
   BoolStamped.msg
+  BoolStampedETHZ17.msg
   StopLineReading.msg
   LEDInterpreter.msg
   AntiInstagramHealth.msg
   AntiInstagramTransform.msg
+  AntiInstagramTransform_CB.msg
   KinematicsWeights.msg
   KinematicsParameters.msg
   ThetaDotSample.msg
@@ -68,7 +81,6 @@ add_message_files(
   ObstacleImageDetectionList.msg
   ObstacleProjectedDetection.msg
   ObstacleProjectedDetectionList.msg
-  ActuatorParameters.msg
 
 )
 

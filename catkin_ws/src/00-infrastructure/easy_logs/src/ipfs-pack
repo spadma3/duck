@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # @create-shortcut-for-this
-from duckietown_utils.cli import d8app_run
-from easy_logs.cli.pack import Pack
+from easy_logs.cli import main_ipfs_pack
 
-if __name__ == '__main__':
-    d8app_run(Pack)
+main_ipfs_pack()

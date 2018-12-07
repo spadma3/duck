@@ -1,5 +1,5 @@
 ### Server configuration ###
-IP: 192.168.1.222
+IP: 192.168.1.123
 PORT: 5678
 BUFFER_SIZE: 1024
 
@@ -10,21 +10,21 @@ BUFFER_SIZE: 1024
 charging_stations:
   station1:
     id: 1
-    spots: 4
-    free_spots: 4
+    spots: 6
+    free_spots: 6
     operational: True
   station2:
     id: 2
-    spots: 4
-    free_spots: 4
+    spots: 6
+    free_spots: 6
     operational: True
   station3:
     id: 3
-    spots: 4
-    free_spots: 4
+    spots: 9
+    free_spots: 9
     operational: True
   station4:
     id: 4
-    spots: 4
-    free_spots: 4
+    spots: 9
+    free_spots: 9
     operational: True

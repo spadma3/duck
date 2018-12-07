@@ -19,7 +19,6 @@
 #   ]
 standalone_tags:
   [
-    {id: 0, size: 0.065, name: Tag0},
     {id: 1, size: 0.065, name: Tag1},
     {id: 2, size: 0.065, name: Tag2},
     {id: 3, size: 0.065, name: Tag3},
@@ -605,7 +604,21 @@ standalone_tags:
     {id: 583, size: 0.065, name: Tag583},
     {id: 584, size: 0.065, name: Tag584},
     {id: 585, size: 0.065, name: Tag585},
-    {id: 586, size: 0.065, name: Tag586}
+    {id: 586, size: 0.065, name: Tag586},
+    {id: 587, size: 0.065, name: Tag587},
+    {id: 588, size: 0.065, name: Tag588},
+    {id: 589, size: 0.065, name: Tag589},
+    {id: 590, size: 0.065, name: Tag590},
+    {id: 591, size: 0.065, name: Tag591},
+    {id: 592, size: 0.065, name: Tag592},
+    {id: 593, size: 0.065, name: Tag593},
+    {id: 594, size: 0.065, name: Tag594},
+    {id: 595, size: 0.065, name: Tag595},
+    {id: 596, size: 0.065, name: Tag596},
+    {id: 597, size: 0.065, name: Tag597},
+    {id: 598, size: 0.065, name: Tag598},
+    {id: 599, size: 0.065, name: Tag599},
+    {id: 600, size: 0.065, name: Tag600}
   ]
 # ## Tag bundle definitions
 # ### Remarks

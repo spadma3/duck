@@ -6,7 +6,7 @@ import duckietown_utils as dtu
 @dtu.unit_test
 def test_thumbnails():
     id_log = '20160429223659_neptunus'
-    cmd = ['/opt/ros/kinetic/bin/rosrun', 'easy_logs', 'thumbnails', id_log, '-c', 'rmake']
+    cmd = ['rosrun', 'easy_logs', 'thumbnails', id_log, '-c', 'rmake']
     run_one(cmd)
 
 

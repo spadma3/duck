@@ -268,7 +268,6 @@ class global_localization(object):
             rospy.signal_shutdown("self.manual is not set. There might be errors in your map format.")
 
 
-
 ### --------------------- USER OUTPUT FUNCTIONS --------------------#####
     # writes new data to the output file
     def write_data_to_output_file(self,new_data):

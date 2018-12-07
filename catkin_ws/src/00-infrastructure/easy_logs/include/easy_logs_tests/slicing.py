@@ -1,10 +1,13 @@
 import duckietown_utils as dtu
-from easy_logs import get_easy_logs_db_cached_if_possible, filters_slice
+from easy_logs import filters_slice, get_easy_logs_db2
 
+
+def get_test_db():
+    return get_easy_logs_db2(do_not_use_cloud=False, do_not_use_local=True, ignore_cache=False)
 
 @dtu.unit_test
 def parse_expressions():
-    db = get_easy_logs_db_cached_if_possible()
+    db = get_test_db()
     logs = db.logs
     one = logs.keys()[0]
 #     l0 = logs[one]
@@ -32,7 +35,7 @@ def parse_expressions():
 
 @dtu.unit_test
 def parse_expressions2():
-    db = get_easy_logs_db_cached_if_possible()
+    db = get_test_db()
     logs = db.logs
     one = logs.keys()[0]
     query = one + '/{10.5:15.5}'
@@ -47,7 +50,7 @@ def parse_expressions2():
 
 @dtu.unit_test
 def parse_expressions3():
-    db = get_easy_logs_db_cached_if_possible()
+    db = get_test_db()
     logs = db.logs
     one = logs.keys()[0]
     query = one + '/{:2.5}'
@@ -61,7 +64,7 @@ def parse_expressions3():
 
 @dtu.unit_test
 def parse_expressions4():
-    db = get_easy_logs_db_cached_if_possible()
+    db = get_test_db()
     logs = db.logs
     one = logs.keys()[0]
     query = one + '/{1:}'

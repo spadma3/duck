@@ -1,5 +1,5 @@
-from collections import OrderedDict
 import os
+from collections import OrderedDict
 
 from .friendly_path_imp import friendly_path
 from .locate_files_impl import locate_files
@@ -8,22 +8,30 @@ from .memoization import memoize_simple
 from .mkdirs import d8n_make_sure_dir_exists
 from .path_utils import get_ros_package_path
 from .paths import get_duckietown_cache_dir
-from .system_cmd_imp import system_cmd_result
 from .test_hash import get_md5, parse_hash_url
-from .text_utils import indent
 from .yaml_pretty import yaml_load_plain
 
 
-#from .paths import get_duckiefleet_root, get_duckietown_root, \
-#    get_duckietown_data_dirs
 @memoize_simple
 def get_dropbox_urls():
     logger.info('Getting urls...')
     sources = []
-#    sources.append(get_duckiefleet_root())
-#    sources.append(get_duckietown_root())
-#    sources.extend(get_duckietown_data_dirs())
-    sources.append(get_ros_package_path('easy_logs'))
+    # from .paths import get_duckiefleet_root, get_duckietown_root, \
+    #    get_duckietown_data_dirs
+    #    sources.append(get_duckiefleet_root())
+    #    sources.append(get_duckietown_root())
+    #    sources.extend(get_duckietown_data_dirs())
+
+    import imp
+    dirname = imp.find_module('easy_logs')[1]
+    sources.append(dirname)
+
+    try:
+        sources.append(get_ros_package_path('easy_logs'))
+    except:
+        pass  # XXX
+
+    sources = set(sources)
 
     found = []
     urls = OrderedDict()
@@ -63,42 +71,89 @@ def download_if_not_exist(url, filename):
     return filename
 
 
+import sys
+import time
+import urllib
+
+
+def reporthook(count, block_size, total_size):
+    now = time.time()
+    global start_time
+    global last_time
+    if count == 0:
+        start_time = now
+        last_time = start_time - 10
+        return
+    interval = now - last_time
+
+    def in_MB(x):
+        return x / (1024.0 * 1024.0)
+
+    duration = now - start_time
+    progress_size = int(count * block_size)
+    speed = (progress_size / (1024 * 1024 * duration))
+    percent = (count * block_size * 100 / total_size)
+
+    if percent != 100 and interval < 5:
+        return
+
+    sys.stderr.write("downloaded %.2f MB of %.1fMB (%.1f%%) at %.2f MB/s in %1.f s\n" %
+                     (in_MB(progress_size), in_MB(total_size), percent, speed, duration))
+
+    # sys.stdout.write("\r...%d%%, %d MB, %d KB/s, %d seconds passed" %
+    #                  (percent, progress_size / (1024 * 1024), speed, duration))
+    sys.stdout.flush()
+
+    last_time = now
+
+
 def download_url_to_file(url, filename):
-    logger.info('Download from %s' % (url))
+    logger.info('Download from %s' % url)
     tmp = filename + '.tmp_download_file'
-    cmd = [
-        'wget',
-        '-O',
-        tmp,
-        url
-    ]
-    d8n_make_sure_dir_exists(tmp)
-    res = system_cmd_result(cwd='.',
-                          cmd=cmd,
-                          display_stdout=False,
-                          display_stderr=False,
-                          raise_on_error=True,
-                          write_stdin='',
-                          capture_keyboard_interrupt=False,
-                          env=None)
-
-    if not os.path.exists(tmp) and not os.path.exists(filename):
-        msg = 'Downloaded file does not exist but wget did not give any error.'
-        msg += '\n url: %s' % url
-        msg += '\n downloaded to: %s' % tmp
-        msg += '\n' + indent(str(res), ' | ')
-        d = os.path.dirname(tmp)
-        r = system_cmd_result(d, ['ls', '-l'], display_stdout=False,
-                          display_stderr=False,
-                          raise_on_error=True)
-        msg += '\n Contents of the directory:'
-        msg += '\n' + indent(str(r.stdout), ' | ')
-        raise Exception(msg)
-
+    urllib.urlretrieve(url, tmp, reporthook)
     if not os.path.exists(filename):
         os.rename(tmp, filename)
 
     logger.info('-> %s' % friendly_path(filename))
+
+
+#
+# def download_url_to_file_old(url, filename):
+#     logger.info('Download from %s' % (url))
+#     tmp = filename + '.tmp_download_file'
+#     cmd = [
+#         'wget',
+#         '-O',
+#         tmp,
+#         url
+#     ]
+#     d8n_make_sure_dir_exists(tmp)
+#     res = system_cmd_result(cwd='.',
+#                             cmd=cmd,
+#                             display_stdout=False,
+#                             display_stderr=False,
+#                             raise_on_error=True,
+#                             write_stdin='',
+#                             capture_keyboard_interrupt=False,
+#                             env=None)
+#
+#     if not os.path.exists(tmp) and not os.path.exists(filename):
+#         msg = 'Downloaded file does not exist but wget did not give any error.'
+#         msg += '\n url: %s' % url
+#         msg += '\n downloaded to: %s' % tmp
+#         msg += '\n' + indent(str(res), ' | ')
+#         d = os.path.dirname(tmp)
+#         r = system_cmd_result(d, ['ls', '-l'], display_stdout=False,
+#                               display_stderr=False,
+#                               raise_on_error=True)
+#         msg += '\n Contents of the directory:'
+#         msg += '\n' + indent(str(r.stdout), ' | ')
+#         raise Exception(msg)
+#
+#     if not os.path.exists(filename):
+#         os.rename(tmp, filename)
+#
+#     logger.info('-> %s' % friendly_path(filename))
 
 
 def get_file_from_url(url):
@@ -121,42 +176,11 @@ def get_sha12url():
     sha12url = {}
     urls = get_dropbox_urls()
     for u, v in urls.items():
-        u = unicode(u)  #.encode('utf-8')
-#        print('%s' % u)
+        u = unicode(u)  # .encode('utf-8')
         if u.startswith('hash:'):
             parsed = parse_hash_url(u)
             sha12url[parsed.sha1] = v
     return sha12url
-
-#
-#def require_resource_from_hash_url(hash_url, destination=None):
-#    url = resolve_url(hash_url)
-#
-#    if destination is None:
-#        parsed = parse_hash_url(hash_url)
-#        basename = parsed.name if parsed.name is not None else parsed.sha1
-#        dirname = get_duckietown_cache_dir()
-#        destination = os.path.join(dirname, basename)
-#
-#    d8n_make_sure_dir_exists(destination)
-#    download_if_not_exist(url, destination)
-#    return destination
-#
-#
-#def resolve_url(hash_url):
-#    urls = get_dropbox_urls()
-#    parsed = parse_hash_url(hash_url)
-#    sha12url = get_sha12url()
-#    if parsed.sha1 in sha12url:
-#        logger.info('found match via sha1: %s' % parsed.sha1)
-#        return sha12url[parsed.sha1]
-#    else:
-#        if parsed.name in urls:
-#            logger.info('found match via name: %s' % parsed.name)
-#            return urls[parsed.name]
-#        else:
-#            msg = 'Cannot find url for %r' % hash_url
-#            raise Exception(msg)
 
 
 def require_resource(basename, destination=None):

@@ -11,10 +11,6 @@ shell=`basename $SHELL`
 echo "Activating ROS with shell: $SHELL"
 source /opt/ros/kinetic/setup.$shell
 
-export HOSTNAME=$HOSTNAME
-export ROS_HOSTNAME=$HOSTNAME.local
-echo "Set ROS_HOSTNAME to: $ROS_HOSTNAME"
-
 export DUCKIETOWN_ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 echo "Set DUCKIETOWN_ROOT to: $DUCKIETOWN_ROOT"
 
@@ -35,5 +31,7 @@ fi
 
 # add the shortcuts to the path
 export PATH=$PATH:$DUCKIETOWN_ROOT/shortcuts
+
+export DISABLE_CONTRACTS=1
 
 exec "$@" #Passes arguments. Need this for ROS remote launching to work.

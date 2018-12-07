@@ -1,10 +1,13 @@
 #!/usr/bin/env python
-import duckietown_utils as dtu
-import os, sys
+import os
+import sys
 from collections import namedtuple
+
+import duckietown_utils as dtu
 
 Script = namedtuple('Script', 'package script desc filename')
 tag = dtu.DuckietownConstants.ADD_SHORTCUT_TAG
+
 
 def find_cmds_to_shortcut():
     package2dir = dtu.get_list_of_packages_in_catkin_ws()
@@ -19,7 +22,6 @@ def find_cmds_to_shortcut():
 
         filenames = [x for x in res.stdout.strip().split('\n') if x]
 
-
         for fn in filenames:
             data = open(fn).read()
             if tag in data:
@@ -29,6 +31,7 @@ def find_cmds_to_shortcut():
             else:
                 pass
                 dtu.logger.debug('ignoring %s' % fn)
+
 
 def make_shortcuts_main():
     if len(sys.argv) != 2:
@@ -60,7 +63,6 @@ rosrun {package} {script} "$@"
         d['command'] = sys.argv[0]
         d['tag'] = tag
 
-
         script = script.format(**d).strip()
 
         dtu.write_data_to_file(script, filename)
@@ -69,9 +71,9 @@ rosrun {package} {script} "$@"
 
 def make_executable(path):
     mode0 = os.stat(path).st_mode
-    mode = mode0 | ((mode0 & 0o444) >> 2)    # copy R bits to X
+    mode = mode0 | ((mode0 & 0o444) >> 2)  # copy R bits to X
     if mode != mode0:
-        #dtu.logger.debug('setting permissions of %s to %s' % (mode, path))
+        # dtu.logger.debug('setting permissions of %s to %s' % (mode, path))
         os.chmod(path, mode)
     else:
         pass

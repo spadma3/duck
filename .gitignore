@@ -1,3 +1,4 @@
+tmp
 *~
 *.bag
 *.pyc
@@ -31,7 +32,7 @@ last_download.yaml
 roster.html
 catkin_ws/src/10-lane-control/line_detector2/include/line_detector2_tests/frame0002.jpg
 roster.html
-background.png
-hardware/camera_tower/software/test_img
 catkin_ws/src/30-localization-and-planning/auto_localization/config/csv
 catkin_ws/src/30-localization-and-planning/auto_localization/config/*.csv
+*.egg-info
+what_the_duck-*
