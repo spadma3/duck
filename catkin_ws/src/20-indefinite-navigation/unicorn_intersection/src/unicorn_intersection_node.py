@@ -57,8 +57,8 @@ class UnicornIntersectionNode(object):
             rospy.sleep(2)
 
         tag_id = self.tag_id
-        turn_type = self.turn_type
-
+        #turn_type = self.turn_type
+	turn_type = 1
         sleeptimes = [self.time_left_turn, self.time_straight_turn, self.time_right_turn]
         LFparams = [self.LFparams_left, self.LFparams_straight, self.LFparams_right]
         omega_ffs = [self.ff_left, self.ff_straight, self.ff_right]
