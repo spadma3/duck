@@ -429,7 +429,7 @@ class IntersectionNavigation(object):
         #     return False
         #TODO uncomment
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
-
+	self.turn_type = 1
         rospy.loginfo("The duck will go: " +str(self.turn_type))
         pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
 
