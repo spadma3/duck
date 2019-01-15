@@ -62,8 +62,10 @@ class ImgRectFullRatio(object):
         cv_image = self.bridge.imgmsg_to_cv2(msg, "mono8")
 
         # undistort the image
-        # Oriin ratio = 1.65, change to lower ratio to increase the speed of apriltags detection
-        new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1.65)
+        # Oriin ratio = 1.65
+        # Choose ratio = 1 to increase the speed of apriltags detection
+        # and cut off the distorted boarders.
+        new_matrix, result_img = self.gpg.rectify_full(cv_image, ratio=1)
 
         # resulting image has a different size
         # bring back the image to the old size, also crop a little from the outside
