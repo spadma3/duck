@@ -67,7 +67,11 @@ class AprilLocalLocalization(object):
         self.pub_postPros = rospy.Publisher("~apriltags_out", RemapPoseArray, queue_size=1)
         # self.pub_visualize      = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
 
+        self.pub_switch = rospy.Publisher("apriltag_detector_node/switch", BoolStamped, queue_size=1)
+        self.trigger_flag = True
+
         rospy.loginfo("[%s] has started", self.node_name)
+        self.switch_on()
 
 
 
@@ -77,7 +81,20 @@ class AprilLocalLocalization(object):
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
 
+    def switch_on(self):
+
+        rate = rospy.Rate(5)
+        while self.trigger_flag:
+            trigger = BoolStamped()
+            trigger.data = True
+
+            self.pub_switch.publish(trigger)
+            rate.sleep()
+
     def callback(self, msg):
+
+        self.trigger_flag = False
+
         tag_infos = []
         remap_poses_array = RemapPoseArray()
         flag_send_msg = False
