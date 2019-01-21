@@ -22,7 +22,7 @@
 
   <!-- Tag tf collection node -->
   <remap from="apriltags_in" to="tag_detections" />
-  <include file="$(find auto_localization)/launch/tag_collection.launch">
+  <include file="$(find auto_localization)/launch/tag_collection_isam.launch">
     <arg name="veh" value="$(arg veh)"/>
     <arg name="config" value="$(arg config)"/>
     <arg name="param_file_name" value="$(arg param_file_name)"/>
