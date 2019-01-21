@@ -54,13 +54,27 @@ class Tag_collection(object):
         self.pub_tf             = tf.TransformBroadcaster()
         self.pub_postPros       = rospy.Publisher("~apriltags_out", RemapPoseArray, queue_size=1)
 
+        self.pub_switch = rospy.Publisher("apriltag_detector_node/switch", BoolStamped, queue_size=1)
+        self.trigger_flag = True
+
         rospy.loginfo("[%s] has started", self.node_name)
+        self.switch_on()
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
+
+    def switch_on(self):
+
+        rate = rospy.Rate(5)
+        while self.trigger_flag:
+            trigger = BoolStamped()
+            trigger.data = True
+
+            self.pub_switch.publish(trigger)
+            rate.sleep()
 
     # Start get tags and publish there relationship through RemapPoseArray message
     def callback(self, msg):
@@ -94,7 +108,7 @@ class Tag_collection(object):
             # if (new_info.tag_type == self.info.S_NAME) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN) or (new_info.tag_type == self.info.SIGN):
 
             # if not new_info.tag_type == self.info.VEHICLE : # We assume any tag doesn't belone to vehicle is reference tags
-            if new_info.id in self.static_id: 
+            if new_info.id in self.static_id:
                  # add fixed tag to the database, overwrite old information
 
                  self.fixed_tags_dict[new_info.id] = [new_info.tag_type, gposf.get_matrix_from_pose(detection.pose.pose.pose)]

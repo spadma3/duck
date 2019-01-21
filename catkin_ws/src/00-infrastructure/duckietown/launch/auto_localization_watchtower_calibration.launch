@@ -29,7 +29,7 @@
   </include>
 
   <!-- Set the process result to server-->
-  <remap from="apriltags_out" to="tag_collection/apriltags_out" />
+  <remap from="apriltags_out" to="tag_collection_isam/apriltags_out" />
   <include file="$(find auto_localization)/launch/pub2server.launch">
     <arg name="veh" value="$(arg veh)"/>
     <arg name="config" value="$(arg config)"/>
