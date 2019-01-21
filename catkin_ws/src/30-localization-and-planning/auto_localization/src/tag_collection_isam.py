@@ -17,6 +17,7 @@ import tf
 # from tf
 import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped
+import global_pose_functions as gposf
 
 class Tag_collection(object):
 
