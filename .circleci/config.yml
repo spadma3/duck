@@ -7,7 +7,7 @@ jobs:
               DUCKIEFLEET_ROOT: /root/duckiefleet
               DUCKIETOWN_ROOT: /root/project
               DUCKIETOWN_DATA: /root/duckietown-data
-	      READTHEDOCS: True 
+              READTHEDOCS: True # needed to make Picamera install 
               COLUMNS: 160
      parallelism: 4
      resource_class: large
