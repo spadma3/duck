@@ -34,3 +34,5 @@ catkin_ws/src/10-lane-control/line_detector2/include/line_detector2_tests/frame0
 roster.html
 *.egg-info
 what_the_duck-*
+catkin_ws/.catkin_tools/
+catkin_ws/logs/
