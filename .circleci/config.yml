@@ -7,8 +7,6 @@ jobs:
               DUCKIEFLEET_ROOT: /root/duckiefleet
               DUCKIETOWN_ROOT: /root/project
               DUCKIETOWN_DATA: /root/duckietown-data
-	      # The following disables the PiCamera model from checking
-	      # whether it is being run on a Raspi or not	
 	      READTHEDOCS: True 
               COLUMNS: 160
      parallelism: 4
