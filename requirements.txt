@@ -27,4 +27,3 @@ picamera==1.13
 # SystemCmd
 jpeg4py
 networkx
-pygame
