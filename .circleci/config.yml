@@ -7,6 +7,7 @@ jobs:
               DUCKIEFLEET_ROOT: /root/duckiefleet
               DUCKIETOWN_ROOT: /root/project
               DUCKIETOWN_DATA: /root/duckietown-data
+
               COLUMNS: 160
      parallelism: 4
      resource_class: large
@@ -19,7 +20,7 @@ jobs:
                 # python -m venv venv
                 #
                 # . venv/bin/activate
-
+                export READTHEDOCS=True # needed to make Picamera install
                 pip install --upgrade -r requirements.txt
 
                 make python-module-stats

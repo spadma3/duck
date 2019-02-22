@@ -36,3 +36,5 @@ roster.html
 catkin_ws/src/30-localization-and-planning/auto_localization/config/*.csv
 *.egg-info
 what_the_duck-*
+catkin_ws/.catkin_tools/
+catkin_ws/logs/
