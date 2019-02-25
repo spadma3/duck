@@ -133,7 +133,7 @@ class InverseKinematicsNode(object):
         return SetValueResponse()
 
     def cbSrvSetBaseline(self, req):
-        self.baseline = req.value
+        self.baseline = 0.092
         self.printValues()
         self.msg_actuator_limits.v = self.v_max     # TODO: Calculate v_max !
         self.msg_actuator_limits.omega = self.omega_max     # TODO: Calculate omega_max !
