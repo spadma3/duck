@@ -83,7 +83,8 @@ class InverseKinematicsNode(object):
         if yaml_dict is None:
             # Empty yaml file
             return
-        for param_name in ["gain_dc", "trim_dc", "gain_servo", "trim_servo", "baseline", "radius", "k", "axis_distance", "cog_distance", "limit"]:        #inserted the new parameters defined above, RFMH_2019_02_25            param_value = yaml_dict.get(param_name)
+        for param_name in ["gain_dc", "trim_dc", "gain_servo", "trim_servo", "baseline", "radius", "k", "axis_distance", "cog_distance", "limit"]:        #inserted the new parameters defined above, RFMH_2019_02_25
+            param_value = yaml_dict.get(param_name)
             if param_name is not None:
                 rospy.set_param("~"+param_name, param_value)
             else:
