@@ -24,8 +24,8 @@ class InverseKinematicsNode(object):
         # Set local variable by reading parameters
         self.gain = self.setup_parameter("~gain", 0.6)
         self.trim = self.setup_parameter("~trim", 0.0)
-        self.baseline = self.setup_parameter("~baseline", 0.1)
-        self.radius = self.setup_parameter("~radius", 0.0318)
+        self.baseline = self.setup_parameter("~baseline", 0.092)                 #adjusted car width , RFMH_2019_02_25
+        self.radius = self.setup_parameter("~radius", 0.019)                     #adjusted wheel_radius , RFMH_2019_02_25
         self.k = self.setup_parameter("~k", 27.0)
         self.limit = self.setup_parameter("~limit", 1.0)
         self.limit_max = 1.0
