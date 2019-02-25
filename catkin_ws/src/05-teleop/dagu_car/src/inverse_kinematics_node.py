@@ -4,6 +4,7 @@ from duckietown_msgs.msg import WheelsCmdStamped, Twist2DStamped, BoolStamped
 from duckietown_msgs.srv import SetValueRequest, SetValueResponse, SetValue
 from std_srvs.srv import EmptyRequest, EmptyResponse, Empty
 from numpy import *
+import math                                                                     #for the calculations of the wheels command (sqrt, )
 import yaml
 import time
 import os.path
@@ -22,13 +23,13 @@ class InverseKinematicsNode(object):
         self.readParamFromFile()
 
         # Set local variable by reading parameters
-        self.gain_dc = self.setup_parameter("~gain_dc", 0.6)
-        self.trim_dc = self.setup_parameter("~trim_dc", 0.0)
+        self.gain_dc = self.setup_parameter("~gain_dc", 0.6)                    #changed "gain" to "gain_dc", to identify uniquely for the dc-motor, RFMH_2019_02_25
+        self.trim_dc = self.setup_parameter("~trim_dc", 0.0)                    #changed "trim" to "trim_dc", to identify uniquely for the dc-motor, RFMH_2019_02_25
         self.gain_servo = self.setup_parameter("~gain_servo", 0.1)              #changed "gain" to "gain_servo", to identify uniquely for the servo-motor, RFMH_2019_02_25
         self.trim_servo = self.setup_parameter("~trim_servo", 0.0)              #changed "trim" to "trim_servo", to identify uniquely for the servo-motor, RFMH_2019_02_25
-        self.baseline = self.setup_parameter("~baseline", 0.092)                 #adjusted car width , RFMH_2019_02_25
-        self.radius = self.setup_parameter("~radius", 0.019)                     #adjusted wheel_radius , RFMH_2019_02_25
-        self.k = self.setup_parameter("~k", 27.0)
+        self.baseline = self.setup_parameter("~baseline", 0.092)                #adjusted car width , RFMH_2019_02_25
+        self.radius = self.setup_parameter("~radius", 0.019)                    #adjusted wheel_radius , RFMH_2019_02_25
+        self.k = self.setup_parameter("~k", 27.0)                               #maybe needs adjustment, nothing changed yet , RFMH_2019_02_25
         self.axis_distance = self.setup_parameter("~axis_distance", 0.105)      #introduce the distance between the axis, RFMH_2019_02_25
         self.cog_distance = self.setup_parameter("~cog_distance", 0.0525)       #introduce the distance of turning point from the back axis (half the axis_distance),
         self.limit = self.setup_parameter("~limit", 1.0)
@@ -38,9 +39,9 @@ class InverseKinematicsNode(object):
         self.v_max = 999.0     # TODO: Calculate v_max !
         self.omega_max = 999.0     # TODO: Calculate v_max !
 
-        # Prepare services
-        self.srv_set_gain_dc = rospy.Service("~set_gain_dc", SetValue, self.cbSrvSetGainDc)
-        self.srv_set_trim_dc = rospy.Service("~set_trim_dc", SetValue, self.cbSrvSetTrimDc)
+        # Prepare services (no new services for new variables defined because do not do any work; loading from .yaml file worked without), RFMH_2019_02_25
+        self.srv_set_gain_dc = rospy.Service("~set_gain_dc", SetValue, self.cbSrvSetGainDc)         #adjust gain to dc-motor, RFMH_2019_02_25
+        self.srv_set_trim_dc = rospy.Service("~set_trim_dc", SetValue, self.cbSrvSetTrimDc)         #adjust trim to dc-motor, RFMH_2019_02_25
         self.srv_set_baseline = rospy.Service("~set_baseline", SetValue, self.cbSrvSetBaseline)
         self.srv_set_radius = rospy.Service("~set_radius", SetValue, self.cbSrvSetRadius)
         self.srv_set_k = rospy.Service("~set_k", SetValue, self.cbSrvSetK)
@@ -82,8 +83,7 @@ class InverseKinematicsNode(object):
         if yaml_dict is None:
             # Empty yaml file
             return
-        for param_name in ["gain_dc", "trim_dc", "baseline", "k", "radius", "limit"]:
-            param_value = yaml_dict.get(param_name)
+        for param_name in ["gain_dc", "trim_dc", "gain_servo", "trim_servo", "baseline", "radius", "k", "axis_distance", "cog_distance", "limit"]:        #inserted the new parameters defined above, RFMH_2019_02_25            param_value = yaml_dict.get(param_name)
             if param_name is not None:
                 rospy.set_param("~"+param_name, param_value)
             else:
@@ -102,9 +102,13 @@ class InverseKinematicsNode(object):
             "calibration_time": time.strftime("%Y-%m-%d-%H-%M-%S"),
             "gain_dc": self.gain_dc,
             "trim_dc": self.trim_dc,
+            "gain_servo": self.gain_servo,
+            "trim_servo": self.trim_servo,
             "baseline": self.baseline,
             "radius": self.radius,
             "k": self.k,
+            "axis_distance": self.axis_distance,                                #the two new parameters must be written to the yaml-file again, RFMH_2019_02_25
+            "cog_distance": self.cog_distance,
             "limit": self.limit,
         }
 
@@ -180,15 +184,14 @@ class InverseKinematicsNode(object):
             limit = value
         return limit
 
-    def printValues(self):
-        rospy.loginfo("[%s] gain_dc: %s trim_dc: %s baseline: %s radius: %s k: %s limit: %s" % (self.node_name, self.gain_dc, self.trim_dc, self.baseline, self.radius, self.k, self.limit))
-
+    def printValues(self):                                                      #adjust the output to all the new values as well in the log info, RFMH_2019_02_25
+        rospy.loginfo("[%s] gain_dc: %s trim_dc: %s gain_servo: %s trim_servo: %s baseline: %s radius: %s k: %s axis_distance: %s cog_distance: %s limit: %s" % (self.node_name, self.gain_dc, self.trim_dc, self.gain_servo, self.trim_servo, self.baseline, self.radius, self.k, self.axis_distance, self.cog_distance, self.limit))
     def car_cmd_callback(self, msg_car_cmd):
         if not self.actuator_limits_received:
             self.pub_actuator_limits.publish(self.msg_actuator_limits)
 
         # assuming same motor constants k for both motors
-        k_r = self.k
+        k_r = self.k                                                        #changed "k_r" to "k_wheel", because there is only one such konstant need now, RFMH_2019_02_25
         k_l = self.k
 
         # adjusting k by gain_dc and trim_dc
