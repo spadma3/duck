@@ -201,7 +201,7 @@ class InverseKinematicsNode(object):
 
         omega_wheel = msg_car_cmd.v / self.radius                               #omega_r changed to omega_wheel and skipped the whole calculation
         gamma = pow(pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) - pow(self.cog_distance,2.0),-0.5) * self.axis_distance     #omega_l changed to gamma as this is the steering angle and inserted the new calculation: gamma = f(v, omega)
-
+        rospy.loginfo("gamma is: %f", % gamma)
         ## conversion from motor rotation rate to duty cycle
         # u_r = (gain_dc + trim_dc) (v + 0.5 * omega * b) / (r * k_r)
         u_wheel = omega_wheel * k_wheel_inv                                     #omega_r changed to omega_wheel, u_r to u_wheel and k_r_inv to k_wheel_inv, RFMH_2019_02_25
@@ -215,8 +215,8 @@ class InverseKinematicsNode(object):
         # Put the wheel commands in a message and publish
         msg_wheels_cmd = WheelsCmdStamped()
         msg_wheels_cmd.header.stamp = msg_car_cmd.header.stamp
-        msg_wheels_cmd.vel_right = u_wheel_limited                                  #vel_right is defined in the WheelsCmdStamped --> name needs to be changed everywhere!, RFMH_2019_02_25
-        msg_wheels_cmd.vel_left = u_l_limited
+        msg_wheels_cmd.vel_right = u_wheel_limited                              #vel_right is defined in the WheelsCmdStamped --> name needs to be changed everywhere!, RFMH_2019_02_25
+        msg_wheels_cmd.vel_left = gamma
         self.pub_wheels_cmd.publish(msg_wheels_cmd)
 
     def setup_parameter(self, param_name, default_value):
