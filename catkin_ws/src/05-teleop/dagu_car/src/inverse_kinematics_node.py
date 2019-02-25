@@ -191,31 +191,31 @@ class InverseKinematicsNode(object):
         if not self.actuator_limits_received:
             self.pub_actuator_limits.publish(self.msg_actuator_limits)
 
-        # assuming same motor constants k for both motors
-        k_r = self.k                                                        #changed "k_r" to "k_wheel", because there is only one such konstant need now, RFMH_2019_02_25
-        k_l = self.k
+        ## assuming same motor constants k for both motors
+        k_wheel = self.k                                                        #changed "k_r" to "k_wheel", because there is only one such konstant need now, RFMH_2019_02_25
+        #k_l = self.k
 
-        # adjusting k by gain_dc and trim_dc
-        k_r_inv = (self.gain_dc + self.trim_dc) / k_r
-        k_l_inv = (self.gain_dc - self.trim_dc) / k_l
+        ## adjusting k by gain_dc and trim_dc
+        k_wheel_inv = (self.gain_dc + self.trim_dc) / k_wheel                   #changed "k_r" to "k_wheel", RFMH_2019_02_25
+        #k_l_inv = (self.gain_dc - self.trim_dc) / k_l
 
-        omega_r = (msg_car_cmd.v + 0.5 * msg_car_cmd.omega * self.baseline) / self.radius
-        omega_l = (msg_car_cmd.v - 0.5 * msg_car_cmd.omega * self.baseline) / self.radius
+        omega_wheel = msg_car_cmd.v / self.radius                               #omega_r changed to omega_wheel and skipped the whole calculation
+        gamma = pow(pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) - pow(self.cog_distance,2.0),-0.5) * self.axis_distance     #omega_l changed to gamma as this is the steering angle and inserted the new calculation: gamma = f(v, omega)
 
-        # conversion from motor rotation rate to duty cycle
+        ## conversion from motor rotation rate to duty cycle
         # u_r = (gain_dc + trim_dc) (v + 0.5 * omega * b) / (r * k_r)
-        u_r = omega_r * k_r_inv
+        u_wheel = omega_wheel * k_wheel_inv                                     #omega_r changed to omega_wheel, u_r to u_wheel and k_r_inv to k_wheel_inv, RFMH_2019_02_25
         # u_l = (gain_dc - trim_dc) (v - 0.5 * omega * b) / (r * k_l)
-        u_l = omega_l * k_l_inv
+        #u_l = omega_l * k_l_inv
 
-        # limiting output to limit, which is 1.0 for the duckiebot
-        u_r_limited = max(min(u_r, self.limit), -self.limit)
-        u_l_limited = max(min(u_l, self.limit), -self.limit)
+        ## limiting output to limit, which is 1.0 for the duckiebot
+        u_wheel_limited = max(min(u_wheel, self.limit), -self.limit)            #u_r_limited changed to "u_wheel_limited" and "u_r" changed to "u_wheel", RFMH_2019_02_25
+        #u_l_limited = max(min(u_l, self.limit), -self.limit)
 
         # Put the wheel commands in a message and publish
         msg_wheels_cmd = WheelsCmdStamped()
         msg_wheels_cmd.header.stamp = msg_car_cmd.header.stamp
-        msg_wheels_cmd.vel_right = u_r_limited
+        msg_wheels_cmd.vel_right = u_wheel_limited                                  #vel_right is defined in the WheelsCmdStamped --> name needs to be changed everywhere!, RFMH_2019_02_25
         msg_wheels_cmd.vel_left = u_l_limited
         self.pub_wheels_cmd.publish(msg_wheels_cmd)
 
