@@ -211,7 +211,7 @@ class InverseKinematicsNode(object):
         self.pub_wheels_cmd.publish(msg_wheels_cmd)
 
     def setup_parameter(self, param_name, default_value):
-        value = rospy.get_param(param_name, 0.092)
+        value = rospy.get_param(param_name, default_value)
         # Write to parameter server for transparency
         rospy.set_param(param_name, value)
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
