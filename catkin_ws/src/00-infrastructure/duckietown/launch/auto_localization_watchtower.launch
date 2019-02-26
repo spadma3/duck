@@ -8,6 +8,7 @@
   <arg name="rect_full_ratio" default="true" doc="use full ration rectified image for apriltags detections " />
 
   <arg name="IP" default="192.168.1.17" doc="The IP address that the server laptop connected. The default was set in config file. See 00-infrastructure/duckietown/config/baseline/tcp_communication"/>
+  <arg name="same_master" default="false" doc="If we connect all machine to the same master. (laptop)" />
 
   <!-- Apriltags2 -->
   <include file="$(find duckietown)/launch/apriltags2.launch">
@@ -30,12 +31,14 @@
   </include>
 
   <!-- Set the process result to server-->
-  <remap from="apriltags_out" to="apriltags2_local_localization_node/apriltags_out" />
-  <include file="$(find auto_localization)/launch/pub2server.launch">
-    <arg name="veh" value="$(arg veh)"/>
-    <arg name="config" value="$(arg config)"/>
-    <arg name="param_file_name" value="$(arg param_file_name)"/>
-    <arg name="IP" value="$(arg IP)"/>
-  </include>
+  <group unless="$(arg same_master)">
+    <remap from="apriltags_out" to="apriltags2_local_localization_node/apriltags_out" />
+    <include file="$(find auto_localization)/launch/pub2server.launch">
+      <arg name="veh" value="$(arg veh)"/>
+      <arg name="config" value="$(arg config)"/>
+      <arg name="param_file_name" value="$(arg param_file_name)"/>
+      <arg name="IP" value="$(arg IP)"/>
+    </include>
+  </group>
 
 </launch>

@@ -8,19 +8,24 @@
 
     <arg name="GUI" default="true" doc="Show GUI or not"/>
 
-    <include file="$(find auto_localization)/launch/subfserver.launch">
-      <arg name="veh" value="$(arg veh)"/>
-      <arg name="config" value="$(arg config)"/>
-      <arg name="param_file_name" value="$(arg param_file_name)"/>
-      <arg name="IP" value="$(arg IP)"/>
-      <arg name="map" value="$(arg map)"/>
-    </include>
+    <arg name="same_master" default="false" doc="If we connect all machine to the same master. (laptop)" />
 
-    <remap from="local_poses" to="subfserver_easy/local_poses" />
+    <group unless="$(arg same_master)">
+      <include file="$(find auto_localization)/launch/subfserver.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+        <arg name="IP" value="$(arg IP)"/>
+        <arg name="map" value="$(arg map)"/>
+      </include>
+      <remap from="local_poses" to="subfserver_easy/local_poses" />
+    </group>
+
     <include file="$(find auto_localization)/launch/absolute_from_relative_position.launch">
       <arg name="veh" value="$(arg veh)"/>
       <arg name="map" value="$(arg map)"/>
       <arg name="output" value="$(arg map)"/>
+      <arg name="same_master" value="$(arg same_master)"/>
     </include>
 
     <remap from="bot_global_poses" to="absolute_from_relative_position/bot_global_poses" />

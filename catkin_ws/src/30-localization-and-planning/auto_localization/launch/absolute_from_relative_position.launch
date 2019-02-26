@@ -7,12 +7,23 @@
     <arg name="map" default="testcircle" doc="Specify the map you wants"/>
     <arg name="output" default="test" doc="Specify the output name of the statistics file"/>
 
+    <arg name="same_master" default="false" doc="If we connect all machine to the same master. (laptop)" />
+
     <group ns="$(arg veh)">
+      <group unless="$(arg same_master)">
         <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="absolute_from_relative_position_tile.py"
               output="screen">
               <param name="~map" value="$(arg map)" type="str"/>
               <param name="~output_file" value="$(arg output)" type="str"/>
         </node>
+      </group>
+      <group if="$(arg same_master)">
+        <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="absolute_from_relative_position_tile_same_master.py"
+              output="screen">
+              <param name="~map" value="$(arg map)" type="str"/>
+              <param name="~output_file" value="$(arg output)" type="str"/>
+        </node>
+      </group>
     </group>
 
 </launch>
