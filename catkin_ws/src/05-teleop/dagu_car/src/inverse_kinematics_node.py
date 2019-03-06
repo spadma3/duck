@@ -34,7 +34,7 @@ class InverseKinematicsNode(object):
         self.cog_distance = self.setup_parameter("~cog_distance", 0.0525)       #introduce the distance of turning point from the back axis (half the axis_distance),
         self.limit = self.setup_parameter("~limit", 1.0)
         self.limit_max = 1.0
-        self.limit_min = 0.0
+        self.limit_min = -1.0
 
         self.v_max = 999.0     # TODO: Calculate v_max !
         self.omega_max = 999.0     # TODO: Calculate v_max !
@@ -49,7 +49,9 @@ class InverseKinematicsNode(object):
         self.srv_save = rospy.Service("~save_calibration", Empty, self.cbSrvSaveCalibration)
 
         # Setup the publisher and subscriber
-        self.sub_car_cmd = rospy.Subscriber("~car_cmd", Twist2DStamped, self.car_cmd_callback)
+        #self.sub_car_cmd = rospy.Subscriber("~car_cmd", Twist2DStamped, self.car_cmd_callback)
+        self.sub_car_cmd = rospy.Subscriber("/megabot15/lane_controller_node/car_cmd", Twist2DStamped, self.car_cmd_callback)
+
         self.sub_actuator_limits_received = rospy.Subscriber("~actuator_limits_received", BoolStamped, self.updateActuatorLimitsReceived, queue_size=1)
         self.pub_wheels_cmd = rospy.Publisher("~wheels_cmd", WheelsCmdStamped, queue_size=1)
         self.pub_actuator_limits = rospy.Publisher("~actuator_limits", Twist2DStamped, queue_size=1)
@@ -200,8 +202,12 @@ class InverseKinematicsNode(object):
         #k_l_inv = (self.gain_dc - self.trim_dc) / k_l
 
         omega_wheel = msg_car_cmd.v / self.radius                               #omega_r changed to omega_wheel and skipped the whole calculation
-        gamma = pow(pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) - pow(self.cog_distance,2.0),-0.5) * self.axis_distance     #omega_l changed to gamma as this is the steering angle and inserted the new calculation: gamma = f(v, omega)
-        rospy.loginfo("hello world")
+        #distinguish that the argument of the square root is always positive
+        if pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) > pow(self.cog_distance,2.0):
+            gamma = math.atan(pow(pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) - pow(self.cog_distance,2.0),-0.5) * self.axis_distance)    ##omega_l changed to gamma as this is the steering angle and inserted the new calculation: gamma = f(v, omega)
+        else:
+            gamma = math.atan(pow(pow(self.cog_distance,2.0) - pow((msg_car_cmd.v / msg_car_cmd.omega),2.0),-0.5) * self.axis_distance) * -1.0
+        rospy.loginfo(gamma)
         ## conversion from motor rotation rate to duty cycle
         # u_r = (gain_dc + trim_dc) (v + 0.5 * omega * b) / (r * k_r)
         u_wheel = omega_wheel * k_wheel_inv                                     #omega_r changed to omega_wheel, u_r to u_wheel and k_r_inv to k_wheel_inv, RFMH_2019_02_25
@@ -215,8 +221,8 @@ class InverseKinematicsNode(object):
         # Put the wheel commands in a message and publish
         msg_wheels_cmd = WheelsCmdStamped()
         msg_wheels_cmd.header.stamp = msg_car_cmd.header.stamp
-        msg_wheels_cmd.vel_right = u_wheel_limited                              #vel_right is defined in the WheelsCmdStamped --> name needs to be changed everywhere!, RFMH_2019_02_25
-        msg_wheels_cmd.vel_left = gamma
+        msg_wheels_cmd.vel_wheel = u_wheel_limited                              #vel_right is defined in the WheelsCmdStamped --> name needs to be changed everywhere!, RFMH_2019_02_25
+        msg_wheels_cmd.gamma = gamma
         self.pub_wheels_cmd.publish(msg_wheels_cmd)
 
     def setup_parameter(self, param_name, default_value):

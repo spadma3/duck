@@ -1,4 +1,6 @@
 #default parameters for dagu_car/wheels_driver_node
-use_rad_lim: False
-min_rad: 0.06
-wheel_distance: 0.103
+use_rad_lim: True
+#min_rad: 0.13           #min_rad changed from 0.06 to 0.13, RFMH_2019_02_26
+wheel_distance: 0.092   #wheel_distance changed from 0.103 to 0.092, RFMH_2019_02_26
+angle_lim_left: 0.611   #newly introduced (would be 35 degrees), RFMH_2019_02_26
+angle_lim_right: -0.611  #newly introduced (would be -35 degrees), RFMH_2019_02_26

@@ -1,3 +1,3 @@
 Header header
-float32 vel_left
-float32 vel_right
+float32 gamma            #"vel_left" changed to "gamma", RFMH_2019_02_26
+float32 vel_wheel        #"vel_right" changed to "vel_wheel", RFMH_2019_02_26

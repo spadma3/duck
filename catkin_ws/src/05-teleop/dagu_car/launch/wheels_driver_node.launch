@@ -5,6 +5,13 @@
 
     <arg name="pkg_name" value="dagu_car"/>
     <arg name="node_name" default="wheels_driver_node"/>
+    <arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
+
+    <!-- <include file="$(find duckietown)/machines"/>
+    <node if="$(arg local)" ns="$(arg veh)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
+      <rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
+    </node> -->
+
     <node ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true">
       <rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
     </node>
