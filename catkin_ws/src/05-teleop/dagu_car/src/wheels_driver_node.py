@@ -68,7 +68,7 @@ class WheelsDriverNode(object):
         self.msg_wheels_cmd.vel_wheel = msg.vel_wheel                           #"vel_right" changed to "vel_wheel", RFMH_2019_02_26
         self.pub_wheels_cmd.publish(self.msg_wheels_cmd)
 
-    # def cbRadLimit(self, msg):                                                #no radius limitation needed
+    # def cbRadLimit(self, msg):                                                #no radius limitation needed. 
     #     rospy.set_param("~use_rad_lim", msg.data)
     #     self.use_rad_lim = msg.data
 
