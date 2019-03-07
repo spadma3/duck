@@ -1,0 +1,269 @@
+   1               		.file	"Motor.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 123               	.global	init_motor_outputs
+ 125               	init_motor_outputs:
+ 126               		.stabd	46,0,0
+   1:Motor/Motor.c **** /*
+   2:Motor/Motor.c ****  * Motor.c
+   3:Motor/Motor.c ****  *
+   4:Motor/Motor.c ****  * Created: 23/07/2018 15:21:13
+   5:Motor/Motor.c ****  *  Author: Marcus
+   6:Motor/Motor.c ****  */ 
+   7:Motor/Motor.c **** #include <util/delay.h>
+   8:Motor/Motor.c **** #include <avr/io.h>
+   9:Motor/Motor.c **** #include <avr/interrupt.h>
+  10:Motor/Motor.c **** #include <avr/pgmspace.h>
+  11:Motor/Motor.c **** 
+  12:Motor/Motor.c **** #include<stdio.h>
+  13:Motor/Motor.c **** #include<stdlib.h>
+  14:Motor/Motor.c **** #include "Motor.h"
+  15:Motor/Motor.c **** #include "../i2c/i2c_machine.h"
+  16:Motor/Motor.c **** 
+  17:Motor/Motor.c **** 
+  18:Motor/Motor.c **** void init_motor_outputs(void)
+  19:Motor/Motor.c **** {
+ 128               	.LM0:
+ 129               	.LFBB1:
+ 130               	/* prologue: function */
+ 131               	/* frame size = 0 */
+ 132               	/* stack size = 0 */
+ 133               	.L__stack_usage = 0
+  20:Motor/Motor.c **** 	//Configure Data Direction of Output Port to output
+  21:Motor/Motor.c **** 	DDRB |= (1<<PORTINDEX_PWMA);
+ 135               	.LM1:
+ 136 0000 BB9A      		sbi 0x17,3
+  22:Motor/Motor.c **** 	DDRA |= (1<<PORTINDEX_AIN2);
+ 138               	.LM2:
+ 139 0002 D49A      		sbi 0x1a,4
+  23:Motor/Motor.c **** 	DDRA |= (1<<PORTINDEX_AIN1);
+ 141               	.LM3:
+ 142 0004 D39A      		sbi 0x1a,3
+  24:Motor/Motor.c **** 	DDRB |= (1<<PORTINDEX_BIN1);
+ 144               	.LM4:
+ 145 0006 BC9A      		sbi 0x17,4
+  25:Motor/Motor.c **** 	DDRB |= (1<<PORTINDEX_BIN2);
+ 147               	.LM5:
+ 148 0008 BE9A      		sbi 0x17,6
+  26:Motor/Motor.c **** 	DDRB |= (1<<PORTINDEX_PWMB);
+ 150               	.LM6:
+ 151 000a BD9A      		sbi 0x17,5
+  27:Motor/Motor.c **** 
+  28:Motor/Motor.c **** 	//PWM Configuration
+  29:Motor/Motor.c **** 	
+  30:Motor/Motor.c **** 	//set Fast PWM Mode
+  31:Motor/Motor.c **** 	TCCR1D &= ~(1<<WGM10);
+ 153               	.LM7:
+ 154 000c 86B5      		in r24,0x26
+ 155 000e 8E7F      		andi r24,lo8(-2)
+ 156 0010 86BD      		out 0x26,r24
+  32:Motor/Motor.c **** 	TCCR1D &= ~(1<<WGM11);
+ 158               	.LM8:
+ 159 0012 86B5      		in r24,0x26
+ 160 0014 8D7F      		andi r24,lo8(-3)
+ 161 0016 86BD      		out 0x26,r24
+  33:Motor/Motor.c **** 	
+  34:Motor/Motor.c **** 	//Activate Pulse With Modulator B
+  35:Motor/Motor.c **** 	TCCR1A |= (1<<PWM1B);
+ 163               	.LM9:
+ 164 0018 80B7      		in r24,0x30
+ 165 001a 8160      		ori r24,lo8(1)
+ 166 001c 80BF      		out 0x30,r24
+  36:Motor/Motor.c **** 	
+  37:Motor/Motor.c **** 	//OCW1A Behavior: Clear on CompareMatch, Set when TCNT1=0x000, Connect just OC1B
+  38:Motor/Motor.c **** 	TCCR1A |= (1<<COM1B1);
+ 168               	.LM10:
+ 169 001e 80B7      		in r24,0x30
+ 170 0020 8062      		ori r24,lo8(32)
+ 171 0022 80BF      		out 0x30,r24
+  39:Motor/Motor.c **** 	TCCR1A &= ~(1<<COM1B0);
+ 173               	.LM11:
+ 174 0024 80B7      		in r24,0x30
+ 175 0026 8F7E      		andi r24,lo8(-17)
+ 176 0028 80BF      		out 0x30,r24
+  40:Motor/Motor.c **** 
+  41:Motor/Motor.c **** 	//Activate Pulse With Modulator D
+  42:Motor/Motor.c **** 	TCCR1C |= (1<<PWM1D);
+ 178               	.LM12:
+ 179 002a 87B5      		in r24,0x27
+ 180 002c 8160      		ori r24,lo8(1)
+ 181 002e 87BD      		out 0x27,r24
+  43:Motor/Motor.c **** 	
+  44:Motor/Motor.c **** 	//OCW1A Behavior: Clear on CompareMatch, Set when TCNT1=0x000, Connect just OC1D
+  45:Motor/Motor.c **** 	TCCR1C |= (1<<COM1D1);
+ 183               	.LM13:
+ 184 0030 87B5      		in r24,0x27
+ 185 0032 8860      		ori r24,lo8(8)
+ 186 0034 87BD      		out 0x27,r24
+  46:Motor/Motor.c **** 	TCCR1C &= ~(1<<COM1D0);
+ 188               	.LM14:
+ 189 0036 87B5      		in r24,0x27
+ 190 0038 8B7F      		andi r24,lo8(-5)
+ 191 003a 87BD      		out 0x27,r24
+  47:Motor/Motor.c **** 
+  48:Motor/Motor.c **** 	//Set the prescaler to 1/16(0101b)--> 8Mhz System Clock --> 500kHz Counter Clock --> 0-255 Countin
+  49:Motor/Motor.c **** 	TCCR1B |= (1<<CS10); //Warning: This Counter is also used for calculating the time for updating th
+ 193               	.LM15:
+ 194 003c 8FB5      		in r24,0x2f
+ 195 003e 8160      		ori r24,lo8(1)
+ 196 0040 8FBD      		out 0x2f,r24
+  50:Motor/Motor.c **** 	TCCR1B &= ~(1<<CS11);
+ 198               	.LM16:
+ 199 0042 8FB5      		in r24,0x2f
+ 200 0044 8D7F      		andi r24,lo8(-3)
+ 201 0046 8FBD      		out 0x2f,r24
+  51:Motor/Motor.c **** 	TCCR1B |= (1<<CS12);
+ 203               	.LM17:
+ 204 0048 8FB5      		in r24,0x2f
+ 205 004a 8460      		ori r24,lo8(4)
+ 206 004c 8FBD      		out 0x2f,r24
+  52:Motor/Motor.c **** 	TCCR1B &= ~(1<<CS13);
+ 208               	.LM18:
+ 209 004e 8FB5      		in r24,0x2f
+ 210 0050 877F      		andi r24,lo8(-9)
+ 211 0052 8FBD      		out 0x2f,r24
+  53:Motor/Motor.c **** 	
+  54:Motor/Motor.c **** 	//Set PWM Counter Top Value to 255
+  55:Motor/Motor.c **** 	OCR1C  =0xFF;
+ 213               	.LM19:
+ 214 0054 8FEF      		ldi r24,lo8(-1)
+ 215 0056 8BBD      		out 0x2b,r24
+ 216 0058 0895      		ret
+ 218               	.Lscope1:
+ 220               		.stabd	78,0,0
+ 222               	.global	update_motor_values
+ 224               	update_motor_values:
+ 225               		.stabd	46,0,0
+  56:Motor/Motor.c **** }
+  57:Motor/Motor.c **** 
+  58:Motor/Motor.c **** inline void update_motor_values(void)
+  59:Motor/Motor.c **** {
+ 227               	.LM20:
+ 228               	.LFBB2:
+ 229               	/* prologue: function */
+ 230               	/* frame size = 0 */
+ 231               	/* stack size = 0 */
+ 232               	.L__stack_usage = 0
+  60:Motor/Motor.c **** 	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_AIN1)>=128)
+ 234               	.LM21:
+ 235 005a 6AE0      		ldi r22,lo8(10)
+ 236 005c 81E0      		ldi r24,lo8(1)
+ 237 005e 00D0      		rcall getI2CPWMValue
+ 238 0060 87FF      		sbrs r24,7
+ 239 0062 00C0      		rjmp .L3
+  61:Motor/Motor.c **** 	{
+  62:Motor/Motor.c **** 		PORTA |= (1<<PORTINDEX_AIN1);//set output
+ 241               	.LM22:
+ 242 0064 DB9A      		sbi 0x1b,3
+ 243 0066 00C0      		rjmp .L4
+ 244               	.L3:
+  63:Motor/Motor.c **** 	}
+  64:Motor/Motor.c **** 	else
+  65:Motor/Motor.c **** 	{
+  66:Motor/Motor.c **** 		PORTA &= ~(1<<PORTINDEX_AIN1);//reset output
+ 246               	.LM23:
+ 247 0068 DB98      		cbi 0x1b,3
+ 248               	.L4:
+  67:Motor/Motor.c **** 	}
+  68:Motor/Motor.c **** 
+  69:Motor/Motor.c **** 	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_AIN2)>=128)
+ 250               	.LM24:
+ 251 006a 69E0      		ldi r22,lo8(9)
+ 252 006c 81E0      		ldi r24,lo8(1)
+ 253 006e 00D0      		rcall getI2CPWMValue
+ 254 0070 87FF      		sbrs r24,7
+ 255 0072 00C0      		rjmp .L5
+  70:Motor/Motor.c **** 	{
+  71:Motor/Motor.c **** 		PORTA |= (1<<PORTINDEX_AIN2);//set output
+ 257               	.LM25:
+ 258 0074 DC9A      		sbi 0x1b,4
+ 259 0076 00C0      		rjmp .L6
+ 260               	.L5:
+  72:Motor/Motor.c **** 	}
+  73:Motor/Motor.c **** 	else
+  74:Motor/Motor.c **** 	{
+  75:Motor/Motor.c **** 		PORTA &= ~(1<<PORTINDEX_AIN2);//reset output
+ 262               	.LM26:
+ 263 0078 DC98      		cbi 0x1b,4
+ 264               	.L6:
+  76:Motor/Motor.c **** 	}
+  77:Motor/Motor.c **** 	
+  78:Motor/Motor.c **** 	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_BIN1)>=128)
+ 266               	.LM27:
+ 267 007a 6BE0      		ldi r22,lo8(11)
+ 268 007c 81E0      		ldi r24,lo8(1)
+ 269 007e 00D0      		rcall getI2CPWMValue
+ 270 0080 87FF      		sbrs r24,7
+ 271 0082 00C0      		rjmp .L7
+  79:Motor/Motor.c **** 	{
+  80:Motor/Motor.c **** 		PORTB |= (1<<PORTINDEX_BIN1);//set output
+ 273               	.LM28:
+ 274 0084 C49A      		sbi 0x18,4
+ 275 0086 00C0      		rjmp .L8
+ 276               	.L7:
+  81:Motor/Motor.c **** 	}
+  82:Motor/Motor.c **** 	else
+  83:Motor/Motor.c **** 	{
+  84:Motor/Motor.c **** 		PORTB &= ~(1<<PORTINDEX_BIN1);//reset output
+ 278               	.LM29:
+ 279 0088 C498      		cbi 0x18,4
+ 280               	.L8:
+  85:Motor/Motor.c **** 	}
+  86:Motor/Motor.c **** 
+  87:Motor/Motor.c **** 	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_BIN2)>=128)
+ 282               	.LM30:
+ 283 008a 6CE0      		ldi r22,lo8(12)
+ 284 008c 81E0      		ldi r24,lo8(1)
+ 285 008e 00D0      		rcall getI2CPWMValue
+ 286 0090 87FF      		sbrs r24,7
+ 287 0092 00C0      		rjmp .L9
+  88:Motor/Motor.c **** 	{
+  89:Motor/Motor.c **** 		PORTB |= (1<<PORTINDEX_BIN2);//set output
+ 289               	.LM31:
+ 290 0094 C69A      		sbi 0x18,6
+ 291 0096 00C0      		rjmp .L10
+ 292               	.L9:
+  90:Motor/Motor.c **** 	}
+  91:Motor/Motor.c **** 	else
+  92:Motor/Motor.c **** 	{
+  93:Motor/Motor.c **** 		PORTB &= ~(1<<PORTINDEX_BIN2);//reset output
+ 294               	.LM32:
+ 295 0098 C698      		cbi 0x18,6
+ 296               	.L10:
+  94:Motor/Motor.c **** 	}
+  95:Motor/Motor.c **** 
+  96:Motor/Motor.c **** 	//set PWM Values
+  97:Motor/Motor.c **** 	PWMOutput_PWMA = getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_PWMA);
+ 298               	.LM33:
+ 299 009a 68E0      		ldi r22,lo8(8)
+ 300 009c 81E0      		ldi r24,lo8(1)
+ 301 009e 00D0      		rcall getI2CPWMValue
+ 302 00a0 8CBD      		out 0x2c,r24
+  98:Motor/Motor.c **** 	PWMOutput_PWMB = getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_PWMB);
+ 304               	.LM34:
+ 305 00a2 6DE0      		ldi r22,lo8(13)
+ 306 00a4 81E0      		ldi r24,lo8(1)
+ 307 00a6 00D0      		rcall getI2CPWMValue
+ 308 00a8 8ABD      		out 0x2a,r24
+ 309 00aa 0895      		ret
+ 311               	.Lscope2:
+ 313               		.stabd	78,0,0
+ 315               	.Letext0:
+ 316               		.ident	"GCC: (GNU) 4.9.2"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Motor.c
+     /tmp/ccbJ94hZ.s:2      *ABS*:0000003e __SP_H__
+     /tmp/ccbJ94hZ.s:3      *ABS*:0000003d __SP_L__
+     /tmp/ccbJ94hZ.s:4      *ABS*:0000003f __SREG__
+     /tmp/ccbJ94hZ.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/ccbJ94hZ.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/ccbJ94hZ.s:125    .text:00000000 init_motor_outputs
+     /tmp/ccbJ94hZ.s:224    .text:0000005a update_motor_values
+
+UNDEFINED SYMBOLS
+getI2CPWMValue

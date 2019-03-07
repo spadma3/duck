@@ -1,0 +1,2411 @@
+
+main.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000c0c  00000000  00000000  00000094  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000008  00800060  00000c0c  00000ca0  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000129  00800068  00800068  00000ca8  2**0
+                  ALLOC
+  3 .stab         0000360c  00000000  00000000  00000ca8  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  4 .stabstr      00001901  00000000  00000000  000042b4  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .comment      00000011  00000000  00000000  00005bb5  2**0
+                  CONTENTS, READONLY
+  6 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00005bc8  2**2
+                  CONTENTS, READONLY
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	12 c0       	rjmp	.+36     	; 0x26 <__ctors_end>
+   2:	2c c0       	rjmp	.+88     	; 0x5c <__bad_interrupt>
+   4:	2b c0       	rjmp	.+86     	; 0x5c <__bad_interrupt>
+   6:	2a c0       	rjmp	.+84     	; 0x5c <__bad_interrupt>
+   8:	29 c0       	rjmp	.+82     	; 0x5c <__bad_interrupt>
+   a:	28 c0       	rjmp	.+80     	; 0x5c <__bad_interrupt>
+   c:	27 c0       	rjmp	.+78     	; 0x5c <__bad_interrupt>
+   e:	34 c0       	rjmp	.+104    	; 0x78 <__vector_7>
+  10:	45 c0       	rjmp	.+138    	; 0x9c <__vector_8>
+  12:	24 c0       	rjmp	.+72     	; 0x5c <__bad_interrupt>
+  14:	23 c0       	rjmp	.+70     	; 0x5c <__bad_interrupt>
+  16:	22 c0       	rjmp	.+68     	; 0x5c <__bad_interrupt>
+  18:	21 c0       	rjmp	.+66     	; 0x5c <__bad_interrupt>
+  1a:	20 c0       	rjmp	.+64     	; 0x5c <__bad_interrupt>
+  1c:	1f c0       	rjmp	.+62     	; 0x5c <__bad_interrupt>
+  1e:	1e c0       	rjmp	.+60     	; 0x5c <__bad_interrupt>
+  20:	1d c0       	rjmp	.+58     	; 0x5c <__bad_interrupt>
+  22:	1c c0       	rjmp	.+56     	; 0x5c <__bad_interrupt>
+  24:	1b c0       	rjmp	.+54     	; 0x5c <__bad_interrupt>
+
+00000026 <__ctors_end>:
+  26:	11 24       	eor	r1, r1
+  28:	1f be       	out	0x3f, r1	; 63
+  2a:	cf e5       	ldi	r28, 0x5F	; 95
+  2c:	d2 e0       	ldi	r29, 0x02	; 2
+  2e:	de bf       	out	0x3e, r29	; 62
+  30:	cd bf       	out	0x3d, r28	; 61
+
+00000032 <__do_copy_data>:
+  32:	10 e0       	ldi	r17, 0x00	; 0
+  34:	a0 e6       	ldi	r26, 0x60	; 96
+  36:	b0 e0       	ldi	r27, 0x00	; 0
+  38:	ec e0       	ldi	r30, 0x0C	; 12
+  3a:	fc e0       	ldi	r31, 0x0C	; 12
+  3c:	02 c0       	rjmp	.+4      	; 0x42 <__SREG__+0x3>
+  3e:	05 90       	lpm	r0, Z+
+  40:	0d 92       	st	X+, r0
+  42:	a8 36       	cpi	r26, 0x68	; 104
+  44:	b1 07       	cpc	r27, r17
+  46:	d9 f7       	brne	.-10     	; 0x3e <__SP_H__>
+
+00000048 <__do_clear_bss>:
+  48:	21 e0       	ldi	r18, 0x01	; 1
+  4a:	a8 e6       	ldi	r26, 0x68	; 104
+  4c:	b0 e0       	ldi	r27, 0x00	; 0
+  4e:	01 c0       	rjmp	.+2      	; 0x52 <.do_clear_bss_start>
+
+00000050 <.do_clear_bss_loop>:
+  50:	1d 92       	st	X+, r1
+
+00000052 <.do_clear_bss_start>:
+  52:	a1 39       	cpi	r26, 0x91	; 145
+  54:	b2 07       	cpc	r27, r18
+  56:	e1 f7       	brne	.-8      	; 0x50 <.do_clear_bss_loop>
+  58:	cd d4       	rcall	.+2458   	; 0x9f4 <main>
+  5a:	d6 c5       	rjmp	.+2988   	; 0xc08 <_exit>
+
+0000005c <__bad_interrupt>:
+  5c:	d1 cf       	rjmp	.-94     	; 0x0 <__vectors>
+
+0000005e <I2CAddressToArrayIndex>:
+
+//this function translates an I2C register index to an array index (e.g. to save memory because there could be gaps in the i2c address registers)
+//PCA9685 has registers 0-69dez and 250-255dez. To Save memory, the registers 250-255dez are mapped to 70-75! This is achieved with this function.
+uint16_t I2CAddressToArrayIndex(uint8_t I2CAddress) //Error= 0xFFFF
+{
+	if (I2CAddress <= 0x45)//i2c 0-69dez --> Index 0-69dez
+  5e:	86 34       	cpi	r24, 0x46	; 70
+  60:	10 f4       	brcc	.+4      	; 0x66 <I2CAddressToArrayIndex+0x8>
+	{
+		return I2CAddress;
+  62:	90 e0       	ldi	r25, 0x00	; 0
+  64:	08 95       	ret
+	}
+	else if (I2CAddress >= 0xFA && I2CAddress <= 0XFF)// i2c 250-255dez --> Index 70-25dez
+  66:	8a 3f       	cpi	r24, 0xFA	; 250
+  68:	20 f0       	brcs	.+8      	; 0x72 <I2CAddressToArrayIndex+0x14>
+	{
+		return I2CAddress - 0xFA+0x46;// the address 0xFA (250dez) should give 0x46 (70dez)
+  6a:	90 e0       	ldi	r25, 0x00	; 0
+  6c:	84 5b       	subi	r24, 0xB4	; 180
+  6e:	91 09       	sbc	r25, r1
+  70:	08 95       	ret
+	}
+	else
+	{
+		return 0xFFFF;//Error
+  72:	8f ef       	ldi	r24, 0xFF	; 255
+  74:	9f ef       	ldi	r25, 0xFF	; 255
+	}
+}
+  76:	08 95       	ret
+
+00000078 <__vector_7>:
+#elif defined(USI_STRT_vect)
+ISR(USI_STRT_vect)
+#else
+#error "Couldn't figure out what i2c start interrupt to use!"
+#endif
+{
+  78:	1f 92       	push	r1
+  7a:	0f 92       	push	r0
+  7c:	0f b6       	in	r0, 0x3f	; 63
+  7e:	0f 92       	push	r0
+  80:	11 24       	eor	r1, r1
+  82:	8f 93       	push	r24
+	i2c_state = 0;
+  84:	10 92 70 00 	sts	0x0070, r1
+	while (USI_PIN & (1 << I2C_SCL));
+  88:	ca 99       	sbic	0x19, 2	; 25
+  8a:	fe cf       	rjmp	.-4      	; 0x88 <__vector_7+0x10>
+	USISR = 0xF0;
+  8c:	80 ef       	ldi	r24, 0xF0	; 240
+  8e:	8e b9       	out	0x0e, r24	; 14
+}
+  90:	8f 91       	pop	r24
+  92:	0f 90       	pop	r0
+  94:	0f be       	out	0x3f, r0	; 63
+  96:	0f 90       	pop	r0
+  98:	1f 90       	pop	r1
+  9a:	18 95       	reti
+
+0000009c <__vector_8>:
+#elif defined(USI_OVF_vect)
+ISR(USI_OVF_vect)
+#else
+#error "Couldn't figure out what i2c overflow interrupt to use!"
+#endif
+{
+  9c:	1f 92       	push	r1
+  9e:	0f 92       	push	r0
+  a0:	0f b6       	in	r0, 0x3f	; 63
+  a2:	0f 92       	push	r0
+  a4:	11 24       	eor	r1, r1
+  a6:	2f 93       	push	r18
+  a8:	3f 93       	push	r19
+  aa:	4f 93       	push	r20
+  ac:	5f 93       	push	r21
+  ae:	6f 93       	push	r22
+  b0:	7f 93       	push	r23
+  b2:	8f 93       	push	r24
+  b4:	9f 93       	push	r25
+  b6:	af 93       	push	r26
+  b8:	bf 93       	push	r27
+  ba:	ef 93       	push	r30
+  bc:	ff 93       	push	r31
+	/* Writing USISR directly has side effects! */
+	uint8_t usisr_tmp = 0xD0;
+	uint8_t sda_direction;
+	uint8_t tmp;
+
+	if (!post_ack) {
+  be:	80 91 75 00 	lds	r24, 0x0075
+  c2:	81 11       	cpse	r24, r1
+  c4:	85 c0       	rjmp	.+266    	; 0x1d0 <__vector_8+0x134>
+		/* Work that needs to be done before the ACK cycle */
+		sda_direction = I2C_SDA_DIR_OUT;
+
+		switch (i2c_state) {
+  c6:	80 91 70 00 	lds	r24, 0x0070
+  ca:	81 30       	cpi	r24, 0x01	; 1
+  cc:	09 f4       	brne	.+2      	; 0xd0 <__vector_8+0x34>
+  ce:	63 c0       	rjmp	.+198    	; 0x196 <__vector_8+0xfa>
+  d0:	a0 f1       	brcs	.+104    	; 0x13a <__vector_8+0x9e>
+  d2:	82 30       	cpi	r24, 0x02	; 2
+  d4:	09 f4       	brne	.+2      	; 0xd8 <__vector_8+0x3c>
+  d6:	6f c0       	rjmp	.+222    	; 0x1b6 <__vector_8+0x11a>
+  d8:	83 30       	cpi	r24, 0x03	; 3
+  da:	09 f0       	breq	.+2      	; 0xde <__vector_8+0x42>
+  dc:	71 c0       	rjmp	.+226    	; 0x1c0 <__vector_8+0x124>
+#else
+			tmp = i2c_w_mask[i2c_offset];
+#endif
+			if (tmp) {
+				/* Only heed writeable bits */
+				i2c_reg[i2c_current_Slave][i2c_offset] &= ~tmp;
+  de:	80 91 71 00 	lds	r24, 0x0071
+  e2:	20 91 6f 00 	lds	r18, 0x006F
+  e6:	90 e0       	ldi	r25, 0x00	; 0
+  e8:	6c e4       	ldi	r22, 0x4C	; 76
+  ea:	70 e0       	ldi	r23, 0x00	; 0
+  ec:	bc d4       	rcall	.+2424   	; 0xa66 <__mulhi3>
+  ee:	82 0f       	add	r24, r18
+  f0:	91 1d       	adc	r25, r1
+  f2:	fc 01       	movw	r30, r24
+  f4:	ea 58       	subi	r30, 0x8A	; 138
+  f6:	ff 4f       	sbci	r31, 0xFF	; 255
+  f8:	80 81       	ld	r24, Z
+  fa:	10 82       	st	Z, r1
+				i2c_reg[i2c_current_Slave][i2c_offset] |= USIDR & tmp;
+  fc:	2f b1       	in	r18, 0x0f	; 15
+  fe:	80 91 71 00 	lds	r24, 0x0071
+ 102:	30 91 6f 00 	lds	r19, 0x006F
+ 106:	90 e0       	ldi	r25, 0x00	; 0
+ 108:	6c e4       	ldi	r22, 0x4C	; 76
+ 10a:	70 e0       	ldi	r23, 0x00	; 0
+ 10c:	ac d4       	rcall	.+2392   	; 0xa66 <__mulhi3>
+ 10e:	83 0f       	add	r24, r19
+ 110:	91 1d       	adc	r25, r1
+ 112:	fc 01       	movw	r30, r24
+ 114:	ea 58       	subi	r30, 0x8A	; 138
+ 116:	ff 4f       	sbci	r31, 0xFF	; 255
+ 118:	80 81       	ld	r24, Z
+ 11a:	28 2b       	or	r18, r24
+ 11c:	20 83       	st	Z, r18
+			}
+			i2c_update[i2c_current_Slave]++;
+ 11e:	e0 91 71 00 	lds	r30, 0x0071
+ 122:	f0 e0       	ldi	r31, 0x00	; 0
+ 124:	ee 58       	subi	r30, 0x8E	; 142
+ 126:	ff 4f       	sbci	r31, 0xFF	; 255
+ 128:	80 81       	ld	r24, Z
+ 12a:	8f 5f       	subi	r24, 0xFF	; 255
+ 12c:	80 83       	st	Z, r24
+			i2c_offset++;
+ 12e:	80 91 6f 00 	lds	r24, 0x006F
+ 132:	8f 5f       	subi	r24, 0xFF	; 255
+ 134:	80 93 6f 00 	sts	0x006F, r24
+ 138:	41 c0       	rjmp	.+130    	; 0x1bc <__vector_8+0x120>
+		/* Work that needs to be done before the ACK cycle */
+		sda_direction = I2C_SDA_DIR_OUT;
+
+		switch (i2c_state) {
+		case I2C_STATE_ADDR_MATCH:
+			tmp = USIDR >> 1;//tmp=slave address
+ 13a:	8f b1       	in	r24, 0x0f	; 15
+ 13c:	86 95       	lsr	r24
+			
+			i2c_current_Slave=0xFF;//set slave address invalid
+ 13e:	9f ef       	ldi	r25, 0xFF	; 255
+ 140:	90 93 71 00 	sts	0x0071, r25
+			
+			
+			//check if the actual slave is in the slave address array
+			for(uint8_t i=0;i<I2C_N_SLAVES;i++)
+			{
+				if (I2C_SLAVE_ADDR[i]==tmp)
+ 144:	90 91 60 00 	lds	r25, 0x0060
+ 148:	98 17       	cp	r25, r24
+ 14a:	51 f0       	breq	.+20     	; 0x160 <__vector_8+0xc4>
+ 14c:	90 91 61 00 	lds	r25, 0x0061
+ 150:	98 17       	cp	r25, r24
+ 152:	41 f0       	breq	.+16     	; 0x164 <__vector_8+0xc8>
+ 154:	90 91 62 00 	lds	r25, 0x0062
+ 158:	98 13       	cpse	r25, r24
+ 15a:	07 c0       	rjmp	.+14     	; 0x16a <__vector_8+0xce>
+			
+			i2c_current_Slave=0xFF;//set slave address invalid
+			
+			
+			//check if the actual slave is in the slave address array
+			for(uint8_t i=0;i<I2C_N_SLAVES;i++)
+ 15c:	92 e0       	ldi	r25, 0x02	; 2
+ 15e:	03 c0       	rjmp	.+6      	; 0x166 <__vector_8+0xca>
+ 160:	90 e0       	ldi	r25, 0x00	; 0
+ 162:	01 c0       	rjmp	.+2      	; 0x166 <__vector_8+0xca>
+ 164:	91 e0       	ldi	r25, 0x01	; 1
+			{
+				if (I2C_SLAVE_ADDR[i]==tmp)
+				{
+					//if slave address is found, stop searching and save index
+					i2c_current_Slave=i;
+ 166:	90 93 71 00 	sts	0x0071, r25
+					break;
+				}
+			}
+			
+			//Slave is found if current address is not initial value and temp is not 0			
+			if (tmp==0 || i2c_current_Slave==0xFF) {
+ 16a:	88 23       	and	r24, r24
+ 16c:	c1 f0       	breq	.+48     	; 0x19e <__vector_8+0x102>
+ 16e:	80 91 71 00 	lds	r24, 0x0071
+ 172:	8f 3f       	cpi	r24, 0xFF	; 255
+ 174:	a1 f0       	breq	.+40     	; 0x19e <__vector_8+0x102>
+				/* Transition h: Address not matched */
+				i2c_state = I2C_STATE_IDLE;
+				NAK();
+			} else {
+				if (USIDR & 1) {
+ 176:	78 9b       	sbis	0x0f, 0	; 15
+ 178:	02 c0       	rjmp	.+4      	; 0x17e <__vector_8+0xe2>
+					/* Transition b: Address matched, read mode */
+					i2c_state = I2C_STATE_MASTER_READ;
+ 17a:	82 e0       	ldi	r24, 0x02	; 2
+ 17c:	19 c0       	rjmp	.+50     	; 0x1b0 <__vector_8+0x114>
+				} else {
+					/* Transition a: Address matched, write mode */
+					i2c_offset = 0;
+ 17e:	10 92 6f 00 	sts	0x006F, r1
+					i2c_state = I2C_STATE_REG_ADDR;
+ 182:	81 e0       	ldi	r24, 0x01	; 1
+ 184:	80 93 70 00 	sts	0x0070, r24
+					i2c_update[i2c_current_Slave] = 1;
+ 188:	e0 91 71 00 	lds	r30, 0x0071
+ 18c:	f0 e0       	ldi	r31, 0x00	; 0
+ 18e:	ee 58       	subi	r30, 0x8E	; 142
+ 190:	ff 4f       	sbci	r31, 0xFF	; 255
+ 192:	80 83       	st	Z, r24
+ 194:	13 c0       	rjmp	.+38     	; 0x1bc <__vector_8+0x120>
+				}
+				ACK();
+			}
+			break;
+		case I2C_STATE_REG_ADDR:
+			if (I2CAddressToArrayIndex(USIDR)==0xFFFF) {
+ 196:	8f b1       	in	r24, 0x0f	; 15
+ 198:	62 df       	rcall	.-316    	; 0x5e <I2CAddressToArrayIndex>
+ 19a:	01 96       	adiw	r24, 0x01	; 1
+ 19c:	21 f4       	brne	.+8      	; 0x1a6 <__vector_8+0x10a>
+				/* Transition i:  Invalid reg addr*/
+				i2c_state = I2C_STATE_IDLE;
+ 19e:	84 e0       	ldi	r24, 0x04	; 4
+ 1a0:	80 93 70 00 	sts	0x0070, r24
+ 1a4:	0d c0       	rjmp	.+26     	; 0x1c0 <__vector_8+0x124>
+				NAK();
+			} else {
+				/* Transition d:  Initialise write*/
+				i2c_offset = I2CAddressToArrayIndex(USIDR);
+ 1a6:	8f b1       	in	r24, 0x0f	; 15
+ 1a8:	5a df       	rcall	.-332    	; 0x5e <I2CAddressToArrayIndex>
+ 1aa:	80 93 6f 00 	sts	0x006F, r24
+				i2c_state = I2C_STATE_MASTER_WRITE;
+ 1ae:	83 e0       	ldi	r24, 0x03	; 3
+ 1b0:	80 93 70 00 	sts	0x0070, r24
+ 1b4:	03 c0       	rjmp	.+6      	; 0x1bc <__vector_8+0x120>
+				ACK();
+			}
+			break;
+		case I2C_STATE_MASTER_READ:
+			USIDR = 0;
+ 1b6:	1f b8       	out	0x0f, r1	; 15
+			/* Listen for master NAK */
+			sda_direction = I2C_SDA_DIR_IN;
+ 1b8:	80 e0       	ldi	r24, 0x00	; 0
+			break;
+ 1ba:	05 c0       	rjmp	.+10     	; 0x1c6 <__vector_8+0x12a>
+				i2c_reg[i2c_current_Slave][i2c_offset] &= ~tmp;
+				i2c_reg[i2c_current_Slave][i2c_offset] |= USIDR & tmp;
+			}
+			i2c_update[i2c_current_Slave]++;
+			i2c_offset++;
+			ACK();
+ 1bc:	1f b8       	out	0x0f, r1	; 15
+ 1be:	02 c0       	rjmp	.+4      	; 0x1c4 <__vector_8+0x128>
+			break;
+		default:
+			NAK();
+ 1c0:	80 e8       	ldi	r24, 0x80	; 128
+ 1c2:	8f b9       	out	0x0f, r24	; 15
+	uint8_t sda_direction;
+	uint8_t tmp;
+
+	if (!post_ack) {
+		/* Work that needs to be done before the ACK cycle */
+		sda_direction = I2C_SDA_DIR_OUT;
+ 1c4:	81 e0       	ldi	r24, 0x01	; 1
+		default:
+			NAK();
+		}
+		/* Counter will overflow again after ACK cycle */
+		usisr_tmp |= 14 << USICNT0;
+		post_ack = 1;
+ 1c6:	91 e0       	ldi	r25, 0x01	; 1
+ 1c8:	90 93 75 00 	sts	0x0075, r25
+			break;
+		default:
+			NAK();
+		}
+		/* Counter will overflow again after ACK cycle */
+		usisr_tmp |= 14 << USICNT0;
+ 1cc:	9e ed       	ldi	r25, 0xDE	; 222
+ 1ce:	26 c0       	rjmp	.+76     	; 0x21c <__vector_8+0x180>
+		post_ack = 1;
+	} else {
+		/* Work that needs to be done after the ACK cycle */
+		sda_direction = I2C_SDA_DIR_IN;
+		switch (i2c_state) {
+ 1d0:	80 91 70 00 	lds	r24, 0x0070
+ 1d4:	82 30       	cpi	r24, 0x02	; 2
+ 1d6:	f1 f4       	brne	.+60     	; 0x214 <__vector_8+0x178>
+		case I2C_STATE_MASTER_READ:
+			if (USIDR) {
+ 1d8:	8f b1       	in	r24, 0x0f	; 15
+ 1da:	88 23       	and	r24, r24
+ 1dc:	31 f0       	breq	.+12     	; 0x1ea <__vector_8+0x14e>
+				/* Transition e: Read finished */
+				i2c_offset = 0;
+ 1de:	10 92 6f 00 	sts	0x006F, r1
+				i2c_state = I2C_STATE_IDLE;
+ 1e2:	84 e0       	ldi	r24, 0x04	; 4
+ 1e4:	80 93 70 00 	sts	0x0070, r24
+ 1e8:	15 c0       	rjmp	.+42     	; 0x214 <__vector_8+0x178>
+			} else {
+				/* Transition f: Read continues */
+				sda_direction = I2C_SDA_DIR_OUT;
+				USIDR = i2c_reg[i2c_current_Slave][i2c_offset++];
+ 1ea:	80 91 71 00 	lds	r24, 0x0071
+ 1ee:	20 91 6f 00 	lds	r18, 0x006F
+ 1f2:	91 e0       	ldi	r25, 0x01	; 1
+ 1f4:	92 0f       	add	r25, r18
+ 1f6:	90 93 6f 00 	sts	0x006F, r25
+ 1fa:	90 e0       	ldi	r25, 0x00	; 0
+ 1fc:	6c e4       	ldi	r22, 0x4C	; 76
+ 1fe:	70 e0       	ldi	r23, 0x00	; 0
+ 200:	32 d4       	rcall	.+2148   	; 0xa66 <__mulhi3>
+ 202:	82 0f       	add	r24, r18
+ 204:	91 1d       	adc	r25, r1
+ 206:	fc 01       	movw	r30, r24
+ 208:	ea 58       	subi	r30, 0x8A	; 138
+ 20a:	ff 4f       	sbci	r31, 0xFF	; 255
+ 20c:	80 81       	ld	r24, Z
+ 20e:	8f b9       	out	0x0f, r24	; 15
+				/* Transition e: Read finished */
+				i2c_offset = 0;
+				i2c_state = I2C_STATE_IDLE;
+			} else {
+				/* Transition f: Read continues */
+				sda_direction = I2C_SDA_DIR_OUT;
+ 210:	81 e0       	ldi	r24, 0x01	; 1
+ 212:	01 c0       	rjmp	.+2      	; 0x216 <__vector_8+0x17a>
+		/* Counter will overflow again after ACK cycle */
+		usisr_tmp |= 14 << USICNT0;
+		post_ack = 1;
+	} else {
+		/* Work that needs to be done after the ACK cycle */
+		sda_direction = I2C_SDA_DIR_IN;
+ 214:	80 e0       	ldi	r24, 0x00	; 0
+				sda_direction = I2C_SDA_DIR_OUT;
+				USIDR = i2c_reg[i2c_current_Slave][i2c_offset++];
+			}
+			break;
+		}
+		post_ack = 0;
+ 216:	10 92 75 00 	sts	0x0075, r1
+#error "Couldn't figure out what i2c overflow interrupt to use!"
+#endif
+{
+	static uint8_t post_ack = 0;
+	/* Writing USISR directly has side effects! */
+	uint8_t usisr_tmp = 0xD0;
+ 21a:	90 ed       	ldi	r25, 0xD0	; 208
+			break;
+		}
+		post_ack = 0;
+	}
+
+	if (i2c_offset > (I2C_N_REG - 1))
+ 21c:	20 91 6f 00 	lds	r18, 0x006F
+ 220:	2c 34       	cpi	r18, 0x4C	; 76
+ 222:	10 f0       	brcs	.+4      	; 0x228 <__vector_8+0x18c>
+		i2c_offset = 0;
+ 224:	10 92 6f 00 	sts	0x006F, r1
+
+	/* Set up SDA direction for next operation */
+	if (sda_direction == I2C_SDA_DIR_OUT) {
+ 228:	81 30       	cpi	r24, 0x01	; 1
+ 22a:	11 f4       	brne	.+4      	; 0x230 <__vector_8+0x194>
+		USI_DDR |= (1 << I2C_SDA);
+ 22c:	d0 9a       	sbi	0x1a, 0	; 26
+ 22e:	01 c0       	rjmp	.+2      	; 0x232 <__vector_8+0x196>
+	} else {
+		USI_DDR &= ~(1 << I2C_SDA);
+ 230:	d0 98       	cbi	0x1a, 0	; 26
+	}
+
+	/* Clear flags and set counter */
+	USISR = usisr_tmp;
+ 232:	9e b9       	out	0x0e, r25	; 14
+}
+ 234:	ff 91       	pop	r31
+ 236:	ef 91       	pop	r30
+ 238:	bf 91       	pop	r27
+ 23a:	af 91       	pop	r26
+ 23c:	9f 91       	pop	r25
+ 23e:	8f 91       	pop	r24
+ 240:	7f 91       	pop	r23
+ 242:	6f 91       	pop	r22
+ 244:	5f 91       	pop	r21
+ 246:	4f 91       	pop	r20
+ 248:	3f 91       	pop	r19
+ 24a:	2f 91       	pop	r18
+ 24c:	0f 90       	pop	r0
+ 24e:	0f be       	out	0x3f, r0	; 63
+ 250:	0f 90       	pop	r0
+ 252:	1f 90       	pop	r1
+ 254:	18 95       	reti
+
+00000256 <i2c_init>:
+
+
+/* Initialise the USI and I2C state machine */
+void i2c_init( void )
+{
+	i2c_state = 0;
+ 256:	10 92 70 00 	sts	0x0070, r1
+	USICR = (1 << USISIE) | (1 << USIOIE) | (3 << USIWM0) | (1 << USICS1);
+ 25a:	88 ef       	ldi	r24, 0xF8	; 248
+ 25c:	8d b9       	out	0x0d, r24	; 13
+	USI_DDR |= (1 << I2C_SCL);
+ 25e:	d2 9a       	sbi	0x1a, 2	; 26
+	USI_DDR &= ~(1 << I2C_SDA);
+ 260:	d0 98       	cbi	0x1a, 0	; 26
+	USI_PORT |= (1 << I2C_SDA) | (1 << I2C_SCL);
+ 262:	8b b3       	in	r24, 0x1b	; 27
+ 264:	85 60       	ori	r24, 0x05	; 5
+ 266:	8b bb       	out	0x1b, r24	; 27
+	USISR = 0xF0;
+ 268:	80 ef       	ldi	r24, 0xF0	; 240
+ 26a:	8e b9       	out	0x0e, r24	; 14
+ 26c:	08 95       	ret
+
+0000026e <i2c_transaction_ongoing>:
+ * A transaction is considered ongoing if the slave address has
+ * been matched, but a stop has not been received yet.
+ */
+uint8_t i2c_transaction_ongoing( void )
+{
+	if ((i2c_state != I2C_STATE_IDLE) &&
+ 26e:	80 91 70 00 	lds	r24, 0x0070
+ 272:	84 30       	cpi	r24, 0x04	; 4
+ 274:	29 f0       	breq	.+10     	; 0x280 <i2c_transaction_ongoing+0x12>
+		(i2c_state != I2C_STATE_ADDR_MATCH)) {
+ 276:	90 91 70 00 	lds	r25, 0x0070
+ * A transaction is considered ongoing if the slave address has
+ * been matched, but a stop has not been received yet.
+ */
+uint8_t i2c_transaction_ongoing( void )
+{
+	if ((i2c_state != I2C_STATE_IDLE) &&
+ 27a:	81 e0       	ldi	r24, 0x01	; 1
+ 27c:	91 11       	cpse	r25, r1
+ 27e:	01 c0       	rjmp	.+2      	; 0x282 <i2c_transaction_ongoing+0x14>
+		(i2c_state != I2C_STATE_ADDR_MATCH)) {
+		return 1;
+	} else {
+		return 0;
+ 280:	80 e0       	ldi	r24, 0x00	; 0
+	}
+}
+ 282:	08 95       	ret
+
+00000284 <i2c_check_stop>:
+ */
+uint8_t i2c_check_stop(int8_t SlaveIndex)
+{
+	uint8_t ret = 0;
+
+	if ((i2c_state == I2C_STATE_MASTER_WRITE) && i2c_update[SlaveIndex]) {
+ 284:	90 91 70 00 	lds	r25, 0x0070
+ 288:	93 30       	cpi	r25, 0x03	; 3
+ 28a:	a1 f4       	brne	.+40     	; 0x2b4 <i2c_check_stop+0x30>
+ 28c:	e8 2f       	mov	r30, r24
+ 28e:	88 0f       	add	r24, r24
+ 290:	ff 0b       	sbc	r31, r31
+ 292:	ee 58       	subi	r30, 0x8E	; 142
+ 294:	ff 4f       	sbci	r31, 0xFF	; 255
+ 296:	80 81       	ld	r24, Z
+ 298:	88 23       	and	r24, r24
+ 29a:	61 f0       	breq	.+24     	; 0x2b4 <i2c_check_stop+0x30>
+		cli();
+ 29c:	f8 94       	cli
+		uint8_t tmp = USISR;
+		if (tmp & (1 << USIPF)) {
+ 29e:	75 9b       	sbis	0x0e, 5	; 14
+ 2a0:	06 c0       	rjmp	.+12     	; 0x2ae <i2c_check_stop+0x2a>
+			i2c_state = I2C_STATE_IDLE;
+ 2a2:	84 e0       	ldi	r24, 0x04	; 4
+ 2a4:	80 93 70 00 	sts	0x0070, r24
+			ret = i2c_update[SlaveIndex];
+ 2a8:	80 81       	ld	r24, Z
+			i2c_update[SlaveIndex] = 0;
+ 2aa:	10 82       	st	Z, r1
+ 2ac:	01 c0       	rjmp	.+2      	; 0x2b0 <i2c_check_stop+0x2c>
+ * Check for and handle a stop condition.
+ * Returns non-zero if any registers have been changed
+ */
+uint8_t i2c_check_stop(int8_t SlaveIndex)
+{
+	uint8_t ret = 0;
+ 2ae:	80 e0       	ldi	r24, 0x00	; 0
+		if (tmp & (1 << USIPF)) {
+			i2c_state = I2C_STATE_IDLE;
+			ret = i2c_update[SlaveIndex];
+			i2c_update[SlaveIndex] = 0;
+		}
+		sei();
+ 2b0:	78 94       	sei
+ 2b2:	08 95       	ret
+ * Check for and handle a stop condition.
+ * Returns non-zero if any registers have been changed
+ */
+uint8_t i2c_check_stop(int8_t SlaveIndex)
+{
+	uint8_t ret = 0;
+ 2b4:	80 e0       	ldi	r24, 0x00	; 0
+			i2c_update[SlaveIndex] = 0;
+		}
+		sei();
+	}
+	return ret;
+}
+ 2b6:	08 95       	ret
+
+000002b8 <getI2CPWMValue>:
+
+
+//calculates the PWM Value (0-255) from a PWM Channel of the PCA9685 emlulated slave
+uint8_t getI2CPWMValue(uint8_t Slave, uint8_t PWMChannel)//from 0 to 15
+{
+	if (PWMChannel>=0 && PWMChannel<=15)
+ 2b8:	60 31       	cpi	r22, 0x10	; 16
+ 2ba:	08 f0       	brcs	.+2      	; 0x2be <getI2CPWMValue+0x6>
+ 2bc:	41 c0       	rjmp	.+130    	; 0x340 <getI2CPWMValue+0x88>
+	{
+		int RegisterStartAddress=PWMChannel*BytesPerLedPwmChannel+FirstRegisterAddress;//LEDx_ON_L is in register x*4+6
+ 2be:	26 2f       	mov	r18, r22
+ 2c0:	30 e0       	ldi	r19, 0x00	; 0
+ 2c2:	22 0f       	add	r18, r18
+ 2c4:	33 1f       	adc	r19, r19
+ 2c6:	22 0f       	add	r18, r18
+ 2c8:	33 1f       	adc	r19, r19
+		int16_t iOn=(i2c_reg[Slave][RegisterStartAddress+1]<<8) + i2c_reg[Slave][RegisterStartAddress];
+ 2ca:	90 e0       	ldi	r25, 0x00	; 0
+ 2cc:	6c e4       	ldi	r22, 0x4C	; 76
+ 2ce:	70 e0       	ldi	r23, 0x00	; 0
+ 2d0:	ca d3       	rcall	.+1940   	; 0xa66 <__mulhi3>
+ 2d2:	bc 01       	movw	r22, r24
+ 2d4:	f9 01       	movw	r30, r18
+ 2d6:	e8 0f       	add	r30, r24
+ 2d8:	f9 1f       	adc	r31, r25
+ 2da:	e3 58       	subi	r30, 0x83	; 131
+ 2dc:	ff 4f       	sbci	r31, 0xFF	; 255
+ 2de:	40 81       	ld	r20, Z
+ 2e0:	f9 01       	movw	r30, r18
+ 2e2:	e8 0f       	add	r30, r24
+ 2e4:	f9 1f       	adc	r31, r25
+ 2e6:	e4 58       	subi	r30, 0x84	; 132
+ 2e8:	ff 4f       	sbci	r31, 0xFF	; 255
+ 2ea:	50 81       	ld	r21, Z
+		int16_t iOff=(i2c_reg[Slave][RegisterStartAddress+3]<<8) + i2c_reg[Slave][RegisterStartAddress+2];
+ 2ec:	f9 01       	movw	r30, r18
+ 2ee:	e8 0f       	add	r30, r24
+ 2f0:	f9 1f       	adc	r31, r25
+ 2f2:	e1 58       	subi	r30, 0x81	; 129
+ 2f4:	ff 4f       	sbci	r31, 0xFF	; 255
+ 2f6:	90 81       	ld	r25, Z
+ 2f8:	26 0f       	add	r18, r22
+ 2fa:	37 1f       	adc	r19, r23
+ 2fc:	f9 01       	movw	r30, r18
+ 2fe:	e2 58       	subi	r30, 0x82	; 130
+ 300:	ff 4f       	sbci	r31, 0xFF	; 255
+ 302:	20 81       	ld	r18, Z
+ 304:	89 2f       	mov	r24, r25
+ 306:	90 e0       	ldi	r25, 0x00	; 0
+ 308:	98 2f       	mov	r25, r24
+ 30a:	88 27       	eor	r24, r24
+ 30c:	82 0f       	add	r24, r18
+ 30e:	91 1d       	adc	r25, r1
+uint8_t getI2CPWMValue(uint8_t Slave, uint8_t PWMChannel)//from 0 to 15
+{
+	if (PWMChannel>=0 && PWMChannel<=15)
+	{
+		int RegisterStartAddress=PWMChannel*BytesPerLedPwmChannel+FirstRegisterAddress;//LEDx_ON_L is in register x*4+6
+		int16_t iOn=(i2c_reg[Slave][RegisterStartAddress+1]<<8) + i2c_reg[Slave][RegisterStartAddress];
+ 310:	24 2f       	mov	r18, r20
+ 312:	30 e0       	ldi	r19, 0x00	; 0
+ 314:	32 2f       	mov	r19, r18
+ 316:	22 27       	eor	r18, r18
+ 318:	25 0f       	add	r18, r21
+ 31a:	31 1d       	adc	r19, r1
+		int16_t iOff=(i2c_reg[Slave][RegisterStartAddress+3]<<8) + i2c_reg[Slave][RegisterStartAddress+2];
+		int16_t iOnTime=iOff-iOn;//can be from -4095 to +4095
+ 31c:	82 1b       	sub	r24, r18
+ 31e:	93 0b       	sbc	r25, r19
+		if (iOnTime<0)
+ 320:	97 ff       	sbrs	r25, 7
+ 322:	02 c0       	rjmp	.+4      	; 0x328 <getI2CPWMValue+0x70>
+		{
+			iOnTime=iOnTime+4096; //is now from 0 to +4095
+ 324:	90 5f       	subi	r25, 0xF0	; 240
+ 326:	06 c0       	rjmp	.+12     	; 0x334 <getI2CPWMValue+0x7c>
+		}
+		if (iOnTime>4095)
+ 328:	81 15       	cp	r24, r1
+ 32a:	20 e1       	ldi	r18, 0x10	; 16
+ 32c:	92 07       	cpc	r25, r18
+ 32e:	14 f0       	brlt	.+4      	; 0x334 <getI2CPWMValue+0x7c>
+		{
+			iOnTime=4095;
+ 330:	8f ef       	ldi	r24, 0xFF	; 255
+ 332:	9f e0       	ldi	r25, 0x0F	; 15
+		}
+		uint8_t ret = (iOnTime>>4); //is now from 0 to 255
+ 334:	24 e0       	ldi	r18, 0x04	; 4
+ 336:	95 95       	asr	r25
+ 338:	87 95       	ror	r24
+ 33a:	2a 95       	dec	r18
+ 33c:	e1 f7       	brne	.-8      	; 0x336 <getI2CPWMValue+0x7e>
+		return  ret;
+ 33e:	08 95       	ret
+	}
+	else
+	{
+		return 0;
+ 340:	80 e0       	ldi	r24, 0x00	; 0
+	}
+}
+ 342:	08 95       	ret
+
+00000344 <ws2812_send_byte>:
+#define w_nop16 w_nop8 w_nop8
+
+static void inline ws2812_send_byte(uint8_t curbyte, uint8_t maskhi, uint8_t masklo)
+{
+    uint8_t ctr;
+    asm volatile(
+ 344:	98 2f       	mov	r25, r24
+ 346:	88 e0       	ldi	r24, 0x08	; 8
+
+00000348 <loop7>:
+ 348:	6b bb       	out	0x1b, r22	; 27
+ 34a:	00 00       	nop
+ 34c:	97 ff       	sbrs	r25, 7
+ 34e:	4b bb       	out	0x1b, r20	; 27
+ 350:	99 0f       	add	r25, r25
+ 352:	00 00       	nop
+ 354:	00 c0       	rjmp	.+0      	; 0x356 <loop7+0xe>
+ 356:	00 c0       	rjmp	.+0      	; 0x358 <loop7+0x10>
+ 358:	4b bb       	out	0x1b, r20	; 27
+ 35a:	8a 95       	dec	r24
+ 35c:	a9 f7       	brne	.-22     	; 0x348 <loop7>
+ 35e:	08 95       	ret
+
+00000360 <ws2812_setleds_constant>:
+}
+
+static void inline ws2812_send_byte(uint8_t curbyte, uint8_t maskhi, uint8_t masklo);
+
+void ws2812_setleds_constant(struct cRGB *ledval, uint16_t leds)
+{
+ 360:	8f 92       	push	r8
+ 362:	9f 92       	push	r9
+ 364:	bf 92       	push	r11
+ 366:	cf 92       	push	r12
+ 368:	df 92       	push	r13
+ 36a:	ef 92       	push	r14
+ 36c:	ff 92       	push	r15
+ 36e:	0f 93       	push	r16
+ 370:	1f 93       	push	r17
+ 372:	cf 93       	push	r28
+ 374:	df 93       	push	r29
+ 376:	6c 01       	movw	r12, r24
+  uint8_t masklo,maskhi;
+  uint8_t sreg_prev;
+
+  maskhi = _BV(ws2812_pin);
+  ws2812_DDRREG |= maskhi; // Enable output
+ 378:	d1 9a       	sbi	0x1a, 1	; 26
+
+  masklo	=~maskhi&ws2812_PORTREG;
+ 37a:	9b b3       	in	r25, 0x1b	; 27
+ 37c:	9d 7f       	andi	r25, 0xFD	; 253
+ 37e:	f9 2e       	mov	r15, r25
+  maskhi |=        ws2812_PORTREG;
+ 380:	9b b3       	in	r25, 0x1b	; 27
+ 382:	92 60       	ori	r25, 0x02	; 2
+ 384:	e9 2e       	mov	r14, r25
+
+  sreg_prev=SREG;
+ 386:	bf b6       	in	r11, 0x3f	; 63
+  cli();
+ 388:	f8 94       	cli
+
+  while (leds--) {
+ 38a:	eb 01       	movw	r28, r22
+ 38c:	46 01       	movw	r8, r12
+ 38e:	83 e0       	ldi	r24, 0x03	; 3
+ 390:	88 0e       	add	r8, r24
+ 392:	91 1c       	adc	r9, r1
+ 394:	20 97       	sbiw	r28, 0x00	; 0
+ 396:	61 f0       	breq	.+24     	; 0x3b0 <ws2812_setleds_constant+0x50>
+ 398:	86 01       	movw	r16, r12
+    uint8_t i;
+    for (i = 0; i < 3; i++) {
+      ws2812_send_byte(((uint8_t *)ledval)[i], maskhi, masklo);
+ 39a:	4f 2d       	mov	r20, r15
+ 39c:	6e 2d       	mov	r22, r14
+ 39e:	f8 01       	movw	r30, r16
+ 3a0:	81 91       	ld	r24, Z+
+ 3a2:	8f 01       	movw	r16, r30
+ 3a4:	cf df       	rcall	.-98     	; 0x344 <ws2812_send_byte>
+  sreg_prev=SREG;
+  cli();
+
+  while (leds--) {
+    uint8_t i;
+    for (i = 0; i < 3; i++) {
+ 3a6:	08 15       	cp	r16, r8
+ 3a8:	19 05       	cpc	r17, r9
+ 3aa:	b9 f7       	brne	.-18     	; 0x39a <ws2812_setleds_constant+0x3a>
+ 3ac:	21 97       	sbiw	r28, 0x01	; 1
+ 3ae:	f2 cf       	rjmp	.-28     	; 0x394 <ws2812_setleds_constant+0x34>
+      ws2812_send_byte(((uint8_t *)ledval)[i], maskhi, masklo);
+    }
+  }
+  SREG=sreg_prev;
+ 3b0:	bf be       	out	0x3f, r11	; 63
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
+
+	__builtin_avr_delay_cycles(__ticks_dc);
+ 3b2:	f5 e8       	ldi	r31, 0x85	; 133
+ 3b4:	fa 95       	dec	r31
+ 3b6:	f1 f7       	brne	.-4      	; 0x3b4 <ws2812_setleds_constant+0x54>
+ 3b8:	00 00       	nop
+  _delay_us(50);
+}
+ 3ba:	df 91       	pop	r29
+ 3bc:	cf 91       	pop	r28
+ 3be:	1f 91       	pop	r17
+ 3c0:	0f 91       	pop	r16
+ 3c2:	ff 90       	pop	r15
+ 3c4:	ef 90       	pop	r14
+ 3c6:	df 90       	pop	r13
+ 3c8:	cf 90       	pop	r12
+ 3ca:	bf 90       	pop	r11
+ 3cc:	9f 90       	pop	r9
+ 3ce:	8f 90       	pop	r8
+ 3d0:	08 95       	ret
+
+000003d2 <ws2812_setleds_constant_rgbw>:
+
+void ws2812_setleds_constant_rgbw(struct cRGBW *ledval, uint16_t leds)
+{
+ 3d2:	8f 92       	push	r8
+ 3d4:	9f 92       	push	r9
+ 3d6:	bf 92       	push	r11
+ 3d8:	cf 92       	push	r12
+ 3da:	df 92       	push	r13
+ 3dc:	ef 92       	push	r14
+ 3de:	ff 92       	push	r15
+ 3e0:	0f 93       	push	r16
+ 3e2:	1f 93       	push	r17
+ 3e4:	cf 93       	push	r28
+ 3e6:	df 93       	push	r29
+ 3e8:	6c 01       	movw	r12, r24
+  uint8_t masklo,maskhi;
+  uint8_t sreg_prev;
+
+  maskhi = _BV(ws2812_pin);
+  ws2812_DDRREG |= maskhi; // Enable output
+ 3ea:	d1 9a       	sbi	0x1a, 1	; 26
+
+  masklo	=~maskhi&ws2812_PORTREG;
+ 3ec:	9b b3       	in	r25, 0x1b	; 27
+ 3ee:	9d 7f       	andi	r25, 0xFD	; 253
+ 3f0:	f9 2e       	mov	r15, r25
+  maskhi |=        ws2812_PORTREG;
+ 3f2:	9b b3       	in	r25, 0x1b	; 27
+ 3f4:	92 60       	ori	r25, 0x02	; 2
+ 3f6:	e9 2e       	mov	r14, r25
+
+  sreg_prev=SREG;
+ 3f8:	bf b6       	in	r11, 0x3f	; 63
+  cli();
+ 3fa:	f8 94       	cli
+
+  while (leds--) {
+ 3fc:	eb 01       	movw	r28, r22
+ 3fe:	46 01       	movw	r8, r12
+ 400:	84 e0       	ldi	r24, 0x04	; 4
+ 402:	88 0e       	add	r8, r24
+ 404:	91 1c       	adc	r9, r1
+ 406:	20 97       	sbiw	r28, 0x00	; 0
+ 408:	61 f0       	breq	.+24     	; 0x422 <ws2812_setleds_constant_rgbw+0x50>
+ 40a:	86 01       	movw	r16, r12
+    uint8_t i;
+    for (i = 0; i < 4; i++) {
+      ws2812_send_byte(((uint8_t *)ledval)[i], maskhi, masklo);
+ 40c:	4f 2d       	mov	r20, r15
+ 40e:	6e 2d       	mov	r22, r14
+ 410:	f8 01       	movw	r30, r16
+ 412:	81 91       	ld	r24, Z+
+ 414:	8f 01       	movw	r16, r30
+ 416:	96 df       	rcall	.-212    	; 0x344 <ws2812_send_byte>
+  sreg_prev=SREG;
+  cli();
+
+  while (leds--) {
+    uint8_t i;
+    for (i = 0; i < 4; i++) {
+ 418:	08 15       	cp	r16, r8
+ 41a:	19 05       	cpc	r17, r9
+ 41c:	b9 f7       	brne	.-18     	; 0x40c <ws2812_setleds_constant_rgbw+0x3a>
+ 41e:	21 97       	sbiw	r28, 0x01	; 1
+ 420:	f2 cf       	rjmp	.-28     	; 0x406 <ws2812_setleds_constant_rgbw+0x34>
+      ws2812_send_byte(((uint8_t *)ledval)[i], maskhi, masklo);
+    }
+  }
+  SREG=sreg_prev;
+ 422:	bf be       	out	0x3f, r11	; 63
+ 424:	f5 ed       	ldi	r31, 0xD5	; 213
+ 426:	fa 95       	dec	r31
+ 428:	f1 f7       	brne	.-4      	; 0x426 <ws2812_setleds_constant_rgbw+0x54>
+ 42a:	00 00       	nop
+  _delay_us(80);
+}
+ 42c:	df 91       	pop	r29
+ 42e:	cf 91       	pop	r28
+ 430:	1f 91       	pop	r17
+ 432:	0f 91       	pop	r16
+ 434:	ff 90       	pop	r15
+ 436:	ef 90       	pop	r14
+ 438:	df 90       	pop	r13
+ 43a:	cf 90       	pop	r12
+ 43c:	bf 90       	pop	r11
+ 43e:	9f 90       	pop	r9
+ 440:	8f 90       	pop	r8
+ 442:	08 95       	ret
+
+00000444 <ws2812_sendarray_mask>:
+    :	"r" (curbyte), "I" (_SFR_IO_ADDR(ws2812_PORTREG)), "r" (maskhi), "r" (masklo)
+    );
+}
+
+void inline ws2812_sendarray_mask(uint8_t *data,uint16_t datlen,uint8_t maskhi)
+{
+ 444:	df 92       	push	r13
+ 446:	ef 92       	push	r14
+ 448:	ff 92       	push	r15
+ 44a:	0f 93       	push	r16
+ 44c:	1f 93       	push	r17
+ 44e:	cf 93       	push	r28
+ 450:	df 93       	push	r29
+  uint8_t curbyte,masklo;
+  uint8_t sreg_prev;
+
+  ws2812_DDRREG |= maskhi; // Enable output
+ 452:	2a b3       	in	r18, 0x1a	; 26
+ 454:	24 2b       	or	r18, r20
+ 456:	2a bb       	out	0x1a, r18	; 26
+
+  masklo	=~maskhi&ws2812_PORTREG;
+ 458:	2b b3       	in	r18, 0x1b	; 27
+ 45a:	f4 2e       	mov	r15, r20
+ 45c:	f0 94       	com	r15
+ 45e:	f2 22       	and	r15, r18
+  maskhi |=        ws2812_PORTREG;
+ 460:	2b b3       	in	r18, 0x1b	; 27
+ 462:	e4 2e       	mov	r14, r20
+ 464:	e2 2a       	or	r14, r18
+
+  sreg_prev=SREG;
+ 466:	df b6       	in	r13, 0x3f	; 63
+  cli();
+ 468:	f8 94       	cli
+ 46a:	ec 01       	movw	r28, r24
+ 46c:	8c 01       	movw	r16, r24
+ 46e:	06 0f       	add	r16, r22
+ 470:	17 1f       	adc	r17, r23
+
+  while (datlen--) {
+ 472:	c0 17       	cp	r28, r16
+ 474:	d1 07       	cpc	r29, r17
+ 476:	29 f0       	breq	.+10     	; 0x482 <ws2812_sendarray_mask+0x3e>
+    curbyte=*data++;
+    ws2812_send_byte(curbyte, maskhi, masklo);
+ 478:	4f 2d       	mov	r20, r15
+ 47a:	6e 2d       	mov	r22, r14
+ 47c:	89 91       	ld	r24, Y+
+ 47e:	62 df       	rcall	.-316    	; 0x344 <ws2812_send_byte>
+ 480:	f8 cf       	rjmp	.-16     	; 0x472 <ws2812_sendarray_mask+0x2e>
+  }
+
+  SREG=sreg_prev;
+ 482:	df be       	out	0x3f, r13	; 63
+}
+ 484:	df 91       	pop	r29
+ 486:	cf 91       	pop	r28
+ 488:	1f 91       	pop	r17
+ 48a:	0f 91       	pop	r16
+ 48c:	ff 90       	pop	r15
+ 48e:	ef 90       	pop	r14
+ 490:	df 90       	pop	r13
+ 492:	08 95       	ret
+
+00000494 <ws2812_setleds_pin>:
+   ws2812_setleds_pin(ledarray,leds, _BV(ws2812_pin));
+}
+
+void inline ws2812_setleds_pin(struct cRGB *ledarray, uint16_t leds, uint8_t pinmask)
+{
+  ws2812_sendarray_mask((uint8_t*)ledarray,leds+leds+leds,pinmask);
+ 494:	9b 01       	movw	r18, r22
+ 496:	22 0f       	add	r18, r18
+ 498:	33 1f       	adc	r19, r19
+ 49a:	62 0f       	add	r22, r18
+ 49c:	73 1f       	adc	r23, r19
+ 49e:	d2 df       	rcall	.-92     	; 0x444 <ws2812_sendarray_mask>
+ 4a0:	85 e8       	ldi	r24, 0x85	; 133
+ 4a2:	8a 95       	dec	r24
+ 4a4:	f1 f7       	brne	.-4      	; 0x4a2 <ws2812_setleds_pin+0xe>
+ 4a6:	00 00       	nop
+ 4a8:	08 95       	ret
+
+000004aa <ws2812_setleds>:
+#include <util/delay.h>
+ 
+// Setleds for standard RGB 
+void inline ws2812_setleds(struct cRGB *ledarray, uint16_t leds)
+{
+   ws2812_setleds_pin(ledarray,leds, _BV(ws2812_pin));
+ 4aa:	42 e0       	ldi	r20, 0x02	; 2
+ 4ac:	f3 cf       	rjmp	.-26     	; 0x494 <ws2812_setleds_pin>
+
+000004ae <ws2812_setleds_rgbw>:
+}
+
+// Setleds for SK6812RGBW
+void inline ws2812_setleds_rgbw(struct cRGBW *ledarray, uint16_t leds)
+{
+  ws2812_sendarray_mask((uint8_t*)ledarray,leds<<2,_BV(ws2812_pin));
+ 4ae:	66 0f       	add	r22, r22
+ 4b0:	77 1f       	adc	r23, r23
+ 4b2:	66 0f       	add	r22, r22
+ 4b4:	77 1f       	adc	r23, r23
+ 4b6:	42 e0       	ldi	r20, 0x02	; 2
+ 4b8:	c5 df       	rcall	.-118    	; 0x444 <ws2812_sendarray_mask>
+ 4ba:	85 ed       	ldi	r24, 0xD5	; 213
+ 4bc:	8a 95       	dec	r24
+ 4be:	f1 f7       	brne	.-4      	; 0x4bc <ws2812_setleds_rgbw+0xe>
+ 4c0:	00 00       	nop
+ 4c2:	08 95       	ret
+
+000004c4 <ws2812_sendarray>:
+  _delay_us(80);
+}
+
+void ws2812_sendarray(uint8_t *data,uint16_t datlen)
+{
+  ws2812_sendarray_mask(data,datlen,_BV(ws2812_pin));
+ 4c4:	42 e0       	ldi	r20, 0x02	; 2
+ 4c6:	be cf       	rjmp	.-132    	; 0x444 <ws2812_sendarray_mask>
+
+000004c8 <init_ADC>:
+
+// initialization function for ADC 
+void init_ADC( void )
+{
+	// init ADC set pins as input
+	DDRA &= ~(1<<DDA5); // PA5 Charging current ADC
+ 4c8:	d5 98       	cbi	0x1a, 5	; 26
+	DDRA &= ~(1<<DDA6); // PA6 Motor current ADC
+ 4ca:	d6 98       	cbi	0x1a, 6	; 26
+	DDRA &= ~(1<<DDA7); // PA7 RasPi current ADC
+ 4cc:	d7 98       	cbi	0x1a, 7	; 26
+	
+	// Section 15.13.1
+	// Set voltage reference to Vcc, right adjust the results and Single-Ended Input 
+	//NB: "The internal voltage reference options may not be used if an external voltage is being applied to the AREF pin." 
+	
+	ADMUX &= ~( (1<<REFS1) | (1<< REFS0) | (1<<ADLAR) );
+ 4ce:	87 b1       	in	r24, 0x07	; 7
+ 4d0:	8f 71       	andi	r24, 0x1F	; 31
+ 4d2:	87 b9       	out	0x07, r24	; 7
+	
+	// Table 15-4
+	ADMUX |=  (PA5ADC) ;
+ 4d4:	3a 9a       	sbi	0x07, 2	; 7
+	
+	// Section 15.13.4
+	// Gain selected to 1, 	Free Running mode,
+	ADCSRB	&=  ~( (1<<BIN) | (1<<GSEL) | (1<<REFS2) | (1<<MUX5) | (1<<ADTS2) | (1<<ADTS1) | (1<<ADTS0) );
+ 4d6:	83 b1       	in	r24, 0x03	; 3
+ 4d8:	80 72       	andi	r24, 0x20	; 32
+ 4da:	83 b9       	out	0x03, r24	; 3
+	
+	// Section 15.13.5
+	// Turn of digital input on ADC6-ADC4 to reduce power consumption
+	DIDR0 |= ( (1<<ADC6D) | (1<<ADC5D) | (1<<ADC4D) );
+ 4dc:	81 b1       	in	r24, 0x01	; 1
+ 4de:	80 6e       	ori	r24, 0xE0	; 224
+ 4e0:	81 b9       	out	0x01, r24	; 1
+	
+	// Section 15.13.2
+	// Enable the ADC , free-running mode, interrupt with /64 prescaler i.e 125k
+	ADCSRA = ( (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1)) ;//| (1<<ADIE) | (1<<ADATE) );
+ 4e2:	86 e8       	ldi	r24, 0x86	; 134
+ 4e4:	86 b9       	out	0x06, r24	; 6
+	
+	adc_diag = 0;
+ 4e6:	10 92 5b 01 	sts	0x015B, r1
+ 4ea:	10 92 5a 01 	sts	0x015A, r1
+ 4ee:	08 95       	ret
+
+000004f0 <read_ADC>:
+}
+// Get ADC reading from 0 - 1024 of a specific channel 
+uint16_t read_ADC(uint8_t channel)
+{
+	uint16_t res = 0;
+	if ( (channel == PA5ADC) || (channel == PA6ADC) || (channel == PA7ADC) )// just make sure we read from a defined ADC
+ 4f0:	9c ef       	ldi	r25, 0xFC	; 252
+ 4f2:	98 0f       	add	r25, r24
+ 4f4:	93 30       	cpi	r25, 0x03	; 3
+ 4f6:	60 f4       	brcc	.+24     	; 0x510 <read_ADC+0x20>
+	{
+		ADMUX = channel; // set voltage reference to Vcc, right adjust the results and Single-Ended Input
+ 4f8:	87 b9       	out	0x07, r24	; 7
+		ADCSRA = (1<<ADEN) | (1<<ADSC);
+ 4fa:	80 ec       	ldi	r24, 0xC0	; 192
+ 4fc:	86 b9       	out	0x06, r24	; 6
+		asm volatile ("NOP" ::);
+ 4fe:	00 00       	nop
+		asm volatile ("NOP" ::);
+ 500:	00 00       	nop
+		while ( ADCSRA & ( 1 << ADSC ) );
+ 502:	36 99       	sbic	0x06, 6	; 6
+ 504:	fe cf       	rjmp	.-4      	; 0x502 <read_ADC+0x12>
+		//NB: need to store result in intermediate variable!
+		uint8_t result_l = ADCL;
+ 506:	84 b1       	in	r24, 0x04	; 4
+		uint8_t result_h = ADCH;
+ 508:	25 b1       	in	r18, 0x05	; 5
+		res = (result_h << 8) | result_l;
+ 50a:	90 e0       	ldi	r25, 0x00	; 0
+ 50c:	92 2b       	or	r25, r18
+ 50e:	08 95       	ret
+	}
+	else
+	{
+		adc_diag |= (1<<DIAG_UNDEF_CHANNEL);
+ 510:	80 91 5a 01 	lds	r24, 0x015A
+ 514:	90 91 5b 01 	lds	r25, 0x015B
+ 518:	81 60       	ori	r24, 0x01	; 1
+ 51a:	90 93 5b 01 	sts	0x015B, r25
+ 51e:	80 93 5a 01 	sts	0x015A, r24
+		
+}
+// Get ADC reading from 0 - 1024 of a specific channel 
+uint16_t read_ADC(uint8_t channel)
+{
+	uint16_t res = 0;
+ 522:	80 e0       	ldi	r24, 0x00	; 0
+ 524:	90 e0       	ldi	r25, 0x00	; 0
+	{
+		adc_diag |= (1<<DIAG_UNDEF_CHANNEL);
+	}
+	return res; 
+
+}
+ 526:	08 95       	ret
+
+00000528 <read_current>:
+// Get current trough a specific shunt with result in mA
+uint16_t read_current(uint8_t channel )
+{
+	
+	uint32_t  steps = read_ADC(channel);
+ 528:	e3 df       	rcall	.-58     	; 0x4f0 <read_ADC>
+ 52a:	bc 01       	movw	r22, r24
+ 52c:	80 e0       	ldi	r24, 0x00	; 0
+ 52e:	90 e0       	ldi	r25, 0x00	; 0
+	
+	uint32_t pinVolatge = (steps * STEP_VOLTAGE); // voltage at pin
+ 530:	26 e9       	ldi	r18, 0x96	; 150
+ 532:	3c e0       	ldi	r19, 0x0C	; 12
+ 534:	40 e0       	ldi	r20, 0x00	; 0
+ 536:	50 e0       	ldi	r21, 0x00	; 0
+ 538:	e7 d2       	rcall	.+1486   	; 0xb08 <__umulsidi3>
+	
+	uint32_t shuntVoltage = pinVolatge / AMP_GAIN; // voltage over shunt
+ 53a:	b9 01       	movw	r22, r18
+ 53c:	ca 01       	movw	r24, r20
+ 53e:	28 ec       	ldi	r18, 0xC8	; 200
+ 540:	30 e0       	ldi	r19, 0x00	; 0
+ 542:	40 e0       	ldi	r20, 0x00	; 0
+ 544:	50 e0       	ldi	r21, 0x00	; 0
+ 546:	a0 d2       	rcall	.+1344   	; 0xa88 <__udivmodsi4>
+	
+	uint16_t shuntcurrent = (uint16_t) ( (shuntVoltage) / SHUNT_RES); //  A = V/R current through shunt in mA 
+ 548:	da 01       	movw	r26, r20
+ 54a:	c9 01       	movw	r24, r18
+ 54c:	b6 95       	lsr	r27
+ 54e:	a7 95       	ror	r26
+ 550:	97 95       	ror	r25
+ 552:	87 95       	ror	r24
+	
+	return shuntcurrent;	
+}
+ 554:	08 95       	ret
+
+00000556 <update_led_values>:
+const uint8_t led_remappings[N_LEDS] = LED_REMAPS; // i2c/defined in i2c_slave_defs.h
+volatile uint8_t led_data[N_LEDS*3];
+
+//Calculates all values for the led's and send values
+void update_led_values(void)
+{
+ 556:	cf 92       	push	r12
+ 558:	df 92       	push	r13
+ 55a:	ef 92       	push	r14
+ 55c:	ff 92       	push	r15
+ 55e:	1f 93       	push	r17
+ 560:	cf 93       	push	r28
+ 562:	df 93       	push	r29
+ 564:	83 e6       	ldi	r24, 0x63	; 99
+ 566:	c8 2e       	mov	r12, r24
+ 568:	80 e0       	ldi	r24, 0x00	; 0
+ 56a:	d8 2e       	mov	r13, r24
+ 56c:	10 e0       	ldi	r17, 0x00	; 0
+	uint8_t i=0;
+	for (i=0;i<N_LEDS;i++)
+	{
+		// Remap from old to new convention (due to new wiring scheme)
+		uint8_t j = led_remappings[i];
+ 56e:	f6 01       	movw	r30, r12
+ 570:	81 91       	ld	r24, Z+
+ 572:	6f 01       	movw	r12, r30
+
+		//led_data[3*i+0]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+		//led_data[3*i+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+0);
+		//led_data[3*i+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+		// I guess that was wrong, they are mapped R, G, B as well:
+		led_data[3*j+0]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+0);
+ 574:	90 e0       	ldi	r25, 0x00	; 0
+ 576:	63 e0       	ldi	r22, 0x03	; 3
+ 578:	70 e0       	ldi	r23, 0x00	; 0
+ 57a:	75 d2       	rcall	.+1258   	; 0xa66 <__mulhi3>
+ 57c:	ec 01       	movw	r28, r24
+ 57e:	61 2f       	mov	r22, r17
+ 580:	80 e0       	ldi	r24, 0x00	; 0
+ 582:	9a de       	rcall	.-716    	; 0x2b8 <getI2CPWMValue>
+ 584:	80 95       	com	r24
+ 586:	fe 01       	movw	r30, r28
+ 588:	e4 5a       	subi	r30, 0xA4	; 164
+ 58a:	fe 4f       	sbci	r31, 0xFE	; 254
+ 58c:	80 83       	st	Z, r24
+		led_data[3*j+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+ 58e:	7e 01       	movw	r14, r28
+ 590:	ff ef       	ldi	r31, 0xFF	; 255
+ 592:	ef 1a       	sub	r14, r31
+ 594:	ff 0a       	sbc	r15, r31
+ 596:	61 e0       	ldi	r22, 0x01	; 1
+ 598:	61 0f       	add	r22, r17
+ 59a:	80 e0       	ldi	r24, 0x00	; 0
+ 59c:	8d de       	rcall	.-742    	; 0x2b8 <getI2CPWMValue>
+ 59e:	80 95       	com	r24
+ 5a0:	f7 01       	movw	r30, r14
+ 5a2:	e4 5a       	subi	r30, 0xA4	; 164
+ 5a4:	fe 4f       	sbci	r31, 0xFE	; 254
+ 5a6:	80 83       	st	Z, r24
+		led_data[3*j+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+ 5a8:	22 96       	adiw	r28, 0x02	; 2
+ 5aa:	62 e0       	ldi	r22, 0x02	; 2
+ 5ac:	61 0f       	add	r22, r17
+ 5ae:	80 e0       	ldi	r24, 0x00	; 0
+ 5b0:	83 de       	rcall	.-762    	; 0x2b8 <getI2CPWMValue>
+ 5b2:	80 95       	com	r24
+ 5b4:	c4 5a       	subi	r28, 0xA4	; 164
+ 5b6:	de 4f       	sbci	r29, 0xFE	; 254
+ 5b8:	88 83       	st	Y, r24
+ 5ba:	1d 5f       	subi	r17, 0xFD	; 253
+
+//Calculates all values for the led's and send values
+void update_led_values(void)
+{
+	uint8_t i=0;
+	for (i=0;i<N_LEDS;i++)
+ 5bc:	1f 30       	cpi	r17, 0x0F	; 15
+ 5be:	b9 f6       	brne	.-82     	; 0x56e <update_led_values+0x18>
+		led_data[3*j+0]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+0);
+		led_data[3*j+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+		led_data[3*j+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+	}
+	//send led values
+	ws2812_sendarray((uint8_t *)led_data, N_LEDS * 3);
+ 5c0:	6f e0       	ldi	r22, 0x0F	; 15
+ 5c2:	70 e0       	ldi	r23, 0x00	; 0
+ 5c4:	8c e5       	ldi	r24, 0x5C	; 92
+ 5c6:	91 e0       	ldi	r25, 0x01	; 1
+ 5c8:	df 91       	pop	r29
+ 5ca:	cf 91       	pop	r28
+ 5cc:	1f 91       	pop	r17
+ 5ce:	ff 90       	pop	r15
+ 5d0:	ef 90       	pop	r14
+ 5d2:	df 90       	pop	r13
+ 5d4:	cf 90       	pop	r12
+		led_data[3*j+0]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+0);
+		led_data[3*j+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+		led_data[3*j+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+	}
+	//send led values
+	ws2812_sendarray((uint8_t *)led_data, N_LEDS * 3);
+ 5d6:	76 cf       	rjmp	.-276    	; 0x4c4 <ws2812_sendarray>
+
+000005d8 <init_motor_outputs>:
+
+
+void init_motor_outputs(void)
+{
+	//Configure Data Direction of Output Port to output
+	DDRB |= (1<<PORTINDEX_PWMA);
+ 5d8:	bb 9a       	sbi	0x17, 3	; 23
+	DDRA |= (1<<PORTINDEX_AIN2);
+ 5da:	d4 9a       	sbi	0x1a, 4	; 26
+	DDRA |= (1<<PORTINDEX_AIN1);
+ 5dc:	d3 9a       	sbi	0x1a, 3	; 26
+	DDRB |= (1<<PORTINDEX_BIN1);
+ 5de:	bc 9a       	sbi	0x17, 4	; 23
+	DDRB |= (1<<PORTINDEX_BIN2);
+ 5e0:	be 9a       	sbi	0x17, 6	; 23
+	DDRB |= (1<<PORTINDEX_PWMB);
+ 5e2:	bd 9a       	sbi	0x17, 5	; 23
+
+	//PWM Configuration
+	
+	//set Fast PWM Mode
+	TCCR1D &= ~(1<<WGM10);
+ 5e4:	86 b5       	in	r24, 0x26	; 38
+ 5e6:	8e 7f       	andi	r24, 0xFE	; 254
+ 5e8:	86 bd       	out	0x26, r24	; 38
+	TCCR1D &= ~(1<<WGM11);
+ 5ea:	86 b5       	in	r24, 0x26	; 38
+ 5ec:	8d 7f       	andi	r24, 0xFD	; 253
+ 5ee:	86 bd       	out	0x26, r24	; 38
+	
+	//Activate Pulse With Modulator B
+	TCCR1A |= (1<<PWM1B);
+ 5f0:	80 b7       	in	r24, 0x30	; 48
+ 5f2:	81 60       	ori	r24, 0x01	; 1
+ 5f4:	80 bf       	out	0x30, r24	; 48
+	
+	//OCW1A Behavior: Clear on CompareMatch, Set when TCNT1=0x000, Connect just OC1B
+	TCCR1A |= (1<<COM1B1);
+ 5f6:	80 b7       	in	r24, 0x30	; 48
+ 5f8:	80 62       	ori	r24, 0x20	; 32
+ 5fa:	80 bf       	out	0x30, r24	; 48
+	TCCR1A &= ~(1<<COM1B0);
+ 5fc:	80 b7       	in	r24, 0x30	; 48
+ 5fe:	8f 7e       	andi	r24, 0xEF	; 239
+ 600:	80 bf       	out	0x30, r24	; 48
+
+	//Activate Pulse With Modulator D
+	TCCR1C |= (1<<PWM1D);
+ 602:	87 b5       	in	r24, 0x27	; 39
+ 604:	81 60       	ori	r24, 0x01	; 1
+ 606:	87 bd       	out	0x27, r24	; 39
+	
+	//OCW1A Behavior: Clear on CompareMatch, Set when TCNT1=0x000, Connect just OC1D
+	TCCR1C |= (1<<COM1D1);
+ 608:	87 b5       	in	r24, 0x27	; 39
+ 60a:	88 60       	ori	r24, 0x08	; 8
+ 60c:	87 bd       	out	0x27, r24	; 39
+	TCCR1C &= ~(1<<COM1D0);
+ 60e:	87 b5       	in	r24, 0x27	; 39
+ 610:	8b 7f       	andi	r24, 0xFB	; 251
+ 612:	87 bd       	out	0x27, r24	; 39
+
+	//Set the prescaler to 1/16(0101b)--> 8Mhz System Clock --> 500kHz Counter Clock --> 0-255 Counting ca 2kHz
+	TCCR1B |= (1<<CS10); //Warning: This Counter is also used for calculating the time for updating the LED (see main loop)!
+ 614:	8f b5       	in	r24, 0x2f	; 47
+ 616:	81 60       	ori	r24, 0x01	; 1
+ 618:	8f bd       	out	0x2f, r24	; 47
+	TCCR1B &= ~(1<<CS11);
+ 61a:	8f b5       	in	r24, 0x2f	; 47
+ 61c:	8d 7f       	andi	r24, 0xFD	; 253
+ 61e:	8f bd       	out	0x2f, r24	; 47
+	TCCR1B |= (1<<CS12);
+ 620:	8f b5       	in	r24, 0x2f	; 47
+ 622:	84 60       	ori	r24, 0x04	; 4
+ 624:	8f bd       	out	0x2f, r24	; 47
+	TCCR1B &= ~(1<<CS13);
+ 626:	8f b5       	in	r24, 0x2f	; 47
+ 628:	87 7f       	andi	r24, 0xF7	; 247
+ 62a:	8f bd       	out	0x2f, r24	; 47
+	
+	//Set PWM Counter Top Value to 255
+	OCR1C  =0xFF;
+ 62c:	8f ef       	ldi	r24, 0xFF	; 255
+ 62e:	8b bd       	out	0x2b, r24	; 43
+ 630:	08 95       	ret
+
+00000632 <update_motor_values>:
+}
+
+inline void update_motor_values(void)
+{
+	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_AIN1)>=128)
+ 632:	6a e0       	ldi	r22, 0x0A	; 10
+ 634:	81 e0       	ldi	r24, 0x01	; 1
+ 636:	40 de       	rcall	.-896    	; 0x2b8 <getI2CPWMValue>
+ 638:	87 ff       	sbrs	r24, 7
+ 63a:	02 c0       	rjmp	.+4      	; 0x640 <update_motor_values+0xe>
+	{
+		PORTA |= (1<<PORTINDEX_AIN1);//set output
+ 63c:	db 9a       	sbi	0x1b, 3	; 27
+ 63e:	01 c0       	rjmp	.+2      	; 0x642 <update_motor_values+0x10>
+	}
+	else
+	{
+		PORTA &= ~(1<<PORTINDEX_AIN1);//reset output
+ 640:	db 98       	cbi	0x1b, 3	; 27
+	}
+
+	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_AIN2)>=128)
+ 642:	69 e0       	ldi	r22, 0x09	; 9
+ 644:	81 e0       	ldi	r24, 0x01	; 1
+ 646:	38 de       	rcall	.-912    	; 0x2b8 <getI2CPWMValue>
+ 648:	87 ff       	sbrs	r24, 7
+ 64a:	02 c0       	rjmp	.+4      	; 0x650 <update_motor_values+0x1e>
+	{
+		PORTA |= (1<<PORTINDEX_AIN2);//set output
+ 64c:	dc 9a       	sbi	0x1b, 4	; 27
+ 64e:	01 c0       	rjmp	.+2      	; 0x652 <update_motor_values+0x20>
+	}
+	else
+	{
+		PORTA &= ~(1<<PORTINDEX_AIN2);//reset output
+ 650:	dc 98       	cbi	0x1b, 4	; 27
+	}
+	
+	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_BIN1)>=128)
+ 652:	6b e0       	ldi	r22, 0x0B	; 11
+ 654:	81 e0       	ldi	r24, 0x01	; 1
+ 656:	30 de       	rcall	.-928    	; 0x2b8 <getI2CPWMValue>
+ 658:	87 ff       	sbrs	r24, 7
+ 65a:	02 c0       	rjmp	.+4      	; 0x660 <update_motor_values+0x2e>
+	{
+		PORTB |= (1<<PORTINDEX_BIN1);//set output
+ 65c:	c4 9a       	sbi	0x18, 4	; 24
+ 65e:	01 c0       	rjmp	.+2      	; 0x662 <update_motor_values+0x30>
+	}
+	else
+	{
+		PORTB &= ~(1<<PORTINDEX_BIN1);//reset output
+ 660:	c4 98       	cbi	0x18, 4	; 24
+	}
+
+	if(getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_BIN2)>=128)
+ 662:	6c e0       	ldi	r22, 0x0C	; 12
+ 664:	81 e0       	ldi	r24, 0x01	; 1
+ 666:	28 de       	rcall	.-944    	; 0x2b8 <getI2CPWMValue>
+ 668:	87 ff       	sbrs	r24, 7
+ 66a:	02 c0       	rjmp	.+4      	; 0x670 <update_motor_values+0x3e>
+	{
+		PORTB |= (1<<PORTINDEX_BIN2);//set output
+ 66c:	c6 9a       	sbi	0x18, 6	; 24
+ 66e:	01 c0       	rjmp	.+2      	; 0x672 <update_motor_values+0x40>
+	}
+	else
+	{
+		PORTB &= ~(1<<PORTINDEX_BIN2);//reset output
+ 670:	c6 98       	cbi	0x18, 6	; 24
+	}
+
+	//set PWM Values
+	PWMOutput_PWMA = getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_PWMA);
+ 672:	68 e0       	ldi	r22, 0x08	; 8
+ 674:	81 e0       	ldi	r24, 0x01	; 1
+ 676:	20 de       	rcall	.-960    	; 0x2b8 <getI2CPWMValue>
+ 678:	8c bd       	out	0x2c, r24	; 44
+	PWMOutput_PWMB = getI2CPWMValue(I2C_SLAVE_MOTOR,I2CPWMCH_PWMB);
+ 67a:	6d e0       	ldi	r22, 0x0D	; 13
+ 67c:	81 e0       	ldi	r24, 0x01	; 1
+ 67e:	1c de       	rcall	.-968    	; 0x2b8 <getI2CPWMValue>
+ 680:	8a bd       	out	0x2a, r24	; 42
+ 682:	08 95       	ret
+
+00000684 <init_SOC>:
+
+void sample_current( void );	
+
+void init_SOC( void ) 
+{
+	needToCharge = 0;
+ 684:	10 92 7a 01 	sts	0x017A, r1
+	maxCharge = 10000;
+ 688:	80 e1       	ldi	r24, 0x10	; 16
+ 68a:	97 e2       	ldi	r25, 0x27	; 39
+ 68c:	90 93 74 01 	sts	0x0174, r25
+ 690:	80 93 73 01 	sts	0x0173, r24
+	fuelGauge = maxCharge; 
+ 694:	90 93 7c 01 	sts	0x017C, r25
+ 698:	80 93 7b 01 	sts	0x017B, r24
+	minChargeLimit = 2000;	// 20%
+ 69c:	80 ed       	ldi	r24, 0xD0	; 208
+ 69e:	97 e0       	ldi	r25, 0x07	; 7
+ 6a0:	90 93 7e 01 	sts	0x017E, r25
+ 6a4:	80 93 7d 01 	sts	0x017D, r24
+	lastCountValue = 0;
+ 6a8:	10 92 72 01 	sts	0x0172, r1
+ 6ac:	10 92 71 01 	sts	0x0171, r1
+	updateFreq = 3125;		// Sys clk = 8MHz, prescale = 256 => timer0 = 31.25kHz => we want 10 saples/sec
+ 6b0:	85 e3       	ldi	r24, 0x35	; 53
+ 6b2:	9c e0       	ldi	r25, 0x0C	; 12
+ 6b4:	90 93 90 01 	sts	0x0190, r25
+ 6b8:	80 93 8f 01 	sts	0x018F, r24
+	freqCounter = 0;
+ 6bc:	10 92 79 01 	sts	0x0179, r1
+ 6c0:	10 92 78 01 	sts	0x0178, r1
+	freqSampleCounter = 0;
+ 6c4:	10 92 77 01 	sts	0x0177, r1
+	freqSampleSec = 0;
+ 6c8:	10 92 7f 01 	sts	0x017F, r1
+	
+	maxPiCurrent = 2200;		// Based on load test
+ 6cc:	88 e9       	ldi	r24, 0x98	; 152
+ 6ce:	98 e0       	ldi	r25, 0x08	; 8
+ 6d0:	90 93 88 01 	sts	0x0188, r25
+ 6d4:	80 93 87 01 	sts	0x0187, r24
+	maxMotorCurrent  = 2700;	// Based on load test
+ 6d8:	8c e8       	ldi	r24, 0x8C	; 140
+ 6da:	9a e0       	ldi	r25, 0x0A	; 10
+ 6dc:	90 93 8e 01 	sts	0x018E, r25
+ 6e0:	80 93 8d 01 	sts	0x018D, r24
+	maxChargeCurrent = 2500;
+ 6e4:	84 ec       	ldi	r24, 0xC4	; 196
+ 6e6:	99 e0       	ldi	r25, 0x09	; 9
+ 6e8:	90 93 76 01 	sts	0x0176, r25
+ 6ec:	80 93 75 01 	sts	0x0175, r24
+	
+	piCurrPosLimit = 100;		// 
+ 6f0:	84 e6       	ldi	r24, 0x64	; 100
+ 6f2:	80 93 6c 01 	sts	0x016C, r24
+	motorCurrPosLimit  = 100;	//
+ 6f6:	80 93 86 01 	sts	0x0186, r24
+	chargeCurrPosLimit = 50;	// 
+ 6fa:	82 e3       	ldi	r24, 0x32	; 50
+ 6fc:	80 93 85 01 	sts	0x0185, r24
+	
+	fullChargeMAXTime = 1200;	// 20 min
+ 700:	80 eb       	ldi	r24, 0xB0	; 176
+ 702:	94 e0       	ldi	r25, 0x04	; 4
+ 704:	90 93 84 01 	sts	0x0184, r25
+ 708:	80 93 83 01 	sts	0x0183, r24
+	
+	soc_diag = 0; 
+ 70c:	10 92 6b 01 	sts	0x016B, r1
+	positionState = UNKNOWN_STATE;
+ 710:	85 e0       	ldi	r24, 0x05	; 5
+ 712:	80 93 82 01 	sts	0x0182, r24
+ 716:	08 95       	ret
+
+00000718 <update_SOC_limits>:
+		update_fuel_gauge(&secAccumulators);
+	}
+}
+
+void update_SOC_limits ( void )
+{
+ 718:	08 95       	ret
+
+0000071a <accumulator>:
+	update_diag(piUSB, motorUSB, chargeUSB);
+	update_position(piUSB, motorUSB, chargeUSB);
+	mSecAccumulators = mSecAccumulators - piUSB - motorUSB + chargeUSB;
+}
+void accumulator(uint8_t *counter, int32_t *accum , int32_t *sample )
+{
+ 71a:	0f 93       	push	r16
+ 71c:	1f 93       	push	r17
+ 71e:	fc 01       	movw	r30, r24
+	(*counter)++;
+ 720:	90 81       	ld	r25, Z
+ 722:	9f 5f       	subi	r25, 0xFF	; 255
+ 724:	90 83       	st	Z, r25
+	(*accum) += (*sample);
+ 726:	fb 01       	movw	r30, r22
+ 728:	00 81       	ld	r16, Z
+ 72a:	11 81       	ldd	r17, Z+1	; 0x01
+ 72c:	22 81       	ldd	r18, Z+2	; 0x02
+ 72e:	33 81       	ldd	r19, Z+3	; 0x03
+ 730:	fa 01       	movw	r30, r20
+ 732:	80 81       	ld	r24, Z
+ 734:	91 81       	ldd	r25, Z+1	; 0x01
+ 736:	a2 81       	ldd	r26, Z+2	; 0x02
+ 738:	b3 81       	ldd	r27, Z+3	; 0x03
+ 73a:	80 0f       	add	r24, r16
+ 73c:	91 1f       	adc	r25, r17
+ 73e:	a2 1f       	adc	r26, r18
+ 740:	b3 1f       	adc	r27, r19
+ 742:	fb 01       	movw	r30, r22
+ 744:	80 83       	st	Z, r24
+ 746:	91 83       	std	Z+1, r25	; 0x01
+ 748:	a2 83       	std	Z+2, r26	; 0x02
+ 74a:	b3 83       	std	Z+3, r27	; 0x03
+	(*sample) = 0;
+ 74c:	fa 01       	movw	r30, r20
+ 74e:	10 82       	st	Z, r1
+ 750:	11 82       	std	Z+1, r1	; 0x01
+ 752:	12 82       	std	Z+2, r1	; 0x02
+ 754:	13 82       	std	Z+3, r1	; 0x03
+}
+ 756:	1f 91       	pop	r17
+ 758:	0f 91       	pop	r16
+ 75a:	08 95       	ret
+
+0000075c <update_fuel_gauge>:
+
+void update_fuel_gauge ( int32_t *sample )
+{
+ 75c:	cf 92       	push	r12
+ 75e:	df 92       	push	r13
+ 760:	ef 92       	push	r14
+ 762:	ff 92       	push	r15
+ 764:	cf 93       	push	r28
+ 766:	df 93       	push	r29
+ 768:	ec 01       	movw	r28, r24
+	(*sample) = (*sample)/60;					// change from mA/sec to mA/min
+ 76a:	68 81       	ld	r22, Y
+ 76c:	79 81       	ldd	r23, Y+1	; 0x01
+ 76e:	8a 81       	ldd	r24, Y+2	; 0x02
+ 770:	9b 81       	ldd	r25, Y+3	; 0x03
+ 772:	2c e3       	ldi	r18, 0x3C	; 60
+ 774:	c2 2e       	mov	r12, r18
+ 776:	d1 2c       	mov	r13, r1
+ 778:	e1 2c       	mov	r14, r1
+ 77a:	f1 2c       	mov	r15, r1
+ 77c:	a7 01       	movw	r20, r14
+ 77e:	96 01       	movw	r18, r12
+ 780:	a5 d1       	rcall	.+842    	; 0xacc <__divmodsi4>
+	(*sample) = (*sample)/60;					// change from mA/min to mA/h
+ 782:	ca 01       	movw	r24, r20
+ 784:	b9 01       	movw	r22, r18
+ 786:	a7 01       	movw	r20, r14
+ 788:	96 01       	movw	r18, r12
+ 78a:	a0 d1       	rcall	.+832    	; 0xacc <__divmodsi4>
+	
+	int16_t accCharge  = (int16_t)(*sample);   // cast to int16 
+	(*sample) = 0;
+ 78c:	18 82       	st	Y, r1
+ 78e:	19 82       	std	Y+1, r1	; 0x01
+ 790:	1a 82       	std	Y+2, r1	; 0x02
+ 792:	1b 82       	std	Y+3, r1	; 0x03
+	
+	fuelGauge += accCharge;  // note that is could be  + (-accCharge)
+ 794:	80 91 7b 01 	lds	r24, 0x017B
+ 798:	90 91 7c 01 	lds	r25, 0x017C
+ 79c:	28 0f       	add	r18, r24
+ 79e:	39 1f       	adc	r19, r25
+ 7a0:	30 93 7c 01 	sts	0x017C, r19
+ 7a4:	20 93 7b 01 	sts	0x017B, r18
+
+	if (fuelGauge >= maxCharge)
+ 7a8:	80 91 73 01 	lds	r24, 0x0173
+ 7ac:	90 91 74 01 	lds	r25, 0x0174
+ 7b0:	28 17       	cp	r18, r24
+ 7b2:	39 07       	cpc	r19, r25
+ 7b4:	a8 f0       	brcs	.+42     	; 0x7e0 <update_fuel_gauge+0x84>
+	{
+		fuelGauge = maxCharge;
+ 7b6:	90 93 7c 01 	sts	0x017C, r25
+ 7ba:	80 93 7b 01 	sts	0x017B, r24
+		
+		if (fullChargeTimer >= fullChargeMAXTime)
+ 7be:	20 91 80 01 	lds	r18, 0x0180
+ 7c2:	30 91 81 01 	lds	r19, 0x0181
+ 7c6:	80 91 83 01 	lds	r24, 0x0183
+ 7ca:	90 91 84 01 	lds	r25, 0x0184
+ 7ce:	28 17       	cp	r18, r24
+ 7d0:	39 07       	cpc	r19, r25
+ 7d2:	30 f0       	brcs	.+12     	; 0x7e0 <update_fuel_gauge+0x84>
+		{
+			needToCharge = 0;
+ 7d4:	10 92 7a 01 	sts	0x017A, r1
+			fullChargeTimer = 0;
+ 7d8:	10 92 81 01 	sts	0x0181, r1
+ 7dc:	10 92 80 01 	sts	0x0180, r1
+		}	
+	}
+	
+	if (fuelGauge <= minChargeLimit)
+ 7e0:	20 91 7b 01 	lds	r18, 0x017B
+ 7e4:	30 91 7c 01 	lds	r19, 0x017C
+ 7e8:	80 91 7d 01 	lds	r24, 0x017D
+ 7ec:	90 91 7e 01 	lds	r25, 0x017E
+ 7f0:	82 17       	cp	r24, r18
+ 7f2:	93 07       	cpc	r25, r19
+ 7f4:	18 f0       	brcs	.+6      	; 0x7fc <update_fuel_gauge+0xa0>
+	{
+		needToCharge = 1;
+ 7f6:	81 e0       	ldi	r24, 0x01	; 1
+ 7f8:	80 93 7a 01 	sts	0x017A, r24
+	}
+} 
+ 7fc:	df 91       	pop	r29
+ 7fe:	cf 91       	pop	r28
+ 800:	ff 90       	pop	r15
+ 802:	ef 90       	pop	r14
+ 804:	df 90       	pop	r13
+ 806:	cf 90       	pop	r12
+ 808:	08 95       	ret
+
+0000080a <update_position>:
+void update_position(uint16_t piCurrent, uint16_t motorCurrent, uint16_t chargeCurrent)
+{
+	
+	uint8_t state = 0;
+	
+	if (piCurrent > piCurrPosLimit) // the Pi is ON
+ 80a:	e0 91 6c 01 	lds	r30, 0x016C
+ 80e:	f0 e0       	ldi	r31, 0x00	; 0
+ 810:	21 e0       	ldi	r18, 0x01	; 1
+ 812:	e8 17       	cp	r30, r24
+ 814:	f9 07       	cpc	r31, r25
+ 816:	08 f0       	brcs	.+2      	; 0x81a <update_position+0x10>
+ 818:	20 e0       	ldi	r18, 0x00	; 0
+	{	
+		state |= 1<<0;
+	}
+	if (motorCurrent > motorCurrPosLimit) // the motor is ON
+ 81a:	80 91 86 01 	lds	r24, 0x0186
+ 81e:	90 e0       	ldi	r25, 0x00	; 0
+ 820:	86 17       	cp	r24, r22
+ 822:	97 07       	cpc	r25, r23
+ 824:	08 f4       	brcc	.+2      	; 0x828 <update_position+0x1e>
+	{
+		state |= 1<<1;
+ 826:	22 60       	ori	r18, 0x02	; 2
+	}
+	if (chargeCurrent > chargeCurrPosLimit) // charging is ON
+ 828:	80 91 85 01 	lds	r24, 0x0185
+ 82c:	90 e0       	ldi	r25, 0x00	; 0
+ 82e:	84 17       	cp	r24, r20
+ 830:	95 07       	cpc	r25, r21
+ 832:	08 f4       	brcc	.+2      	; 0x836 <update_position+0x2c>
+	{
+		state |= 1<<2;
+ 834:	24 60       	ori	r18, 0x04	; 4
+	}
+	
+	switch (state) 
+ 836:	26 30       	cpi	r18, 0x06	; 6
+ 838:	40 f4       	brcc	.+16     	; 0x84a <update_position+0x40>
+ 83a:	24 30       	cpi	r18, 0x04	; 4
+ 83c:	68 f4       	brcc	.+26     	; 0x858 <update_position+0x4e>
+ 83e:	21 30       	cpi	r18, 0x01	; 1
+ 840:	41 f0       	breq	.+16     	; 0x852 <update_position+0x48>
+ 842:	23 30       	cpi	r18, 0x03	; 3
+ 844:	59 f4       	brne	.+22     	; 0x85c <update_position+0x52>
+		case 1:
+			positionState = STANDING_STILL;
+		break;
+		
+		case 3:
+			positionState = MOVING;
+ 846:	82 e0       	ldi	r24, 0x02	; 2
+ 848:	0a c0       	rjmp	.+20     	; 0x85e <update_position+0x54>
+	if (chargeCurrent > chargeCurrPosLimit) // charging is ON
+	{
+		state |= 1<<2;
+	}
+	
+	switch (state) 
+ 84a:	27 30       	cpi	r18, 0x07	; 7
+ 84c:	39 f4       	brne	.+14     	; 0x85c <update_position+0x52>
+		case 5:
+			positionState = STANDING_STILL_AND_CHARGING;
+		break;
+		
+		case 7:
+			positionState = MOVING_AND_CHARGING;
+ 84e:	83 e0       	ldi	r24, 0x03	; 3
+ 850:	06 c0       	rjmp	.+12     	; 0x85e <update_position+0x54>
+	}
+	
+	switch (state) 
+	{
+		case 1:
+			positionState = STANDING_STILL;
+ 852:	20 93 82 01 	sts	0x0182, r18
+		break;
+ 856:	08 95       	ret
+			positionState = MOVING;
+		break;
+		
+		case 4: // charging when the Pi is off? should work
+		case 5:
+			positionState = STANDING_STILL_AND_CHARGING;
+ 858:	84 e0       	ldi	r24, 0x04	; 4
+ 85a:	01 c0       	rjmp	.+2      	; 0x85e <update_position+0x54>
+		case 7:
+			positionState = MOVING_AND_CHARGING;
+		break;
+		
+		default: // can not be moving ( and charging)  without the pi case 2 and 6 
+			positionState = UNKNOWN_STATE;
+ 85c:	85 e0       	ldi	r24, 0x05	; 5
+ 85e:	80 93 82 01 	sts	0x0182, r24
+ 862:	08 95       	ret
+
+00000864 <update_diag>:
+	
+}
+
+void update_diag(uint16_t piCurrent, uint16_t motorCurrent, uint16_t chargeCurrent)
+{
+	if (piCurrent > maxPiCurrent) 
+ 864:	20 91 87 01 	lds	r18, 0x0187
+ 868:	30 91 88 01 	lds	r19, 0x0188
+ 86c:	28 17       	cp	r18, r24
+ 86e:	39 07       	cpc	r19, r25
+ 870:	28 f4       	brcc	.+10     	; 0x87c <update_diag+0x18>
+	{
+		soc_diag |= 1<<PI_USB_OC;
+ 872:	80 91 6b 01 	lds	r24, 0x016B
+ 876:	81 60       	ori	r24, 0x01	; 1
+ 878:	80 93 6b 01 	sts	0x016B, r24
+	}
+	if (motorCurrent > maxMotorCurrent) 
+ 87c:	80 91 8d 01 	lds	r24, 0x018D
+ 880:	90 91 8e 01 	lds	r25, 0x018E
+ 884:	86 17       	cp	r24, r22
+ 886:	97 07       	cpc	r25, r23
+ 888:	28 f4       	brcc	.+10     	; 0x894 <update_diag+0x30>
+	{
+		soc_diag |= 1<<MOTOR_USB_OC;
+ 88a:	80 91 6b 01 	lds	r24, 0x016B
+ 88e:	82 60       	ori	r24, 0x02	; 2
+ 890:	80 93 6b 01 	sts	0x016B, r24
+	}
+	if (chargeCurrent > maxChargeCurrent)
+ 894:	80 91 75 01 	lds	r24, 0x0175
+ 898:	90 91 76 01 	lds	r25, 0x0176
+ 89c:	84 17       	cp	r24, r20
+ 89e:	95 07       	cpc	r25, r21
+ 8a0:	28 f4       	brcc	.+10     	; 0x8ac <update_diag+0x48>
+	{
+		soc_diag |= 1<<CHARGE_USB_OC;
+ 8a2:	80 91 6b 01 	lds	r24, 0x016B
+ 8a6:	84 60       	ori	r24, 0x04	; 4
+ 8a8:	80 93 6b 01 	sts	0x016B, r24
+ 8ac:	08 95       	ret
+
+000008ae <sample_current>:
+	soc_diag = ;
+	*/
+}
+
+void sample_current( void )
+{
+ 8ae:	ef 92       	push	r14
+ 8b0:	ff 92       	push	r15
+ 8b2:	0f 93       	push	r16
+ 8b4:	1f 93       	push	r17
+ 8b6:	cf 93       	push	r28
+ 8b8:	df 93       	push	r29
+	uint16_t piUSB = read_current(PIUSB);
+ 8ba:	84 e0       	ldi	r24, 0x04	; 4
+ 8bc:	35 de       	rcall	.-918    	; 0x528 <read_current>
+ 8be:	7c 01       	movw	r14, r24
+	uint16_t motorUSB = read_current(MOTORUSB);
+ 8c0:	85 e0       	ldi	r24, 0x05	; 5
+ 8c2:	32 de       	rcall	.-924    	; 0x528 <read_current>
+ 8c4:	8c 01       	movw	r16, r24
+	uint16_t chargeUSB = read_current(CHARGEUSB);
+ 8c6:	86 e0       	ldi	r24, 0x06	; 6
+ 8c8:	2f de       	rcall	.-930    	; 0x528 <read_current>
+ 8ca:	ec 01       	movw	r28, r24
+	
+	update_diag(piUSB, motorUSB, chargeUSB);
+ 8cc:	ac 01       	movw	r20, r24
+ 8ce:	b8 01       	movw	r22, r16
+ 8d0:	c7 01       	movw	r24, r14
+ 8d2:	c8 df       	rcall	.-112    	; 0x864 <update_diag>
+	update_position(piUSB, motorUSB, chargeUSB);
+ 8d4:	ae 01       	movw	r20, r28
+ 8d6:	b8 01       	movw	r22, r16
+ 8d8:	c7 01       	movw	r24, r14
+ 8da:	97 df       	rcall	.-210    	; 0x80a <update_position>
+	mSecAccumulators = mSecAccumulators - piUSB - motorUSB + chargeUSB;
+ 8dc:	80 91 6d 01 	lds	r24, 0x016D
+ 8e0:	90 91 6e 01 	lds	r25, 0x016E
+ 8e4:	a0 91 6f 01 	lds	r26, 0x016F
+ 8e8:	b0 91 70 01 	lds	r27, 0x0170
+ 8ec:	8e 19       	sub	r24, r14
+ 8ee:	9f 09       	sbc	r25, r15
+ 8f0:	a1 09       	sbc	r26, r1
+ 8f2:	b1 09       	sbc	r27, r1
+ 8f4:	80 1b       	sub	r24, r16
+ 8f6:	91 0b       	sbc	r25, r17
+ 8f8:	a1 09       	sbc	r26, r1
+ 8fa:	b1 09       	sbc	r27, r1
+ 8fc:	8c 0f       	add	r24, r28
+ 8fe:	9d 1f       	adc	r25, r29
+ 900:	a1 1d       	adc	r26, r1
+ 902:	b1 1d       	adc	r27, r1
+ 904:	80 93 6d 01 	sts	0x016D, r24
+ 908:	90 93 6e 01 	sts	0x016E, r25
+ 90c:	a0 93 6f 01 	sts	0x016F, r26
+ 910:	b0 93 70 01 	sts	0x0170, r27
+}
+ 914:	df 91       	pop	r29
+ 916:	cf 91       	pop	r28
+ 918:	1f 91       	pop	r17
+ 91a:	0f 91       	pop	r16
+ 91c:	ff 90       	pop	r15
+ 91e:	ef 90       	pop	r14
+ 920:	08 95       	ret
+
+00000922 <update_full_charge_timer>:
+	}
+}
+
+void update_full_charge_timer( void ) // calls with sec interval 
+{
+	if ( (fuelGauge >= maxCharge) && (positionState == STANDING_STILL_AND_CHARGING) )
+ 922:	20 91 7b 01 	lds	r18, 0x017B
+ 926:	30 91 7c 01 	lds	r19, 0x017C
+ 92a:	80 91 73 01 	lds	r24, 0x0173
+ 92e:	90 91 74 01 	lds	r25, 0x0174
+ 932:	28 17       	cp	r18, r24
+ 934:	39 07       	cpc	r19, r25
+ 936:	68 f0       	brcs	.+26     	; 0x952 <update_full_charge_timer+0x30>
+ 938:	80 91 82 01 	lds	r24, 0x0182
+ 93c:	84 30       	cpi	r24, 0x04	; 4
+ 93e:	49 f4       	brne	.+18     	; 0x952 <update_full_charge_timer+0x30>
+	{
+		fullChargeTimer++;
+ 940:	80 91 80 01 	lds	r24, 0x0180
+ 944:	90 91 81 01 	lds	r25, 0x0181
+ 948:	01 96       	adiw	r24, 0x01	; 1
+ 94a:	90 93 81 01 	sts	0x0181, r25
+ 94e:	80 93 80 01 	sts	0x0180, r24
+ 952:	08 95       	ret
+
+00000954 <update_SOC>:
+
+// State machine for updating the fuel gauge
+// TODO make the sampling dependent of the selected updateFreq
+void update_SOC( uint16_t counter )
+{
+	freqCounter += abs(counter - lastCountValue);
+ 954:	20 91 71 01 	lds	r18, 0x0171
+ 958:	30 91 72 01 	lds	r19, 0x0172
+ 95c:	ac 01       	movw	r20, r24
+ 95e:	42 1b       	sub	r20, r18
+ 960:	53 0b       	sbc	r21, r19
+ 962:	57 ff       	sbrs	r21, 7
+ 964:	03 c0       	rjmp	.+6      	; 0x96c <update_SOC+0x18>
+ 966:	51 95       	neg	r21
+ 968:	41 95       	neg	r20
+ 96a:	51 09       	sbc	r21, r1
+ 96c:	20 91 78 01 	lds	r18, 0x0178
+ 970:	30 91 79 01 	lds	r19, 0x0179
+ 974:	24 0f       	add	r18, r20
+ 976:	35 1f       	adc	r19, r21
+ 978:	30 93 79 01 	sts	0x0179, r19
+ 97c:	20 93 78 01 	sts	0x0178, r18
+	lastCountValue = counter;
+ 980:	90 93 72 01 	sts	0x0172, r25
+ 984:	80 93 71 01 	sts	0x0171, r24
+	
+	if(freqCounter>= updateFreq) // sample rate at 100ms
+ 988:	80 91 8f 01 	lds	r24, 0x018F
+ 98c:	90 91 90 01 	lds	r25, 0x0190
+ 990:	28 17       	cp	r18, r24
+ 992:	39 07       	cpc	r19, r25
+ 994:	50 f0       	brcs	.+20     	; 0x9aa <update_SOC+0x56>
+	{
+		update_SOC_limits(); // limit the update freq slightly 
+		freqCounter = 0;
+ 996:	10 92 79 01 	sts	0x0179, r1
+ 99a:	10 92 78 01 	sts	0x0178, r1
+		freqSampleCounter++;
+ 99e:	80 91 77 01 	lds	r24, 0x0177
+ 9a2:	8f 5f       	subi	r24, 0xFF	; 255
+ 9a4:	80 93 77 01 	sts	0x0177, r24
+		sample_current();	
+ 9a8:	82 df       	rcall	.-252    	; 0x8ae <sample_current>
+	}
+	
+	if(freqSampleCounter >= FREQSAMPLEMAX) // sample rate at sec
+ 9aa:	80 91 77 01 	lds	r24, 0x0177
+ 9ae:	8a 30       	cpi	r24, 0x0A	; 10
+ 9b0:	50 f0       	brcs	.+20     	; 0x9c6 <update_SOC+0x72>
+	{
+		freqSampleCounter = 0;
+ 9b2:	10 92 77 01 	sts	0x0177, r1
+		accumulator(&freqSampleSec, &secAccumulators, &mSecAccumulators);
+ 9b6:	4d e6       	ldi	r20, 0x6D	; 109
+ 9b8:	51 e0       	ldi	r21, 0x01	; 1
+ 9ba:	69 e8       	ldi	r22, 0x89	; 137
+ 9bc:	71 e0       	ldi	r23, 0x01	; 1
+ 9be:	8f e7       	ldi	r24, 0x7F	; 127
+ 9c0:	91 e0       	ldi	r25, 0x01	; 1
+ 9c2:	ab de       	rcall	.-682    	; 0x71a <accumulator>
+		update_full_charge_timer();
+ 9c4:	ae df       	rcall	.-164    	; 0x922 <update_full_charge_timer>
+	}
+	
+	if (freqSampleSec >= SECSAMPLEMAX) // sample every min 
+ 9c6:	80 91 7f 01 	lds	r24, 0x017F
+ 9ca:	8c 33       	cpi	r24, 0x3C	; 60
+ 9cc:	28 f0       	brcs	.+10     	; 0x9d8 <update_SOC+0x84>
+	{
+		freqSampleSec = 0;
+ 9ce:	10 92 7f 01 	sts	0x017F, r1
+		update_fuel_gauge(&secAccumulators);
+ 9d2:	89 e8       	ldi	r24, 0x89	; 137
+ 9d4:	91 e0       	ldi	r25, 0x01	; 1
+ 9d6:	c2 ce       	rjmp	.-636    	; 0x75c <update_fuel_gauge>
+ 9d8:	08 95       	ret
+
+000009da <TIM0_Init>:
+#include <avr/pgmspace.h>
+
+void TIM0_Init(void)
+{
+	//Set Conter0 to 16Bit Mode, disable InputCapture
+	TCCR0A = 0b10000000;
+ 9da:	80 e8       	ldi	r24, 0x80	; 128
+ 9dc:	85 bb       	out	0x15, r24	; 21
+
+	//Set internal Clock and Prescaler to 256 --> 8MHz/256=31.25kHz --> Overflow 31.25kHz/65536 = every 2 sec
+	TCCR0B = 0b100;
+ 9de:	84 e0       	ldi	r24, 0x04	; 4
+ 9e0:	83 bf       	out	0x33, r24	; 51
+ 9e2:	08 95       	ret
+
+000009e4 <TIM0_ReadTCNT0>:
+ 9e4:	9f b7       	in	r25, 0x3f	; 63
+ 9e6:	f8 94       	cli
+ 9e8:	82 b7       	in	r24, 0x32	; 50
+ 9ea:	24 b3       	in	r18, 0x14	; 20
+ 9ec:	9f bf       	out	0x3f, r25	; 63
+ 9ee:	90 e0       	ldi	r25, 0x00	; 0
+ 9f0:	92 2b       	or	r25, r18
+ 9f2:	08 95       	ret
+
+000009f4 <main>:
+	static uint16_t ActualDelay;			//Cycles since last update
+	static uint16_t counterTIM0 = 0;			
+	
+	
+	//enable second USI Port (PA0:2)
+	USIPP=0x01;
+ 9f4:	81 e0       	ldi	r24, 0x01	; 1
+ 9f6:	81 bb       	out	0x11, r24	; 17
+	i2c_init();
+ 9f8:	2e dc       	rcall	.-1956   	; 0x256 <i2c_init>
+	
+	//init motor outputs
+	init_motor_outputs();
+ 9fa:	ee dd       	rcall	.-1060   	; 0x5d8 <init_motor_outputs>
+	
+	//init Timer0
+	TIM0_Init();
+ 9fc:	ee df       	rcall	.-36     	; 0x9da <TIM0_Init>
+
+	//init ADC
+	init_ADC();
+ 9fe:	64 dd       	rcall	.-1336   	; 0x4c8 <init_ADC>
+	
+	// init State of Charge moduel
+	init_SOC();
+ a00:	41 de       	rcall	.-894    	; 0x684 <init_SOC>
+	
+	//enable interrupts
+	sei();
+ a02:	78 94       	sei
+	
+		//check if master has written new LED data, if yes, update leds
+		if (i2c_check_stop(I2C_SLAVE_LED))
+		{
+			#ifdef PERIODIC_LED_UPDATE 
+				LedDataSendRequest=1;	
+ a04:	c1 e0       	ldi	r28, 0x01	; 1
+	
+	while(1)
+	{
+	
+		//check if master has written new LED data, if yes, update leds
+		if (i2c_check_stop(I2C_SLAVE_LED))
+ a06:	80 e0       	ldi	r24, 0x00	; 0
+ a08:	3d dc       	rcall	.-1926   	; 0x284 <i2c_check_stop>
+ a0a:	81 11       	cpse	r24, r1
+		{
+			#ifdef PERIODIC_LED_UPDATE 
+				LedDataSendRequest=1;	
+ a0c:	c0 93 6e 00 	sts	0x006E, r28
+			#else
+				update_led_values();
+			#endif					
+		}
+		//check if master has written new Motor data, if yes, update motor valued
+		if (i2c_check_stop(I2C_SLAVE_MOTOR))
+ a10:	81 e0       	ldi	r24, 0x01	; 1
+ a12:	38 dc       	rcall	.-1936   	; 0x284 <i2c_check_stop>
+ a14:	81 11       	cpse	r24, r1
+		{
+			update_motor_values();
+ a16:	0d de       	rcall	.-998    	; 0x632 <update_motor_values>
+		}
+
+		//Calculate Cycles since last sending
+		counterTIM0 = TIM0_ReadTCNT0();
+ a18:	e5 df       	rcall	.-54     	; 0x9e4 <TIM0_ReadTCNT0>
+ a1a:	90 93 6d 00 	sts	0x006D, r25
+ a1e:	80 93 6c 00 	sts	0x006C, r24
+		ActualDelay = counterTIM0 - LedDataLastSend;
+ a22:	20 91 6a 00 	lds	r18, 0x006A
+ a26:	30 91 6b 00 	lds	r19, 0x006B
+ a2a:	82 1b       	sub	r24, r18
+ a2c:	93 0b       	sbc	r25, r19
+ a2e:	90 93 69 00 	sts	0x0069, r25
+ a32:	80 93 68 00 	sts	0x0068, r24
+
+		#ifdef PERIODIC_LED_UPDATE 
+			//update if minimal time reached and update request or if maximal time reached
+			//minimal time reached and 
+			if((ActualDelay>MinCyclesBetweenLEDUpdate && LedDataSendRequest==1) || (ActualDelay>MaxCyclesBetweenLEDUpdate))
+ a36:	80 32       	cpi	r24, 0x20	; 32
+ a38:	91 05       	cpc	r25, r1
+ a3a:	78 f0       	brcs	.+30     	; 0xa5a <main+0x66>
+ a3c:	20 91 6e 00 	lds	r18, 0x006E
+ a40:	21 30       	cpi	r18, 0x01	; 1
+ a42:	19 f0       	breq	.+6      	; 0xa4a <main+0x56>
+ a44:	8a 30       	cpi	r24, 0x0A	; 10
+ a46:	9d 43       	sbci	r25, 0x3D	; 61
+ a48:	40 f0       	brcs	.+16     	; 0xa5a <main+0x66>
+			{
+				//clear send request
+				LedDataSendRequest=0;
+ a4a:	10 92 6e 00 	sts	0x006E, r1
+			
+				//update led
+				update_led_values();
+ a4e:	83 dd       	rcall	.-1274   	; 0x556 <update_led_values>
+			
+				//save current time
+				LedDataLastSend=TIM0_ReadTCNT0();
+ a50:	c9 df       	rcall	.-110    	; 0x9e4 <TIM0_ReadTCNT0>
+ a52:	90 93 6b 00 	sts	0x006B, r25
+ a56:	80 93 6a 00 	sts	0x006A, r24
+			}
+		#endif
+		
+		update_SOC(counterTIM0);
+ a5a:	80 91 6c 00 	lds	r24, 0x006C
+ a5e:	90 91 6d 00 	lds	r25, 0x006D
+ a62:	78 df       	rcall	.-272    	; 0x954 <update_SOC>
+	}
+ a64:	d0 cf       	rjmp	.-96     	; 0xa06 <main+0x12>
+
+00000a66 <__mulhi3>:
+ a66:	00 24       	eor	r0, r0
+ a68:	55 27       	eor	r21, r21
+ a6a:	04 c0       	rjmp	.+8      	; 0xa74 <__mulhi3+0xe>
+ a6c:	08 0e       	add	r0, r24
+ a6e:	59 1f       	adc	r21, r25
+ a70:	88 0f       	add	r24, r24
+ a72:	99 1f       	adc	r25, r25
+ a74:	00 97       	sbiw	r24, 0x00	; 0
+ a76:	29 f0       	breq	.+10     	; 0xa82 <__mulhi3+0x1c>
+ a78:	76 95       	lsr	r23
+ a7a:	67 95       	ror	r22
+ a7c:	b8 f3       	brcs	.-18     	; 0xa6c <__mulhi3+0x6>
+ a7e:	71 05       	cpc	r23, r1
+ a80:	b9 f7       	brne	.-18     	; 0xa70 <__mulhi3+0xa>
+ a82:	80 2d       	mov	r24, r0
+ a84:	95 2f       	mov	r25, r21
+ a86:	08 95       	ret
+
+00000a88 <__udivmodsi4>:
+ a88:	a1 e2       	ldi	r26, 0x21	; 33
+ a8a:	1a 2e       	mov	r1, r26
+ a8c:	aa 1b       	sub	r26, r26
+ a8e:	bb 1b       	sub	r27, r27
+ a90:	fd 01       	movw	r30, r26
+ a92:	0d c0       	rjmp	.+26     	; 0xaae <__udivmodsi4_ep>
+
+00000a94 <__udivmodsi4_loop>:
+ a94:	aa 1f       	adc	r26, r26
+ a96:	bb 1f       	adc	r27, r27
+ a98:	ee 1f       	adc	r30, r30
+ a9a:	ff 1f       	adc	r31, r31
+ a9c:	a2 17       	cp	r26, r18
+ a9e:	b3 07       	cpc	r27, r19
+ aa0:	e4 07       	cpc	r30, r20
+ aa2:	f5 07       	cpc	r31, r21
+ aa4:	20 f0       	brcs	.+8      	; 0xaae <__udivmodsi4_ep>
+ aa6:	a2 1b       	sub	r26, r18
+ aa8:	b3 0b       	sbc	r27, r19
+ aaa:	e4 0b       	sbc	r30, r20
+ aac:	f5 0b       	sbc	r31, r21
+
+00000aae <__udivmodsi4_ep>:
+ aae:	66 1f       	adc	r22, r22
+ ab0:	77 1f       	adc	r23, r23
+ ab2:	88 1f       	adc	r24, r24
+ ab4:	99 1f       	adc	r25, r25
+ ab6:	1a 94       	dec	r1
+ ab8:	69 f7       	brne	.-38     	; 0xa94 <__udivmodsi4_loop>
+ aba:	60 95       	com	r22
+ abc:	70 95       	com	r23
+ abe:	80 95       	com	r24
+ ac0:	90 95       	com	r25
+ ac2:	9b 01       	movw	r18, r22
+ ac4:	ac 01       	movw	r20, r24
+ ac6:	bd 01       	movw	r22, r26
+ ac8:	cf 01       	movw	r24, r30
+ aca:	08 95       	ret
+
+00000acc <__divmodsi4>:
+ acc:	05 2e       	mov	r0, r21
+ ace:	97 fb       	bst	r25, 7
+ ad0:	16 f4       	brtc	.+4      	; 0xad6 <__divmodsi4+0xa>
+ ad2:	00 94       	com	r0
+ ad4:	0f d0       	rcall	.+30     	; 0xaf4 <__negsi2>
+ ad6:	57 fd       	sbrc	r21, 7
+ ad8:	05 d0       	rcall	.+10     	; 0xae4 <__divmodsi4_neg2>
+ ada:	d6 df       	rcall	.-84     	; 0xa88 <__udivmodsi4>
+ adc:	07 fc       	sbrc	r0, 7
+ ade:	02 d0       	rcall	.+4      	; 0xae4 <__divmodsi4_neg2>
+ ae0:	46 f4       	brtc	.+16     	; 0xaf2 <__divmodsi4_exit>
+ ae2:	08 c0       	rjmp	.+16     	; 0xaf4 <__negsi2>
+
+00000ae4 <__divmodsi4_neg2>:
+ ae4:	50 95       	com	r21
+ ae6:	40 95       	com	r20
+ ae8:	30 95       	com	r19
+ aea:	21 95       	neg	r18
+ aec:	3f 4f       	sbci	r19, 0xFF	; 255
+ aee:	4f 4f       	sbci	r20, 0xFF	; 255
+ af0:	5f 4f       	sbci	r21, 0xFF	; 255
+
+00000af2 <__divmodsi4_exit>:
+ af2:	08 95       	ret
+
+00000af4 <__negsi2>:
+ af4:	90 95       	com	r25
+ af6:	80 95       	com	r24
+ af8:	70 95       	com	r23
+ afa:	61 95       	neg	r22
+ afc:	7f 4f       	sbci	r23, 0xFF	; 255
+ afe:	8f 4f       	sbci	r24, 0xFF	; 255
+ b00:	9f 4f       	sbci	r25, 0xFF	; 255
+ b02:	08 95       	ret
+
+00000b04 <__mulsidi3>:
+ b04:	68 94       	set
+ b06:	00 13       	cpse	r16, r16
+
+00000b08 <__umulsidi3>:
+ b08:	e8 94       	clt
+ b0a:	a0 e0       	ldi	r26, 0x00	; 0
+ b0c:	b0 e0       	ldi	r27, 0x00	; 0
+ b0e:	ea e8       	ldi	r30, 0x8A	; 138
+ b10:	f5 e0       	ldi	r31, 0x05	; 5
+ b12:	1d c0       	rjmp	.+58     	; 0xb4e <__prologue_saves__+0x10>
+ b14:	ef ef       	ldi	r30, 0xFF	; 255
+ b16:	e7 f9       	bld	r30, 7
+ b18:	59 01       	movw	r10, r18
+ b1a:	6a 01       	movw	r12, r20
+ b1c:	5e 23       	and	r21, r30
+ b1e:	55 0f       	add	r21, r21
+ b20:	ee 08       	sbc	r14, r14
+ b22:	fe 2c       	mov	r15, r14
+ b24:	87 01       	movw	r16, r14
+ b26:	9b 01       	movw	r18, r22
+ b28:	ac 01       	movw	r20, r24
+ b2a:	9e 23       	and	r25, r30
+ b2c:	99 0f       	add	r25, r25
+ b2e:	66 0b       	sbc	r22, r22
+ b30:	76 2f       	mov	r23, r22
+ b32:	cb 01       	movw	r24, r22
+ b34:	3b d0       	rcall	.+118    	; 0xbac <__muldi3>
+ b36:	cd b7       	in	r28, 0x3d	; 61
+ b38:	de b7       	in	r29, 0x3e	; 62
+ b3a:	ea e0       	ldi	r30, 0x0A	; 10
+ b3c:	24 c0       	rjmp	.+72     	; 0xb86 <__epilogue_restores__+0x10>
+
+00000b3e <__prologue_saves__>:
+ b3e:	2f 92       	push	r2
+ b40:	3f 92       	push	r3
+ b42:	4f 92       	push	r4
+ b44:	5f 92       	push	r5
+ b46:	6f 92       	push	r6
+ b48:	7f 92       	push	r7
+ b4a:	8f 92       	push	r8
+ b4c:	9f 92       	push	r9
+ b4e:	af 92       	push	r10
+ b50:	bf 92       	push	r11
+ b52:	cf 92       	push	r12
+ b54:	df 92       	push	r13
+ b56:	ef 92       	push	r14
+ b58:	ff 92       	push	r15
+ b5a:	0f 93       	push	r16
+ b5c:	1f 93       	push	r17
+ b5e:	cf 93       	push	r28
+ b60:	df 93       	push	r29
+ b62:	cd b7       	in	r28, 0x3d	; 61
+ b64:	de b7       	in	r29, 0x3e	; 62
+ b66:	ca 1b       	sub	r28, r26
+ b68:	db 0b       	sbc	r29, r27
+ b6a:	0f b6       	in	r0, 0x3f	; 63
+ b6c:	f8 94       	cli
+ b6e:	de bf       	out	0x3e, r29	; 62
+ b70:	0f be       	out	0x3f, r0	; 63
+ b72:	cd bf       	out	0x3d, r28	; 61
+ b74:	09 94       	ijmp
+
+00000b76 <__epilogue_restores__>:
+ b76:	2a 88       	ldd	r2, Y+18	; 0x12
+ b78:	39 88       	ldd	r3, Y+17	; 0x11
+ b7a:	48 88       	ldd	r4, Y+16	; 0x10
+ b7c:	5f 84       	ldd	r5, Y+15	; 0x0f
+ b7e:	6e 84       	ldd	r6, Y+14	; 0x0e
+ b80:	7d 84       	ldd	r7, Y+13	; 0x0d
+ b82:	8c 84       	ldd	r8, Y+12	; 0x0c
+ b84:	9b 84       	ldd	r9, Y+11	; 0x0b
+ b86:	aa 84       	ldd	r10, Y+10	; 0x0a
+ b88:	b9 84       	ldd	r11, Y+9	; 0x09
+ b8a:	c8 84       	ldd	r12, Y+8	; 0x08
+ b8c:	df 80       	ldd	r13, Y+7	; 0x07
+ b8e:	ee 80       	ldd	r14, Y+6	; 0x06
+ b90:	fd 80       	ldd	r15, Y+5	; 0x05
+ b92:	0c 81       	ldd	r16, Y+4	; 0x04
+ b94:	1b 81       	ldd	r17, Y+3	; 0x03
+ b96:	aa 81       	ldd	r26, Y+2	; 0x02
+ b98:	b9 81       	ldd	r27, Y+1	; 0x01
+ b9a:	ce 0f       	add	r28, r30
+ b9c:	d1 1d       	adc	r29, r1
+ b9e:	0f b6       	in	r0, 0x3f	; 63
+ ba0:	f8 94       	cli
+ ba2:	de bf       	out	0x3e, r29	; 62
+ ba4:	0f be       	out	0x3f, r0	; 63
+ ba6:	cd bf       	out	0x3d, r28	; 61
+ ba8:	ed 01       	movw	r28, r26
+ baa:	08 95       	ret
+
+00000bac <__muldi3>:
+ bac:	df 93       	push	r29
+ bae:	cf 93       	push	r28
+ bb0:	9f 92       	push	r9
+ bb2:	a0 e4       	ldi	r26, 0x40	; 64
+ bb4:	9a 2e       	mov	r9, r26
+ bb6:	00 24       	eor	r0, r0
+ bb8:	d0 01       	movw	r26, r0
+ bba:	e0 01       	movw	r28, r0
+ bbc:	f0 01       	movw	r30, r0
+ bbe:	16 95       	lsr	r17
+ bc0:	07 95       	ror	r16
+ bc2:	f7 94       	ror	r15
+ bc4:	e7 94       	ror	r14
+ bc6:	d7 94       	ror	r13
+ bc8:	c7 94       	ror	r12
+ bca:	b7 94       	ror	r11
+ bcc:	a7 94       	ror	r10
+ bce:	48 f4       	brcc	.+18     	; 0xbe2 <__muldi3+0x36>
+ bd0:	10 68       	ori	r17, 0x80	; 128
+ bd2:	a2 0f       	add	r26, r18
+ bd4:	b3 1f       	adc	r27, r19
+ bd6:	c4 1f       	adc	r28, r20
+ bd8:	d5 1f       	adc	r29, r21
+ bda:	e6 1f       	adc	r30, r22
+ bdc:	f7 1f       	adc	r31, r23
+ bde:	08 1e       	adc	r0, r24
+ be0:	19 1e       	adc	r1, r25
+ be2:	22 0f       	add	r18, r18
+ be4:	33 1f       	adc	r19, r19
+ be6:	44 1f       	adc	r20, r20
+ be8:	55 1f       	adc	r21, r21
+ bea:	66 1f       	adc	r22, r22
+ bec:	77 1f       	adc	r23, r23
+ bee:	88 1f       	adc	r24, r24
+ bf0:	99 1f       	adc	r25, r25
+ bf2:	9a 94       	dec	r9
+ bf4:	21 f7       	brne	.-56     	; 0xbbe <__muldi3+0x12>
+ bf6:	9d 01       	movw	r18, r26
+ bf8:	ae 01       	movw	r20, r28
+ bfa:	bf 01       	movw	r22, r30
+ bfc:	c0 01       	movw	r24, r0
+ bfe:	11 24       	eor	r1, r1
+ c00:	9f 90       	pop	r9
+ c02:	cf 91       	pop	r28
+ c04:	df 91       	pop	r29
+ c06:	08 95       	ret
+
+00000c08 <_exit>:
+ c08:	f8 94       	cli
+
+00000c0a <__stop_program>:
+ c0a:	ff cf       	rjmp	.-2      	; 0xc0a <__stop_program>

@@ -1,0 +1,1 @@
+SOC.o SOC.d : SOC/SOC.c SOC/SOC.h SOC/../ADC/ADC.h

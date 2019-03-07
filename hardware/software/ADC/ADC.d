@@ -1,0 +1,1 @@
+ADC.o ADC.d : ADC/ADC.c ADC/ADC.h

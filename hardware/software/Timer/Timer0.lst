@@ -1,0 +1,105 @@
+   1               		.file	"Timer0.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 108               	.global	TIM0_Init
+ 110               	TIM0_Init:
+ 111               		.stabd	46,0,0
+   1:Timer/Timer0.c **** /*
+   2:Timer/Timer0.c ****  * Timer0.c
+   3:Timer/Timer0.c ****  *
+   4:Timer/Timer0.c ****  * Created: 23/07/2018 16:14:47
+   5:Timer/Timer0.c ****  *  Author: Marcus
+   6:Timer/Timer0.c ****  */ 
+   7:Timer/Timer0.c **** #include <util/delay.h>
+   8:Timer/Timer0.c **** #include <avr/io.h>
+   9:Timer/Timer0.c **** #include <avr/interrupt.h>
+  10:Timer/Timer0.c **** #include <avr/pgmspace.h>
+  11:Timer/Timer0.c **** 
+  12:Timer/Timer0.c **** void TIM0_Init(void)
+  13:Timer/Timer0.c **** {
+ 113               	.LM0:
+ 114               	.LFBB1:
+ 115               	/* prologue: function */
+ 116               	/* frame size = 0 */
+ 117               	/* stack size = 0 */
+ 118               	.L__stack_usage = 0
+  14:Timer/Timer0.c **** 	//Set Conter0 to 16Bit Mode, disable InputCapture
+  15:Timer/Timer0.c **** 	TCCR0A = 0b10000000;
+ 120               	.LM1:
+ 121 0000 80E8      		ldi r24,lo8(-128)
+ 122 0002 85BB      		out 0x15,r24
+  16:Timer/Timer0.c **** 
+  17:Timer/Timer0.c **** 	//Set internal Clock and Prescaler to 256 --> 8MHz/256=31.25kHz --> Overflow 31.25kHz/65536 = ever
+  18:Timer/Timer0.c **** 	TCCR0B = 0b100;
+ 124               	.LM2:
+ 125 0004 84E0      		ldi r24,lo8(4)
+ 126 0006 83BF      		out 0x33,r24
+ 127 0008 0895      		ret
+ 129               	.Lscope1:
+ 131               		.stabd	78,0,0
+ 133               	.global	TIM0_ReadTCNT0
+ 135               	TIM0_ReadTCNT0:
+ 136               		.stabd	46,0,0
+  19:Timer/Timer0.c **** }
+  20:Timer/Timer0.c **** 
+  21:Timer/Timer0.c **** uint16_t TIM0_ReadTCNT0(void)
+  22:Timer/Timer0.c **** {
+ 138               	.LM3:
+ 139               	.LFBB2:
+ 140               	/* prologue: function */
+ 141               	/* frame size = 0 */
+ 142               	/* stack size = 0 */
+ 143               	.L__stack_usage = 0
+  23:Timer/Timer0.c **** 	unsigned char sreg;
+  24:Timer/Timer0.c **** 	uint16_t i;
+  25:Timer/Timer0.c **** 	/* Save global interrupt flag */
+  26:Timer/Timer0.c **** 	sreg = SREG;
+ 145               	.LM4:
+ 146 000a 9FB7      		in r25,__SREG__
+  27:Timer/Timer0.c **** 	/* Disable interrupts */
+  28:Timer/Timer0.c **** 	cli();
+ 148               	.LM5:
+ 149               	/* #APP */
+ 150               	 ;  28 "Timer/Timer0.c" 1
+ 151 000c F894      		cli
+ 152               	 ;  0 "" 2
+  29:Timer/Timer0.c **** 	/* Read TCNT0 into i */
+  30:Timer/Timer0.c **** 	i = TCNT0L;
+ 154               	.LM6:
+ 155               	/* #NOAPP */
+ 156 000e 82B7      		in r24,0x32
+  31:Timer/Timer0.c **** 	i |= ((unsigned int)TCNT0H << 8);
+ 158               	.LM7:
+ 159 0010 24B3      		in r18,0x14
+  32:Timer/Timer0.c **** 	/* Restore global interrupt flag */
+  33:Timer/Timer0.c **** 	SREG = sreg;
+ 161               	.LM8:
+ 162 0012 9FBF      		out __SREG__,r25
+  31:Timer/Timer0.c **** 	i |= ((unsigned int)TCNT0H << 8);
+ 164               	.LM9:
+ 165 0014 90E0      		ldi r25,0
+  34:Timer/Timer0.c **** 	return i;
+  35:Timer/Timer0.c **** }...
+ 167               	.LM10:
+ 168 0016 922B      		or r25,r18
+ 169 0018 0895      		ret
+ 174               	.Lscope2:
+ 176               		.stabd	78,0,0
+ 178               	.Letext0:
+ 179               		.ident	"GCC: (GNU) 4.9.2"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Timer0.c
+     /tmp/ccBc57wg.s:2      *ABS*:0000003e __SP_H__
+     /tmp/ccBc57wg.s:3      *ABS*:0000003d __SP_L__
+     /tmp/ccBc57wg.s:4      *ABS*:0000003f __SREG__
+     /tmp/ccBc57wg.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/ccBc57wg.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/ccBc57wg.s:110    .text:00000000 TIM0_Init
+     /tmp/ccBc57wg.s:135    .text:0000000a TIM0_ReadTCNT0
+
+NO UNDEFINED SYMBOLS

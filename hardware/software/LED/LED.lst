@@ -1,0 +1,175 @@
+   1               		.file	"LED.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 127               	.global	update_led_values
+ 129               	update_led_values:
+ 130               		.stabd	46,0,0
+   1:LED/LED.c     **** /*
+   2:LED/LED.c     ****  * LED.c
+   3:LED/LED.c     ****  *
+   4:LED/LED.c     ****  * Created: 23/07/2018 15:19:40
+   5:LED/LED.c     ****  *  Author: Marcus
+   6:LED/LED.c     ****  */ 
+   7:LED/LED.c     **** #include <util/delay.h>
+   8:LED/LED.c     **** #include <avr/io.h>
+   9:LED/LED.c     **** #include <avr/interrupt.h>
+  10:LED/LED.c     **** #include <avr/pgmspace.h>
+  11:LED/LED.c     **** 
+  12:LED/LED.c     **** #include<stdio.h>
+  13:LED/LED.c     **** #include<stdlib.h>
+  14:LED/LED.c     **** #include "LED.h"
+  15:LED/LED.c     **** #include "../i2c/i2c_machine.h"
+  16:LED/LED.c     **** #include "../i2c/i2c_slave_defs.h"
+  17:LED/LED.c     **** #include "../ws2812/light_ws2812.h"
+  18:LED/LED.c     **** 
+  19:LED/LED.c     **** const uint8_t led_remappings[N_LEDS] = LED_REMAPS; // i2c/defined in i2c_slave_defs.h
+  20:LED/LED.c     **** volatile uint8_t led_data[N_LEDS*3];
+  21:LED/LED.c     **** 
+  22:LED/LED.c     **** //Calculates all values for the led's and send values
+  23:LED/LED.c     **** void update_led_values(void)
+  24:LED/LED.c     **** {
+ 132               	.LM0:
+ 133               	.LFBB1:
+ 134 0000 CF92      		push r12
+ 135 0002 DF92      		push r13
+ 136 0004 EF92      		push r14
+ 137 0006 FF92      		push r15
+ 138 0008 1F93      		push r17
+ 139 000a CF93      		push r28
+ 140 000c DF93      		push r29
+ 141               	/* prologue: function */
+ 142               	/* frame size = 0 */
+ 143               	/* stack size = 7 */
+ 144               	.L__stack_usage = 7
+ 145 000e 80E0      		ldi r24,lo8(led_remappings)
+ 146 0010 C82E      		mov r12,r24
+ 147 0012 80E0      		ldi r24,hi8(led_remappings)
+ 148 0014 D82E      		mov r13,r24
+ 150               	.LM1:
+ 151 0016 10E0      		ldi r17,0
+ 152               	.L2:
+ 153               	.LBB2:
+  25:LED/LED.c     **** 	uint8_t i=0;
+  26:LED/LED.c     **** 	for (i=0;i<N_LEDS;i++)
+  27:LED/LED.c     **** 	{
+  28:LED/LED.c     **** 		// Remap from old to new convention (due to new wiring scheme)
+  29:LED/LED.c     **** 		uint8_t j = led_remappings[i];
+ 155               	.LM2:
+ 156 0018 F601      		movw r30,r12
+ 157 001a 8191      		ld r24,Z+
+ 158 001c 6F01      		movw r12,r30
+  30:LED/LED.c     **** 
+  31:LED/LED.c     **** 		//the analog led were common anonde led. this means, that the negative pad was switched. at a val
+  32:LED/LED.c     **** 		//analog LED channel were as follows: R, G, B
+  33:LED/LED.c     **** 		//addressable LED channel are as follows: G, R, B
+  34:LED/LED.c     **** 
+  35:LED/LED.c     **** 		//led_data[3*i+0]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+  36:LED/LED.c     **** 		//led_data[3*i+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+0);
+  37:LED/LED.c     **** 		//led_data[3*i+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+  38:LED/LED.c     **** 		// I guess that was wrong, they are mapped R, G, B as well:
+  39:LED/LED.c     **** 		led_data[3*j+0]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+0);
+ 160               	.LM3:
+ 161 001e 90E0      		ldi r25,0
+ 162 0020 63E0      		ldi r22,lo8(3)
+ 163 0022 70E0      		ldi r23,0
+ 164 0024 00D0      		rcall __mulhi3
+ 165 0026 EC01      		movw r28,r24
+ 166 0028 612F      		mov r22,r17
+ 167 002a 80E0      		ldi r24,0
+ 168 002c 00D0      		rcall getI2CPWMValue
+ 169 002e 8095      		com r24
+ 170 0030 FE01      		movw r30,r28
+ 171 0032 E050      		subi r30,lo8(-(led_data))
+ 172 0034 F040      		sbci r31,hi8(-(led_data))
+ 173 0036 8083      		st Z,r24
+  40:LED/LED.c     **** 		led_data[3*j+1]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+1);
+ 175               	.LM4:
+ 176 0038 7E01      		movw r14,r28
+ 177 003a FFEF      		ldi r31,-1
+ 178 003c EF1A      		sub r14,r31
+ 179 003e FF0A      		sbc r15,r31
+ 180 0040 61E0      		ldi r22,lo8(1)
+ 181 0042 610F      		add r22,r17
+ 182 0044 80E0      		ldi r24,0
+ 183 0046 00D0      		rcall getI2CPWMValue
+ 184 0048 8095      		com r24
+ 185 004a F701      		movw r30,r14
+ 186 004c E050      		subi r30,lo8(-(led_data))
+ 187 004e F040      		sbci r31,hi8(-(led_data))
+ 188 0050 8083      		st Z,r24
+  41:LED/LED.c     **** 		led_data[3*j+2]=255-getI2CPWMValue(I2C_SLAVE_LED,i*3+2);
+ 190               	.LM5:
+ 191 0052 2296      		adiw r28,2
+ 192 0054 62E0      		ldi r22,lo8(2)
+ 193 0056 610F      		add r22,r17
+ 194 0058 80E0      		ldi r24,0
+ 195 005a 00D0      		rcall getI2CPWMValue
+ 196 005c 8095      		com r24
+ 197 005e C050      		subi r28,lo8(-(led_data))
+ 198 0060 D040      		sbci r29,hi8(-(led_data))
+ 199 0062 8883      		st Y,r24
+ 200 0064 1D5F      		subi r17,lo8(-(3))
+ 201               	.LBE2:
+  26:LED/LED.c     **** 	{
+ 203               	.LM6:
+ 204 0066 1F30      		cpi r17,lo8(15)
+ 205 0068 01F4      		brne .L2
+  42:LED/LED.c     **** 	}
+  43:LED/LED.c     **** 	//send led values
+  44:LED/LED.c     **** 	ws2812_sendarray((uint8_t *)led_data, N_LEDS * 3);
+ 207               	.LM7:
+ 208 006a 6FE0      		ldi r22,lo8(15)
+ 209 006c 70E0      		ldi r23,0
+ 210 006e 80E0      		ldi r24,lo8(led_data)
+ 211 0070 90E0      		ldi r25,hi8(led_data)
+ 212               	/* epilogue start */
+  45:LED/LED.c     **** }...
+ 214               	.LM8:
+ 215 0072 DF91      		pop r29
+ 216 0074 CF91      		pop r28
+ 217 0076 1F91      		pop r17
+ 218 0078 FF90      		pop r15
+ 219 007a EF90      		pop r14
+ 220 007c DF90      		pop r13
+ 221 007e CF90      		pop r12
+  44:LED/LED.c     **** 	ws2812_sendarray((uint8_t *)led_data, N_LEDS * 3);
+ 223               	.LM9:
+ 224 0080 00C0      		rjmp ws2812_sendarray
+ 229               	.Lscope1:
+ 231               		.stabd	78,0,0
+ 232               		.comm	led_data,15,1
+ 233               	.global	led_remappings
+ 234               		.section	.rodata
+ 237               	led_remappings:
+ 238 0000 00        		.byte	0
+ 239 0001 04        		.byte	4
+ 240 0002 01        		.byte	1
+ 241 0003 03        		.byte	3
+ 242 0004 02        		.byte	2
+ 245               		.text
+ 247               	.Letext0:
+ 248               		.ident	"GCC: (GNU) 4.9.2"
+ 249               	.global __do_copy_data
+ 250               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:00000000 LED.c
+     /tmp/ccDEYR8N.s:2      *ABS*:0000003e __SP_H__
+     /tmp/ccDEYR8N.s:3      *ABS*:0000003d __SP_L__
+     /tmp/ccDEYR8N.s:4      *ABS*:0000003f __SREG__
+     /tmp/ccDEYR8N.s:5      *ABS*:00000000 __tmp_reg__
+     /tmp/ccDEYR8N.s:6      *ABS*:00000001 __zero_reg__
+     /tmp/ccDEYR8N.s:129    .text:00000000 update_led_values
+     /tmp/ccDEYR8N.s:237    .rodata:00000000 led_remappings
+                            *COM*:0000000f led_data
+
+UNDEFINED SYMBOLS
+__mulhi3
+getI2CPWMValue
+ws2812_sendarray
+__do_copy_data
+__do_clear_bss

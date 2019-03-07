@@ -1,0 +1,858 @@
+Archive member included to satisfy reference by file (symbol)
+
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+                              i2c/i2c_machine.o (__mulhi3)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+                              ADC/ADC.o (__udivmodsi4)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+                              SOC/SOC.o (__divmodsi4)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+                              /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o) (__negsi2)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+                              /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o (exit)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+                              i2c/i2c_machine.o (__do_copy_data)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+                              main.o (__do_clear_bss)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+                              ADC/ADC.o (__umulsidi3)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+                              /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o) (__prologue_saves__)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+                              /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o) (__epilogue_restores__)
+/usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+                              /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o) (__muldi3)
+
+Allocating common symbols
+Common symbol       size              file
+
+soc_diag            0x1               SOC/SOC.o
+piCurrPosLimit      0x1               SOC/SOC.o
+mSecAccumulators    0x4               SOC/SOC.o
+lastCountValue      0x2               SOC/SOC.o
+maxCharge           0x2               SOC/SOC.o
+maxChargeCurrent    0x2               SOC/SOC.o
+freqSampleCounter   0x1               SOC/SOC.o
+freqCounter         0x2               SOC/SOC.o
+needToCharge        0x1               SOC/SOC.o
+fuelGauge           0x2               SOC/SOC.o
+i2c_reg             0xe4              i2c/i2c_machine.o
+led_data            0xf               LED/LED.o
+minChargeLimit      0x2               SOC/SOC.o
+freqSampleSec       0x1               SOC/SOC.o
+fullChargeTimer     0x2               SOC/SOC.o
+positionState       0x1               SOC/SOC.o
+fullChargeMAXTime   0x2               SOC/SOC.o
+chargeCurrPosLimit  0x1               SOC/SOC.o
+motorCurrPosLimit   0x1               SOC/SOC.o
+maxPiCurrent        0x2               SOC/SOC.o
+secAccumulators     0x4               SOC/SOC.o
+maxMotorCurrent     0x2               SOC/SOC.o
+updateFreq          0x2               SOC/SOC.o
+adc_diag            0x2               ADC/ADC.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+text             0x00000000         0x00002000         xr
+data             0x00800060         0x0000ffa0         rw !x
+eeprom           0x00810000         0x00010000         rw !x
+fuse             0x00820000         0x00000400         rw !x
+lock             0x00830000         0x00000400         rw !x
+signature        0x00840000         0x00000400         rw !x
+user_signatures  0x00850000         0x00000400         rw !x
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+LOAD main.o
+LOAD i2c/i2c_machine.o
+LOAD ws2812/light_ws2812.o
+LOAD ADC/ADC.o
+LOAD LED/LED.o
+LOAD Motor/Motor.o
+LOAD SOC/SOC.o
+LOAD Timer/Timer0.o
+LOAD /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/libm.a
+START GROUP
+LOAD /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a
+LOAD /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/libm.a
+LOAD /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/libc.a
+LOAD /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/libattiny861.a
+END GROUP
+
+.hash
+ *(.hash)
+
+.dynsym
+ *(.dynsym)
+
+.dynstr
+ *(.dynstr)
+
+.gnu.version
+ *(.gnu.version)
+
+.gnu.version_d
+ *(.gnu.version_d)
+
+.gnu.version_r
+ *(.gnu.version_r)
+
+.rel.init
+ *(.rel.init)
+
+.rela.init
+ *(.rela.init)
+
+.rel.text
+ *(.rel.text)
+ *(.rel.text.*)
+ *(.rel.gnu.linkonce.t*)
+
+.rela.text
+ *(.rela.text)
+ *(.rela.text.*)
+ *(.rela.gnu.linkonce.t*)
+
+.rel.fini
+ *(.rel.fini)
+
+.rela.fini
+ *(.rela.fini)
+
+.rel.rodata
+ *(.rel.rodata)
+ *(.rel.rodata.*)
+ *(.rel.gnu.linkonce.r*)
+
+.rela.rodata
+ *(.rela.rodata)
+ *(.rela.rodata.*)
+ *(.rela.gnu.linkonce.r*)
+
+.rel.data
+ *(.rel.data)
+ *(.rel.data.*)
+ *(.rel.gnu.linkonce.d*)
+
+.rela.data
+ *(.rela.data)
+ *(.rela.data.*)
+ *(.rela.gnu.linkonce.d*)
+
+.rel.ctors
+ *(.rel.ctors)
+
+.rela.ctors
+ *(.rela.ctors)
+
+.rel.dtors
+ *(.rel.dtors)
+
+.rela.dtors
+ *(.rela.dtors)
+
+.rel.got
+ *(.rel.got)
+
+.rela.got
+ *(.rela.got)
+
+.rel.bss
+ *(.rel.bss)
+
+.rela.bss
+ *(.rela.bss)
+
+.rel.plt
+ *(.rel.plt)
+
+.rela.plt
+ *(.rela.plt)
+
+.text           0x00000000      0xc0c
+ *(.vectors)
+ .vectors       0x00000000       0x26 /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+                0x00000000                __vectors
+                0x00000000                __vector_default
+ *(.vectors)
+ *(.progmem.gcc*)
+                0x00000026                . = ALIGN (0x2)
+                0x00000026                __trampolines_start = .
+ *(.trampolines)
+ .trampolines   0x00000026        0x0 linker stubs
+ *(.trampolines*)
+                0x00000026                __trampolines_end = .
+ *(.progmem*)
+                0x00000026                . = ALIGN (0x2)
+ *(.jumptables)
+ *(.jumptables*)
+ *(.lowtext)
+ *(.lowtext*)
+                0x00000026                __ctors_start = .
+ *(.ctors)
+                0x00000026                __ctors_end = .
+                0x00000026                __dtors_start = .
+ *(.dtors)
+                0x00000026                __dtors_end = .
+ SORT(*)(.ctors)
+ SORT(*)(.dtors)
+ *(.init0)
+ .init0         0x00000026        0x0 /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+                0x00000026                __init
+ *(.init0)
+ *(.init1)
+ *(.init1)
+ *(.init2)
+ .init2         0x00000026        0xc /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+ *(.init2)
+ *(.init3)
+ *(.init3)
+ *(.init4)
+ .init4         0x00000032       0x16 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+                0x00000032                __do_copy_data
+ .init4         0x00000048       0x10 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+                0x00000048                __do_clear_bss
+ *(.init4)
+ *(.init5)
+ *(.init5)
+ *(.init6)
+ *(.init6)
+ *(.init7)
+ *(.init7)
+ *(.init8)
+ *(.init8)
+ *(.init9)
+ .init9         0x00000058        0x4 /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+ *(.init9)
+ *(.text)
+ .text          0x0000005c        0x2 /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+                0x0000005c                __vector_1
+                0x0000005c                __vector_12
+                0x0000005c                __bad_interrupt
+                0x0000005c                __vector_6
+                0x0000005c                __vector_3
+                0x0000005c                __vector_11
+                0x0000005c                __vector_13
+                0x0000005c                __vector_17
+                0x0000005c                __vector_5
+                0x0000005c                __vector_4
+                0x0000005c                __vector_9
+                0x0000005c                __vector_2
+                0x0000005c                __vector_15
+                0x0000005c                __vector_14
+                0x0000005c                __vector_10
+                0x0000005c                __vector_16
+                0x0000005c                __vector_18
+ .text          0x0000005e        0x0 main.o
+ .text          0x0000005e      0x2e6 i2c/i2c_machine.o
+                0x0000005e                I2CAddressToArrayIndex
+                0x00000078                __vector_7
+                0x0000009c                __vector_8
+                0x00000256                i2c_init
+                0x0000026e                i2c_transaction_ongoing
+                0x00000284                i2c_check_stop
+                0x000002b8                getI2CPWMValue
+ .text          0x00000344      0x184 ws2812/light_ws2812.o
+                0x00000360                ws2812_setleds_constant
+                0x000003d2                ws2812_setleds_constant_rgbw
+                0x00000444                ws2812_sendarray_mask
+                0x00000494                ws2812_setleds_pin
+                0x000004aa                ws2812_setleds
+                0x000004ae                ws2812_setleds_rgbw
+                0x000004c4                ws2812_sendarray
+ .text          0x000004c8       0x8e ADC/ADC.o
+                0x000004c8                init_ADC
+                0x000004f0                read_ADC
+                0x00000528                read_current
+ .text          0x00000556       0x82 LED/LED.o
+                0x00000556                update_led_values
+ .text          0x000005d8       0xac Motor/Motor.o
+                0x000005d8                init_motor_outputs
+                0x00000632                update_motor_values
+ .text          0x00000684      0x356 SOC/SOC.o
+                0x00000684                init_SOC
+                0x00000718                update_SOC_limits
+                0x0000071a                accumulator
+                0x0000075c                update_fuel_gauge
+                0x0000080a                update_position
+                0x00000864                update_diag
+                0x000008ae                sample_current
+                0x00000922                update_full_charge_timer
+                0x00000954                update_SOC
+ .text          0x000009da       0x1a Timer/Timer0.o
+                0x000009da                TIM0_Init
+                0x000009e4                TIM0_ReadTCNT0
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .text          0x000009f4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+                0x000009f4                . = ALIGN (0x2)
+ *(.text.*)
+ .text.startup  0x000009f4       0x72 main.o
+                0x000009f4                main
+ .text.libgcc.mul
+                0x00000a66       0x22 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+                0x00000a66                __mulhi3
+ .text.libgcc.div
+                0x00000a88        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .text.libgcc   0x00000a88        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .text.libgcc.prologue
+                0x00000a88        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .text.libgcc.builtins
+                0x00000a88        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .text.libgcc.fmul
+                0x00000a88        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .text.libgcc.fixed
+                0x00000a88        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .text.libgcc.mul
+                0x00000a88        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.div
+                0x00000a88       0x44 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+                0x00000a88                __udivmodsi4
+ .text.libgcc   0x00000acc        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.prologue
+                0x00000acc        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.builtins
+                0x00000acc        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.fmul
+                0x00000acc        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.fixed
+                0x00000acc        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.mul
+                0x00000acc        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .text.libgcc.div
+                0x00000acc       0x28 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+                0x00000acc                __divmodsi4
+ .text.libgcc   0x00000af4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .text.libgcc.prologue
+                0x00000af4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .text.libgcc.builtins
+                0x00000af4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .text.libgcc.fmul
+                0x00000af4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .text.libgcc.fixed
+                0x00000af4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .text.libgcc.mul
+                0x00000af4        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .text.libgcc.div
+                0x00000af4       0x10 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+                0x00000af4                __negsi2
+ .text.libgcc   0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .text.libgcc.prologue
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .text.libgcc.builtins
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .text.libgcc.fmul
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .text.libgcc.fixed
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .text.libgcc.mul
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .text.libgcc.div
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .text.libgcc   0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .text.libgcc.prologue
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .text.libgcc.builtins
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .text.libgcc.fmul
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .text.libgcc.fixed
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .text.libgcc.mul
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .text.libgcc.div
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .text.libgcc   0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .text.libgcc.prologue
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .text.libgcc.builtins
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .text.libgcc.fmul
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .text.libgcc.fixed
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .text.libgcc.mul
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .text.libgcc.div
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .text.libgcc   0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .text.libgcc.prologue
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .text.libgcc.builtins
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .text.libgcc.fmul
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .text.libgcc.fixed
+                0x00000b04        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .text.libgcc.mul
+                0x00000b04       0x3a /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+                0x00000b04                __mulsidi3
+                0x00000b08                __umulsidi3
+ .text.libgcc.div
+                0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .text.libgcc   0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .text.libgcc.prologue
+                0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .text.libgcc.builtins
+                0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .text.libgcc.fmul
+                0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .text.libgcc.fixed
+                0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .text.libgcc.mul
+                0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .text.libgcc.div
+                0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .text.libgcc   0x00000b3e        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .text.libgcc.prologue
+                0x00000b3e       0x38 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+                0x00000b3e                __prologue_saves__
+ .text.libgcc.builtins
+                0x00000b76        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .text.libgcc.fmul
+                0x00000b76        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .text.libgcc.fixed
+                0x00000b76        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .text.libgcc.mul
+                0x00000b76        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .text.libgcc.div
+                0x00000b76        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .text.libgcc   0x00000b76        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .text.libgcc.prologue
+                0x00000b76       0x36 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+                0x00000b76                __epilogue_restores__
+ .text.libgcc.builtins
+                0x00000bac        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .text.libgcc.fmul
+                0x00000bac        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .text.libgcc.fixed
+                0x00000bac        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .text.libgcc.mul
+                0x00000bac       0x5c /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+                0x00000bac                __muldi3
+ .text.libgcc.div
+                0x00000c08        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+ .text.libgcc   0x00000c08        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+ .text.libgcc.prologue
+                0x00000c08        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+ .text.libgcc.builtins
+                0x00000c08        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+ .text.libgcc.fmul
+                0x00000c08        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+ .text.libgcc.fixed
+                0x00000c08        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+                0x00000c08                . = ALIGN (0x2)
+ *(.fini9)
+ .fini9         0x00000c08        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+                0x00000c08                exit
+                0x00000c08                _exit
+ *(.fini9)
+ *(.fini8)
+ *(.fini8)
+ *(.fini7)
+ *(.fini7)
+ *(.fini6)
+ *(.fini6)
+ *(.fini5)
+ *(.fini5)
+ *(.fini4)
+ *(.fini4)
+ *(.fini3)
+ *(.fini3)
+ *(.fini2)
+ *(.fini2)
+ *(.fini1)
+ *(.fini1)
+ *(.fini0)
+ .fini0         0x00000c08        0x4 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ *(.fini0)
+                0x00000c0c                _etext = .
+
+.data           0x00800060        0x8 load address 0x00000c0c
+                0x00800060                PROVIDE (__data_start, .)
+ *(.data)
+ .data          0x00800060        0x0 /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+ .data          0x00800060        0x0 main.o
+ .data          0x00800060        0x3 i2c/i2c_machine.o
+                0x00800060                I2C_SLAVE_ADDR
+ .data          0x00800063        0x0 ws2812/light_ws2812.o
+ .data          0x00800063        0x0 ADC/ADC.o
+ .data          0x00800063        0x0 LED/LED.o
+ .data          0x00800063        0x0 Motor/Motor.o
+ .data          0x00800063        0x0 SOC/SOC.o
+ .data          0x00800063        0x0 Timer/Timer0.o
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .data          0x00800063        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+ *(.data*)
+ *(.rodata)
+ .rodata        0x00800063        0x5 LED/LED.o
+                0x00800063                led_remappings
+ *(.rodata*)
+ *(.gnu.linkonce.d*)
+                0x00800068                . = ALIGN (0x2)
+                0x00800068                _edata = .
+                0x00800068                PROVIDE (__data_end, .)
+
+.bss            0x00800068      0x129
+                0x00800068                PROVIDE (__bss_start, .)
+ *(.bss)
+ .bss           0x00800068        0x0 /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+ .bss           0x00800068        0x7 main.o
+ .bss           0x0080006f        0x7 i2c/i2c_machine.o
+                0x0080006f                i2c_offset
+                0x00800070                i2c_state
+                0x00800071                i2c_current_Slave
+                0x00800072                i2c_update
+ .bss           0x00800076        0x0 ws2812/light_ws2812.o
+ .bss           0x00800076        0x0 ADC/ADC.o
+ .bss           0x00800076        0x0 LED/LED.o
+ .bss           0x00800076        0x0 Motor/Motor.o
+ .bss           0x00800076        0x0 SOC/SOC.o
+ .bss           0x00800076        0x0 Timer/Timer0.o
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+ .bss           0x00800076        0x0 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+ *(.bss*)
+ *(COMMON)
+ COMMON         0x00800076       0xe4 i2c/i2c_machine.o
+                0x00800076                i2c_reg
+ COMMON         0x0080015a        0x2 ADC/ADC.o
+                0x0080015a                adc_diag
+ COMMON         0x0080015c        0xf LED/LED.o
+                0x0080015c                led_data
+ COMMON         0x0080016b       0x26 SOC/SOC.o
+                0x0080016b                soc_diag
+                0x0080016c                piCurrPosLimit
+                0x0080016d                mSecAccumulators
+                0x00800171                lastCountValue
+                0x00800173                maxCharge
+                0x00800175                maxChargeCurrent
+                0x00800177                freqSampleCounter
+                0x00800178                freqCounter
+                0x0080017a                needToCharge
+                0x0080017b                fuelGauge
+                0x0080017d                minChargeLimit
+                0x0080017f                freqSampleSec
+                0x00800180                fullChargeTimer
+                0x00800182                positionState
+                0x00800183                fullChargeMAXTime
+                0x00800185                chargeCurrPosLimit
+                0x00800186                motorCurrPosLimit
+                0x00800187                maxPiCurrent
+                0x00800189                secAccumulators
+                0x0080018d                maxMotorCurrent
+                0x0080018f                updateFreq
+                0x00800191                PROVIDE (__bss_end, .)
+                0x00000c0c                __data_load_start = LOADADDR (.data)
+                0x00000c14                __data_load_end = (__data_load_start + SIZEOF (.data))
+
+.noinit         0x00800191        0x0
+                0x00800191                PROVIDE (__noinit_start, .)
+ *(.noinit*)
+                0x00800191                PROVIDE (__noinit_end, .)
+                0x00800191                _end = .
+                0x00800191                PROVIDE (__heap_start, .)
+
+.eeprom         0x00810000        0x0
+ *(.eeprom*)
+                0x00810000                __eeprom_end = .
+
+.fuse
+ *(.fuse)
+ *(.lfuse)
+ *(.hfuse)
+ *(.efuse)
+
+.lock
+ *(.lock*)
+
+.signature
+ *(.signature*)
+
+.user_signatures
+ *(.user_signatures*)
+
+.stab           0x00000000     0x360c
+ *(.stab)
+ .stab          0x00000000      0x750 main.o
+ .stab          0x00000750      0x9d8 i2c/i2c_machine.o
+                                0xb94 (size before relaxing)
+ .stab          0x00001128      0x828 ws2812/light_ws2812.o
+                                0xa14 (size before relaxing)
+ .stab          0x00001950      0x558 ADC/ADC.o
+                                0x7c8 (size before relaxing)
+ .stab          0x00001ea8      0x408 LED/LED.o
+                                0x678 (size before relaxing)
+ .stab          0x000022b0      0x4f8 Motor/Motor.o
+                                0x768 (size before relaxing)
+ .stab          0x000027a8      0xa98 SOC/SOC.o
+                                0xd2c (size before relaxing)
+ .stab          0x00003240      0x3cc Timer/Timer0.o
+                                0x5b8 (size before relaxing)
+
+.stabstr        0x00000000     0x1901
+ *(.stabstr)
+ .stabstr       0x00000000     0x1901 main.o
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x00000000       0x11
+ *(.comment)
+ .comment       0x00000000       0x11 main.o
+                                 0x12 (size before relaxing)
+ .comment       0x00000011       0x12 i2c/i2c_machine.o
+ .comment       0x00000011       0x12 ws2812/light_ws2812.o
+ .comment       0x00000011       0x12 ADC/ADC.o
+ .comment       0x00000011       0x12 LED/LED.o
+ .comment       0x00000011       0x12 Motor/Motor.o
+ .comment       0x00000011       0x12 SOC/SOC.o
+ .comment       0x00000011       0x12 Timer/Timer0.o
+
+.note.gnu.avr.deviceinfo
+                0x00000000       0x3c
+ .note.gnu.avr.deviceinfo
+                0x00000000       0x3c /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+
+.note.gnu.build-id
+ *(.note.gnu.build-id)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info
+ *(.debug_info .gnu.linkonce.wi.*)
+
+.debug_abbrev
+ *(.debug_abbrev)
+
+.debug_line
+ *(.debug_line .debug_line.* .debug_line_end)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str
+ *(.debug_str)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.debug_pubtypes
+ *(.debug_pubtypes)
+
+.debug_ranges
+ *(.debug_ranges)
+
+.debug_macro
+ *(.debug_macro)
+OUTPUT(main.elf elf32-avr)
+LOAD linker stubs
+
+Cross Reference Table
+
+Symbol                                            File
+I2CAddressToArrayIndex                            i2c/i2c_machine.o
+I2C_SLAVE_ADDR                                    i2c/i2c_machine.o
+TIM0_Init                                         Timer/Timer0.o
+                                                  main.o
+TIM0_ReadTCNT0                                    Timer/Timer0.o
+                                                  main.o
+__bad_interrupt                                   /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__bss_end                                         /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+__bss_start                                       /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+__data_end                                        /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+__data_load_start                                 /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+__data_start                                      /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+__divmodsi4                                       /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+                                                  SOC/SOC.o
+__do_clear_bss                                    /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_clear_bss.o)
+                                                  SOC/SOC.o
+                                                  LED/LED.o
+                                                  ADC/ADC.o
+                                                  i2c/i2c_machine.o
+                                                  main.o
+__do_copy_data                                    /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_copy_data.o)
+                                                  LED/LED.o
+                                                  i2c/i2c_machine.o
+__epilogue_restores__                             /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_epilogue.o)
+                                                  /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+__heap_end                                        /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__init                                            /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__muldi3                                          /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_muldi3.o)
+                                                  /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+__mulhi3                                          /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulhi3.o)
+                                                  LED/LED.o
+                                                  i2c/i2c_machine.o
+__mulsidi3                                        /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+__negsi2                                          /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_negsi2.o)
+                                                  /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+__prologue_saves__                                /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_prologue.o)
+                                                  /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+__stack                                           /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__udivmodsi4                                      /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_udivmodsi4.o)
+                                                  /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_divmodsi4.o)
+                                                  ADC/ADC.o
+__umulsidi3                                       /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_mulsidi3.o)
+                                                  ADC/ADC.o
+__vector_1                                        /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_10                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_11                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_12                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_13                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_14                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_15                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_16                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_17                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_18                                       /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_2                                        /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_3                                        /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_4                                        /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_5                                        /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_6                                        /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_7                                        i2c/i2c_machine.o
+                                                  /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_8                                        i2c/i2c_machine.o
+                                                  /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_9                                        /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vector_default                                  /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+__vectors                                         /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+_exit                                             /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+accumulator                                       SOC/SOC.o
+adc_diag                                          ADC/ADC.o
+chargeCurrPosLimit                                SOC/SOC.o
+exit                                              /usr/lib/gcc/avr/4.9.2/avr25/libgcc.a(_exit.o)
+                                                  /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+freqCounter                                       SOC/SOC.o
+freqSampleCounter                                 SOC/SOC.o
+freqSampleSec                                     SOC/SOC.o
+fuelGauge                                         SOC/SOC.o
+fullChargeMAXTime                                 SOC/SOC.o
+fullChargeTimer                                   SOC/SOC.o
+getI2CPWMValue                                    i2c/i2c_machine.o
+                                                  Motor/Motor.o
+                                                  LED/LED.o
+i2c_check_stop                                    i2c/i2c_machine.o
+                                                  main.o
+i2c_current_Slave                                 i2c/i2c_machine.o
+i2c_init                                          i2c/i2c_machine.o
+                                                  main.o
+i2c_offset                                        i2c/i2c_machine.o
+i2c_reg                                           i2c/i2c_machine.o
+i2c_state                                         i2c/i2c_machine.o
+i2c_transaction_ongoing                           i2c/i2c_machine.o
+i2c_update                                        i2c/i2c_machine.o
+init_ADC                                          ADC/ADC.o
+                                                  main.o
+init_SOC                                          SOC/SOC.o
+                                                  main.o
+init_motor_outputs                                Motor/Motor.o
+                                                  main.o
+lastCountValue                                    SOC/SOC.o
+led_data                                          LED/LED.o
+led_remappings                                    LED/LED.o
+mSecAccumulators                                  SOC/SOC.o
+main                                              main.o
+                                                  /usr/lib/gcc/avr/4.9.2/../../../avr/lib/avr25/crtattiny861.o
+maxCharge                                         SOC/SOC.o
+maxChargeCurrent                                  SOC/SOC.o
+maxMotorCurrent                                   SOC/SOC.o
+maxPiCurrent                                      SOC/SOC.o
+minChargeLimit                                    SOC/SOC.o
+motorCurrPosLimit                                 SOC/SOC.o
+needToCharge                                      SOC/SOC.o
+piCurrPosLimit                                    SOC/SOC.o
+positionState                                     SOC/SOC.o
+read_ADC                                          ADC/ADC.o
+read_current                                      ADC/ADC.o
+                                                  SOC/SOC.o
+sample_current                                    SOC/SOC.o
+secAccumulators                                   SOC/SOC.o
+soc_diag                                          SOC/SOC.o
+updateFreq                                        SOC/SOC.o
+update_SOC                                        SOC/SOC.o
+                                                  main.o
+update_SOC_limits                                 SOC/SOC.o
+update_diag                                       SOC/SOC.o
+update_fuel_gauge                                 SOC/SOC.o
+update_full_charge_timer                          SOC/SOC.o
+update_led_values                                 LED/LED.o
+                                                  main.o
+update_motor_values                               Motor/Motor.o
+                                                  main.o
+update_position                                   SOC/SOC.o
+ws2812_sendarray                                  ws2812/light_ws2812.o
+                                                  LED/LED.o
+ws2812_sendarray_mask                             ws2812/light_ws2812.o
+ws2812_setleds                                    ws2812/light_ws2812.o
+ws2812_setleds_constant                           ws2812/light_ws2812.o
+ws2812_setleds_constant_rgbw                      ws2812/light_ws2812.o
+ws2812_setleds_pin                                ws2812/light_ws2812.o
+ws2812_setleds_rgbw                               ws2812/light_ws2812.o
