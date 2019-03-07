@@ -222,7 +222,7 @@ class InverseKinematicsNode(object):
         msg_wheels_cmd = WheelsCmdStamped()
         msg_wheels_cmd.header.stamp = msg_car_cmd.header.stamp
         msg_wheels_cmd.vel_wheel = u_wheel_limited                              #vel_right is defined in the WheelsCmdStamped --> name needs to be changed everywhere!, RFMH_2019_02_25
-        msg_wheels_cmd.gamma = gamma
+        msg_wheels_cmd.gamma = gamma *(180/math.pi)
         self.pub_wheels_cmd.publish(msg_wheels_cmd)
 
     def setup_parameter(self, param_name, default_value):

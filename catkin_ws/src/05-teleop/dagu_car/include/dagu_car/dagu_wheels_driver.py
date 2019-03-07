@@ -21,20 +21,24 @@ class DaguWheelsDriver:
     DC_MOTOR_MAX_PWM = 255          # Maximum speed for right motor             #change the name from "RIGHT_MOTOR_MAX_PWM" to "DC_MOTOR_MAX_PWM", RFMH_2019_02_26
     # AXEL_TO_RADIUS_RATIO = 1.0    # The axel length and turning radius ratio
     SPEED_TOLERANCE = 1.e-2         # speed tolerance level
+    GPIO.setmode(GPIO.BOARD)                                                #Declaration of all the pins by setting the naming mode, RFMH_2019_03_05
+    GPIO.setwarnings(False)
+    GPIO.setup(33, GPIO.OUT)                                                #Set the output to GPIO 12 (pin 32), RFMH_2019_03_05
+    pwm = GPIO.PWM(33, 50) 						    #setup the PWM frequency, RFMH_2019_03_05
 
+    
     def __init__(self, verbose=False, debug=False, left_flip=False, dcmotor_flip=False):
         self.motorhat = Adafruit_MotorHAT(addr=0x60)
         #self.leftMotor = self.motorhat.getMotor(2)                             #commented, RFMH_2019_02_26
         self.DcMotor = self.motorhat.getMotor(1)                                #change the name from "rightMotor" to "DcMotor", RFMH_2019_02_26
         self.verbose = verbose or debug
         self.debug = debug
+        #self.pwm = GPIO.PWM(33, 50)
 
-        GPIO.setmode(GPIO.BOARD)                                                #Declaration of all the pins by setting the naming mode, RFMH_2019_03_05
-        GPIO.setup(32, GPIO.OUT)                                                #Set the output to GPIO 12 (pin 32), RFMH_2019_03_05
-        pwm = GPIO.PWM(32, 50)                                                  #setup the PWM frequency, RFMH_2019_03_05
-        pwm.start(0)                                                            #initialization, RFMH_2019_03_05
+        self.pwm.start(0)                                                            #initialization, RFMH_2019_03_05
 
-        # self.left_sgn = 1.0                                                   #commented, RFMH_2019_02_26
+        
+        #self.left_sgn = 1.0                                                   #commented, RFMH_2019_02_26
         # if left_flip:
         #     self.left_sgn = -1.0
 
@@ -48,11 +52,11 @@ class DaguWheelsDriver:
 
     def SetAngle(self, angle):                                                        #function to set the angle on the servo, RFMH_2019_03_05
     	duty = angle / 18.0 + 2                                                 #TODO: check if this duty cycle from 2-12% does still hold for the final versino of the servo, RFMH_2019_03_05
-    	GPIO.output(32, True)                                                   #Set the GPIO12 to an active output, RFMH_2019_03_05
-    	pwm.ChangeDutyCycle(duty)                                               #Set the actual PWM-signal, RFMH_2019_03_05
+    	GPIO.output(33, True)                                                   #Set the GPIO12 to an active output, RFMH_2019_03_05
+    	self.pwm.ChangeDutyCycle(duty)                                               #Set the actual PWM-signal, RFMH_2019_03_05
     	sleep(0.5)                                                              #wait for the servo to set the angle hardware-wise, RFMH_2019_03_05 (maybe change to 1sec)
-    	GPIO.output(32, False)
-    	pwm.ChangeDutyCycle(0)                                                  #implmenting this preserves the servo from jittering, RFMH_2019_03_05
+    	GPIO.output(33, False)
+    	self.pwm.ChangeDutyCycle(0)                                                  #implmenting this preserves the servo from jittering, RFMH_2019_03_05
 
     def PWMvalue(self, v, minPWM, maxPWM):
         pwm = 0
