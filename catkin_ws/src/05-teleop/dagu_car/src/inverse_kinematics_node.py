@@ -33,11 +33,13 @@ class InverseKinematicsNode(object):
         self.axis_distance = self.setup_parameter("~axis_distance", 0.105)      #introduce the distance between the axis, RFMH_2019_02_25
         self.cog_distance = self.setup_parameter("~cog_distance", 0.0525)       #introduce the distance of turning point from the back axis (half the axis_distance),
         self.limit = self.setup_parameter("~limit", 1.0)
-        self.limit_max = 1.0
+        self.angle_lim = self.setup_parameter("~angle_lim", 0.611)		#introduce angle limitation value (0.611 rad = 35 deg) 
+	self.wheel_to_servo_factor = self.setup_parameter("~wheel_to_servo_factor", 0.83)	#introduce factor to relate servo angle to wheel angle using bycicle model
+	self.limit_max = 1.0
         self.limit_min = -1.0
 
         self.v_max = 999.0     # TODO: Calculate v_max !
-        self.omega_max = 999.0     # TODO: Calculate v_max !
+        self.omega_max = 999.0     # TODO: Calculate v_max ! 	
 
         # Prepare services (no new services for new variables defined because do not do any work; loading from .yaml file worked without), RFMH_2019_02_25
         self.srv_set_gain_dc = rospy.Service("~set_gain_dc", SetValue, self.cbSrvSetGainDc)         #adjust gain to dc-motor, RFMH_2019_02_25
@@ -85,7 +87,7 @@ class InverseKinematicsNode(object):
         if yaml_dict is None:
             # Empty yaml file
             return
-        for param_name in ["gain_dc", "trim_dc", "gain_servo", "trim_servo", "baseline", "radius", "k", "axis_distance", "cog_distance", "limit"]:        #inserted the new parameters defined above, RFMH_2019_02_25
+        for param_name in ["gain_dc", "trim_dc", "gain_servo", "trim_servo", "baseline", "radius", "k", "axis_distance", "cog_distance", "limit", "angle_lim", "wheel_to_servo_factor"]:        #inserted the new parameters defined above, RFMH_2019_02_25
             param_value = yaml_dict.get(param_name)
             if param_name is not None:
                 rospy.set_param("~"+param_name, param_value)
@@ -113,6 +115,8 @@ class InverseKinematicsNode(object):
             "axis_distance": self.axis_distance,                                #the two new parameters must be written to the yaml-file again, RFMH_2019_02_25
             "cog_distance": self.cog_distance,
             "limit": self.limit,
+	    "angle_lim": self.angle_lim,
+	    "wheel_to_servo_factor": self.wheel_to_servo_factor,
         }
 
         # Write to file
@@ -188,7 +192,7 @@ class InverseKinematicsNode(object):
         return limit
 
     def printValues(self):                                                      #adjust the output to all the new values as well in the log info, RFMH_2019_02_25
-        rospy.loginfo("[%s] gain_dc: %s trim_dc: %s gain_servo: %s trim_servo: %s baseline: %s radius: %s k: %s axis_distance: %s cog_distance: %s limit: %s" % (self.node_name, self.gain_dc, self.trim_dc, self.gain_servo, self.trim_servo, self.baseline, self.radius, self.k, self.axis_distance, self.cog_distance, self.limit))
+        rospy.loginfo("[%s] gain_dc: %s trim_dc: %s gain_servo: %s trim_servo: %s baseline: %s radius: %s k: %s axis_distance: %s cog_distance: %s limit: %s angle_lim: %s wheel_to_servo_factor: %s" % (self.node_name, self.gain_dc, self.trim_dc, self.gain_servo, self.trim_servo, self.baseline, self.radius, self.k, self.axis_distance, self.cog_distance, self.limit, self.angle_lim, self.wheel_to_servo_factor))
     def car_cmd_callback(self, msg_car_cmd):
         if not self.actuator_limits_received:
             self.pub_actuator_limits.publish(self.msg_actuator_limits)
@@ -203,10 +207,13 @@ class InverseKinematicsNode(object):
 
         omega_wheel = msg_car_cmd.v / self.radius                               #omega_r changed to omega_wheel and skipped the whole calculation
         #distinguish that the argument of the square root is always positive
-        if pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) > pow(self.cog_distance,2.0):
-            gamma = math.atan(pow(pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) - pow(self.cog_distance,2.0),-0.5) * self.axis_distance)    ##omega_l changed to gamma as this is the steering angle and inserted the new calculation: gamma = f(v, omega)
+	if msg_car_cmd.omega == 0:                                              #check, whether division by zero occurs: then the bot is in the middle and no steering angle is needed
+            gamma = 0
+        elif pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) <= pow(self.cog_distance,2.0): #check, whether square-root has a negative argument, if so: set the steering angle to the maximum
+            gamma = self.angle_lim * msg_car_cmd.omega / fabs(msg_car_cmd.omega)                               #omega_l changed to gamma as this is the steering angle and inserted the new calculation: gamma = f(v, omega)
         else:
-            gamma = math.atan(pow(pow(self.cog_distance,2.0) - pow((msg_car_cmd.v / msg_car_cmd.omega),2.0),-0.5) * self.axis_distance) * -1.0
+            gamma = math.atan(pow(pow((msg_car_cmd.v / msg_car_cmd.omega),2.0) - pow(self.cog_distance,2.0),-0.5) * self.axis_distance) * msg_car_cmd.omega / fabs(msg_car_cmd.omega)
+
         rospy.loginfo(gamma)
         ## conversion from motor rotation rate to duty cycle
         # u_r = (gain_dc + trim_dc) (v + 0.5 * omega * b) / (r * k_r)
@@ -216,13 +223,14 @@ class InverseKinematicsNode(object):
 
         ## limiting output to limit, which is 1.0 for the duckiebot
         u_wheel_limited = max(min(u_wheel, self.limit), -self.limit)            #u_r_limited changed to "u_wheel_limited" and "u_r" changed to "u_wheel", RFMH_2019_02_25
-        #u_l_limited = max(min(u_l, self.limit), -self.limit)
+        gamma_limited = max(min(gamma, self.angle_lim), -self.angle_lim)*(180/math.pi)
+	#u_l_limited = max(min(u_l, self.limit), -self.limit)
 
         # Put the wheel commands in a message and publish
         msg_wheels_cmd = WheelsCmdStamped()
         msg_wheels_cmd.header.stamp = msg_car_cmd.header.stamp
         msg_wheels_cmd.vel_wheel = u_wheel_limited                              #vel_right is defined in the WheelsCmdStamped --> name needs to be changed everywhere!, RFMH_2019_02_25
-        msg_wheels_cmd.gamma = gamma *(180/math.pi)
+        msg_wheels_cmd.gamma = gamma_limited
         self.pub_wheels_cmd.publish(msg_wheels_cmd)
 
     def setup_parameter(self, param_name, default_value):

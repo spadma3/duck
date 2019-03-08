@@ -53,10 +53,6 @@ class WheelsDriverNode(object):
             self.ServoDriver.SetAngle(angle=0.0)                                #set angle of servo to zero if stopped
             return
 
-        # Check if radius limitation is enabled
-        if (self.use_rad_lim and msg.gamma != 0):                               #deleted the condition for vel_left and replace "vel_right" with "gamma", RFMH_2019_02_26
-            self.AdjustAngle(self, msg)                                         #instead of checkAndAdjustRadius() we use AdjustAngle()
-
 
         self.DCdriver.setWheelsSpeed(dc_motor_speed=msg.vel_wheel)              #deleted argument for vel_left, changed "right" to "dc_motor_speed" and "vel_right" to "vel_wheel", RFMH_2019_02_26
         self.ServoDriver.SetAngle(angle = msg.gamma)                            #set the steering angle on the servo, RFMH_2019_03_05
@@ -67,22 +63,6 @@ class WheelsDriverNode(object):
         self.msg_wheels_cmd.gamma = msg.gamma                                   #TODO: check whether gamma is published correctly with this implementation
         self.msg_wheels_cmd.vel_wheel = msg.vel_wheel                           #"vel_right" changed to "vel_wheel", RFMH_2019_02_26
         self.pub_wheels_cmd.publish(self.msg_wheels_cmd)
-
-    # def cbRadLimit(self, msg):                                                #no radius limitation needed. 
-    #     rospy.set_param("~use_rad_lim", msg.data)
-    #     self.use_rad_lim = msg.data
-
-    def AdjustAngle(self, msg):                                                 # check, whether the angle is outside a specific operating range
-        didAdjustment = False                                                   # and return corrected value if needed, RFMH_2019_02_26
-        #oversteering left
-        if msg.gamma > self.angle_lim_left:
-            msg.gamma = self.angle_lim_left
-            didAdjustment = True
-        #oversteering right
-        elif msg.gamma < self.angle_lim_right:
-            msg.gamma = self.angle_lim_right
-            didAdjustment = True
-        return didAdjustment
 
 
     # def checkAndAdjustRadius(self, msg):                                      #replaced by AdjustAngle()
